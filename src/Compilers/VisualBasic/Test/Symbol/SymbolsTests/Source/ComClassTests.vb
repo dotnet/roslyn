@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.Desktop
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -166,7 +165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End If
 
             If p.HasExplicitDefaultValue Then
-                result.Add(<Default><%= p.ExplicitDefaultValue %></Default>)
+                Dim value = p.ExplicitDefaultValue
+                If TypeOf value Is Date Then
+                    ' The default display of DateTime is different between Desktop and CoreClr hence 
+                    ' we need to normalize the value here.
+                    value = (CDate(value)).ToString("yyyy-MM-ddTHH:mm:ss")
+                End If
+                result.Add(<Default><%= value %></Default>)
             End If
 
             ' TODO (tomat): add MarshallingInformation

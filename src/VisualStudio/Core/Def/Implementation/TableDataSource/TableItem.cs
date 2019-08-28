@@ -1,173 +1,70 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class TableItem<T>
+    internal abstract class TableItem
     {
-        private readonly Func<T, int> _keyGenerator;
+        public readonly Workspace Workspace;
 
-        private int? _deduplicationKey;
-        private SharedInfoCache _cache;
+        private string _lazyProjectName;
 
-        public readonly T Primary;
+        // Guid.Empty if the item is aggregated, or the item doesn't have an associated project.
+        public readonly Guid ProjectGuid;
 
-        public TableItem(T item, Func<T, int> keyGenerator)
+        // Empty for non-aggregated items:
+        public readonly string[] ProjectNames;
+        public readonly Guid[] ProjectGuids;
+
+        public TableItem(Workspace workspace, string projectName, Guid projectGuid, string[] projectNames, Guid[] projectGuids)
         {
-            _deduplicationKey = null;
-            _keyGenerator = keyGenerator;
+            Contract.ThrowIfNull(workspace);
+            Contract.ThrowIfNull(projectNames);
+            Contract.ThrowIfNull(projectGuids);
 
-            _cache = null;
-            Primary = item;
+            Workspace = workspace;
+            _lazyProjectName = projectName;
+            ProjectGuid = projectGuid;
+            ProjectNames = projectNames;
+            ProjectGuids = projectGuids;
         }
 
-        public TableItem(IEnumerable<TableItem<T>> items)
+        internal static void GetProjectNameAndGuid(Workspace workspace, ProjectId projectId, out string projectName, out Guid projectGuid)
         {
-#if DEBUG
-            // If code reached here,
-            // There must be at least 1 item in the list
-            Contract.ThrowIfFalse(items.Count() > 0);
-
-            // There must be document id
-            Contract.ThrowIfTrue(items.Any(i => i.PrimaryDocumentId == null));
-#endif
-
-            var first = true;
-            var collectionHash = 1;
-            var count = 0;
-
-            // Make things to be deterministic. 
-            var ordereditems = items.OrderBy(i => i.PrimaryDocumentId.Id);
-            foreach (var item in ordereditems)
-            {
-                count++;
-
-                if (first)
-                {
-                    Primary = item.Primary;
-
-                    _deduplicationKey = item.DeduplicationKey;
-                    _keyGenerator = null;
-
-                    first = false;
-                }
-
-                collectionHash = Hash.Combine(item.PrimaryDocumentId.Id.GetHashCode(), collectionHash);
-            }
-
-            if (count == 1)
-            {
-                _cache = null;
-                return;
-            }
-
-            // order of item is important. make sure we maintain it.
-            _cache = SharedInfoCache.GetOrAdd(collectionHash, ordereditems, c => new SharedInfoCache(c.Select(i => i.PrimaryDocumentId).ToImmutableArray()));
+            projectName = (projectId == null) ? null : workspace.CurrentSolution.GetProject(projectId)?.Name ?? ServicesVSResources.Unknown2;
+            projectGuid = (projectId != null && workspace is VisualStudioWorkspace vsWorkspace) ? vsWorkspace.GetProjectGuid(projectId) : Guid.Empty;
         }
 
-        public DocumentId PrimaryDocumentId
-        {
-            get
-            {
-                return Extensions.GetDocumentId(Primary);
-            }
-        }
+        public abstract TableItem WithAggregatedData(string[] projectNames, Guid[] projectGuids);
 
-        private Microsoft.CodeAnalysis.Workspace Workspace
-        {
-            get
-            {
-                return Extensions.GetWorkspace(Primary);
-            }
-        }
+        public abstract DocumentId DocumentId { get; }
+        public abstract ProjectId ProjectId { get; }
+
+        public abstract LinePosition GetOriginalPosition();
+        public abstract string GetOriginalFilePath();
+        public abstract bool EqualsIgnoringLocation(TableItem other);
 
         public string ProjectName
         {
             get
             {
-                var projectId = Extensions.GetProjectId(Primary);
-                if (projectId == null)
+                if (_lazyProjectName != null)
                 {
-                    // this item doesn't have project at the first place
-                    return null;
+                    return _lazyProjectName;
                 }
 
-                if (_cache == null)
+                if (ProjectNames.Length > 0)
                 {
-                    // return single project name
-                    return Workspace.GetProjectName(projectId) ?? ServicesVSResources.Unknown2;
+                    return _lazyProjectName = string.Join(", ", ProjectNames);
                 }
 
-                // return joined project names
-                return _cache.GetProjectName(Workspace) ?? ServicesVSResources.Unknown2;
+                return null;
             }
         }
 
-        public string[] ProjectNames
-        {
-            get
-            {
-                if (_cache == null)
-                {
-                    // if this is not aggregated element, there is no projectnames.
-                    return Array.Empty<string>();
-                }
-
-                return _cache.GetProjectNames(Workspace);
-            }
-        }
-
-        public Guid ProjectGuid
-        {
-            get
-            {
-                var projectId = Extensions.GetProjectId(Primary);
-                if (projectId == null)
-                {
-                    return Guid.Empty;
-                }
-
-                if (_cache == null)
-                {
-                    return Workspace.GetProjectGuid(projectId);
-                }
-
-                // if this is aggregated element, there is no projectguid
-                return Guid.Empty;
-            }
-        }
-
-        public Guid[] ProjectGuids
-        {
-            get
-            {
-                if (_cache == null)
-                {
-                    // if it is not aggregated element, there is no projectguids
-                    return Array.Empty<Guid>();
-                }
-
-                return _cache.GetProjectGuids(Workspace);
-            }
-        }
-
-        public int DeduplicationKey
-        {
-            get
-            {
-                if (_deduplicationKey == null)
-                {
-                    _deduplicationKey = _keyGenerator(Primary);
-                }
-
-                return _deduplicationKey.Value;
-            }
-        }
     }
 }

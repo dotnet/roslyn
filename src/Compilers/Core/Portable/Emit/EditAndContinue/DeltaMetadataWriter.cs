@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // If the previous generation is 0 (metadata) get the synthesized members from the current compilation's builder,
             // otherwise members from the current compilation have already been merged into the baseline.
-            var synthesizedMembers = (baseline.Ordinal == 0) ? module.GetSynthesizedMembers() : baseline.SynthesizedMembers;
+            var synthesizedMembers = (baseline.Ordinal == 0) ? module.GetAllSynthesizedMembers() : baseline.SynthesizedMembers;
 
             return baseline.With(
                 compilation,
@@ -439,11 +439,6 @@ namespace Microsoft.CodeAnalysis.Emit
             return _standAloneSignatureIndex.Rows;
         }
 
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module)
-        {
-            return _changes.GetTopLevelTypes(this.Context);
-        }
-
         protected override void OnIndicesCreated()
         {
             var module = (IPEDeltaAssemblyBuilder)this.module;
@@ -510,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     foreach (var paramDef in this.GetParametersToEmit(methodDef))
                     {
                         _parameterDefs.Add(paramDef);
-                        _parameterDefList.Add(KeyValuePair.Create(methodDef, paramDef));
+                        _parameterDefList.Add(KeyValuePairUtil.Create(methodDef, paramDef));
                     }
 
                     if (methodDef.GenericParameterCount > 0)
@@ -654,9 +649,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
-                
+
                 BlobHandle blobIndex = metadata.GetOrAddBlob(writer);
-                
+
                 localSignatureHandle = GetOrAddStandaloneSignatureHandle(blobIndex);
                 writer.Free();
             }
@@ -1446,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             public override void Visit(CommonPEModuleBuilder module)
             {
-                this.Visit(((DeltaMetadataWriter)this.metadataWriter).GetTopLevelTypes(module));
+                Visit(module.GetTopLevelTypeDefinitions(metadataWriter.Context));
             }
 
             public override void Visit(IEventDefinition eventDefinition)

@@ -355,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A bound node that computes the pointer to the required frame</returns>
         Private Function FrameOfType(syntax As SyntaxNode, frameType As NamedTypeSymbol) As BoundExpression
             Dim result As BoundExpression = FramePointer(syntax, frameType.OriginalDefinition)
-            Debug.Assert(result.Type = frameType)
+            Debug.Assert(TypeSymbol.Equals(result.Type, frameType, TypeCompareKind.ConsiderEverything))
             Return result
         End Function
 
@@ -369,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A bound node that computes the pointer to the required frame</returns>
         Friend Overrides Function FramePointer(syntax As SyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
             Debug.Assert(frameClass.IsDefinition)
-            If _currentFrameThis IsNot Nothing AndAlso _currentFrameThis.Type = frameClass Then
+            If _currentFrameThis IsNot Nothing AndAlso TypeSymbol.Equals(_currentFrameThis.Type, frameClass, TypeCompareKind.ConsiderEverything) Then
                 Return New BoundMeReference(syntax, frameClass)
             End If
 
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim framePointer = New SynthesizedLocal(Me._topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntax)
             Dim prologue = ArrayBuilder(Of BoundExpression).GetInstance()
             Dim constructor As MethodSymbol = frame.Constructor.AsMember(frameType)
-            Debug.Assert(frameType = constructor.ContainingType)
+            Debug.Assert(TypeSymbol.Equals(frameType, constructor.ContainingType, TypeCompareKind.ConsiderEverything))
 
             Dim syntaxNode As SyntaxNode = node.Syntax
 
@@ -806,7 +806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not Me.Proxies.ContainsKey(origLocal), "captured local should not need rewriting")
 
                 Dim newType = VisitType(origLocal.Type)
-                If newType = origLocal.Type Then
+                If TypeSymbol.Equals(newType, origLocal.Type, TypeCompareKind.ConsiderEverything) Then
                     ' keeping same local
                     rewrittenCatchLocal = origLocal
 
@@ -1431,6 +1431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Nothing,
                         receiver,
                         node.Arguments,
+                        node.DefaultArguments,
                         Nothing,
                         isLValue:=False,
                         suppressObjectClone:=node.SuppressObjectClone,

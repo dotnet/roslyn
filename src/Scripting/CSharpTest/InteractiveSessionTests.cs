@@ -467,6 +467,49 @@ Environment.ProcessorCount
         }
 
         [Fact]
+        public void CompilationChain_Accessibility()
+        {
+            // Submissions have internal and protected access to one another.
+            var state1 = CSharpScript.RunAsync("internal class C1 { }   protected int X;   1");
+            var compilation1 = state1.Result.Script.GetCompilation();
+            compilation1.VerifyDiagnostics(
+                // (1,39): warning CS0628: 'X': new protected member declared in sealed class
+                // internal class C1 { }   protected int X;   1
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "X").WithArguments("X").WithLocation(1, 39)
+                );
+            Assert.Equal(1, state1.Result.ReturnValue);
+
+            var state2 = state1.ContinueWith("internal class C2 : C1 { }   2");
+            var compilation2 = state2.Result.Script.GetCompilation();
+            compilation2.VerifyDiagnostics();
+            Assert.Equal(2, state2.Result.ReturnValue);
+            var c2C2 = (INamedTypeSymbol)lookupMember(compilation2, "Submission#1", "C2");
+            var c2C1 = c2C2.BaseType;
+            var c2X = lookupMember(compilation1, "Submission#0", "X");
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2C1, c2C2));
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2C2, c2C1));
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2X, c2C2));  // access not enforced among submission symbols
+
+            var state3 = state2.ContinueWith("private class C3 : C2 { }   3");
+            var compilation3 = state3.Result.Script.GetCompilation();
+            compilation3.VerifyDiagnostics();
+            Assert.Equal(3, state3.Result.ReturnValue);
+            var c3C3 = (INamedTypeSymbol)lookupMember(compilation3, "Submission#2", "C3");
+            var c3C1 = c3C3.BaseType;
+            Assert.Throws<ArgumentException>(() => compilation2.IsSymbolAccessibleWithin(c3C3, c3C1));
+            Assert.True(compilation3.IsSymbolAccessibleWithin(c3C3, c3C1));
+
+            INamedTypeSymbol lookupType(Compilation c, string name)
+            {
+                return c.GlobalNamespace.GetMembers(name).Single() as INamedTypeSymbol;
+            }
+            ISymbol lookupMember(Compilation c, string typeName, string memberName)
+            {
+                return lookupType(c, typeName).GetMembers(memberName).Single();
+            }
+        }
+
+        [Fact]
         public void CompilationChain_SubmissionSlotResize()
         {
             var state = CSharpScript.RunAsync("");
@@ -1139,7 +1182,7 @@ new C()
             Assert.NotNull(result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseParent()
         {
             var file = Temp.CreateFile();
@@ -1546,7 +1589,7 @@ new List<ArgumentException>()
             Assert.Equal(1, r1.Result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference1()
         {
             var scriptCompilation = CSharpScript.Create(
@@ -1556,7 +1599,8 @@ new List<ArgumentException>()
 
             scriptCompilation.VerifyDiagnostics(
                 // (1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis").WithArguments("CodeAnalysis", "Microsoft"));
+                // nameof(Microsoft.CodeAnalysis.Scripting)
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis").WithArguments("CodeAnalysis", "Microsoft").WithLocation(1, 8));
 
             string corAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
             string hostObjectAssemblyName = scriptCompilation.ScriptCompilationInfo.GlobalsType.GetTypeInfo().Assembly.GetName().Name;
@@ -1602,7 +1646,7 @@ new List<ArgumentException>()
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference2()
         {
             var scriptCompilation = CSharpScript.Create(
@@ -1646,7 +1690,7 @@ new List<ArgumentException>()
                         // The script doesn't reference the assemblies explicitly.
                         AssertEx.SetEqual(new[] { "<implicit>", "<host>", "global" }, aliases);
                         break;
-                   
+
                     default:
                         if (name == corAssemblyName)
                         {
@@ -1660,13 +1704,13 @@ new List<ArgumentException>()
                             // available to the script (global alias).
                             AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
                         }
-                        
+
                         break;
                 }
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference3()
         {
             string source = $@"
@@ -1674,7 +1718,7 @@ new List<ArgumentException>()
 typeof(Microsoft.CodeAnalysis.Scripting.Script)
 ";
             var scriptCompilation = CSharpScript.Create(
-                source, 
+                source,
                 ScriptOptions.Default.WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance),
                 globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
@@ -1854,7 +1898,7 @@ i + j + k + l
 
             var globals = new StrongBox<CancellationTokenSource>();
             globals.Value = cancellationSource;
-            
+
             var s0 = CSharpScript.Create(@"
 int i = 1000;
 ", globalsType: globals.GetType());
@@ -1940,8 +1984,35 @@ int l = 4;
 int F() => i + j + k + l;
 ");
 
-            await Assert.ThrowsAsync<OperationCanceledException>(() => 
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
                 s3.RunAsync(globals, catchException: e => !(e is OperationCanceledException), cancellationToken: cancellationSource.Token));
+        }
+
+        #endregion
+
+        #region Local Functions
+
+        [Fact]
+        public void LocalFunction_PreviousSubmissionAndGlobal()
+        {
+            var result =
+                CSharpScript.RunAsync(
+@"int InInitialSubmission()
+{
+    return LocalFunction();
+    int LocalFunction() => Y;
+}", globals: new C()).
+                ContinueWith(
+@"var lambda = new System.Func<int>(() =>
+{
+    return LocalFunction();
+    int LocalFunction() => Y + InInitialSubmission();
+});
+
+lambda.Invoke()").
+                Result.ReturnValue;
+
+            Assert.Equal(4, result);
         }
 
         #endregion

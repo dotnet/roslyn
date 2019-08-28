@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateEnumMember
     Partial Friend Class VisualBasicGenerateEnumMemberService
         Inherits AbstractGenerateEnumMemberService(Of VisualBasicGenerateEnumMemberService, SimpleNameSyntax, ExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsIdentifierNameGeneration(node As SyntaxNode) As Boolean
             Return TypeOf node Is IdentifierNameSyntax
         End Function

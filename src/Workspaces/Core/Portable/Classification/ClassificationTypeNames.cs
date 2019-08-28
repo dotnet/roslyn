@@ -1,23 +1,37 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.Classification
 {
     public static class ClassificationTypeNames
     {
+        /// <summary>
+        /// Additive classifications types supply additional context to other classifications.
+        /// </summary>
+        public static ImmutableArray<string> AdditiveTypeNames { get; } = ImmutableArray.Create(StaticSymbol);
+
         public const string Comment = "comment";
         public const string ExcludedCode = "excluded code";
         public const string Identifier = "identifier";
         public const string Keyword = "keyword";
+        public const string ControlKeyword = "keyword - control";
         public const string NumericLiteral = "number";
         public const string Operator = "operator";
+        public const string OperatorOverloaded = "operator - overloaded";
         public const string PreprocessorKeyword = "preprocessor keyword";
         public const string StringLiteral = "string";
         public const string WhiteSpace = "whitespace";
         public const string Text = "text";
 
+        public const string StaticSymbol = "static symbol";
+
         public const string PreprocessorText = "preprocessor text";
         public const string Punctuation = "punctuation";
         public const string VerbatimStringLiteral = "string - verbatim";
+        public const string StringEscapeCharacter = "string - escape character";
 
         public const string ClassName = "class name";
         public const string DelegateName = "delegate name";
@@ -28,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string TypeParameterName = "type parameter name";
 
         public const string FieldName = "field name";
-        public const string EnumFieldName = "enum field name";
+        public const string EnumMemberName = "enum member name";
         public const string ConstantName = "constant name";
         public const string LocalName = "local name";
         public const string ParameterName = "parameter name";
@@ -36,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string ExtensionMethodName = "extension method name";
         public const string PropertyName = "property name";
         public const string EventName = "event name";
+        public const string NamespaceName = "namespace name";
+        public const string LabelName = "label name";
 
         public const string XmlDocCommentAttributeName = "xml doc comment - attribute name";
         public const string XmlDocCommentAttributeQuotes = "xml doc comment - attribute quotes";
@@ -59,5 +75,15 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string XmlLiteralName = "xml literal - name";
         public const string XmlLiteralProcessingInstruction = "xml literal - processing instruction";
         public const string XmlLiteralText = "xml literal - text";
+
+        public const string RegexComment = "regex - comment";
+        public const string RegexCharacterClass = "regex - character class";
+        public const string RegexAnchor = "regex - anchor";
+        public const string RegexQuantifier = "regex - quantifier";
+        public const string RegexGrouping = "regex - grouping";
+        public const string RegexAlternation = "regex - alternation";
+        public const string RegexText = "regex - text";
+        public const string RegexSelfEscapedCharacter = "regex - self escaped character";
+        public const string RegexOtherEscape = "regex - other escape";
     }
 }

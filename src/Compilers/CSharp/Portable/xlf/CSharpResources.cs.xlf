@@ -2,9 +2,936 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="CannotCreateConstructedFromConstructed">
+        <source>Cannot create constructed generic type from another constructed generic type.</source>
+        <target state="translated">Konstruovaný obecný typ nejde vytvořit z jiného konstruovaného obecného typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateConstructedFromNongeneric">
+        <source>Cannot create constructed generic type from non-generic type.</source>
+        <target state="translated">Konstruovaný obecný typ nejde vytvořit z jiného než obecného typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AbstractEventHasAccessors">
+        <source>'{0}': abstract event cannot use event accessor syntax</source>
+        <target state="translated">{0}: abstraktní událost nemůže používat syntaxi přístupového objektu události.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
+        <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
+        <target state="translated">Pokud chcete pro interpolovaný doslovný řetězec použít @$ místo $@, použijte verzi jazyka {0} nebo vyšší.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
+        <source>Cannot use a nullable reference type in object creation.</source>
+        <target state="translated">K vytvoření objektu nejde použít typ odkazu s možnou hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ArgumentNameInITuplePattern">
+        <source>Element names are not permitted when pattern-matching via 'System.Runtime.CompilerServices.ITuple'.</source>
+        <target state="translated">Názvy elementů nejsou povolené při porovnávání vzorů přes System.Runtime.CompilerServices.ITuple.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AsNullableType">
+        <source>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</source>
+        <target state="translated">Ve výrazu as se nepovoluje použití typu odkazu s možnou hodnotou null {0}?; místo toho použijte základní typ {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
+        <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
+        <target state="translated">Automaticky implementovanou vlastnost {0} nelze označit modifikátorem readonly, protože má přístupový objekt set.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AutoSetterCantBeReadOnly">
+        <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
+        <target state="translated">Automaticky implementovaný přístupový objekt set {0} nelze označit modifikátorem readonly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">Atribut {0} není platný pro přístupové objekty události. Je platný jenom pro deklarace {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AwaitForEachMissingMember">
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
+        <target state="translated">Asynchronní příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje vhodnou veřejnou definici instance pro {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
+        <target state="translated">Asynchronní příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici instance pro {1}. Měli jste v úmyslu foreach místo await foreach?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadDynamicAwaitForEach">
+        <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
+        <target state="translated">V asynchronním příkazu foreach nejde použít kolekce dynamického typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadNullableContextOption">
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
+        <target state="translated">Neplatná možnost {0} pro /nullable; musí mít hodnotu disable, enable, safeonly, warnings nebo safeonlywarnings.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="translated">Operátor typeof nejde použít na typ odkazů s možnou hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadPatternExpression">
+        <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
+        <target state="translated">Neplatný operand pro porovnávací vzorek. Vyžaduje se hodnota, ale nalezeno: {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CantUseInOrOutInArglist">
+        <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
+        <target state="translated">__arglist nemůže mít argument předávaný pomocí in nebo out</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConWithUnmanagedCon">
+        <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
+        <target state="translated">Parametr typu {1} má omezení unmanaged, takže není možné používat {1} jako omezení pro {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConstantPatternVsOpenType">
+        <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
+        <target state="translated">Výraz typu {0} nelze zpracovat vzorem typu {1}. Použijte prosím verzi jazyka {2} nebo vyšší, aby odpovídala otevřenému typu se vzorem konstanty.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DeconstructParameterNameMismatch">
+        <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
+        <target state="translated">Název {0} neodpovídá příslušnému parametru Deconstruct {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">Typ {0} nemůže být vložený, protože má neabstraktní člen. Zvažte nastavení vlastnosti Vložit typy spolupráce na hodnotu false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultPattern">
+        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
+        <target state="translated">Výchozí literál default není platný jako vzor. Podle potřeby použijte jiný literál (například 0 nebo null). Pokud chcete, aby odpovídalo vše, použijte vzor discard „_“.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DiscardPatternInSwitchStatement">
+        <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
+        <target state="translated">Tento vzor discard není povolený jako návěstí příkazu case v příkazu switch. Použijte „case var _:“ pro vzor discard nebo „case @_:“ pro konstantu s názvem „_“.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicateExplicitImpl">
+        <source>'{0}' is explicitly implemented more than once.</source>
+        <target state="translated">Položka {0} je explicitně implementována více než jednou.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicateNullSuppression">
+        <source>Duplicate null suppression operator ('!')</source>
+        <target state="new">Duplicate null suppression operator ('!')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
+        <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
+        <target state="translated">Pro přístupové objekty vlastnosti i indexeru {0} nelze zadat modifikátory readonly. Místo toho zadejte modifikátor readonly jenom pro vlastnost.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ElseCannotStartStatement">
+        <source>'else' cannot start a statement.</source>
+        <target state="translated">Příkaz nemůže začínat na else.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitNullableAttribute">
+        <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
+        <target state="translated">Explicitní použití System.Runtime.CompilerServices.NullableAttribute není povolené.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExprCannotBeFixed">
+        <source>The given expression cannot be used in a fixed statement</source>
+        <target state="translated">Daný výraz nelze použít v příkazu fixed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeCantContainNullCoalescingAssignment">
+        <source>An expression tree may not contain a null coalescing assignment</source>
+        <target state="translated">Strom výrazu nesmí obsahovat přiřazení představující sloučení s hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
+        <source>Expression tree cannot contain value of ref struct or restricted type '{0}'.</source>
+        <target state="translated">Strom výrazu nemůže obsahovat hodnotu struktury REF ani zakázaný typ {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
+        <source>An expression tree may not contain a switch expression.</source>
+        <target state="translated">Strom výrazů nesmí obsahovat výraz switch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
+        <source>An expression tree may not contain a tuple == or != operator</source>
+        <target state="translated">Strom výrazů nesmí obsahovat operátor řazené kolekce členů == nebo !=.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureInPreview">
+        <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
+        <target state="translated">Funkce {0} je aktuálně ve verzi Preview a je *nepodporovaná*. Pokud chcete používat funkce Preview, použijte jazykovou verzi preview.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureIsExperimental">
+        <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
+        <target state="translated">Funkce {0} je zkušební, a proto není podporovaná. K aktivaci použijte /features:{1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion8">
+        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
+        <target state="translated">Funkce {0} není v C# 8.0 dostupná. Použijte prosím jazykovou verzi {1} nebo větší.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
+        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
+        <target state="translated">Funkce {0} není v C# 8.0 dostupná. Použijte prosím jazykovou verzi {1} nebo větší.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
+        <source>Field-like event '{0}' cannot be 'readonly'.</source>
+        <target state="translated">Událost podobná poli {0} nemůže mít modifikátor readonly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
+        <target state="translated">Příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici instance pro {1}. Měli jste v úmyslu await foreach místo foreach?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
+        <source>A goto cannot jump to a location before a using declaration within the same block.</source>
+        <target state="translated">Příkaz goto nemůže přejít na místo před deklarací using ve stejném bloku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
+        <source>A goto cannot jump to a location after a using declaration.</source>
+        <target state="translated">Příkaz goto nemůže přejít na místo za deklarací using.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IllegalSuppression">
+        <source>The suppression operator is not allowed in this context</source>
+        <target state="translated">Operátor potlačení není v tomto kontextu povolený.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
+        <target state="translated">Argumenty s modifikátorem in se nedají použít v dynamicky odbavených výrazech.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
+        <target state="translated">{0} nemůže implementovat člen rozhraní {1} v typu {2}, protože má parametr __arglist.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="translated">Neplatný název algoritmu hash: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidObjectCreation">
+        <source>Invalid object creation</source>
+        <target state="translated">Vytvoření neplatného objektu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
+        <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="translated">Pro vlastnost nebo indexer {0} i jejich přístupový objekt nelze zadat modifikátory readonly. Odeberte jeden z nich.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidStackAllocArray">
+        <source>"Invalid rank specifier: expected ']'</source>
+        <target state="translated">Specifikátor rozsahu je neplatný. Očekávala se pravá hranatá závorka ].</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IsNullableType">
+        <source>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
+        <target state="translated">Ve výrazu is-type se nepovoluje použití typu odkazu s možnou hodnotou null {0}?; místo toho použijte základní typ {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IsPatternImpossible">
+        <source>An expression of type '{0}' can never match the provided pattern.</source>
+        <target state="translated">Výraz typu {0} nesmí nikdy odpovídat poskytnutému vzoru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IteratorMustBeAsync">
+        <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
+        <target state="translated">Metoda {0} s blokem iterátoru musí být asynchronní, aby vrátila {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingPattern">
+        <source>Pattern missing</source>
+        <target state="translated">Chybějící vzor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
+        <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
+        <target state="translated">Ve stejném adresáři nemůže být více konfiguračních souborů analyzátoru ({0}).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
+        <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
+        <target state="translated">Atribut [EnumeratorCancellation] nejde použít na víc parametrů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewBoundWithUnmanaged">
+        <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
+        <target state="translated">Omezení new() nejde používat s omezením unmanaged.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
+        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="translated">{0}: typ použitý v příkazu async using musí být implicitně převoditelný na System.IAsyncDisposable nebo implementovat odpovídající metodu DisposeAsync. Neměli jste v úmyslu použít using místo await using?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoConvToIDispWrongAsync">
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
+        <target state="translated">{0}: typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable nebo implementovat odpovídající metodu Dispose. Neměli jste v úmyslu použít await using místo using?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotNullConstraintMustBeFirst">
+        <source>The 'notnull' constraint must come before any other constraints</source>
+        <target state="translated">Omezení notnull musí být zadané před všemi ostatními omezeními.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableDirectiveQualifierExpected">
+        <source>Expected 'enable', 'disable', or 'restore'</source>
+        <target state="translated">Očekávala se hodnota enable, disable nebo restore.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableDirectiveTargetExpected">
+        <source>Expected 'warnings', 'annotations', or end of directive</source>
+        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="translated">Neplatná hodnota {0}: {1} pro jazyk C# {2}. Použijte prosím verzi jazyka {3} nebo vyšší.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
+        <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
+        <target state="translated">Parametr typu s možnou hodnotou null musí být známou hodnotou nebo musí jít o typ odkazu, který neumožňuje hodnotu null. Zvažte přidání 'class', 'struct' nebo omezení typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OutVariableCannotBeByRef">
+        <source>An out variable cannot be declared as a ref local</source>
+        <target state="translated">Výstupní proměnná nemůže být deklarovaná jako lokální proměnná podle odkazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
+        <target state="translated">Metoda {0} určuje omezení class pro parametr typu {1}, ale odpovídající parametr typu {2} přepsané nebo explicitně implementované metody {3} není odkazový typ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
+        <target state="translated">Metoda {0} určuje omezení struct pro parametr typu {1}, ale odpovídající parametr typu {2} přepsané nebo explicitně implementované metody {3} není typ, který nepovoluje hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
+        <source>Both partial method declarations must be readonly or neither may be readonly</source>
+        <target state="translated">Obě deklarace částečné metody musí mít modifikátor readonly, nebo nesmí mít modifikátor readonly žádná z nich.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PointerTypeInPatternMatching">
+        <source>Pattern-matching is not permitted for pointer types.</source>
+        <target state="translated">Porovnávání vzorů není povolené pro typy ukazatelů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PossibleAsyncIteratorWithoutYield">
+        <source>The body of an async-iterator method must contain a 'yield' statement.</source>
+        <target state="translated">Tělo metody async-iterator musí obsahovat příkaz yield.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PossibleAsyncIteratorWithoutYieldOrAwait">
+        <source>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</source>
+        <target state="translated">Tělo metody async-iterator musí obsahovat příkaz yield. Zvažte odebrání položky async z deklarace metody nebo přidání příkazu yield.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyPatternNameMissing">
+        <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
+        <target state="translated">Dílčí vzor vlastnosti vyžaduje odkaz na vlastnost nebo pole k přiřazení, např. „{{ Name: {0} }}“.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReadOnlyModMissingAccessor">
+        <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
+        <target state="translated">{0}: U přístupových objektů se modifikátor readonly může použít jenom v případě, že vlastnost nebo indexer má přístupový objekt get i set.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefAssignNarrower">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
+        <target state="translated">Přiřazení odkazu {1} k {0} nelze provést, protože {1} má užší řídicí obor než {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefLocalOrParamExpected">
+        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
+        <target state="translated">Levá strana přiřazení odkazu musí být lokální proměnná nebo parametr odkazu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
+        <target state="translated">Cílový modul runtime nepodporuje pro člena rozhraní přístupnost na úrovni Protected, Protected internal nebo Private protected.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
+        <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
+        <target state="translated">Vzor deconstruct s jedním elementem vyžaduje určitou další syntaxi pro zajištění jednoznačnosti. Doporučuje se přidat designátor discard „_“ za koncovou závorku „)“.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
+        <source>A static local function cannot contain a reference to 'this' or 'base'.</source>
+        <target state="translated">Statická lokální funkce nesmí obsahovat odkaz na this nebo base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticLocalFunctionCannotCaptureVariable">
+        <source>A static local function cannot contain a reference to '{0}'.</source>
+        <target state="translated">Statická lokální funkce nesmí obsahovat odkaz na {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticMemberCantBeReadOnly">
+        <source>Static member '{0}' cannot be marked 'readonly'.</source>
+        <target state="translated">Statický člen {0} se nedá označit modifikátorem readonly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchArmSubsumed">
+        <source>The pattern has already been handled by a previous arm of the switch expression.</source>
+        <target state="translated">Tento vzor už zpracovala předchozí větev výrazu switch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchCaseSubsumed">
+        <source>The switch case has already been handled by a previous case.</source>
+        <target state="translated">Větev příkazu switch se už zpracovala předchozí větví.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchExpressionNoBestType">
+        <source>No best type was found for the switch expression.</source>
+        <target state="translated">Pro výraz switch se nenašel žádný optimální typ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
+        <source>Parentheses are required around the switch governing expression.</source>
+        <target state="translated">Řídící výraz switch je nutné uzavřít do závorek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TripleDotNotAllowed">
+        <source>Unexpected character sequence '...'</source>
+        <target state="translated">Neočekáváná posloupnost znaků ...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TupleElementNameMismatch">
+        <source>The name '{0}' does not identify tuple element '{1}'.</source>
+        <target state="translated">Název {0} neidentifikuje element tuple {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TupleSizesMismatchForBinOps">
+        <source>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</source>
+        <target state="translated">Typy řazené kolekce členů, které se používají jako operandy operátoru == nebo !=, musí mít odpovídající kardinality. U tohoto operátoru je ale kardinalita typů řazené kolekce členů vlevo {0} a vpravo {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedBoundWithClass">
+        <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
+        <target state="translated">{0}: Nejde zadat třídu omezení a zároveň omezení unmanaged.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintMustBeFirst">
+        <source>The 'unmanaged' constraint must come before any other constraints</source>
+        <target state="translated">Omezení unmanaged musí být zadané před všemi ostatními omezeními.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
+        <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
+        <target state="translated">Typ {2} nesmí být typ, který povoluje hodnotu null, ani nesmí v žádné úrovni vnoření obsahovat pole, které by ji povolovalo, aby se dal použít jako parametr {1} v obecném typu nebo metodě {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UsingVarInSwitchCase">
+        <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
+        <target state="translated">Proměnnou using není možné v sekci switch použít přímo (zvažte použití složených závorek). </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_VarMayNotBindToType">
+        <source>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</source>
+        <target state="translated">U syntaxe var pro vzor se nepovoluje odkazování na typ, ale {0} je tady v rámci rozsahu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_WrongNumberOfSubpatterns">
+        <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
+        <target state="translated">Přiřazení k řazené kolekci členů typu {0} vyžaduje dílčí vzory {1}, ale k dispozici jsou dílčí vzory {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FTL_InvalidInputFileName">
+        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
+        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_CSCHelp">
+        <source>
+                             Visual C# Compiler Options
+
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
+                              -t:winexe)
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
+                              -t:appcontainerexe)
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
+
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
+
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
+-debug:{full|pdbonly|portable|embedded}
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+-warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
+-errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+                              diagnostics.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
+-nullable:{enable|disable|warnings|annotations}
+                              Specify nullable context option enable|disable|warnings|annotations.
+
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
+
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
+
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+</source>
+        <target state="translated">
+                             Parametry kompilátoru Visual C#
+
+                       - VÝSTUPNÍ SOUBORY -
+-out:&lt;soubor&gt;                   Určuje název výstupního souboru (výchozí: základní název
+                               souboru s hlavní třídou nebo prvního souboru)
+-target:exe                   Vytvoří spustitelný soubor konzoly (výchozí). (Krátký
+                              formát: -t:exe)
+-target:winexe                Vytvoří spustitelný soubor systému Windows. (Krátký formát:
+                              -t:winexe)
+-target:library               Vytvoří knihovnu. (Krátký formát: -t:library)
+-target:module                Vytvoří modul, který se dá přidat do jiného
+                              sestavení. (Krátký formát: -t:module)
+-target:appcontainerexe       Sestaví spustitelný soubor kontejneru Appcontainer. (Krátký formát:
+                              -t:appcontainerexe)
+-target:winmdobj              Sestaví pomocný soubor modulu Windows Runtime, který
+                              využívá knihovna WinMDExp. (Krátký formát: -t:winmdobj)
+-doc:&lt;soubor&gt;                   Soubor dokumentace XML, který má být vygenerován
+-refout:&lt;soubor&gt;                Výstup referenčního sestavení, který má být vygenerován
+-platform:&lt;řetězec&gt;            Omezuje platformy, na kterých lze tento kód spustit: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred nebo
+                              anycpu. Výchozí nastavení je anycpu.
+
+                       - VSTUPNÍ SOUBORY -
+-recurse:&lt;zástupný znak&gt;           Zahrne všechny soubory v aktuálním adresáři
+                               a jeho podadresářích podle zadaného
+                               zástupného znaku.
+-reference:&lt;alias&gt;=&lt;soubor&gt;     Odkazuje na metadata ze zadaného souboru sestavení
+                              pomocí daného aliasu. (Krátký formát: -r)
+-reference:&lt;seznam souborů&gt;        Odkazuje na metadata ze zadaných souborů 
+                              sestavení (Krátký formát: -r)
+-addmodule:&lt;seznam souborů&gt;        Připojí zadané moduly k tomuto sestavení.
+-link:&lt;seznam souborů&gt;             Vloží metadata ze zadaných souborů
+                              sestavení spolupráce (Krátký formát: -l)
+-analyzer:&lt;seznam souborů&gt;         Spustí analyzátory z tohoto sestavení.
+                              (Krátký formát: -a)
+-additionalfile:&lt;seznam souborů&gt;   Další soubory, které přímo neovlivňují generování
+                              kódu, ale analyzátory můžou jejich pomocí
+                              produkovat chyby nebo upozornění.
+-embed                        Vloží všechny zdrojové soubory do PDB.
+-embed:&lt;seznam souborů&gt;            Vloží konkrétní soubory do PDB.
+
+                       - PROSTŘEDKY -
+-win32res:&lt;soubor&gt;              Určuje soubor prostředků Win32 (.res).
+-win32icon:&lt;soubor&gt;             Použije pro výstup zadanou ikonu.
+-win32manifest:&lt;soubor&gt;         Určuje soubor manifestu Win32 (.xml).
+-nowin32manifest              Nezahrne výchozí manifest Win32.
+-resource:&lt;prostředek&gt;           Vloží zadaný prostředek. (Krátký formát: -res)
+-linkresource:&lt;prostředek&gt;       Propojí zadaný prostředek s tímto sestavením.
+                              (Krátký formát: -linkres) Prostředek má formát
+                              is &lt;soubor&gt;[,&lt;název řetězce&gt;[,public|private]].
+
+                       - GENEROVÁNÍ KÓDU -
+-debug[+|-]                   Generuje ladicí informace.
+-debug:{full|pdbonly|portable|embedded}
+                              Určuje typ ladění (výchozí je možnost full,
+                              portable je formát napříč platformami,
+                              embedded je formát napříč platformami vložený do
+                              cílového souboru .dll nebo .exe).
+-optimize[+|-]                Povolí optimalizace. (Krátký formát: -o)
+-deterministic                Vytvoří deterministické sestavení
+                              (včetně GUID verze modulu a časového razítka).
+-refonly                      Vytvoří referenční sestavení na místě hlavního výstupu.
+-instrument:TestCoverage      Vytvoří sestavení instrumentované ke shromažďování
+                              informací o pokrytí.
+-sourcelink:&lt;soubor&gt;            Informace o zdrojovém odkazu vkládané do souboru PDB.
+
+                       - CHYBY A UPOZORNĚNÍ -
+-warnaserror[+|-]             Hlásí všechna upozornění jako chyby.
+-warnaserror[+|-]:&lt;seznam upozornění&gt; Hlásí zadaná upozornění jako chyby.
+-warn:&lt;n&gt;                     Nastaví úroveň pro upozornění (0–4). (Krátký formát: -w)
+-nowarn:&lt;seznam upozornění&gt;           Zakáže zadaná upozornění.
+-ruleset:&lt;soubor&gt;               Určuje soubor sady pravidel, která zakazuje
+                              specifickou diagnostiku.
+-errorlog:&lt;soubor&gt;              Určuje soubor pro protokolování veškeré
+                              diagnostiky kompilátoru a analyzátoru.
+-reportanalyzer               Hlásí další informace analyzátoru, např.\r
+                              dobu spuštění.
+
+                       - JAZYK -
+-checked[+|-]                 Generuje kontroly přetečení.
+-unsafe[+|-]                  Povoluje nezabezpečený kód.
+-define:&lt;seznam symbolů&gt;         Definuje symboly podmíněné kompilace. (Krátký
+                              formát: -d)
+-langversion:?                Zobrazuje povolené hodnoty pro verzi jazyka.
+-langversion:&lt;řetězec&gt;         Určuje verzi jazyka:r
+                              default (poslední hlavní verze) nebo
+                              latest (poslední verze včetně podverzí),
+                              nebo konkrétní verze jako 6 nebo 7.1.
+-nullable[+|-]                Určuje pro kontext s hodnotou null možnosti enable|disable.
+-nullable:{enable|disable|warnings}
+                              Určuje pro kontext s hodnotou null možnosti enable|disable|warnings.
+
+                       - ZABEZPEČENÍ -
+-delaysign[+|-]               Vytvoří zpožděný podpis sestavení s využitím
+                              jenom veřejné části klíče silného názvu.
+-publicsign[+|-]              Vytvoří veřejný podpis sestavení s využitím jenom veřejné
+                              části klíče silného názvu.
+-keyfile:&lt;soubor&gt;               Určuje soubor klíče se silným názvem.
+-keycontainer:&lt;řetězec&gt;        Určuje kontejner klíče se silným názvem.
+-highentropyva[+|-]           Povolí ASLR s vysokou entropií.
+
+                       - RŮZNÉ -
+@&lt;soubor&gt;                       Načte další možnosti ze souboru odpovědí.
+-help                         Zobrazí tuto zprávu o použití. (Krátký formát: -?)
+-nologo                       Potlačí zprávu o autorských právech kompilátoru.
+-noconfig                     Nezahrnuje automaticky soubor CSC.RSP.
+-parallel[+|-]                Souběžné sestavení.
+-version                      Zobrazí číslo verze kompilátoru a ukončí se.
+
+                       - POKROČILÉ -
+-baseaddress:&lt;adresa&gt;        Základní adresa pro knihovnu, která se má sestavit.
+-checksumalgorithm:&lt;alg&gt;      Určuje algoritmus pro výpočet kontrolního součtu
+                              zdrojového souboru uloženého v PDB. Podporované hodnoty:
+                              SHA1 nebo SHA256 (výchozí).
+-codepage:&lt;n&gt;                 Určuje znakovou stránku, která se má použít
+                              při otevírání zdrojových souborů.
+-utf8output                   Určuje výstup zpráv kompilátoru v kódování UTF-8.
+-main:&lt;typ&gt;                  Určuje typ obsahující vstupní bod
+                              (ignoruje všechny ostatní potenciální vstupní body). (Krátký
+                              formát: -m)
+-fullpaths                    Kompilátor generuje úplné cesty.
+-filealign:&lt;n&gt;                Určuje zarovnání použité pro oddíly výstupního
+                              souboru.
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                              Určuje mapování pro výstup zdrojových názvů cest
+                              kompilátorem.
+-pdb:&lt;soubor&gt;                   Určuje název souboru ladicích informací (výchozí:
+                              název výstupního souboru s příponou .pdb).
+-errorendlocation             Vypíše řádek a sloupec koncového umístění
+                              jednotlivých chyb.
+-preferreduilang              Určuje název upřednostňovaného výstupního jazyka.
+-nosdkpath                    Zakazuje hledání cesty k výchozí sadě SDK pro sestavení standardních knihoven.
+-nostdlib[+|-]                Neodkazuje na standardní knihovnu (mscorlib.dll).
+-subsystemversion:&lt;string&gt;    Určuje verzi subsystému tohoto sestavení.
+-lib:&lt;seznam souborů&gt;              Určuje další adresáře, ve kterých se mají 
+                              hledat reference.
+-errorreport:&lt;řetězec&gt;         Určuje způsob zpracování interních chyb kompilátoru:
+                              prompt, send, queue nebo none. Výchozí možnost je
+                              queue (zařadit do fronty).
+-appconfig:&lt;soubor&gt;             Určuje konfigurační soubor aplikace,
+                              který obsahuje nastavení vazby sestavení.
+-moduleassemblyname:&lt;řetězec&gt;  Určuje název sestavení, jehož součástí bude
+                              tento modul.
+-modulename:&lt;řetězec&gt;          Určuje název zdrojového modulu.
+</target>
+        <note>Visual C# Compiler Options</note>
+      </trans-unit>
+      <trans-unit id="IDS_DefaultInterfaceImplementation">
+        <source>default interface implementation</source>
+        <target state="new">default interface implementation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Disposable">
+        <source>disposable</source>
+        <target state="translated">jednoúčelové</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureAltInterpolatedVerbatimStrings">
+        <source>alternative interpolated verbatim strings</source>
+        <target state="translated">alternativní interpolované doslovné řetězce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
+        <source>coalescing assignment</source>
+        <target state="translated">slučovací přiřazení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
+        <source>delegate generic type constraints</source>
+        <target state="translated">delegovat obecná omezení typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
+        <source>enum generic type constraints</source>
+        <target state="translated">výčet obecných omezení typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
+        <source>declaration of expression variables in member initializers and queries</source>
+        <target state="translated">deklarace proměnných výrazu v inicializátorech členů a dotazech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensibleFixedStatement">
+        <source>extensible fixed statement</source>
+        <target state="translated">rozšiřitelný příkaz fixed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureIndexOperator">
+        <source>index operator</source>
+        <target state="translated">operátor indexu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
+        <source>indexing movable fixed buffers</source>
+        <target state="translated">indexování mobilních vyrovnávacích pamětí pevné velikosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
+        <source>name shadowing in nested functions</source>
+        <target state="translated">skrývání názvů ve vnořených funkcích</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNestedStackalloc">
+        <source>stackalloc in nested expressions</source>
+        <target state="translated">stackalloc ve vnořených výrazech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
+        <source>notnull generic type constraint</source>
+        <target state="translated">omezení obecného typu notnull</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNullableReferenceTypes">
+        <source>nullable reference types</source>
+        <target state="translated">typy odkazů s možnou hodnotou null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
+        <source>obsolete on property accessor</source>
+        <target state="translated">zastaralé u přístupového objektu vlastnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePragmaWarningEnable">
+        <source>warning action enable</source>
+        <target state="translated">akce upozornění enable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRangeOperator">
+        <source>range operator</source>
+        <target state="translated">operátor rozsahu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureReadOnlyMembers">
+        <source>readonly members</source>
+        <target state="translated">členové s modifikátorem readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRecursivePatterns">
+        <source>recursive patterns</source>
+        <target state="translated">rekurzivní vzory</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefConditional">
+        <source>ref conditional expression</source>
+        <target state="translated">referenční podmínka</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefFor">
+        <source>ref for-loop variables</source>
+        <target state="translated">Proměnné smyčky for odkazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefForEach">
+        <source>ref foreach iteration variables</source>
+        <target state="translated">Iterační proměnné foreach odkazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefReassignment">
+        <source>ref reassignment</source>
+        <target state="translated">Opětovné přiřazení odkazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStackAllocInitializer">
+        <source>stackalloc initializer</source>
+        <target state="translated">inicializátor výrazu stackalloc</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStaticLocalFunctions">
+        <source>static local functions</source>
+        <target state="translated">statické místní funkce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSwitchExpression">
+        <source>&lt;switch expression&gt;</source>
+        <target state="new">&lt;switch expression&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureTupleEquality">
+        <source>tuple equality</source>
+        <target state="translated">rovnost řazené kolekce členů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
+        <source>unconstrained type parameters in null coalescing operator</source>
+        <target state="translated">parametry neomezeného typu v operátoru sloučení s hodnotou null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
+        <source>unmanaged constructed types</source>
+        <target state="translated">nespravované konstruované typy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
+        <source>unmanaged generic type constraints</source>
+        <target state="translated">nespravovaná obecná omezení typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUsingDeclarations">
+        <source>using declarations</source>
+        <target state="translated">deklarace using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;null&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_OverrideWithConstraints">
+        <source>constraints for override and explicit interface implementation methods</source>
+        <target state="translated">omezení pro metody přepsání a explicitní implementace rozhraní</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -24,7 +951,7 @@
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
         <source>&lt;!-- Badly formed XML comment ignored for member "{0}" --&gt;</source>
-        <target state="translated">&lt;!-- Chybně vytvořený komentář XML se ignoruje pro člena {0}. --&gt;</target>
+        <target state="translated">&lt;!-- Badly formed XML comment ignored for member "{0}" --&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED2">
@@ -372,6 +1299,536 @@
         <target state="translated">odchylka typu</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="translated">SyntaxTree není součástí kompilace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTreeNotFoundToRemove">
+        <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
+        <target state="translated">SyntaxTree není součástí kompilace, takže se nedá odebrat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull">
+        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="translated">Operátor as může vytvořit hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
+        <source>The 'as' operator may produce a null value for a type parameter.</source>
+        <target state="translated">Operátor as může pro parametr typu vytvořit hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CaseConstantNamedUnderscore">
+        <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
+        <target state="translated">Název „_“ odkazuje na konstantu, ne na vzor discard. Zadáním „var _“ hodnotu zahodíte a zadáním „@_“ nastavíte pod tímto názvem odkaz na konstantu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CaseConstantNamedUnderscore_Title">
+        <source>Do not use '_' for a case constant.</source>
+        <target state="translated">Nepoužívejte „_“ jako konstantu case.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
+        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="translated">Podmíněný přístup může vytvořit hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
+        <source>Conditional access may produce a null value for a type parameter.</source>
+        <target state="translated">Podmíněný přístup může pro parametr typu vytvořit hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingNullableToNonNullable">
+        <source>Converting null literal or possible null value to non-nullable type.</source>
+        <target state="translated">Literál s hodnotou null nebo s možnou hodnotou null se převádí na typ bez možnosti hodnoty null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
+        <source>Converting null literal or possible null value to non-nullable type.</source>
+        <target state="translated">Literál s hodnotou null nebo s možnou hodnotou null se převádí na typ bez možnosti hodnoty null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
+        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="translated">Výchozí výraz zavádí hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
+        <source>A default expression introduces a null value for a type parameter.</source>
+        <target state="translated">Výchozí výraz zavádí pro parametr typu hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="translated">Do cíle označeného atributem [DisallowNull] se nedá předat možná hodnota null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="translated">Do cíle označeného atributem [DisallowNull] se nedá předat možná hodnota null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</source>
+        <target state="translated">Položka {0} je už uvedená v seznamu rozhraní u typu {1} s různou možností použití hodnoty null u typů odkazů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
+        <source>Interface is already listed in the interface list with different nullability of reference types.</source>
+        <target state="translated">Rozhraní je už uvedené v seznamu rozhraní s různou možností použití hodnoty null u typů odkazů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
+        <source>The given expression always matches the provided constant.</source>
+        <target state="translated">Daný výraz vždy odpovídá zadané konstantě.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant_Title">
+        <source>The given expression always matches the provided constant.</source>
+        <target state="translated">Daný výraz vždy odpovídá zadané konstantě.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionNeverMatchesPattern">
+        <source>The given expression never matches the provided pattern.</source>
+        <target state="translated">Daný výraz nikdy neodpovídá zadané konstantě.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionNeverMatchesPattern_Title">
+        <source>The given expression never matches the provided pattern.</source>
+        <target state="translated">Daný výraz nikdy neodpovídá zadané konstantě.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
+        <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
+        <target state="translated">Volání člena {0}, který nemá modifikátor readonly, ze člena s modifikátorem readonly má za následek implicitní kopii {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
+        <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
+        <target state="translated">Volání člena, který nemá modifikátor readonly, ze člena s modifikátorem readonly má za následek implicitní kopii.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsTypeNamedUnderscore">
+        <source>The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</source>
+        <target state="translated">Název „_“ odkazuje na typ {0}, ne vzor discard. Použijte „@_“ pro tento typ nebo „var _“ pro zahození.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsTypeNamedUnderscore_Title">
+        <source>Do not use '_' to refer to the type in an is-type expression.</source>
+        <target state="translated">Nepoužívejte „_“ jako odkaz na typ ve výrazu is-type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullAsNonNullable">
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="translated">Literál null nejde převést na odkazový typ, který nemůže mít hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullAsNonNullable_Title">
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="translated">Literál null nejde převést na odkazový typ, který nemůže mít hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
+        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="translated">Literál null zavádí hodnotu null, pokud {0} je odkazový typ, který nemůže mít hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
+        <source>A null literal introduces a null value for a type parameter.</source>
+        <target state="translated">Literál null zavádí pro parametr typu hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceArgument">
+        <source>Possible null reference argument for parameter '{0}' in '{1}'.</source>
+        <target state="translated">V parametru {0} v {1} může být argument s odkazem null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceArgument_Title">
+        <source>Possible null reference argument.</source>
+        <target state="translated">Může jít o argument s odkazem null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceAssignment">
+        <source>Possible null reference assignment.</source>
+        <target state="translated">Může jít o přiřazení s odkazem null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceAssignment_Title">
+        <source>Possible null reference assignment.</source>
+        <target state="translated">Může jít o přiřazení s odkazem null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceIterationVariable">
+        <source>Possible null reference assignment to iteration variable</source>
+        <target state="translated">Možné přiřazení odkazu s hodnotou null k proměnné iterace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceIterationVariable_Title">
+        <source>Possible null reference assignment to iteration variable</source>
+        <target state="translated">Možné přiřazení odkazu s hodnotou null k proměnné iterace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReceiver">
+        <source>Dereference of a possibly null reference.</source>
+        <target state="translated">Přístup přes ukazatel k možnému odkazu s hodnotou null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReceiver_Title">
+        <source>Dereference of a possibly null reference.</source>
+        <target state="translated">Přístup přes ukazatel k možnému odkazu s hodnotou null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReturn">
+        <source>Possible null reference return.</source>
+        <target state="translated">Může jít o vrácený odkaz null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReturn_Title">
+        <source>Possible null reference return.</source>
+        <target state="translated">Může jít o vrácený odkaz null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgument">
+        <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="translated">Argument typu {0} nejde použít pro parametr {2} typu {1} v {3} z důvodu rozdílů v možnostech použití hodnoty null u odkazových typů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
+        <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="translated">Argument typu {0} nejde použít jako výstup typu {1} pro parametr {2} v {3} z důvodu rozdílů v možnostech použití hodnoty null u odkazových typů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
+        <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
+        <target state="translated">Argument nejde použít jako výstup pro parametr z důvodu rozdílů v možnostech použití hodnoty null u odkazových typů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
+        <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
+        <target state="translated">Argument nejde použít pro parametr z důvodu rozdílů v možnostech použití hodnoty null u odkazových typů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInAssignment">
+        <source>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v hodnotě typu {0} neodpovídá cílovému typu {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInAssignment_Title">
+        <source>Nullability of reference types in value doesn't match target type.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v hodnotě neodpovídá cílovému typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation">
+        <source>Nullability in constraints for type parameter '{0}' of method '{1}' doesn't match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.</source>
+        <target state="translated">Možná hodnota null v omezení parametru typu {0} metody {1} neodpovídá omezením parametru typu {2} metody rozhraní {3}. Zkuste raději použít explicitní implementaci rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title">
+        <source>Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</source>
+        <target state="translated">Možná hodnota null v omezeních parametru typu neodpovídá omezením parametru typu v implicitně implementované metodě rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
+        <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
+        <target state="translated">Částečné deklarace metod {0} mají nekonzistentní možnost použití hodnoty null v omezeních parametru typu {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
+        <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
+        <target state="translated">Částečné deklarace metod mají nekonzistentní možnost použití hodnoty null v omezeních parametru typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
+        <source>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</source>
+        <target state="translated">Možnost použití hodnoty null u typů odkazů v explicitním specifikátoru rozhraní neodpovídá rozhraní implementovanému podle tohoto typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface_Title">
+        <source>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</source>
+        <target state="translated">Možnost použití hodnoty null u typů odkazů v explicitním specifikátoru rozhraní neodpovídá rozhraní implementovanému podle tohoto typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInInterfaceImplementedByBase">
+        <source>'{0}' does not implement interface member '{1}'. Nullability of reference types in interface implemented by the base type doesn't match.</source>
+        <target state="translated">{0} neimplementuje člen rozhraní {1}. Možnost použití hodnoty null u typů odkazů v rozhraní implementovaném podle základního typu se neshoduje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInInterfaceImplementedByBase_Title">
+        <source>Type does not implement interface member. Nullability of reference types in interface implemented by the base type doesn't match.</source>
+        <target state="translated">Typ neimplementuje člen rozhraní. Možnost použití hodnoty null u typů odkazů v rozhraní implementovaném podle základního typu se neshoduje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate">
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</source>
+        <target state="translated">Typ odkazu s možnou hodnotu null v typu parametru {0} metody {1} neodpovídá cílovému delegátovi {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title">
+        <source>Nullability of reference types in type of parameter doesn't match the target delegate.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru neodpovídá cílovému delegátovi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}'.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru {0} neodpovídá implementovanému členu {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implemented member.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru neodpovídá implementovanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru neodpovídá implicitně implementovanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru {0} neodpovídá přepsanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride_Title">
+        <source>Nullability of reference types in type of parameter doesn't match overridden member.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru neodpovídá přepsanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru {0} neodpovídá deklaraci částečné metody.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
+        <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru neodpovídá deklaraci částečné metody.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
+        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu {0} neodpovídá cílovému delegátovi {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title">
+        <source>Nullability of reference types in return type doesn't match the target delegate.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá cílovému delegátovi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation">
+        <source>Nullability of reference types in return type doesn't match implemented member '{0}'.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá implementovanému členu {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
+        <source>Nullability of reference types in return type doesn't match implemented member.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá implementovanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
+        <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
+        <source>Nullability of reference types in return type doesn't match implicitly implemented member.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá implicitně implementovanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride">
+        <source>Nullability of reference types in return type doesn't match overridden member.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá přepsanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
+        <source>Nullability of reference types in return type doesn't match overridden member.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá přepsanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
+        <source>Nullability of reference types in type doesn't match implemented member '{0}'.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu neodpovídá implementovanému členu {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation_Title">
+        <source>Nullability of reference types in type doesn't match implemented member.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu neodpovídá implementovanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
+        <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
+        <source>Nullability of reference types in type doesn't match implicitly implemented member.</source>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu neodpovídá implicitně implementovanému členu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
+        <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
+        <target state="translated">Typ {3} nejde použít jako parametr typu {2} v obecném typu nebo metodě {0}. Typ argumentu {3} s možnou hodnotou null neodpovídá typu omezení {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match constraint type.</source>
+        <target state="translated">Typ nejde použít jako parametr typu v obecném typu nebo metodě. Typ argumentu s možnou hodnotou null neodpovídá typu omezení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
+        <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
+        <target state="translated">Typ {2} nejde použít jako parametr typu {1} v obecném typu nebo metodě {0}. Argument typu {2} s možnou hodnotou null neodpovídá omezení notnull.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
+        <target state="translated">Typ nejde použít jako parametr typu v obecném typu nebo metodě. Argument typu s možnou hodnotou null neodpovídá omezení notnull.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
+        <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'class' constraint.</source>
+        <target state="translated">Typ {2} nejde použít jako parametr typu {1} v obecném typu nebo metodě {0}. Typ argumentu {2} s možnou hodnotou null neodpovídá omezení třídy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</source>
+        <target state="translated">Typ nejde použít jako parametr typu v obecném typu nebo metodě. Typ argumentu s možnou hodnotou null neodpovídá omezení třídy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullableValueTypeMayBeNull">
+        <source>Nullable value type may be null.</source>
+        <target state="translated">Typ hodnoty, která připouští hodnotu null, nemůže být null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
+        <source>Nullable value type may be null.</source>
+        <target state="translated">Typ hodnoty, která připouští hodnotu null, nemůže být null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustive">
+        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
+        <target state="translated">Výraz switch nezpracovává všechny možné vstupy (není vyčerpávající).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
+        <source>The switch expression does not handle some null inputs (it is not exhaustive).</source>
+        <target state="translated">Výraz switch nezpracovává některé vstupy s hodnotou null (není vyčerpávající).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
+        <source>The switch expression does not handle some null inputs.</source>
+        <target state="translated">Výraz switch nezpracovává některé vstupy s hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
+        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
+        <target state="translated">Výraz switch nezpracovává všechny možné vstupy (není vyčerpávající).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull">
+        <source>Thrown value may be null.</source>
+        <target state="translated">Vyvolaná hodnota může být null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull_Title">
+        <source>Thrown value may be null.</source>
+        <target state="translated">Vyvolaná hodnota může být null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
+        <source>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
+        <target state="translated">Název elementu řazené kolekce členů {0} se ignoruje, protože na druhé straně operátoru == nebo != řazené kolekce členů je určený jiný nebo žádný název.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TupleBinopLiteralNameMismatch_Title">
+        <source>The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
+        <target state="translated">Název elementu řazené kolekce členů se ignoruje, protože na druhé straně operátoru == nebo != řazené kolekce členů je určený jiný nebo žádný název.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
+        <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
+        <target state="translated">Parametr typu {0} má stejný název jako parametr typu z vnější metody {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
+        <source>Type parameter has the same type as the type parameter from outer method.</source>
+        <target state="translated">Parametr typu má stejný typ jako parametr typu z vnější metody.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull">
+        <source>Unboxing a possibly null value.</source>
+        <target state="translated">Rozbalení možné hodnoty null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull_Title">
+        <source>Unboxing a possibly null value.</source>
+        <target state="translated">Rozbalení možné hodnoty null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage">
+        <source>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
+        <target state="translated">EnumeratorCancellationAttribute, který se používá u parametru {0}, nebude mít žádný účinek. Tento atribut je platný jenom u parametru typu CancellationToken v metodě async-iterator, která vrací IAsyncEnumerable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title">
+        <source>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
+        <target state="translated">EnumeratorCancellationAttribute nebude mít žádný účinek. Tento atribut je platný jenom u parametru typu CancellationToken v metodě async-iterator, která vrací IAsyncEnumerable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
+        <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
+        <target state="translated">Asynchronní iterátor {0} má jeden nebo více parametrů typu CancellationToken, ale žádný z nich není dekorovaný atributem EnumeratorCancellation, takže parametr tokenu zrušení z vygenerovaného výrazu IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator se nespotřebuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
+        <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
+        <target state="translated">Člen asynchronního iterátoru má jeden nebo více parametrů typu CancellationToken, ale žádný z nich není dekorovaný atributem EnumeratorCancellation, takže parametr tokenu zrušení z vygenerovaného výrazu IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator se nespotřebuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableField">
+        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
+        <target state="needs-review-translation">Pole {0} {1}, které neumožňuje hodnotu null, není inicializované.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableField_Title">
+        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">Pole, které neumožňuje hodnotu null, není inicializované.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">Znaky {0} se na tomto místě nedají použít.</target>
@@ -688,13 +2145,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceEventInitializer">
-        <source>'{0}': event in interface cannot have initializer</source>
-        <target state="translated">'{0}: Událost v rozhraní nemůže mít inicializátor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EventPropertyInInterface">
-        <source>An event in an interface cannot have add or remove accessors</source>
-        <target state="translated">Událost v rozhraní nemůže mít přistupující objekty add ani remove.</target>
+        <source>'{0}': instance event in interface cannot have initializer</source>
+        <target state="translated">{0}: Událost instance v rozhraní nemůže mít inicializátor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventUsage">
@@ -1298,12 +2750,12 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
         <target state="translated">Jako příkaz jde použít jenom objektové výrazy přiřazení, volání, zvýšení nebo snížení hodnoty nebo výrazy obsahující operátor new.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
-        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</source>
+        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNext' method and public 'Current' property</source>
         <target state="translated">Příkaz foreach vyžaduje, aby typ vracených hodnot {0} pro {1} měl vhodnou veřejnou metodu MoveNext a veřejnou vlastnost Current.</target>
         <note />
       </trans-unit>
@@ -1433,8 +2885,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
-        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)</source>
-        <target state="translated">'{0} nemá předdefinovanou velikost. Operátor sizeof jde proto použít jenom v kontextu unsafe (zvažte možnost použití operátoru System.Runtime.InteropServices.Marshal.SizeOf).</target>
+        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
+        <target state="translated">{0} nemá předdefinovanou velikost. Operátor sizeof jde proto použít jenom v nezabezpečeném kontextu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">
@@ -1454,7 +2906,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantOverrideSealed">
         <source>'{0}': cannot override inherited member '{1}' because it is sealed</source>
-        <target state="translated">{0}: Nejde přepsat zděděný člen {1}, protože je zapečetěný.</target>
+        <target state="translated">'{0}: Nejde přepsat zděděný člen {1}, protože je zapečetěný.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VoidError">
@@ -1622,11 +3074,6 @@
         <target state="translated">Nejde zadat modifikátory dostupnosti pro přistupující objekty jak vlastnosti, tak i indexer {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PropertyAccessModInInterface">
-        <source>'{0}': accessibility modifiers may not be used on accessors in an interface</source>
-        <target state="translated">'{0}: Modifikátory dostupnosti nejde používat u přistupujících objektů v rozhraní.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AccessModMissingAccessor">
         <source>'{0}': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor</source>
         <target state="translated">'{0}: Modifikátory přístupnosti u přistupujících objektů se můžou používat, jenom pokud vlastnost nebo indexeru má přistupující objekt get i set.</target>
@@ -1668,8 +3115,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">Sestavení {0} udělilo přístup typu Friend, ale veřejný klíč výstupního sestavení neodpovídá klíči určenému atributem v udělujícím sestavení.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="translated">Sestavení {0} udělilo přístup typu Friend, ale veřejný klíč výstupního sestavení ({1}) neodpovídá klíči určenému atributem InternalsVisibleTo v udělujícím sestavení.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -1849,7 +3296,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
         <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">{0}: Abstraktní třída nemůže být zapečetěná nebo statická.</target>
+        <target state="translated">'{0}: Abstraktní třída nemůže být sealed nebo static.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -1984,7 +3431,7 @@
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
         <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">{0}: Třída nemůže být zároveň statická i zapečetěná.</target>
+        <target state="translated">'{0}: Třída nemůže být zároveň statická i zapečetěná.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
@@ -2078,8 +3525,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
-        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</source>
-        <target state="translated">Omezení pro metody přepsání a explicitní implementace rozhraní se dědí ze základní metody, nejde je tedy zadat přímo.</target>
+        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</source>
+        <target state="translated">Omezení pro metody přepsání a explicitní implementace rozhraní se dědí ze základní metody, nejde je tedy zadat přímo, s výjimkou omezení class nebo struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOverride">
@@ -2183,7 +3630,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_AbstractAndSealed">
         <source>'{0}' cannot be both abstract and sealed</source>
-        <target state="translated">{0} nemůže být abstraktní i zapečetěná.</target>
+        <target state="translated">'{0} nemůže být extern i sealed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractNotVirtual">
@@ -2223,7 +3670,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_CantDeriveFromSealedType">
         <source>'{0}': cannot derive from sealed type '{1}'</source>
-        <target state="translated">{0}: Nejde odvozovat ze zapečetěného typu {1}.</target>
+        <target state="translated">'{0}: Nejde odvozovat ze zapečetěného typu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
@@ -2281,19 +3728,14 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <target state="translated">Člen struktury {0} typu {1} způsobuje cyklus v rozložení struktury.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterfacesCannotContainTypes">
-        <source>'{0}': interfaces cannot declare types</source>
-        <target state="translated">'{0}: Rozhraní nemůžou deklarovat typy.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainFields">
-        <source>Interfaces cannot contain fields</source>
-        <target state="translated">Rozhraní nemůžou obsahovat pole.</target>
+        <source>Interfaces cannot contain instance fields</source>
+        <target state="translated">Rozhraní nemůžou obsahovat pole instance.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
-        <source>Interfaces cannot contain constructors</source>
-        <target state="translated">Rozhraní nemůžou obsahovat konstruktory.</target>
+        <source>Interfaces cannot contain instance constructors</source>
+        <target state="translated">Rozhraní nemůžou obsahovat konstruktory instance.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">
@@ -2314,11 +3756,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       <trans-unit id="ERR_CycleInInterfaceInheritance">
         <source>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</source>
         <target state="translated">Zděděné rozhraní {1} způsobuje cyklus v hierarchii rozhraní {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InterfaceMemberHasBody">
-        <source>'{0}': interface members cannot have a definition</source>
-        <target state="translated">'{0}: Členy rozhraní nemůžou obsahovat definici.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HidingAbstractMethod">
@@ -2347,8 +3784,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceMemberNotFound">
-        <source>'{0}' in explicit interface declaration is not a member of interface</source>
-        <target state="translated">'{0} v explicitní deklaraci rozhraní není členem rozhraní.</target>
+        <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</source>
+        <target state="translated">{0} v explicitní deklaraci rozhraní se nenašel mezi členy rozhraní, které se dají implementovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
@@ -2357,8 +3794,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class or struct</source>
-        <target state="translated">'{0}: Explicitní deklaraci rozhraní jde použít jenom ve třídě nebo struktuře.</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
+        <target state="translated">{0}: Explicitní deklaraci rozhraní jde použít jenom ve třídě, struktuře nebo rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -2398,7 +3835,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
         <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">{0} je nový virtuální člen v zapečetěné třídě {1}.</target>
+        <target state="translated">'{0} je nový virtuální člen v zapečetěné třídě {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
@@ -2464,11 +3901,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
         <target state="translated">První operand přetěžovaného operátoru shift musí být stejného typu jako obsahující typ a druhý operand musí být typu int.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InterfacesCantContainOperators">
-        <source>Interfaces cannot contain operators</source>
-        <target state="translated">Rozhraní nemůžou obsahovat operátory.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructsCantContainDefaultConstructor">
@@ -2698,7 +4130,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_MissingStructOffset">
         <source>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
-        <target state="needs-review-translation">'{0}: Typy polí instance označené deklarací StructLayout(LayoutKind.Explicit) musí mít atribut FieldOffset.</target>
+        <target state="translated">{0}: Typy polí instance označené deklarací StructLayout(LayoutKind.Explicit) musí mít atribut FieldOffset.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExternMethodNoImplementation">
@@ -2713,12 +4145,12 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
         <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">{0}: V zapečetěné třídě je deklarovaný nový zapečetěný člen.</target>
+        <target state="translated">'{0}: V zapečetěné třídě je deklarovaný nový chráněný člen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
         <source>New protected member declared in sealed class</source>
-        <target state="translated">V zapečetěné třídě je deklarovaný nový zapečetěný člen.</target>
+        <target state="translated">V zapečetěné třídě je deklarovaný nový chráněný člen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -3262,8 +4694,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class or partial struct</source>
-        <target state="translated">Částečná metoda musí být deklarovaná uvnitř částečné třídy nebo částečné struktury.</target>
+        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
+        <target state="translated">Částečná metoda musí být deklarovaná uvnitř částečné třídy, částečné struktury nebo částečného rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
@@ -3307,8 +4739,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
-        <source>Partial method declarations of '{0}' have inconsistent type parameter constraints</source>
-        <target state="translated">Pro deklarace částečné metody {0} platí omezení parametrů s nekonzistentními typy.</target>
+        <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
+        <target state="translated">Částečné deklarace metod {0} mají nekonzistentní omezení parametru typu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -3751,8 +5183,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
-        <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="translated">'{0} neobsahuje definici pro {1} a nenašla se žádná metoda rozšíření {1}, která by přijímala první argument typu {0}. (Nechybí direktiva using nebo odkaz na sestavení?)</target>
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="translated">{0} neobsahuje definici pro {1} a nenašla se žádná dostupná metoda rozšíření {1}, která by přijímala první argument typu {0}. (Nechybí direktiva using nebo odkaz na sestavení?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -4016,12 +5448,12 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a valid non-generic class or struct</source>
-        <target state="translated">'Prvek {0} zadaný pro metodu Main musí být platná neobecná třída nebo struktura.</target>
+        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
+        <target state="translated">{0} zadaný pro metodu Main musí být neobecná třída, struktura nebo rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
-        <source>'{0}' does not have a suitable static Main method</source>
+        <source>'{0}' does not have a suitable static 'Main' method</source>
         <target state="translated">'{0} nemá vhodnou statickou metodu Main.</target>
         <note />
       </trans-unit>
@@ -4082,7 +5514,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="WRN_UnmatchedParamTag_Title">
         <source>XML comment has a param tag, but there is no parameter by that name</source>
-        <target state="translated">Komentár XML má značku param, ale neexistuje parametr s tímto názvem.</target>
+        <target state="translated">Komentář XML má značku param, ale neexistuje parametr s tímto názvem.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedParamRefTag">
@@ -4092,7 +5524,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="WRN_UnmatchedParamRefTag_Title">
         <source>XML comment has a paramref tag, but there is no parameter by that name</source>
-        <target state="translated">Komentár XML má značku paramref, ale neexistuje parametr s tímto názvem.</target>
+        <target state="translated">Komentář XML má značku paramref, ale neexistuje parametr s tímto názvem.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingParamTag">
@@ -4142,7 +5574,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="needs-review-translation">Příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici pro {1}.</target>
+        <target state="translated">Příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici instance pro {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -4361,8 +5793,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
-        <source>Iterators cannot have ref or out parameters</source>
-        <target state="translated">U iterátorů nejde používat parametry ref nebo out.</target>
+        <source>Iterators cannot have ref, in or out parameters</source>
+        <target state="translated">U iterátorů nejde používat parametry ref, in nebo out.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -4387,7 +5819,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
         <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
-        <target state="needs-review-translation">Parametr ref nebo out {0} uvnitř anonymní metody, lambda výrazu nebo výrazu dotazu</target>
+        <target state="translated">Parametr ref, out nebo in {0} nejde použít uvnitř anonymní metody, výrazu lambda, výrazu dotazu nebo lokální funkce.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -4416,13 +5848,13 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable or restore</source>
-        <target state="translated">Očekávala se hodnota disable nebo restore.</target>
+        <source>Expected 'disable' or 'restore'</source>
+        <target state="needs-review-translation">Byla očekávána hodnota disable, restore, enable nebo safeonly.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable or restore after #pragma warning</source>
-        <target state="translated">Po varování #pragma se očekávala hodnota disable nebo restore.</target>
+        <source>Expected 'disable' or 'restore' after #pragma warning</source>
+        <target state="needs-review-translation">Po #pragma warning byla očekávána hodnota disable, restore, enable nebo safeonly.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -4586,8 +6018,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">{0} nejde převést na typ delegáta {1}, protože se typy parametrů neshodují s typy parametrů delegáta.</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="translated">{0} nejde převést na typ {1}, protože typy parametrů se neshodují s typy parametrů delegáta.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -4656,8 +6088,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPlatformType">
-        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium or x64</source>
-        <target state="translated">Neplatná možnost {0} pro /platform. Musí být anycpu, x86, Itanium nebo x64.</target>
+        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</source>
+        <target state="translated">Neplatná možnost {0} pro /platform. Musí být anycpu, x86, Itanium, arm, arm64 nebo x64.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
@@ -4666,8 +6098,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'</source>
-        <target state="translated">'{0}: Typ použitý v příkazu using musí být implicitně převeditelný na System.IDisposable.</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
+        <target state="translated">{0}: typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable nebo implementovat odpovídající metodu Dispose.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -4912,7 +6344,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="WRN_UnmatchedTypeParamTag_Title">
         <source>XML comment has a typeparam tag, but there is no type parameter by that name</source>
-        <target state="translated">Komentár XML má značku typeparam, ale neexistuje parametr typu s tímto názvem.</target>
+        <target state="translated">Komentář XML má značku typeparam, ale neexistuje parametr typu s tímto názvem.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedTypeParamRefTag">
@@ -4922,7 +6354,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="WRN_UnmatchedTypeParamRefTag_Title">
         <source>XML comment has a typeparamref tag, but there is no type parameter by that name</source>
-        <target state="translated">Komentár XML má značku typeparamref, ale neexistuje parametr typu s tímto názvem.</target>
+        <target state="translated">Komentář XML má značku typeparamref, ale neexistuje parametr typu s tímto názvem.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingTypeParamTag">
@@ -5231,8 +6663,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
-        <source>An expression tree lambda may not contain an out or ref parameter</source>
-        <target state="translated">Strom výrazu lambda nesmí obsahovat parametr Out ani parametr Ref.</target>
+        <source>An expression tree lambda may not contain a ref, in or out parameter</source>
+        <target state="translated">Strom výrazu lambda nesmí obsahovat parametr ref, in nebo out.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarArgsInExpressionTree">
@@ -5381,11 +6813,6 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       <trans-unit id="FTL_InvalidTarget">
         <source>Invalid target type for /target: must specify 'exe', 'winexe', 'library', or 'module'</source>
         <target state="translated">Neplatný typ cíle pro parametr /target: Je nutné použít možnost exe, winexe, library nebo module.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FTL_InputFileNameTooLong">
-        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoConfigNotOnCommandLine">
@@ -5729,7 +7156,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg">
-        <source>'await' requires that the type {0} have a suitable GetAwaiter method</source>
+        <source>'await' requires that the type {0} have a suitable 'GetAwaiter' method</source>
         <target state="translated">'Operátor await vyžaduje, aby typ {0} měl odpovídající metodu GetAwaiter.</target>
         <note />
       </trans-unit>
@@ -5739,12 +7166,12 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaiterPattern">
-        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion</source>
+        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable 'IsCompleted', 'OnCompleted', and 'GetResult' members, and implement 'INotifyCompletion' or 'ICriticalNotifyCompletion'</source>
         <target state="translated">'Operátor await vyžaduje, aby návratový typ {0} metody {1}.GetAwaiter() měl odpovídající členy IsCompleted, OnCompleted a GetResult a implementoval rozhraní INotifyCompletion nebo ICriticalNotifyCompletion.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg_NeedSystem">
-        <source>'await' requires that the type '{0}' have a suitable GetAwaiter method. Are you missing a using directive for 'System'?</source>
+        <source>'await' requires that the type '{0}' have a suitable 'GetAwaiter' method. Are you missing a using directive for 'System'?</source>
         <target state="translated">'Operátor await vyžaduje, aby typ {0} měl odpovídající metodu GetAwaiter. Chybí vám direktiva using pro položku System?</target>
         <note />
       </trans-unit>
@@ -5769,8 +7196,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
-        <source>The return type of an async method must be void, Task or Task&lt;T&gt;</source>
-        <target state="translated">Návratový typ asynchronní metody musí být void, Task nebo Task&lt;T&gt;.</target>
+        <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</source>
+        <target state="translated">Návratový typ asynchronní metody musí být void, Task, Task&lt;T&gt;, typ podobný úloze, IAsyncEnumerable&lt;T&gt; nebo IAsyncEnumerator&lt;T&gt;.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantReturnVoid">
@@ -5794,8 +7221,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
-        <source>Async methods cannot have ref or out parameters</source>
-        <target state="translated">Asynchronní metody nemůžou mít parametry předávané odkazem ani výstupní parametry.</target>
+        <source>Async methods cannot have ref, in or out parameters</source>
+        <target state="translated">Asynchronní metody nemůžou mít parametry ref, in nebo out.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsync">
@@ -6112,7 +7539,7 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
       </trans-unit>
       <trans-unit id="WRN_IsDynamicIsConfusing">
         <source>Using '{0}' to test compatibility with '{1}' is essentially identical to testing compatibility with '{2}' and will succeed for all non-null values</source>
-        <target state="translated">Použití operátoru {0} pro testování kompatibility s typem {1} je v podstatě totožné s testováním kompatibility s typem {2} a bude úspěšné pro všechny nenulové hodnoty.</target>
+        <target state="translated">Použití operátoru {0} pro testování kompatibility s typem {1} je v podstatě totožné s testováním kompatibility s typem {2} a bude úspěšné pro všechny hodnoty, které nejsou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsDynamicIsConfusing_Title">
@@ -6948,11 +8375,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Odeslání musí mít aspoň jeden strom syntaxe.</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFoundTo">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">Strom syntaxe {0} k odebrání se nenašel.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWith">
         <source>tree must have a root node with SyntaxKind.CompilationUnit</source>
         <target state="translated">strom musí mít kořenový uzel s prvkem SyntaxKind.CompilationUnit</target>
@@ -7203,293 +8625,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Podporované jazykové verze:</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_CSCHelp">
-        <source>
-                              Visual C# Compiler Options
-
-                        - OUTPUT FILES -
- /out:&lt;file&gt;                   Specify output file name (default: base name of
-                               file with main class or first file)
- /target:exe                   Build a console executable (default) (Short
-                               form: /t:exe)
- /target:winexe                Build a Windows executable (Short form:
-                               /t:winexe)
- /target:library               Build a library (Short form: /t:library)
- /target:module                Build a module that can be added to another
-                               assembly (Short form: /t:module)
- /target:appcontainerexe       Build an Appcontainer executable (Short form:
-                               /t:appcontainerexe)
- /target:winmdobj              Build a Windows Runtime intermediate file that
-                               is consumed by WinMDExp (Short form: /t:winmdobj)
- /doc:&lt;file&gt;                   XML Documentation file to generate
- /refout:&lt;file&gt;                Reference assembly output to generate
- /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred, or
-                               anycpu. The default is anycpu.
-
-                        - INPUT FILES -
- /recurse:&lt;wildcard&gt;           Include all files in the current directory and
-                               subdirectories according to the wildcard
-                               specifications
- /reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
-                               file using the given alias (Short form: /r)
- /reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                               files (Short form: /r)
- /addmodule:&lt;file list&gt;        Link the specified modules into this assembly
- /link:&lt;file list&gt;             Embed metadata from the specified interop
-                               assembly files (Short form: /l)
- /analyzer:&lt;file list&gt;         Run the analyzers from this assembly
-                               (Short form: /a)
- /additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
-                               generation but may be used by analyzers for producing
-                               errors or warnings.
- /embed                        Embed all source files in the PDB.
- /embed:&lt;file list&gt;            Embed specific files in the PDB
-
-                        - RESOURCES -
- /win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
- /win32icon:&lt;file&gt;             Use this icon for the output
- /win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
- /nowin32manifest              Do not include the default Win32 manifest
- /resource:&lt;resinfo&gt;           Embed the specified resource (Short form: /res)
- /linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
-                               (Short form: /linkres) Where the resinfo format
-                               is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
-
-                        - CODE GENERATION -
- /debug[+|-]                   Emit debugging information
- /debug:{full|pdbonly|portable|embedded}
-                               Specify debugging type ('full' is default,
-                               'portable' is a cross-platform format,
-                               'embedded' is a cross-platform format embedded into
-                               the target .dll or .exe)
- /optimize[+|-]                Enable optimizations (Short form: /o)
- /deterministic                Produce a deterministic assembly
-                               (including module version GUID and timestamp)
- /refonly                      Produce a reference assembly in place of the main output
- /instrument:TestCoverage      Produce an assembly instrumented to collect
-                               coverage information
- /sourcelink:&lt;file&gt;            Source link info to embed into PDB.
-
-                        - ERRORS AND WARNINGS -
- /warnaserror[+|-]             Report all warnings as errors
- /warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
- /warn:&lt;n&gt;                     Set warning level (0-4) (Short form: /w)
- /nowarn:&lt;warn list&gt;           Disable specific warning messages
- /ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
-                               diagnostics.
- /errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
-                               diagnostics.
- /reportanalyzer               Report additional analyzer information, such as
-                               execution time.
-
-                        - LANGUAGE -
- /checked[+|-]                 Generate overflow checks
- /unsafe[+|-]                  Allow 'unsafe' code
- /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
-                               form: /d)
- /langversion:?                Display the allowed values for language version
- /langversion:&lt;string&gt;         Specify language version such as
-                               `default` (latest major version), or
-                               `latest` (latest version, including minor versions),
-                               or specific versions like `6` or `7.1`
-
-                        - SECURITY -
- /delaysign[+|-]               Delay-sign the assembly using only the public
-                               portion of the strong name key
- /publicsign[+|-]              Public-sign the assembly using only the public
-                               portion of the strong name key
- /keyfile:&lt;file&gt;               Specify a strong name key file
- /keycontainer:&lt;string&gt;        Specify a strong name key container
- /highentropyva[+|-]           Enable high-entropy ASLR
-
-                        - MISCELLANEOUS -
- @&lt;file&gt;                       Read response file for more options
- /help                         Display this usage message (Short form: /?)
- /nologo                       Suppress compiler copyright message
- /noconfig                     Do not auto include CSC.RSP file
- /parallel[+|-]                Concurrent build.
- /version                      Display the compiler version number and exit.
-
-                        - ADVANCED -
- /baseaddress:&lt;address&gt;        Base address for the library to be built
- /checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
-                               checksum stored in PDB. Supported values are:
-                               SHA1 (default) or SHA256.
- /codepage:&lt;n&gt;                 Specify the codepage to use when opening source
-                               files
- /utf8output                   Output compiler messages in UTF-8 encoding
- /main:&lt;type&gt;                  Specify the type that contains the entry point
-                               (ignore all other possible entry points) (Short
-                               form: /m)
- /fullpaths                    Compiler generates fully qualified paths
- /filealign:&lt;n&gt;                Specify the alignment used for output file
-                               sections
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Specify a mapping for source path names output by
-                               the compiler.
- /pdb:&lt;file&gt;                   Specify debug information file name (default:
-                               output file name with .pdb extension)
- /errorendlocation             Output line and column of the end location of
-                               each error
- /preferreduilang              Specify the preferred output language name.
- /nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
- /subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
- /lib:&lt;file list&gt;              Specify additional directories to search in for
-                               references
- /errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
-                               prompt, send, queue, or none. The default is
-                               queue.
- /appconfig:&lt;file&gt;             Specify an application configuration file
-                               containing assembly binding settings
- /moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
-                               a part of
- /modulename:&lt;string&gt;          Specify the name of the source module
-</source>
-        <target state="translated">
-                              Parametry kompilátoru Visual C#
-
-                        – VÝSTUPNÍ SOUBORY –
- /out:&lt;soubor&gt;                 Určuje název výstupního souboru (výchozí: základní název
-                               souboru s hlavní třídou nebo prvního souboru).
- /target:exe                   Vytvoří spustitelný soubor konzoly (výchozí). 
-                               (Krátký tvar: /t:exe)
- /target:winexe                Vytvoří spustitelný soubor Windows. (Krátký tvar: 
-                               /t:winexe)
- /target:library               Vytvoří knihovnu. (Krátký tvar: /t:library)
- /target:module                Vytvoří modul, který se dá přidat do jiného 
-                               sestavení. (Krátký tvar: /t:module)
- /target:appcontainerexe       Vytvoří spustitelný soubor kontejneru Appcontainer. (Krátký tvar: 
-                               /t:appcontainerexe)
- /target:winmdobj              Vytvoří pomocný soubor modulu Windows Runtime, který 
-                               využívá knihovna WinMDExp. (Krátký tvar: /t:winmdobj)
- /doc:&lt;soubor&gt;                 Soubor dokumentace XML, který se má generovat.
- /refout:&lt;file&gt;                Výstup referenčního sestavení, který se bude generovat
- /platform:&lt;řetězec&gt;           Omezuje platformy, na kterých se dá tento kód spustit: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred nebo 
-                               anycpu. Výchozí je anycpu.
-
-                        – VSTUPNÍ SOUBORY–
- /recurse:&lt;zástupný znak&gt;      Zahrne všechny soubory v aktuálním adresáři 
-                               a podadresářích podle zadaného 
-                               zástupného znaku.
- /reference:&lt;alias&gt;=&lt;soubor&gt;   Odkazuje na metadata ze zadaného souboru 
-                               sestavení pomocí daného aliasu. (Krátký tvar: /r)
- /reference:&lt;seznam souborů&gt;   Odkazuje na metadata ze zadaných souborů 
-                               sestavení. (Krátký tvar: /r)
- /addmodule:&lt;seznam souborů&gt;   Připojí zadané moduly do tohoto sestavení.
- /link:&lt;seznam souborů&gt;        Vloží metadata ze zadaných souborů 
-                               definičních sestavení. (Krátký tvar: /l)
- /analyzer:&lt;seznam souborů&gt;    Spustí analyzátory z tohoto sestavení.
-                               (Krátký tvar: /a)
- /additionalfile:&lt;sez.souborů&gt; Další soubory, které přímo neovlivňují generování
-                               kódu, ale analyzátory můžou jejich pomocí
-                               produkovat chyby nebo upozornění.
- /embed                        Vloží všechny zdrojové soubory do PDB.
- /embed:&lt;seznam souborů&gt;       Vloží konkrétní soubory do PDB.
-
-                        – PROSTŘEDKY –
- /win32res:&lt;soubor&gt;            Určuje soubor prostředků Win32 (.res).
- /win32icon:&lt;soubor&gt;           Použije pro výstup zadanou ikonu.
- /win32manifest:&lt;soubor&gt;       Určuje soubor manifestu Win32 (.xml).
- /nowin32manifest              Nezahrne výchozí manifest Win32.
- /resource:&lt;resinfo&gt;           Vloží zadaný prostředek. (Krátký tvar: /res)
- /linkresource:&lt;resinfo&gt;       Propojí zadaný prostředek s tímto sestavením. 
-                               (Krátký tvar: /linkres) Prostředek má formát 
-                               &lt;soubor&gt;[,&lt;název řetězce&gt;[,public|private]].
-
-                        – GENEROVÁNÍ KÓDU –
- /debug[+|-]                   Generuje ladicí informace.
- /debug:{full|pdbonly|portable|embedded}
-                               Určuje typ ladění (výchozí je možnost full, 
-                               portable je formát napříč platformami,
-                               embedded je formát napříč platformami vložený do 
-                               cílového souboru .dll nebo .exe).
- /optimize[+|-]                Povolí optimalizace. (Krátký tvar: /o)
- /deterministic                Vytvoří deterministické sestavení
-                               (včetně GUID verze modulu a časového razítka).
- /refonly                      Vytvoří referenční sestavení na místě hlavního výstupu.
- /instrument:TestCoverage      Vytvoří sestavení instrumentované ke shromažďování
-                               informací o pokrytí.
- /sourcelink:&lt;soubor&gt;          Informace o zdrojovém odkazu vkládané do souboru PDB typu Portable.
-
-                        – CHYBY A UPOZORNĚNÍ –
- /warnaserror[+|-]             Hlásí všechna upozornění jako chyby.
- /warnaserror[+|-]:&lt;seznam upozornění&gt; Hlásí zadaná upozornění jako chyby.
- /warn:&lt;n&gt;                     Nastaví úroveň pro upozornění (0–4). (Krátký tvar: /w)
- /nowarn:&lt;seznam upozornění&gt;   Zakáže zadaná upozornění.
- /ruleset:&lt;soubor&gt;             Určuje soubor sady pravidel, která zakazuje
-                               specifickou diagnostiku.
- /errorlog:&lt;soubor&gt;            Určuje soubor pro protokolování veškeré
-                               diagnostiky kompilátoru a analyzátoru.
- /reportanalyzer               Hlásí další informace analyzátoru, např.
-                               dobu spuštění.
-
-                        – JAZYK –
- /checked[+|-]                 Generuje kontroly přetečení.
- /unsafe[+|-]                  Povoluje nezabezpečený kód.
- /define:&lt;seznam symbolů&gt;      Definuje symboly podmíněné kompilace. (Krátký 
-                               tvar: /d)
- /langversion:?                Zobrazí povolené hodnoty jazykové verze.
- /langversion:&lt;řetězec&gt;        Určuje jazykovou verzi, například 
-                               default (nejnovější hlavní verze), nebo 
-                               latest (nejnovější verze včetně podverzí) nebo
-                               konkrétní verze jako 6 nebo 7.1.
-
-                        – ZABEZPEČENÍ –
- /delaysign[+|-]               Vytvoří zpožděný podpis sestavení s využitím 
-                               veřejné části klíče silného názvu.
- /publicsign[+|-]              Vytvoří veřejný podpis sestavení s využitím jenom veřejné
-                               části klíče silného názvu.
- /keyfile:&lt;soubor&gt;             Určuje soubor klíče se silným názvem.
- /keycontainer:&lt;řetězec&gt;       Určuje kontejner klíče se silným názvem.
- /highentropyva[+|-]           Povolí ASLR s vysokou entropií.
-
-                        – RŮZNÉ –
- @&lt;soubor&gt;                     Načte další možnosti ze souboru odpovědí.
- /help                         Zobrazí tuto zprávu o použití. (Krátký tvar: /?)
- /nologo                       Potlačí zprávu o autorských právech kompilátoru.
- /noconfig                     Nezahrnuje automaticky soubor CSC.RSP.
- /parallel[+|-]                Souběžné sestavení 
- /version                      Zobrazí číslo verze kompilátoru a ukončí se.
-
-                        – POKROČILÉ –
- /baseaddress:&lt;adresa&gt;         Základní adresa pro knihovnu, která se má sestavit
- /checksumalgorithm:&lt;alg&gt;      Určuje algoritmus pro výpočet kontrolního součtu 
-                               zdrojového souboru uloženého v PDB. Podporované hodnoty:
-                               SHA1 (výchozí) nebo SHA256.
- /codepage:&lt;n&gt;                 Určuje znakovou stránku, která se má použít 
-                               při otevírání zdrojových souborů.
- /utf8output                   Určuje výstup zpráv kompilátoru v kódování UTF-8.
- /main:&lt;typ&gt;                   Určuje typ obsahující vstupní bod (ignoruje 
-                               všechny ostatní potenciální vstupní body). (Krátký 
-                               tvar: /m)
- /fullpaths                    Kompilátor generuje úplné cesty.
- /filealign:&lt;n&gt;                Určuje zarovnání použité pro oddíly výstupního 
-                               souboru.
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Určuje mapování pro výstup zdrojových názvů cest
-                               kompilátorem.
- /pdb:&lt;soubor&gt;                 Určuje název souboru ladicích informací (výchozí: 
-                               název výstupního souboru s příponou .pdb).
- /errorendlocation             Vypíše řádek a sloupec koncového umístění 
-                               jednotlivých chyb.
- /preferreduilang              Určuje název upřednostňovaného výstupního jazyka.
- /nostdlib[+|-]                Neodkazuje na standardní knihovnu (mscorlib.dll).
- /subsystemversion:&lt;řetězec&gt;   Určuje verzi subsystému tohoto sestavení.
- /lib:&lt;seznam souborů&gt;         Určuje další adresáře, ve kterých se mají 
-                               hledat reference.
- /errorreport:&lt;řetězec&gt;        Určuje způsob zpracování interních chyb kompilátoru: 
-                               prompt, send, queue nebo none. Výchozí možnost 
-                               je queue (zařadit do fronty).
- /appconfig:&lt;soubor&gt;           Určuje konfigurační soubor aplikace, 
-                               který obsahuje nastavení vazby sestavení.
- /moduleassemblyname:&lt;řetězec&gt; Určuje název sestavení, jehož součástí bude 
-                               tento modul.
- /modulename:&lt;řetězec&gt;         Určuje název zdrojového modulu.
-</target>
-        <note>Visual C# Compiler Options</note>
-      </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
         <source>'{0}': a class with the ComImport attribute cannot specify field initializers.</source>
         <target state="translated">'{0}: Třída s atributem ComImport nemůže určovat inicializátory polí.</target>
@@ -7588,11 +8723,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_AutoPropertyMustOverrideSet">
         <source>Auto-implemented properties must override all accessors of the overridden property.</source>
         <target state="translated">Automaticky implementované vlastnosti musí přepsat všechny přistupující objekty přepsané vlastnosti.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">Automaticky implementované vlastnosti uvnitř rozhraní nemůžou mít inicializátory.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
@@ -7781,8 +8911,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">Délka řetězcové konstanty přesahuje aktuální limit paměti. Zkuste řetězec rozdělit do několika konstant.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">Délka řetězcové konstanty přesahuje aktuální limit paměti. Zkuste řetězec rozdělit do několika konstant.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -7811,8 +8941,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note>File path referenced in source (#load) could not be resolved.</note>
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
-        <source>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="translated">SyntaxTree {0} je výsledkem direktivy #load a nedá se odebrat nebo nahradit přímo.</target>
+        <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
+        <target state="translated">SyntaxTree je výsledkem direktivy #load a nedá se odebrat nebo nahradit přímo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">
@@ -7991,8 +9121,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Větve tříhodnotového operátoru REF nemůžou odkazovat na proměnné s nekompatibilními obory deklarace.</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="translated">Větve podmíněného operátoru REF nemůžou odkazovat na proměnné s nekompatibilními obory deklarace.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">
@@ -8026,12 +9156,12 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
+        <source>Iterators cannot have by-reference locals</source>
         <target state="translated">Iterátory nemůžou mít lokální proměnné podle odkazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
+        <source>Async methods cannot have by-reference locals</source>
         <target state="translated">Asynchronní metody nemůžou mít lokální proměnné podle odkazu.</target>
         <note />
       </trans-unit>
@@ -8080,11 +9210,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Ve vzoru se nepovoluje použití typu s možnou hodnotou null {0}; místo toho použijte základní typ {1}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadIsPatternExpression">
-        <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
-        <target state="translated">Neplatný operand pro porovnávací vzorek. Vyžaduje se hodnota, ale nalezeno: {0}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PeWritingFailure">
         <source>An error occurred while writing the output file: {0}.</source>
         <target state="translated">Při zápisu výstupního souboru došlo k chybě: {0}.</target>
@@ -8116,7 +9241,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingDeconstruct">
-        <source>No suitable Deconstruct instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
+        <source>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
         <target state="translated">Pro typ {0} s výstupními parametry ({1}) a návratovým typem void se nenašla žádná vhodná instance Deconstruct nebo rozšiřující metoda.</target>
         <note />
       </trans-unit>
@@ -8128,11 +9253,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_SwitchExpressionValueExpected">
         <source>The switch expression must be a value; found '{0}'.</source>
         <target state="translated">Výraz switch musí být hodnota. Bylo nalezeno: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PatternIsSubsumed">
-        <source>The switch case has already been handled by a previous case.</source>
-        <target state="translated">Větev příkazu switch se už zpracovala předchozí větví.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternWrongType">
@@ -8198,11 +9318,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_DeconstructTooFewElements">
         <source>Deconstruction must contain at least two variables.</source>
         <target state="translated">Dekonstrukce musí obsahovat aspoň dvě proměnné.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TypeMustBeVar">
-        <source>The type must be 'var'.</source>
-        <target state="translated">Typ musí být var.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleLiteralNameMismatch">
@@ -8285,16 +9400,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Syntaxe 'var (...)' jako l-hodnota je vyhrazená.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">Deklarace proměnné out a pattern nejsou v inicializátorech konstruktoru, pole nebo vlastnosti povolené.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInQueryClause">
-        <source>Out variable and pattern variable declarations are not allowed within a query clause.</source>
-        <target state="translated">Deklarace proměnné out a pattern nejsou v klauzuli dotazu povolené.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">Očekávaly se znaky { nebo ; nebo =&gt;.</target>
@@ -8358,11 +9463,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_PatternDynamicType">
         <source>It is not legal to use the type 'dynamic' in a pattern.</source>
         <target state="translated">Není povoleno použít typ dynamic ve vzorku.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">Výchozí literál nejde použít jako argument v dynamicky odbavované operaci.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
@@ -8491,8 +9591,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of an 'in' extension method '{0}' must be a value type.</source>
-        <target state="translated">První parametr rozšiřující metody in {0} musí být typem hodnoty.</target>
+        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="translated">Prvním parametrem metody rozšíření in {0} musí být konkrétní (neobecný) typ hodnoty.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
@@ -8518,11 +9618,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_StackAllocConversionNotPossible">
         <source>Conversion of a stackalloc expression of type '{0}' to type '{1}' is not possible.</source>
         <target state="translated">Převod výrazu stackalloc typu {0} na typ {1} není možný.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_StackAllocExpression">
-        <source>stackalloc {0}[{1}]</source>
-        <target state="translated">stackalloc {0}[{1}]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne">
@@ -8570,54 +9665,79 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Podmíněný výraz se nedá použít přímo v interpolaci řetězce, protože na konci interpolace je dvojtečka. Dejte podmíněný výraz do závorek.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">Výchozí literál default není platný jako konstanta case. Podle potřeby použijte jiný literál (například 0 nebo null). Pokud jste chtěli zapsat výchozí popisek, použijte default: bez case.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInPattern">
-        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="translated">Výchozí literál default není platný jako vzor. Podle potřeby použijte jiný literál (například 0 nebo null). Pokud chcete, aby odpovídalo vše, použijte vzor „var _“.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InDynamicMethodArg">
-        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
-        <target state="translated">Argumenty s modifikátorem in se nedají použít v dynamicky odbavených výrazech.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
         <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
-        <target state="new">Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</target>
+        <target state="translated">Nepoužívejte u vlastnosti atribut System.Runtime.CompilerServices.FixedBuffer.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion7_3">
         <source>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</target>
+        <target state="translated">Funkce {0} není dostupná v jazyce C# 7.3. Použijte prosím jazyk verze {1} nebo vyšší.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable">
         <source>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</source>
-        <target state="new">Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</target>
+        <target state="translated">Atributy cílící na pole se u automatických vlastností v jazyku verze {0} nepodporují. Použijte prosím jazyk verze {1} nebo vyšší.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable_Title">
         <source>Field-targeted attributes on auto-properties are not supported in this version of the language.</source>
-        <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
+        <target state="translated">Atributy cílící na pole se u automatických vlastností v této verzi jazyka nepodporují.</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureRefConditional">
-        <source>ref conditional expression</source>
-        <target state="translated">referenční podmínka</target>
+      <trans-unit id="IDS_FeatureAsyncStreams">
+        <source>async streams</source>
+        <target state="translated">asynchronní streamy</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
+      <trans-unit id="ERR_NoConvToIAsyncDisp">
+        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="translated">{0}: typ použitý v příkazu async using musí být implicitně převoditelný na System.IAsyncDisposable nebo implementovat odpovídající metodu DisposeAsync.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InvalidHashAlgorithmName">
-        <source>Invalid hash algorithm name: '{0}'</source>
-        <target state="new">Invalid hash algorithm name: '{0}'</target>
+      <trans-unit id="ERR_BadGetAsyncEnumerator">
+        <source>Asynchronous foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</source>
+        <target state="translated">Asynchronní příkaz foreach vyžaduje, aby návratový typ {0} pro {1} měl vhodnou veřejnou metodu MoveNextAsync a veřejnou vlastnost Current.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MultipleIAsyncEnumOfT">
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
+        <target state="translated">Asynchronní příkaz foreach nejde použít pro proměnné typu {0}, protože implementuje víc instancí {1}. Zkuste přetypování na konkrétní instanci rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
+        <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
+        <target state="translated">Rozhraní nemůžou obsahovat operátory převodu, rovnosti nebo nerovnosti.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="translated">Cílový modul runtime nepodporuje implementaci výchozího rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
+        <target state="translated">{0} nemůže implementovat člen rozhraní {1} v typu {2}, protože cílový modul runtime nepodporuje implementaci výchozího rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="translated">Modifikátor {0} není platný pro tuto položku v jazyce C# {1}. Použijte prosím verzi jazyka {2} nebo vyšší.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
+        <target state="translated">{0} neimplementuje člen rozhraní {1}. {2} nemůže implicitně implementovat neveřejný člen rozhraní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
+        <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
+        <target state="translated">Člen rozhraní {0} nemá nejvíce specifickou implementaci. {1} ani {2} nejsou nejvíce specifické.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="translated">{0} nemůže implementovat člen rozhraní {1} v typu {2}, protože funkce {3} není v jazyce C# {4} k dispozici. Použijte prosím verzi jazyka {5} nebo vyšší.</target>
         <note />
       </trans-unit>
     </body>

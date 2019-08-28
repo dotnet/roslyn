@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -25,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             public DirectiveWalker(
                 IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> directiveMap,
                 IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> conditionalMap,
-                CancellationToken cancellationToken) :
-                base(SyntaxWalkerDepth.Token)
+                CancellationToken cancellationToken)
+                : base(SyntaxWalkerDepth.Token)
             {
                 _directiveMap = directiveMap;
                 _conditionalMap = conditionalMap;
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 // #If should be the first one in sorted order
                 var ifDirective = condDirectives.First();
-                Contract.Assert(
+                Debug.Assert(
                     ifDirective.Kind() == SyntaxKind.IfDirectiveTrivia ||
                     ifDirective.Kind() == SyntaxKind.ElifDirectiveTrivia ||
                     ifDirective.Kind() == SyntaxKind.ElseDirectiveTrivia);

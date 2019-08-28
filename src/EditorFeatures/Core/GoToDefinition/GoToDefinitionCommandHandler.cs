@@ -2,29 +2,30 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToDefinition,
-       ContentTypeNames.RoslynContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.GoToDefinition)]
     internal class GoToDefinitionCommandHandler :
-        ICommandHandler<GoToDefinitionCommandArgs>
+        VSCommanding.ICommandHandler<GoToDefinitionCommandArgs>
     {
-        private readonly IWaitIndicator _waitIndicator;
-
         [ImportingConstructor]
-        public GoToDefinitionCommandHandler(
-            IWaitIndicator waitIndicator)
+        public GoToDefinitionCommandHandler()
         {
-            _waitIndicator = waitIndicator;
         }
+
+        public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
         private (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
         {
@@ -32,58 +33,58 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return (document, document?.GetLanguageService<IGoToDefinitionService>());
         }
 
-        public CommandState GetCommandState(GoToDefinitionCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(GoToDefinitionCommandArgs args)
         {
-            var (document, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
             return service != null
-                ? CommandState.Available
-                : CommandState.Unavailable;
+                ? VSCommanding.CommandState.Available
+                : VSCommanding.CommandState.Unavailable;
         }
 
-        public void ExecuteCommand(GoToDefinitionCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(GoToDefinitionCommandArgs args, CommandExecutionContext context)
         {
             var subjectBuffer = args.SubjectBuffer;
             var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
             if (service != null)
             {
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
-                if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service))
+                if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service, context))
                 {
-                    return;
+                    return true;
                 }
             }
 
-            nextHandler();
+            return false;
         }
 
         // Internal for testing purposes only.
-        internal bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition)
-            => TryExecuteCommand(snapshot.GetOpenDocumentInCurrentContextWithChanges(), caretPosition);
+        internal bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
+            => TryExecuteCommand(snapshot.GetOpenDocumentInCurrentContextWithChanges(), caretPosition, context);
 
-        internal bool TryExecuteCommand(Document document, int caretPosition)
-            => TryExecuteCommand(document, caretPosition, document.GetLanguageService<IGoToDefinitionService>());
+        internal bool TryExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
+            => TryExecuteCommand(document, caretPosition, document.GetLanguageService<IGoToDefinitionService>(), context);
 
-        internal bool TryExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService)
+        internal bool TryExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
         {
             string errorMessage = null;
 
-            var result = _waitIndicator.Wait(
-                title: EditorFeaturesResources.Go_to_Definition,
-                message: EditorFeaturesResources.Navigating_to_definition,
-                allowCancel: true,
-                action: waitContext =>
-                {
-                    if (goToDefinitionService != null &&
-                        goToDefinitionService.TryGoToDefinition(document, caretPosition, waitContext.CancellationToken))
-                    {
-                        return;
-                    }
-
-                    errorMessage = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
-                });
-
-            if (result == WaitIndicatorResult.Completed && errorMessage != null)
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
             {
+                if (goToDefinitionService != null &&
+                    goToDefinitionService.TryGoToDefinition(document, caretPosition, context.OperationContext.UserCancellationToken))
+                {
+                    return true;
+                }
+
+                errorMessage = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
+            }
+
+            if (errorMessage != null)
+            {
+                // We are about to show a modal UI dialog so we should take over the command execution
+                // wait context. That means the command system won't attempt to show its own wait dialog 
+                // and also will take it into consideration when measuring command handling duration.
+                context.OperationContext.TakeOwnership();
                 var workspace = document.Project.Solution.Workspace;
                 var notificationService = workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);

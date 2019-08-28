@@ -92,12 +92,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override DebugId? MethodId => _methodId;
 
-        private int CalculateSyntaxOffsetInPreviousMethod(int position, SyntaxTree tree)
+        private int CalculateSyntaxOffsetInPreviousMethod(SyntaxNode node)
         {
             // Note that syntax offset of a syntax node contained in a lambda body is calculated by the containing top-level method,
             // not by the lambda method. The offset is thus relative to the top-level method body start. We can thus avoid mapping 
             // the current lambda symbol or body to the corresponding previous lambda symbol or body, which is non-trivial. 
-            return _previousTopLevelMethod.CalculateLocalSyntaxOffset(position, tree);
+            return _previousTopLevelMethod.CalculateLocalSyntaxOffset(_lambdaSyntaxFacts.GetDeclaratorPosition(node), node.SyntaxTree);
         }
 
         public override void AddPreviousLocals(ArrayBuilder<Cci.ILocalDefinition> builder)
@@ -120,11 +120,11 @@ namespace Microsoft.CodeAnalysis.Emit
             SyntaxNode previousDeclarator = _syntaxMapOpt(currentDeclarator);
             if (previousDeclarator == null)
             {
-                previousId = default(LocalDebugId);
+                previousId = default;
                 return false;
             }
 
-            int syntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousDeclarator.SpanStart, previousDeclarator.SyntaxTree);
+            int syntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousDeclarator);
             previousId = new LocalDebugId(syntaxOffset, currentId.Ordinal);
             return true;
         }
@@ -183,11 +183,11 @@ namespace Microsoft.CodeAnalysis.Emit
         public override string PreviousStateMachineTypeName => _stateMachineTypeNameOpt;
 
         public override bool TryGetPreviousHoistedLocalSlotIndex(
-            SyntaxNode currentDeclarator, 
+            SyntaxNode currentDeclarator,
             Cci.ITypeReference currentType,
             SynthesizedLocalKind synthesizedKind,
             LocalDebugId currentId,
-            DiagnosticBag diagnostics, 
+            DiagnosticBag diagnostics,
             out int slotIndex)
         {
             // The previous method was not a state machine (it is allowed to change non-state machine to a state machine):
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            previousSyntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
+            previousSyntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousSyntax);
             return true;
         }
 
@@ -254,8 +254,8 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             // Syntax map contains mapping for lambdas, but not their bodies. 
             // Map the lambda first and then determine the corresponding body.
-            var currentLambdaSyntax = isLambdaBody 
-                ? _lambdaSyntaxFacts.GetLambda(lambdaOrLambdaBodySyntax) 
+            var currentLambdaSyntax = isLambdaBody
+                ? _lambdaSyntaxFacts.GetLambda(lambdaOrLambdaBodySyntax)
                 : lambdaOrLambdaBodySyntax;
 
             // no syntax map 
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 previousSyntax = previousLambdaSyntax;
             }
 
-            previousSyntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
+            previousSyntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousSyntax);
             return true;
         }
 

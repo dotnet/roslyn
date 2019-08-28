@@ -4,9 +4,17 @@ Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundBadExpression
+        Implements IBoundInvalidNode
+
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
                 Return StaticCast(Of BoundNode).From(Me.ChildBoundNodes)
+            End Get
+        End Property
+
+        Private ReadOnly Property IBoundInvalidNode_InvalidNodeChildren As ImmutableArray(Of BoundNode) Implements IBoundInvalidNode.InvalidNodeChildren
+            Get
+                Return StaticCast(Of BoundNode).From(ChildBoundNodes)
             End Get
         End Property
     End Class
@@ -48,7 +56,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundNullableIsTrueOperator
+        Implements IBoundInvalidNode
+
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
+            Get
+                Return ImmutableArray.Create(Of BoundNode)(Me.Operand)
+            End Get
+        End Property
+
+        Private ReadOnly Property IBoundInvalidNode_InvalidNodeChildren As ImmutableArray(Of BoundNode) Implements IBoundInvalidNode.InvalidNodeChildren
             Get
                 Return ImmutableArray.Create(Of BoundNode)(Me.Operand)
             End Get
@@ -75,14 +91,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
                 Return ImmutableArray.Create(Of BoundNode)(Me.MemberAccess)
-            End Get
-        End Property
-    End Class
-
-    Friend Partial Class BoundNoPiaObjectCreationExpression
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return If(InitializerOpt IsNot Nothing, StaticCast(Of BoundNode).From(InitializerOpt.Initializers), ImmutableArray(Of BoundNode).Empty)
             End Get
         End Property
     End Class

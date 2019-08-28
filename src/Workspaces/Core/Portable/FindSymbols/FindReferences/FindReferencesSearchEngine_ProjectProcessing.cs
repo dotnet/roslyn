@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return;
             }
 
-
             projectToDocumentMap.Remove(project);
 
             // Now actually process the project.

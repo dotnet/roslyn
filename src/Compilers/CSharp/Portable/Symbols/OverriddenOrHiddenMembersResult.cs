@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (object)baseType != null;
                     baseType = baseType.BaseTypeNoUseSiteDiagnostics)
                 {
-                    if (baseType.OriginalDefinition == overriddenByDefinitionContainingTypeDefinition)
+                    if (TypeSymbol.Equals(baseType.OriginalDefinition, overriddenByDefinitionContainingTypeDefinition, TypeCompareKind.ConsiderEverything2))
                     {
-                        if (baseType == overriddenByDefinitionContaining)
+                        if (TypeSymbol.Equals(baseType, overriddenByDefinitionContaining, TypeCompareKind.ConsiderEverything2))
                         {
                             return overriddenByDefinitionMember;
                         }

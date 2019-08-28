@@ -357,6 +357,9 @@
   <data name="Adding_additional_documents_is_not_supported" xml:space="preserve">
     <value>Adding additional documents is not supported.</value>
   </data>
+  <data name="Adding_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Adding analyzer config documents is not supported.</value>
+  </data>
   <data name="Adding_analyzer_references_is_not_supported" xml:space="preserve">
     <value>Adding analyzer references is not supported.</value>
   </data>
@@ -372,6 +375,9 @@
   <data name="Changing_additional_documents_is_not_supported" xml:space="preserve">
     <value>Changing additional documents is not supported.</value>
   </data>
+  <data name="Changing_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Changing analyzer config documents is not supported.</value>
+  </data>
   <data name="Changing_documents_is_not_supported" xml:space="preserve">
     <value>Changing documents is not supported.</value>
   </data>
@@ -380,6 +386,9 @@
   </data>
   <data name="Removing_additional_documents_is_not_supported" xml:space="preserve">
     <value>Removing additional documents is not supported.</value>
+  </data>
+  <data name="Removing_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Removing analyzer config documents is not supported.</value>
   </data>
   <data name="Removing_analyzer_references_is_not_supported" xml:space="preserve">
     <value>Removing analyzer references is not supported.</value>
@@ -452,9 +461,6 @@
   </data>
   <data name="Exceptions_colon" xml:space="preserve">
     <value>Exceptions:</value>
-  </data>
-  <data name="Variables_captured_colon" xml:space="preserve">
-    <value>Variables captured:</value>
   </data>
   <data name="_0_returned_an_uninitialized_ImmutableArray" xml:space="preserve">
     <value>'{0}' returned an uninitialized ImmutableArray</value>
@@ -615,5 +621,900 @@
   </data>
   <data name="Changing_document_property_is_not_supported" xml:space="preserve">
     <value>Changing document properties is not supported</value>
+  </data>
+  <data name="Variables_captured_colon" xml:space="preserve">
+    <value>Variables captured:</value>
+  </data>
+  <data name="Alternation_conditions_cannot_be_comments" xml:space="preserve">
+    <value>Alternation conditions cannot be comments</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a|(?#b)</comment>
+  </data>
+  <data name="Alternation_conditions_do_not_capture_and_cannot_be_named" xml:space="preserve">
+    <value>Alternation conditions do not capture and cannot be named</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</comment>
+  </data>
+  <data name="A_subtraction_must_be_the_last_element_in_a_character_class" xml:space="preserve">
+    <value>A subtraction must be the last element in a character class</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</comment>
+  </data>
+  <data name="Cannot_include_class_0_in_character_range" xml:space="preserve">
+    <value>Cannot include class \{0} in character range</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</comment>
+  </data>
+  <data name="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue" xml:space="preserve">
+    <value>Capture group numbers must be less than or equal to Int32.MaxValue</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</comment>
+  </data>
+  <data name="Capture_number_cannot_be_zero" xml:space="preserve">
+    <value>Capture number cannot be zero</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</comment>
+  </data>
+  <data name="Illegal_backslash_at_end_of_pattern" xml:space="preserve">
+    <value>Illegal \ at end of pattern</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \</comment>
+  </data>
+  <data name="Illegal_x_y_with_x_less_than_y" xml:space="preserve">
+    <value>Illegal {x,y} with x &gt; y</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{1,0}</comment>
+  </data>
+  <data name="Incomplete_character_escape" xml:space="preserve">
+    <value>Incomplete \p{X} character escape</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{ Cc }</comment>
+  </data>
+  <data name="Insufficient_hexadecimal_digits" xml:space="preserve">
+    <value>Insufficient hexadecimal digits</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</comment>
+  </data>
+  <data name="Invalid_group_name_Group_names_must_begin_with_a_word_character" xml:space="preserve">
+    <value>Invalid group name: Group names must begin with a word character</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</comment>
+  </data>
+  <data name="Malformed" xml:space="preserve">
+    <value>malformed</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</comment>
+  </data>
+  <data name="Malformed_character_escape" xml:space="preserve">
+    <value>Malformed \p{X} character escape</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p {Cc}</comment>
+  </data>
+  <data name="Malformed_named_back_reference" xml:space="preserve">
+    <value>Malformed \k&lt;...&gt; named back reference</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k'</comment>
+  </data>
+  <data name="Missing_control_character" xml:space="preserve">
+    <value>Missing control character</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</comment>
+  </data>
+  <data name="Nested_quantifier_0" xml:space="preserve">
+    <value>Nested quantifier {0}</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</comment>
+  </data>
+  <data name="Not_enough_close_parens" xml:space="preserve">
+    <value>Not enough )'s</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</comment>
+  </data>
+  <data name="Quantifier_x_y_following_nothing" xml:space="preserve">
+    <value>Quantifier {x,y} following nothing</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</comment>
+  </data>
+  <data name="Reference_to_undefined_group" xml:space="preserve">
+    <value>reference to undefined group</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</comment>
+  </data>
+  <data name="Reference_to_undefined_group_name_0" xml:space="preserve">
+    <value>Reference to undefined group name {0}</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</comment>
+  </data>
+  <data name="Reference_to_undefined_group_number_0" xml:space="preserve">
+    <value>Reference to undefined group number {0}</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</comment>
+  </data>
+  <data name="Too_many_bars_in_conditional_grouping" xml:space="preserve">
+    <value>Too many | in (?()|)</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0)a|b|)</comment>
+  </data>
+  <data name="Too_many_close_parens" xml:space="preserve">
+    <value>Too many )'s</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</comment>
+  </data>
+  <data name="Unknown_property" xml:space="preserve">
+    <value>Unknown property</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{}</comment>
+  </data>
+  <data name="Unknown_property_0" xml:space="preserve">
+    <value>Unknown property '{0}'</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{xxx}. Here, {0} will be the name of the unknown property ('xxx')</comment>
+  </data>
+  <data name="Unrecognized_control_character" xml:space="preserve">
+    <value>Unrecognized control character</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: [\c]</comment>
+  </data>
+  <data name="Unrecognized_escape_sequence_0" xml:space="preserve">
+    <value>Unrecognized escape sequence \{0}</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \m. Here, {0} will be the unrecognized character ('m')</comment>
+  </data>
+  <data name="Unrecognized_grouping_construct" xml:space="preserve">
+    <value>Unrecognized grouping construct</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;</comment>
+  </data>
+  <data name="Unterminated_character_class_set" xml:space="preserve">
+    <value>Unterminated [] set</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: [</comment>
+  </data>
+  <data name="Unterminated_regex_comment" xml:space="preserve">
+    <value>Unterminated (?#...) comment</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?#</comment>
+  </data>
+  <data name="x_y_range_in_reverse_order" xml:space="preserve">
+    <value>[x-y] range in reverse order</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: [b-a]</comment>
+  </data>
+  <data name="Regex_issue_0" xml:space="preserve">
+    <value>Regex issue: {0}</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</comment>
+  </data>
+  <data name="Refactoring_Only" xml:space="preserve">
+    <value>Refactoring Only</value>
+  </data>
+  <data name="Regex_number_decimal_digit" xml:space="preserve">
+    <value>number, decimal digit</value>
+  </data>
+  <data name="Regex_number_letter" xml:space="preserve">
+    <value>number, letter</value>
+  </data>
+  <data name="Regex_number_other" xml:space="preserve">
+    <value>number, other</value>
+  </data>
+  <data name="Regex_other_control" xml:space="preserve">
+    <value>other, control</value>
+  </data>
+  <data name="Regex_other_format" xml:space="preserve">
+    <value>other, format</value>
+  </data>
+  <data name="Regex_other_not_assigned" xml:space="preserve">
+    <value>other, not assigned</value>
+  </data>
+  <data name="Regex_other_private_use" xml:space="preserve">
+    <value>other, private use</value>
+  </data>
+  <data name="Regex_other_surrogate" xml:space="preserve">
+    <value>other, surrogate</value>
+  </data>
+  <data name="Regex_punctuation_close" xml:space="preserve">
+    <value>punctuation, close</value>
+  </data>
+  <data name="Regex_punctuation_connector" xml:space="preserve">
+    <value>punctuation, connector</value>
+  </data>
+  <data name="Regex_punctuation_dash" xml:space="preserve">
+    <value>punctuation, dash</value>
+  </data>
+  <data name="Regex_punctuation_final_quote" xml:space="preserve">
+    <value>punctuation, final quote</value>
+  </data>
+  <data name="Regex_punctuation_initial_quote" xml:space="preserve">
+    <value>punctuation, initial quote</value>
+  </data>
+  <data name="Regex_punctuation_open" xml:space="preserve">
+    <value>punctuation, open</value>
+  </data>
+  <data name="Regex_punctuation_other" xml:space="preserve">
+    <value>punctuation, other</value>
+  </data>
+  <data name="Regex_separator_line" xml:space="preserve">
+    <value>separator, line</value>
+  </data>
+  <data name="Regex_separator_paragraph" xml:space="preserve">
+    <value>separator, paragraph</value>
+  </data>
+  <data name="Regex_separator_space" xml:space="preserve">
+    <value>separator, space</value>
+  </data>
+  <data name="Regex_symbol_currency" xml:space="preserve">
+    <value>symbol, currency</value>
+  </data>
+  <data name="Regex_symbol_math" xml:space="preserve">
+    <value>symbol, math</value>
+  </data>
+  <data name="Regex_symbol_modifier" xml:space="preserve">
+    <value>symbol, modifier</value>
+  </data>
+  <data name="Regex_symbol_other" xml:space="preserve">
+    <value>symbol, other</value>
+  </data>
+  <data name="Regex_letter_lowercase" xml:space="preserve">
+    <value>letter, lowercase</value>
+  </data>
+  <data name="Regex_letter_modifier" xml:space="preserve">
+    <value>letter, modifier</value>
+  </data>
+  <data name="Regex_letter_other" xml:space="preserve">
+    <value>letter, other</value>
+  </data>
+  <data name="Regex_letter_titlecase" xml:space="preserve">
+    <value>letter, titlecase</value>
+  </data>
+  <data name="Regex_mark_enclosing" xml:space="preserve">
+    <value>mark, enclosing</value>
+  </data>
+  <data name="Regex_mark_nonspacing" xml:space="preserve">
+    <value>mark, nonspacing</value>
+  </data>
+  <data name="Regex_mark_spacing_combining" xml:space="preserve">
+    <value>mark, spacing combining</value>
+  </data>
+  <data name="Regex_contiguous_matches_long" xml:space="preserve">
+    <value>The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</value>
+  </data>
+  <data name="Regex_contiguous_matches_short" xml:space="preserve">
+    <value>contiguous matches</value>
+  </data>
+  <data name="Regex_end_of_string_only_long" xml:space="preserve">
+    <value>The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</value>
+  </data>
+  <data name="Regex_end_of_string_only_short" xml:space="preserve">
+    <value>end of string only</value>
+  </data>
+  <data name="Regex_end_of_string_or_before_ending_newline_long" xml:space="preserve">
+    <value>The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
+
+The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</value>
+  </data>
+  <data name="Regex_end_of_string_or_before_ending_newline_short" xml:space="preserve">
+    <value>end of string or before ending newline</value>
+  </data>
+  <data name="Regex_non_word_boundary_long" xml:space="preserve">
+    <value>The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</value>
+  </data>
+  <data name="Regex_non_word_boundary_short" xml:space="preserve">
+    <value>non-word boundary</value>
+  </data>
+  <data name="Regex_start_of_string_only_long" xml:space="preserve">
+    <value>The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</value>
+  </data>
+  <data name="Regex_start_of_string_only_short" xml:space="preserve">
+    <value>start of string only</value>
+  </data>
+  <data name="Regex_word_boundary_long" xml:space="preserve">
+    <value>The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
+
+The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</value>
+  </data>
+  <data name="Regex_word_boundary_short" xml:space="preserve">
+    <value>word boundary</value>
+  </data>
+  <data name="Regex_start_of_string_or_line_long" xml:space="preserve">
+    <value>The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</value>
+  </data>
+  <data name="Regex_start_of_string_or_line_short" xml:space="preserve">
+    <value>start of string or line</value>
+  </data>
+  <data name="Regex_end_of_string_or_line_long" xml:space="preserve">
+    <value>The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
+
+The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</value>
+  </data>
+  <data name="Regex_end_of_string_or_line_short" xml:space="preserve">
+    <value>end of string or line</value>
+  </data>
+  <data name="Regex_any_character_group_long" xml:space="preserve">
+    <value>The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</value>
+  </data>
+  <data name="Regex_any_character_group_short" xml:space="preserve">
+    <value>any character</value>
+  </data>
+  <data name="Regex_backspace_character_long" xml:space="preserve">
+    <value>Matches a backspace character, \u0008</value>
+  </data>
+  <data name="Regex_backspace_character_short" xml:space="preserve">
+    <value>backspace character</value>
+  </data>
+  <data name="Regex_bell_character_long" xml:space="preserve">
+    <value>Matches a bell (alarm) character, \u0007</value>
+  </data>
+  <data name="Regex_bell_character_short" xml:space="preserve">
+    <value>bell character</value>
+  </data>
+  <data name="Regex_carriage_return_character_long" xml:space="preserve">
+    <value>Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</value>
+  </data>
+  <data name="Regex_carriage_return_character_short" xml:space="preserve">
+    <value>carriage-return character</value>
+  </data>
+  <data name="Regex_control_character_long" xml:space="preserve">
+    <value>Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</value>
+  </data>
+  <data name="Regex_control_character_short" xml:space="preserve">
+    <value>control character</value>
+  </data>
+  <data name="Regex_decimal_digit_character_long" xml:space="preserve">
+    <value>\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
+
+If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</value>
+  </data>
+  <data name="Regex_decimal_digit_character_short" xml:space="preserve">
+    <value>decimal-digit character</value>
+  </data>
+  <data name="Regex_escape_character_long" xml:space="preserve">
+    <value>Matches an escape character, \u001B</value>
+  </data>
+  <data name="Regex_escape_character_short" xml:space="preserve">
+    <value>escape character</value>
+  </data>
+  <data name="Regex_form_feed_character_long" xml:space="preserve">
+    <value>Matches a form-feed character, \u000C</value>
+  </data>
+  <data name="Regex_form_feed_character_short" xml:space="preserve">
+    <value>form-feed character</value>
+  </data>
+  <data name="Regex_hexadecimal_escape_long" xml:space="preserve">
+    <value>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</value>
+  </data>
+  <data name="Regex_hexadecimal_escape_short" xml:space="preserve">
+    <value>hexidecimal escape</value>
+  </data>
+  <data name="Regex_letter_uppercase" xml:space="preserve">
+    <value>letter, uppercase</value>
+  </data>
+  <data name="Regex_matched_subexpression_long" xml:space="preserve">
+    <value>This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</value>
+  </data>
+  <data name="Regex_matched_subexpression_short" xml:space="preserve">
+    <value>matched subexpression</value>
+  </data>
+  <data name="Regex_negative_character_group_long" xml:space="preserve">
+    <value>A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
+
+Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</value>
+  </data>
+  <data name="Regex_negative_character_group_short" xml:space="preserve">
+    <value>negative character group</value>
+  </data>
+  <data name="Regex_negative_character_range_long" xml:space="preserve">
+    <value>A negative character range specifies a list of characters that must not appear in an input string for a match to occur. 'firstCharacter' is the character that begins the range, and 'lastCharacter' is the character that ends the range.
+
+Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</value>
+  </data>
+  <data name="Regex_negative_character_range_short" xml:space="preserve">
+    <value>negative character range</value>
+  </data>
+  <data name="Regex_negative_unicode_category_long" xml:space="preserve">
+    <value>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</value>
+  </data>
+  <data name="Regex_negative_unicode_category_short" xml:space="preserve">
+    <value>negative unicode category</value>
+  </data>
+  <data name="Regex_new_line_character_long" xml:space="preserve">
+    <value>Matches a new-line character, \u000A</value>
+  </data>
+  <data name="Regex_new_line_character_short" xml:space="preserve">
+    <value>new-line character</value>
+  </data>
+  <data name="Regex_non_digit_character_long" xml:space="preserve">
+    <value>\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
+
+If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</value>
+  </data>
+  <data name="Regex_non_digit_character_short" xml:space="preserve">
+    <value>non-digit character</value>
+  </data>
+  <data name="Regex_non_white_space_character_long" xml:space="preserve">
+    <value>\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
+
+If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</value>
+  </data>
+  <data name="Regex_non_white_space_character_short" xml:space="preserve">
+    <value>non-white-space character</value>
+  </data>
+  <data name="Regex_non_word_character_long" xml:space="preserve">
+    <value>\W matches any non-word character. It matches any character except for those in the following Unicode categories:
+
+    Ll	Letter, Lowercase
+    Lu	Letter, Uppercase
+    Lt	Letter, Titlecase
+    Lo	Letter, Other
+    Lm	Letter, Modifier
+    Mn	Mark, Nonspacing
+    Nd	Number, Decimal Digit
+    Pc	Punctuation, Connector
+
+If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</value>
+    <comment>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized. </comment>
+  </data>
+  <data name="Regex_non_word_character_short" xml:space="preserve">
+    <value>non-word character</value>
+  </data>
+  <data name="Regex_positive_character_group_long" xml:space="preserve">
+    <value>A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur.</value>
+  </data>
+  <data name="Regex_positive_character_group_short" xml:space="preserve">
+    <value>positive character group</value>
+  </data>
+  <data name="Regex_positive_character_range_long" xml:space="preserve">
+    <value>A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  'firstCharacter' is the character that begins the range and 'lastCharacter' is the character that ends the range. </value>
+  </data>
+  <data name="Regex_positive_character_range_short" xml:space="preserve">
+    <value>positive character range</value>
+  </data>
+  <data name="Regex_subexpression" xml:space="preserve">
+    <value>subexpression</value>
+  </data>
+  <data name="Regex_tab_character_long" xml:space="preserve">
+    <value>Matches a tab character, \u0009</value>
+  </data>
+  <data name="Regex_tab_character_short" xml:space="preserve">
+    <value>tab character</value>
+  </data>
+  <data name="Regex_unicode_category_long" xml:space="preserve">
+    <value>The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</value>
+  </data>
+  <data name="Regex_unicode_category_short" xml:space="preserve">
+    <value>unicode category</value>
+  </data>
+  <data name="Regex_unicode_escape_long" xml:space="preserve">
+    <value>Matches a UTF-16 code unit whose value is #### hexadecimal.</value>
+  </data>
+  <data name="Regex_unicode_escape_short" xml:space="preserve">
+    <value>unicode escape</value>
+  </data>
+  <data name="Regex_vertical_tab_character_long" xml:space="preserve">
+    <value>Matches a vertical-tab character, \u000B</value>
+  </data>
+  <data name="Regex_vertical_tab_character_short" xml:space="preserve">
+    <value>vertical-tab character</value>
+  </data>
+  <data name="Regex_white_space_character_long" xml:space="preserve">
+    <value>\s matches any white-space character. It is equivalent to the following escape sequences and Unicode categories:
+
+    \f	The form feed character, \u000C
+    \n	The newline character, \u000A
+    \r	The carriage return character, \u000D
+    \t	The tab character, \u0009
+    \v	The vertical tab character, \u000B
+    \x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
+    \p{Z}	Matches any separator character
+
+If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</value>
+  </data>
+  <data name="Regex_white_space_character_short" xml:space="preserve">
+    <value>white-space character</value>
+  </data>
+  <data name="Regex_word_character_long" xml:space="preserve">
+    <value>\w matches any word character. A word character is a member of any of the following Unicode categories:
+
+    Ll	Letter, Lowercase
+    Lu	Letter, Uppercase
+    Lt	Letter, Titlecase
+    Lo	Letter, Other
+    Lm	Letter, Modifier
+    Mn	Mark, Nonspacing
+    Nd	Number, Decimal Digit
+    Pc	Punctuation, Connector
+
+If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</value>
+    <comment>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized.</comment>
+  </data>
+  <data name="Regex_word_character_short" xml:space="preserve">
+    <value>word character</value>
+  </data>
+  <data name="Regex_alternation_long" xml:space="preserve">
+    <value>You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.</value>
+  </data>
+  <data name="Regex_alternation_short" xml:space="preserve">
+    <value>alternation</value>
+  </data>
+  <data name="Regex_balancing_group_long" xml:space="preserve">
+    <value>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+    
+'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+
+The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</value>
+  </data>
+  <data name="Regex_balancing_group_short" xml:space="preserve">
+    <value>balancing group</value>
+  </data>
+  <data name="Regex_comment" xml:space="preserve">
+    <value>comment</value>
+  </data>
+  <data name="Regex_conditional_expression_match_long" xml:space="preserve">
+    <value>This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
+
+'expression' is the initial pattern to match, 'yes' is the pattern to match if expression is matched, and 'no' is the optional pattern to match if expression is not matched.</value>
+  </data>
+  <data name="Regex_conditional_expression_match_short" xml:space="preserve">
+    <value>conditional expression match</value>
+  </data>
+  <data name="Regex_conditional_group_match_long" xml:space="preserve">
+    <value>This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
+
+'name' is the name (or number) of a capturing group, 'yes' is the expression to match if 'name' (or 'number') has a match, and 'no' is the optional expression to match if it does not.</value>
+  </data>
+  <data name="Regex_conditional_group_match_short" xml:space="preserve">
+    <value>conditional group match</value>
+  </data>
+  <data name="Regex_end_of_line_comment_long" xml:space="preserve">
+    <value>A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</value>
+  </data>
+  <data name="Regex_end_of_line_comment_short" xml:space="preserve">
+    <value>end-of-line comment</value>
+  </data>
+  <data name="Regex_expression" xml:space="preserve">
+    <value>expression</value>
+  </data>
+  <data name="Regex_group_options_long" xml:space="preserve">
+    <value>This grouping construct applies or disables the specified options within a subexpression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+
+    i	Use case-insensitive matching.
+    m	Use multiline mode, where ^ and $ match the beginning and end of each line
+	(instead of the beginning and end of the input string).
+    s	Use single-line mode, where the period (.) matches every character
+	(instead of every character except \n).
+    n	Do not capture unnamed groups. The only valid captures are explicitly
+	named or numbered groups of the form (?&lt;name&gt; subexpression).
+    x	Exclude unescaped white space from the pattern, and enable comments
+	after a number sign (#).</value>
+  </data>
+  <data name="Regex_group_options_short" xml:space="preserve">
+    <value>group options</value>
+  </data>
+  <data name="Regex_inline_comment_long" xml:space="preserve">
+    <value>The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</value>
+  </data>
+  <data name="Regex_inline_comment_short" xml:space="preserve">
+    <value>inline comment</value>
+  </data>
+  <data name="Regex_name" xml:space="preserve">
+    <value>name</value>
+  </data>
+  <data name="Regex_name1" xml:space="preserve">
+    <value>name1</value>
+  </data>
+  <data name="Regex_name2" xml:space="preserve">
+    <value>name2</value>
+  </data>
+  <data name="Regex_named_backreference_long" xml:space="preserve">
+    <value>A named or numbered backreference.
+
+'name' is the name of a capturing group defined in the regular expression pattern.</value>
+  </data>
+  <data name="Regex_named_backreference_short" xml:space="preserve">
+    <value>named backreference</value>
+  </data>
+  <data name="Regex_named_matched_subexpression_long" xml:space="preserve">
+    <value>Captures a matched subexpression and lets you access it by name or by number.
+
+'name' is a valid group name, and 'subexpression' is any valid regular expression pattern. 'name' must not contain any punctuation characters and cannot begin with a number.
+
+If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing groups.</value>
+  </data>
+  <data name="Regex_named_matched_subexpression_short" xml:space="preserve">
+    <value>named matched subexpression</value>
+  </data>
+  <data name="Regex_name_or_number" xml:space="preserve">
+    <value>name-or-number</value>
+  </data>
+  <data name="Regex_no" xml:space="preserve">
+    <value>no</value>
+  </data>
+  <data name="Regex_nonbacktracking_subexpression_long" xml:space="preserve">
+    <value>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+
+This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</value>
+  </data>
+  <data name="Regex_nonbacktracking_subexpression_short" xml:space="preserve">
+    <value>nonbacktracking subexpression</value>
+  </data>
+  <data name="Regex_noncapturing_group_long" xml:space="preserve">
+    <value>This construct does not capture the substring that is matched by a subexpression:
+
+The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
+
+If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</value>
+  </data>
+  <data name="Regex_noncapturing_group_short" xml:space="preserve">
+    <value>noncapturing group</value>
+  </data>
+  <data name="Regex_numbered_backreference_long" xml:space="preserve">
+    <value>A numbered backreference, where 'number' is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
+
+There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</value>
+  </data>
+  <data name="Regex_numbered_backreference_short" xml:space="preserve">
+    <value>numbered backreference</value>
+  </data>
+  <data name="Regex_yes" xml:space="preserve">
+    <value>yes</value>
+  </data>
+  <data name="Regex_zero_width_negative_lookahead_assertion_long" xml:space="preserve">
+    <value>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
+
+A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</value>
+  </data>
+  <data name="Regex_zero_width_negative_lookahead_assertion_short" xml:space="preserve">
+    <value>zero-width negative lookahead assertion</value>
+  </data>
+  <data name="Regex_zero_width_negative_lookbehind_assertion_long" xml:space="preserve">
+    <value>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
+
+Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</value>
+  </data>
+  <data name="Regex_zero_width_negative_lookbehind_assertion_short" xml:space="preserve">
+    <value>zero-width negative lookbehind assertion</value>
+  </data>
+  <data name="Regex_zero_width_positive_lookahead_assertion_long" xml:space="preserve">
+    <value>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+
+Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</value>
+  </data>
+  <data name="Regex_zero_width_positive_lookahead_assertion_short" xml:space="preserve">
+    <value>zero-width positive lookahead assertion</value>
+  </data>
+  <data name="Regex_zero_width_positive_lookbehind_assertion_long" xml:space="preserve">
+    <value>A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
+
+Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</value>
+  </data>
+  <data name="Regex_zero_width_positive_lookbehind_assertion_short" xml:space="preserve">
+    <value>zero-width positive lookbehind assertion</value>
+  </data>
+  <data name="Regex_all_control_characters_long" xml:space="preserve">
+    <value>All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</value>
+  </data>
+  <data name="Regex_all_control_characters_short" xml:space="preserve">
+    <value>all control characters</value>
+  </data>
+  <data name="Regex_all_diacritic_marks_long" xml:space="preserve">
+    <value>All diacritic marks. This includes the Mn, Mc, and Me categories.</value>
+  </data>
+  <data name="Regex_all_diacritic_marks_short" xml:space="preserve">
+    <value>all diacritic marks</value>
+  </data>
+  <data name="Regex_all_letter_characters_long" xml:space="preserve">
+    <value>All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</value>
+  </data>
+  <data name="Regex_all_letter_characters_short" xml:space="preserve">
+    <value>all letter characters</value>
+  </data>
+  <data name="Regex_all_numbers_long" xml:space="preserve">
+    <value>All numbers. This includes the Nd, Nl, and No categories.</value>
+  </data>
+  <data name="Regex_all_numbers_short" xml:space="preserve">
+    <value>all numbers</value>
+  </data>
+  <data name="Regex_all_punctuation_characters_long" xml:space="preserve">
+    <value>All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</value>
+  </data>
+  <data name="Regex_all_punctuation_characters_short" xml:space="preserve">
+    <value>all punctuation characters</value>
+  </data>
+  <data name="Regex_all_separator_characters_long" xml:space="preserve">
+    <value>All separator characters. This includes the Zs, Zl, and Zp categories.</value>
+  </data>
+  <data name="Regex_all_separator_characters_short" xml:space="preserve">
+    <value>all separator characters</value>
+  </data>
+  <data name="Regex_all_symbols_long" xml:space="preserve">
+    <value>All symbols. This includes the Sm, Sc, Sk, and So categories.</value>
+  </data>
+  <data name="Regex_all_symbols_short" xml:space="preserve">
+    <value>all symbols</value>
+  </data>
+  <data name="Regex_base_group" xml:space="preserve">
+    <value>base-group</value>
+  </data>
+  <data name="Regex_character_class_subtraction_long" xml:space="preserve">
+    <value>Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+
+'base_group' is a positive or negative character group or range. The 'excluded_group' component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</value>
+  </data>
+  <data name="Regex_character_class_subtraction_short" xml:space="preserve">
+    <value>character class subtraction</value>
+  </data>
+  <data name="Regex_character_group" xml:space="preserve">
+    <value>character-group</value>
+  </data>
+  <data name="Regex_excluded_group" xml:space="preserve">
+    <value>excluded-group</value>
+  </data>
+  <data name="Regex_match_at_least_n_times_lazy_long" xml:space="preserve">
+    <value>The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</value>
+  </data>
+  <data name="Regex_match_at_least_n_times_lazy_short" xml:space="preserve">
+    <value>match at least 'n' times (lazy)</value>
+  </data>
+  <data name="Regex_match_at_least_n_times_long" xml:space="preserve">
+    <value>The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</value>
+  </data>
+  <data name="Regex_match_at_least_n_times_short" xml:space="preserve">
+    <value>match at least 'n' times</value>
+  </data>
+  <data name="Regex_match_between_m_and_n_times_lazy_long" xml:space="preserve">
+    <value>The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</value>
+  </data>
+  <data name="Regex_match_between_m_and_n_times_lazy_short" xml:space="preserve">
+    <value>match at least 'n' times (lazy)</value>
+  </data>
+  <data name="Regex_match_between_m_and_n_times_long" xml:space="preserve">
+    <value>The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</value>
+  </data>
+  <data name="Regex_match_between_m_and_n_times_short" xml:space="preserve">
+    <value>match between 'm' and 'n' times</value>
+  </data>
+  <data name="Regex_match_exactly_n_times_lazy_long" xml:space="preserve">
+    <value>The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</value>
+  </data>
+  <data name="Regex_match_exactly_n_times_lazy_short" xml:space="preserve">
+    <value>match exactly 'n' times (lazy)</value>
+  </data>
+  <data name="Regex_match_exactly_n_times_long" xml:space="preserve">
+    <value>The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</value>
+  </data>
+  <data name="Regex_match_exactly_n_times_short" xml:space="preserve">
+    <value>match exactly 'n' times</value>
+  </data>
+  <data name="Regex_match_one_or_more_times_lazy_long" xml:space="preserve">
+    <value>The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</value>
+  </data>
+  <data name="Regex_match_one_or_more_times_lazy_short" xml:space="preserve">
+    <value>match one or more times (lazy)</value>
+  </data>
+  <data name="Regex_match_one_or_more_times_long" xml:space="preserve">
+    <value>The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</value>
+  </data>
+  <data name="Regex_match_one_or_more_times_short" xml:space="preserve">
+    <value>match one or more times</value>
+  </data>
+  <data name="Regex_match_zero_or_more_times_lazy_long" xml:space="preserve">
+    <value>The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</value>
+  </data>
+  <data name="Regex_match_zero_or_more_times_lazy_short" xml:space="preserve">
+    <value>match zero or more times (lazy)</value>
+  </data>
+  <data name="Regex_match_zero_or_more_times_long" xml:space="preserve">
+    <value>The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</value>
+  </data>
+  <data name="Regex_match_zero_or_more_times_short" xml:space="preserve">
+    <value>match zero or more times</value>
+  </data>
+  <data name="Regex_match_zero_or_one_time_lazy_long" xml:space="preserve">
+    <value>The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</value>
+  </data>
+  <data name="Regex_match_zero_or_one_time_lazy_short" xml:space="preserve">
+    <value>match zero or one time (lazy)</value>
+  </data>
+  <data name="Regex_match_zero_or_one_time_long" xml:space="preserve">
+    <value>The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</value>
+  </data>
+  <data name="Regex_match_zero_or_one_time_short" xml:space="preserve">
+    <value>match zero or one time</value>
+  </data>
+  <data name="Regex_unicode_general_category_0" xml:space="preserve">
+    <value>Unicode General Category: {0}</value>
+  </data>
+  <data name="Regex_inline_options_long" xml:space="preserve">
+    <value>Enables or disables specific pattern matching options for the remainder of a regular expression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+
+    i	Use case-insensitive matching.
+    m	Use multiline mode, where ^ and $ match the beginning and end of each line
+	(instead of the beginning and end of the input string).
+    s	Use single-line mode, where the period (.) matches every character
+	(instead of every character except \n).
+    n	Do not capture unnamed groups. The only valid captures are explicitly named
+	or numbered groups of the form (?&lt;name&gt; subexpression).
+    x	Exclude unescaped white space from the pattern, and enable comments
+	after a number sign (#).</value>
+  </data>
+  <data name="Regex_inline_options_short" xml:space="preserve">
+    <value>inline options</value>
+  </data>
+  <data name="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories" xml:space="preserve">
+    <value>Remove the line below if you want to inherit .editorconfig settings from higher directories</value>
+  </data>
+  <data name="Core_EditorConfig_Options" xml:space="preserve">
+    <value>Core EditorConfig Options</value>
+  </data>
+  <data name="CSharp_files" xml:space="preserve">
+    <value>C# files</value>
+  </data>
+  <data name="dot_NET_Coding_Conventions" xml:space="preserve">
+    <value>.NET Coding Conventions</value>
+  </data>
+  <data name="Expression_level_preferences" xml:space="preserve">
+    <value>Expression-level preferences</value>
+  </data>
+  <data name="Field_preferences" xml:space="preserve">
+    <value>Field preferences</value>
+  </data>
+  <data name="Indentation_and_spacing" xml:space="preserve">
+    <value>Indentation and spacing</value>
+  </data>
+  <data name="Language_keywords_vs_BCL_types_preferences" xml:space="preserve">
+    <value>Language keywords vs BCL types preferences</value>
+  </data>
+  <data name="Modifier_preferences" xml:space="preserve">
+    <value>Modifier preferences</value>
+  </data>
+  <data name="New_line_preferences" xml:space="preserve">
+    <value>New line preferences</value>
+  </data>
+  <data name="Organize_usings" xml:space="preserve">
+    <value>Organize usings</value>
+  </data>
+  <data name="Parentheses_preferences" xml:space="preserve">
+    <value>Parentheses preferences</value>
+  </data>
+  <data name="this_dot_and_Me_dot_preferences" xml:space="preserve">
+    <value>this. and Me. preferences</value>
+  </data>
+  <data name="Visual_Basic_files" xml:space="preserve">
+    <value>Visual Basic files</value>
+  </data>
+  <data name="Changing_document_0_is_not_supported" xml:space="preserve">
+    <value>Changing document '{0}' is not supported.</value>
+  </data>
+  <data name="ValueUsageInfo_Name" xml:space="preserve">
+    <value>Name</value>
+    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
+  </data>
+  <data name="ValueUsageInfo_Read" xml:space="preserve">
+    <value>Read</value>
+    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
+  </data>
+  <data name="ValueUsageInfo_Reference" xml:space="preserve">
+    <value>Reference</value>
+    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
+  </data>
+  <data name="ValueUsageInfo_Write" xml:space="preserve">
+    <value>Write</value>
+    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
+  </data>
+  <data name="TypeOrNamespaceUsageInfo_Qualify" xml:space="preserve">
+    <value>Qualify</value>
+    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
+  </data>
+  <data name="TypeOrNamespaceUsageInfo_TypeArgument" xml:space="preserve">
+    <value>Type Argument</value>
+    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
+  </data>
+  <data name="TypeOrNamespaceUsageInfo_TypeConstraint" xml:space="preserve">
+    <value>Type Constraint</value>
+    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
+  </data>
+  <data name="TypeOrNamespaceUsageInfo_BaseType" xml:space="preserve">
+    <value>Base Type</value>
+    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
+  </data>
+  <data name="TypeOrNamespaceUsageInfo_Construct" xml:space="preserve">
+    <value>Construct</value>
+    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
+  </data>
+  <data name="TypeOrNamespaceUsageInfo_Import" xml:space="preserve">
+    <value>Import</value>
+    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
+  </data>
+  <data name="TypeOrNamespaceUsageInfo_Declare" xml:space="preserve">
+    <value>Declare</value>
+    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
+  </data>
+  <data name="Parameter_preferences" xml:space="preserve">
+    <value>Parameter preferences</value>
+  </data>
+  <data name="Prefix_0_does_not_match_expected_prefix_1" xml:space="preserve">
+    <value>Prefix '{0}' does not match expected prefix '{1}'</value>
+  </data>
+  <data name="Prefix_0_is_not_expected" xml:space="preserve">
+    <value>Prefix '{0}' is not expected</value>
+  </data>
+  <data name="DateTimeKind_must_be_Utc" xml:space="preserve">
+    <value>DateTimeKind must be Utc</value>
+  </data>
+  <data name="Naming_styles" xml:space="preserve">
+    <value>Naming styles</value>
+  </data>
+  <data name="Naming_rules" xml:space="preserve">
+    <value>Naming rules</value>
+  </data>
+  <data name="Symbol_specifications" xml:space="preserve">
+    <value>Symbol specifications</value>
   </data>
 </root>

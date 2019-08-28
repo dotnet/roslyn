@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -91,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected EnvDTE.CodeElements GetCollection<T>(object parentObject)
         {
-            object parentInstance = ComAggregate.GetManagedObject<object>(parentObject);
+            var parentInstance = ComAggregate.GetManagedObject<object>(parentObject);
             Debug.Assert(!Marshal.IsComObject(parentInstance), "We should have a pure managed object!");
 
             if (parentInstance is ICodeElementContainer<T> container)

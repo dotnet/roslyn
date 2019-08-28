@@ -4539,5 +4539,191 @@ End Namespace
             Assert.Equal(localSymbolType, info.Type)
         End Sub
 
+        <Fact()>
+        <WorkItem(26112, "https://github.com/dotnet/roslyn/issues/26112")>
+        Public Sub ForEachOverAnArrayAndUserDefinedConversion_SZ()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+NotInheritable Class C
+
+    Shared Sub Main()
+        For Each z As C In New Integer() {0}
+        Next
+    End Sub
+
+    Public Shared Widening Operator CType(x As Integer) As C
+        System.Console.WriteLine("CType")
+        Return Nothing
+    End Operator
+End Class
+    </file>
+</compilation>, expectedOutput:="CType")
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (Integer() V_0,
+                Integer V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     "Integer"
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
+  IL_0009:  br.s       IL_0018
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  ldelem.i4
+  IL_000e:  call       "Function C.op_Implicit(Integer) As C"
+  IL_0013:  pop
+  IL_0014:  ldloc.1
+  IL_0015:  ldc.i4.1
+  IL_0016:  add.ovf
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  ldloc.0
+  IL_001a:  ldlen
+  IL_001b:  conv.i4
+  IL_001c:  blt.s      IL_000b
+  IL_001e:  ret
+}
+]]>)
+            Dim tree = verifier.Compilation.SyntaxTrees.Single()
+            Dim model = verifier.Compilation.GetSemanticModel(tree)
+
+            Dim foreachSyntax = tree.GetRoot().DescendantNodes().OfType(Of ForEachStatementSyntax)().Single()
+            Dim info As ForEachStatementInfo = model.GetForEachStatementInfo(foreachSyntax)
+
+            Assert.Equal("Function System.Array.GetEnumerator() As System.Collections.IEnumerator", info.GetEnumeratorMethod.ToTestDisplayString())
+            Assert.Equal("ReadOnly Property System.Collections.IEnumerator.Current As System.Object", info.CurrentProperty.ToTestDisplayString())
+            Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.NarrowingValue, info.CurrentConversion.Kind)
+            Assert.Null(info.CurrentConversion.Method)
+            Assert.Equal(ConversionKind.Widening Or ConversionKind.UserDefined, info.ElementConversion.Kind)
+            Assert.Equal("Function C.op_Implicit(x As System.Int32) As C", info.ElementConversion.Method.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(26112, "https://github.com/dotnet/roslyn/issues/26112")>
+        Public Sub ForEachOverAnArrayAndUserDefinedConversion_MD()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+NotInheritable Class C
+
+    Shared Sub Main()
+        For Each z As C In New Integer(,) {{0}}
+        Next
+    End Sub
+
+    Public Shared Widening Operator CType(x As Integer) As C
+        System.Console.WriteLine("CType")
+        Return Nothing
+    End Operator
+End Class
+    </file>
+</compilation>, expectedOutput:="CType")
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (System.Collections.IEnumerator V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     "Integer(*,*)..ctor"
+  IL_0007:  call       "Function System.Array.GetEnumerator() As System.Collections.IEnumerator"
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0020
+  IL_000f:  ldloc.0
+  IL_0010:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
+  IL_0015:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
+  IL_001a:  call       "Function C.op_Implicit(Integer) As C"
+  IL_001f:  pop
+  IL_0020:  ldloc.0
+  IL_0021:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+  IL_0026:  brtrue.s   IL_000f
+  IL_0028:  ret
+}
+]]>)
+            Dim tree = verifier.Compilation.SyntaxTrees.Single()
+            Dim model = verifier.Compilation.GetSemanticModel(tree)
+
+            Dim foreachSyntax = tree.GetRoot().DescendantNodes().OfType(Of ForEachStatementSyntax)().Single()
+            Dim info As ForEachStatementInfo = model.GetForEachStatementInfo(foreachSyntax)
+
+            Assert.Equal("Function System.Array.GetEnumerator() As System.Collections.IEnumerator", info.GetEnumeratorMethod.ToTestDisplayString())
+            Assert.Equal("ReadOnly Property System.Collections.IEnumerator.Current As System.Object", info.CurrentProperty.ToTestDisplayString())
+            Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.NarrowingValue, info.CurrentConversion.Kind)
+            Assert.Null(info.CurrentConversion.Method)
+            Assert.Equal(ConversionKind.Widening Or ConversionKind.UserDefined, info.ElementConversion.Kind)
+            Assert.Equal("Function C.op_Implicit(x As System.Int32) As C", info.ElementConversion.Method.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(26112, "https://github.com/dotnet/roslyn/issues/26112")>
+        Public Sub ForEachOverAStringAndUserDefinedConversion()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+NotInheritable Class C
+
+    Shared Sub Main()
+        For Each z As C In "a"
+        Next
+    End Sub
+
+    Public Shared Widening Operator CType(x As Char) As C
+        System.Console.WriteLine("CType")
+        Return Nothing
+    End Operator
+End Class
+    </file>
+</compilation>, expectedOutput:="CType")
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (String V_0,
+                Integer V_1)
+  IL_0000:  ldstr      "a"
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.0
+  IL_0007:  stloc.1
+  IL_0008:  br.s       IL_001b
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.1
+  IL_000c:  callvirt   "Function String.get_Chars(Integer) As Char"
+  IL_0011:  call       "Function C.op_Implicit(Char) As C"
+  IL_0016:  pop
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4.1
+  IL_0019:  add.ovf
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.1
+  IL_001c:  ldloc.0
+  IL_001d:  callvirt   "Function String.get_Length() As Integer"
+  IL_0022:  blt.s      IL_000a
+  IL_0024:  ret
+}
+]]>)
+            Dim tree = verifier.Compilation.SyntaxTrees.Single()
+            Dim model = verifier.Compilation.GetSemanticModel(tree)
+
+            Dim foreachSyntax = tree.GetRoot().DescendantNodes().OfType(Of ForEachStatementSyntax)().Single()
+            Dim info As ForEachStatementInfo = model.GetForEachStatementInfo(foreachSyntax)
+
+            Assert.Equal("Function System.String.GetEnumerator() As System.CharEnumerator", info.GetEnumeratorMethod.ToTestDisplayString())
+            Assert.Equal("ReadOnly Property System.CharEnumerator.Current As System.Char", info.CurrentProperty.ToTestDisplayString())
+            Assert.Equal("System.Char", info.ElementType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind)
+            Assert.Null(info.CurrentConversion.Method)
+            Assert.Equal(ConversionKind.Widening Or ConversionKind.UserDefined, info.ElementConversion.Kind)
+            Assert.Equal("Function C.op_Implicit(x As System.Char) As C", info.ElementConversion.Method.ToTestDisplayString())
+        End Sub
+
     End Class
 End Namespace

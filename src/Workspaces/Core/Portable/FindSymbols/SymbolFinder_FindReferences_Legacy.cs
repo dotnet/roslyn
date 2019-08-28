@@ -2,12 +2,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -32,8 +28,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var progressCollector = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
             await FindReferencesAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
-                solution, progress: progressCollector,
-                documents: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                solution, progress: progressCollector, documents: null,
+                options: FindReferencesSearchOptions.Default,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
             return progressCollector.GetReferencedSymbols();
         }
 
@@ -62,20 +59,48 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// information as the search is undertaken.</param>
         /// <param name="documents">An optional set of documents to be searched. If documents is null, then that means "all documents".</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
-        public static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
             IFindReferencesProgress progress,
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default)
         {
-            progress = progress ?? FindReferencesProgress.Instance;
+            return FindReferencesAsync(
+                symbol, solution, progress, documents,
+                FindReferencesSearchOptions.Default, cancellationToken);
+        }
+
+        private static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+            ISymbol symbol,
+            Solution solution,
+            IFindReferencesProgress progress,
+            IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
+            CancellationToken cancellationToken)
+        {
+            progress ??= FindReferencesProgress.Instance;
             var streamingProgress = new StreamingProgressCollector(
                 new StreamingFindReferencesProgressAdapter(progress));
             await FindReferencesAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
-                solution, streamingProgress, documents, cancellationToken).ConfigureAwait(false);
+                solution, streamingProgress, documents,
+                options, cancellationToken).ConfigureAwait(false);
             return streamingProgress.GetReferencedSymbols();
+        }
+
+        internal static class TestAccessor
+        {
+            internal static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+                ISymbol symbol,
+                Solution solution,
+                IFindReferencesProgress progress,
+                IImmutableSet<Document> documents,
+                FindReferencesSearchOptions options,
+                CancellationToken cancellationToken)
+            {
+                return SymbolFinder.FindReferencesAsync(symbol, solution, progress, documents, options, cancellationToken);
+            }
         }
     }
 }

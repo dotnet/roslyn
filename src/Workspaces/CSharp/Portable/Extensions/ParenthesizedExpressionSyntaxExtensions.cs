@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -12,8 +14,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool CanRemoveParentheses(this ParenthesizedExpressionSyntax node, SemanticModel semanticModel)
         {
+            if (node.OpenParenToken.IsMissing || node.CloseParenToken.IsMissing)
+            {
+                // int x = (3;
+                return false;
+            }
+
             var expression = node.Expression;
-            var parentExpression = node.Parent as ExpressionSyntax;
+
+            // The 'direct' expression that contains this parenthesized node.  Note: in the case
+            // of code like: ```x is (y)``` there is an intermediary 'no-syntax' 'ConstantPattern'
+            // node between the 'is-pattern' node and the parenthesized expression.  So we manually
+            // jump past that as, for all intents and purposes, we want to consider the 'is' expression
+            // as the parent expression of the (y) expression.
+            var parentExpression = node.IsParentKind(SyntaxKind.ConstantPattern)
+                ? node.Parent.Parent as ExpressionSyntax
+                : node.Parent as ExpressionSyntax;
+
+            // Have to be careful if we would remove parens and cause a + and a + to become a ++.
+            // (same with - as well).
+            var tokenBeforeParen = node.GetFirstToken().GetPreviousToken();
+            var tokenAfterParen = node.Expression.GetFirstToken();
+            var previousChar = tokenBeforeParen.Text.LastOrDefault();
+            var nextChar = tokenAfterParen.Text.FirstOrDefault();
+
+            if ((previousChar == '+' && nextChar == '+') ||
+                (previousChar == '-' && nextChar == '-'))
+            {
+                return false;
+            }
 
             // Simplest cases:
             //   ((x)) -> (x)
@@ -25,6 +54,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // (x); -> x;
             if (node.IsParentKind(SyntaxKind.ExpressionStatement))
+            {
+                return true;
+            }
+
+            // => (x)   ->   => x
+            if (node.IsParentKind(SyntaxKind.ArrowExpressionClause))
+            {
+                return true;
+            }
+
+            // checked((x)) -> checked(x)
+            if (node.IsParentKind(SyntaxKind.CheckedExpression) ||
+                node.IsParentKind(SyntaxKind.UncheckedExpression))
+            {
+                return true;
+            }
+            // ((x, y)) -> (x, y)
+            if (expression.IsKind(SyntaxKind.TupleExpression))
             {
                 return true;
             }
@@ -172,12 +219,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // case (x): -> case x:
+            if (node.IsParentKind(SyntaxKind.CaseSwitchLabel))
+            {
+                return true;
+            }
+
+            // case (x) when y: -> case x when y:
+            if (node.IsParentKind(SyntaxKind.ConstantPattern) &&
+                node.Parent.IsParentKind(SyntaxKind.CasePatternSwitchLabel))
+            {
+                return true;
+            }
+
+            // case x when (y): -> case x when y:
+            if (node.IsParentKind(SyntaxKind.WhenClause))
+            {
+                return true;
+            }
+
+            // #if (x)   ->   #if x
+            if (node.Parent is DirectiveTriviaSyntax)
+            {
+                return true;
+            }
+
+            // If we have: (X)(++x) or (X)(--x), we don't want to remove the parens. doing so can
+            // make the ++/-- now associate with the previous part of the cast expression.
+            if (parentExpression.IsKind(SyntaxKind.CastExpression))
+            {
+                if (expression.IsKind(SyntaxKind.PreIncrementExpression) ||
+                    expression.IsKind(SyntaxKind.PreDecrementExpression))
+                {
+                    return false;
+                }
+            }
+
+            // (condition ? ref a : ref b ) = SomeValue, parenthesis can't be removed for when conditional expression appears at left
+            // This syntax is only allowed since C# 7.2
+            if (expression.IsKind(SyntaxKind.ConditionalExpression) &&
+                node.IsLeftSideOfAnyAssignExpression())
+            {
+                return false;
+            }
+
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
-            return parentExpression != null
-                ? !RemovalChangesAssociation(node, expression, parentExpression, semanticModel)
-                : false;
+            return parentExpression != null && !RemovalChangesAssociation(node, parentExpression, semanticModel);
         }
 
         private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = new ObjectPool<Stack<SyntaxNode>>(() => new Stack<SyntaxNode>());
@@ -189,13 +278,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             InterpolationSyntax interpolation = null;
             foreach (var ancestor in node.Parent.AncestorsAndSelf())
             {
-                switch (ancestor.Kind())
+                if (ancestor.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
-                    case SyntaxKind.ParenthesizedExpression:
-                        return false;
-                    case SyntaxKind.Interpolation:
-                        interpolation = (InterpolationSyntax)ancestor;
-                        break;
+                    return false;
+                }
+
+                if (ancestor.IsKind(SyntaxKind.Interpolation))
+                {
+                    interpolation = (InterpolationSyntax)ancestor;
+                    break;
                 }
             }
 
@@ -243,8 +334,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool RemovalChangesAssociation(ParenthesizedExpressionSyntax node, ExpressionSyntax expression, ExpressionSyntax parentExpression, SemanticModel semanticModel)
+        private static bool RemovalChangesAssociation(
+            ParenthesizedExpressionSyntax node, ExpressionSyntax parentExpression, SemanticModel semanticModel)
         {
+            var expression = node.Expression;
             var precedence = expression.GetOperatorPrecedence();
             var parentPrecedence = parentExpression.GetOperatorPrecedence();
             if (precedence == OperatorPrecedence.None || parentPrecedence == OperatorPrecedence.None)
@@ -277,41 +370,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (parentExpression is BinaryExpressionSyntax parentBinaryExpression)
                 {
                     // If both the expression and its parent are binary expressions and their kinds
-                    // are the same, check to see if they are commutative (e.g. + or *).
-                    if (parentBinaryExpression.IsKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) &&
-                        node.Expression.Kind() == parentBinaryExpression.Kind())
+                    // are the same, and the parenthesized expression is on hte right and the 
+                    // operation is associative, it can sometimes be safe to remove these parens.
+                    //
+                    // i.e. if you have "a && (b && c)" it can be converted to "a && b && c" 
+                    // as that new interpretation "(a && b) && c" operates the exact same way at 
+                    // runtime.
+                    //
+                    // Specifically: 
+                    //  1) the operands are still executed in the same order: a, b, then c.
+                    //     So even if they have side effects, it will not matter.
+                    //  2) the same shortcircuiting happens.
+                    //  3) for logical operators the result will always be the same (there are 
+                    //     additional conditions that are checked for non-logical operators).
+                    if (IsAssociative(parentBinaryExpression.Kind()) &&
+                        node.Expression.Kind() == parentBinaryExpression.Kind() &&
+                        parentBinaryExpression.Right == node)
                     {
-                        // At this point, we know our parenthesized expression contains a binary expression.
-                        var binaryExpression = (BinaryExpressionSyntax)node.Expression;
-
-                        // Now we'll perform a few semantic checks to determine whether removal of the parentheses
-                        // might break semantics. Note that we'll try and be fairly conservative with these. For example,
-                        // we'll assume that failing any of these checks results in the parentheses being declared as
-                        // necessary -- even if they could be removed depending on whether the parenthesized expression
-                        // appears on the left or right side of the parent binary expression.
-
-                        // First, does the binary expression result in an operator overload being called?
-                        var symbolInfo = semanticModel.GetSymbolInfo(binaryExpression);
-                        if (symbolInfo.Symbol != null)
-                        {
-                            if (symbolInfo.Symbol is IMethodSymbol methodSymbol &&
-                                methodSymbol.MethodKind == MethodKind.UserDefinedOperator)
-                            {
-                                return true;
-                            }
-                        }
-
-                        // Second, check the type and converted type of the binary expression. Are they the same?
-                        var typeInfo = semanticModel.GetTypeInfo(binaryExpression);
-                        if (typeInfo.Type != null && typeInfo.ConvertedType != null)
-                        {
-                            if (!typeInfo.Type.Equals(typeInfo.ConvertedType))
-                            {
-                                return true;
-                            }
-                        }
-
-                        return false;
+                        return !node.IsSafeToChangeAssociativity(
+                            node.Expression, parentBinaryExpression.Left,
+                            parentBinaryExpression.Right, semanticModel);
                     }
 
                     // Null-coalescing is right associative; removing parens from the LHS changes the association.
@@ -337,34 +415,86 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             throw ExceptionUtilities.Unreachable;
         }
 
+        private static bool IsAssociative(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.AddExpression:
+                case SyntaxKind.MultiplyExpression:
+                case SyntaxKind.BitwiseOrExpression:
+                case SyntaxKind.ExclusiveOrExpression:
+                case SyntaxKind.LogicalOrExpression:
+                case SyntaxKind.BitwiseAndExpression:
+                case SyntaxKind.LogicalAndExpression:
+                    return true;
+            }
+
+            return false;
+        }
+
         private static bool RemovalMayIntroduceCastAmbiguity(ParenthesizedExpressionSyntax node)
         {
             // Be careful not to break the special case around (x)(-y)
             // as defined in section 7.7.6 of the C# language specification.
+            //
+            // cases we can't remove the parens for are:
+            //
+            //      (x)(+y)
+            //      (x)(-y)
+            //      (x)(&y) // unsafe code
+            //      (x)(*y) // unsafe code
+            //
+            // Note: we can remove the parens if the (x) part is unambiguously a type.
+            // i.e. if it something like:
+            //
+            //      (int)(...)
+            //      (x[])(...)
+            //      (X*)(...)
+            //      (X?)(...)
+            //      (global::X)(...)
 
             if (node.IsParentKind(SyntaxKind.CastExpression))
             {
                 var castExpression = (CastExpressionSyntax)node.Parent;
-                if (castExpression.Type is PredefinedTypeSyntax)
+                if (castExpression.Type.IsKind(
+                        SyntaxKind.PredefinedType,
+                        SyntaxKind.ArrayType,
+                        SyntaxKind.PointerType,
+                        SyntaxKind.NullableType))
+                {
+                    return false;
+                }
+
+                if (castExpression.Type is NameSyntax name && StartsWithAlias(name))
                 {
                     return false;
                 }
 
                 var expression = node.Expression;
 
-                if (expression.IsKind(SyntaxKind.UnaryMinusExpression))
+                if (expression.IsKind(
+                        SyntaxKind.UnaryMinusExpression,
+                        SyntaxKind.UnaryPlusExpression,
+                        SyntaxKind.PointerIndirectionExpression,
+                        SyntaxKind.AddressOfExpression))
                 {
                     return true;
                 }
+            }
 
-                if (expression.IsKind(SyntaxKind.NumericLiteralExpression))
-                {
-                    var numericLiteral = (LiteralExpressionSyntax)expression;
-                    if (numericLiteral.Token.ValueText.StartsWith("-", StringComparison.Ordinal))
-                    {
-                        return true;
-                    }
-                }
+            return false;
+        }
+
+        private static bool StartsWithAlias(NameSyntax name)
+        {
+            if (name.IsKind(SyntaxKind.AliasQualifiedName))
+            {
+                return true;
+            }
+
+            if (name is QualifiedNameSyntax qualifiedName)
+            {
+                return StartsWithAlias(qualifiedName.Left);
             }
 
             return false;

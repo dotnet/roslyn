@@ -228,7 +228,7 @@ static class P
     }
 }";
 
-            CompileAndVerify(source3, references: new[] { SystemCoreRef }, expectedOutput: @"BB");
+            CompileAndVerify(source3, expectedOutput: @"BB");
         }
 
         [Fact]
@@ -791,9 +791,9 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
-                // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
+                // (6,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
                 //     static C<MyTask<int>>* F0;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C<MyTask<int>>*").WithArguments("C<MyTask<int>>").WithLocation(6, 12));
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "F0").WithArguments("C<MyTask<int>>").WithLocation(6, 28));
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -1905,8 +1905,8 @@ class Base4<U, V> : Base3<U, V>
 }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(a, b)").WithArguments("Base<A, B>.Method(A, B)"),
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(x, y)").WithArguments("Base3<U, V>.Method(U, V)"),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("Base<A, B>.Method(A, B)"),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("Base3<U, V>.Method(U, V)"),
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Property").WithArguments("Base3<U, V>.Property"));
         }
 
@@ -1979,7 +1979,7 @@ namespace B
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(x)").WithArguments("A.Base2<long>.Method(long)"));
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("A.Base2<long>.Method(long)"));
         }
 
         [Fact]
@@ -2304,7 +2304,7 @@ class Test
         Console.WriteLine(M().First());
     }
 }";
-            CompileAndVerify(source, references: new[] { LinqAssemblyRef }, expectedOutput: @"12");
+            CompileAndVerify(source, expectedOutput: @"12");
         }
 
         [Fact]
@@ -3172,7 +3172,7 @@ class X
     }
 }
 ";
-            CompileAndVerify(source, references: new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -7163,7 +7163,7 @@ public class Derived : Base
             var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
             var methodSymbol = (MethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
 
-            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArguments.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArgumentsWithAnnotations.Single().SpecialType);
         }
 
         [Fact]
@@ -8061,7 +8061,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"IfNotNull<T, U>(this T? source, Func<T, U> selector)
@@ -8397,7 +8397,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"int Properties(this IFirstInterface source, params int[] x)
@@ -8445,7 +8445,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"void Test2(int x, params int[] y)
@@ -8492,7 +8492,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"void Test2(int x = 0, int y = 0)
@@ -8531,7 +8531,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
     // (9,39): error CS0121: The call is ambiguous between the following methods or properties: 'VS2015CompilerBug.Test2(int, int)' and 'VS2015CompilerBug.Test2(int, int, int)'
@@ -10454,7 +10454,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: 
+            CompileAndVerify(code, expectedOutput:
 @"params: 0
 in: 1
 params: 2
@@ -10529,7 +10529,6 @@ class Program
         instance.M(3);
     }
 }",
-                references: new[] { SystemCoreRef },
                 expectedOutput:
 @"val: 1
 in: 2
@@ -10558,7 +10557,6 @@ class Program
         Console.WriteLine(instance[3]);
     }
 }",
-                references: new[] { SystemCoreRef },
                 expectedOutput:
 @"val: 1
 in: 2
@@ -10589,7 +10587,7 @@ class Program
         M((byte)2);
     }
 }",
-                expectedOutput:@"
+                expectedOutput: @"
 val: 0
 val: 1
 in: 1
@@ -10983,7 +10981,7 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
                 );
 
-            CreateCompilation(code, references: new[] {libComp.ToMetadataReference() }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { libComp.ToMetadataReference() }).VerifyDiagnostics(
                 // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
                 //          y.R_extension(); // error 1
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
@@ -11144,6 +11142,34 @@ class Program
                 //         D a = F;
                 Diagnostic(ErrorCode.ERR_BadRetType, "F").WithArguments("Program.F(in System.DateTime)", "string").WithLocation(16, 15)
             );
+        }
+
+        [Fact, WorkItem(25813, "https://github.com/dotnet/roslyn/issues/25813")]
+        public void InaccessibleExtensionMethod()
+        {
+            var code = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new[] { 0, 1, 3 };
+        var b = new[] { 1, 2, 3, 4, 5 };
+        Console.WriteLine(b.Count(a.Contains));
+    }
+}
+
+public static class Extensions
+{
+    // NOTE: private access modifier simulates internal class public method in referenced assembly.
+    private static bool Contains<T>(this System.Collections.Generic.IEnumerable<T> a, T value) =>
+        throw new NotImplementedException();
+}";
+
+            CompileAndVerify(code, expectedOutput: @"2");
         }
     }
 }

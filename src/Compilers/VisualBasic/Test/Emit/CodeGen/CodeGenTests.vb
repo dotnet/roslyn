@@ -276,7 +276,8 @@ End Module
         End Sub
 
         <WorkItem(578074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578074")>
-        <Fact()>
+        <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/32576")>
         Public Sub PreserveZeroDigitsInDecimal()
             CompileAndVerify(
 <compilation>
@@ -621,7 +622,10 @@ expectedOutput:=<![CDATA[
         ''' Breaking change: native compiler considers
         ''' digits &lt; 1e-49 when rounding.
         ''' </summary>
-        <Fact, WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494"), WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
+        <WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")>
+        <WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
+        <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/32576")>
         Public Sub DecimalLiteral_BreakingChange()
 
             CompileAndVerify(
@@ -3254,6 +3258,327 @@ End Module</file>
         End Sub
 
         <Fact()>
+        Public Sub TestNullCoalesce_NullableWithDefault_Optimization()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Structure S
+        public _a As Integer
+        public _b As System.Guid
+
+        Public Sub New(a as Integer, b As System.Guid)
+            _a = a
+            _b = b
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return (_a, _b).ToString()
+        End Function
+    End Structure
+
+    Public Function CoalesceInt32(x As Integer?) As Integer
+        Return If(x, 0)
+    End Function
+
+    Public Function CoalesceGeneric(Of T As Structure)(x As T?) As T
+        Return If(x, CType(Nothing, T))
+    End Function
+        
+    public Function CoalesceTuple(x As (a As Boolean, b As System.Guid)?) As (a As Boolean, b As System.Guid)
+        Return If(x, CType(Nothing, (a As Boolean, b As System.Guid)))
+    End Function
+
+    public Function CoalesceUserStruct(x As S?) As S
+        Return If(x, CType(Nothing, S))
+    End Function
+
+    public Function CoalesceStructWithImplicitConstructor(x As S?) As S
+        Return If(x, New S())
+    End Function
+
+    public Sub Main()
+        System.Console.WriteLine(CoalesceInt32(42))
+        System.Console.WriteLine(CoalesceInt32(Nothing))
+        System.Console.WriteLine(CoalesceGeneric(Of System.Guid)(new System.Guid("44ed2f0b-c2fa-4791-81f6-97222fffa466")))
+        System.Console.WriteLine(CoalesceGeneric(Of System.Guid)(Nothing))
+        System.Console.WriteLine(CoalesceTuple((true, new System.Guid("1c95cef0-1aae-4adb-a43c-54b2e7c083a0"))))
+        System.Console.WriteLine(CoalesceTuple(Nothing))
+        System.Console.WriteLine(CoalesceUserStruct(new S(42, new System.Guid("8683f371-81b4-45f6-aaed-1c665b371594"))))
+        System.Console.WriteLine(CoalesceUserStruct(Nothing))
+        System.Console.WriteLine(CoalesceStructWithImplicitConstructor(new S()))
+        System.Console.WriteLine(CoalesceStructWithImplicitConstructor(Nothing))
+    End Sub
+End Module</file>
+</compilation>,
+            references:={ValueTupleRef, SystemRuntimeFacadeRef},
+            expectedOutput:=<![CDATA[
+42
+0
+44ed2f0b-c2fa-4791-81f6-97222fffa466
+00000000-0000-0000-0000-000000000000
+(True, 1c95cef0-1aae-4adb-a43c-54b2e7c083a0)
+(False, 00000000-0000-0000-0000-000000000000)
+(42, 8683f371-81b4-45f6-aaed-1c665b371594)
+(0, 00000000-0000-0000-0000-000000000000)
+(0, 00000000-0000-0000-0000-000000000000)
+(0, 00000000-0000-0000-0000-000000000000)
+]]>).
+            VerifyIL("Program.CoalesceInt32",
+            <![CDATA[
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0007:  ret
+}]]>).
+            VerifyIL("Program.CoalesceGeneric(Of T)",
+            <![CDATA[
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function T?.GetValueOrDefault() As T"
+  IL_0007:  ret
+}]]>).
+            VerifyIL("Program.CoalesceTuple",
+            <![CDATA[
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function (a As Boolean, b As System.Guid)?.GetValueOrDefault() As (a As Boolean, b As System.Guid)"
+  IL_0007:  ret
+}]]>).
+            VerifyIL("Program.CoalesceUserStruct",
+            <![CDATA[
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Program.S?.GetValueOrDefault() As Program.S"
+  IL_0007:  ret
+}]]>).
+            VerifyIL("Program.CoalesceStructWithImplicitConstructor",
+            <![CDATA[
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Program.S?.GetValueOrDefault() As Program.S"
+  IL_0007:  ret
+}]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestNullCoalesce_NullableWithConvertedDefault_Optimization()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function CoalesceDifferentTupleNames(x As (a As Boolean, b As System.Guid, c As String)?) As (a As Boolean, b As System.Guid, c As String)
+        Return If(x, CType(Nothing, (c As Boolean, d As System.Guid, e As String)))
+    End Function
+
+    Public Sub Main()
+        System.Console.WriteLine(CoalesceDifferentTupleNames((true, new System.Guid("533d4d3b-5013-461e-ae9e-b98eb593d761"), "value")))
+        System.Console.WriteLine(CoalesceDifferentTupleNames(Nothing))
+    End Sub
+End Module</file>
+</compilation>,
+            references:={ValueTupleRef, SystemRuntimeFacadeRef},
+            expectedOutput:=<![CDATA[
+(True, 533d4d3b-5013-461e-ae9e-b98eb593d761, value)
+(False, 00000000-0000-0000-0000-000000000000, )
+]]>).
+            VerifyIL("Program.CoalesceDifferentTupleNames",
+            <![CDATA[
+ {
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function (a As Boolean, b As System.Guid, c As String)?.GetValueOrDefault() As (a As Boolean, b As System.Guid, c As String)"
+  IL_0007:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestNullCoalesce_NullableWithNonDefault_NoOptimization()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function CoalesceWithNonDefault1(x As Integer?) As Integer
+        Return If(x, 2)
+    End Function
+
+    Public Function CoalesceWithNonDefault2(x As Integer?, y As Integer) As Integer
+        Return If(x, y)
+    End Function
+
+    Public Function CoalesceWithNonDefault3(x As Integer?, y As Integer?) As Integer?
+        Return If(x, y)
+    End Function
+
+    Public Function CoalesceWithNonDefault4(x As Integer?) As Integer?
+        Return If(x, Nothing)
+    End Function
+
+    Public Sub WriteLine(value As Object)
+        System.Console.WriteLine(If(value?.ToString, "*Nothing*"))
+    End Sub
+
+    Public Sub Main
+        WriteLine(CoalesceWithNonDefault1(42))
+        WriteLine(CoalesceWithNonDefault1(Nothing))
+        WriteLine(CoalesceWithNonDefault2(12, 34))
+        WriteLine(CoalesceWithNonDefault2(Nothing, 34))
+        WriteLine(CoalesceWithNonDefault3(123, 456))
+        WriteLine(CoalesceWithNonDefault3(123, Nothing))
+        WriteLine(CoalesceWithNonDefault3(Nothing, 456))
+        WriteLine(CoalesceWithNonDefault3(Nothing, Nothing))
+        WriteLine(CoalesceWithNonDefault4(42))
+        WriteLine(CoalesceWithNonDefault4(Nothing))
+    End Sub
+End Module</file>
+</compilation>,
+            expectedOutput:=<![CDATA[
+42
+2
+12
+34
+123
+123
+456
+*Nothing*
+42
+*Nothing*
+]]>).
+            VerifyIL("Program.CoalesceWithNonDefault1",
+            <![CDATA[
+ { 
+  // Code size       19 (0x13)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_000b
+  IL_0009:  ldc.i4.2
+  IL_000a:  ret
+  IL_000b:  ldarga.s   V_0
+  IL_000d:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0012:  ret
+}
+]]>).
+            VerifyIL("Program.CoalesceWithNonDefault2",
+            <![CDATA[
+ {
+  // Code size       19 (0x13)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_000b
+  IL_0009:  ldarg.1
+  IL_000a:  ret
+  IL_000b:  ldarga.s   V_0
+  IL_000d:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0012:  ret
+}
+]]>).
+            VerifyIL("Program.CoalesceWithNonDefault3",
+            <![CDATA[
+ {
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_000b
+  IL_0009:  ldarg.1
+  IL_000a:  ret
+  IL_000b:  ldarg.0
+  IL_000c:  ret
+}
+]]>).
+            VerifyIL("Program.CoalesceWithNonDefault4",
+            <![CDATA[
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (Integer? V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_0013
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  initobj    "Integer?"
+  IL_0011:  ldloc.0
+  IL_0012:  ret
+  IL_0013:  ldarg.0
+  IL_0014:  ret
+}
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestNullCoalesce_NonNullableWithDefault_NoOptimization()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function CoalesceNonNullableWithDefault(x As String)
+        Return If(x, Nothing)
+    End Function
+
+    Public Sub WriteLine(value As Object)
+        System.Console.WriteLine(If(value?.ToString, "*Nothing*"))
+    End Sub
+
+    Public Sub Main()
+        WriteLine(CoalesceNonNullableWithDefault("value"))
+        WriteLine(CoalesceNonNullableWithDefault(Nothing))
+    End Sub
+End Module</file>
+</compilation>,
+            expectedOutput:=<![CDATA[
+value
+*Nothing*
+]]>).
+            VerifyIL("Program.CoalesceNonNullableWithDefault",
+            <![CDATA[
+{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  brtrue.s   IL_0006
+  IL_0004:  pop
+  IL_0005:  ldnull
+  IL_0006:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestNullCoalesce_NullableDefault_MissingGetValueOrDefault()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 0)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.AssertTheseEmitDiagnostics(
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
+        Return If(x, 0)
+                  ~
+</errors>)
+        End Sub
+
+        <Fact()>
         Public Sub TestIfExpressionWithNullable()
             CompileAndVerify(
 <compilation>
@@ -3312,7 +3637,7 @@ Module M1
 End Module
     </file>
 </compilation>,
-            expectedOutput:="ThenPart" & vbCrLf & "After" & vbCrLf).
+            expectedOutput:="ThenPart" & Environment.NewLine & "After" & Environment.NewLine).
             VerifyIL("M1.Main",
             <![CDATA[
 {
@@ -4493,7 +4818,7 @@ hi
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub ParameterByRefVal()
             CompileAndVerify(
            <compilation>
@@ -4937,8 +5262,9 @@ End Class
 ]]>)
         End Sub
 
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(529849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
-        <Fact>
         Public Sub ArrayWithTypeCharsWithStaticLocals()
             CompileAndVerify(
 <compilation>
@@ -5200,10 +5526,10 @@ Char: v
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.ConversionsILGenTestSource %>
+        <%= EmitResourceUtil.ConversionsILGenTestSource %>
     </file>
 </compilation>,
-            expectedOutput:=My.Resources.Resource.ConversionsILGenTestBaseline)
+            expectedOutput:=EmitResourceUtil.ConversionsILGenTestBaseline)
 
         End Sub
 
@@ -5213,10 +5539,10 @@ Char: v
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.ConversionsILGenTestSource1 %>
+        <%= EmitResourceUtil.ConversionsILGenTestSource1 %>
     </file>
 </compilation>,
-            expectedOutput:=My.Resources.Resource.ConversionsILGenTestBaseline1)
+            expectedOutput:=EmitResourceUtil.ConversionsILGenTestBaseline1)
 
         End Sub
 
@@ -5226,7 +5552,7 @@ Char: v
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.ConversionsILGenTestSource2 %>
+        <%= EmitResourceUtil.ConversionsILGenTestSource2 %>
     </file>
 </compilation>,
             expectedOutput:=<![CDATA[
@@ -10797,7 +11123,8 @@ True
 ]]>)
         End Sub
 
-        <Fact, WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
+        <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestMSVBTypeNameAPI()
             Dim vbCompilation = CreateVisualBasicCompilation("TestMSVBTypeNameAPI",
             <![CDATA[Public Module Program
@@ -11275,7 +11602,7 @@ End Class
             CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=Verification.Passes)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub ComImportMethods()
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub([module])
                                                                  Dim expectedMethodImplAttributes As System.Reflection.MethodImplAttributes = MethodImplAttributes.Managed Or
@@ -11505,7 +11832,7 @@ Class Program
     End Property
 End Class
     ]]></file>
-</compilation>, TestOptions.ReleaseExe)
+</compilation>, options:=TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 In get
 1
@@ -12142,7 +12469,7 @@ End Module
         End Sub
 
         <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug529162()
             Dim source =
 <compilation>
@@ -13173,7 +13500,7 @@ End Module
 }]]>)
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_01()
             Dim source =
@@ -13225,7 +13552,7 @@ End Class
             Return builder.ToString()
         End Function
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_02()
             Dim source =
@@ -13250,7 +13577,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
@@ -13307,15 +13634,16 @@ End Class
             Return builder.ToString()
         End Function
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
+            Dim size = 8192
             Dim source =
 $"
 Class Test
     Shared Sub Main()
-        Dim f = new Single?(4096-1) {{}}
-        for i As Integer = 0 To 4095
+        Dim f = new Single?({size}-1) {{}}
+        for i As Integer = 0 To ({size} - 1)
             f(i) = 4096 - i
         Next
 
@@ -13323,7 +13651,7 @@ Class Test
     End Sub
 
     Shared Function Calculate(f As Single?()) As Double?
-        Return {BuildSequenceOfBinaryExpressions_01()}
+        Return {BuildSequenceOfBinaryExpressions_01(size)}
     End Function
 End Class
 "
@@ -13334,7 +13662,7 @@ End Class
                 )
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_05()
             Dim count As Integer = 50
@@ -13380,7 +13708,7 @@ End Class
 5180801")
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =
@@ -13493,7 +13821,9 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
             Dim c = CompileAndVerify(
 <compilation>
@@ -13537,7 +13867,9 @@ End Class
 ]]>)
         End Sub
 
-        <Fact, WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()
             Dim c = CompileAndVerify(
 <compilation>
@@ -14431,6 +14763,36 @@ End Module
   IL_0014:  call       "Function String.Concat(String, String) As String"
   IL_0019:  ret
 }
+]]>)
+        End Sub
+
+        Public Sub NormalizedNaN()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class Program
+    Shared Sub Main()
+        CheckNaN(Double.NaN)
+        CheckNaN(Single.NaN)
+        CheckNaN(0.0 / 0.0)
+        CheckNaN(0.0 / -0.0)
+        Dim inf As Double = 1.0 / 0.0
+        CheckNaN(inf + Double.NaN)
+        CheckNaN(inf - Double.NaN)
+        CheckNaN(-Double.NaN)
+    End Sub
+
+    Shared Sub CheckNaN(nan As Double)
+        Dim expected As Long = &amp;HFFF8000000000000
+        Dim actual As Long = System.BitConverter.DoubleToInt64Bits(nan)
+        If expected &lt;> actual Then
+            Throw New System.Exception($"expected=0X{expected: X} actual=0X{actual:X}")
+        End If
+    End Sub
+End Class
+    </file>
+</compilation>,
+expectedOutput:=<![CDATA[
 ]]>)
         End Sub
 

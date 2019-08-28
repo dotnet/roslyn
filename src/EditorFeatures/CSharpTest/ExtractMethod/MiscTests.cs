@@ -1,24 +1,26 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
+    [UseExportProvider]
     public class MiscTests
     {
         private static ISyntaxTriviaService GetSyntaxTriviaService()
@@ -126,29 +128,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
     [|void Method() {}|]
 }";
 
-            using (var workspace = TestWorkspace.CreateCSharp(markupCode))
-            {
-                var testDocument = workspace.Documents.Single();
-                var container = testDocument.GetOpenTextContainer();
+            using var workspace = TestWorkspace.CreateCSharp(markupCode);
+            var testDocument = workspace.Documents.Single();
+            var container = testDocument.GetOpenTextContainer();
 
-                var view = testDocument.GetTextView();
-                view.Selection.Select(new SnapshotSpan(
-                    view.TextBuffer.CurrentSnapshot, testDocument.SelectedSpans[0].Start, testDocument.SelectedSpans[0].Length), isReversed: false);
+            var view = testDocument.GetTextView();
+            view.Selection.Select(new SnapshotSpan(
+                view.TextBuffer.CurrentSnapshot, testDocument.SelectedSpans[0].Start, testDocument.SelectedSpans[0].Length), isReversed: false);
 
-                var callBackService = workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
-                var called = false;
-                callBackService.NotificationCallback = (t, m, s) => called = true;
+            var callBackService = workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
+            var called = false;
+            callBackService.NotificationCallback = (t, m, s) => called = true;
 
-                var handler = new ExtractMethodCommandHandler(
-                    workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>(),
-                    workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>(),
-                    workspace.ExportProvider.GetExportedValue<IInlineRenameService>(),
-                    workspace.ExportProvider.GetExportedValue<IWaitIndicator>());
+            var handler = new ExtractMethodCommandHandler(
+                workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>(),
+                workspace.ExportProvider.GetExportedValue<IInlineRenameService>());
 
-                handler.ExecuteCommand(new Commands.ExtractMethodCommandArgs(view, view.TextBuffer), () => { });
+            handler.ExecuteCommand(new ExtractMethodCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create());
 
-                Assert.True(called);
-            }
+            Assert.True(called);
         }
 
         /// <summary>

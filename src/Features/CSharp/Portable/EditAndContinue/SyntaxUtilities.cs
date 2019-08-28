@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
     {
         public static SyntaxNode TryGetMethodDeclarationBody(SyntaxNode node)
         {
-            SyntaxNode BlockOrExpression(BlockSyntax blockBodyOpt, ArrowExpressionClauseSyntax expressionBodyOpt) 
+            static SyntaxNode BlockOrExpression(BlockSyntax blockBodyOpt, ArrowExpressionClauseSyntax expressionBodyOpt)
                 => (SyntaxNode)blockBodyOpt ?? expressionBodyOpt?.Expression;
 
             SyntaxNode result;
@@ -114,20 +116,36 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             Debug.Assert(false);
         }
 
-        public static void FindLeafNodeAndPartner(SyntaxNode leftRoot, int leftPosition, SyntaxNode rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNode)
+        public static void FindLeafNodeAndPartner(SyntaxNode leftRoot, int leftPosition, SyntaxNode rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNodeOpt)
         {
             leftNode = leftRoot;
-            rightNode = rightRoot;
+            rightNodeOpt = rightRoot;
             while (true)
             {
-                Debug.Assert(leftNode.RawKind == rightNode.RawKind);
+                if (rightNodeOpt != null && leftNode.RawKind != rightNodeOpt.RawKind)
+                {
+                    rightNodeOpt = null;
+                }
+
                 var leftChild = leftNode.ChildThatContainsPosition(leftPosition, out var childIndex);
                 if (leftChild.IsToken)
                 {
                     return;
                 }
 
-                rightNode = rightNode.ChildNodesAndTokens()[childIndex].AsNode();
+                if (rightNodeOpt != null)
+                {
+                    var rightNodeChildNodesAndTokens = rightNodeOpt.ChildNodesAndTokens();
+                    if (childIndex >= 0 && childIndex < rightNodeChildNodesAndTokens.Count)
+                    {
+                        rightNodeOpt = rightNodeChildNodesAndTokens[childIndex].AsNode();
+                    }
+                    else
+                    {
+                        rightNodeOpt = null;
+                    }
+                }
+
                 leftNode = leftChild.AsNode();
             }
         }
@@ -138,10 +156,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             Debug.Assert(leftNode.FullSpan.Length > 0);
             Debug.Assert(leftNode.SyntaxTree == leftRoot.SyntaxTree);
 
-            SyntaxNode originalLeftNode = leftNode;
-            int leftPosition = leftNode.SpanStart;
+            var originalLeftNode = leftNode;
+            var leftPosition = leftNode.SpanStart;
             leftNode = leftRoot;
-            SyntaxNode rightNode = rightRoot;
+            var rightNode = rightRoot;
 
             while (leftNode != originalLeftNode)
             {
@@ -211,30 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return null;
         }
 
-        public static bool IsMethod(SyntaxNode declaration)
-        {
-            switch (declaration.Kind())
-            {
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                    return true;
-
-                case SyntaxKind.IndexerDeclaration:
-                    // expression bodied indexer
-                    return ((IndexerDeclarationSyntax)declaration).ExpressionBody != null;
-
-                default:
-                    return false;
-            }
-        }
-
         public static bool IsParameterlessConstructor(SyntaxNode declaration)
         {
             if (!declaration.IsKind(SyntaxKind.ConstructorDeclaration))
@@ -258,58 +252,66 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 && property.AccessorList.Accessors.Any(e => e.Body == null);
         }
 
-        public static bool IsAsyncMethodOrLambda(SyntaxNode declaration)
+        /// <summary>
+        /// True if the specified declaration node is an async method, anonymous function, lambda, local function.
+        /// </summary>
+        public static bool IsAsyncDeclaration(SyntaxNode declaration)
         {
+            // lambdas and anonymous functions
             if (declaration is AnonymousFunctionExpressionSyntax anonymousFunction)
             {
                 return anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
             }
 
-            // expression bodied methods:
+            // expression bodied methods/local functions:
             if (declaration.IsKind(SyntaxKind.ArrowExpressionClause))
             {
                 declaration = declaration.Parent;
             }
 
-            if (!declaration.IsKind(SyntaxKind.MethodDeclaration))
+            return declaration switch
             {
-                return false;
-            }
-
-            var method = (MethodDeclarationSyntax)declaration;
-            return method.Modifiers.Any(SyntaxKind.AsyncKeyword);
+                MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
+                LocalFunctionStatementSyntax localFunction => localFunction.Modifiers.Any(SyntaxKind.AsyncKeyword),
+                _ => false
+            };
         }
 
-        public static ImmutableArray<SyntaxNode> GetAwaitExpressions(SyntaxNode body)
-        {
-            // skip lambda bodies:
-            return ImmutableArray.CreateRange(body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Where(n => n.IsKind(SyntaxKind.AwaitExpression)));
-        }
+        /// <summary>
+        /// Returns a list of all await expressions, await foreach statements, await using declarations and yield statements in the given body,
+        /// in the order in which they occur.
+        /// </summary>
+        /// <returns>
+        /// <see cref="AwaitExpressionSyntax"/> for await expressions,
+        /// <see cref="YieldStatementSyntax"/> for yield break and yield return statements,
+        /// <see cref="CommonForEachStatementSyntax"/> for await foreach statements,
+        /// <see cref="VariableDeclaratorSyntax"/> for await using declarators.
+        /// </returns>
+        public static IEnumerable<SyntaxNode> GetSuspensionPoints(SyntaxNode body)
+            => body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Where(IsSuspensionPoint);
 
-        public static ImmutableArray<SyntaxNode> GetYieldStatements(SyntaxNode body)
+        public static bool IsSuspensionPoint(SyntaxNode node)
         {
-            // lambdas and expression-bodied methods can't be iterators:
-            if (!body.Parent.IsKind(SyntaxKind.MethodDeclaration))
+            if (node.IsKind(SyntaxKind.AwaitExpression) || node.IsKind(SyntaxKind.YieldBreakStatement) || node.IsKind(SyntaxKind.YieldReturnStatement))
             {
-                return ImmutableArray<SyntaxNode>.Empty;
+                return true;
             }
 
-            // enumerate statements:
-            return ImmutableArray.CreateRange(body.DescendantNodes(n => !(n is ExpressionSyntax))
-                   .Where(n => n.IsKind(SyntaxKind.YieldBreakStatement) || n.IsKind(SyntaxKind.YieldReturnStatement)));
-        }
-
-        public static bool IsIteratorMethod(SyntaxNode declaration)
-        {
-            // lambdas and expression-bodied methods can't be iterators:
-            if (!declaration.IsKind(SyntaxKind.MethodDeclaration))
+            // await foreach statement translates to two suspension points: await MoveNextAsync and await DisposeAsync
+            if (node is CommonForEachStatementSyntax foreachStatement && foreachStatement.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
             {
-                return false;
+                return true;
             }
 
-            // enumerate statements:
-            return declaration.DescendantNodes(n => !(n is ExpressionSyntax))
-                   .Any(n => n.IsKind(SyntaxKind.YieldBreakStatement) || n.IsKind(SyntaxKind.YieldReturnStatement));
+            // each declarator in the declaration translates to a suspension point: await DisposeAsync
+            if (node.IsKind(SyntaxKind.VariableDeclarator) &&
+                node.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) &&
+                ((LocalDeclarationStatementSyntax)node.Parent.Parent).AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

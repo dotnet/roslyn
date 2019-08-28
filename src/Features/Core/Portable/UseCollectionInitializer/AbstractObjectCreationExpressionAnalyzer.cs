@@ -66,6 +66,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return null;
             }
 
+            if (!ShouldAnalyze())
+            {
+                return null;
+            }
+
             _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (_containingStatement == null)
             {
@@ -90,8 +95,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            var containingDeclarator = _objectCreationExpression.Parent.Parent as TVariableDeclaratorSyntax;
-            if (containingDeclarator == null)
+            if (!(_objectCreationExpression.Parent.Parent is TVariableDeclaratorSyntax containingDeclarator))
             {
                 return false;
             }
@@ -179,5 +183,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             return false;
         }
+
+        protected abstract bool ShouldAnalyze();
     }
 }

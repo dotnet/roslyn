@@ -21,8 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
     {
         private const string CS8321 = nameof(CS8321); // The local function 'X' is declared but never used
 
+        [ImportingConstructor]
+        public CSharpRemoveUnusedLocalFunctionCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS8321);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -30,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
@@ -50,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
                 editor.RemoveNode(localFunction);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.Remove_unused_function, createChangedDocument, CSharpFeaturesResources.Remove_unused_function)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Remove_unused_function, createChangedDocument, CSharpFeaturesResources.Remove_unused_function)
             {
             }
         }

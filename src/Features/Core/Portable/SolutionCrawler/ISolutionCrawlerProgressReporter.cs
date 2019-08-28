@@ -15,13 +15,37 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         bool InProgress { get; }
 
         /// <summary>
-        /// Raised when there is pending work in solution crawler.
+        /// Raised when solution crawler progress changed
+        /// 
+        /// Notifications for this event are serialized to preserve order. 
+        /// However, individual event notifications may occur on any thread.
         /// </summary>
-        event EventHandler Started;
+        event EventHandler<ProgressData> ProgressChanged;
+    }
+
+    internal struct ProgressData
+    {
+        public ProgressStatus Status { get; }
 
         /// <summary>
-        /// Raised when there is no more pending work in solution crawler.
+        /// number of pending work item in the queue. 
+        /// null means N/A for the associated <see cref="Status"/>
         /// </summary>
-        event EventHandler Stopped;
+        public int? PendingItemCount { get; }
+
+        public ProgressData(ProgressStatus type, int? pendingItemCount)
+        {
+            Status = type;
+            PendingItemCount = pendingItemCount;
+        }
+    }
+
+    internal enum ProgressStatus
+    {
+        Started,
+        Paused,
+        PendingItemCountUpdated,
+        Evaluating,
+        Stoped
     }
 }

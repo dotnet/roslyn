@@ -2,11 +2,8 @@
 
 using System.IO;
 using System.Linq;
-using System.Xml;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -15,6 +12,7 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public partial class SerializationTests : TestBase
     {
         private Document CreateSolutionDocument(string sourceText)
@@ -41,20 +39,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void VersionStamp_RoundTripText()
         {
-            using (var writerStream = new MemoryStream())
-            using (var writer = new ObjectWriter(writerStream))
-            {
-                var versionStamp = VersionStamp.Create();
-                versionStamp.WriteTo(writer);
+            using var writerStream = new MemoryStream();
+            using var writer = new ObjectWriter(writerStream);
+            var versionStamp = VersionStamp.Create();
+            versionStamp.WriteTo(writer);
 
-                using (var readerStream = new MemoryStream(writerStream.ToArray()))
-                using (var reader = ObjectReader.TryGetReader(readerStream))
-                {
-                    var deserializedVersionStamp = VersionStamp.ReadFrom(reader);
+            using var readerStream = new MemoryStream(writerStream.ToArray());
+            using var reader = ObjectReader.TryGetReader(readerStream);
+            var deserializedVersionStamp = VersionStamp.ReadFrom(reader);
 
-                    Assert.Equal(versionStamp, deserializedVersionStamp);
-                }
-            }
+            Assert.Equal(versionStamp, deserializedVersionStamp);
         }
 
         private void TestSymbolSerialization(Document document, string symbolName)

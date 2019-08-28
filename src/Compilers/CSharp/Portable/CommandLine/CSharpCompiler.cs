@@ -33,7 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override DiagnosticFormatter DiagnosticFormatter { get { return _diagnosticFormatter; } }
         protected internal new CSharpCommandLineArguments Arguments { get { return (CSharpCommandLineArguments)base.Arguments; } }
 
-        public override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)
+        public override Compilation CreateCompilation(
+            TextWriter consoleOutput,
+            TouchedFileLogger touchedFilesLogger,
+            ErrorLogger errorLogger,
+            ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions)
         {
             var parseOptions = Arguments.ParseOptions;
 
@@ -52,8 +56,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Parallel.For(0, sourceFiles.Length, UICultureUtilities.WithCurrentUICulture<int>(i =>
                 {
-                    //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], diagnosticBag, out normalizedFilePaths[i]);
+                    try
+                    {
+                        //NOTE: order of trees is important!!
+                        trees[i] = ParseFile(
+                            parseOptions,
+                            scriptParseOptions,
+                            analyzerConfigOptions.IsDefault
+                                ? null
+                                : analyzerConfigOptions[i].TreeOptions,
+                            ref hadErrors,
+                            sourceFiles[i],
+                            diagnosticBag,
+                            out normalizedFilePaths[i]);
+                    }
+                    catch (Exception e) when (FatalError.Report(e))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
                 }));
             }
             else
@@ -61,25 +81,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < sourceFiles.Length; i++)
                 {
                     //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], diagnosticBag, out normalizedFilePaths[i]);
+                    trees[i] = ParseFile(
+                        parseOptions,
+                        scriptParseOptions,
+                        analyzerConfigOptions.IsDefault
+                            ? null
+                            : analyzerConfigOptions[i].TreeOptions,
+                        ref hadErrors,
+                        sourceFiles[i],
+                        diagnosticBag,
+                        out normalizedFilePaths[i]);
                 }
             }
 
             // If errors had been reported in ParseFile, while trying to read files, then we should simply exit.
-            if (hadErrors)
+            if (ReportDiagnostics(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger))
             {
-                Debug.Assert(diagnosticBag.HasAnyErrors());
-                ReportErrors(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger);
+                Debug.Assert(hadErrors);
                 return null;
-            }
-            else
-            {
-                Debug.Assert(diagnosticBag.IsEmptyWithoutResolution);
-                diagnosticBag.Free();
             }
 
             var diagnostics = new List<DiagnosticInfo>();
-
             var uniqueFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < sourceFiles.Length; i++)
             {
@@ -132,12 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MetadataReferenceResolver referenceDirectiveResolver;
             var resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, out referenceDirectiveResolver);
-            if (ReportErrors(diagnostics, consoleOutput, errorLogger))
+            if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger))
             {
                 return null;
             }
 
-            var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger);
+            var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory);
 
             return CSharpCompilation.Create(
                 Arguments.CompilationName,
@@ -147,13 +169,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WithMetadataReferenceResolver(referenceDirectiveResolver).
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
                     WithXmlReferenceResolver(xmlFileResolver).
-                    WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem, _tempDirectory)).
+                    WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
                     WithSourceReferenceResolver(sourceFileResolver));
         }
 
         private SyntaxTree ParseFile(
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
             ref bool addedDiagnostics,
             CommandLineSourceFile file,
             DiagnosticBag diagnostics,
@@ -175,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(fileDiagnostics.Count == 0);
-                return ParseFile(parseOptions, scriptParseOptions, content, file);
+                return ParseFile(parseOptions, scriptParseOptions, content, file, diagnosticOptions);
             }
         }
 
@@ -183,12 +206,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
             SourceText content,
-            CommandLineSourceFile file)
+            CommandLineSourceFile file,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
                 content,
                 file.IsScript ? scriptParseOptions : parseOptions,
-                file.Path);
+                file.Path,
+                diagnosticOptions);
 
             // prepopulate line tables.
             // we will need line tables anyways and it is better to not wait until we are in emit
@@ -260,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consoleOutput"></param>
         public override void PrintLogo(TextWriter consoleOutput)
         {
-            consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine1, Culture), GetToolName(), GetAssemblyFileVersion());
+            consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine1, Culture), GetToolName(), GetCompilerVersion());
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine2, Culture));
             consoleOutput.WriteLine();
         }

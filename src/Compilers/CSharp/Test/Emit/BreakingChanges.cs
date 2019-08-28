@@ -777,46 +777,6 @@ class Boom : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?"));
         }
 
-        [Fact, WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232"), WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
-        public void CS0208ERR_ManagedAddr_TypeParamPtr_Dev10_133087()
-        {
-            var text = @"
-class A {    public class B { }    }
-
-class C<T> : A
-{
-    public static C<T*[]>.B b1;
-    public static C<int*[]>.B b2;
-}
-
-public class Test
-{
-    public static void Main()
-    {
-        C<int>.b1 = new A.B();
-        C<string>.b2 = new A.B();
-    }
-}
-";
-            // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
-            // Dev10/11: no error
-            CreateCompilation(text).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"));
-        }
-
-        [Fact, WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232"), WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
-        public void CS0208ERR_ManagedAddr_TypeParamPtr_Dev10_176771()
-        {
-            var text = @"
-class A {    public interface I { }    }
-class F<T> : A where T : F<object*>.I { }
-";
-            // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-            // Dev10/11: no error
-            CreateCompilation(text).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"));
-        }
-
         /// <summary>
         /// When determining whether the LHS of a null-coalescing operator (??) is non-null, the native compiler strips off casts.  
         /// 
@@ -1006,7 +966,8 @@ public class c
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(530518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530518")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+        [WorkItem(530518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530518")]
         public void ExpressionTreeExplicitOpVsConvert()
         {
             var text = @"
@@ -1027,13 +988,14 @@ Console.WriteLine(testExpr2);
 ";
 
             // Native Compiler: x => Convert(Convert(op_Explicit(x)))
-            CompileAndVerify(text, references: new[] { LinqAssemblyRef }, expectedOutput:
+            CompileAndVerify(text, expectedOutput:
 @"x => Convert(Convert(Convert(x)))
 x => Convert(Convert(Convert(x)))
 ");
         }
-        [Fact, WorkItem(530531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530531")]
 
+        [WorkItem(530531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530531")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         private void ExpressionTreeNoCovertForIdentityConversion()
         {
             var source = @"
@@ -1053,7 +1015,7 @@ static void Main()
 ";
 
             // Native compiler: x => (Convert(x) != Convert(null))
-            CompileAndVerify(source, references: new[] { LinqAssemblyRef }, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"x => (Convert(x) != null)
 True
 ");
@@ -1317,7 +1279,8 @@ namespace VS7_336319
     Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "PredefinedTypes").WithArguments("VS7_336319.ExpressionBinder.PredefinedTypes"));
         }
 
-        [Fact, WorkItem(530666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530666")]
+        [WorkItem(530666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530666")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ExpressionTreeWithNullableUDCandOperator()
         {
             string source = @"
@@ -1345,7 +1308,7 @@ static int Main()
 }
 ";
             // Native compiler throw
-            CompileAndVerify(source, references: new[] { SystemCoreRef }, expectedOutput: "3");
+            CompileAndVerify(source, expectedOutput: "3");
         }
 
         [Fact, WorkItem(530696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530696")]

@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(originalDefinition.Arity > 0)
 
             Dim current As TypeSubstitution = Me
-            Dim result = ArrayBuilder(Of TypeSymbol).GetInstance(originalDefinition.Arity, Nothing)
+            Dim result = ArrayBuilder(Of TypeSymbol).GetInstance(originalDefinition.Arity, fillWithValue:=Nothing)
             hasTypeArgumentsCustomModifiers = False
 
             Do
@@ -880,7 +880,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim modifier = DirectCast(customModifiers(i).Modifier, NamedTypeSymbol)
                 Dim substituted = DirectCast(modifier.InternalSubstituteTypeParameters(Me).AsTypeSymbolOnly(), NamedTypeSymbol)
 
-                If modifier <> substituted Then
+                If Not TypeSymbol.Equals(modifier, substituted, TypeCompareKind.ConsiderEverything) Then
                     Dim builder = ArrayBuilder(Of CustomModifier).GetInstance(customModifiers.Length)
                     builder.AddRange(customModifiers, i)
                     builder.Add(If(customModifiers(i).IsOptional, VisualBasicCustomModifier.CreateOptional(substituted), VisualBasicCustomModifier.CreateRequired(substituted)))
@@ -889,7 +889,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         modifier = DirectCast(customModifiers(j).Modifier, NamedTypeSymbol)
                         substituted = DirectCast(modifier.InternalSubstituteTypeParameters(Me).AsTypeSymbolOnly(), NamedTypeSymbol)
 
-                        If modifier <> substituted Then
+                        If Not TypeSymbol.Equals(modifier, substituted, TypeCompareKind.ConsiderEverything) Then
                             builder.Add(If(customModifiers(j).IsOptional, VisualBasicCustomModifier.CreateOptional(substituted), VisualBasicCustomModifier.CreateRequired(substituted)))
                         Else
                             builder.Add(customModifiers(j))
@@ -902,6 +902,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             Return customModifiers
+        End Function
+
+        Public Function WasConstructedForModifiers() As Boolean
+            For Each pair In _pairs
+                If Not pair.Key.Equals(pair.Value.Type.OriginalDefinition) Then
+                    Return False
+                End If
+            Next
+
+            Return If(_parent Is Nothing, True, _parent.WasConstructedForModifiers())
         End Function
 
     End Class

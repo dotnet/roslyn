@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return context.IsMemberDeclarationContext(
                 validModifiers: s_validMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassOnlyTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.ClassInterfaceTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken);
         }

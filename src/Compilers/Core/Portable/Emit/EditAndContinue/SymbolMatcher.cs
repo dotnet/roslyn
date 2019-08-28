@@ -4,19 +4,24 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class SymbolMatcher
     {
         public abstract Cci.ITypeReference MapReference(Cci.ITypeReference reference);
-        public abstract Cci.IDefinition MapDefinition(Cci.IDefinition reference);
+        public abstract Cci.IDefinition MapDefinition(Cci.IDefinition definition);
+        public abstract Cci.INamespace MapNamespace(Cci.INamespace @namespace);
+
+        public ISymbol MapDefinitionOrNamespace(ISymbol symbol)
+            => (symbol is Cci.IDefinition definition) ? (ISymbol)MapDefinition(definition) : (ISymbol)MapNamespace((Cci.INamespace)symbol);
 
         public EmitBaseline MapBaselineToCompilation(
             EmitBaseline baseline,
             Compilation targetCompilation,
             CommonPEModuleBuilder targetModuleBuilder,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> mappedSynthesizedMembers)
+            ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> mappedSynthesizedMembers)
         {
             // Map all definitions to this compilation.
             var typesAdded = MapDefinitions(baseline.TypesAdded);
@@ -46,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
                 synthesizedMembers: mappedSynthesizedMembers,
                 addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
-                debugInformationProvider: baseline.DebugInformationProvider, 
+                debugInformationProvider: baseline.DebugInformationProvider,
                 localSignatureProvider: baseline.LocalSignatureProvider);
         }
 
@@ -98,6 +103,8 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
+        internal abstract bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index);
+
         /// <summary>
         /// Merges synthesized members generated during lowering of the current compilation with aggregate synthesized members 
         /// from all previous source generations (gen >= 1).
@@ -112,9 +119,9 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Then the resulting collection shall have the following entries:
         /// {S' -> {A', B', C, D}, U -> {G, H}, T -> {E, F}}
         /// </remarks>
-        internal ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> MapSynthesizedMembers(
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> previousMembers,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> newMembers)
+        internal ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> MapSynthesizedMembers(
+            ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> previousMembers,
+            ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> newMembers)
         {
             // Note: we can't just return previous members if there are no new members, since we still need to map the symbols to the new compilation.
 
@@ -123,49 +130,48 @@ namespace Microsoft.CodeAnalysis.Emit
                 return newMembers;
             }
 
-            var synthesizedMembersBuilder = ImmutableDictionary.CreateBuilder<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>();
+            var synthesizedMembersBuilder = ImmutableDictionary.CreateBuilder<ISymbol, ImmutableArray<ISymbol>>();
 
             synthesizedMembersBuilder.AddRange(newMembers);
 
             foreach (var pair in previousMembers)
             {
                 var previousContainer = pair.Key;
-                var memberDefs = pair.Value;
+                var members = pair.Value;
 
-                var mappedContainer = (Cci.ITypeDefinition)MapDefinition(previousContainer);
+                var mappedContainer = MapDefinitionOrNamespace(previousContainer);
                 if (mappedContainer == null)
                 {
                     // No update to any member of the container type.  
-                    synthesizedMembersBuilder.Add(previousContainer, memberDefs);
+                    synthesizedMembersBuilder.Add(previousContainer, members);
                     continue;
                 }
 
-                ImmutableArray<Cci.ITypeDefinitionMember> newSynthesizedMembers;
-                if (!newMembers.TryGetValue(mappedContainer, out newSynthesizedMembers))
+                if (!newMembers.TryGetValue(mappedContainer, out var newSynthesizedMembers))
                 {
                     // The container has been updated but the update didn't produce any synthesized members.
-                    synthesizedMembersBuilder.Add(mappedContainer, memberDefs);
+                    synthesizedMembersBuilder.Add(mappedContainer, members);
                     continue;
                 }
 
                 // The container has been updated and synthesized members produced.
                 // They might be new or replacing existing ones. Merge existing with new.
-                var memberBuilder = ArrayBuilder<Cci.ITypeDefinitionMember>.GetInstance();
+                var memberBuilder = ArrayBuilder<ISymbol>.GetInstance();
                 memberBuilder.AddRange(newSynthesizedMembers);
 
-                foreach (var memberDef in memberDefs)
+                foreach (var member in members)
                 {
-                    var mappedMemberDef = (Cci.ITypeDefinitionMember)MapDefinition(memberDef);
-                    if (mappedMemberDef != null)
+                    var mappedMember = MapDefinitionOrNamespace(member);
+                    if (mappedMember != null)
                     {
                         // If the matcher found a member in the current compilation corresponding to previous memberDef,
                         // then the member has to be synthesized and produced as a result of a method update 
                         // and thus already contained in newSynthesizedMembers.
-                        Debug.Assert(newSynthesizedMembers.Contains(mappedMemberDef));
+                        Debug.Assert(newSynthesizedMembers.Contains(mappedMember));
                     }
                     else
                     {
-                        memberBuilder.Add(memberDef);
+                        memberBuilder.Add(member);
                     }
                 }
 

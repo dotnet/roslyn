@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -24,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SyntaxToken token2,
             string originalString,
             int lineBreaks,
-            int spaces) :
-            base(context, formattingRules, token1, token2, originalString, lineBreaks, spaces)
+            int spaces)
+            : base(context, formattingRules, token1, token2, originalString, lineBreaks, spaces)
         {
         }
 

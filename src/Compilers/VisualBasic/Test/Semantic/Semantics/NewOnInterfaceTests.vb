@@ -1732,13 +1732,29 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
   Expression: 
     IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... essOf Quit2')
       Event Reference: 
-        null
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: Goo2.QuitEventHandler) (Syntax: '(((Instance ... Quit).Quit)')
+          Operand: 
+            IEventReferenceOperation: Event Goo2.Quit() (OperationKind.EventReference, Type: Goo2.QuitEventHandler) (Syntax: '((Instance1 ... .Quit).Quit')
+              Instance Receiver: 
+                IParenthesizedOperation (OperationKind.Parenthesized, Type: Goo) (Syntax: '((Instance1).Quit.Quit)')
+                  Operand: 
+                    IInvocationOperation (virtual Function Goo1.Quit() As Goo) (OperationKind.Invocation, Type: Goo) (Syntax: '(Instance1).Quit.Quit')
+                      Instance Receiver: 
+                        IInvocationOperation (virtual Function Goo1.Quit() As Goo) (OperationKind.Invocation, Type: Goo) (Syntax: '(Instance1).Quit')
+                          Instance Receiver: 
+                            IParenthesizedOperation (OperationKind.Parenthesized, Type: GooGoo) (Syntax: '(Instance1)')
+                              Operand: 
+                                IFieldReferenceOperation: GooGooClass.Instance1 As GooGoo (OperationKind.FieldReference, Type: GooGoo) (Syntax: 'Instance1')
+                                  Instance Receiver: 
+                                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: GooGooClass, IsImplicit) (Syntax: 'Instance1')
+                          Arguments(0)
+                      Arguments(0)
       Handler: 
         IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Goo2.QuitEventHandler, IsImplicit) (Syntax: 'AddressOf Quit2')
           Target: 
             IMethodReferenceOperation: Sub GooGooClass.Quit2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf Quit2')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: GooGooClass, IsImplicit) (Syntax: 'Quit2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: GooGooClass, IsImplicit) (Syntax: 'Quit2')
 ]]>.Value)
 
             Assert.Equal("RemoveHandler Instance3.Quit.Quit.Quit.Quit.Quit.Quit, AddressOf Quit2", nodes(1).ToString())
@@ -1763,7 +1779,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
                               Instance Receiver: 
                                 IFieldReferenceOperation: GooGooClass.Instance3 As Goo (OperationKind.FieldReference, Type: Goo) (Syntax: 'Instance3')
                                   Instance Receiver: 
-                                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: GooGooClass, IsImplicit) (Syntax: 'Instance3')
+                                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: GooGooClass, IsImplicit) (Syntax: 'Instance3')
                               Arguments(0)
                           Arguments(0)
                       Arguments(0)
@@ -1774,7 +1790,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
           Target: 
             IMethodReferenceOperation: Sub GooGooClass.Quit2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf Quit2')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: GooGooClass, IsImplicit) (Syntax: 'Quit2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: GooGooClass, IsImplicit) (Syntax: 'Quit2')
 ]]>.Value)
         End Sub
 

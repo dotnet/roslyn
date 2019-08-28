@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
     [ExportLanguageService(typeof(IDocumentHighlightsService), LanguageNames.CSharp), Shared]
     internal class CSharpDocumentHighlightsService : AbstractDocumentHighlightsService
     {
+        [ImportingConstructor]
+        public CSharpDocumentHighlightsService()
+        {
+        }
+
         protected override async Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
@@ -48,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
                         }
 
                         var boundSymbol = semanticModel.GetSymbolInfo(type, cancellationToken).Symbol;
-                        boundSymbol = boundSymbol == null ? null : boundSymbol.OriginalDefinition;
+                        boundSymbol = boundSymbol?.OriginalDefinition;
 
                         if (originalSymbol.Equals(boundSymbol))
                         {

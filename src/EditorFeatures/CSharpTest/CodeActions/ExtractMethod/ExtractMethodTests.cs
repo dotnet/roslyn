@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 
     private static bool NewMethod(bool b) => b != true;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -94,7 +92,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 
     private static bool NewMethod(bool b) => b != true;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -125,7 +123,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 
     private static bool NewMethod(bool b) => b != true;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -155,7 +153,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
                     true;
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -185,7 +183,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 */true;
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -215,7 +213,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 "";
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [WorkItem(540796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
@@ -461,7 +459,7 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Goo<byte, byte>({|Rename:NewMethod|}(), y => 0, z, z);
+        Goo({|Rename:NewMethod|}(), y => (byte)0, z, z);
     }
 
     private static Func<byte, byte> NewMethod()
@@ -500,7 +498,7 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Goo<byte, byte>({|Rename:NewMethod|}(), y => { return 0; }, z, z);
+        Goo({|Rename:NewMethod|}(), y => { return (byte)0; }, z, z);
     }
 
     private static Func<byte, byte> NewMethod()
@@ -1425,7 +1423,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
@@ -1473,7 +1471,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
         [Fact]
@@ -1569,16 +1567,16 @@ class C
     public static void Main()
     {
         void Local()
-        {
+        {|Warning:{
             {|Rename:NewMethod|}();
-        }
+        }|}
         Local();
     }
 
     private static void NewMethod()
     {
-        {|Warning:int x = 0;
-        x++;|}
+        int x = 0;
+        x++;
     }
 }");
         }
@@ -1618,7 +1616,7 @@ class Test
 
     private static int NewMethod(int v, int i)
     {
-        {|Warning:v = v + i|};
+        {|Warning:v = v + i;|}
         return v;
     }
 }");
@@ -1652,14 +1650,14 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                v = {|Rename:NewMethod|}(v, i);
+                {|Warning:v = {|Rename:NewMethod|}(v, i)|};
             }
         }
     }
 
     private static int NewMethod(int v, int i)
     {
-        {|Warning:return v + i|};
+        return v + i;
     }
 }");
         }
@@ -1692,14 +1690,14 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                i = {|Rename:NewMethod|}(ref v, i);
+                {|Warning:i = {|Rename:NewMethod|}(ref v, i)|};
             }
         }
     }
 
     private static int NewMethod(ref int v, int i)
     {
-        {|Warning:return v = v + i;|}
+        return v = v + i;
     }
 }");
         }
@@ -1972,6 +1970,825 @@ class Program
         (x, y) = (1, 2);
     }
 }", TestOptions.Regular7_1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestIndexExpression()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|^1|]);
+    }
+}", TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Index NewMethod()
+    {
+        return ^1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Empty()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return ..;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Left()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..1|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return ..1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Right()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return 1..;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Both()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..2|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return 1..2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestAnnotatedNullableReturn()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        [|string? x = null;
+        x?.ToString();|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? x = {|Rename:NewMethod|}();
+
+        return x;
+    }
+
+    private static string? NewMethod()
+    {
+        string? x = null;
+        x?.ToString();
+        return x;
+    }
+}");
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestAnnotatedNullableParameters1()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = null;
+        string? b = null;
+        [|string? x = a?.Contains(b).ToString();|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = null;
+        string? b = null;
+        string? x = {|Rename:NewMethod|}(a, b);
+
+        return x;
+    }
+
+    private static string? NewMethod(string? a, string? b)
+    {
+        return a?.Contains(b).ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestAnnotatedNullableParameters2()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        int c = 0;
+        [|string x = (a + b + c).ToString();|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        int c = 0;
+        string x = {|Rename:NewMethod|}(a, b, c);
+
+        return x;
+    }
+
+    private static string NewMethod(string? a, string? b, int c)
+    {
+        return (a + b + c).ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestAnnotatedNullableParameters3()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        int c = 0;
+        return [|(a + b + c).ToString()|];
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        int c = 0;
+        return {|Rename:NewMethod|}(a, b, c);
+    }
+
+    private static string NewMethod(string? a, string? b, int c)
+    {
+        return (a + b + c).ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestAnnotatedNullableParameters4()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = null;
+        string? b = null;
+        return [|a?.Contains(b).ToString()|];
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = null;
+        string? b = null;
+        return {|Rename:NewMethod|}(a, b);
+    }
+
+    private static string? NewMethod(string? a, string? b)
+    {
+        return a?.Contains(b).ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters1()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        return [|(a + b + a).ToString()|];
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        return {|Rename:NewMethod|}(a, b);
+    }
+
+    private static string NewMethod(string a, string b)
+    {
+        return (a + b + a).ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters2()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        return [|(a + b + a).ToString()|];
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        return {|Rename:NewMethod|}(a, b);
+    }
+
+    private static string NewMethod(string a, string b)
+    {
+        return (a + b + a).ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters3()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        return [|(a + b + a)?.ToString()|] ?? string.Empty;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        return {|Rename:NewMethod|}(a, b) ?? string.Empty;
+    }
+
+    private static string? NewMethod(string? a, string? b)
+    {
+        return (a + b + a)?.ToString();
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters_MultipleStates()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        [|string? c = a + b;
+        a = string.Empty;
+        c += a;
+        a = null;
+        b = null;
+        b = ""test"";
+        c = a?.ToString();|]
+        return c ?? string.Empty;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        string? c = {|Rename:NewMethod|}(ref a, ref b);
+        return c ?? string.Empty;
+    }
+
+    private static string? NewMethod(ref string? a, ref string? b)
+    {
+        string? c = a + b;
+        a = string.Empty;
+        c += a;
+        a = null;
+        b = null;
+        b = ""test"";
+        c = a?.ToString();
+        return c;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters_MultipleStatesNonNullReturn()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        [|string? c = a + b;
+        a = string.Empty;
+        b = string.Empty;
+        a = null;
+        b = null;
+        c = null;
+        c = a + b;|]
+        return c ?? string.Empty;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        string? c = {|Rename:NewMethod|}(ref a, ref b);
+        return c ?? string.Empty;
+    }
+
+    private static string NewMethod(ref string? a, ref string? b)
+    {
+        string? c = a + b;
+        a = string.Empty;
+        b = string.Empty;
+        a = null;
+        b = null;
+        c = null;
+        c = a + b;
+        return c;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters_MultipleStatesNullReturn()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        [|string? c = a + b;
+        a = string.Empty;
+        b = string.Empty;
+        a = null;
+        b = null;
+        c = a?.ToString();|]
+        return c ?? string.Empty;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        string? c = {|Rename:NewMethod|}(ref a, ref b);
+        return c ?? string.Empty;
+    }
+
+    private static string? NewMethod(ref string? a, ref string? b)
+    {
+        string? c = a + b;
+        a = string.Empty;
+        b = string.Empty;
+        a = null;
+        b = null;
+        c = a?.ToString();
+        return c;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowStateNullableParameters_RefNotNull()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        [|var c = a + b;
+        a = string.Empty;
+        c += a;
+        b = ""test"";
+        c = a + b +c;|]
+        return c;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string M()
+    {
+        string? a = string.Empty;
+        string? b = string.Empty;
+        string c = {|Rename:NewMethod|}(ref a, ref b);
+        return c;
+    }
+
+    private static string NewMethod(ref string a, ref string b)
+    {
+        var c = a + b;
+        a = string.Empty;
+        c += a;
+        b = ""test"";
+        c = a + b + c;
+        return c;
+    }
+}");
+
+        // There's a case below where flow state correctly asseses that the variable
+        // 'x' is non-null when returned. It's wasn't obvious when writing, but that's 
+        // due to the fact the line above it being executed as 'x.ToString()' would throw
+        // an exception and the return statement would never be hit. The only way the return
+        // statement gets executed is if the `x.ToString()` call succeeds, thus suggesting 
+        // that the value is indeed not null.
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowNullableReturn_NotNull1()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        [|string? x = null;
+        x.ToString();|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? x = {|Rename:NewMethod|}();
+
+        return x;
+    }
+
+    private static string NewMethod()
+    {
+        string? x = null;
+        x.ToString();
+        return x;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowNullableReturn_NotNull2()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        [|string? x = null;
+        x?.ToString();
+        x = string.Empty;|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    public string? M()
+    {
+        string? x = {|Rename:NewMethod|}();
+
+        return x;
+    }
+
+    private static string NewMethod()
+    {
+        string? x = null;
+        x?.ToString();
+        x = string.Empty;
+        return x;
+    }
+}");
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowNullable_Lambda()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    public string? M()
+    {
+        [|string? x = null;
+        Action modifyXToNonNull = () =>
+        {
+            x += x;
+        };
+
+        modifyXToNonNull();|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    public string? M()
+    {
+        string? x = {|Rename:NewMethod|}();
+
+        return x;
+    }
+
+    private static string? NewMethod()
+    {
+        string? x = null;
+        Action modifyXToNonNull = () =>
+        {
+            x += x;
+        };
+
+        modifyXToNonNull();
+        return x;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestFlowNullable_LambdaWithReturn()
+            => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    public string? M()
+    {
+        [|string? x = null;
+        Func<string?> returnNull = () =>
+        {
+            return null;
+        };
+
+        x = returnNull() ?? string.Empty;|]
+
+        return x;
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    public string? M()
+    {
+        string? x = {|Rename:NewMethod|}();
+
+        return x;
+    }
+
+    private static string NewMethod()
+    {
+        string? x = null;
+        Func<string?> returnNull = () =>
+        {
+            return null;
+        };
+
+        x = returnNull() ?? string.Empty;
+        return x;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractReadOnlyMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct S1
+{
+    readonly int M1() => 42;
+    void Main()
+    {
+        [|int i = M1() + M1()|];
+    }
+}",
+@"struct S1
+{
+    readonly int M1() => 42;
+    void Main()
+    {
+        {|Rename:NewMethod|}();
+    }
+
+    private readonly void NewMethod()
+    {
+        int i = M1() + M1();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractReadOnlyMethodInReadOnlyStruct()
+        {
+            await TestInRegularAndScriptAsync(
+@"readonly struct S1
+{
+    int M1() => 42;
+    void Main()
+    {
+        [|int i = M1() + M1()|];
+    }
+}",
+@"readonly struct S1
+{
+    int M1() => 42;
+    void Main()
+    {
+        {|Rename:NewMethod|}();
+    }
+
+    private void NewMethod()
+    {
+        int i = M1() + M1();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractNonReadOnlyMethodInReadOnlyMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct S1
+{
+    int M1() => 42;
+    readonly void Main()
+    {
+        [|int i = M1() + M1()|];
+    }
+}",
+@"struct S1
+{
+    int M1() => 42;
+    readonly void Main()
+    {
+        {|Rename:NewMethod|}();
+    }
+
+    private void NewMethod()
+    {
+        int i = M1() + M1();
+    }
+}");
         }
     }
 }

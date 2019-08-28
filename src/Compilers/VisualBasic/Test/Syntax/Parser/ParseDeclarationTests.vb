@@ -687,7 +687,7 @@ p1 as vb$anonymous1
             Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1"),
             Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
 p1 as vb$anonymous1
-)]]>.Value))
+)]]>))
     End Sub
 
     <Fact>

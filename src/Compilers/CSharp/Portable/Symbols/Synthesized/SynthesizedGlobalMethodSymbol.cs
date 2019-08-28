@@ -116,10 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        public sealed override bool AreLocalsZeroed
-        {
-            get { return ContainingModule.AreLocalsZeroed; }
-        }
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public sealed override bool AreLocalsZeroed =>ContainingModule.AreLocalsZeroed;
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
@@ -192,14 +193,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return RefKind.None; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return _returnType; }
+            get { return TypeWithAnnotations.Create(_returnType); }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
-            get { return ImmutableArray<CustomModifier>.Empty; }
+            get { return FlowAnalysisAnnotations.None; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -207,9 +208,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeWithAnnotations>.Empty; }
         }
 
         public override Symbol AssociatedSymbol
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return this.ReturnType.IsVoidType(); }
         }
 
         public override MethodKind MethodKind
@@ -309,6 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ImmutableArray<MethodSymbol>.Empty; }
         }
+
+        internal sealed override bool IsDeclaredReadOnly => false;
 
         internal override bool SynthesizesLoweredBoundBody
         {

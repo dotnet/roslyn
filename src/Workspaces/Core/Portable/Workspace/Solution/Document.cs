@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis
         private WeakReference<SemanticModel> _model;
         private Task<SyntaxTree> _syntaxTreeResultTask;
 
-        internal Document(Project project, DocumentState state) :
-            base(project, state)
+        internal Document(Project project, DocumentState state)
+            : base(project, state, TextDocumentKind.Document)
         {
         }
 
@@ -41,27 +41,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if the info of the document change (name, folders, file path; not the content)
         /// </summary>
-        internal bool HasInfoChanged(Document otherDocument)
+        internal override bool HasInfoChanged(TextDocument otherTextDocument)
         {
-            return DocumentState.Info != otherDocument.DocumentState.Info
-                || DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
+            var otherDocument = otherTextDocument as Document ??
+                throw new ArgumentException($"{nameof(otherTextDocument)} isn't a regular document.", nameof(otherTextDocument));
+
+            return base.HasInfoChanged(otherDocument) ||
+                   DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
         }
 
-        /// <summary>
-        /// Gets a <see cref="DocumentInfo"/> for this document w/o the content.
-        /// </summary>
-        internal DocumentInfo GetDocumentInfoWithoutContent()
+        internal bool HasTextChanged(Document otherDocument)
         {
-            return DocumentState.Info.WithSourceCodeKind(DocumentState.SourceCodeKind);
-        }
-
-        /// <summary>
-        /// True if the document content has potentially changed.
-        /// Does not compare actual text.
-        /// </summary>
-        internal bool HasContentChanged(Document otherDocument)
-        {
-            return DocumentState.HasContentChanged(otherDocument.DocumentState);
+            return DocumentState.HasTextChanged(otherDocument.DocumentState);
         }
 
         /// <summary>
@@ -131,18 +122,18 @@ namespace Microsoft.CodeAnalysis
 
 
         /// <summary>
-        /// <code>true</code> if this Document supports providing data through the
+        /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSyntaxTreeAsync"/> and <see cref="GetSyntaxRootAsync"/> methods.
         /// 
-        /// If <code>false</code> then these methods will return <code>null</code> instead.
+        /// If <see langword="false"/> then these methods will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSyntaxTree => DocumentState.SupportsSyntaxTree;
 
         /// <summary>
-        /// <code>true</code> if this Document supports providing data through the
+        /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSemanticModelAsync"/> method.
         /// 
-        /// If <code>false</code> then this method will return <code>null</code> instead.
+        /// If <see langword="false"/> then this method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSemanticModel
         {
@@ -179,7 +170,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // do it async for real.
-            return DocumentState.GetSyntaxTreeAsync(cancellationToken);
+            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask();
         }
 
         internal SyntaxTree GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
@@ -276,15 +267,18 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
 
-                // it looks like someone has set it. try to reuse same semantic model
-                if (original.TryGetTarget(out semanticModel))
+                // It looks like someone has set it. Try to reuse same semantic model, or assign the new model if that
+                // fails. The lock is required since there is no compare-and-set primitive for WeakReference<T>.
+                lock (original)
                 {
-                    return semanticModel;
-                }
+                    if (original.TryGetTarget(out semanticModel))
+                    {
+                        return semanticModel;
+                    }
 
-                // it looks like cache is gone. reset the cache.
-                original.SetTarget(result);
-                return result;
+                    original.SetTarget(result);
+                    return result;
+                }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -408,7 +402,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the list of <see cref="DocumentId"/>s that are linked to this
         /// <see cref="Document" />. <see cref="Document"/>s are considered to be linked if they
-        /// share the same <see cref="TextDocument.FilePath" />. This <see cref="DocumentId"/> is excluded from the 
+        /// share the same <see cref="TextDocument.FilePath" />. This <see cref="DocumentId"/> is excluded from the
         /// result.
         /// </summary>
         public ImmutableArray<DocumentId> GetLinkedDocumentIds()
@@ -422,7 +416,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a branched version of this document that has its semantic model frozen in whatever state it is available at the time,
         /// assuming a background process is constructing the semantics asynchronously. Repeated calls to this method may return
         /// documents with increasingly more complete semantics.
-        /// 
+        ///
         /// Use this method to gain access to potentially incomplete semantics quickly.
         /// </summary>
         internal Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
@@ -430,8 +424,8 @@ namespace Microsoft.CodeAnalysis
             var solution = this.Project.Solution;
             var workspace = solution.Workspace;
 
-            // only produce doc with frozen semantics if this document is part of the workspace's 
-            // primary branch and there is actual background compilation going on, since w/o 
+            // only produce doc with frozen semantics if this document is part of the workspace's
+            // primary branch and there is actual background compilation going on, since w/o
             // background compilation the semantics won't be moving toward completeness.  Also,
             // ensure that the project that this document is part of actually supports compilations,
             // as partial semantics don't make sense otherwise.
@@ -439,7 +433,7 @@ namespace Microsoft.CodeAnalysis
                 workspace.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
-               var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
+                var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
                 return newSolution.GetDocument(this.Id);
             }
             else
@@ -476,13 +470,13 @@ namespace Microsoft.CodeAnalysis
             //       snapshot model. once that is fixed, we can remove this workaround - https://github.com/dotnet/roslyn/issues/19284
             if (_cachedOptions == null)
             {
-                InitializeCachedOptions(solutionOptions, cancellationToken);
+                InitializeCachedOptions(solutionOptions);
             }
 
             return _cachedOptions.GetValueAsync(cancellationToken);
         }
 
-        private void InitializeCachedOptions(OptionSet solutionOptions, CancellationToken cancellationToken)
+        private void InitializeCachedOptions(OptionSet solutionOptions)
         {
             var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
             {
@@ -492,6 +486,11 @@ namespace Microsoft.CodeAnalysis
             }, cacheResult: true);
 
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
+        }
+
+        internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
+        {
+            return DocumentState.GetAnalyzerOptionsAsync(Project.FilePath, cancellationToken);
         }
     }
 }

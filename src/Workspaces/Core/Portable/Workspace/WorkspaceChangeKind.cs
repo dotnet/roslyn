@@ -102,5 +102,26 @@ namespace Microsoft.CodeAnalysis
         /// The document in the current solution had is info changed; name, folders, filepath
         /// </summary>
         DocumentInfoChanged = 17,
+
+        /// <summary>
+        /// An analyzer config document was added to the current solution.
+        /// </summary>
+        AnalyzerConfigDocumentAdded = 18,
+
+        /// <summary>
+        /// An analyzer config document was removed from the current solution.
+        /// </summary>
+        AnalyzerConfigDocumentRemoved = 19,
+
+        /// <summary>
+        /// An analyzer config document in the current solution was reloaded.
+        /// </summary>
+        AnalyzerConfigDocumentReloaded = 20,
+
+        /// <summary>
+        /// An analyzer config document in the current solution was changed.
+        /// </summary>
+        AnalyzerConfigDocumentChanged = 21,
+
     }
 }

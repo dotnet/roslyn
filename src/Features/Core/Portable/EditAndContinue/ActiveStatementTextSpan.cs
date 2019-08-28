@@ -4,15 +4,25 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct ActiveStatementTextSpan
+    internal readonly struct ActiveStatementTextSpan
     {
         public readonly ActiveStatementFlags Flags;
         public readonly TextSpan Span;
 
         public ActiveStatementTextSpan(ActiveStatementFlags flags, TextSpan span)
         {
-            this.Flags = flags;
-            this.Span = span;
+            Flags = flags;
+            Span = span;
         }
+
+        /// <summary>
+        /// True if at least one of the threads whom this active statement belongs to is in a leaf frame.
+        /// </summary>
+        public bool IsLeaf => (Flags & ActiveStatementFlags.IsLeafFrame) != 0;
+
+        /// <summary>
+        /// True if at least one of the threads whom this active statement belongs to is in a non-leaf frame.
+        /// </summary>
+        public bool IsNonLeaf => (Flags & ActiveStatementFlags.IsNonLeafFrame) != 0;
     }
 }

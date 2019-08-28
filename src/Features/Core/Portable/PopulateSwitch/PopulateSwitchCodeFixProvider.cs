@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -22,13 +21,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, 
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class PopulateSwitchCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds 
+        [ImportingConstructor]
+        public PopulateSwitchCodeFixProvider()
+        {
+        }
+
+        public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Custom;
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -56,7 +62,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 context.RegisterCodeFix(
                     new MyCodeAction(
                         FeaturesResources.Add_default_case,
-                        c => FixAsync(document, diagnostic, 
+                        c => FixAsync(document, diagnostic,
                             addCases: false, addDefaultCase: true,
                             cancellationToken: c)),
                     context.Diagnostics);
@@ -73,7 +79,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     context.Diagnostics);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private Task<Document> FixAsync(
@@ -113,7 +119,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         private void FixOneDiagnostic(
-            Document document, SyntaxEditor editor, 
+            Document document, SyntaxEditor editor,
             SemanticModel model, Diagnostic diagnostic,
             bool addCases, bool addDefaultCase,
             bool onlyOneDiagnostic,
@@ -209,23 +215,23 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         protected override Task FixAllAsync(
-            Document document, 
-            ImmutableArray<Diagnostic> diagnostics, 
-            SyntaxEditor editor, 
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
             // If the user is performing a fix-all, then fix up all the issues we see. i.e.
             // add missing cases and missing 'default' cases for any switches we reported an
             // issue on.
-            return FixWithEditorAsync(document, editor, diagnostics, 
-                addCases: true, addDefaultCase: true, 
+            return FixWithEditorAsync(document, editor, diagnostics,
+                addCases: true, addDefaultCase: true,
                 cancellationToken: cancellationToken);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

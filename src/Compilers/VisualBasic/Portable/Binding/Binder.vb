@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _sourceModule As SourceModuleSymbol
         Private ReadOnly _isEarlyAttributeBinder As Boolean
         Private ReadOnly _ignoreBaseClassesInLookup As Boolean
-        Private ReadOnly _basesBeingResolved As ConsList(Of Symbol)
+        Private ReadOnly _basesBeingResolved As BasesBeingResolved
 
         Protected Sub New(containingBinder As Binder)
             m_containingBinder = containingBinder
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Protected Sub New(containingBinder As Binder, basesBeingResolved As ConsList(Of Symbol))
+        Protected Sub New(containingBinder As Binder, basesBeingResolved As BasesBeingResolved)
             Me.New(containingBinder)
             _basesBeingResolved = basesBeingResolved
         End Sub
@@ -288,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable Function CheckAccessibility(sym As Symbol,
                                                        <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                                                        Optional accessThroughType As TypeSymbol = Nothing,
-                                                       Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
+                                                       Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
             Return m_containingBinder.CheckAccessibility(sym, useSiteDiagnostics, accessThroughType, basesBeingResolved)
         End Function
 
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsAccessible(sym As Symbol,
                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                                      Optional accessThroughType As TypeSymbol = Nothing,
-                                     Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As Boolean
+                                     Optional basesBeingResolved As BasesBeingResolved = Nothing) As Boolean
             Return CheckAccessibility(sym, useSiteDiagnostics, accessThroughType, basesBeingResolved) = AccessCheckResult.Accessible
         End Function
 
@@ -534,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim parameterType = parameter.Type
                 If parameterType.OriginalDefinition.SpecialType <> SpecialType.System_Collections_Generic_IEnumerable_T OrElse
-                        DirectCast(parameterType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0) <> Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement) Then
+                        Not TypeSymbol.Equals(DirectCast(parameterType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0), Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement), TypeCompareKind.ConsiderEverything) Then
                     Continue For
                 End If
 
@@ -678,7 +678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' again to prevent/detect circular references.
         ''' </summary>
         ''' <returns>Nothing if no bases being resolved, otherwise the set of bases being resolved.</returns>
-        Public Function BasesBeingResolved() As ConsList(Of Symbol)
+        Public Function BasesBeingResolved() As BasesBeingResolved
             Return _basesBeingResolved
         End Function
 

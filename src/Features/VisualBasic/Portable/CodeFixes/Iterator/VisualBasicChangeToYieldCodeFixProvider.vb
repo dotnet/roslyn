@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
         Friend Const BC36942 As String = "BC36942" ' error BC36942 : To return a value from an Iterator function, use 'Yield' rather than 'Return'. 
         Friend Shared ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(BC36942)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return Ids

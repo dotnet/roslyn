@@ -55,7 +55,7 @@ namespace Roslyn.Utilities
         private static char[] ConvertToLowercaseArray(string text)
         {
             var array = ArrayPool<char>.GetArray(text.Length);
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 array[i] = CaseInsensitiveComparison.ToLower(text[i]);
             }
@@ -72,15 +72,13 @@ namespace Roslyn.Utilities
 
         public static int GetEditDistance(string source, string target, int threshold = int.MaxValue)
         {
-            using (var editDistance = new EditDistance(source))
-            {
-                return editDistance.GetEditDistance(target, threshold);
-            }
+            using var editDistance = new EditDistance(source);
+            return editDistance.GetEditDistance(target, threshold);
         }
 
         public static int GetEditDistance(char[] source, char[] target, int threshold = int.MaxValue)
         {
-            return GetEditDistance(new ArraySlice<char>(source), new ArraySlice<char>(target), threshold);
+            return GetEditDistance(source.AsSpan(), target.AsSpan(), threshold);
         }
 
         public int GetEditDistance(string target, int threshold = int.MaxValue)
@@ -94,8 +92,8 @@ namespace Roslyn.Utilities
             try
             {
                 return GetEditDistance(
-                    new ArraySlice<char>(_sourceLowerCaseCharacters, 0, _source.Length),
-                    new ArraySlice<char>(targetLowerCaseCharacters, 0, target.Length),
+                    _sourceLowerCaseCharacters.AsSpan(0, _source.Length),
+                    targetLowerCaseCharacters.AsSpan(0, target.Length),
                     threshold);
             }
             finally
@@ -105,7 +103,7 @@ namespace Roslyn.Utilities
         }
 
         private const int MaxMatrixPoolDimension = 64;
-        private static readonly ThreadLocal<int[,]> t_matrixPool = 
+        private static readonly ThreadLocal<int[,]> t_matrixPool =
             new ThreadLocal<int[,]>(() => InitializeMatrix(new int[MaxMatrixPoolDimension, MaxMatrixPoolDimension]));
 
         // To find swapped characters we make use of a table that keeps track of the last location
@@ -113,7 +111,7 @@ namespace Roslyn.Utilities
         // (i.e. with value <= 127).  This allows us to just use a simple array we can index into instead
         // of needing something more expensive like a dictionary.
         private const int LastSeenIndexLength = 128;
-        private static ThreadLocal<int[]> t_lastSeenIndexPool = 
+        private static ThreadLocal<int[]> t_lastSeenIndexPool =
             new ThreadLocal<int[]>(() => new int[LastSeenIndexLength]);
 
         private static int[,] GetMatrix(int width, int height)
@@ -147,7 +145,7 @@ namespace Roslyn.Utilities
             var width = matrix.GetLength(0);
             var height = matrix.GetLength(1);
 
-            for (int i = 0; i < width; i++)
+            for (var i = 0; i < width; i++)
             {
                 matrix[i, 0] = Infinity;
 
@@ -157,7 +155,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            for (int j = 0; j < height; j++)
+            for (var j = 0; j < height; j++)
             {
                 matrix[0, j] = Infinity;
 
@@ -170,14 +168,14 @@ namespace Roslyn.Utilities
             return matrix;
         }
 
-        public static int GetEditDistance(ArraySlice<char> source, ArraySlice<char> target, int threshold = int.MaxValue)
+        public static int GetEditDistance(ReadOnlySpan<char> source, ReadOnlySpan<char> target, int threshold = int.MaxValue)
         {
             return source.Length <= target.Length
                 ? GetEditDistanceWorker(source, target, threshold)
                 : GetEditDistanceWorker(target, source, threshold);
         }
 
-        private static int GetEditDistanceWorker(ArraySlice<char> source, ArraySlice<char> target, int threshold)
+        private static int GetEditDistanceWorker(ReadOnlySpan<char> source, ReadOnlySpan<char> target, int threshold)
         {
             // Note: sourceLength will always be smaller or equal to targetLength.
             //
@@ -191,14 +189,14 @@ namespace Roslyn.Utilities
             // consider them as they won't add anything to the edit cost.
             while (source.Length > 0 && source[source.Length - 1] == target[target.Length - 1])
             {
-                source.SetLength(source.Length - 1);
-                target.SetLength(target.Length - 1);
+                source = source.Slice(0, source.Length - 1);
+                target = target.Slice(0, target.Length - 1);
             }
 
             while (source.Length > 0 && source[0] == target[0])
             {
-                source.MoveStartForward(amount: 1);
-                target.MoveStartForward(amount: 1);
+                source = source.Slice(1);
+                target = target.Slice(1);
             }
 
             // 'sourceLength' and 'targetLength' are now the lengths of the substrings of our strings that we
@@ -494,7 +492,7 @@ namespace Roslyn.Utilities
             var characterToLastSeenIndex_inSource = t_lastSeenIndexPool.Value;
             Array.Clear(characterToLastSeenIndex_inSource, 0, LastSeenIndexLength);
 
-            for (int i = 1; i <= sourceLength; i++)
+            for (var i = 1; i <= sourceLength; i++)
             {
                 var lastMatchIndex_inTarget = 0;
                 var sourceChar = source[i - 1];
@@ -517,7 +515,7 @@ namespace Roslyn.Utilities
                     matrix[i + 1, jEnd + 2] = Infinity;
                 }
 
-                for (int j = jStart; j <= jEnd; j++)
+                for (var j = jStart; j <= jEnd; j++)
                 {
                     var targetChar = target[j - 1];
 

@@ -215,7 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("M:Acme.ValueType.op_Explicit(System.Byte)~Acme.ValueType", _acmeNamespace.GetTypeMembers("ValueType").Single().GetMembers("op_Explicit").Single().GetDocumentationCommentId());
         }
 
-        [Fact, WorkItem(4699, "https://github.com/dotnet/roslyn/issues/4699")]
+        [WorkItem(4699, "https://github.com/dotnet/roslyn/issues/4699")]
+        [WorkItem(25781, "https://github.com/dotnet/roslyn/issues/25781")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void GetMalformedDocumentationCommentXml()
         {
             var source = @"
@@ -231,12 +233,12 @@ class Test
             var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
             var main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
-            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml().Trim());
+            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml(EnsureEnglishUICulture.PreferredOrNull).Trim());
 
             compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
             main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
-            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml().Trim());
+            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml(EnsureEnglishUICulture.PreferredOrNull).Trim());
 
             compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None));
             main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");

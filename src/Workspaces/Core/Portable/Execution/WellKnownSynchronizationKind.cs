@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
@@ -17,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         Projects,
         Documents,
         TextDocuments,
+        AnalyzerConfigDocuments,
         ProjectReferences,
         MetadataReferences,
         AnalyzerReferences,
@@ -45,31 +44,10 @@ namespace Microsoft.CodeAnalysis.Serialization
         AnalyzerReferenceChecksumCollection,
         TextDocumentChecksumCollection,
         DocumentChecksumCollection,
+        AnalyzerConfigDocumentChecksumCollection,
         ProjectChecksumCollection,
         SolutionStateChecksums,
         ProjectStateChecksums,
         DocumentStateChecksums,
-    }
-
-    internal static class WellKnownSynchronizationKindExtensions
-    {
-        private static readonly string[] s_strings;
-
-        static WellKnownSynchronizationKindExtensions()
-        {
-            var fields = typeof(WellKnownSynchronizationKind).GetTypeInfo().DeclaredFields.Where(f => f.IsStatic);
-
-            var maxValue = fields.Max(f => (int)f.GetValue(null));
-            s_strings = new string[maxValue + 1];
-
-            foreach (var field in fields)
-            {
-                var value = (int)field.GetValue(null);
-                s_strings[value] = field.Name;
-            }
-        }
-
-        public static string ToStringFast(this WellKnownSynchronizationKind kind)
-            => s_strings[(int)kind];
     }
 }

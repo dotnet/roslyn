@@ -590,7 +590,7 @@ BC30521: Overload resolution failed because no accessible 'Or' is most specific 
 
             compilation.VerifyOperationTree(CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 1), expectedOperationTree:=
             <![CDATA[
-IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'New B3() An ... so New B2()')
+IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'New B3() An ... so New B2()')
   Left: 
     IObjectCreationOperation (Constructor: Sub Module1.B3..ctor()) (OperationKind.ObjectCreation, Type: Module1.B3, IsInvalid) (Syntax: 'New B3()')
       Arguments(0)
@@ -605,7 +605,7 @@ IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperat
 
             compilation.VerifyOperationTree(CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 2), expectedOperationTree:=
             <![CDATA[
-IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'New B3() OrElse New B2()')
+IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'New B3() OrElse New B2()')
   Left: 
     IObjectCreationOperation (Constructor: Sub Module1.B3..ctor()) (OperationKind.ObjectCreation, Type: Module1.B3, IsInvalid) (Syntax: 'New B3()')
       Arguments(0)

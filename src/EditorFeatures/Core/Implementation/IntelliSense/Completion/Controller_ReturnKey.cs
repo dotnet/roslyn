@@ -2,19 +2,22 @@
 
 using System;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<ReturnKeyCommandArgs>.GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        VSCommanding.CommandState IChainedCommandHandler<ReturnKeyCommandArgs>.GetCommandState(ReturnKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             AssertIsForeground();
             return nextHandler();
         }
 
-        void ICommandHandler<ReturnKeyCommandArgs>.ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
+        void IChainedCommandHandler<ReturnKeyCommandArgs>.ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             AssertIsForeground();
 
@@ -25,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            CommitOnEnter(out var sendThrough, out var committed);
+            CommitOnEnter(out var sendThrough, out _);
 
             // Always stop completion after enter has been typed.
             DismissSessionIfActive();
@@ -93,36 +96,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
 
                 var service = GetCompletionService();
-                sendThrough = SendEnterThroughToEditor(
+                sendThrough = CommitManager.SendEnterThroughToEditor(
                      service.GetRules(), model.SelectedItemOpt, textTypedSoFar);
             }
 
             this.CommitOnNonTypeChar(model.SelectedItemOpt, model);
             committed = true;
-        }
-
-        /// <summary>
-        /// Internal for testing purposes only.
-        /// </summary>
-        internal static bool SendEnterThroughToEditor(CompletionRules rules, CompletionItem item, string textTypedSoFar)
-        {
-            var rule = item.Rules.EnterKeyRule;
-            if (rule == EnterKeyRule.Default)
-            {
-                rule = rules.DefaultEnterKeyRule;
-            }
-
-            switch (rule)
-            {
-                default:
-                case EnterKeyRule.Default:
-                case EnterKeyRule.Never:
-                    return false;
-                case EnterKeyRule.Always:
-                    return true;
-                case EnterKeyRule.AfterFullyTypedWord:
-                    return item.DisplayText == textTypedSoFar;
-            }
         }
     }
 }

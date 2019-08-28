@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
         TVariableDeclaratorSyntax> : AbstractObjectCreationExpressionAnalyzer<
-            TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TVariableDeclaratorSyntax, 
+            TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TVariableDeclaratorSyntax,
             Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -79,8 +78,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
-                var statement = child.AsNode() as TAssignmentStatementSyntax;
-                if (statement == null)
+                if (!(child.AsNode() is TAssignmentStatementSyntax statement))
                 {
                     break;
                 }
@@ -111,6 +109,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 if (leftSymbol?.IsStatic == true)
                 {
                     // Static members cannot be initialized through an object initializer.
+                    break;
+                }
+
+                var type = _semanticModel.GetSymbolInfo(_syntaxFacts.GetObjectCreationType(_objectCreationExpression), _cancellationToken).Symbol as INamedTypeSymbol;
+                if (IsExplicitlyImplemented(type, leftSymbol, out var typeMember))
+                {
                     break;
                 }
 
@@ -148,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
 
                 // found a match!
-                seenNames = seenNames ?? new HashSet<string>();
+                seenNames ??= new HashSet<string>();
 
                 // If we see an assignment to the same property/field, we can't convert it
                 // to an initializer.
@@ -160,9 +164,28 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
 
                 matches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
-                    statement, leftMemberAccess, rightExpression));
+                    statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));
             }
         }
+
+        private static bool IsExplicitlyImplemented(
+            INamedTypeSymbol classOrStructType,
+            ISymbol member,
+            out ISymbol typeMember)
+        {
+            if (member != null && member.ContainingType.IsInterfaceType())
+            {
+                typeMember = classOrStructType?.FindImplementationForInterfaceMember(member);
+                return typeMember is IPropertySymbol property &&
+                    property.ExplicitInterfaceImplementations.Length > 0 &&
+                    property.DeclaredAccessibility == Accessibility.Private;
+            }
+
+            typeMember = member;
+            return false;
+        }
+
+        protected override bool ShouldAnalyze() => true;
 
         private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
         {
@@ -197,7 +220,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
     }
 
-    internal struct Match<
+    internal readonly struct Match<
         TExpressionSyntax,
         TStatementSyntax,
         TMemberAccessExpressionSyntax,
@@ -210,15 +233,18 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         public readonly TAssignmentStatementSyntax Statement;
         public readonly TMemberAccessExpressionSyntax MemberAccessExpression;
         public readonly TExpressionSyntax Initializer;
+        public readonly string MemberName;
 
         public Match(
             TAssignmentStatementSyntax statement,
             TMemberAccessExpressionSyntax memberAccessExpression,
-            TExpressionSyntax initializer)
+            TExpressionSyntax initializer,
+            string memberName)
         {
             Statement = statement;
             MemberAccessExpression = memberAccessExpression;
             Initializer = initializer;
+            MemberName = memberName;
         }
     }
 }

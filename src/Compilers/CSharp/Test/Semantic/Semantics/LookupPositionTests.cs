@@ -441,8 +441,6 @@ public abstract `class C`<T`> : NS.I
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
                     "System.Int32 System.Object.GetHashCode()",
-                    "System.Object System.Object.MemberwiseClone()",
-                    "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
                 s_pop, //NS.I
@@ -1460,7 +1458,7 @@ label1:
 }
 ";
 
-            var compilation = CreateCompilation(source, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = (Microsoft.CodeAnalysis.SemanticModel)(compilation.GetSemanticModel(tree));

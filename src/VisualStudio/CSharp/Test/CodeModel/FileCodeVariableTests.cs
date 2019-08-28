@@ -2,9 +2,8 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -48,7 +47,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Access_Public()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intA");
+            var testObject = GetCodeVariable("A", "intA");
 
             Assert.Equal(vsCMAccess.vsCMAccessPublic, testObject.Access);
         }
@@ -57,7 +56,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Access_Protected()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intB");
+            var testObject = GetCodeVariable("A", "intB");
 
             Assert.Equal(vsCMAccess.vsCMAccessProtected, testObject.Access);
         }
@@ -66,7 +65,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Access_Private()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal(vsCMAccess.vsCMAccessPrivate, testObject.Access);
         }
@@ -75,7 +74,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Attributes_Count()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal(1, testObject.Attributes.Count);
         }
@@ -84,7 +83,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Children_Count()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal(1, testObject.Children.Count);
         }
@@ -93,7 +92,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Comment()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intA");
+            var testObject = GetCodeVariable("A", "intA");
 
             Assert.Equal("This is a comment.\r\n", testObject.Comment);
         }
@@ -102,9 +101,9 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void DocComment()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intB");
+            var testObject = GetCodeVariable("A", "intB");
 
-            string expected = "<doc>\r\n<summary>\r\nThis is a summary.\r\n</summary>\r\n</doc>";
+            var expected = "<doc>\r\n<summary>\r\nThis is a summary.\r\n</summary>\r\n</doc>";
 
             Assert.Equal(expected, testObject.DocComment);
         }
@@ -113,7 +112,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void InitExpressions_NoExpression()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intB");
+            var testObject = GetCodeVariable("A", "intB");
 
             Assert.Equal(null, testObject.InitExpression);
         }
@@ -122,7 +121,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void InitExpression()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal("4", testObject.InitExpression);
         }
@@ -131,7 +130,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void InitExpression_FixedBuffer()
         {
-            CodeVariable testObject = GetCodeVariable("DevDivBugs70194", "buffer");
+            var testObject = GetCodeVariable("DevDivBugs70194", "buffer");
 
             Assert.Equal(null, testObject.InitExpression);
         }
@@ -140,7 +139,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void IsConstant_True()
         {
-            CodeVariable testObject = GetCodeVariable("A", "FORTYTWO");
+            var testObject = GetCodeVariable("A", "FORTYTWO");
 
             Assert.True(testObject.IsConstant);
         }
@@ -149,7 +148,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void IsConstant_False()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
             Assert.False(testObject.IsConstant);
         }
@@ -158,7 +157,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void IsShared_True()
         {
-            CodeVariable testObject = GetCodeVariable("A", "FORTYTWO");
+            var testObject = GetCodeVariable("A", "FORTYTWO");
 
             Assert.True(testObject.IsShared);
         }
@@ -167,7 +166,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void IsShared_False()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
             Assert.False(testObject.IsShared);
         }
@@ -176,7 +175,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Kind()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal(vsCMElement.vsCMElementVariable, testObject.Kind);
         }
@@ -185,9 +184,9 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Parent()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
-            CodeClass testObjectParent = testObject.Parent as CodeClass;
+            var testObjectParent = testObject.Parent as CodeClass;
 
             Assert.Equal("A", testObjectParent.Name);
         }
@@ -196,7 +195,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Type()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
             Assert.Equal("System.Int32", testObject.Type.AsFullName);
         }
@@ -205,7 +204,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Attributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -213,9 +212,9 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_AttributesWithDelimiter()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
-            TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
+            var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
 
             Assert.Equal(13, startPoint.Line);
             Assert.Equal(5, startPoint.LineCharOffset);
@@ -225,7 +224,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Body()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBody));
         }
 
@@ -233,7 +232,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_BodyWithDelimiter()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -241,7 +240,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Header()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
@@ -249,7 +248,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_HeaderWithAttributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -257,7 +256,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Name()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
@@ -265,9 +264,9 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Navigate()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
-            TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
+            var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
             Assert.Equal(14, startPoint.Line);
             Assert.Equal(17, startPoint.LineCharOffset);
@@ -277,7 +276,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Whole()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -285,9 +284,9 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_WholeWithAttributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
-            TextPoint startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
+            var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
             Assert.Equal(13, startPoint.Line);
             Assert.Equal(5, startPoint.LineCharOffset);
@@ -297,7 +296,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Attributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -305,9 +304,9 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_AttributesWithDelimiter()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
 
             Assert.Equal(13, endPoint.Line);
             Assert.Equal(19, endPoint.LineCharOffset);
@@ -317,7 +316,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBody));
         }
 
@@ -325,7 +324,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_BodyWithDelimiter()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -333,7 +332,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Header()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
@@ -341,7 +340,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_HeaderWithAttributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -349,7 +348,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Name()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
@@ -357,9 +356,9 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Navigate()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
             Assert.Equal(14, endPoint.Line);
             Assert.Equal(21, endPoint.LineCharOffset);
@@ -369,7 +368,7 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Whole()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -377,9 +376,9 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_WholeWithAttributes()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
             Assert.Equal(14, endPoint.Line);
             Assert.Equal(26, endPoint.LineCharOffset);
@@ -389,9 +388,9 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void StartPoint()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
-            TextPoint startPoint = testObject.StartPoint;
+            var startPoint = testObject.StartPoint;
 
             Assert.Equal(13, startPoint.Line);
             Assert.Equal(5, startPoint.LineCharOffset);
@@ -401,9 +400,9 @@ unsafe public struct DevDivBugs70194
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void EndPoint()
         {
-            CodeVariable testObject = GetCodeVariable("A", "intC");
+            var testObject = GetCodeVariable("A", "intC");
 
-            TextPoint endPoint = testObject.EndPoint;
+            var endPoint = testObject.EndPoint;
 
             Assert.Equal(14, endPoint.Line);
             Assert.Equal(26, endPoint.LineCharOffset);

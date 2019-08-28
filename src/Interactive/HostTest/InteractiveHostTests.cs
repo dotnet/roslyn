@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+extern alias InteractiveHost;
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,18 +15,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
-using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Traits = Roslyn.Test.Utilities.Traits;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
+    using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+
     [Trait(Traits.Feature, Traits.Features.InteractiveHost)]
     public sealed class InteractiveHostTests : AbstractInteractiveHostTests
     {
@@ -41,11 +43,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public InteractiveHostTests()
         {
-            _host = new InteractiveHost(typeof(CSharpReplServiceProvider), GetInteractiveHostPath(), ".", millisecondsTimeout: -1);
+            _host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1);
 
             RedirectOutput();
 
-            _host.ResetAsync(new InteractiveHostOptions(initializationFile: null, culture: CultureInfo.InvariantCulture)).Wait();
+            _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture)).Wait();
 
             var remoteService = _host.TryGetService();
             Assert.NotNull(remoteService);
@@ -58,9 +60,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             Assert.Equal("", errorOutput);
             Assert.Equal(2, output.Length);
-            Assert.Equal(string.Format(CSharpInteractiveEditorResources.Microsoft_R_Roslyn_CSharp_Compiler_version_0, FileVersionInfo.GetVersionInfo(_host.GetType().Assembly.Location).FileVersion), output[0]);
+            var version = CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider));
+            Assert.Equal(string.Format(CSharpScriptingResources.LogoLine1, version), output[0]);
             // "Type "#help" for more information."
-            Assert.Equal(FeaturesResources.Type_Sharphelp_for_more_information, output[1]);
+            Assert.Equal(InteractiveHostResources.Type_Sharphelp_for_more_information, output[1]);
 
             // remove logo:
             ClearOutput();
@@ -93,8 +96,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _synchronizedOutput = new SynchronizedStringWriter();
             _synchronizedErrorOutput = new SynchronizedStringWriter();
             ClearOutput();
-            _host.Output = _synchronizedOutput;
-            _host.ErrorOutput = _synchronizedErrorOutput;
+            _host.SetOutputs(_synchronizedOutput, _synchronizedErrorOutput);
+        }
+
+        private static ImmutableArray<string> SplitLines(string text)
+        {
+            return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
         }
 
         private bool LoadReference(string reference)
@@ -130,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             ClearOutput();
 
-            var initTask = _host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile, culture: CultureInfo.InvariantCulture));
+            var initTask = _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile, culture: CultureInfo.InvariantCulture));
             initTask.Wait();
         }
 
@@ -241,7 +248,7 @@ goo(0,1,2,3,4,5,6,7,8,9)
 
             // Hosting process exited with exit code ###.
             var errorOutput = ReadErrorOutputToEnd().Trim();
-            Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(FeaturesResources.Hosting_process_exited_with_exit_code_0, process.ExitCode), errorOutput);
+            Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, process.ExitCode), errorOutput);
 
             Execute(@"1+1");
 
@@ -374,8 +381,8 @@ while(true) {}
             Assert.False(result.Success);
 
             var errorOut = ReadErrorOutputToEnd().Trim();
-            Assert.Contains(FeaturesResources.Specified_file_not_found, errorOut, StringComparison.Ordinal);
-            Assert.Contains(FeaturesResources.Searched_in_directory_colon, errorOut, StringComparison.Ordinal);
+            Assert.Contains(InteractiveHostResources.Specified_file_not_found, errorOut, StringComparison.Ordinal);
+            Assert.Contains(InteractiveHostResources.Searched_in_directory_colon, errorOut, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -493,7 +500,7 @@ WriteLine(5);
             Assert.True(Execute("new System.Data.DataSet()"));
         }
 
-        [ConditionalFact(typeof(Framework35Installed), Skip = "https://github.com/dotnet/roslyn/issues/5167")]
+        [ConditionalFact(typeof(Framework35Installed), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/5167")]
         public void AddReference_VersionUnification1()
         {
             // V3.5 unifies with the current Framework version:
@@ -844,7 +851,7 @@ new D().Y
             var rspFile = Temp.CreateFile();
             rspFile.WriteAllText("/lib:" + directory.Path);
 
-            _host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+            _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
 
             Execute(
 $@"#r ""{assemblyName}.dll""
@@ -854,7 +861,7 @@ typeof(C).Assembly.GetName()");
 
             var output = SplitLines(ReadOutputToEnd());
             Assert.Equal(2, output.Length);
-            Assert.Equal($"{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }", output[0]);
+            Assert.Equal($"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }", output[0]);
             Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", output[1]);
         }
 
@@ -876,7 +883,7 @@ typeof(C).Assembly.GetName()");
 /u:System.Text
 /u:System.Threading.Tasks
 ");
-            _host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+            _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
 
             Execute(@"
 dynamic d = new ExpandoObject();
@@ -907,7 +914,7 @@ Console.Write(""OK"")
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) } 
+$@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) } 
 OK
 ", ReadOutputToEnd());
         }
@@ -925,7 +932,7 @@ OK
 {initFile.Path}
 ");
 
-            _host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+            _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
 
             Execute("new Process()");
 
@@ -934,7 +941,7 @@ OK
 ", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
+{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
 [System.Diagnostics.Process]
 ", ReadOutputToEnd());
         }
@@ -951,12 +958,12 @@ a
 b
 c
 ");
-            _host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+            _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
 
             Assert.Equal("", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ string.Format(FeaturesResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
+$@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
 ""a""
 ""b""
 ""c""
@@ -985,11 +992,10 @@ WriteLine(new Complex(2, 6).Real);
         [Fact]
         public void Script_NoHostNamespaces()
         {
-            Execute("nameof(Microsoft.CodeAnalysis)");
-
+            Execute("nameof(Microsoft.Missing)");
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "CodeAnalysis", "Microsoft") }",
-                ReadErrorOutputToEnd());
+(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
+    ReadErrorOutputToEnd());
 
             Assert.Equal("", ReadOutputToEnd());
         }
@@ -1153,7 +1159,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
 
             Assert.Equal("", output);
             Assert.DoesNotContain("Unexpected", error, StringComparison.OrdinalIgnoreCase);
-            Assert.True(error.StartsWith(new Exception().Message));
+            Assert.True(error.StartsWith($"{new Exception().GetType()}: {new Exception().Message}"));
         }
 
         [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
@@ -1167,7 +1173,23 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             var error = ReadErrorOutputToEnd();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("120", output);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("Bang!", error);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("System.Exception: Bang!", error);
+        }
+
+        [Fact]
+        public async Task Bitness()
+        {
+            await _host.ExecuteAsync(@"System.IntPtr.Size");
+            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture, is64Bit: true));
+            await _host.ExecuteAsync(@"System.IntPtr.Size");
+            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture, is64Bit: false));
+            await _host.ExecuteAsync(@"System.IntPtr.Size");
+
+            var output = ReadOutputToEnd();
+            var error = ReadErrorOutputToEnd();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("4\r\n8\r\n4\r\n", output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
         }
 
         #region Submission result printing - null/void/value.
@@ -1211,10 +1233,5 @@ goo()
         }
 
         #endregion
-
-        private static ImmutableArray<string> SplitLines(string text)
-        {
-            return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
-        }
     }
 }

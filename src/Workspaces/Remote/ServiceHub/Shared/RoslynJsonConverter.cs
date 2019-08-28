@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Text;
@@ -13,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static readonly AggregateJsonConverter Instance = new AggregateJsonConverter();
 
-        private readonly ImmutableDictionary<Type, JsonConverter> _map;
+        private readonly ConcurrentDictionary<Type, JsonConverter> _map;
 
         private AggregateJsonConverter()
         {
-            _map = CreateConverterMap();
+            _map = new ConcurrentDictionary<Type, JsonConverter>(CreateConverterMap());
         }
 
         public override bool CanConvert(Type objectType)
@@ -55,9 +56,10 @@ namespace Microsoft.CodeAnalysis.Remote
         private static void Add<T>(
             ImmutableDictionary<Type, JsonConverter>.Builder builder,
             BaseJsonConverter<T> converter)
-        {
-            builder.Add(typeof(T), converter);
-        }
+            => builder.Add(typeof(T), converter);
+
+        internal bool TryAdd(Type type, JsonConverter converter)
+            => _map.TryAdd(type, converter);
 
         private abstract class BaseJsonConverter<T> : JsonConverter
         {
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
             protected abstract T ReadValue(JsonReader reader, JsonSerializer serializer);
             protected abstract void WriteValue(JsonWriter writer, T value, JsonSerializer serializer);
 
-            protected static U ReadProperty<U>(JsonSerializer serializer, JsonReader reader)
+            protected static U ReadProperty<U>(JsonReader reader, JsonSerializer serializer)
             {
                 // read property
                 Contract.ThrowIfFalse(reader.Read());
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Remote
             protected override Checksum ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 var value = (string)reader.Value;
-                return value == null ? null : new Checksum(Convert.FromBase64String(value));
+                return value == null ? null : Checksum.FromSerialized(Convert.FromBase64String(value));
             }
 
             protected override void WriteValue(JsonWriter writer, Checksum value, JsonSerializer serializer)
@@ -189,12 +191,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 // all integer is long
                 var scopeId = ReadProperty<long>(reader);
                 var fromPrimaryBranch = ReadProperty<bool>(reader);
-                var checksum = ReadProperty<Checksum>(serializer, reader);
+                var workspaceVersion = ReadProperty<long>(reader);
+                var checksum = ReadProperty<Checksum>(reader, serializer);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
 
-                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, checksum);
+                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, (int)workspaceVersion, checksum);
             }
 
             protected override void WriteValue(JsonWriter writer, PinnedSolutionInfo scope, JsonSerializer serializer)
@@ -206,6 +209,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName("primary");
                 writer.WriteValue(scope.FromPrimaryBranch);
+
+                writer.WritePropertyName("version");
+                writer.WriteValue(scope.WorkspaceVersion);
 
                 writer.WritePropertyName("checksum");
                 serializer.Serialize(writer, scope.SolutionChecksum);

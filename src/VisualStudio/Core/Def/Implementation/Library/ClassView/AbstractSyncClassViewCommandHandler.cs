@@ -2,16 +2,16 @@
 
 using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassView
@@ -22,94 +22,90 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
         private const string ClassView = "Class View";
 
         private readonly IServiceProvider _serviceProvider;
-        private readonly IWaitIndicator _waitIndicator;
+
+        public string DisplayName => ServicesVSResources.Sync_Class_View;
 
         protected AbstractSyncClassViewCommandHandler(
-            SVsServiceProvider serviceProvider,
-            IWaitIndicator waitIndicator)
+            IThreadingContext threadingContext,
+            SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             Contract.ThrowIfNull(serviceProvider);
-            Contract.ThrowIfNull(waitIndicator);
 
             _serviceProvider = serviceProvider;
-            _waitIndicator = waitIndicator;
         }
 
-        public void ExecuteCommand(SyncClassViewCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(SyncClassViewCommandArgs args, CommandExecutionContext context)
         {
             this.AssertIsForeground();
 
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
 
-            _waitIndicator.Wait(
-                title: string.Format(ServicesVSResources.Synchronize_0, ClassView),
-                message: string.Format(ServicesVSResources.Synchronizing_with_0, ClassView),
-                allowCancel: true,
-                action: context =>
-                {
-                    var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document == null)
-                    {
-                        return;
-                    }
+            using var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView));
+            var document = snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+            if (document == null)
+            {
+                return true;
+            }
 
-                    var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                    if (syntaxFactsService == null)
-                    {
-                        return;
-                    }
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFactsService == null)
+            {
+                return true;
+            }
 
-                    var libraryService = document.Project.LanguageServices.GetService<ILibraryService>();
-                    if (libraryService == null)
-                    {
-                        return;
-                    }
+            var libraryService = document.GetLanguageService<ILibraryService>();
+            if (libraryService == null)
+            {
+                return true;
+            }
 
-                    var semanticModel = document
-                        .GetSemanticModelAsync(context.CancellationToken)
-                        .WaitAndGetResult(context.CancellationToken);
+            var userCancellationToken = context.OperationContext.UserCancellationToken;
+            var semanticModel = document
+                .GetSemanticModelAsync(userCancellationToken)
+                .WaitAndGetResult(userCancellationToken);
 
-                    var root = semanticModel.SyntaxTree
-                        .GetRootAsync(context.CancellationToken)
-                        .WaitAndGetResult(context.CancellationToken);
+            var root = semanticModel.SyntaxTree
+                .GetRootAsync(userCancellationToken)
+                .WaitAndGetResult(userCancellationToken);
 
-                    var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, caretPosition);
+            var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, caretPosition);
 
-                    var symbol = memberDeclaration != null
-                        ? semanticModel.GetDeclaredSymbol(memberDeclaration, context.CancellationToken)
-                        : null;
+            var symbol = memberDeclaration != null
+                ? semanticModel.GetDeclaredSymbol(memberDeclaration, userCancellationToken)
+                : null;
 
-                    while (symbol != null && !IsValidSymbolToSynchronize(symbol))
-                    {
-                        symbol = symbol.ContainingSymbol;
-                    }
+            while (symbol != null && !IsValidSymbolToSynchronize(symbol))
+            {
+                symbol = symbol.ContainingSymbol;
+            }
 
-                    IVsNavInfo navInfo = null;
-                    if (symbol != null)
-                    {
-                        navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, semanticModel.Compilation, useExpandedHierarchy: true);
-                    }
+            IVsNavInfo navInfo = null;
+            if (symbol != null)
+            {
+                navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, semanticModel.Compilation, useExpandedHierarchy: true);
+            }
 
-                    if (navInfo == null)
-                    {
-                        navInfo = libraryService.NavInfoFactory.CreateForProject(document.Project);
-                    }
+            if (navInfo == null)
+            {
+                navInfo = libraryService.NavInfoFactory.CreateForProject(document.Project);
+            }
 
-                    if (navInfo == null)
-                    {
-                        return;
-                    }
+            if (navInfo == null)
+            {
+                return true;
+            }
 
-                    var navigationTool = _serviceProvider.GetService<SVsClassView, IVsNavigationTool>();
-                    navigationTool.NavigateToNavInfo(navInfo);
-                });
+            var navigationTool = _serviceProvider.GetService<SVsClassView, IVsNavigationTool>();
+            navigationTool.NavigateToNavInfo(navInfo);
+            return true;
         }
 
         private static bool IsValidSymbolToSynchronize(ISymbol symbol) =>
@@ -119,9 +115,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
             symbol.Kind == SymbolKind.NamedType ||
             symbol.Kind == SymbolKind.Property;
 
-        public CommandState GetCommandState(SyncClassViewCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(SyncClassViewCommandArgs args)
         {
-            return nextHandler();
+            return Commanding.CommandState.Unspecified;
         }
     }
 }

@@ -2,9 +2,936 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="CannotCreateConstructedFromConstructed">
+        <source>Cannot create constructed generic type from another constructed generic type.</source>
+        <target state="translated">Nie można utworzyć konstruowanego typu ogólnego z innego konstruowanego typu ogólnego.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateConstructedFromNongeneric">
+        <source>Cannot create constructed generic type from non-generic type.</source>
+        <target state="translated">Nie można utworzyć konstruowanego typu ogólnego z typu nieogólnego.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AbstractEventHasAccessors">
+        <source>'{0}': abstract event cannot use event accessor syntax</source>
+        <target state="translated">„{0}”: zdarzenie abstrakcyjne nie może używać składni metody dostępu zdarzenia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
+        <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
+        <target state="translated">Aby użyć elementu „@$” zamiast elementu „$@” w interpolowanym ciągu dosłownym, użyj wersji języka „{0}” lub nowszej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
+        <source>Cannot use a nullable reference type in object creation.</source>
+        <target state="translated">Nie można użyć typu referencyjnego dopuszczającego wartość null podczas tworzenia obiektu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ArgumentNameInITuplePattern">
+        <source>Element names are not permitted when pattern-matching via 'System.Runtime.CompilerServices.ITuple'.</source>
+        <target state="translated">Nazwy elementów nie są dozwolone przy dopasowywaniu wzorca za pośrednictwem elementu „System.Runtime.CompilerServices.ITuple”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AsNullableType">
+        <source>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</source>
+        <target state="translated">Użycie typu odwołania dopuszczającego wartość null „{0}?” w wyrażeniu „as” jest niedozwolone. Zamiast tego użyj bazowego typu „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
+        <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
+        <target state="translated">Właściwość implementowana automatycznie „{0}” nie może być zadeklarowana jako „readonly”, ponieważ ma metodę dostępu „set”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AutoSetterCantBeReadOnly">
+        <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
+        <target state="translated">Automatycznie implementowana metoda dostępu „set” „{0}” nie może być zadeklarowana jako „readonly”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">Atrybut „{0}” nie jest prawidłowy w metodach dostępu zdarzenia. Jest on prawidłowy tylko w deklaracjach „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AwaitForEachMissingMember">
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
+        <target state="translated">Asynchroniczna instrukcja foreach nie może operować na zmiennych typu „{0}”, ponieważ typ „{0}” nie zawiera odpowiedniej publicznej definicji wystąpienia elementu „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
+        <target state="translated">Asynchroniczna instrukcja foreach nie może operować na zmiennych typu „{0}”, ponieważ typ „{0}” nie zawiera publicznej definicji wystąpienia elementu „{1}”. Czy planowano użyć instrukcji „foreach”, a nie „await foreach”?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadDynamicAwaitForEach">
+        <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
+        <target state="translated">Nie można użyć kolekcji typu dynamicznego w asynchronicznej instrukcji foreach</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadNullableContextOption">
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
+        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="translated">Nie można użyć operatora typeof w przypadku typu referencyjnego dopuszczającego wartość null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadPatternExpression">
+        <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
+        <target state="translated">Nieprawidłowy operand dla dopasowania wzorca; wymagana jest wartość, a znaleziono „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CantUseInOrOutInArglist">
+        <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
+        <target state="translated">Element __arglist nie może mieć argumentu przekazywanego przez parametr „in” ani „out”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConWithUnmanagedCon">
+        <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
+        <target state="translated">Parametr typu „{1}” ma ograniczenie „unmanaged”, dlatego elementu „{1}” nie można użyć jako ograniczenia dla elementu „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConstantPatternVsOpenType">
+        <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
+        <target state="translated">Wyrażenie typu „{0}” nie może być obsługiwane przez wzorzec typu „{1}”. Użyj wersji języka „{2}” lub nowszej, aby dopasować typ otwarty za pomocą wzorca stałej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DeconstructParameterNameMismatch">
+        <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
+        <target state="translated">Nazwa „{0}” nie jest zgodna z odpowiednim parametrem „Deconstruct” „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="translated">Nie można osadzić typu „{0}”, ponieważ ma nieabstrakcyjną składową. Rozważ ustawienie wartości false dla właściwości „Osadź typy międzyoperacyjne”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultPattern">
+        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
+        <target state="translated">Domyślny literał „default” nie jest prawidłowy jako wzorzec. Użyj innego odpowiedniego literału (np. „0” lub „null”). Aby dopasować wszystko, użyj wzorca odrzucania „_”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DiscardPatternInSwitchStatement">
+        <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
+        <target state="translated">Wzorzec odrzucania nie jest dozwolony jako etykieta instrukcji case w instrukcji switch. Użyj instrukcji „case var _:” w przypadku wzorca odrzucania lub użyj instrukcji „case @_:” w przypadku stałej o nazwie „_”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicateExplicitImpl">
+        <source>'{0}' is explicitly implemented more than once.</source>
+        <target state="translated">Element „{0}” jest jawnie zaimplementowany więcej niż raz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicateNullSuppression">
+        <source>Duplicate null suppression operator ('!')</source>
+        <target state="new">Duplicate null suppression operator ('!')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
+        <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
+        <target state="translated">Nie można określić modyfikatorów „readonly” dla obu metod dostępu właściwości lub indeksatora „{0}”. Zamiast tego dodaj modyfikator „readonly” do samej właściwości.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ElseCannotStartStatement">
+        <source>'else' cannot start a statement.</source>
+        <target state="translated">Instrukcja nie może rozpoczynać się od elementu „else”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitNullableAttribute">
+        <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
+        <target state="translated">Jawne stosowanie elementu „System.Runtime.CompilerServices.NullableAttribute” jest niedozwolone.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExprCannotBeFixed">
+        <source>The given expression cannot be used in a fixed statement</source>
+        <target state="translated">Podanego wyrażenia nie można użyć w instrukcji fixed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeCantContainNullCoalescingAssignment">
+        <source>An expression tree may not contain a null coalescing assignment</source>
+        <target state="translated">Drzewo wyrażeń nie może zawierać przypisania łączącego wartość null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
+        <source>Expression tree cannot contain value of ref struct or restricted type '{0}'.</source>
+        <target state="translated">Drzewo wyrażeń nie może zawierać wartości elementu ref struct ani typu ograniczonego „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
+        <source>An expression tree may not contain a switch expression.</source>
+        <target state="translated">Drzewo wyrażeń nie może zawierać wyrażenia switch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
+        <source>An expression tree may not contain a tuple == or != operator</source>
+        <target state="translated">Drzewo wyrażenia nie może zawierać operatora == ani != krotki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureInPreview">
+        <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
+        <target state="translated">Funkcja „{0}” jest obecnie w wersji zapoznawczej i jest *nieobsługiwana*. Aby używać funkcji w wersji zapoznawczej, skorzystaj z wersji języka w wersji zapoznawczej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureIsExperimental">
+        <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
+        <target state="translated">Funkcja „{0}” jest eksperymentalna i nieobsługiwana. Aby ją włączyć, użyj parametru „/features:{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion8">
+        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
+        <target state="translated">Funkcja „{0}” nie jest dostępna w języku C# 8.0. Użyj języka w wersji {1} lub nowszej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
+        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
+        <target state="translated">Funkcja „{0}” nie jest dostępna w języku C# 8.0. Użyj języka w wersji {1} lub nowszej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
+        <source>Field-like event '{0}' cannot be 'readonly'.</source>
+        <target state="translated">Zdarzenie-pole „{0}” nie może być zadeklarowane jako „readonly”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
+        <target state="translated">Instrukcja foreach nie może operować na zmiennych typu „{0}”, ponieważ typ „{0}” nie zawiera publicznej definicji wystąpienia elementu „{1}”. Czy planowano użyć instrukcji „await foreach”, a nie „foreach”?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
+        <source>A goto cannot jump to a location before a using declaration within the same block.</source>
+        <target state="translated">Instrukcja goto nie może przechodzić do lokalizacji występującej przed deklaracją using w tym samym bloku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
+        <source>A goto cannot jump to a location after a using declaration.</source>
+        <target state="translated">Instrukcja goto nie może przechodzić do lokalizacji występującej po deklaracji using.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IllegalSuppression">
+        <source>The suppression operator is not allowed in this context</source>
+        <target state="translated">Operator pominięcia jest niedozwolony w tym kontekście</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
+        <target state="translated">Nie można używać argumentów z modyfikatorem „in” w wyrażeniach wysyłanych dynamicznie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
+        <target state="translated">Obiekt „{0}” nie może implementować elementu członkowskiego interfejsu „{1}” w ramach typu „{2}”, ponieważ zawiera on parametr __arglist</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="translated">Nieprawidłowa nazwa algorytmu wyznaczania wartości skrótu: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidObjectCreation">
+        <source>Invalid object creation</source>
+        <target state="translated">Nieprawidłowa operacja tworzenia obiektu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
+        <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="translated">Nie można określić modyfikatorów „readonly” jednocześnie dla właściwości lub indeksatora „{0}” i jego metody dostępu. Usuń jeden z nich.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidStackAllocArray">
+        <source>"Invalid rank specifier: expected ']'</source>
+        <target state="translated">Nieprawidłowy specyfikator rangi: oczekiwano „]”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IsNullableType">
+        <source>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
+        <target state="translated">Użycie typu odwołania dopuszczającego wartość null „{0}?” w wyrażeniu „is-type” jest niedozwolone. Zamiast tego użyj bazowego typu „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IsPatternImpossible">
+        <source>An expression of type '{0}' can never match the provided pattern.</source>
+        <target state="translated">Wyrażenie typu „{0}” nigdy nie zostanie dopasowane do podanego wzorca.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IteratorMustBeAsync">
+        <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
+        <target state="translated">Metoda „{0}” z blokiem iteratora musi być oznaczona jako „async”, aby zwrócić „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingPattern">
+        <source>Pattern missing</source>
+        <target state="translated">Brak wzorca</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
+        <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
+        <target state="translated">Wiele plików konfiguracji analizatora nie może znajdować się w tym samym katalogu („{0}”).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
+        <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
+        <target state="translated">Nie można użyć atrybutu [EnumeratorCancellation] w wielu parametrach</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewBoundWithUnmanaged">
+        <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
+        <target state="translated">Ograniczenie „new()” nie może być używane z ograniczeniem „unmanaged”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
+        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="translated">„{0}”: Typ użyty w asynchronicznej instrukcji using musi być jawnie konwertowalny na typ „System.IAsyncDisposable” lub musi implementować odpowiednią metodę „DisposeAsync”. Czy chodziło Ci o użycie instrukcji „using”, a nie „await using”?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoConvToIDispWrongAsync">
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
+        <target state="translated">„{0}”: Typ użyty w instrukcji using musi być jawnie konwertowalny na typ „System.IDisposable” lub musi implementować odpowiednią metodę „Dispose”. Czy chodziło Ci o użycie instrukcji „await using”, a nie „using”?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotNullConstraintMustBeFirst">
+        <source>The 'notnull' constraint must come before any other constraints</source>
+        <target state="translated">Ograniczenie „notnull” musi występować przed wszystkimi innymi ograniczeniami</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableDirectiveQualifierExpected">
+        <source>Expected 'enable', 'disable', or 'restore'</source>
+        <target state="translated">Oczekiwano opcji „enable”, „disable” lub „restore”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableDirectiveTargetExpected">
+        <source>Expected 'warnings', 'annotations', or end of directive</source>
+        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="translated">Nieprawidłowa wartość „{0}”: „{1}” dla języka C# {2}. Użyj wersji języka „{3}” lub nowszej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
+        <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
+        <target state="translated">Parametr typu dopuszczający wartość null musi być typem wartości lub typem referencyjnym niedopuszczającym wartości null. Rozważ dodanie elementu „class”, „struct” lub ograniczenia typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OutVariableCannotBeByRef">
+        <source>An out variable cannot be declared as a ref local</source>
+        <target state="translated">Zmiennej out nie można zadeklarować jako lokalnej zmiennej ref</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
+        <target state="translated">Metoda „{0}” określa ograniczenie „class” dla parametru typu „{1}”, lecz odpowiadający parametr typu „{2}” przesłoniętej lub jawnie zaimplementowanej metody „{3}” nie jest typem referencyjnym.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
+        <target state="translated">Metoda „{0}” określa ograniczenie „struct” dla parametru typu „{1}”, lecz odpowiadający parametr typu „{2}” przesłoniętej lub jawnie zaimplementowanej metody „{3}” nie jest typem wartości niedopuszczającym wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
+        <source>Both partial method declarations must be readonly or neither may be readonly</source>
+        <target state="translated">Obie metody częściowe muszą być zadeklarowane jako readonly lub żadna nie może być zadeklarowana jako readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PointerTypeInPatternMatching">
+        <source>Pattern-matching is not permitted for pointer types.</source>
+        <target state="translated">Dopasowanie wzorca jest niedozwolone dla typów wskaźnika.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PossibleAsyncIteratorWithoutYield">
+        <source>The body of an async-iterator method must contain a 'yield' statement.</source>
+        <target state="translated">Treść metody iteratora asynchronicznego musi zawierać instrukcję „yield”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PossibleAsyncIteratorWithoutYieldOrAwait">
+        <source>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</source>
+        <target state="translated">Treść metody iteratora asynchronicznego musi zawierać instrukcję „yield”. Rozważ usunięcie modyfikatora „async” z deklaracji metody lub dodanie instrukcji „yield”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyPatternNameMissing">
+        <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
+        <target state="translated">Wzorzec podrzędny właściwości wymaga odwołania do właściwości lub pola, które należy dopasować, na przykład „{{ Name: {0} }}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReadOnlyModMissingAccessor">
+        <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
+        <target state="translated">'„{0}”: modyfikatora „readonly” można użyć dla metod dostępu tylko wtedy, gdy właściwość lub indeksator mają metody dostępu get i set</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefAssignNarrower">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
+        <target state="translated">Nie można przypisać odwołania elementu „{1}” do elementu „{0}”, ponieważ element „{1}” ma węższy zakres wyjścia niż element „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefLocalOrParamExpected">
+        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
+        <target state="translated">Lewa strona przypisania odwołania musi być odwołaniem lokalnym lub parametrem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
+        <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje specyfikatorów dostępu „protected”, „protected internal” i „private protected” dla składowej interfejsu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
+        <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
+        <target state="translated">Wzorzec dekonstrukcji z jednym elementem wymaga innej składni w celu ujednoznacznienia. Zaleca się dodanie oznacznika odrzucania „_” po nawiasie zamykającym „)”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
+        <source>A static local function cannot contain a reference to 'this' or 'base'.</source>
+        <target state="translated">Statyczna funkcja lokalna nie może zawierać odwołania do elementu „this” lub „base”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticLocalFunctionCannotCaptureVariable">
+        <source>A static local function cannot contain a reference to '{0}'.</source>
+        <target state="translated">Statyczna funkcja lokalna nie może zawierać odwołania do elementu „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticMemberCantBeReadOnly">
+        <source>Static member '{0}' cannot be marked 'readonly'.</source>
+        <target state="translated">Składowa statyczna „{0}” nie może być oznaczona jako „readonly”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchArmSubsumed">
+        <source>The pattern has already been handled by a previous arm of the switch expression.</source>
+        <target state="translated">Wzorzec został już obsłużony przez poprzednie rozgałęzienie wyrażenia switch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchCaseSubsumed">
+        <source>The switch case has already been handled by a previous case.</source>
+        <target state="translated">Etykieta case wyrażenia switch została już obsłużona przez poprzednią etykietę case.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchExpressionNoBestType">
+        <source>No best type was found for the switch expression.</source>
+        <target state="translated">Nie znaleziono najlepszego typu dla wyrażenia switch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
+        <source>Parentheses are required around the switch governing expression.</source>
+        <target state="translated">Wymagane są nawiasy wokół wyrażenia sterującego instrukcją switch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TripleDotNotAllowed">
+        <source>Unexpected character sequence '...'</source>
+        <target state="translated">Nieoczekiwana sekwencja znaków „...”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TupleElementNameMismatch">
+        <source>The name '{0}' does not identify tuple element '{1}'.</source>
+        <target state="translated">Nazwa „{0}” nie identyfikuje elementu krotki „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TupleSizesMismatchForBinOps">
+        <source>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</source>
+        <target state="translated">Typy krotek używane jako operandy operatorów == lub != muszą mieć zgodne kardynalności. Ten operator zawiera natomiast typy krotek o kardynalności {0} z lewej strony i {1} z prawej strony.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedBoundWithClass">
+        <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
+        <target state="translated">„{0}”: nie można jednocześnie określić klasy ograniczenia i ograniczenia „unmanaged”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintMustBeFirst">
+        <source>The 'unmanaged' constraint must come before any other constraints</source>
+        <target state="translated">Ograniczenie „unmanaged” musi występować przed wszystkimi innymi ograniczeniami</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
+        <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
+        <target state="translated">Typ „{2}” musi być typem wartości niedopuszczającym wartości null (podobnie jak wszystkie pola na wszystkich poziomach zagnieżdżenia), aby można było używać go jako parametru „{1}” w typie ogólnym lub metodzie ogólnej „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UsingVarInSwitchCase">
+        <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
+        <target state="translated">Nie można użyć zmiennej użycia bezpośrednio w sekcji instrukcji switch (rozważ użycie nawiasów klamrowych).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_VarMayNotBindToType">
+        <source>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</source>
+        <target state="translated">Składnia „var” dla wzorca nie może odwoływać się do typu, ale element „{0}” należy tutaj do zakresu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_WrongNumberOfSubpatterns">
+        <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
+        <target state="translated">Dopasowanie typu krotki „{0}” wymaga „{1}” wzorców podrzędnych, ale istnieje następująca liczba wzorców podrzędnych: „{2}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FTL_InvalidInputFileName">
+        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
+        <target state="translated">Nazwa pliku „{0}” jest pusta, zawiera nieprawidłowe znaki, zawiera specyfikację dysku bez bezwzględnej ścieżki lub jest za długa</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_CSCHelp">
+        <source>
+                             Visual C# Compiler Options
+
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
+                              -t:winexe)
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
+                              -t:appcontainerexe)
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
+
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
+
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
+-debug:{full|pdbonly|portable|embedded}
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+-warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
+-errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+                              diagnostics.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
+-nullable:{enable|disable|warnings|annotations}
+                              Specify nullable context option enable|disable|warnings|annotations.
+
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
+
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
+
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+</source>
+        <target state="translated">
+                             Opcje kompilatora Visual C#
+
+                        - PLIKI WYJŚCIOWE -
+-out:&lt;plik&gt;                   Określ nazwę pliku wyjściowego (domyślnie: nazwa podstawowa 
+                               pliku z klasą główną lub pierwszym plikiem)
+-target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (krótka 
+                               wersja: -t:exe)
+-target:winexe                Kompiluj plik wykonywalny systemu Windows (krótka wersja: 
+                               -t:winexe)
+-target:library               Kompiluj bibliotekę (krótka wersja: -t:library)
+-target:module                Kompiluj moduł, który można dodać do innego 
+                               zestawu (krótka wersja: -t:module)
+-target:appcontainerexe       Kompiluj plik wykonywalny kontenera aplikacji (krótka wersja: 
+                               -t:appcontainerexe)
+-target:winmdobj              Kompiluj plik pośredni środowiska uruchomieniowego systemu Windows 
+                               przeznaczony dla narzędzia WinMDExp (krótka wersja: -t:winmdobj)
+-doc:&lt;plik&gt;                   Plik dokumentacji XML do wygenerowania
+-refout:&lt;plik&gt;                Dane wyjściowe zestawu odwołania do wygenerowania
+-platform:&lt;ciąg&gt;              Ogranicz platformy, na których można uruchamiać ten kod: x86,
+                               Itanium, x64, arm, anycpu32bitpreferred lub 
+                               anycpu. Wartość domyślna to anycpu.
+
+                        - PLIKI WEJŚCIOWE -
+-recurse:&lt;symbol wieloznaczny&gt; Dołącz wszystkie pliki zawarte w bieżącym katalogu i 
+                               jego podkatalogach zgodnie ze specyfikacją określoną przy użyciu 
+                               symboli wieloznacznych
+-reference:&lt;alias&gt;=&lt;plik&gt;     Odwołuj się do metadanych z określonego pliku 
+                               zestawu przy użyciu podanego aliasu (krótka wersja: -r)
+-reference:&lt;lista plików&gt;     Odwołuj się do metadanych z określonych 
+                               plików zestawów (krótka wersja: -r)
+-addmodule:&lt;lista plików&gt;     Połącz określone moduły z tym zestawem
+-link:&lt;lista plików&gt;          Osadź metadane z określonych plików 
+                               zestawów międzyoperacyjnych (krótka wersja: -l)
+-analyzer:&lt;lista plików&gt;      Uruchom analizatory z tego zestawu
+                               (krótka wersja: -a)
+-additionalfile:&lt;lista plików&gt; Dodatkowe pliki, które nie mają bezpośredniego wpływu na generowanie
+                               kodu, ale mogą być używane przez analizatory w celu tworzenia
+                               komunikatów o błędach lub ostrzeżeń.
+-embed                        Osadź wszystkie pliki źródłowe w pliku PDB.
+-embed:&lt;lista plików&gt;            Osadź określone pliki w pliku PDB
+
+                        - ZASOBY -
+-win32res:&lt;plik&gt;              Określ plik zasobu Win32 (res)
+-win32icon:&lt;plik&gt;             Użyj tej ikony dla pliku wyjściowego
+-win32manifest:&lt;plik&gt;         Określ plik manifestu środowiska Win32 (xml)
+-nowin32manifest              Nie dołączaj domyślnego manifestu środowiska Win32
+-resource:&lt;informacje o zasobie&gt; Osadź określony zasób (krótka wersja: -res)
+-linkresource:&lt;informacje o zasobie&gt; Połącz określony zasób z tym zestawem 
+                               (krótka wersja: -linkres), gdzie format informacji o zasobie 
+                               to &lt;plik&gt;[,&lt;nazwa ciągu&gt;[,public|private]]
+
+                        - GENEROWANIE KODU -
+-debug[+|-]                   Emituj informacje o debugowaniu
+-debug:{full|pdbonly|portable|embedded}
+                               Określ typ debugowania (wartość domyślna to „full”, 
+                               wartość „portable” to format międzyplatformowy,
+                               a wartość „embedded” to format międzyplatformowy wbudowany w 
+                               docelowym pliku DLL lub EXE)
+-optimize[+|-]                Włącz optymalizacje (krótka wersja: -o)
+-deterministic                Utwórz zestaw deterministyczny
+                               (w tym sygnaturę czasową i identyfikator GUID wersji modułu)
+-refonly                      Utwórz zestaw odwołania zamiast głównych danych wyjściowych
+-instrument:TestCoverage      Utwórz zestaw instrumentowany w celu gromadzenia
+                               informacji o pokryciu
+-sourcelink:&lt;plik&gt;            Informacje o linku źródłowym na potrzeby osadzenia w pliku PDB.
+
+                        - BŁĘDY I OSTRZEŻENIA -
+-warnaserror[+|-]             Zgłaszaj wszystkie ostrzeżenia jako błędy
+-warnaserror[+|-]:&lt;lista ostrzeżeń&gt; Zgłaszaj określone ostrzeżenia jako błędy
+-warn:&lt;n&gt;                     Ustaw poziom ostrzeżenia (0–4) (krótka wersja: -w)
+-nowarn:&lt;lista ostrzeżeń&gt;     Wyłącz określone komunikaty ostrzeżeń
+-ruleset:&lt;plik&gt;               Określ plik zestawu reguł wyłączający określone
+                               funkcje diagnostyczne.
+-errorlog:&lt;plik&gt;              Określ plik, w którym mają zostać zarejestrowane dane diagnostyczne
+                               wszystkich kompilatorów i analizatorów.
+-reportanalyzer               Zgłaszaj dodatkowe informacje analizatora, takie jak
+                               czas wykonywania.
+ 
+                        -JĘZYK -
+-checked[+|-]                 Generuj operacje sprawdzenia przepełnienia
+-unsafe[+|-]                  Zezwalaj na niebezpieczny kod
+-define:&lt;lista symboli&gt;       Definiuj symbole kompilacji warunkowej (krótka 
+                               wersja: -d)
+-langversion:?                Wyświetl dozwolone wartości dla wersji języka
+-langversion:&lt;ciąg&gt;         Określ wersję języka, na przykład
+                              „default” (najnowsza wersja główna)
+                              lub „latest” (najnowsza wersja z uwzględnieniem wersji pomocniczych)
+                              lub konkretną wersję, taką jak „6” lub „7.1”
+-nullable[+|-]                Określ, czy opcja kontekstu dopuszczającego wartość null jest włączona, czy wyłączona.
+-nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
+                              Określ opcję kontekstu dopuszczającego wartość null: enable|disable|safeonly|warnings|safeonlywarnings.
+
+                        - ZABEZPIECZENIA -
+-delaysign[+|-]               Podpisz z opóźnieniem zestaw, używając tylko 
+                               części publicznej klucza o silnej nazwie
+-publicsign[+|-]              Podpisz publicznie zestaw, używając tylko
+                               części publicznej klucza o silnej nazwie
+-keyfile:&lt;plik&gt;               Określ plik klucza o silnej nazwie
+-keycontainer:&lt;ciąg&gt;          Określ kontener klucza o silnej nazwie
+-highentropyva[+|-]           Włącz losowe generowanie układu przestrzeni adresowej o wysokiej entropii
+
+                        - RÓŻNE -
+@&lt;plik&gt;                       Odczytaj plik odpowiedzi w celu uzyskania dodatkowych opcji
+-help                         Wyświetl ten komunikat dotyczący użycia (krótka wersja: -?)
+-nologo                       Pomiń komunikat kompilatora o prawach autorskich
+-noconfig                     Nie dołączaj automatycznie pliku CSC.RSP
+-parallel[+|-]                Współbieżna kompilacja.
+-version                      Wyświetl numer wersji kompilatora i wyjdź.
+
+                        - ZAAWANSOWANE -
+-baseaddress:&lt;adres&gt;          Adres podstawowy dla biblioteki do skompilowania
+-checksumalgorithm:&lt;algorytm&gt; Określ algorytm do obliczania sumy kontrolnej
+                               pliku źródłowego przechowywanej w pliku PDB. Obsługiwane są następujące wartości:
+                               SHA1 (domyślnie) lub SHA256.
+-codepage:&lt;n&gt;                 Określ stronę kodową do użycia podczas otwierania 
+                               plików źródłowych
+-utf8output                   Wyprowadź komunikaty kompilatora przy użyciu kodowania UTF-8
+-main:&lt;typ&gt;                   Określ typ zawierający punkt wejścia 
+                               (wszystkie pozostałe możliwe punkty wejścia zostaną zignorowane) (krótka 
+                               wersja: -m)
+-fullpaths                    Kompilator generuje w pełni kwalifikowane ścieżki
+-filealign:&lt;n&gt;                Określ wyrównanie stosowane dla sekcji 
+                               plików wyjściowych
+-pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,... 
+                               Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez 
+                               kompilator.
+-pdb:&lt;plik&gt;                   Określ nazwę pliku z informacjami o debugowaniu (domyślnie: 
+                               nazwa pliku wyjściowego z rozszerzeniem pdb)
+-errorendlocation             Wyprowadź wiersz i kolumnę lokalizacji końcowej dla 
+                               każdego błędu
+-preferreduilang              Określ nazwę preferowanego języka wyjściowego.
+-nosdkpath                    Wyłącz przeszukiwanie domyślnej ścieżki zestawu SDK dla zestawów biblioteki standardowej.
+-nostdlib[+|-]                Nie odwołuj się do biblioteki standardowej (mscorlib.dll)
+-subsystemversion:&lt;ciąg&gt;      Określ wersję podsystemu tego zestawu
+-lib:&lt;lista plików&gt;           Określ dodatkowe katalogi do przeszukania pod kątem 
+                               odwołań
+-errorreport:&lt;ciąg&gt;           Określ, w jaki sposób obsługiwać wewnętrzne błędy kompilatora: 
+                               prompt, send, queue lub none. Wartość domyślna to 
+                               queue.
+-appconfig:&lt;plik&gt;             Określ plik konfiguracji aplikacji 
+                               zawierający ustawienia powiązania zestawu
+-moduleassemblyname:&lt;ciąg&gt;    Nazwa zestawu, którego częścią 
+                               ma być ten moduł
+-modulename:&lt;ciąg&gt;            Określ nazwę modułu źródłowego
+</target>
+        <note>Visual C# Compiler Options</note>
+      </trans-unit>
+      <trans-unit id="IDS_DefaultInterfaceImplementation">
+        <source>default interface implementation</source>
+        <target state="new">default interface implementation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Disposable">
+        <source>disposable</source>
+        <target state="translated">możliwy do likwidacji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureAltInterpolatedVerbatimStrings">
+        <source>alternative interpolated verbatim strings</source>
+        <target state="translated">alternatywne interpolowane ciągi dosłowne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
+        <source>coalescing assignment</source>
+        <target state="translated">przypisanie łączące</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
+        <source>delegate generic type constraints</source>
+        <target state="translated">ogólne ograniczenia typów delegowania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
+        <source>enum generic type constraints</source>
+        <target state="translated">ogólne ograniczenia typów wyliczenia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
+        <source>declaration of expression variables in member initializers and queries</source>
+        <target state="translated">deklaracje zmiennych wyrażeń w inicjatorach elementów członkowskich i zapytaniach</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensibleFixedStatement">
+        <source>extensible fixed statement</source>
+        <target state="translated">rozszerzalna instrukcja fixed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureIndexOperator">
+        <source>index operator</source>
+        <target state="translated">operator indeksowania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
+        <source>indexing movable fixed buffers</source>
+        <target state="translated">indeksowanie możliwych do przenoszenia buforów fixed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
+        <source>name shadowing in nested functions</source>
+        <target state="translated">zasłanianie nazw w funkcjach zagnieżdżonych</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNestedStackalloc">
+        <source>stackalloc in nested expressions</source>
+        <target state="translated">Element stackalloc w wyrażeniach zagnieżdżonych</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
+        <source>notnull generic type constraint</source>
+        <target state="translated">ogólne ograniczenie typu notnull</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNullableReferenceTypes">
+        <source>nullable reference types</source>
+        <target state="translated">typy referencyjne dopuszczające wartość null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
+        <source>obsolete on property accessor</source>
+        <target state="translated">przestarzałe w metodzie dostępu właściwości</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePragmaWarningEnable">
+        <source>warning action enable</source>
+        <target state="translated">akcja warning: enable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRangeOperator">
+        <source>range operator</source>
+        <target state="translated">operator zakresu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureReadOnlyMembers">
+        <source>readonly members</source>
+        <target state="translated">składowe tylko do odczytu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRecursivePatterns">
+        <source>recursive patterns</source>
+        <target state="translated">wzorce rekursywne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefConditional">
+        <source>ref conditional expression</source>
+        <target state="translated">wyrażenie warunkowe ref</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefFor">
+        <source>ref for-loop variables</source>
+        <target state="translated">zmienne pętli for odwołania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefForEach">
+        <source>ref foreach iteration variables</source>
+        <target state="translated">zmienna iteracji foreach odwołania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefReassignment">
+        <source>ref reassignment</source>
+        <target state="translated">ponowny przydział odwołania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStackAllocInitializer">
+        <source>stackalloc initializer</source>
+        <target state="translated">inicjator stackalloc</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStaticLocalFunctions">
+        <source>static local functions</source>
+        <target state="translated">statyczne funkcje lokalne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSwitchExpression">
+        <source>&lt;switch expression&gt;</source>
+        <target state="new">&lt;switch expression&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureTupleEquality">
+        <source>tuple equality</source>
+        <target state="translated">równość krotki</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
+        <source>unconstrained type parameters in null coalescing operator</source>
+        <target state="translated">parametry typu bez ograniczeń w operatorze łączenia wartości null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
+        <source>unmanaged constructed types</source>
+        <target state="translated">niezarządzane typy konstruowane</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
+        <source>unmanaged generic type constraints</source>
+        <target state="translated">ogólne niezarządzane ograniczenia typów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUsingDeclarations">
+        <source>using declarations</source>
+        <target state="translated">deklaracje using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;null&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_OverrideWithConstraints">
+        <source>constraints for override and explicit interface implementation methods</source>
+        <target state="translated">ograniczenia dla przesłonięć i jawnych metod implementacji interfejsu</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -24,7 +951,7 @@
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
         <source>&lt;!-- Badly formed XML comment ignored for member "{0}" --&gt;</source>
-        <target state="translated">&lt;!-- Zignorowano nieprawidłowo sformułowany komentarz XML składowej „{0}” --&gt;</target>
+        <target state="translated">&lt;!-- Badly formed XML comment ignored for member "{0}" --&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED2">
@@ -372,6 +1299,536 @@
         <target state="translated">typ wariancji</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="translated">Element SyntaxTree nie jest częścią kompilacji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTreeNotFoundToRemove">
+        <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
+        <target state="translated">Element SyntaxTree nie jest częścią kompilacji, więc nie można go usunąć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull">
+        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="translated">Operator „as” może wygenerować wartość null, jeśli element „{0}” jest typem referencyjnym niedopuszczającym wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
+        <source>The 'as' operator may produce a null value for a type parameter.</source>
+        <target state="translated">Operator „as” może wygenerować wartość null dla parametru typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CaseConstantNamedUnderscore">
+        <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
+        <target state="translated">Nazwa „_” odwołuje się do stałej, a nie do wzorca odrzucania. Użyj elementu „var _”, aby odrzucić wartość, lub użyj elementu „@_”, aby odwołać się do stałej za pomocą tej nazwy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CaseConstantNamedUnderscore_Title">
+        <source>Do not use '_' for a case constant.</source>
+        <target state="translated">Nie używaj elementu „_” dla stałej case.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
+        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="translated">Dostęp warunkowy może wygenerować wartość null, jeśli element „{0}” jest typem referencyjnym niedopuszczającym wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
+        <source>Conditional access may produce a null value for a type parameter.</source>
+        <target state="translated">Dostęp warunkowy może wygenerować wartość null dla parametru typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingNullableToNonNullable">
+        <source>Converting null literal or possible null value to non-nullable type.</source>
+        <target state="translated">Konwertowanie literału o wartości null lub możliwej wartości null na typ niedopuszczający wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
+        <source>Converting null literal or possible null value to non-nullable type.</source>
+        <target state="translated">Konwertowanie literału o wartości null lub możliwej wartości null na typ niedopuszczający wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
+        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="translated">Wyrażenie domyślne wprowadza wartość null, jeśli element „{0}” jest typem referencyjnym niedopuszczającym wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
+        <source>A default expression introduces a null value for a type parameter.</source>
+        <target state="translated">Wyrażenie domyślne wprowadza wartość null dla parametru typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="translated">Możliwa wartość null nie może być przekazywana do elementu docelowego oznaczonego atrybutem [DisallowNull]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="translated">Możliwa wartość null nie może być przekazywana do elementu docelowego oznaczonego atrybutem [DisallowNull]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</source>
+        <target state="translated">Element „{0}” występuje już na liście interfejsów dla typu „{1}” z inną obsługą wartości null typów referencyjnych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
+        <source>Interface is already listed in the interface list with different nullability of reference types.</source>
+        <target state="translated">Interfejs występuje już na liście interfejsów z inną obsługą wartości null typów referencyjnych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
+        <source>The given expression always matches the provided constant.</source>
+        <target state="translated">Dane wyrażenie jest zawsze zgodne z podaną stałą.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant_Title">
+        <source>The given expression always matches the provided constant.</source>
+        <target state="translated">Dane wyrażenie jest zawsze zgodne z podaną stałą.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionNeverMatchesPattern">
+        <source>The given expression never matches the provided pattern.</source>
+        <target state="translated">Dane wyrażenie nigdy nie jest zgodne z podanym wzorcem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionNeverMatchesPattern_Title">
+        <source>The given expression never matches the provided pattern.</source>
+        <target state="translated">Dane wyrażenie nigdy nie jest zgodne z podanym wzorcem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
+        <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
+        <target state="translated">Wywołanie składowej innej niż tylko do odczytu „{0}” ze składowej zadeklarowanej jako „readonly” może spowodować niejawne utworzenie kopii elementu „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
+        <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
+        <target state="translated">Wywołanie składowej innej niż tylko do odczytu ze składowej zadeklarowanej jako „readonly” może spowodować niejawne utworzenie kopii.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsTypeNamedUnderscore">
+        <source>The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</source>
+        <target state="translated">Nazwa „_” odwołuje się do typu „{0}”, a nie do wzorca odrzucania. Użyj elementu „@_” aby odwołać się do typu, lub użyj elementu „var _”, aby odrzucić wartość.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsTypeNamedUnderscore_Title">
+        <source>Do not use '_' to refer to the type in an is-type expression.</source>
+        <target state="translated">Nie używaj elementu „_” w celu odwoływania się do typu w wyrażeniu „is” z typem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullAsNonNullable">
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="translated">Nie można przekonwertować literału o wartości null na typ referencyjny niedopuszczający wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullAsNonNullable_Title">
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="translated">Nie można przekonwertować literału o wartości null na typ referencyjny niedopuszczający wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
+        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="translated">Literał o wartości null wprowadza wartość null, jeśli element „{0}” jest typem referencyjnym niedopuszczającym wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
+        <source>A null literal introduces a null value for a type parameter.</source>
+        <target state="translated">Literał o wartości null wprowadza wartość null dla parametru typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceArgument">
+        <source>Possible null reference argument for parameter '{0}' in '{1}'.</source>
+        <target state="translated">Możliwy argument odwołania o wartości null dla parametru „{0}” w „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceArgument_Title">
+        <source>Possible null reference argument.</source>
+        <target state="translated">Możliwy argument odwołania o wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceAssignment">
+        <source>Possible null reference assignment.</source>
+        <target state="translated">Możliwe przypisanie odwołania o wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceAssignment_Title">
+        <source>Possible null reference assignment.</source>
+        <target state="translated">Możliwe przypisanie odwołania o wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceIterationVariable">
+        <source>Possible null reference assignment to iteration variable</source>
+        <target state="translated">Możliwe przypisanie odwołania o wartości null do zmiennej iteracji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceIterationVariable_Title">
+        <source>Possible null reference assignment to iteration variable</source>
+        <target state="translated">Możliwe przypisanie odwołania o wartości null do zmiennej iteracji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReceiver">
+        <source>Dereference of a possibly null reference.</source>
+        <target state="translated">Wyłuskanie odwołania, które może mieć wartość null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReceiver_Title">
+        <source>Dereference of a possibly null reference.</source>
+        <target state="translated">Wyłuskanie odwołania, które może mieć wartość null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReturn">
+        <source>Possible null reference return.</source>
+        <target state="translated">Możliwe zwrócenie odwołania o wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReturn_Title">
+        <source>Possible null reference return.</source>
+        <target state="translated">Możliwe zwrócenie odwołania o wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgument">
+        <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="translated">Argumentu typu „{0}” nie można użyć dla parametru „{2}” typu „{1}” w elemencie „{3}” z powodu różnic w dopuszczalności wartości null przez typy referencyjne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
+        <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="translated">Argumentu typu „{0}” nie można użyć jako danych wyjściowych typu „{1}” dla parametru „{2}” w elemencie „{3}” z powodu różnic w dopuszczalności wartości null przez typy referencyjne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
+        <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
+        <target state="translated">Argumentu nie można użyć jako danych wyjściowych dla parametru z powodu różnic w dopuszczalności wartości null przez typy referencyjne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
+        <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
+        <target state="translated">Argumentu nie można użyć dla parametru z powodu różnic w dopuszczalności wartości null przez typy referencyjne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInAssignment">
+        <source>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w wartości typu „{0}” jest niezgodna z typem docelowym „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInAssignment_Title">
+        <source>Nullability of reference types in value doesn't match target type.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w wartości jest niezgodna z typem docelowym.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation">
+        <source>Nullability in constraints for type parameter '{0}' of method '{1}' doesn't match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.</source>
+        <target state="translated">Obsługa wartości null w ograniczeniach dla parametru typu „{0}” metody „{1}” jest niezgodna z ograniczeniami parametru typu „{2}” metody interfejsu „{3}”. Rozważ użycie jawnej implementacji interfejsu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title">
+        <source>Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</source>
+        <target state="translated">Obsługa wartości null w ograniczeniach dla parametru typu jest niezgodna z ograniczeniami parametru typu w niejawnie implementowanej metodzie interfejsu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
+        <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
+        <target state="translated">Deklaracje metod częściowych elementu „{0}” mają niespójne opcje dopuszczania wartości null w ograniczeniach parametru typu „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
+        <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
+        <target state="translated">Deklaracje metod częściowych mają niespójne opcje dopuszczania wartości null w ograniczeniach dla parametru typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
+        <source>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w jawnym specyfikatorze interfejsu jest niezgodna z interfejsem implementowanym przez typ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface_Title">
+        <source>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w jawnym specyfikatorze interfejsu jest niezgodna z interfejsem implementowanym przez typ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInInterfaceImplementedByBase">
+        <source>'{0}' does not implement interface member '{1}'. Nullability of reference types in interface implemented by the base type doesn't match.</source>
+        <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Obsługa wartości null dla typów referencyjnych w interfejsie implementowanym przez typ podstawowy jest niezgodna.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInInterfaceImplementedByBase_Title">
+        <source>Type does not implement interface member. Nullability of reference types in interface implemented by the base type doesn't match.</source>
+        <target state="translated">Typ nie implementuje składowej interfejsu. Obsługa wartości null dla typów referencyjnych w interfejsie implementowanym przez typ podstawowy jest niezgodna.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate">
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru „{0}” elementu „{1}” jest niezgodna z delegatem docelowym „{2}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title">
+        <source>Nullability of reference types in type of parameter doesn't match the target delegate.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru jest niezgodna z delegatem docelowym.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}'.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru „{0}” jest niezgodna z implementowaną składową „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implemented member.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru jest niezgodna z implementowaną składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru jest niezgodna z niejawnie implementowaną składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru „{0}” jest niezgodna z przesłoniętą składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride_Title">
+        <source>Nullability of reference types in type of parameter doesn't match overridden member.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru jest niezgodna z przesłoniętą składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru „{0}” jest niezgodna z częściową deklaracją metody.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
+        <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru jest niezgodna z częściową deklaracją metody.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
+        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym elementu „{0}” jest niezgodna z delegatem docelowym „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title">
+        <source>Nullability of reference types in return type doesn't match the target delegate.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym elementu jest niezgodna z delegatem docelowym.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation">
+        <source>Nullability of reference types in return type doesn't match implemented member '{0}'.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym jest niezgodna z implementowaną składową „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
+        <source>Nullability of reference types in return type doesn't match implemented member.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym jest niezgodna z implementowaną składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
+        <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
+        <source>Nullability of reference types in return type doesn't match implicitly implemented member.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym jest niezgodna z niejawnie implementowaną składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride">
+        <source>Nullability of reference types in return type doesn't match overridden member.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym jest niezgodna z przesłoniętą składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
+        <source>Nullability of reference types in return type doesn't match overridden member.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym jest niezgodna z przesłoniętą składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
+        <source>Nullability of reference types in type doesn't match implemented member '{0}'.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie jest niezgodna z implementowaną składową „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation_Title">
+        <source>Nullability of reference types in type doesn't match implemented member.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie jest niezgodna z implementowaną składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
+        <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
+        <source>Nullability of reference types in type doesn't match implicitly implemented member.</source>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie jest niezgodna z niejawnie implementowaną składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
+        <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
+        <target state="translated">Nie można użyć typu „{3}” jako parametru typu „{2}” w typie ogólnym lub metodzie „{0}”. Obsługa wartości null w argumencie typu „{3}” jest niezgodna z typem ograniczenia „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match constraint type.</source>
+        <target state="translated">Nie można użyć typu jako parametru typu w typie ogólnym lub metodzie. Obsługa wartości null w argumencie typu jest niezgodna z typem ograniczenia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
+        <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
+        <target state="translated">Nie można użyć typu „{2}” jako parametru typu „{1}” w typie ogólnym lub metodzie „{0}”. Obsługa wartości null w argumencie typu „{2}” jest niezgodna z ograniczeniem „notnull”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
+        <target state="translated">Nie można użyć typu jako parametru typu w typie ogólnym lub metodzie. Obsługa wartości null w argumencie typu jest niezgodna z ograniczeniem „notnull”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
+        <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'class' constraint.</source>
+        <target state="translated">Nie można użyć typu „{2}” jako parametru typu „{1}” w typie ogólnym lub metodzie „{0}”. Obsługa wartości null w argumencie typu „{2}” jest niezgodna z ograniczeniem „class”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</source>
+        <target state="translated">Nie można użyć typu jako parametru typu w typie ogólnym lub metodzie. Obsługa wartości null w argumencie typu jest niezgodna z ograniczeniem „class”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullableValueTypeMayBeNull">
+        <source>Nullable value type may be null.</source>
+        <target state="translated">Typ wartości dopuszczający wartość null może być równy null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
+        <source>Nullable value type may be null.</source>
+        <target state="translated">Typ wartości dopuszczający wartość null może być równy null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustive">
+        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
+        <target state="translated">Wyrażenie switch nie obsługuje wszystkich możliwych danych wejściowych (nie jest kompletne).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
+        <source>The switch expression does not handle some null inputs (it is not exhaustive).</source>
+        <target state="translated">Wyrażenie switch nie obsługuje niektórych danych wejściowych o wartości null (nie jest kompletne).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
+        <source>The switch expression does not handle some null inputs.</source>
+        <target state="translated">Wyrażenie switch nie obsługuje niektórych danych wejściowych o wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
+        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
+        <target state="translated">Wyrażenie switch nie obsługuje wszystkich możliwych danych wejściowych (nie jest kompletne).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull">
+        <source>Thrown value may be null.</source>
+        <target state="translated">Zgłoszona wartość może być równa null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull_Title">
+        <source>Thrown value may be null.</source>
+        <target state="translated">Zgłoszona wartość może być równa null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
+        <source>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
+        <target state="translated">Nazwa elementu krotki „{0}” została zignorowana, ponieważ po drugiej stronie operatora == lub != krotki określono inną nazwę lub nie określono żadnej nazwy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TupleBinopLiteralNameMismatch_Title">
+        <source>The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
+        <target state="translated">Nazwa elementu krotki została zignorowana, ponieważ po drugiej stronie operatora == lub != krotki określono inną nazwę lub nie określono żadnej nazwy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
+        <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
+        <target state="translated">Parametr typu „{0}” ma tę samą nazwę co parametr typu z metody zewnętrznej „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
+        <source>Type parameter has the same type as the type parameter from outer method.</source>
+        <target state="translated">Parametr typu ma ten sam typ co parametr typu z metody zewnętrznej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull">
+        <source>Unboxing a possibly null value.</source>
+        <target state="translated">Konwersja unboxing wartości, która może być wartością null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull_Title">
+        <source>Unboxing a possibly null value.</source>
+        <target state="translated">Konwersja unboxing wartości, która może być wartością null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage">
+        <source>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
+        <target state="translated">Atrybut EnumeratorCancellationAttribute zastosowany dla parametru „{0}” nie będzie miał żadnego efektu. Atrybut jest uwzględniany tylko dla parametru typu CancellationToken w asynchronicznej metodzie iteratora zwracającej interfejs IAsyncEnumerable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title">
+        <source>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
+        <target state="translated">Atrybut EnumeratorCancellationAttribute nie będzie miał żadnego efektu. Atrybut jest uwzględniany tylko dla parametru typu CancellationToken w asynchronicznej metodzie iteratora zwracającej interfejs IAsyncEnumerable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
+        <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
+        <target state="translated">Iterator asynchroniczny „{0}” ma co najmniej jeden parametr typu „CancellationToken”, ale żaden z nich nie ma atrybutu „EnumeratorCancellation” i dlatego zostanie wykorzystany parametr tokenu anulowania z wygenerowanego elementu „IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
+        <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
+        <target state="translated">Element członkowski iteratora asynchronicznego ma co najmniej jeden parametr typu „CancellationToken”, ale żaden z nich nie ma atrybutu „EnumeratorCancellation” i dlatego zostanie wykorzystany parametr tokenu anulowania z wygenerowanego elementu „IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableField">
+        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
+        <target state="needs-review-translation">Element {0} „{1}” niedopuszczający wartości null jest niezainicjowany.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableField_Title">
+        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">Pole niedopuszczające wartości null jest niezainicjowane.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">Znaków „{0}” nie można użyć w tej lokalizacji.</target>
@@ -688,13 +2145,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceEventInitializer">
-        <source>'{0}': event in interface cannot have initializer</source>
-        <target state="translated">'„{0}”: nie może istnieć inicjator zdarzenia interfejsu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EventPropertyInInterface">
-        <source>An event in an interface cannot have add or remove accessors</source>
-        <target state="translated">Zdarzenie w interfejsie nie może mieć metody dostępu add ani remove</target>
+        <source>'{0}': instance event in interface cannot have initializer</source>
+        <target state="translated">'„{0}”: zdarzenie wystąpienia w interfejsie nie może mieć inicjatora</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventUsage">
@@ -729,7 +2181,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReservedEnumerator">
         <source>The enumerator name '{0}' is reserved and cannot be used</source>
-        <target state="translated">Nazwa modułu wyliczającego „{0}” jest zarezerwowana i nie można jej użyć</target>
+        <target state="translated">Nazwa typu wyliczeniowego „{0}” jest zarezerwowana i nie można jej użyć</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AsMustHaveReferenceType">
@@ -1298,13 +2750,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Jako instrukcji można używać tylko wyrażeń przypisania, wywołania, zwiększenia, zmniejszenia oraz utworzenia nowego obiektu.</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="translated">Jako instrukcji można używać tylko wyrażeń przypisania, wywołania, zwiększenia, zmniejszenia, oczekiwania oraz utworzenia nowego obiektu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
-        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</source>
-        <target state="translated">Instrukcja foreach wymaga, aby typ zwracany „{0}” dla elementu „{1}” miał odpowiednią metodę publiczną MoveNext i właściwość publiczną Current</target>
+        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNext' method and public 'Current' property</source>
+        <target state="translated">Instrukcja foreach wymaga, aby typ zwracany „{0}” dla elementu „{1}” miał odpowiednią metodę publiczną „MoveNext” i właściwość publiczną „Current”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyLocals">
@@ -1433,8 +2885,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
-        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)</source>
-        <target state="translated">'„{0}” nie ma wstępnie zdefiniowanego rozmiaru, dlatego elementu sizeof można użyć tylko w kontekście słowa kluczowego „unsafe” (użyj elementu System.Runtime.InteropServices.Marshal.SizeOf)</target>
+        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
+        <target state="translated">Element „{0}” nie ma wstępnie zdefiniowanego rozmiaru, dlatego operatora sizeof można użyć tylko w kontekście słowa kluczowego unsafe</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">
@@ -1449,12 +2901,12 @@
       </trans-unit>
       <trans-unit id="ERR_SealedNonOverride">
         <source>'{0}' cannot be sealed because it is not an override</source>
-        <target state="translated">Elementu „{0}” nie można zapieczętować, ponieważ nie jest przesłonięciem</target>
+        <target state="translated">'Elementu „{0}” nie można zapieczętować, ponieważ nie jest przesłonięciem</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideSealed">
         <source>'{0}': cannot override inherited member '{1}' because it is sealed</source>
-        <target state="translated">„{0}”: nie można przesłonić odziedziczonej składowej „{1}”, ponieważ jest ona zapieczętowana</target>
+        <target state="translated">'„{0}”: nie można przesłonić odziedziczonej składowej „{1}”, ponieważ jest ona zapieczętowana</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VoidError">
@@ -1622,11 +3074,6 @@
         <target state="translated">Nie można określić modyfikatorów dostępności dla obu metod dostępu właściwości lub indeksatora „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PropertyAccessModInInterface">
-        <source>'{0}': accessibility modifiers may not be used on accessors in an interface</source>
-        <target state="translated">'„{0}”: modyfikatorów dostępu nie można użyć dla metod dostępu interfejsu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AccessModMissingAccessor">
         <source>'{0}': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor</source>
         <target state="translated">'„{0}”: modyfikatorów dostępności można używać tylko wtedy, gdy właściwość lub indeksator mają metody dostępu Get i Set</target>
@@ -1668,8 +3115,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">Dostęp do przyjaznego zestawu został udzielony przez „{0}”, ale klucz publiczny zestawu wyjściowego nie jest zgodny z kluczem określonym przez atrybut w zestawie udzielającym dostępu.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="translated">Dostęp do przyjaznego zestawu został udzielony przez „{0}”, ale klucz publiczny zestawu wyjściowego („{1}”) nie jest zgodny z kluczem określonym przez atrybut InternalsVisibleTo w zestawie udzielającym dostępu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -1849,7 +3296,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
         <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">„{0}”: klasa abstrakcyjna nie może być zapieczętowana ani statyczna</target>
+        <target state="translated">'„{0}”: klasa abstrakcyjna nie może być zapieczętowana ani statyczna</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -1984,7 +3431,7 @@
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
         <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">„{0}”: klasa nie może być jednocześnie statyczna i zapieczętowana</target>
+        <target state="translated">'„{0}”: klasa nie może być jednocześnie statyczna i zapieczętowana</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
@@ -2078,8 +3525,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
-        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</source>
-        <target state="translated">Ograniczenia dla przesłoniętych i jawnych metod implementacji interfejsu są dziedziczone z metody podstawowej, dlatego nie mogą być określone bezpośrednio</target>
+        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</source>
+        <target state="translated">Ograniczenia dla przesłoniętych i jawnych metod implementacji interfejsu są dziedziczone z metody podstawowej, dlatego nie mogą być określone bezpośrednio, chyba że są to ograniczenia „class” lub „struct”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOverride">
@@ -2183,7 +3630,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_AbstractAndSealed">
         <source>'{0}' cannot be both abstract and sealed</source>
-        <target state="translated">Element „{0}” nie może być zewnętrzny i zapieczętowany</target>
+        <target state="translated">'Element „{0}” nie może być zewnętrzny i zapieczętowany</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractNotVirtual">
@@ -2223,7 +3670,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_CantDeriveFromSealedType">
         <source>'{0}': cannot derive from sealed type '{1}'</source>
-        <target state="translated">„{0}”: pochodzenie od zapieczętowanego typu „{1}” jest niemożliwe</target>
+        <target state="translated">'„{0}”: pochodzenie od zapieczętowanego typu „{1}” jest niemożliwe</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
@@ -2233,7 +3680,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">
         <source>'{0}': static constructor cannot have an explicit 'this' or 'base' constructor call</source>
-        <target state="translated">„{0}”: konstruktor statyczny nie może zawierać jawnego wywołania konstruktora „this” lub „base”</target>
+        <target state="translated">'„{0}”: konstruktor statyczny nie może zawierać jawnego wywołania konstruktora „this” lub „base”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithAccessModifiers">
@@ -2273,7 +3720,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
         <source>'{0}': structs cannot call base class constructors</source>
-        <target state="translated">„{0}”: struktury nie mogą wywoływać konstruktorów klasy bazowej</target>
+        <target state="translated">'„{0}”: struktury nie mogą wywoływać konstruktorów klasy bazowej</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCycle">
@@ -2281,19 +3728,14 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <target state="translated">Składowa „{0}” typu „{1}” powoduje wystąpienie cyklu w układzie struktury</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterfacesCannotContainTypes">
-        <source>'{0}': interfaces cannot declare types</source>
-        <target state="translated">'„{0}”: w interfejsach nie mogą występować deklaracje typów</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainFields">
-        <source>Interfaces cannot contain fields</source>
-        <target state="translated">Interfejsy nie mogą zawierać pól</target>
+        <source>Interfaces cannot contain instance fields</source>
+        <target state="translated">Interfejsy nie mogą zawierać pól wystąpienia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
-        <source>Interfaces cannot contain constructors</source>
-        <target state="translated">Interfejsy nie mogą zawierać konstruktorów</target>
+        <source>Interfaces cannot contain instance constructors</source>
+        <target state="translated">Interfejsy nie mogą zawierać konstruktorów wystąpienia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">
@@ -2314,11 +3756,6 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       <trans-unit id="ERR_CycleInInterfaceInheritance">
         <source>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</source>
         <target state="translated">Dziedziczony interfejs „{1}” jest przyczyną wystąpienia cyklu w hierarchii interfejsów „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InterfaceMemberHasBody">
-        <source>'{0}': interface members cannot have a definition</source>
-        <target state="translated">'„{0}”: nie mogą istnieć definicje składowych interfejsu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HidingAbstractMethod">
@@ -2347,8 +3784,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceMemberNotFound">
-        <source>'{0}' in explicit interface declaration is not a member of interface</source>
-        <target state="translated">'Element „{0}” w jawnej deklaracji interfejsu nie jest składową interfejsu</target>
+        <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</source>
+        <target state="translated">W jawnej deklaracji interfejsu nie znaleziono elementu „{0}” wśród składowych interfejsu, które można implementować</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
@@ -2357,8 +3794,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class or struct</source>
-        <target state="translated">'„{0}”: jawna deklaracja interfejsu może występować tylko w klasie lub strukturze</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
+        <target state="translated">'„{0}”: jawna deklaracja interfejsu może występować tylko w klasie, strukturze lub interfejsie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -2368,7 +3805,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_EnumeratorOverflow">
         <source>'{0}': the enumerator value is too large to fit in its type</source>
-        <target state="translated">„{0}”: wartość, która wystąpiła w module wyliczającym, jest zbyt duża, aby można było ją stosować przy użyciu typu tego modułu</target>
+        <target state="translated">'„{0}”: wartość, która wystąpiła w module wyliczającym, jest zbyt duża, aby można było ją stosować przy użyciu typu tego modułu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNonProperty">
@@ -2398,7 +3835,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
         <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">„{0}” to nowa wirtualna składowa klasy zapieczętowanej „{1}”</target>
+        <target state="translated">'„{0}” to nowa wirtualna składowa klasy zapieczętowanej „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
@@ -2466,11 +3903,6 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <target state="translated">Pierwszy argument operacji przeciążonego operatora przesunięcia musi mieć taki sam typ co typ zawierający, a typ drugiego argumentu operacji musi być typem int</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterfacesCantContainOperators">
-        <source>Interfaces cannot contain operators</source>
-        <target state="translated">Interfejsy nie mogą zawierać operatorów</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_StructsCantContainDefaultConstructor">
         <source>Structs cannot contain explicit parameterless constructors</source>
         <target state="translated">Struktury nie mogą zawierać jawnych konstruktorów bez parametrów</target>
@@ -2493,7 +3925,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_CantCallSpecialMethod">
         <source>'{0}': cannot explicitly call operator or accessor</source>
-        <target state="translated">„{0}”: nie można jawnie wywołać operatora lub metody dostępu.</target>
+        <target state="translated">'„{0}”: nie można jawnie wywołać operatora lub metody dostępu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeReference">
@@ -2698,7 +4130,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_MissingStructOffset">
         <source>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
-        <target state="needs-review-translation">'„{0}”: typy pól wystąpienia oznaczone elementem StructLayout(LayoutKind.Explicit) muszą mieć atrybut FieldOffset</target>
+        <target state="translated">„{0}”: pola wystąpienia w ramach typów oznaczonych elementem StructLayout(LayoutKind.Explicit) muszą mieć atrybut FieldOffset</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExternMethodNoImplementation">
@@ -2713,7 +4145,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
         <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">„{0}”: w klasie zapieczętowanej została zadeklarowana nowa chroniona składowa</target>
+        <target state="translated">'„{0}”: w klasie zapieczętowanej została zadeklarowana nowa chroniona składowa</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
@@ -2878,7 +4310,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_OverloadRefKind">
         <source>'{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'</source>
-        <target state="translated">Element „{0}” nie może definiować przeciążonego elementu {1}, który różni się tylko modyfikatorami parametru „{2}” i „{3}”</target>
+        <target state="translated">'Element „{0}” nie może definiować przeciążonego elementu {1}, który różni się tylko modyfikatorami parametru „{2}” i „{3}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LiteralDoubleCast">
@@ -3043,7 +4475,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_BadBoundType">
         <source>'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">„{0}” to nieprawidłowy typ ograniczenia. Typ używany jako ograniczenie musi być interfejsem, klasą niezapieczętowaną lub parametrem typu.</target>
+        <target state="translated">'„{0}” to nieprawidłowy typ ograniczenia. Typ używany jako ograniczenie musi być interfejsem, klasą niezapieczętowaną lub parametrem typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialTypeAsBound">
@@ -3262,8 +4694,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class or partial struct</source>
-        <target state="translated">Metoda częściowa musi być zadeklarowana w klasie lub strukturze częściowej.</target>
+        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
+        <target state="translated">Metoda częściowa musi być zadeklarowana w częściowej klasie, strukturze lub interfejsie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
@@ -3307,8 +4739,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
-        <source>Partial method declarations of '{0}' have inconsistent type parameter constraints</source>
-        <target state="translated">Częściowe deklaracje metody „{0}” mają niespójne ograniczenia parametrów typu</target>
+        <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
+        <target state="translated">Deklaracje metod częściowych elementu „{0}” mają niespójne ograniczenia dla parametru typu „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -3751,8 +5183,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
-        <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="translated">'Element „{0}” nie zawiera definicji „{1}”, a nie odnaleziono metody rozszerzenia „{1}”, która przyjmuje pierwszy argument typu „{0}” (czy nie brakuje dyrektywy using lub odwołania do zestawu?).</target>
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="translated">Element „{0}” nie zawiera definicji „{1}” i nie odnaleziono dostępnej metody rozszerzenia „{1}”, która przyjmuje pierwszy argument typu „{0}” (czy nie brakuje dyrektywy using lub odwołania do zestawu?).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -3827,7 +5259,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_BadArgCount">
         <source>No overload for method '{0}' takes {1} arguments</source>
-        <target state="translated">Żadne przeciążenie metody „{0}” nie pobiera następującej liczby argumentów: „{1}”</target>
+        <target state="translated">Żadne przeładowanie metody „{0}” nie pobiera następującej liczby argumentów: „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgType">
@@ -4016,13 +5448,13 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a valid non-generic class or struct</source>
-        <target state="translated">'Element „{0}” określony dla metody Main musi być prawidłową nieogólną klasą lub strukturą</target>
+        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
+        <target state="translated">Element „{0}” określony dla metody Main musi być nieogólną klasą, strukturą lub interfejsem</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
-        <source>'{0}' does not have a suitable static Main method</source>
-        <target state="translated">'Element „{0}” nie ma odpowiedniej statycznej metody Main</target>
+        <source>'{0}' does not have a suitable static 'Main' method</source>
+        <target state="translated">Element „{0}” nie ma odpowiedniej statycznej metody „Main”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassIsImport">
@@ -4142,7 +5574,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="needs-review-translation">Instrukcja foreach nie może operować na zmiennych typu „{0}”, ponieważ „{0}” nie zawiera definicji publicznej elementu „{1}”</target>
+        <target state="translated">Instrukcja foreach nie może operować na zmiennych typu „{0}”, ponieważ typ „{0}” nie zawiera publicznej definicji wystąpienia elementu „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -4361,8 +5793,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
-        <source>Iterators cannot have ref or out parameters</source>
-        <target state="translated">Iteratory nie mogą mieć parametrów „ref” ani „out”.</target>
+        <source>Iterators cannot have ref, in or out parameters</source>
+        <target state="translated">Iteratory nie mogą mieć parametrów ref, in ani out.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -4387,7 +5819,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
         <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
-        <target state="needs-review-translation">Nie można użyć parametru ref ani out „{0}” wewnątrz metody anonimowej, wyrażenia lambda lub wyrażenia zapytania</target>
+        <target state="translated">Nie można użyć parametru ref, out ani in „{0}” wewnątrz metody anonimowej, wyrażenia lambda, wyrażenia zapytania lub funkcji lokalnej</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -4416,13 +5848,13 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable or restore</source>
-        <target state="translated">Oczekiwano typu disable lub restore</target>
+        <source>Expected 'disable' or 'restore'</source>
+        <target state="needs-review-translation">Oczekiwano wartości disable, restore, enable lub safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable or restore after #pragma warning</source>
-        <target state="translated">Oczekiwano wyłączenia lub przywrócenia po ostrzeżeniu #pragma</target>
+        <source>Expected 'disable' or 'restore' after #pragma warning</source>
+        <target state="needs-review-translation">Po dyrektywie #pragma warning oczekiwano wartości disable, restore, enable lub safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -4586,8 +6018,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">Nie można przekonwertować {0} na typ delegowany „{1}”, ponieważ typy parametrów nie pasują do typów parametru delegowanego</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="translated">Nie można przekonwertować elementu {0} na typ „{1}”, ponieważ typy parametrów nie pasują do typów parametru delegowanego</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -4656,8 +6088,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPlatformType">
-        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium or x64</source>
-        <target state="translated">Nieprawidłowa opcja „{0}” dla opcji /platform; wymagana wartość anycpu, x86, Itanium lub x64</target>
+        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</source>
+        <target state="translated">Nieprawidłowa opcja „{0}” dla opcji /platform; wymagana wartość to anycpu, x86, Itanium, arm, arm64 lub x64</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
@@ -4666,8 +6098,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'</source>
-        <target state="translated">'„{0}”: musi istnieć możliwość niejawnego przekonwertowania typu użytego w instrukcji using na interfejs „System.IDisposable”</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
+        <target state="translated">„{0}”: Typ użyty w instrukcji using musi być jawnie konwertowalny na typ „System.IDisposable” lub musi implementować odpowiednią metodę „Dispose”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -5127,7 +6559,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_BadInstanceArgType">
         <source>'{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'</source>
-        <target state="translated">„{0}” nie zawiera definicji dla „{1}”, a najlepsze przeciążenie metody rozszerzenia „{2}” wymaga odbiorcy typu „{3}”</target>
+        <target state="translated">'„{0}” nie zawiera definicji dla „{1}”, a najlepsze przeciążenie metody rozszerzenia „{2}” wymaga odbiorcy typu „{3}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryDuplicateRangeVariable">
@@ -5231,8 +6663,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
-        <source>An expression tree lambda may not contain an out or ref parameter</source>
-        <target state="translated">Drzewo wyrażenia lambda nie może zawierać parametru out ani ref</target>
+        <source>An expression tree lambda may not contain a ref, in or out parameter</source>
+        <target state="translated">Drzewo wyrażenia lambda nie może zawierać parametrów ref, in ani out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarArgsInExpressionTree">
@@ -5381,11 +6813,6 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
       <trans-unit id="FTL_InvalidTarget">
         <source>Invalid target type for /target: must specify 'exe', 'winexe', 'library', or 'module'</source>
         <target state="translated">Nieprawidłowy typ elementu docelowego dla opcji /target: musisz podać typ „exe”, „winexe”, „library” lub „module”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FTL_InputFileNameTooLong">
-        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Nazwa pliku „{0}” jest pusta, zawiera nieprawidłowe znaki, zawiera specyfikację dysku bez bezwzględnej ścieżki lub jest za długa</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoConfigNotOnCommandLine">
@@ -5729,8 +7156,8 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg">
-        <source>'await' requires that the type {0} have a suitable GetAwaiter method</source>
-        <target state="translated">'Operator „await” wymaga, aby typ {0} miał przypisaną odpowiednią metodę GetAwaiter</target>
+        <source>'await' requires that the type {0} have a suitable 'GetAwaiter' method</source>
+        <target state="translated">Operator „await” wymaga, aby typ {0} miał odpowiednią metodę „GetAwaiter”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgIntrinsic">
@@ -5739,13 +7166,13 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaiterPattern">
-        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion</source>
-        <target state="translated">'Operator „await” wymaga, aby zwracany typ „{0}” metody „|{1}.GetAwaiter()” zawierał odpowiednie składowe IsCompleted, OnCompleted i GetResult oraz implementował element INotifyCompletion lub ICriticalNotifyCompletion</target>
+        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable 'IsCompleted', 'OnCompleted', and 'GetResult' members, and implement 'INotifyCompletion' or 'ICriticalNotifyCompletion'</source>
+        <target state="translated">Operator „await” wymaga, aby zwracany typ „{0}” metody „{1}.GetAwaiter()” miał odpowiednie składowe „IsCompleted”, „OnCompleted” i „GetResult” oraz implementował interfejs „INotifyCompletion” lub „ICriticalNotifyCompletion”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg_NeedSystem">
-        <source>'await' requires that the type '{0}' have a suitable GetAwaiter method. Are you missing a using directive for 'System'?</source>
-        <target state="translated">'Operator „await” wymaga, aby typ {0} miał przypisaną odpowiednią metodę GetAwaiter. Czy brakuje dyrektywy użytkowania dla „Systemu”?</target>
+        <source>'await' requires that the type '{0}' have a suitable 'GetAwaiter' method. Are you missing a using directive for 'System'?</source>
+        <target state="translated">Operator „await” wymaga, aby typ {0} miał przypisaną odpowiednią metodę „GetAwaiter”. Czy brakuje dyrektywy using dla elementu „System”?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgVoidCall">
@@ -5769,8 +7196,8 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
-        <source>The return type of an async method must be void, Task or Task&lt;T&gt;</source>
-        <target state="translated">Zwracany typ metody asynchronicznej musi mieć wartość „void”, „Task” lub „Task&lt;T&gt;”.</target>
+        <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</source>
+        <target state="translated">Typ zwracany metody asynchronicznej musi być elementem void, Task lub Task&lt;T&gt;, typem podobnym do zadania albo elementem IAsyncEnumerable&lt;T&gt; lub IAsyncEnumerator&lt;T&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantReturnVoid">
@@ -5794,8 +7221,8 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
-        <source>Async methods cannot have ref or out parameters</source>
-        <target state="translated">Metody asynchroniczne nie mogą zawierać parametrów „ref” ani „out”.</target>
+        <source>Async methods cannot have ref, in or out parameters</source>
+        <target state="translated">Metody asynchroniczne nie mogą zawierać parametrów ref, in ani out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsync">
@@ -6172,7 +7599,7 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
       </trans-unit>
       <trans-unit id="ERR_BadNamedArgument">
         <source>The best overload for '{0}' does not have a parameter named '{1}'</source>
-        <target state="translated">Najlepsze przeciążenie dla elementu „{0}” nie ma parametru o nazwie „{1}”.</target>
+        <target state="translated">Najlepsza metoda przeładowania dla elementu „{0}” nie ma parametru o nazwie „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedArgumentForDelegateInvoke">
@@ -6948,11 +8375,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Przesłanie może mieć co najwyżej jedno drzewo składni.</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFoundTo">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">Nie znaleziono elementu SyntaxTree „{0}” do usunięcia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWith">
         <source>tree must have a root node with SyntaxKind.CompilationUnit</source>
         <target state="translated">drzewo musi zawierać węzeł główny z elementem SyntaxKind.CompilationUnit</target>
@@ -7203,293 +8625,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Obsługiwane wersje językowe:</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_CSCHelp">
-        <source>
-                              Visual C# Compiler Options
-
-                        - OUTPUT FILES -
- /out:&lt;file&gt;                   Specify output file name (default: base name of
-                               file with main class or first file)
- /target:exe                   Build a console executable (default) (Short
-                               form: /t:exe)
- /target:winexe                Build a Windows executable (Short form:
-                               /t:winexe)
- /target:library               Build a library (Short form: /t:library)
- /target:module                Build a module that can be added to another
-                               assembly (Short form: /t:module)
- /target:appcontainerexe       Build an Appcontainer executable (Short form:
-                               /t:appcontainerexe)
- /target:winmdobj              Build a Windows Runtime intermediate file that
-                               is consumed by WinMDExp (Short form: /t:winmdobj)
- /doc:&lt;file&gt;                   XML Documentation file to generate
- /refout:&lt;file&gt;                Reference assembly output to generate
- /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred, or
-                               anycpu. The default is anycpu.
-
-                        - INPUT FILES -
- /recurse:&lt;wildcard&gt;           Include all files in the current directory and
-                               subdirectories according to the wildcard
-                               specifications
- /reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
-                               file using the given alias (Short form: /r)
- /reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                               files (Short form: /r)
- /addmodule:&lt;file list&gt;        Link the specified modules into this assembly
- /link:&lt;file list&gt;             Embed metadata from the specified interop
-                               assembly files (Short form: /l)
- /analyzer:&lt;file list&gt;         Run the analyzers from this assembly
-                               (Short form: /a)
- /additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
-                               generation but may be used by analyzers for producing
-                               errors or warnings.
- /embed                        Embed all source files in the PDB.
- /embed:&lt;file list&gt;            Embed specific files in the PDB
-
-                        - RESOURCES -
- /win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
- /win32icon:&lt;file&gt;             Use this icon for the output
- /win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
- /nowin32manifest              Do not include the default Win32 manifest
- /resource:&lt;resinfo&gt;           Embed the specified resource (Short form: /res)
- /linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
-                               (Short form: /linkres) Where the resinfo format
-                               is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
-
-                        - CODE GENERATION -
- /debug[+|-]                   Emit debugging information
- /debug:{full|pdbonly|portable|embedded}
-                               Specify debugging type ('full' is default,
-                               'portable' is a cross-platform format,
-                               'embedded' is a cross-platform format embedded into
-                               the target .dll or .exe)
- /optimize[+|-]                Enable optimizations (Short form: /o)
- /deterministic                Produce a deterministic assembly
-                               (including module version GUID and timestamp)
- /refonly                      Produce a reference assembly in place of the main output
- /instrument:TestCoverage      Produce an assembly instrumented to collect
-                               coverage information
- /sourcelink:&lt;file&gt;            Source link info to embed into PDB.
-
-                        - ERRORS AND WARNINGS -
- /warnaserror[+|-]             Report all warnings as errors
- /warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
- /warn:&lt;n&gt;                     Set warning level (0-4) (Short form: /w)
- /nowarn:&lt;warn list&gt;           Disable specific warning messages
- /ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
-                               diagnostics.
- /errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
-                               diagnostics.
- /reportanalyzer               Report additional analyzer information, such as
-                               execution time.
-
-                        - LANGUAGE -
- /checked[+|-]                 Generate overflow checks
- /unsafe[+|-]                  Allow 'unsafe' code
- /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
-                               form: /d)
- /langversion:?                Display the allowed values for language version
- /langversion:&lt;string&gt;         Specify language version such as
-                               `default` (latest major version), or
-                               `latest` (latest version, including minor versions),
-                               or specific versions like `6` or `7.1`
-
-                        - SECURITY -
- /delaysign[+|-]               Delay-sign the assembly using only the public
-                               portion of the strong name key
- /publicsign[+|-]              Public-sign the assembly using only the public
-                               portion of the strong name key
- /keyfile:&lt;file&gt;               Specify a strong name key file
- /keycontainer:&lt;string&gt;        Specify a strong name key container
- /highentropyva[+|-]           Enable high-entropy ASLR
-
-                        - MISCELLANEOUS -
- @&lt;file&gt;                       Read response file for more options
- /help                         Display this usage message (Short form: /?)
- /nologo                       Suppress compiler copyright message
- /noconfig                     Do not auto include CSC.RSP file
- /parallel[+|-]                Concurrent build.
- /version                      Display the compiler version number and exit.
-
-                        - ADVANCED -
- /baseaddress:&lt;address&gt;        Base address for the library to be built
- /checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
-                               checksum stored in PDB. Supported values are:
-                               SHA1 (default) or SHA256.
- /codepage:&lt;n&gt;                 Specify the codepage to use when opening source
-                               files
- /utf8output                   Output compiler messages in UTF-8 encoding
- /main:&lt;type&gt;                  Specify the type that contains the entry point
-                               (ignore all other possible entry points) (Short
-                               form: /m)
- /fullpaths                    Compiler generates fully qualified paths
- /filealign:&lt;n&gt;                Specify the alignment used for output file
-                               sections
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Specify a mapping for source path names output by
-                               the compiler.
- /pdb:&lt;file&gt;                   Specify debug information file name (default:
-                               output file name with .pdb extension)
- /errorendlocation             Output line and column of the end location of
-                               each error
- /preferreduilang              Specify the preferred output language name.
- /nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
- /subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
- /lib:&lt;file list&gt;              Specify additional directories to search in for
-                               references
- /errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
-                               prompt, send, queue, or none. The default is
-                               queue.
- /appconfig:&lt;file&gt;             Specify an application configuration file
-                               containing assembly binding settings
- /moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
-                               a part of
- /modulename:&lt;string&gt;          Specify the name of the source module
-</source>
-        <target state="translated">
-                              Opcje kompilatora Visual C#
-
-                        - PLIKI WYJŚCIOWE -
- /out:&lt;plik&gt;                   Określ nazwę pliku wyjściowego (domyślnie: nazwa podstawowa
-                               pliku z klasą główną lub pierwszym plikiem)
- /target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (krótka 
-                               wersja: /t:exe)
- /target:winexe                Kompiluj plik wykonywalny systemu Windows (krótka wersja: 
-                               /t:winexe)
- /target:library               Kompiluj bibliotekę (krótka wersja: /t:library)
- /target:module                Kompiluj moduł, który można dodać do innego 
-                               zestawu (krótka wersja: /t:module)
- /target:appcontainerexe       Kompiluj plik wykonywalny kontenera aplikacji (krótka wersja: 
-                               /t:appcontainerexe)
- /target:winmdobj              Kompiluj plik pośredni środowiska uruchomieniowego systemu Windows 
-                               przeznaczony dla narzędzia WinMDExp (krótka wersja: /t:winmdobj)
- /doc:&lt;plik&gt;                   Plik dokumentacji XML do wygenerowania
- /refout:&lt;plik&gt;                Dane wyjściowe zestawu odwołania do wygenerowania
-  /platform:&lt;ciąg&gt;              Ogranicz platformy, na których można uruchamiać ten kod: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred lub 
-                               anycpu. Wartość domyślna to anycpu.
-
-                        - PLIKI WEJŚCIOWE -
- /recurse:&lt;symbol wieloznaczny&gt; Dołącz wszystkie pliki zawarte w bieżącym katalogu i 
-                               jego podkatalogach zgodnie ze specyfikacją określoną przy użyciu 
-                               symboli wieloznacznych
- /reference:&lt;alias&gt;=&lt;plik&gt;     Odwołuj się do metadanych z określonego pliku 
-                               zestawu przy użyciu podanego aliasu (krótka wersja: /r)
- /reference:&lt;lista plików&gt;     Odwołuj się do metadanych z określonych 
-                               plików zestawów (krótka wersja: /r)
- /addmodule:&lt;lista plików&gt;     Połącz określone moduły z tym zestawem
- /link:&lt;lista plików&gt;          Osadź metadane z określonych plików 
-                               zestawów międzyoperacyjnych (krótka wersja: /l)
- /analyzer:&lt;lista plików&gt;      Uruchom analizatory z tego zestawu
-                               (krótka wersja: /a)
- /additionalfile:&lt;lista plików&gt; Dodatkowe pliki, które nie mają bezpośredniego wpływu na generowanie
-                               kodu, ale mogą być używane przez analizatory w celu tworzenia
-                               komunikatów o błędach lub ostrzeżeń.
- /embed                        Osadź wszystkie pliki źródłowe w pliku PDB.
- /embed:&lt;lista plików&gt;            Osadź określone pliki w pliku PDB
-
-                        - ZASOBY -
- /win32res:&lt;plik&gt;              Określ plik zasobu Win32 (res)
- /win32icon:&lt;plik&gt;             Użyj tej ikony dla pliku wyjściowego
- /win32manifest:&lt;plik&gt;         Określ plik manifestu środowiska Win32 (xml)
- /nowin32manifest              Nie dołączaj domyślnego manifestu środowiska Win32
- /resource:&lt;informacje o zasobie&gt; Osadź określony zasób (krótka wersja: /res)
- /linkresource:&lt;informacje o zasobie&gt; Połącz określony zasób z tym zestawem 
-                               (krótka wersja: /linkres), gdzie format informacji o zasobie 
-                               to &lt;plik&gt;[,&lt;nazwa ciągu&gt;[,public|private]]
-
-                        - GENEROWANIE KODU -
- /debug[+|-]                   Emituj informacje o debugowaniu
- /debug:{full|pdbonly|portable|embedded}
-                               Określ typ debugowania (wartość domyślna to „full”, 
-                               wartość „portable” to format międzyplatformowy,
-                               a wartość „embedded” to format międzyplatformowy wbudowany w 
-                               docelowym pliku DLL lub EXE)
- /optimize[+|-]                Włącz optymalizacje (krótka wersja: /o)
- /deterministic                Utwórz zestaw deterministyczny
-                               (w tym sygnaturę czasową i identyfikator GUID wersji modułu)
- /refonly                      Utwórz zestaw odwołania zamiast głównych danych wyjściowych
-  /instrument:TestCoverage      Utwórz zestaw instrumentowany w celu gromadzenia
-                               informacji o pokryciu
- /sourcelink:&lt;plik&gt;            Informacje o linku źródłowym na potrzeby osadzenia w pliku PDB.
-
-                        - BŁĘDY I OSTRZEŻENIA -
- /warnaserror[+|-]             Zgłaszaj wszystkie ostrzeżenia jako błędy
- /warnaserror[+|-]:&lt;lista ostrzeżeń&gt; Zgłaszaj określone ostrzeżenia jako błędy
- /warn:&lt;n&gt;                     Ustaw poziom ostrzeżenia (0–4) (krótka wersja: /w)
- /nowarn:&lt;lista ostrzeżeń&gt;     Wyłącz określone komunikaty ostrzeżeń
- /ruleset:&lt;plik&gt;               Określ plik zestawu reguł wyłączający określone
-                               funkcje diagnostyczne.
- /errorlog:&lt;plik&gt;              Określ plik, w którym mają zostać zarejestrowane dane diagnostyczne
-                               wszystkich kompilatorów i analizatorów.
- /reportanalyzer               Zgłaszaj dodatkowe informacje analizatora, takie jak
-                               czas wykonywania.
- 
-                        -JĘZYK -
- /checked[+|-]                 Generuj operacje sprawdzenia przepełnienia
- /unsafe[+|-]                  Zezwalaj na niebezpieczny kod
- /define:&lt;lista symboli&gt;       Definiuj symbole kompilacji warunkowej (krótka 
-                               wersja: /d) 
- /langversion:?                Wyświetl dozwolone wartości dla wersji języka
- /langversion:&lt;ciąg&gt;         Określ wersję języka, taką jak
-                               default (najnowsza wersja główna) lub
-                               latest (najnowsza wersja, z uwzględnieniem wersji pomocniczych)
-                               lub konkretna wersja, na przykład „6” lub „7.1”
-
-                        - ZABEZPIECZENIA -
- /delaysign[+|-]               Podpisz z opóźnieniem zestaw, używając tylko 
-                               części publicznej klucza o silnej nazwie
- /publicsign[+|-]              Podpisz publicznie zestaw, używając tylko
-                               części publicznej klucza o silnej nazwie
- /keyfile:&lt;plik&gt;               Określ plik klucza o silnej nazwie
- /keycontainer:&lt;ciąg&gt;          Określ kontener klucza o silnej nazwie
- /highentropyva[+|-]           Włącz losowe generowanie układu przestrzeni adresowej o wysokiej entropii
-
-                        - RÓŻNE -
- @&lt;plik&gt;                       Odczytaj plik odpowiedzi w celu uzyskania dodatkowych opcji
- /help                         Wyświetl ten komunikat dotyczący użycia (krótka wersja: /?)
- /nologo                       Pomiń komunikat kompilatora o prawach autorskich
- /noconfig                     Nie dołączaj automatycznie pliku CSC.RSP
- /parallel[+|-]                Współbieżna kompilacja.
- /version                      Wyświetl numer wersji kompilatora i wyjdź.
-
-                        - ZAAWANSOWANE -
- /baseaddress:&lt;adres&gt;          Adres podstawowy dla biblioteki do skompilowania
- /checksumalgorithm:&lt;algorytm&gt; Określ algorytm do obliczania sumy kontrolnej
-                               pliku źródłowego przechowywanej w pliku PDB. Obsługiwane są następujące wartości:
-                               SHA1 (domyślnie) lub SHA256.
- /codepage:&lt;n&gt;                 Określ stronę kodową do użycia podczas otwierania 
-                               plików źródłowych
- /utf8output                   Wyprowadź komunikaty kompilatora przy użyciu kodowania UTF-8
- /main:&lt;typ&gt;                   Określ typ zawierający punkt wejścia 
-                               (wszystkie pozostałe możliwe punkty wejścia zostaną zignorowane) (krótka 
-                               wersja: /m)
- /fullpaths                    Kompilator generuje w pełni kwalifikowane ścieżki
- /filealign:&lt;n&gt;                Określ wyrównanie stosowane dla sekcji 
-                               plików wyjściowych
- /pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,... 
-                               Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez 
-                               kompilator.
- /pdb:&lt;plik&gt;                   Określ nazwę pliku z informacjami o debugowaniu (domyślnie: 
-                               nazwa pliku wyjściowego z rozszerzeniem pdb)
- /errorendlocation             Wyprowadź wiersz i kolumnę lokalizacji końcowej dla 
-                               każdego błędu
- /preferreduilang              Określ nazwę preferowanego języka wyjściowego.
- /nostdlib[+|-]                Nie odwołuj się do biblioteki standardowej (mscorlib.dll)
- /subsystemversion:&lt;ciąg&gt;      Określ wersję podsystemu tego zestawu
- /lib:&lt;lista plików&gt;           Określ dodatkowe katalogi do przeszukania pod kątem 
-                               odwołań
- /errorreport:&lt;ciąg&gt;           Określ, w jaki sposób obsługiwać wewnętrzne błędy kompilatora: 
-                               prompt, send, queue lub none. Wartość domyślna to 
-                               queue.
- /appconfig:&lt;plik&gt;             Określ plik konfiguracji aplikacji 
-                               zawierający ustawienia powiązania zestawu
- /moduleassemblyname:&lt;ciąg&gt;    Nazwa zestawu, którego częścią 
-                               ma być ten moduł
- /modulename:&lt;ciąg&gt;            Określ nazwę modułu źródłowego
-</target>
-        <note>Visual C# Compiler Options</note>
-      </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
         <source>'{0}': a class with the ComImport attribute cannot specify field initializers.</source>
         <target state="translated">'„{0}”: klasa o atrybucie ComImport nie może określać inicjatorów pola.</target>
@@ -7588,11 +8723,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_AutoPropertyMustOverrideSet">
         <source>Auto-implemented properties must override all accessors of the overridden property.</source>
         <target state="translated">Automatycznie implementowane właściwości muszą przesłaniać wszystkie metody dostępu przesłanianej właściwości.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">Właściwości zaimplementowane automatycznie w interfejsach nie mogą mieć inicjatorów.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
@@ -7781,8 +8911,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">Długość stałej typu String przekracza bieżący limit pamięci. Spróbuj podzielić ciąg na wiele stałych.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">Długość stałej typu String przekracza bieżący limit pamięci. Spróbuj podzielić ciąg na wiele stałych.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -7811,8 +8941,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note>File path referenced in source (#load) could not be resolved.</note>
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
-        <source>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="translated">Drzewo SyntaxTree „{0}” jest wynikiem dyrektywy #load i nie można go bezpośrednio usunąć ani zastąpić.</target>
+        <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
+        <target state="translated">Element SyntaxTree jest wynikiem dyrektywy #load i nie można go bezpośrednio usunąć ani zastąpić.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">
@@ -7991,8 +9121,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Gałęzie trzyelementowego operatora ref nie mogą odwoływać się do zmiennych z niezgodnymi zakresami deklaracji</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="translated">Gałęzie operatora warunkowego ref nie mogą przywoływać zmiennych z niezgodnymi zakresami deklaracji</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">
@@ -8026,18 +9156,18 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by reference locals</source>
+        <source>Iterators cannot have by-reference locals</source>
         <target state="translated">Iteratory nie mogą mieć zmiennych lokalnych dostępnych przez odwołanie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by reference locals</source>
+        <source>Async methods cannot have by-reference locals</source>
         <target state="translated">Metody asynchroniczne nie mogą mieć zmiennych lokalnych dostępnych przez odwołanie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
         <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">Elementu „await” nie można użyć w wyrażeniu zawierającym wywołanie elementu „{0}”, ponieważ zwraca ono wartość przez odwołanie</target>
+        <target state="translated">'Elementu „await” nie można użyć w wyrażeniu zawierającym wywołanie elementu „{0}”, ponieważ zwraca ono wartość przez odwołanie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">
@@ -8080,11 +9210,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Użycie typu dopuszczającego wartość null „{0}” jest niedozwolone we wzorcu. Użyj zamiast tego bazowego typu „{1}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadIsPatternExpression">
-        <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
-        <target state="translated">Nieprawidłowy operand dla dopasowania wzorca; wymagana jest wartość, a znaleziono „{0}”.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PeWritingFailure">
         <source>An error occurred while writing the output file: {0}.</source>
         <target state="translated">Wystąpił błąd podczas zapisywania pliku wyjściowego: {0}.</target>
@@ -8116,8 +9241,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingDeconstruct">
-        <source>No suitable Deconstruct instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
-        <target state="translated">Nie znaleziono odpowiedniego wystąpienia dekonstrukcji lub metody rozszerzenia dla typu „{0}” z {1} parametrami out i typem zwrotnym void.</target>
+        <source>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
+        <target state="translated">Nie znaleziono odpowiedniego wystąpienia „Deconstruct” lub metody rozszerzenia dla typu „{0}” z {1} parametrami wyjściowymi i typem zwracanym void.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructRequiresExpression">
@@ -8128,11 +9253,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_SwitchExpressionValueExpected">
         <source>The switch expression must be a value; found '{0}'.</source>
         <target state="translated">Wyrażenie switch musi być wartością; znaleziono element „{0}”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PatternIsSubsumed">
-        <source>The switch case has already been handled by a previous case.</source>
-        <target state="translated">Etykieta case wyrażenia switch została już obsłużona przez poprzednią etykietę case.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternWrongType">
@@ -8198,11 +9318,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_DeconstructTooFewElements">
         <source>Deconstruction must contain at least two variables.</source>
         <target state="translated">Dekonstrukcja musi zawierać co najmniej dwie zmienne.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TypeMustBeVar">
-        <source>The type must be 'var'.</source>
-        <target state="translated">Typem musi być „var”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleLiteralNameMismatch">
@@ -8285,16 +9400,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Składnia „var (...)“ jako wartość lvalue jest zastrzeżona.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">W inicjatorach konstruktora, pola i właściwości nie można używać deklaracji zmiennej „out” ani zmiennej wzorca.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInQueryClause">
-        <source>Out variable and pattern variable declarations are not allowed within a query clause.</source>
-        <target state="translated">Deklaracje zmiennej wychodzącej i zmiennej wzorca nie są dozwolone w obrębie klauzuli zapytania.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">Oczekiwano symbolu { lub ; lub =&gt;</target>
@@ -8358,11 +9463,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_PatternDynamicType">
         <source>It is not legal to use the type 'dynamic' in a pattern.</source>
         <target state="translated">Używanie typu „dynamic” we wzorcu nie jest dozwolone.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">Nie można użyć domyślnego literału jako argumentu operacji wysyłanej dynamicznie.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
@@ -8491,8 +9591,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of an 'in' extension method '{0}' must be a value type.</source>
-        <target state="translated">Pierwszy parametr metody „{0}” rozszerzenia „in” musi być typem wartości.</target>
+        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="translated">Pierwszy parametr metody rozszerzenia „in”, „{0}”, musi być konkretnym typem wartości (nieogólnym).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
@@ -8518,11 +9618,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_StackAllocConversionNotPossible">
         <source>Conversion of a stackalloc expression of type '{0}' to type '{1}' is not possible.</source>
         <target state="translated">Konwersja wyrażenia stackalloc typu „{0}” na typ „{1}” nie jest możliwa.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_StackAllocExpression">
-        <source>stackalloc {0}[{1}]</source>
-        <target state="translated">stackalloc {0}[{1}]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne">
@@ -8570,54 +9665,79 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Wyrażenie warunkowe nie może być używane bezpośrednio w interpolacji ciągu, ponieważ znak „:” kończy interpolację. Umieść wyrażenie warunkowe w nawiasie.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">Domyślny literał „default” nie jest prawidłowy jako stała case. Użyj innego odpowiedniego literału (np. „0” lub „null”). Jeśli chodziło Ci o napisanie etykiety domyślnej, użyj zapisu „default:”, bez „case”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInPattern">
-        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="translated">Domyślny literał „default” nie jest prawidłowy jako wzorzec. Użyj innego odpowiedniego literału (np. „0” lub „null”). Aby dopasować wszystko, użyj wzorca odrzucania „var _”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InDynamicMethodArg">
-        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
-        <target state="translated">Argumentów z modyfikatorem „in” nie można używać w wyrażeniach wysyłanych dynamicznie.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
         <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
-        <target state="new">Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</target>
+        <target state="translated">Nie używaj atrybutu „System.Runtime.CompilerServices.FixedBuffer” względem właściwości</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion7_3">
         <source>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</target>
+        <target state="translated">Funkcja „{0}” nie jest dostępna w języku C# 7.3. Użyj języka w wersji {1} lub nowszej.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable">
         <source>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</source>
-        <target state="new">Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</target>
+        <target state="translated">Atrybuty docelowe dla pól w ramach właściwości automatycznych nie są obsługiwane w języku w wersji {0}. Użyj języka w wersji {1} lub nowszej.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable_Title">
         <source>Field-targeted attributes on auto-properties are not supported in this version of the language.</source>
-        <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
+        <target state="translated">Atrybuty docelowe dla pól w ramach właściwości automatycznych nie są obsługiwane w tej wersji języka.</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureRefConditional">
-        <source>ref conditional expression</source>
-        <target state="translated">wyrażenie warunkowe ref</target>
+      <trans-unit id="IDS_FeatureAsyncStreams">
+        <source>async streams</source>
+        <target state="translated">strumienie asynchroniczne</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
+      <trans-unit id="ERR_NoConvToIAsyncDisp">
+        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="translated">„{0}”: Typ użyty w asynchronicznej instrukcji using musi być jawnie konwertowalny na typ „System.IAsyncDisposable” lub musi implementować odpowiednią metodę „DisposeAsync”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InvalidHashAlgorithmName">
-        <source>Invalid hash algorithm name: '{0}'</source>
-        <target state="new">Invalid hash algorithm name: '{0}'</target>
+      <trans-unit id="ERR_BadGetAsyncEnumerator">
+        <source>Asynchronous foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</source>
+        <target state="translated">Asynchroniczna instrukcja foreach wymaga, aby zwracany typ „{0}” elementu „{1}” miał odpowiednią metodę publiczną „MoveNextAsync” i właściwość publiczną „Current”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MultipleIAsyncEnumOfT">
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
+        <target state="translated">Asynchroniczna instrukcja foreach nie może używać zmiennych typu „{0}”, ponieważ implementuje wiele utworzeń wystąpienia elementu „{1}”. Spróbuj rzutowania na konkretne utworzenie wystąpienia interfejsu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
+        <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
+        <target state="translated">Interfejsy nie mogą zawierać operatorów konwersji, równości ani nierówności</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje domyślnej implementacji interfejsu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
+        <target state="translated">Element „{0}” nie może implementować składowej interfejsu „{1}” w typie „{2}”, ponieważ docelowe środowisko uruchomieniowe nie obsługuje domyślnej implementacji interfejsu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="translated">Modyfikator „{0}” nie jest prawidłowy dla tego elementu w języku C# {1}. Użyj wersji języka „{2}” lub nowszej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
+        <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może jawnie implementować składowej niepublicznej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
+        <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
+        <target state="translated">Składowa interfejsu „{0}” nie ma najbardziej specyficznej implementacji. Ani implementacja „{1}”, ani „{2}” nie jest najbardziej specyficzna.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="translated">Element „{0}” nie może implementować składowej interfejsu „{1}” w typie „{2}”, ponieważ funkcja „{3}” nie jest dostępna w języku C# {4}. Użyj wersji języka „{5}” lub nowszej.</target>
         <note />
       </trans-unit>
     </body>

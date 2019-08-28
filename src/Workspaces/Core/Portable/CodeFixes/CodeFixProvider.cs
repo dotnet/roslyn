@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     public abstract class CodeFixProvider
     {
         /// <summary>
-        /// A list of diagnostic IDs that this provider can provider fixes for.
+        /// A list of diagnostic IDs that this provider can provide fixes for.
         /// </summary>
         public abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         /// <param name="context">
         /// A <see cref="CodeFixContext"/> containing context information about the diagnostics to fix.
-        /// The context must only contain diagnostics with an <see cref="Diagnostic.Id"/> included in the <see cref="FixableDiagnosticIds"/> for the current provider.
+        /// The context must only contain diagnostics with a <see cref="Diagnostic.Id"/> included in the <see cref="FixableDiagnosticIds"/> for the current provider.
         /// </param>
         public abstract Task RegisterCodeFixesAsync(CodeFixContext context);
 

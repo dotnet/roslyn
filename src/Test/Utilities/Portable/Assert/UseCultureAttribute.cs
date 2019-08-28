@@ -51,16 +51,8 @@ namespace Roslyn.Test.Utilities
         /// <param name="uiCulture">The name of the UI culture.</param>
         public UseCultureAttribute(string culture, string uiCulture)
         {
-#if NET46 || NET461
             _culture = new Lazy<CultureInfo>(() => new CultureInfo(culture, useUserOverride: false));
             _uiCulture = new Lazy<CultureInfo>(() => new CultureInfo(uiCulture, useUserOverride: false));
-#elif NETCOREAPP2_0
-            _culture = new Lazy<CultureInfo>(() => new CultureInfo(culture));
-            _uiCulture = new Lazy<CultureInfo>(() => new CultureInfo(uiCulture));
-#else
-            _culture = new Lazy<CultureInfo>(() => throw new NotSupportedException());
-            _uiCulture = new Lazy<CultureInfo>(() => throw new NotSupportedException());
-#endif
         }
 
         /// <summary>
@@ -83,17 +75,10 @@ namespace Roslyn.Test.Utilities
             _originalCulture = CultureInfo.CurrentCulture;
             _originalUICulture = CultureInfo.CurrentUICulture;
 
-#if NET46 || NET461 || NETCOREAPP2_0
             CultureInfo.CurrentCulture = Culture;
             CultureInfo.CurrentUICulture = UICulture;
-
-#if NET46 || NET461
             CultureInfo.CurrentCulture.ClearCachedData();
             CultureInfo.CurrentUICulture.ClearCachedData();
-#endif
-#else
-            throw new NotSupportedException("Cannot set the current culture on this framework target.");
-#endif
         }
 
         /// <summary>
@@ -103,17 +88,10 @@ namespace Roslyn.Test.Utilities
         /// <param name="methodUnderTest">The method under test</param>
         public override void After(MethodInfo methodUnderTest)
         {
-#if NET46 || NET461 || NETCOREAPP2_0
             CultureInfo.CurrentCulture = _originalCulture;
             CultureInfo.CurrentUICulture = _originalUICulture;
-
-#if NET46 || NET461
             CultureInfo.CurrentCulture.ClearCachedData();
             CultureInfo.CurrentUICulture.ClearCachedData();
-#endif
-#else
-            throw new NotSupportedException("Cannot set the current culture on this framework target.");
-#endif
         }
     }
 }

@@ -1,206 +1,112 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommentSelection;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.CommentSelection, ContentTypeNames.RoslynContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.CommentSelection)]
     internal class CommentUncommentSelectionCommandHandler :
-        ICommandHandler<CommentSelectionCommandArgs>,
-        ICommandHandler<UncommentSelectionCommandArgs>
+        AbstractCommentSelectionBase<Operation>,
+        VSCommanding.ICommandHandler<CommentSelectionCommandArgs>,
+        VSCommanding.ICommandHandler<UncommentSelectionCommandArgs>
     {
-        private readonly IWaitIndicator _waitIndicator;
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-
         [ImportingConstructor]
-        internal CommentUncommentSelectionCommandHandler(
-            IWaitIndicator waitIndicator,
+        public CommentUncommentSelectionCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
+            : base(undoHistoryRegistry, editorOperationsFactoryService)
         {
-            Contract.ThrowIfNull(waitIndicator);
-            Contract.ThrowIfNull(undoHistoryRegistry);
-            Contract.ThrowIfNull(editorOperationsFactoryService);
-
-            _waitIndicator = waitIndicator;
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        private static CommandState GetCommandState(ITextBuffer buffer, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(CommentSelectionCommandArgs args)
         {
-            if (!buffer.CanApplyChangeDocumentToWorkspace())
-            {
-                return nextHandler();
-            }
-
-            return CommandState.Available;
-        }
-
-        public CommandState GetCommandState(CommentSelectionCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(args.SubjectBuffer, nextHandler);
+            return GetCommandState(args.SubjectBuffer);
         }
 
         /// <summary>
         /// Comment the selected spans, and reset the selection.
         /// </summary>
-        public void ExecuteCommand(CommentSelectionCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(CommentSelectionCommandArgs args, CommandExecutionContext context)
         {
-            this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Comment);
+            return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Comment, context);
         }
 
-        public CommandState GetCommandState(UncommentSelectionCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(UncommentSelectionCommandArgs args)
         {
-            return GetCommandState(args.SubjectBuffer, nextHandler);
+            return GetCommandState(args.SubjectBuffer);
         }
 
         /// <summary>
         /// Uncomment the selected spans, and reset the selection.
         /// </summary>
-        public void ExecuteCommand(UncommentSelectionCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(UncommentSelectionCommandArgs args, CommandExecutionContext context)
         {
-            this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment);
+            return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment, context);
         }
 
-        internal void ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, Operation operation)
-        {
-            var title = operation == Operation.Comment ? EditorFeaturesResources.Comment_Selection
-                                                       : EditorFeaturesResources.Uncomment_Selection;
+        public override string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection;
 
-            var message = operation == Operation.Comment ? EditorFeaturesResources.Commenting_currently_selected_text
-                                                         : EditorFeaturesResources.Uncommenting_currently_selected_text;
+        protected override string GetTitle(Operation operation) =>
+            operation == Operation.Comment
+                ? EditorFeaturesResources.Comment_Selection
+                : EditorFeaturesResources.Uncomment_Selection;
 
-            _waitIndicator.Wait(
-                title,
-                message,
-                allowCancel: false,
-                action: waitContext =>
-                {
-                    var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document == null)
-                    {
-                        return;
-                    }
-
-                    var service = GetService(document);
-                    if (service == null)
-                    {
-                        return;
-                    }
-
-                    var trackingSpans = new List<ITrackingSpan>();
-                    var textChanges = new List<TextChange>();
-
-                    CollectEdits(
-                        document, service, textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer),
-                        textChanges, trackingSpans, operation, waitContext.CancellationToken);
-
-                    using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
-                    {
-                        document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChanges, waitContext.CancellationToken);
-                        transaction.Complete();
-                    }
-
-                    if (operation == Operation.Uncomment)
-                    {
-                        using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
-                        {
-                            Format(service, subjectBuffer.CurrentSnapshot, trackingSpans, waitContext.CancellationToken);
-                            transaction.Complete();
-                        }
-                    }
-
-                    if (trackingSpans.Any())
-                    {
-                        // TODO, this doesn't currently handle block selection
-                        textView.SetSelection(trackingSpans.First().GetSpan(subjectBuffer.CurrentSnapshot));
-                    }
-                });
-        }
-
-        private ICommentSelectionService GetService(Document document)
-        {
-            // First, try to get the new service for comment selection.
-            var service = document.GetLanguageService<ICommentSelectionService>();
-            if (service != null)
-            {
-                return service;
-            }
-
-            // If we couldn't find one, fallback to the legacy service.
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacyService = document.GetLanguageService<ICommentUncommentService>();
-#pragma warning restore CS0618 // Type or member is obsolete
-            if (legacyService != null)
-            {
-                return new CommentSelectionServiceProxy(legacyService);
-            }
-
-            return null;
-        }
-
-        private void Format(ICommentSelectionService service, ITextSnapshot snapshot, IEnumerable<ITrackingSpan> changes, CancellationToken cancellationToken)
-        {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return;
-            }
-
-            var textSpans = changes.Select(s => s.GetSpan(snapshot).Span.ToTextSpan()).ToImmutableArray();
-            var newDocument = service.FormatAsync(document, textSpans, cancellationToken).WaitAndGetResult(cancellationToken);
-            newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
-        }
-
-        internal enum Operation { Comment, Uncomment }
+        protected override string GetMessage(Operation operation) =>
+            operation == Operation.Comment
+                ? EditorFeaturesResources.Commenting_currently_selected_text
+                : EditorFeaturesResources.Uncommenting_currently_selected_text;
 
         /// <summary>
         /// Add the necessary edits to the given spans. Also collect tracking spans over each span.
         ///
         /// Internal so that it can be called by unit tests.
         /// </summary>
-        internal void CollectEdits(
-            Document document, ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans, 
-            List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, Operation operation, CancellationToken cancellationToken)
+        internal override Task<CommentSelectionResult> CollectEditsAsync(
+            Document document, ICommentSelectionService service, ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans,
+            Operation operation, CancellationToken cancellationToken)
         {
+            var spanTrackingList = ArrayBuilder<CommentTrackingSpan>.GetInstance();
+            var textChanges = ArrayBuilder<TextChange>.GetInstance();
             foreach (var span in selectedSpans)
             {
                 if (operation == Operation.Comment)
                 {
-                    CommentSpan(document, service, span, textChanges, trackingSpans, cancellationToken);
+                    CommentSpan(document, service, span, textChanges, spanTrackingList, cancellationToken);
                 }
                 else
                 {
-                    UncommentSpan(document, service, span, textChanges, trackingSpans, cancellationToken);
+                    UncommentSpan(document, service, span, textChanges, spanTrackingList, cancellationToken);
                 }
             }
+
+            return Task.FromResult(new CommentSelectionResult(textChanges.ToArrayAndFree(), spanTrackingList.ToArrayAndFree(), operation));
         }
 
         /// <summary>
         /// Add the necessary edits to comment out a single span.
         /// </summary>
         private void CommentSpan(
-            Document document, ICommentSelectionService service, SnapshotSpan span, 
-            List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, CancellationToken cancellationToken)
+            Document document, ICommentSelectionService service, SnapshotSpan span,
+            ArrayBuilder<TextChange> textChanges, ArrayBuilder<CommentTrackingSpan> trackingSpans, CancellationToken cancellationToken)
         {
             var (firstLine, lastLine) = DetermineFirstAndLastLine(span);
 
@@ -249,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 // both comment forms supported.  Do a block comment only if a portion of code is
                 // selected on a single line, otherwise comment out all the lines using single-line
                 // comments.
-                if (!span.IsEmpty && 
+                if (!span.IsEmpty &&
                     !SpanIncludesAllTextOnIncludedLines(span) &&
                     firstLine.LineNumber == lastLine.LineNumber)
                 {
@@ -262,46 +168,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             }
         }
 
-        private void AddSingleLineComments(SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, ITextSnapshotLine firstLine, ITextSnapshotLine lastLine, CommentSelectionInfo commentInfo)
+        private void AddSingleLineComments(SnapshotSpan span, ArrayBuilder<TextChange> textChanges, ArrayBuilder<CommentTrackingSpan> trackingSpans, ITextSnapshotLine firstLine, ITextSnapshotLine lastLine, CommentSelectionInfo commentInfo)
         {
             // Select the entirety of the lines, so that another comment operation will add more 
             // comments, not insert block comments.
-            trackingSpans.Add(span.Snapshot.CreateTrackingSpan(Span.FromBounds(firstLine.Start.Position, lastLine.End.Position), SpanTrackingMode.EdgeInclusive));
+            trackingSpans.Add(new CommentTrackingSpan(TextSpan.FromBounds(firstLine.Start.Position, lastLine.End.Position)));
             var indentToCommentAt = DetermineSmallestIndent(span, firstLine, lastLine);
             ApplySingleLineCommentToNonBlankLines(commentInfo, textChanges, firstLine, lastLine, indentToCommentAt);
         }
 
-        private void AddBlockComment(SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, CommentSelectionInfo commentInfo)
+        private void AddBlockComment(SnapshotSpan span, ArrayBuilder<TextChange> textChanges, ArrayBuilder<CommentTrackingSpan> trackingSpans, CommentSelectionInfo commentInfo)
         {
-            trackingSpans.Add(span.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive));
+            trackingSpans.Add(new CommentTrackingSpan(TextSpan.FromBounds(span.Start, span.End)));
             InsertText(textChanges, span.Start, commentInfo.BlockCommentStartString);
             InsertText(textChanges, span.End, commentInfo.BlockCommentEndString);
-        }
-
-        /// <summary>
-        /// Record "Insert text" text changes.
-        /// </summary>
-        private void InsertText(List<TextChange> textChanges, int position, string text)
-        {
-            textChanges.Add(new TextChange(new TextSpan(position, 0), text));
-        }
-
-        /// <summary>
-        /// Record "Delete text" text changes.
-        /// </summary>
-        private void DeleteText(List<TextChange> textChanges, TextSpan span)
-        {
-            textChanges.Add(new TextChange(span, string.Empty));
         }
 
         /// <summary>
         /// Add the necessary edits to uncomment out a single span.
         /// </summary>
         private void UncommentSpan(
-            Document document, ICommentSelectionService service, SnapshotSpan span, 
-            List<TextChange> textChanges, List<ITrackingSpan> spansToSelect, CancellationToken cancellationToken)
+            Document document, ICommentSelectionService service, SnapshotSpan span,
+            ArrayBuilder<TextChange> textChanges, ArrayBuilder<CommentTrackingSpan> spansToSelect, CancellationToken cancellationToken)
         {
             var info = service.GetInfoAsync(document, span.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
+
+            // If the selection is exactly a block comment, use it as priority over single line comments.
+            if (info.SupportsBlockComment && TryUncommentExactlyBlockComment(info, span, textChanges, spansToSelect))
+            {
+                return;
+            }
 
             if (info.SupportsSingleLineComment &&
                 TryUncommentSingleLineComments(info, span, textChanges, spansToSelect))
@@ -309,63 +205,79 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 return;
             }
 
+            // We didn't make any single line changes.  If the language supports block comments, see 
+            // if we're inside a containing block comment and uncomment that.
             if (info.SupportsBlockComment)
             {
                 UncommentContainingBlockComment(info, span, textChanges, spansToSelect);
             }
         }
 
-        private void UncommentContainingBlockComment(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> spansToSelect)
+        /// <summary>
+        /// Check if the selected span matches an entire block comment.
+        /// If it does, uncomment it and return true.
+        /// </summary>
+        private bool TryUncommentExactlyBlockComment(CommentSelectionInfo info, SnapshotSpan span, ArrayBuilder<TextChange> textChanges,
+            ArrayBuilder<CommentTrackingSpan> spansToSelect)
         {
-            // We didn't make any single line changes.  If the language supports block comments, see 
-            // if we're inside a containing block comment and uncomment that.
-
-            var positionOfStart = -1;
-            var positionOfEnd = -1;
             var spanText = span.GetText();
             var trimmedSpanText = spanText.Trim();
 
             // See if the selection includes just a block comment (plus whitespace)
             if (trimmedSpanText.StartsWith(info.BlockCommentStartString, StringComparison.Ordinal) && trimmedSpanText.EndsWith(info.BlockCommentEndString, StringComparison.Ordinal))
             {
-                positionOfStart = span.Start + spanText.IndexOf(info.BlockCommentStartString, StringComparison.Ordinal);
-                positionOfEnd = span.Start + spanText.LastIndexOf(info.BlockCommentEndString, StringComparison.Ordinal);
+                var positionOfStart = span.Start + spanText.IndexOf(info.BlockCommentStartString, StringComparison.Ordinal);
+                var positionOfEnd = span.Start + spanText.LastIndexOf(info.BlockCommentEndString, StringComparison.Ordinal);
+                UncommentPosition(info, span, textChanges, spansToSelect, positionOfStart, positionOfEnd);
+                return true;
             }
-            else
-            {
-                // See if we are (textually) contained in a block comment.
-                // This could allow a selection that spans multiple block comments to uncomment the beginning of
-                // the first and end of the last.  Oh well.
-                var text = span.Snapshot.AsText();
-                positionOfStart = text.LastIndexOf(info.BlockCommentStartString, span.Start, caseSensitive: true);
 
-                // If we found a start comment marker, make sure there isn't an end comment marker after it but before our span.
-                if (positionOfStart >= 0)
+            return false;
+        }
+
+        private void UncommentContainingBlockComment(CommentSelectionInfo info, SnapshotSpan span, ArrayBuilder<TextChange> textChanges,
+            ArrayBuilder<CommentTrackingSpan> spansToSelect)
+        {
+            // See if we are (textually) contained in a block comment.
+            // This could allow a selection that spans multiple block comments to uncomment the beginning of
+            // the first and end of the last.  Oh well.
+            var positionOfEnd = -1;
+            var text = span.Snapshot.AsText();
+            var positionOfStart = text.LastIndexOf(info.BlockCommentStartString, span.Start, caseSensitive: true);
+
+            // If we found a start comment marker, make sure there isn't an end comment marker after it but before our span.
+            if (positionOfStart >= 0)
+            {
+                var lastEnd = text.LastIndexOf(info.BlockCommentEndString, span.Start, caseSensitive: true);
+                if (lastEnd < positionOfStart)
                 {
-                    var lastEnd = text.LastIndexOf(info.BlockCommentEndString, span.Start, caseSensitive: true);
-                    if (lastEnd < positionOfStart)
-                    {
-                        positionOfEnd = text.IndexOf(info.BlockCommentEndString, span.End, caseSensitive: true);
-                    }
-                    else if (lastEnd + info.BlockCommentEndString.Length > span.End)
-                    {
-                        // The end of the span is *inside* the end marker, so searching backwards found it.
-                        positionOfEnd = lastEnd;
-                    }
+                    positionOfEnd = text.IndexOf(info.BlockCommentEndString, span.End, caseSensitive: true);
+                }
+                else if (lastEnd + info.BlockCommentEndString.Length > span.End)
+                {
+                    // The end of the span is *inside* the end marker, so searching backwards found it.
+                    positionOfEnd = lastEnd;
                 }
             }
 
+            UncommentPosition(info, span, textChanges, spansToSelect, positionOfStart, positionOfEnd);
+        }
+
+        private void UncommentPosition(CommentSelectionInfo info, SnapshotSpan span, ArrayBuilder<TextChange> textChanges,
+            ArrayBuilder<CommentTrackingSpan> spansToSelect,int positionOfStart, int positionOfEnd)
+        {
             if (positionOfStart < 0 || positionOfEnd < 0)
             {
                 return;
             }
 
-            spansToSelect.Add(span.Snapshot.CreateTrackingSpan(Span.FromBounds(positionOfStart, positionOfEnd + info.BlockCommentEndString.Length), SpanTrackingMode.EdgeExclusive));
+            spansToSelect.Add(new CommentTrackingSpan(TextSpan.FromBounds(positionOfStart, positionOfEnd + info.BlockCommentEndString.Length)));
             DeleteText(textChanges, new TextSpan(positionOfStart, info.BlockCommentStartString.Length));
             DeleteText(textChanges, new TextSpan(positionOfEnd, info.BlockCommentEndString.Length));
         }
 
-        private bool TryUncommentSingleLineComments(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> spansToSelect)
+        private bool TryUncommentSingleLineComments(CommentSelectionInfo info, SnapshotSpan span, ArrayBuilder<TextChange> textChanges,
+            ArrayBuilder<CommentTrackingSpan> spansToSelect)
         {
             // First see if we're selecting any lines that have the single-line comment prefix.
             // If so, then we'll just remove the single-line comment prefix from those lines.
@@ -388,9 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 return false;
             }
 
-            spansToSelect.Add(span.Snapshot.CreateTrackingSpan(Span.FromBounds(firstLine.Start.Position,
-                                                                               lastLine.End.Position),
-                                                               SpanTrackingMode.EdgeExclusive));
+            spansToSelect.Add(new CommentTrackingSpan(TextSpan.FromBounds(firstLine.Start.Position, lastLine.End.Position)));
             return true;
         }
 
@@ -398,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// Adds edits to comment out each non-blank line, at the given indent.
         /// </summary>
         private void ApplySingleLineCommentToNonBlankLines(
-            CommentSelectionInfo info, List<TextChange> textChanges, ITextSnapshotLine firstLine, ITextSnapshotLine lastLine, int indentToCommentAt)
+            CommentSelectionInfo info, ArrayBuilder<TextChange> textChanges, ITextSnapshotLine firstLine, ITextSnapshotLine lastLine, int indentToCommentAt)
         {
             var snapshot = firstLine.Snapshot;
             for (var lineNumber = firstLine.LineNumber; lineNumber <= lastLine.LineNumber; ++lineNumber)
@@ -409,25 +319,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     InsertText(textChanges, line.Start + indentToCommentAt, info.SingleLineCommentString);
                 }
             }
-        }
-
-        /// <summary> Given a set of lines, find the minimum indent of all of the non-blank, non-whitespace lines.</summary>
-        private static int DetermineSmallestIndent(
-            SnapshotSpan span, ITextSnapshotLine firstLine, ITextSnapshotLine lastLine)
-        {
-            // TODO: This breaks if you have mixed tabs/spaces, and/or tabsize != indentsize.
-            var indentToCommentAt = int.MaxValue;
-            for (var lineNumber = firstLine.LineNumber; lineNumber <= lastLine.LineNumber; ++lineNumber)
-            {
-                var line = span.Snapshot.GetLineFromLineNumber(lineNumber);
-                var firstNonWhitespacePosition = line.GetFirstNonWhitespacePosition();
-                var firstNonWhitespaceOnLine = firstNonWhitespacePosition.HasValue
-                    ? firstNonWhitespacePosition.Value - line.Start
-                    : int.MaxValue;
-                indentToCommentAt = Math.Min(indentToCommentAt, firstNonWhitespaceOnLine);
-            }
-
-            return indentToCommentAt;
         }
 
         /// <summary>
@@ -453,10 +344,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// </summary>
         private static bool SpanIncludesAllTextOnIncludedLines(SnapshotSpan span)
         {
-            var firstAndLastLine = DetermineFirstAndLastLine(span);
+            var (firstLine, lastLine) = DetermineFirstAndLastLine(span);
 
-            var firstNonWhitespacePosition = firstAndLastLine.firstLine.GetFirstNonWhitespacePosition();
-            var lastNonWhitespacePosition = firstAndLastLine.lastLine.GetLastNonWhitespacePosition();
+            var firstNonWhitespacePosition = firstLine.GetFirstNonWhitespacePosition();
+            var lastNonWhitespacePosition = lastLine.GetLastNonWhitespacePosition();
 
             var allOnFirst = !firstNonWhitespacePosition.HasValue ||
                               span.Start.Position <= firstNonWhitespacePosition.Value;

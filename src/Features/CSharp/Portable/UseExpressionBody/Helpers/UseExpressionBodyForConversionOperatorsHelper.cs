@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override ConversionOperatorDeclarationSyntax WithBody(ConversionOperatorDeclarationSyntax declaration, BlockSyntax body)
             => declaration.WithBody(body);
 
-        protected override bool CreateReturnStatementForExpression(ConversionOperatorDeclarationSyntax declaration)
+        protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, ConversionOperatorDeclarationSyntax declaration)
             => true;
     }
 }

@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeLens
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
         Public Async Function TestCount() As Task
-            Dim input = 
+            Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
         <Document FilePath="CurrentDocument.vb"><![CDATA[
@@ -34,7 +34,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
         Public Async Function TestCapping() As Task
-            Dim input = 
+            Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
         <Document FilePath="CurrentDocument.vb"><![CDATA[
@@ -60,7 +60,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
         Public Async Function TestDisplay() As Task
-            Dim input = 
+            Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
         <Document FilePath="CurrentDocument.vb"><![CDATA[
@@ -86,7 +86,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
         Public Async Function TestMethodReferences() As Task
-            Dim input = 
+            Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
         <Document FilePath="CurrentDocument.vb"><![CDATA[
@@ -103,6 +103,36 @@ Class A
         C();
     End Sub
 End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await RunMethodReferenceTest(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
+        Public Async Function TestMethodReferencesWithDocstrings() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
+        <Document FilePath="CurrentDocument.cs"><![CDATA[
+Class A
+{
+    ''' <summary>
+    '''     <see cref="A.C"/>
+    ''' </summary>
+    {|0: Sub B()|}
+        C();
+    End Sub
+
+    {|2: Sub C()|}
+        D();
+    End Sub
+
+    {|1: Sub D()|}
+        C();
+    End Sub
+}
 ]]>
         </Document>
     </Project>

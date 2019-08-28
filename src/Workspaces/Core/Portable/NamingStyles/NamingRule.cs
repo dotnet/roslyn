@@ -4,13 +4,13 @@ using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal struct NamingRule
+    internal readonly struct NamingRule
     {
         public readonly SymbolSpecification SymbolSpecification;
         public readonly NamingStyle NamingStyle;
-        public readonly DiagnosticSeverity EnforcementLevel;
+        public readonly ReportDiagnostic EnforcementLevel;
 
-        public NamingRule(SymbolSpecification symbolSpecification, NamingStyle namingStyle, DiagnosticSeverity enforcementLevel)
+        public NamingRule(SymbolSpecification symbolSpecification, NamingStyle namingStyle, ReportDiagnostic enforcementLevel)
         {
             SymbolSpecification = symbolSpecification;
             NamingStyle = namingStyle;

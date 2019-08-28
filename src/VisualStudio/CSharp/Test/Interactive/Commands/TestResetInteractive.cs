@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
     internal class TestResetInteractive : ResetInteractive
     {
-        private IWaitIndicator _waitIndicator;
+        private readonly IWaitIndicator _waitIndicator;
 
-        private bool _buildSucceeds;
+        private readonly bool _buildSucceeds;
 
         internal int BuildProjectCount { get; private set; }
 
@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
         internal ImmutableArray<string> ProjectNamespaces { get; set; }
 
         internal ImmutableArray<string> NamespacesToImport { get; set; }
+
+        internal bool? Is64Bit { get; set; }
 
         internal string ProjectDirectory { get; set; }
 
@@ -61,13 +63,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             out ImmutableArray<string> referenceSearchPaths,
             out ImmutableArray<string> sourceSearchPaths,
             out ImmutableArray<string> projectNamespaces,
-            out string projectDirectory)
+            out string projectDirectory,
+            out bool? is64Bit)
         {
             references = References;
             referenceSearchPaths = ReferenceSearchPaths;
             sourceSearchPaths = SourceSearchPaths;
             projectNamespaces = ProjectNamespaces;
             projectDirectory = ProjectDirectory;
+            is64Bit = Is64Bit;
             return true;
         }
 

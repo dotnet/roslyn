@@ -14,14 +14,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class CSharpDeclarationComputer : DeclarationComputer
     {
-        public static void ComputeDeclarationsInSpan(SemanticModel model, TextSpan span, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken)
+        public static void ComputeDeclarationsInSpan(
+            SemanticModel model,
+            TextSpan span,
+            bool getSymbol,
+            ArrayBuilder<DeclarationInfo> builder,
+            CancellationToken cancellationToken)
         {
             ComputeDeclarations(model, model.SyntaxTree.GetRoot(cancellationToken),
                 (node, level) => !node.Span.OverlapsWith(span) || InvalidLevel(level),
                 getSymbol, builder, null, cancellationToken);
         }
 
-        public static void ComputeDeclarationsInNode(SemanticModel model, SyntaxNode node, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
+        public static void ComputeDeclarationsInNode(
+            SemanticModel model,
+            SyntaxNode node,
+            bool getSymbol,
+            ArrayBuilder<DeclarationInfo> builder,
+            CancellationToken cancellationToken,
+            int? levelsToCompute = null)
         {
             ComputeDeclarations(model, node, (n, level) => InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken);
         }
@@ -41,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             Func<SyntaxNode, int?, bool> shouldSkip,
             bool getSymbol,
-            List<DeclarationInfo> builder,
+            ArrayBuilder<DeclarationInfo> builder,
             int? levelsToCompute,
             CancellationToken cancellationToken)
         {
@@ -118,7 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EventDeclaration:
                     {
                         var t = (EventDeclarationSyntax)node;
-                        foreach (var decl in t.AccessorList.Accessors) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                        if (t.AccessorList != null)
+                        {
+                            foreach (var decl in t.AccessorList.Accessors) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                        }
                         var attributes = GetAttributes(t.AttributeLists);
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
                         return;
@@ -141,8 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArrowExpressionClause:
                     {
                         // Arrow expression clause declares getter symbol for properties and indexers.
-                        var parentProperty = node.Parent as BasePropertyDeclarationSyntax;
-                        if (parentProperty != null)
+                        if (node.Parent is BasePropertyDeclarationSyntax parentProperty)
                         {
                             builder.Add(GetExpressionBodyDeclarationInfo(parentProperty, (ArrowExpressionClauseSyntax)node, model, getSymbol, cancellationToken));
                         }
@@ -205,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         blocks.AddRange(GetAttributes(t.AttributeLists));
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, blocks, cancellationToken));
                         blocks.Free();
-                        
+
                         return;
                     }
 
@@ -219,8 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var codeBlocks = GetParameterListInitializersAndAttributes(t.ParameterList);
                         codeBlocks = codeBlocks.Concat(t.Body);
 
-                        var ctorDecl = t as ConstructorDeclarationSyntax;
-                        if (ctorDecl != null && ctorDecl.Initializer != null)
+                        if (t is ConstructorDeclarationSyntax ctorDecl && ctorDecl.Initializer != null)
                         {
                             codeBlocks = codeBlocks.Concat(ctorDecl.Initializer);
                         }
@@ -330,8 +342,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arrowExpr = ((IndexerDeclarationSyntax)node).ExpressionBody;
                     break;
                 case SyntaxKind.ConstructorDeclaration:
+                    arrowExpr = ((ConstructorDeclarationSyntax)node).ExpressionBody;
+                    break;
                 case SyntaxKind.DestructorDeclaration:
-                    return null;
+                    arrowExpr = ((DestructorDeclarationSyntax)node).ExpressionBody;
+                    break;
                 default:
                     // Don't throw, just use for the assert in case this is used in the semantic model
                     ExceptionUtilities.UnexpectedValue(node.Kind());

@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -9,8 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 {
     internal class ObjectBrowserLibraryManager : AbstractObjectBrowserLibraryManager
     {
-        public ObjectBrowserLibraryManager(IServiceProvider serviceProvider)
-            : base(LanguageNames.CSharp, Guids.CSharpLibraryId, __SymbolToolLanguage.SymbolToolLanguage_CSharp, serviceProvider)
+        public ObjectBrowserLibraryManager(IServiceProvider serviceProvider, IComponentModel componentModel, VisualStudioWorkspace workspace)
+            : base(LanguageNames.CSharp, Guids.CSharpLibraryId, __SymbolToolLanguage.SymbolToolLanguage_CSharp, serviceProvider, componentModel, workspace)
         {
         }
 

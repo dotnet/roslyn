@@ -2,13 +2,12 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
     <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.CSharp), [Shared]>
@@ -16,8 +15,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
         Inherits CSharpSnippetInfoService
 
         <ImportingConstructor>
-        Friend Sub New(listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(Nothing, listenerProvider)
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New(threadingContext As IThreadingContext, listenerProvider As IAsynchronousOperationListenerProvider)
+            MyBase.New(threadingContext, Nothing, listenerProvider)
         End Sub
 
         Friend Sub SetSnippetShortcuts(newSnippetShortcuts As String())
@@ -28,4 +28,3 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
         End Sub
     End Class
 End Namespace
-

@@ -6,14 +6,12 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// A Workspace specific to Visual Studio.
     /// </summary>
@@ -22,25 +20,19 @@ namespace Microsoft.VisualStudio.LanguageServices
         private BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
 
-        internal VisualStudioWorkspace(HostServices hostServices, WorkspaceBackgroundWork backgroundWork)
+        internal VisualStudioWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Host)
         {
-            if ((backgroundWork & WorkspaceBackgroundWork.Compile) != 0)
-            {
-                _backgroundCompiler = new BackgroundCompiler(this);
+            _backgroundCompiler = new BackgroundCompiler(this);
 
-                var cacheService = Services.GetService<IWorkspaceCacheService>();
-                if (cacheService != null)
-                {
-                    cacheService.CacheFlushRequested += OnCacheFlushRequested;
-                }
+            var cacheService = Services.GetService<IWorkspaceCacheService>();
+            if (cacheService != null)
+            {
+                cacheService.CacheFlushRequested += OnCacheFlushRequested;
             }
 
-            if ((backgroundWork & WorkspaceBackgroundWork.Parse) != 0)
-            {
-                _backgroundParser = new BackgroundParser(this);
-                _backgroundParser.Start();
-            }
+            _backgroundParser = new BackgroundParser(this);
+            _backgroundParser.Start();
         }
 
         private void OnCacheFlushRequested(object sender, EventArgs e)
@@ -86,21 +78,22 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <param name="projectId">The <see cref="ProjectId"/> for the project.</param>
         /// <returns>The <see cref="IVsHierarchy"/>, or null if the project doesn't have one.</returns>
         public abstract IVsHierarchy GetHierarchy(ProjectId projectId);
-        public abstract string GetFilePath(DocumentId documentId);
+
+        internal abstract Guid GetProjectGuid(ProjectId projectId);
+
+        public virtual string GetFilePath(DocumentId documentId)
+            => CurrentSolution.GetTextDocument(documentId)?.FilePath;
 
         /// <summary>
         /// Given a document id, opens an invisible editor for the document.
         /// </summary>
         /// <returns>A unique instance of IInvisibleEditor that must be disposed by the caller.</returns>
         internal abstract IInvisibleEditor OpenInvisibleEditor(DocumentId documentId);
-        internal abstract IInvisibleEditor OpenInvisibleEditor(IVisualStudioHostDocument document);
 
         /// <summary>
         /// Returns the <see cref="EnvDTE.FileCodeModel"/> for a given document.
         /// </summary>
         public abstract EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId);
-
-        internal abstract bool RenameFileCodeModelInstance(DocumentId documentId, string newFilePath);
 
         internal abstract object GetBrowseObject(SymbolListItem symbolListItem);
 
@@ -119,5 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             return this.Services.GetService<IMetadataService>().GetReference(filePath, properties);
         }
+
+        internal abstract string TryGetRuleSetPathForProject(ProjectId projectId);
     }
 }

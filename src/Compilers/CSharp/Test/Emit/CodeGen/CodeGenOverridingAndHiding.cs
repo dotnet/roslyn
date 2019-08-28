@@ -1109,8 +1109,8 @@ class Test
 
             var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
-        [Fact]
 
+        [ConditionalFact(typeof(ClrOnly), Reason = "Test of execution of explicitly ambiguous IL")]
         private void TestAmbiguousOverridesWarningCase()
         {
             // Tests:
@@ -3421,7 +3421,7 @@ namespace Metadata
                 expectedOutput: @"Hello 3",
                 expectedSignatures: new[]
                 {
-                    // The ILDASM output is following,and Roslyn handles it correctly. 
+                    // The ILDASM output is following, and Roslyn handles it correctly. 
                     // Verifier tool gives different output due to the limitation of Reflection
                     // @".method public hidebysig virtual instance System.Void Method<X>(" +
                     // @"System.String modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) x," +
@@ -3435,7 +3435,7 @@ namespace Metadata
         }
 
         [WorkItem(540516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540516")]
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/12422")]
         public void TestCallMethodsWithLeastCustomModifiers()
         {
             var text = @"using Metadata;

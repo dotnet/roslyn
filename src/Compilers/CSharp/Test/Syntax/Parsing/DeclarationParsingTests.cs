@@ -2730,6 +2730,205 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestStructMethodWithReadonly()
+        {
+            var text = "struct a { readonly void M() { } }";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.StructDeclaration, file.Members[0].Kind());
+            var structDecl = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, structDecl.AttributeLists.Count);
+            Assert.Equal(0, structDecl.Modifiers.Count);
+            Assert.NotNull(structDecl.Keyword);
+            Assert.Equal(SyntaxKind.StructKeyword, structDecl.Keyword.Kind());
+            Assert.NotNull(structDecl.Identifier);
+            Assert.Equal("a", structDecl.Identifier.ToString());
+            Assert.Null(structDecl.BaseList);
+            Assert.Equal(0, structDecl.ConstraintClauses.Count);
+            Assert.NotNull(structDecl.OpenBraceToken);
+            Assert.NotNull(structDecl.CloseBraceToken);
+
+            Assert.Equal(1, structDecl.Members.Count);
+
+            Assert.Equal(SyntaxKind.MethodDeclaration, structDecl.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)structDecl.Members[0];
+            Assert.Equal(0, ms.AttributeLists.Count);
+            Assert.Equal(1, ms.Modifiers.Count);
+            Assert.Equal(SyntaxKind.ReadOnlyKeyword, ms.Modifiers[0].Kind());
+            Assert.NotNull(ms.ReturnType);
+            Assert.Equal("void", ms.ReturnType.ToString());
+            Assert.NotNull(ms.Identifier);
+            Assert.Equal("M", ms.Identifier.ToString());
+            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
+            Assert.Equal(0, ms.ParameterList.Parameters.Count);
+            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
+            Assert.Equal(0, ms.ConstraintClauses.Count);
+            Assert.NotNull(ms.Body);
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+        }
+
+        [Fact]
+        public void TestReadOnlyRefReturning()
+        {
+            var text = "struct a { readonly ref readonly int M() { } }";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.StructDeclaration, file.Members[0].Kind());
+            var structDecl = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, structDecl.AttributeLists.Count);
+            Assert.Equal(0, structDecl.Modifiers.Count);
+            Assert.NotNull(structDecl.Keyword);
+            Assert.Equal(SyntaxKind.StructKeyword, structDecl.Keyword.Kind());
+            Assert.NotNull(structDecl.Identifier);
+            Assert.Equal("a", structDecl.Identifier.ToString());
+            Assert.Null(structDecl.BaseList);
+            Assert.Equal(0, structDecl.ConstraintClauses.Count);
+            Assert.NotNull(structDecl.OpenBraceToken);
+            Assert.NotNull(structDecl.CloseBraceToken);
+
+            Assert.Equal(1, structDecl.Members.Count);
+
+            Assert.Equal(SyntaxKind.MethodDeclaration, structDecl.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)structDecl.Members[0];
+            Assert.Equal(0, ms.AttributeLists.Count);
+            Assert.Equal(1, ms.Modifiers.Count);
+            Assert.Equal(SyntaxKind.ReadOnlyKeyword, ms.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.RefType, ms.ReturnType.Kind());
+            var rt = (RefTypeSyntax)ms.ReturnType;
+            Assert.Equal(SyntaxKind.RefKeyword, rt.RefKeyword.Kind());
+            Assert.Equal(SyntaxKind.ReadOnlyKeyword, rt.ReadOnlyKeyword.Kind());
+            Assert.Equal("int", rt.Type.ToString());
+            Assert.NotNull(ms.Identifier);
+            Assert.Equal("M", ms.Identifier.ToString());
+            Assert.NotNull(ms.ParameterList.OpenParenToken);
+            Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
+            Assert.Equal(0, ms.ParameterList.Parameters.Count);
+            Assert.NotNull(ms.ParameterList.CloseParenToken);
+            Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
+            Assert.Equal(0, ms.ConstraintClauses.Count);
+            Assert.NotNull(ms.Body);
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+        }
+
+        [Fact]
+        public void TestStructExpressionPropertyWithReadonly()
+        {
+            var text = "struct a { readonly int M => 42; }";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.StructDeclaration, file.Members[0].Kind());
+            var structDecl = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, structDecl.AttributeLists.Count);
+            Assert.Equal(0, structDecl.Modifiers.Count);
+            Assert.NotNull(structDecl.Keyword);
+            Assert.Equal(SyntaxKind.StructKeyword, structDecl.Keyword.Kind());
+            Assert.NotNull(structDecl.Identifier);
+            Assert.Equal("a", structDecl.Identifier.ToString());
+            Assert.Null(structDecl.BaseList);
+            Assert.Equal(0, structDecl.ConstraintClauses.Count);
+            Assert.NotNull(structDecl.OpenBraceToken);
+            Assert.NotNull(structDecl.CloseBraceToken);
+
+            Assert.Equal(1, structDecl.Members.Count);
+
+            Assert.Equal(SyntaxKind.PropertyDeclaration, structDecl.Members[0].Kind());
+            var propertySyntax = (PropertyDeclarationSyntax)structDecl.Members[0];
+            Assert.Equal(0, propertySyntax.AttributeLists.Count);
+            Assert.Equal(1, propertySyntax.Modifiers.Count);
+            Assert.Equal(SyntaxKind.ReadOnlyKeyword, propertySyntax.Modifiers[0].Kind());
+            Assert.NotNull(propertySyntax.Type);
+            Assert.Equal("int", propertySyntax.Type.ToString());
+            Assert.NotNull(propertySyntax.Identifier);
+            Assert.Equal("M", propertySyntax.Identifier.ToString());
+            Assert.NotNull(propertySyntax.ExpressionBody);
+            Assert.NotEqual(SyntaxKind.None, propertySyntax.ExpressionBody.ArrowToken.Kind());
+            Assert.NotNull(propertySyntax.ExpressionBody.Expression);
+            Assert.Equal(SyntaxKind.SemicolonToken, propertySyntax.SemicolonToken.Kind());
+        }
+
+        [Fact]
+        public void TestStructGetterPropertyWithReadonly()
+        {
+            var text = "struct a { int P { readonly get { return 42; } } }";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.StructDeclaration, file.Members[0].Kind());
+            var structDecl = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(0, structDecl.AttributeLists.Count);
+            Assert.Equal(0, structDecl.Modifiers.Count);
+            Assert.NotNull(structDecl.Keyword);
+            Assert.Equal(SyntaxKind.StructKeyword, structDecl.Keyword.Kind());
+            Assert.NotNull(structDecl.Identifier);
+            Assert.Equal("a", structDecl.Identifier.ToString());
+            Assert.Null(structDecl.BaseList);
+            Assert.Equal(0, structDecl.ConstraintClauses.Count);
+            Assert.NotNull(structDecl.OpenBraceToken);
+            Assert.NotNull(structDecl.CloseBraceToken);
+
+            Assert.Equal(1, structDecl.Members.Count);
+
+            Assert.Equal(SyntaxKind.PropertyDeclaration, structDecl.Members[0].Kind());
+            var propertySyntax = (PropertyDeclarationSyntax)structDecl.Members[0];
+            Assert.Equal(0, propertySyntax.AttributeLists.Count);
+            Assert.Equal(0, propertySyntax.Modifiers.Count);
+            Assert.NotNull(propertySyntax.Type);
+            Assert.Equal("int", propertySyntax.Type.ToString());
+            Assert.NotNull(propertySyntax.Identifier);
+            Assert.Equal("P", propertySyntax.Identifier.ToString());
+            var accessors = propertySyntax.AccessorList.Accessors;
+            Assert.Equal(1, accessors.Count);
+            Assert.Equal(1, accessors[0].Modifiers.Count);
+            Assert.Equal(SyntaxKind.ReadOnlyKeyword, accessors[0].Modifiers[0].Kind());
+        }
+
+        [Fact]
+        public void TestStructBadExpressionProperty()
+        {
+            var text =
+@"public struct S
+{
+    public int P readonly => 0;
+}
+";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal(ErrorCode.ERR_SemicolonExpected, (ErrorCode)file.Errors()[0].Code);
+            Assert.Equal(ErrorCode.ERR_InvalidMemberDecl, (ErrorCode)file.Errors()[1].Code);
+            Assert.Equal(ErrorCode.ERR_InvalidMemberDecl, (ErrorCode)file.Errors()[2].Code);
+        }
+
+        [Fact]
         public void TestClassMethodWithParameter()
         {
             var text = "class a { b X(c d) { } }";
@@ -5792,6 +5991,259 @@ unsafe struct s
         }
 
         [Fact]
+        public void CS0071_01()
+        {
+            UsingTree(@"
+public interface I2 { }
+public interface I1
+{
+    event System.Action I2.P10;
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I2");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I1");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EventDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I2");
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P10");
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CS0071_02()
+        {
+            UsingTree(@"
+public interface I2 { }
+public interface I1
+{
+    event System.Action I2.
+P10;
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I2");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I1");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EventDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I2");
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P10");
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CS0071_03()
+        {
+            UsingTree(@"
+public interface I2 { }
+public interface I1
+{
+    event System.Action I2.
+P10
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I2");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I1");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EventDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I2");
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        M(SyntaxKind.AccessorList);
+                        {
+                            M(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "P10");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CS0071_04()
+        {
+            UsingTree(@"
+public interface I2 { }
+public interface I1
+{
+    event System.Action I2.P10
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I2");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I1");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EventDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I2");
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P10");
+                        M(SyntaxKind.AccessorList);
+                        {
+                            M(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         [WorkItem(4826, "https://github.com/dotnet/roslyn/pull/4826")]
         public void NonAccessorAfterIncompleteProperty()
         {
@@ -6460,6 +6912,276 @@ public class Program
                 // (7,9): error CS1609: Modifiers cannot be placed on event accessor declarations
                 //         abstract ref remove => throw null; 
                 Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "abstract").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void NullableClassConstraint_01()
+        {
+            var tree = UsingNode(@"
+class C<T> where T : class {}
+");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullableClassConstraint_02()
+        {
+            var tree = UsingNode(@"
+class C<T> where T : struct {}
+");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullableClassConstraint_03()
+        {
+            var tree = UsingNode(@"
+class C<T> where T : class? {}
+");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                            N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullableClassConstraint_04()
+        {
+            var tree = UsingNode(@"
+class C<T> where T : struct? {}
+", TestOptions.Regular,
+                // (2,28): error CS1073: Unexpected token '?'
+                // class C<T> where T : struct? {}
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(2, 28)
+);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                            N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullableClassConstraint_05()
+        {
+            var tree = UsingNode(@"
+class C<T> where T : class? {}
+", TestOptions.Regular7_3);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                            N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullableClassConstraint_06()
+        {
+            var tree = UsingNode(@"
+class C<T> where T : struct? {}
+", TestOptions.Regular7_3,
+                // (2,28): error CS1073: Unexpected token '?'
+                // class C<T> where T : struct? {}
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(2, 28)
+);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                            N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
     }
 }

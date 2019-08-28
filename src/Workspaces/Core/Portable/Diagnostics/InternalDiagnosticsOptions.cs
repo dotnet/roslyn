@@ -8,9 +8,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\Diagnostics\";
 
-        public static readonly Option<bool> BlueSquiggleForBuildDiagnostic = new Option<bool>(nameof(InternalDiagnosticsOptions), "Blue Squiggle For Build Diagnostic", defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Blue Squiggle For Build Diagnostic"));
-
         public static readonly Option<bool> CompilationEndCodeFix = new Option<bool>(nameof(InternalDiagnosticsOptions), "Enable Compilation End Code Fix", defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Enable Compilation End Code Fix"));
 

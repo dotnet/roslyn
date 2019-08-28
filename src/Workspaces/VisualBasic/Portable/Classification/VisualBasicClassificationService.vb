@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
     Friend Class VisualBasicEditorClassificationService
         Inherits AbstractClassificationService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Dim temp = ArrayBuilder(Of ClassifiedSpan).GetInstance()
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, temp, cancellationToken)

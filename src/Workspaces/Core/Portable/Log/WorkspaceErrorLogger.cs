@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.ErrorLogger
     [ExportWorkspaceService(typeof(IErrorLoggerService)), Export(typeof(IErrorLoggerService)), Shared]
     internal class WorkspaceErrorLogger : IErrorLoggerService
     {
+        [ImportingConstructor]
+        public WorkspaceErrorLogger()
+        {
+        }
+
         public void LogException(object source, Exception exception)
         {
             Logger.GetLogger()?.Log(FunctionId.Extension_Exception, LogMessage.Create(source.GetType().Name + " : " + ToLogFormat(exception)));

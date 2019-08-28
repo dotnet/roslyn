@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -9,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
     public partial class CodeGenerationTests
     {
+        [UseExportProvider]
         public class VisualBasic
         {
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -367,17 +368,17 @@ End Class";
         End RaiseEvent
     End Event
 End Class";
-                ImmutableArray<IEventSymbol> GetExplicitInterfaceEvent(SemanticModel semanticModel)
+                static ImmutableArray<IEventSymbol> GetExplicitInterfaceEvent(SemanticModel semanticModel)
                 {
                     var parameterSymbols = SpecializedCollections.EmptyList<AttributeData>();
                     return ImmutableArray.Create<IEventSymbol>(
                         new CodeGenerationEventSymbol(
-                            GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel), 
-                            default(ImmutableArray<AttributeData>),
+                            GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel),
+                            attributes: default,
                             Accessibility.Public,
-                            default(DeclarationModifiers),
+                            modifiers: default,
                             GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
-                            default,
+                            explicitInterfaceImplementations: default,
                             nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null));
                 };
 

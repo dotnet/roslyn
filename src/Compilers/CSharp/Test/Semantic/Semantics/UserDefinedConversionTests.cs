@@ -1597,5 +1597,49 @@ namespace System
 ";
             CreateEmptyCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
+        public void GenericOperatorVoidConversion()
+        {
+            var source = @"
+class C<T>
+{
+    public static implicit operator C<T>(T t) => new C<T>();
+
+    private static void M1() { }
+    private static C<object> M2()
+    {
+        return M1();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0029: Cannot implicitly convert type 'void' to 'C<object>'
+                //         return M1();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M1()").WithArguments("void", "C<object>").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
+        public void GenericOperatorVoidConversion_Cast()
+        {
+            var source = @"
+class C<T>
+{
+    public static explicit operator C<T>(T t) => new C<T>();
+
+    private static void M1() { }
+    private static C<object> M2()
+    {
+        return (C<object>) M1();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0030: Cannot convert type 'void' to 'C<object>'
+                //         return (C<object>) M1();
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>) M1()").WithArguments("void", "C<object>").WithLocation(9, 16));
+        }
     }
 }

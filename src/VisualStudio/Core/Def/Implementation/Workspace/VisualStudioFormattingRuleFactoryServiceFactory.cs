@@ -6,6 +6,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -20,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
         public VisualStudioFormattingRuleFactoryServiceFactory()
         {
         }
@@ -31,8 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private sealed class Factory : IHostDependentFormattingRuleFactoryService
         {
-            private readonly IFormattingRule _noopRule = new NoOpFormattingRule();
-
             public bool ShouldUseBaseIndentation(Document document)
             {
                 return IsContainedDocument(document);
@@ -46,84 +46,76 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private bool IsContainedDocument(Document document)
             {
                 var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                if (visualStudioWorkspace == null)
-                {
-                    return false;
-                }
-
-                var containedDocument = visualStudioWorkspace.GetHostDocument(document.Id);
-                return containedDocument is ContainedDocument;
+                return visualStudioWorkspace?.TryGetContainedDocument(document.Id) != null;
             }
 
-            public IFormattingRule CreateRule(Document document, int position)
+            public AbstractFormattingRule CreateRule(Document document, int position)
             {
-                var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                if (visualStudioWorkspace == null)
+                if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
                 {
-                    return _noopRule;
+                    return NoOpFormattingRule.Instance;
                 }
 
-                var containedDocument = visualStudioWorkspace.GetHostDocument(document.Id) as ContainedDocument;
+                var containedDocument = visualStudioWorkspace.TryGetContainedDocument(document.Id);
                 if (containedDocument == null)
                 {
-                    return _noopRule;
+                    return NoOpFormattingRule.Instance;
                 }
 
-                var textContainer = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Container;
-                var buffer = textContainer.TryGetTextBuffer() as IProjectionBuffer;
-                if (buffer == null)
+                var textContainer = document.GetTextSynchronously(CancellationToken.None).Container;
+                if (!(textContainer.TryGetTextBuffer() is IProjectionBuffer buffer))
                 {
-                    return _noopRule;
+                    return NoOpFormattingRule.Instance;
                 }
 
-                using (var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject())
+                using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
+                var spans = pooledObject.Object;
+
+                var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
+                var text = root.SyntaxTree.GetText(CancellationToken.None);
+
+                spans.AddRange(containedDocument.GetEditorVisibleSpans());
+
+                for (var i = 0; i < spans.Count; i++)
                 {
-                    var spans = pooledObject.Object;
+                    var visibleSpan = spans[i];
+                    if (visibleSpan.IntersectsWith(position) || visibleSpan.End == position)
+                    {
+                        return containedDocument.GetBaseIndentationRule(root, text, spans, i);
+                    }
+                }
 
-                    var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
-                    var text = root.SyntaxTree.GetText(CancellationToken.None);
+                // in razor (especially in @helper tag), it is possible for us to be asked for next line of visible span
+                var line = text.Lines.GetLineFromPosition(position);
+                if (line.LineNumber > 0)
+                {
+                    line = text.Lines[line.LineNumber - 1];
 
-                    spans.AddRange(containedDocument.GetEditorVisibleSpans());
-
+                    // find one that intersects with previous line
                     for (var i = 0; i < spans.Count; i++)
                     {
                         var visibleSpan = spans[i];
-                        if (visibleSpan.IntersectsWith(position) || visibleSpan.End == position)
+                        if (visibleSpan.IntersectsWith(line.Span))
                         {
                             return containedDocument.GetBaseIndentationRule(root, text, spans, i);
                         }
                     }
-
-                    // in razor (especially in @helper tag), it is possible for us to be asked for next line of visible span
-                    var line = text.Lines.GetLineFromPosition(position);
-                    if (line.LineNumber > 0)
-                    {
-                        line = text.Lines[line.LineNumber - 1];
-
-                        // find one that intersects with previous line
-                        for (var i = 0; i < spans.Count; i++)
-                        {
-                            var visibleSpan = spans[i];
-                            if (visibleSpan.IntersectsWith(line.Span))
-                            {
-                                return containedDocument.GetBaseIndentationRule(root, text, spans, i);
-                            }
-                        }
-                    }
-
-                    throw new InvalidOperationException();
                 }
+
+                FatalError.ReportWithoutCrash(
+                    new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"));
+
+                return NoOpFormattingRule.Instance;
             }
 
             public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)
             {
-                var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                if (visualStudioWorkspace == null)
+                if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
                 {
                     return changes;
                 }
 
-                var containedDocument = visualStudioWorkspace.GetHostDocument(document.Id) as ContainedDocument;
+                var containedDocument = visualStudioWorkspace.TryGetContainedDocument(document.Id);
                 if (containedDocument == null)
                 {
                     return changes;

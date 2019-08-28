@@ -1,47 +1,55 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.FormatDocument, ContentTypeNames.RoslynContentType)]
+    [Export]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
+    [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
     internal partial class FormatCommandHandler :
-        ICommandHandler<FormatDocumentCommandArgs>,
-        ICommandHandler<FormatSelectionCommandArgs>,
-        ICommandHandler<PasteCommandArgs>,
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>
+        VSCommanding.ICommandHandler<FormatDocumentCommandArgs>,
+        VSCommanding.ICommandHandler<FormatSelectionCommandArgs>,
+        IChainedCommandHandler<PasteCommandArgs>,
+        IChainedCommandHandler<TypeCharCommandArgs>,
+        IChainedCommandHandler<ReturnKeyCommandArgs>
     {
-        private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
+        public string DisplayName => EditorFeaturesResources.Automatic_Formatting;
+
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FormatCommandHandler(
-            IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            _waitIndicator = waitIndicator;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
@@ -51,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             var formattingService = document.GetLanguageService<IEditorFormattingService>();
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
-            using (var transaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
+            using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
                 var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changes.Count == 0)
@@ -59,50 +67,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     return;
                 }
 
-                if (selectionOpt.HasValue)
-                {
-                    var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-
-                    changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
-                    if (changes.Count == 0)
-                    {
-                        return;
-                    }
-                }
-
-                using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-                {
-                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
-                }
-
+                ApplyChanges(document, changes, selectionOpt, cancellationToken);
                 transaction.Complete();
             }
         }
 
-        private static CommandState GetCommandState(ITextBuffer buffer, Func<CommandState> nextHandler)
+        private void ApplyChanges(Document document, IList<TextChange> changes, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
-            if (!buffer.CanApplyChangeDocumentToWorkspace())
+            if (selectionOpt.HasValue)
+            {
+                var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+
+                changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
+                if (changes.Count == 0)
+                {
+                    return;
+                }
+            }
+
+            using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
+            {
+                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
+            }
+        }
+
+        private static bool CanExecuteCommand(ITextBuffer buffer)
+        {
+            return buffer.CanApplyChangeDocumentToWorkspace();
+        }
+
+        private static VSCommanding.CommandState GetCommandState(ITextBuffer buffer, Func<VSCommanding.CommandState> nextHandler)
+        {
+            if (!CanExecuteCommand(buffer))
             {
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return VSCommanding.CommandState.Available;
         }
 
-        public void ExecuteReturnOrTypeCommand(CommandArgs args, Action nextHandler, CancellationToken cancellationToken)
+        private static VSCommanding.CommandState GetCommandState(ITextBuffer buffer)
         {
-            // This method handles only return / type char
-            if (!(args is ReturnKeyCommandArgs || args is TypeCharCommandArgs))
-            {
-                return;
-            }
+            return CanExecuteCommand(buffer) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+        }
 
+        public void ExecuteReturnOrTypeCommand(EditorCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
+        {
             // run next handler first so that editor has chance to put the return into the buffer first.
             nextHandler();
 
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
-            if (!subjectBuffer.CanApplyChangeDocumentToWorkspace())
+            if (!CanExecuteCommand(subjectBuffer))
             {
                 return;
             }
@@ -125,24 +141,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
+            IList<TextChange> textChanges;
+
             // save current caret position
-            var caretPositionMarker = new SnapshotPoint(args.SubjectBuffer.CurrentSnapshot, caretPosition.Value);
             if (args is ReturnKeyCommandArgs)
             {
-                if (!service.SupportsFormatOnReturn ||
-                    !TryFormat(textView, document, service, ' ', caretPositionMarker, formatOnReturn: true, cancellationToken: cancellationToken))
+                if (!service.SupportsFormatOnReturn)
                 {
                     return;
                 }
+
+                textChanges = service.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
-                var typedChar = typeCharArgs.TypedChar;
-                if (!service.SupportsFormattingOnTypedCharacter(document, typedChar) ||
-                    !TryFormat(textView, document, service, typedChar, caretPositionMarker, formatOnReturn: false, cancellationToken: cancellationToken))
+                if (!service.SupportsFormattingOnTypedCharacter(document, typeCharArgs.TypedChar))
                 {
                     return;
                 }
+
+                textChanges = service.GetFormattingChangesAsync(document, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(args);
+            }
+
+            if (textChanges == null || textChanges.Count == 0)
+            {
+                return;
+            }
+
+            using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Automatic_Formatting))
+            {
+                transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
+                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChanges, cancellationToken);
+                transaction.Complete();
             }
 
             // get new caret position after formatting
@@ -154,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             var snapshotAfterFormatting = args.SubjectBuffer.CurrentSnapshot;
 
-            var oldCaretPosition = caretPositionMarker.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);
+            var oldCaretPosition = caretPosition.Value.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);
             var newCaretPosition = newCaretPositionMarker.Value.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);
             if (oldCaretPosition.Position == newCaretPosition.Position)
             {
@@ -163,6 +197,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             // caret has moved to wrong position, move it back to correct position
             args.TextView.TryMoveCaretToAndEnsureVisible(oldCaretPosition);
+        }
+
+        private CaretPreservingEditTransaction CreateEditTransaction(ITextView view, string description)
+        {
+            return new CaretPreservingEditTransaction(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
         }
     }
 }

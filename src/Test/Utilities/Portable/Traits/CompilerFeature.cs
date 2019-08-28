@@ -24,9 +24,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         DefaultLiteral,
         AsyncMain,
         IOperation,
+        Dataflow,
         NonTrailingNamedArgs,
         PrivateProtected,
         PEVerifyCompat,
         RefConditionalOperator,
+        TupleEquality,
+        StackAllocInitializer,
+        NullCoalescingAssignment,
+        AsyncStreams,
+        NullableReferenceTypes,
+        DefaultInterfaceImplementation,
     }
 }

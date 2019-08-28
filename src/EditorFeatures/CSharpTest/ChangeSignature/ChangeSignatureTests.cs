@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -55,11 +56,11 @@ class Program
 
             await TestChangeSignatureViaCommandAsync(
                 LanguageNames.CSharp,
-                markup: markup, 
+                markup: markup,
                 updatedSignature: new[] { 1, 0 },
                 expectedUpdatedInvocationDocumentCode: expectedCode);
         }
-        
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestAfterSemicolonForInvocationInExpressionStatement_ViaCodeAction()
         {

@@ -46,9 +46,26 @@ namespace Microsoft.CodeAnalysis
         bool HasReferenceTypeConstraint { get; }
 
         /// <summary>
-        /// True if the value type constraint (<c>struct</c>)was specified for the type parameter.
+        /// If <see cref="HasReferenceTypeConstraint"/> is true, returns the top-level nullability of the
+        /// <c>class</c> constraint that was specified for the type parameter. If there was no <c>class</c>
+        /// constraint, this returns <see cref="NullableAnnotation.None"/>.
+        /// </summary>
+        NullableAnnotation ReferenceTypeConstraintNullableAnnotation { get; }
+
+        /// <summary>
+        /// True if the value type constraint (<c>struct</c>) was specified for the type parameter.
         /// </summary>
         bool HasValueTypeConstraint { get; }
+
+        /// <summary>
+        /// True if the value type constraint (<c>unmanaged</c>) was specified for the type parameter.
+        /// </summary>
+        bool HasUnmanagedTypeConstraint { get; }
+
+        /// <summary>
+        /// True if the notnull constraint (<c>notnull</c>) was specified for the type parameter.
+        /// </summary>
+        bool HasNotNullConstraint { get; }
 
         /// <summary>
         /// True if the parameterless constructor constraint (<c>new()</c>) was specified for the type parameter.
@@ -59,6 +76,12 @@ namespace Microsoft.CodeAnalysis
         /// The types that were directly specified as constraints on the type parameter.
         /// </summary>
         ImmutableArray<ITypeSymbol> ConstraintTypes { get; }
+
+        /// <summary>
+        /// The top-level nullabilities that were directly specified as constraints on the
+        /// constraint types.
+        /// </summary>
+        ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations { get; }
 
         /// <summary>
         /// Get the original definition of this type symbol. If this symbol is derived from another

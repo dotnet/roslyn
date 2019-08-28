@@ -7,12 +7,13 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ExtractInterface
+    <[UseExportProvider]>
     Public Class ExtractInterfaceViewModelTests
         <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_InterfaceNameIsSameAsPassedIn() As Task
@@ -393,7 +394,7 @@ class $$MyClass
 }"]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
-            Assert.Equal("Goo<T>(T, CorrelationManager, ref int, [int?], [string], params int[])", viewModel.MemberContainers.Single().MemberName)
+            Assert.Equal("Goo<T>(T, CorrelationManager, ref int, [int?], [string], params int[])", viewModel.MemberContainers.Single().SymbolName)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
@@ -410,7 +411,7 @@ class $$MyClass
 }"]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
-            Assert.Equal("Goo", viewModel.MemberContainers.Where(Function(c) c.MemberSymbol.IsKind(SymbolKind.Property)).Single().MemberName)
+            Assert.Equal("Goo", viewModel.MemberContainers.Where(Function(c) c.Symbol.IsKind(SymbolKind.Property)).Single().SymbolName)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
@@ -423,7 +424,22 @@ class $$MyClass
 }"]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
-            Assert.Equal("this[int?, [string]]", viewModel.MemberContainers.Where(Function(c) c.MemberSymbol.IsKind(SymbolKind.Property)).Single().MemberName)
+            Assert.Equal("this[int?, [string]]", viewModel.MemberContainers.Where(Function(c) c.Symbol.IsKind(SymbolKind.Property)).Single().SymbolName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WorkItem(37176, "https://github.com/dotnet/roslyn/issues/37176")>
+        Public Async Function TestExtractInterface_MemberDisplay_NullableReferenceType() As Task
+            Dim markup = <Text><![CDATA[
+#nullable enable
+using System.Collections.Generic;
+class $$MyClass
+{
+    public void M(string? s, IEnumerable<string?> e) { }
+}"]]></Text>
+
+            Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
+            Assert.Equal("M(string?, IEnumerable<string?>)", viewModel.MemberContainers.Single(Function(c) c.Symbol.IsKind(SymbolKind.Method)).SymbolName)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
@@ -440,11 +456,11 @@ public class $$MyClass
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
             Assert.Equal(5, viewModel.MemberContainers.Count)
-            Assert.Equal("Goo()", viewModel.MemberContainers.ElementAt(0).MemberName)
-            Assert.Equal("Goo(int)", viewModel.MemberContainers.ElementAt(1).MemberName)
-            Assert.Equal("Goo(int, int)", viewModel.MemberContainers.ElementAt(2).MemberName)
-            Assert.Equal("Goo(int, string)", viewModel.MemberContainers.ElementAt(3).MemberName)
-            Assert.Equal("Goo(string)", viewModel.MemberContainers.ElementAt(4).MemberName)
+            Assert.Equal("Goo()", viewModel.MemberContainers.ElementAt(0).SymbolName)
+            Assert.Equal("Goo(int)", viewModel.MemberContainers.ElementAt(1).SymbolName)
+            Assert.Equal("Goo(int, int)", viewModel.MemberContainers.ElementAt(2).SymbolName)
+            Assert.Equal("Goo(int, string)", viewModel.MemberContainers.ElementAt(3).SymbolName)
+            Assert.Equal("Goo(string)", viewModel.MemberContainers.ElementAt(4).SymbolName)
         End Function
 
         Private Async Function GetViewModelAsync(markup As XElement,

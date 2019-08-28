@@ -81,7 +81,7 @@ public struct MemberInitializerTest
   // Code size       50 (0x32)
   .maxstack  2
   .locals init (MemberInitializerTest V_0, //i
-  MemberInitializerTest V_1)
+                MemberInitializerTest V_1)
   IL_0000:  ldloca.s   V_1
   IL_0002:  initobj    ""MemberInitializerTest""
   IL_0008:  ldloca.s   V_1
@@ -96,7 +96,7 @@ public struct MemberInitializerTest
   IL_001b:  ldfld      ""int MemberInitializerTest.x""
   IL_0020:  call       ""void System.Console.WriteLine(int)""
   IL_0025:  ldloca.s   V_0
-  IL_0027:  call       ""int MemberInitializerTest.y.get""
+  IL_0027:  call       ""readonly int MemberInitializerTest.y.get""
   IL_002c:  call       ""void System.Console.WriteLine(int)""
   IL_0031:  ret
 }");
@@ -1253,7 +1253,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1347,7 +1347,7 @@ struct A
 2
 3";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      194 (0xc2)
@@ -1485,7 +1485,7 @@ get
 get
 3";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      222 (0xde)
@@ -1815,7 +1815,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1871,7 +1871,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1927,7 +1927,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]

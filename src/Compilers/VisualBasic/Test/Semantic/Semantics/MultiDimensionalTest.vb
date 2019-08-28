@@ -1184,6 +1184,19 @@ Test1
   IL_002a:  ret
 }
 ]]>)
+            Dim tree = verifier.Compilation.SyntaxTrees.Single()
+            Dim model = verifier.Compilation.GetSemanticModel(tree)
+
+            Dim foreachSyntax = tree.GetRoot().DescendantNodes().OfType(Of ForEachStatementSyntax)().Single()
+            Dim info As ForEachStatementInfo = model.GetForEachStatementInfo(foreachSyntax)
+
+            Assert.Equal("Function System.Array.GetEnumerator() As System.Collections.IEnumerator", info.GetEnumeratorMethod.ToTestDisplayString())
+            Assert.Equal("ReadOnly Property System.Collections.IEnumerator.Current As System.Object", info.CurrentProperty.ToTestDisplayString())
+            Assert.Equal("System.Double", info.ElementType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.NarrowingValue, info.CurrentConversion.Kind)
+            Assert.Null(info.CurrentConversion.Method)
+            Assert.Equal(ConversionKind.Identity, info.ElementConversion.Kind)
+            Assert.Null(info.ElementConversion.Method)
         End Sub
 
         <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>

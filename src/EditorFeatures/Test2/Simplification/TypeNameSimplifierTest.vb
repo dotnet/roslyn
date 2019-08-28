@@ -2,6 +2,7 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
@@ -1467,9 +1468,93 @@ class C1
 
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCSharpSimplifyToVarCorrect() As Task
+        Public Async Function TestCSharpSimplifyToVarLocalDeclaration() As Task
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
+            }
 
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class Program
+{
+    void Main()
+    {
+        {|Simplify:int|} i = 0;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class Program
+{
+    void Main()
+    {
+        var i = 0;
+    }
+}
+</code>
+
+            Await TestAsync(input, expected, simplificationOption)
+        End Function
+
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharpSimplifyToVarForeachDecl() As Task
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
+            }
+
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System.Collections.Generic;
+class Program
+{
+    void Main()
+    {
+        foreach ({|Simplify:int|} item in new List&lt;int&gt;()) { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+using System.Collections.Generic;
+class Program
+{
+    void Main()
+    {
+        foreach (var item in new List&lt;int&gt;()) { }
+    }
+}
+</code>
+
+            Await TestAsync(input, expected, simplificationOption)
+        End Function
+
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharpSimplifyToVarCorrect() As Task
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
+            }
 
             Dim input =
 <Workspace>
@@ -1517,7 +1602,7 @@ class Program
 
         var d = new D();
 
-        foreach (var item in new List&lt;int&gt;()) { }
+        foreach (int item in new List&lt;int&gt;()) { }
 
         using (var file = new StreamReader("C:\\myfile.txt")) {}
 
@@ -1535,8 +1620,12 @@ class Program
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect_QualifiedTypeNames() As Task
-
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
+            }
 
             Dim input =
 <Workspace>
@@ -3049,7 +3138,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone_CSharp() As Task
+        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionSilent_CSharp() As Task
             Dim input =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -3081,7 +3170,7 @@ class C
 }
 ]]>
                 </text>
-            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.None))
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.Silent))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -5630,7 +5719,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone_VisualBasic() As Task
+        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionSilent_VisualBasic() As Task
             Dim input =
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -5658,7 +5747,7 @@ Class C
 End Class
 ]]>
                 </text>
-            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.None))
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.Silent))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>

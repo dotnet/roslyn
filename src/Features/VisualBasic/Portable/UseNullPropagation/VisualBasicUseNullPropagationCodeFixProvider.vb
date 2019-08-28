@@ -18,5 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             ConditionalAccessExpressionSyntax,
             InvocationExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

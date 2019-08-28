@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
@@ -33,10 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         [ImportingConstructor]
         public SemanticClassificationBufferTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             ISemanticChangeNotificationService semanticChangeNotificationService,
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
             _notificationService = notificationService;
             _semanticChangeNotificationService = semanticChangeNotificationService;

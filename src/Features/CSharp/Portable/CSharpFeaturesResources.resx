@@ -123,8 +123,14 @@
   <data name="Conflict_s_detected" xml:space="preserve">
     <value>Conflict(s) detected.</value>
   </data>
-  <data name="Invert_if_statement" xml:space="preserve">
-    <value>Invert if statement</value>
+  <data name="Invert_if" xml:space="preserve">
+    <value>Invert if</value>
+  </data>
+  <data name="Add_await" xml:space="preserve">
+    <value>Add await</value>
+  </data>
+  <data name="Add_Await_and_ConfigureAwaitFalse" xml:space="preserve">
+    <value>Add await and ConfigureAwait(false)</value>
   </data>
   <data name="Simplify_lambda_expression" xml:space="preserve">
     <value>Simplify lambda expression</value>
@@ -159,11 +165,11 @@
   <data name="Autoselect_disabled_due_to_potential_range_variable_declaration" xml:space="preserve">
     <value>Autoselect disabled due to potential range variable declaration.</value>
   </data>
-  <data name="Remove_Unnecessary_Cast" xml:space="preserve">
-    <value>Remove Unnecessary Cast</value>
+  <data name="Declare_as_nullable" xml:space="preserve">
+    <value>Declare as nullable</value>
   </data>
-  <data name="Cast_is_redundant" xml:space="preserve">
-    <value>Cast is redundant</value>
+  <data name="Fix_return_type" xml:space="preserve">
+    <value>Fix return type</value>
   </data>
   <data name="Simplify_name_0" xml:space="preserve">
     <value>Simplify name '{0}'</value>
@@ -310,6 +316,18 @@
     <value>foreach statement</value>
     <comment>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="asynchronous_foreach_statement" xml:space="preserve">
+    <value>asynchronous foreach statement</value>
+    <comment>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="using_declaration" xml:space="preserve">
+    <value>using declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="asynchronous_using_declaration" xml:space="preserve">
+    <value>asynchronous using declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
   <data name="checked_statement" xml:space="preserve">
     <value>checked statement</value>
     <comment>{Locked="checked"} "checked" is a C# keyword and should not be localized.</comment>
@@ -318,9 +336,13 @@
     <value>unchecked statement</value>
     <comment>{Locked="unchecked"} "unchecked" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="yield_statement" xml:space="preserve">
-    <value>yield statement</value>
-    <comment>{Locked="yield"} "yield" is a C# keyword and should not be localized.</comment>
+  <data name="yield_return_statement" xml:space="preserve">
+    <value>yield return statement</value>
+    <comment>{Locked="yield return"} "yield return" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="yield_break_statement" xml:space="preserve">
+    <value>yield break statement</value>
+    <comment>{Locked="yield break"} "yield break" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="await_expression" xml:space="preserve">
     <value>await expression</value>
@@ -387,8 +409,9 @@
     <value>ref local or expression</value>
     <comment>{Locked="ref"} "ref" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="v7_switch" xml:space="preserve">
-    <value>C# 7 enhanced switch statement</value>
+  <data name="switch_statement" xml:space="preserve">
+    <value>switch statement</value>
+    <comment>{Locked="switch"} "switch" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="global_statement" xml:space="preserve">
     <value>global statement</value>
@@ -497,8 +520,8 @@
   <data name="Add_this" xml:space="preserve">
     <value>Add 'this.'</value>
   </data>
-  <data name="Convert_if_to_switch" xml:space="preserve">
-    <value>Convert 'if' to 'switch'</value>
+  <data name="Convert_to_switch" xml:space="preserve">
+    <value>Convert to 'switch'</value>
   </data>
   <data name="Warning_Extracting_a_local_function_reference_may_produce_invalid_code" xml:space="preserve">
     <value>Warning: Extracting a local function reference may produce invalid code</value>
@@ -517,5 +540,130 @@
   </data>
   <data name="Use_is_null_check" xml:space="preserve">
     <value>Use 'is null' check</value>
+  </data>
+  <data name="Add_parentheses_around_conditional_expression_in_interpolated_string" xml:space="preserve">
+    <value>Add parentheses</value>
+  </data>
+  <data name="Convert_to_foreach" xml:space="preserve">
+    <value>Convert to 'foreach'</value>
+  </data>
+  <data name="Convert_to_for" xml:space="preserve">
+    <value>Convert to 'for'</value>
+  </data>
+  <data name="if_statement_can_be_simplified" xml:space="preserve">
+    <value>'if' statement can be simplified</value>
+  </data>
+  <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
+    <value>Allow unsafe code in this project</value>
+  </data>
+  <data name="Add_Obsolete" xml:space="preserve">
+    <value>Add [Obsolete]</value>
+  </data>
+  <data name="Convert_to_method" xml:space="preserve">
+    <value>Convert to method</value>
+  </data>
+  <data name="Add_accessibility_modifiers" xml:space="preserve">
+    <value>Add accessibility modifiers</value>
+  </data>
+  <data name="Add_remove_braces_for_single_line_control_statements" xml:space="preserve">
+    <value>Add/remove braces for single-line control statements</value>
+  </data>
+  <data name="Apply_language_framework_type_preferences" xml:space="preserve">
+    <value>Apply language/framework type preferences</value>
+  </data>
+  <data name="Apply_implicit_explicit_type_preferences" xml:space="preserve">
+    <value>Apply implicit/explicit type preferences</value>
+  </data>
+  <data name="Apply_this_qualification_preferences" xml:space="preserve">
+    <value>Apply 'this.' qualification preferences</value>
+  </data>
+  <data name="Sort_accessibility_modifiers" xml:space="preserve">
+    <value>Sort accessibility modifiers</value>
+  </data>
+  <data name="Apply_expression_block_body_preferences" xml:space="preserve">
+    <value>Apply expression/block body preferences</value>
+  </data>
+  <data name="Apply_inline_out_variable_preferences" xml:space="preserve">
+    <value>Apply inline 'out' variables preferences</value>
+  </data>
+  <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
+    <value>Apply object/collection initialization preferences</value>
+  </data>
+  <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
+    <value>Make private fields readonly when possible</value>
+  </data>
+  <data name="Remove_unnecessary_casts" xml:space="preserve">
+    <value>Remove unnecessary casts</value>
+  </data>
+  <data name="Remove_unused_variables" xml:space="preserve">
+    <value>Remove unused variables</value>
+  </data>
+  <data name="Use_0" xml:space="preserve">
+    <value>Use '{0}'</value>
+  </data>
+  <data name="Add_missing_usings" xml:space="preserve">
+    <value>Add missing usings</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Introduce_using_statement" xml:space="preserve">
+    <value>Introduce 'using' statement</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Unseal_class_0" xml:space="preserve">
+    <value>Unseal class '{0}'</value>
+  </data>
+  <data name="Make_ref_struct" xml:space="preserve">
+    <value>Make 'ref struct'</value>
+    <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
+  </data>
+  <data name="Sort_Usings" xml:space="preserve">
+    <value>&amp;Sort Usings</value>
+  </data>
+  <data name="Convert_switch_statement_to_expression" xml:space="preserve">
+    <value>Convert switch statement to expression</value>
+  </data>
+  <data name="Use_switch_expression" xml:space="preserve">
+    <value>Use 'switch' expression</value>
+  </data>
+  <data name="Misplaced_using_directive" xml:space="preserve">
+    <value>Misplaced using directive</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Move_misplaced_using_directives" xml:space="preserve">
+    <value>Move misplaced using directives</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Using_directives_must_be_placed_inside_of_a_namespace_declaration" xml:space="preserve">
+    <value>Using directives must be placed inside of a namespace declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Using_directives_must_be_placed_outside_of_a_namespace_declaration" xml:space="preserve">
+    <value>Using directives must be placed outside of a namespace declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Warning_colon_Moving_using_directives_may_change_code_meaning" xml:space="preserve">
+    <value>Warning: Moving using directives may change code meaning.</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="_0_is_not_null_here" xml:space="preserve">
+    <value>'{0}' is not null here.</value>
+  </data>
+  <data name="_0_may_be_null_here" xml:space="preserve">
+    <value>'{0}' may be null here.</value>
+  </data>
+  <data name="Assign_out_parameters" xml:space="preserve">
+    <value>Assign 'out' parameters</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Assign_out_parameters_at_start" xml:space="preserve">
+    <value>Assign 'out' parameters (at start)</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="local_variable_declaration" xml:space="preserve">
+    <value>local variable declaration</value>
+  </data>
+  <data name="switch_statement_case_clause" xml:space="preserve">
+    <value>switch statement case clause</value>
+    <comment>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</comment>
   </data>
 </root>

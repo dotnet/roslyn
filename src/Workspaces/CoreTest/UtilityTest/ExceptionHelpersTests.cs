@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestExecuteWithErrorReportingThrowOperationCanceledException()
         {
-            bool finallyExecuted = false;
+            var finallyExecuted = false;
 
             void a()
             {
@@ -50,46 +50,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             Assert.True(false, "Should have returned in the catch block before this point.");
-        }
-        [Fact]
-        public void TestExecuteWithErrorReportingWithSuppressFailFast()
-        {
-            bool finallyExecuted = false;
-
-            void a()
-            {
-                try
-                {
-                    throw new ArgumentOutOfRangeException();
-                }
-                finally
-                {
-                    finallyExecuted = true;
-                }
-            }
-
-            try
-            {
-                using (ExceptionHelpers.SuppressFailFast())
-                {
-                    try
-                    {
-                        a();
-                    }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-
-                    Assert.True(false, "Should not get here because an exception should be thrown before this point.");
-                }
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                Assert.True(finallyExecuted);
-            }
-
-            Assert.False(ExceptionHelpers.IsFailFastSuppressed());
         }
     }
 }

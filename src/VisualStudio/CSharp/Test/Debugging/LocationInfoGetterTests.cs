@@ -5,29 +5,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Debugging;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
+    [UseExportProvider]
     public class LocationInfoGetterTests
     {
         private async Task TestAsync(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup, parseOptions))
-            {
-                var testDocument = workspace.Documents.Single();
-                var position = testDocument.CursorPosition.Value;
-                var locationInfo = await LocationInfoGetter.GetInfoAsync(
-                    workspace.CurrentSolution.Projects.Single().Documents.Single(),
-                    position,
-                    CancellationToken.None);
+            using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions);
 
-                Assert.Equal(expectedName, locationInfo.Name);
-                Assert.Equal(expectedLineOffset, locationInfo.LineOffset);
-            }
+            var testDocument = workspace.Documents.Single();
+            var position = testDocument.CursorPosition.Value;
+            var locationInfo = await LocationInfoGetter.GetInfoAsync(
+                workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                position,
+                CancellationToken.None);
+
+            Assert.Equal(expectedName, locationInfo.Name);
+            Assert.Equal(expectedLineOffset, locationInfo.LineOffset);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]

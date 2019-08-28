@@ -138,8 +138,14 @@
   <data name="Conflict_s_detected" xml:space="preserve">
     <value>Conflict(s) detected.</value>
   </data>
-  <data name="Invert_If_statement" xml:space="preserve">
-    <value>Invert If statement</value>
+  <data name="Invert_If" xml:space="preserve">
+    <value>Invert If</value>
+  </data>
+  <data name="Add_Await" xml:space="preserve">
+    <value>Add Await</value>
+  </data>
+  <data name="Add_Await_and_ConfigureAwaitFalse" xml:space="preserve">
+    <value>Add Await and 'ConfigureAwait(false)'</value>
   </data>
   <data name="Move_the_0_statement_to_line_1" xml:space="preserve">
     <value>Move the '{0}' statement to line {1}.</value>
@@ -212,12 +218,6 @@
   </data>
   <data name="Fix_Incorrect_Function_Return_Type" xml:space="preserve">
     <value>Fix Incorrect Function Return Type</value>
-  </data>
-  <data name="Remove_Unnecessary_Cast" xml:space="preserve">
-    <value>Remove Unnecessary Cast</value>
-  </data>
-  <data name="Cast_is_redundant" xml:space="preserve">
-    <value>Cast is redundant</value>
   </data>
   <data name="Simplify_name_0" xml:space="preserve">
     <value>Simplify name '{0}'</value>
@@ -1175,7 +1175,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>Type '{0}' is not defined.</value>
   </data>
   <data name="Add_Overloads" xml:space="preserve">
-    <value>Add Overloads</value>
+    <value>Add 'Overloads'</value>
+    <comment>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</comment>
   </data>
   <data name="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll" xml:space="preserve">
     <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
@@ -1235,16 +1236,49 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_Async_Sub" xml:space="preserve">
     <value>Make Async Sub</value>
   </data>
+  <data name="Multiple_Types" xml:space="preserve">
+    <value>&lt;Multiple Types&gt;</value>
+  </data>
   <data name="Add_Me" xml:space="preserve">
     <value>Add 'Me.'</value>
   </data>
-  <data name="Convert_If_to_Select_Case" xml:space="preserve">
-    <value>Convert 'If' to 'Select Case'</value>
+  <data name="Convert_to_Select_Case" xml:space="preserve">
+    <value>Convert to 'Select Case'</value>
   </data>
   <data name="Use_Is_Nothing_check" xml:space="preserve">
     <value>Use 'Is Nothing' check</value>
   </data>
   <data name="Use_IsNot_Nothing_check" xml:space="preserve">
     <value>Use 'IsNot Nothing' check</value>
+  </data>
+  <data name="Convert_to_For_Each" xml:space="preserve">
+    <value>Convert to 'For Each'</value>
+  </data>
+  <data name="Convert_to_For" xml:space="preserve">
+    <value>Convert  to 'For'</value>
+  </data>
+  <data name="If_statement_can_be_simplified" xml:space="preserve">
+    <value>'If' statement can be simplified</value>
+  </data>
+  <data name="Add_Obsolete" xml:space="preserve">
+    <value>Add &lt;Obsolete&gt;</value>
+  </data>
+  <data name="Add_missing_Imports" xml:space="preserve">
+    <value>Add missing Imports</value>
+    <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Add_Shadows" xml:space="preserve">
+    <value>Add 'Shadows'</value>
+    <comment>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Introduce_Using_statement" xml:space="preserve">
+    <value>Introduce 'Using' statement</value>
+    <comment>{Locked="Using"} "Using" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Make_0_inheritable" xml:space="preserve">
+    <value>Make '{0}' inheritable</value>
+  </data>
+  <data name="Sort_Imports" xml:space="preserve">
+    <value>&amp;Sort Imports</value>
   </data>
 </root>

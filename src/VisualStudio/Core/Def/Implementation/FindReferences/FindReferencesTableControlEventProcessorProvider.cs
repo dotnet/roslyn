@@ -20,6 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     [Order(Before = Priority.Default)]
     internal class FindUsagesTableControlEventProcessorProvider : ITableControlEventProcessorProvider
     {
+        [ImportingConstructor]
+        public FindUsagesTableControlEventProcessorProvider()
+        {
+        }
+
         public ITableControlEventProcessor GetAssociatedEventProcessor(
             IWpfTableControl tableControl)
         {

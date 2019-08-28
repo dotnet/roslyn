@@ -535,8 +535,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MakeEndOfLineTrivia(GetNextChar)
         End Function
 
+        Private Function TryGet(num As Integer, ByRef ch As Char) As Boolean
+            If CanGet(num) Then
+                ch = Peek(num)
+                Return True
+            End If
+            Return False
+        End Function
+
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
-            If Not CanGet() Then
+            Dim ch As Char = ChrW(0)
+            If Not TryGet(0, ch) Then
                 Return False
             End If
 
@@ -544,31 +553,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             End If
 
-            Dim ch As Char = Peek()
             If Not IsUnderscore(ch) Then
                 Return False
             End If
 
-            Dim Here = 1
-            While CanGet(Here)
-                ch = Peek(Here)
-                If IsWhitespace(ch) Then
-                    Here += 1
-                Else
-                    Exit While
-                End If
-            End While
+            Dim Here = GetWhitespaceLength(1)
+            TryGet(Here, ch)
 
-            ' Line continuation is valid at the end of the
-            ' line or at the end of file only.
-            Dim atNewLine = IsNewLine(ch)
-            If Not atNewLine AndAlso CanGet(Here) Then
+            Dim foundComment = IsSingleQuote(ch)
+            Dim atNewLine As Boolean = IsNewLine(ch)
+            If Not foundComment AndAlso Not atNewLine AndAlso CanGet(Here) Then
                 Return False
             End If
 
             tList.Add(MakeLineContinuationTrivia(GetText(1)))
             If Here > 1 Then
                 tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
+            End If
+
+            If foundComment Then
+                Dim comment As SyntaxTrivia = ScanComment()
+                If Not CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
+                    comment = comment.WithDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1,
+                        New VisualBasicRequiredLanguageVersion(Feature.CommentsAfterLineContinuation.GetLanguageVersion()))})
+                End If
+                tList.Add(comment)
+                ' Need to call CanGet here to prevent Peek reading past EndOfBuffer. This can happen when file ends with comment but no New Line.
+                If CanGet() Then
+                    ch = Peek()
+                    atNewLine = IsNewLine(ch)
+                Else
+                    Debug.Assert(Not atNewLine)
+                End If
             End If
 
             If atNewLine Then
@@ -2677,6 +2693,11 @@ baddate:
         End Function
 
         Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
+            Dim featureFlag = feature.GetFeatureFlag()
+            If featureFlag IsNot Nothing Then
+                Return parseOptions.Features.ContainsKey(featureFlag)
+            End If
+
             Dim required = feature.GetLanguageVersion()
             Dim actual = parseOptions.LanguageVersion
             Return CInt(required) <= CInt(actual)

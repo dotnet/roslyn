@@ -81,7 +81,7 @@ End Class
             Using peReader = New PEReader(peBlob)
                 Dim entries = peReader.ReadDebugDirectory()
 
-                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
+                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
 
                 Dim codeView = entries(0)
                 Dim checksum = entries(1)
@@ -134,7 +134,7 @@ End Class
             Using peReader = New PEReader(peBlob)
                 Dim entries = peReader.ReadDebugDirectory()
 
-                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
+                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
 
                 Dim codeView = entries(0)
                 Dim checksum = entries(1)

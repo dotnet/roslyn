@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: 参照アセンブリ "{0}" が見つかりませんでした。このアセンブリが別のプロジェクトによって生成された場合、このプロジェクトをビルドする前に、その生成元のプロジェクトをビルドすることを確認してください。</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">ファイル "{0}" を読み取ることができませんでした: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">共有コンパイルに失敗しました。ツールにフォールバックします: {0}</target>
@@ -118,6 +123,26 @@
         <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
         <target state="translated">MSB3402: pdb ファイル "{0}" の作成中にエラーが発生しました。{1}</target>
         <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">{0} には重複した項目 '{1}' が含まれており、メタデータ '{2}' の '{3}' と '{4}' が競合しています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">{0} パスの最後はスラッシュまたはバックスラッシュでなければなりません: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">{1} が true の場合、{0} 項目には (入れ子になっていない) 最上位項目が少なくとも 1 つ必要です</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">値 {0} が {1} 項目にないか、対応する項目が最上位ソース ルートではありません: '{2}'</target>
+        <note />
       </trans-unit>
     </body>
   </file>

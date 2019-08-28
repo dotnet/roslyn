@@ -8,7 +8,9 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tags;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -32,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         private const int InvalidSolutionVersion = -1;
 
+        private readonly IThreadingContext _threadingContext;
         private readonly ICodeRefactoringService _codeRefactoringService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeFixService _codeFixService;
@@ -45,7 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public readonly ImmutableArray<Lazy<IImageMonikerService, OrderableMetadata>> ImageMonikerServices;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SuggestedActionsSourceProvider(
+            IThreadingContext threadingContext,
             ICodeRefactoringService codeRefactoringService,
             IDiagnosticAnalyzerService diagnosticService,
             ICodeFixService codeFixService,
@@ -56,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             [ImportMany] IEnumerable<Lazy<IImageMonikerService, OrderableMetadata>> imageMonikerServices,
             [ImportMany] IEnumerable<Lazy<ISuggestedActionCallback>> actionCallbacks)
         {
+            _threadingContext = threadingContext;
             _codeRefactoringService = codeRefactoringService;
             _diagnosticService = diagnosticService;
             _codeFixService = codeFixService;
@@ -73,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Contract.ThrowIfNull(textView);
             Contract.ThrowIfNull(textBuffer);
 
-            return new SuggestedActionsSource(this, textView, textBuffer, _suggestedActionCategoryRegistry);
+            return new SuggestedActionsSource(_threadingContext, this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }
     }
 }

@@ -1,14 +1,17 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
@@ -16,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     internal class RoslynCompletionSet : CompletionSet2
     {
         private readonly ITextView _textView;
-        private readonly ForegroundThreadAffinitizedObject _foregroundThread = new ForegroundThreadAffinitizedObject();
 
         private readonly bool _highlightMatchingPortions;
         private readonly bool _showFilters;
@@ -26,8 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         protected readonly CompletionPresenterSession CompletionPresenterSession;
         private CompletionHelper _completionHelper;
 
-        protected Dictionary<CompletionItem, VSCompletion> CompletionItemMap;
-        protected CompletionItem SuggestionModeItem;
+        protected Dictionary<RoslynCompletionItem, VSCompletion> CompletionItemMap;
+        protected RoslynCompletionItem SuggestionModeItem;
+
+        private readonly Dictionary<string, CompletionItem> _displayTextToItem = new Dictionary<string, CompletionItem>();
 
         protected string FilterText;
 
@@ -80,18 +84,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         }
 
         public void SetCompletionItems(
-            IList<CompletionItem> completionItems,
-            CompletionItem selectedItem,
-            CompletionItem suggestionModeItem,
+            IList<RoslynCompletionItem> completionItems,
+            RoslynCompletionItem selectedItem,
+            RoslynCompletionItem suggestionModeItem,
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
             string filterText)
         {
-            _foregroundThread.AssertIsForeground();
+            CompletionPresenterSession.AssertIsForeground();
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
-            CompletionItemMap = CompletionItemMap ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
+            CompletionItemMap ??= new Dictionary<RoslynCompletionItem, VSCompletion>(completionItems.Count + 1);
             FilterText = filterText;
             SuggestionModeItem = suggestionModeItem;
 
@@ -112,8 +116,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         }
 
         private void CreateCompletionListBuilder(
-            CompletionItem selectedItem,
-            CompletionItem suggestionModeItem,
+            RoslynCompletionItem selectedItem,
+            RoslynCompletionItem suggestionModeItem,
             bool suggestionMode)
         {
             try
@@ -138,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
         }
 
-        private void CreateNormalCompletionListItems(IList<CompletionItem> completionItems)
+        private void CreateNormalCompletionListItems(IList<RoslynCompletionItem> completionItems)
         {
             try
             {
@@ -157,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
         }
 
-        private VSCompletion GetVSCompletion(CompletionItem item, string displayText = null)
+        private VSCompletion GetVSCompletion(RoslynCompletionItem item, string displayText = null)
         {
             if (!CompletionItemMap.TryGetValue(item, out var value))
             {
@@ -165,12 +169,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 CompletionItemMap.Add(item, value);
             }
 
-            value.DisplayText = displayText ?? item.DisplayText;
+            value.DisplayText = displayText ?? (item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix);
+            _displayTextToItem[value.DisplayText] = item;
 
             return value;
         }
 
-        public CompletionItem GetCompletionItem(VSCompletion completion)
+        public RoslynCompletionItem GetCompletionItem(VSCompletion completion)
         {
             // Linear search is ok since this is only called by the user manually selecting 
             // an item.  Creating a reverse mapping uses too much memory and affects GCs.
@@ -194,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private CompletionHelper GetCompletionHelper()
         {
-            _foregroundThread.AssertIsForeground();
+            CompletionPresenterSession.AssertIsForeground();
             if (_completionHelper == null)
             {
                 var document = GetDocument();
@@ -215,6 +220,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return null;
             }
 
+            if (!_displayTextToItem.TryGetValue(displayText, out var completionItem))
+            {
+                return null;
+            }
+
             var pattern = this.FilterText;
             if (_highlightMatchingPortions && !string.IsNullOrWhiteSpace(pattern))
             {
@@ -222,9 +232,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 if (completionHelper != null)
                 {
                     var highlightedSpans = completionHelper.GetHighlightedSpans(
-                        displayText, pattern, CultureInfo.CurrentCulture);
+                        completionItem.DisplayText, pattern, CultureInfo.CurrentCulture);
 
-                    return highlightedSpans.SelectAsArray(s => s.ToSpan());
+                    // If there's a prefix that we're displaying, then actually shift over the
+                    // highlight spans accordingly as they're computed against the middle
+                    // 'DisplayText' section.
+                    var offset = completionItem.DisplayTextPrefix?.Length ?? 0;
+
+                    return highlightedSpans.SelectAsArray(s => new Span(s.Start + offset, s.Length));
                 }
             }
 

@@ -2,9 +2,99 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../CSharpVSResources.resx">
     <body>
+      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
+        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
+        <target state="translated">Tüm C# biçimlendirme kurallarını (girinti, kaydırma, boşluklar) uygula</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Coding_Conventions">
+        <source>C# Coding Conventions</source>
+        <target state="translated">C# kodlama kuralları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Formatting_Rules">
+        <source>C# Formatting Rules</source>
+        <target state="translated">C# biçimlendirme kuralları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="translated">At</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document_settings">
+        <source>Format Document Settings (Experiment) </source>
+        <target state="translated">Belge Biçimlendirme Ayarları (Deneme)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">Genel</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">Olay Aboneliği Oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
+        <target state="translated">İlişkisel işleçleri içinde: &lt;&gt; = &lt; &gt; = == gibi! =</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inside_namespace">
+        <source>Inside namespace</source>
+        <target state="translated">namespace içinde</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">namespace dışında</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
+        <source>Perform additional code cleanup during formatting</source>
+        <target state="translated">Biçimlendirme sırasında ek kod temizleme gerçekleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">Başvuru eşitliği denetimleri için 'is null'ı tercih et</target>
+        <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_switch_expression">
+        <source>Prefer switch expression</source>
+        <target state="translated">Switch ifadesini tercih et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preferred_using_directive_placement">
+        <source>Preferred 'using' directive placement</source>
+        <target state="translated">Tercih edilen 'using' yönergesi yerleştirmesi</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">Gereksiz Kullanımları Kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="translated">İçeri aktarılmayan ad alanlarındaki öğeleri göster (deneysel)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="translated">Using’leri sırala</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
+        <source>Suggest usings for types in .NET Framework assemblies</source>
+        <target state="translated">.NET Framework bütünleştirilmiş kodlarında türler için using öner</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -322,6 +412,11 @@
         <target state="translated">Anahtar sözcükler için yeni satır seçenekleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">Kullanılmayan yerel</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
         <target state="translated">Yerelleri üretirken 'var' kullan</target>
@@ -434,7 +529,7 @@
       </trans-unit>
       <trans-unit id="Completion_Lists">
         <source>Completion Lists</source>
-        <target state="translated">Tamamlanma Listeleri</target>
+        <target state="translated">Tamamlama Listeleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_In_Completion_List">
@@ -457,11 +552,6 @@
         <target state="translated">Özellikler, dizin oluşturucular ve olaylar için yeni satıra açık ayraç yerleştir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_reference_assemblies">
-        <source>Suggest usings for types in _reference assemblies</source>
-        <target state="translated">_reference bütünleştirilmiş kodlarında türler için using öner</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">_NuGet paketlerinde türler için using öner</target>
@@ -480,6 +570,11 @@
       <trans-unit id="Elsewhere">
         <source>Elsewhere</source>
         <target state="translated">Başka bir yerde</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="translated">Birden çok satırdaysa</target>
         <note />
       </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
@@ -519,13 +614,18 @@
       </trans-unit>
       <trans-unit id="Prefer_var">
         <source>Prefer 'var'</source>
-        <target state="translated">var' tercih et</target>
+        <target state="translated">'var' tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="this_preferences_colon">
         <source>'this.' preferences:</source>
         <target state="translated">'This' tercihleri:</target>
         <note />
+      </trans-unit>
+      <trans-unit id="using_preferences_colon">
+        <source>'using' preferences:</source>
+        <target state="translated">'using' tercihleri:</target>
+        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="var_preferences_colon">
         <source>'var' preferences:</source>
@@ -534,12 +634,12 @@
       </trans-unit>
       <trans-unit id="Do_not_prefer_this">
         <source>Do not prefer 'this.'</source>
-        <target state="translated">This' öğesini tercih etme.</target>
+        <target state="translated">'This' tercih edersiniz</target>
         <note />
       </trans-unit>
       <trans-unit id="predefined_type_preferences_colon">
         <source>predefined type preferences:</source>
-        <target state="translated">önceden tanımlanmış tür tercihleri:</target>
+        <target state="translated">Önceden tanımlanmış tür tercihleri:</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string_literals_on_enter">
@@ -619,12 +719,12 @@
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching_over_is_with_cast_check">
         <source>Prefer pattern matching over 'is' with 'cast' check</source>
-        <target state="translated">cast' ile 'is' denetimi yerine desen eşleştirme kullan</target>
+        <target state="translated">'cast' ile 'is' denetimi yerine desen eşleştirme kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
         <source>Prefer pattern matching over 'as' with 'null' check</source>
-        <target state="translated">null' ile 'as' denetimi yerine desen eşleştirme kullan</target>
+        <target state="translated">'null' ile 'as' denetimi yerine desen eşleştirme kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_block_body">
@@ -672,14 +772,9 @@
         <target state="translated">Etkin olmayan kullanımları soluklaştır</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_over_ReferenceEquals">
-        <source>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</source>
-        <target state="translated">object.ReferenceEquals(..., null)' yerine 'is null' tercih et</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'string.Format' calls</source>
-        <target state="translated">string.Format' çağrılarındaki geçersiz yer tutucuları bildir</target>
+        <target state="translated">'string.Format' çağrılarındaki geçersiz yer tutucuları bildir</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_using_directive_groups">
@@ -690,6 +785,16 @@
       <trans-unit id="Show_name_suggestions">
         <source>Show name s_uggestions</source>
         <target state="translated">Ad ö_nerilerini göster</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
+        <target state="translated">Aritmetik işleçleri içinde: * / % + - &lt;&gt; &lt;&gt;&amp; ^ |</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators:  &amp;&amp;   ||   ??</source>
+        <target state="translated">Diğer ikili işleçler içinde: &amp; &amp; ||   ??</target>
         <note />
       </trans-unit>
     </body>

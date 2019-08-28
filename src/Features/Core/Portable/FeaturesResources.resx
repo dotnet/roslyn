@@ -255,24 +255,6 @@
   <data name="Implement_interface" xml:space="preserve">
     <value>Implement interface</value>
   </data>
-  <data name="Loading_context_from_0" xml:space="preserve">
-    <value>Loading context from '{0}'.</value>
-  </data>
-  <data name="Type_Sharphelp_for_more_information" xml:space="preserve">
-    <value>Type "#help" for more information.</value>
-  </data>
-  <data name="Specified_file_not_found_colon_0" xml:space="preserve">
-    <value>Specified file not found: {0}</value>
-  </data>
-  <data name="Specified_file_not_found" xml:space="preserve">
-    <value>Specified file not found.</value>
-  </data>
-  <data name="Searched_in_directory_colon" xml:space="preserve">
-    <value>Searched in directory:</value>
-  </data>
-  <data name="Searched_in_directories_colon" xml:space="preserve">
-    <value>Searched in directories:</value>
-  </data>
   <data name="Introduce_field_for_0" xml:space="preserve">
     <value>Introduce field for '{0}'</value>
   </data>
@@ -369,6 +351,9 @@
   <data name="Updating_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating '{0}' will prevent the debug session from continuing.</value>
   </data>
+  <data name="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine" xml:space="preserve">
+    <value>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</value>
+  </data>
   <data name="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating a complex statement containing an await expression will prevent the debug session from continuing.</value>
   </data>
@@ -413,6 +398,12 @@
   </data>
   <data name="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into an interface will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into an interface method will prevent the debug session from continuing.</value>
   </data>
   <data name="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</value>
@@ -513,12 +504,15 @@
   <data name="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session" xml:space="preserve">
     <value>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</value>
   </data>
-  <data name="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</value>
+  <data name="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Updating a '{0}' around an active statement will prevent the debug session from continuing.</value>
   </data>
   <data name="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</value>
     <comment>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</comment>
+  </data>
+  <data name="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</value>
   </data>
   <data name="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying a generic method will prevent the debug session from continuing.</value>
@@ -556,6 +550,9 @@
   <data name="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</value>
   </data>
+  <data name="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</value>
+  </data>
   <data name="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</value>
   </data>
@@ -592,35 +589,8 @@
   <data name="Generate_method_1_0" xml:space="preserve">
     <value>Generate method '{1}.{0}'</value>
   </data>
-  <data name="Failed_to_create_a_remote_process_for_interactive_code_execution" xml:space="preserve">
-    <value>Failed to create a remote process for interactive code execution.</value>
-  </data>
-  <data name="Failed_to_initialize_remote_interactive_process" xml:space="preserve">
-    <value>Failed to initialize remote interactive process.</value>
-  </data>
-  <data name="Attempt_to_connect_to_process_Sharp_0_failed_retrying" xml:space="preserve">
-    <value>Attempt to connect to process #{0} failed, retrying ...</value>
-  </data>
-  <data name="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon" xml:space="preserve">
-    <value>Failed to launch '{0}' process (exit code: {1}) with output: </value>
-  </data>
-  <data name="Hosting_process_exited_with_exit_code_0" xml:space="preserve">
-    <value>Hosting process exited with exit code {0}.</value>
-  </data>
-  <data name="Interactive_Host_not_initialized" xml:space="preserve">
-    <value>Interactive Host not initialized.</value>
-  </data>
-  <data name="Cannot_resolve_reference_0" xml:space="preserve">
-    <value>Cannot resolve reference '{0}'.</value>
-  </data>
   <data name="Requested_assembly_already_loaded_from_0" xml:space="preserve">
     <value>Requested assembly already loaded from '{0}'.</value>
-  </data>
-  <data name="plus_additional_0_1" xml:space="preserve">
-    <value> + additional {0} {1}</value>
-  </data>
-  <data name="Unable_to_create_hosting_process" xml:space="preserve">
-    <value>Unable to create hosting process.</value>
   </data>
   <data name="The_symbol_does_not_have_an_icon" xml:space="preserve">
     <value>The symbol does not have an icon.</value>
@@ -708,6 +678,12 @@ Do you want to continue?</value>
   </data>
   <data name="Remove_Suppression" xml:space="preserve">
     <value>Remove Suppression</value>
+  </data>
+  <data name="Configure_0_severity" xml:space="preserve">
+    <value>Configure {0} severity</value>
+  </data>
+  <data name="Configure_0_code_style" xml:space="preserve">
+    <value>Configure {0} code style</value>
   </data>
   <data name="Pending" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
@@ -1052,6 +1028,9 @@ This version used in: {2}</value>
   <data name="Use_pattern_matching" xml:space="preserve">
     <value>Use pattern matching</value>
   </data>
+  <data name="Use_interpolated_verbatim_string" xml:space="preserve">
+    <value>Use interpolated verbatim string</value>
+  </data>
   <data name="Use_expression_body_for_methods" xml:space="preserve">
     <value>Use expression body for methods</value>
   </data>
@@ -1088,8 +1067,8 @@ This version used in: {2}</value>
   <data name="Use_expression_body_for_properties" xml:space="preserve">
     <value>Use expression body for properties</value>
   </data>
-  <data name="Spell_check_0" xml:space="preserve">
-    <value>Spell check '{0}'</value>
+  <data name="Fix_typo_0" xml:space="preserve">
+    <value>Fix typo '{0}'</value>
   </data>
   <data name="Fully_qualify_0" xml:space="preserve">
     <value>Fully qualify '{0}'</value>
@@ -1151,6 +1130,9 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0" xml:space="preserve">
     <value>Add argument name '{0}'</value>
   </data>
+  <data name="Add_tuple_element_name_0" xml:space="preserve">
+    <value>Add tuple element name '{0}'</value>
+  </data>
   <data name="Take_0" xml:space="preserve">
     <value>Take '{0}'</value>
   </data>
@@ -1189,6 +1171,15 @@ This version used in: {2}</value>
   </data>
   <data name="Add_parameter_to_0" xml:space="preserve">
     <value>Add parameter to '{0}'</value>
+  </data>
+  <data name="Add_parameter_to_0_and_overrides_implementations" xml:space="preserve">
+    <value>Add parameter to '{0}' (and overrides/implementations)</value>
+  </data>
+  <data name="Add_to_0" xml:space="preserve">
+    <value>Add to '{0}'</value>
+  </data>
+  <data name="Related_method_signatures_found_in_metadata_will_not_be_updated" xml:space="preserve">
+    <value>Related method signatures found in metadata will not be updated.</value>
   </data>
   <data name="Generate_constructor" xml:space="preserve">
     <value>Generate constructor...</value>
@@ -1298,11 +1289,23 @@ This version used in: {2}</value>
   <data name="Generate_constructor_in_0_without_fields" xml:space="preserve">
     <value>Generate constructor in '{0}' (without fields)</value>
   </data>
+  <data name="Parentheses_can_be_removed" xml:space="preserve">
+    <value>Parentheses can be removed</value>
+  </data>
+  <data name="Remove_unnecessary_parentheses" xml:space="preserve">
+    <value>Remove unnecessary parentheses</value>
+  </data>
   <data name="Add_file_banner" xml:space="preserve">
     <value>Add file banner</value>
   </data>
   <data name="Warning_Method_overrides_symbol_from_metadata" xml:space="preserve">
     <value>Warning: Method overrides symbol from metadata</value>
+  </data>
+  <data name="Add_parentheses_for_clarity" xml:space="preserve">
+    <value>Add parentheses for clarity</value>
+  </data>
+  <data name="Parentheses_should_be_added_for_clarity" xml:space="preserve">
+    <value>Parentheses should be added for clarity</value>
   </data>
   <data name="Use_0" xml:space="preserve">
     <value>Use {0}</value>
@@ -1319,19 +1322,378 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0_including_trailing_arguments" xml:space="preserve">
     <value>Add argument name '{0}' (including trailing arguments)</value>
   </data>
-  <data name="Using_readonly_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using readonly structs will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Using_ref_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using ref structs will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Using_readonly_references_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using readonly references will prevent the debug session from continuing.</value>
-  </data>
   <data name="local_function" xml:space="preserve">
     <value>local function</value>
   </data>
   <data name="indexer_" xml:space="preserve">
     <value>indexer</value>
+  </data>
+  <data name="Alias_ambiguous_type_0" xml:space="preserve">
+    <value>Alias ambiguous type '{0}'</value>
+  </data>
+  <data name="Warning_colon_Collection_was_modified_during_iteration" xml:space="preserve">
+    <value>Warning: Collection was modified during iteration.</value>
+  </data>
+  <data name="Warning_colon_Iteration_variable_crossed_function_boundary" xml:space="preserve">
+    <value>Warning: Iteration variable crossed function boundary.</value>
+  </data>
+  <data name="Warning_colon_Collection_may_be_modified_during_iteration" xml:space="preserve">
+    <value>Warning: Collection may be modified during iteration.</value>
+  </data>
+  <data name="Add_readonly_modifier" xml:space="preserve">
+    <value>Add readonly modifier</value>
+  </data>
+  <data name="Make_field_readonly" xml:space="preserve">
+    <value>Make field readonly</value>
+  </data>
+  <data name="Convert_to_conditional_expression" xml:space="preserve">
+    <value>Convert to conditional expression</value>
+  </data>
+  <data name="Convert_to_linq" xml:space="preserve">
+    <value>Convert to LINQ</value>
+  </data>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
+  </data>
+  <data name="Convert_to_class" xml:space="preserve">
+    <value>Convert to class</value>
+  </data>
+  <data name="Convert_to_struct" xml:space="preserve">
+    <value>Convert to struct</value>
+  </data>
+  <data name="updating_usages_in_containing_member" xml:space="preserve">
+    <value>updating usages in containing member</value>
+  </data>
+  <data name="updating_usages_in_containing_project" xml:space="preserve">
+    <value>updating usages in containing project</value>
+  </data>
+  <data name="updating_usages_in_containing_type" xml:space="preserve">
+    <value>updating usages in containing type</value>
+  </data>
+  <data name="updating_usages_in_dependent_projects" xml:space="preserve">
+    <value>updating usages in dependent projects</value>
+  </data>
+  <data name="Formatting_document" xml:space="preserve">
+    <value>Formatting document</value>
+  </data>
+  <data name="Add_member_name" xml:space="preserve">
+    <value>Add member name</value>
+  </data>
+  <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use block body for lambda expressions</value>
+  </data>
+  <data name="Use_expression_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use expression body for lambda expressions</value>
+  </data>
+  <data name="Convert_to_linq_call_form" xml:space="preserve">
+    <value>Convert to LINQ (call form)</value>
+  </data>
+  <data name="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Remove_unused_member" xml:space="preserve">
+    <value>Remove unused member</value>
+  </data>
+  <data name="Private_member_0_is_unused" xml:space="preserve">
+    <value>Private member '{0}' is unused.</value>
+  </data>
+  <data name="Remove_unused_private_members" xml:space="preserve">
+    <value>Remove unused private members</value>
+  </data>
+  <data name="Remove_unread_private_members" xml:space="preserve">
+    <value>Remove unread private members</value>
+  </data>
+  <data name="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read" xml:space="preserve">
+    <value>Private member '{0}' can be removed as the value assigned to it is never read.</value>
+  </data>
+  <data name="Private_method_0_can_be_removed_as_it_is_never_invoked" xml:space="preserve">
+    <value>Private method '{0}' can be removed as it is never invoked.</value>
+  </data>
+  <data name="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked" xml:space="preserve">
+    <value>Private property '{0}' can be converted to a method as its get accessor is never invoked.</value>
+  </data>
+  <data name="Code_Quality" xml:space="preserve">
+    <value>Code Quality</value>
+  </data>
+  <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
+    <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
+  </data>
+  <data name="Change_namespace_to_0" xml:space="preserve">
+    <value>Change namespace to '{0}'</value>
+  </data>
+  <data name="Move_file_to_0" xml:space="preserve">
+    <value>Move file to '{0}'</value>
+  </data>
+  <data name="Move_file_to_project_root_folder" xml:space="preserve">
+    <value>Move file to project root folder</value>
+  </data>
+  <data name="Move_to_namespace" xml:space="preserve">
+    <value>Move to namespace...</value>
+  </data>
+  <data name="Change_to_global_namespace" xml:space="preserve">
+    <value>Change to global namespace</value>
+  </data>
+  <data name="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning" xml:space="preserve">
+    <value>Warning: Changing namespace may produce invalid code and change code meaning.</value>
+  </data>
+  <data name="Use_compound_assignment" xml:space="preserve">
+    <value>Use compound assignment</value>
+  </data>
+  <data name="Invert_conditional" xml:space="preserve">
+    <value>Invert conditional</value>
+  </data>
+  <data name="Replace_0_with_1" xml:space="preserve">
+    <value>Replace '{0}' with '{1}' </value>
+  </data>
+  <data name="Align_wrapped_parameters" xml:space="preserve">
+    <value>Align wrapped parameters</value>
+  </data>
+  <data name="Indent_all_parameters" xml:space="preserve">
+    <value>Indent all parameters</value>
+  </data>
+  <data name="Indent_wrapped_parameters" xml:space="preserve">
+    <value>Indent wrapped parameters</value>
+  </data>
+  <data name="Unwrap_all_parameters" xml:space="preserve">
+    <value>Unwrap all parameters</value>
+  </data>
+  <data name="Unwrap_and_indent_all_parameters" xml:space="preserve">
+    <value>Unwrap and indent all parameters</value>
+  </data>
+  <data name="Wrap_every_parameter" xml:space="preserve">
+    <value>Wrap every parameter</value>
+  </data>
+  <data name="Wrap_long_parameter_list" xml:space="preserve">
+    <value>Wrap long parameter list</value>
+  </data>
+  <data name="Unwrap_parameter_list" xml:space="preserve">
+    <value>Unwrap parameter list</value>
+  </data>
+  <data name="Align_wrapped_arguments" xml:space="preserve">
+    <value>Align wrapped arguments</value>
+  </data>
+  <data name="Indent_all_arguments" xml:space="preserve">
+    <value>Indent all arguments</value>
+  </data>
+  <data name="Indent_wrapped_arguments" xml:space="preserve">
+    <value>Indent wrapped arguments</value>
+  </data>
+  <data name="Unwrap_all_arguments" xml:space="preserve">
+    <value>Unwrap all arguments</value>
+  </data>
+  <data name="Unwrap_and_indent_all_arguments" xml:space="preserve">
+    <value>Unwrap and indent all arguments</value>
+  </data>
+  <data name="Wrap_every_argument" xml:space="preserve">
+    <value>Wrap every argument</value>
+  </data>
+  <data name="Wrap_long_argument_list" xml:space="preserve">
+    <value>Wrap long argument list</value>
+  </data>
+  <data name="Unwrap_argument_list" xml:space="preserve">
+    <value>Unwrap argument list</value>
+  </data>
+  <data name="Introduce_constant" xml:space="preserve">
+    <value>Introduce constant</value>
+  </data>
+  <data name="Introduce_field" xml:space="preserve">
+    <value>Introduce field</value>
+  </data>
+  <data name="Introduce_local" xml:space="preserve">
+    <value>Introduce local</value>
+  </data>
+  <data name="Introduce_query_variable" xml:space="preserve">
+    <value>Introduce query variable</value>
+  </data>
+  <data name="Failed_to_analyze_data_flow_for_0" xml:space="preserve">
+    <value>Failed to analyze data-flow for: {0}</value>
+  </data>
+  <data name="Expression_value_is_never_used" xml:space="preserve">
+    <value>Expression value is never used</value>
+  </data>
+  <data name="Unnecessary_assignment_of_a_value_to_0" xml:space="preserve">
+    <value>Unnecessary assignment of a value to '{0}'</value>
+  </data>
+  <data name="Unnecessary_assignment_of_a_value" xml:space="preserve">
+    <value>Unnecessary assignment of a value</value>
+  </data>
+  <data name="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc" xml:space="preserve">
+    <value>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</value>
+  </data>
+  <data name="Use_discarded_local" xml:space="preserve">
+    <value>Use discarded local</value>
+  </data>
+  <data name="Use_discard_underscore" xml:space="preserve">
+    <value>Use discard '_'</value>
+  </data>
+  <data name="Remove_redundant_assignment" xml:space="preserve">
+    <value>Remove redundant assignment</value>
+  </data>
+  <data name="Remove_unused_parameter" xml:space="preserve">
+    <value>Remove unused parameter</value>
+  </data>
+  <data name="Remove_unused_parameter_0" xml:space="preserve">
+    <value>Remove unused parameter '{0}'</value>
+  </data>
+  <data name="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names" xml:space="preserve">
+    <value>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</value>
+  </data>
+  <data name="Fix_formatting" xml:space="preserve">
+    <value>Fix formatting</value>
+  </data>
+  <data name="Split_into_nested_0_statements" xml:space="preserve">
+    <value>Split into nested '{0}' statements</value>
+  </data>
+  <data name="Merge_with_outer_0_statement" xml:space="preserve">
+    <value>Merge with outer '{0}' statement</value>
+  </data>
+  <data name="Split_into_consecutive_0_statements" xml:space="preserve">
+    <value>Split into consecutive '{0}' statements</value>
+  </data>
+  <data name="Merge_with_previous_0_statement" xml:space="preserve">
+    <value>Merge with previous '{0}' statement</value>
+  </data>
+  <data name="Indexing_can_be_simplified" xml:space="preserve">
+    <value>Indexing can be simplified</value>
+  </data>
+  <data name="Use_index_operator" xml:space="preserve">
+    <value>Use index operator</value>
+  </data>
+  <data name="Use_range_operator" xml:space="preserve">
+    <value>Use range operator</value>
+  </data>
+  <data name="_0_can_be_simplified" xml:space="preserve">
+    <value>{0} can be simplified</value>
+  </data>
+  <data name="Unwrap_expression" xml:space="preserve">
+    <value>Unwrap expression</value>
+  </data>
+  <data name="Wrap_expression" xml:space="preserve">
+    <value>Wrap expression</value>
+  </data>
+  <data name="Wrapping" xml:space="preserve">
+    <value>Wrapping</value>
+  </data>
+  <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API" xml:space="preserve">
+    <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>
+  </data>
+  <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</value>
+  </data>
+  <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Remove unused parameter '{0}', its initial value is never used</value>
+  </data>
+  <data name="Merge_with_nested_0_statement" xml:space="preserve">
+    <value>Merge with nested '{0}' statement</value>
+  </data>
+  <data name="Merge_with_next_0_statement" xml:space="preserve">
+    <value>Merge with next '{0}' statement</value>
+  </data>
+  <data name="Pull_0_up" xml:space="preserve">
+    <value>Pull '{0}' up</value>
+  </data>
+  <data name="Pull_members_up_to_base_type" xml:space="preserve">
+    <value>Pull members up to base type...</value>
+  </data>
+  <data name="Use_block_body_for_local_functions" xml:space="preserve">
+    <value>Use block body for local functions</value>
+  </data>
+  <data name="Use_expression_body_for_local_functions" xml:space="preserve">
+    <value>Use expression body for local functions</value>
+  </data>
+  <data name="Unwrap_call_chain" xml:space="preserve">
+    <value>Unwrap call chain</value>
+  </data>
+  <data name="Wrap_call_chain" xml:space="preserve">
+    <value>Wrap call chain</value>
+  </data>
+  <data name="Wrap_long_call_chain" xml:space="preserve">
+    <value>Wrap long call chain</value>
+  </data>
+  <data name="Pull_0_up_to_1" xml:space="preserve">
+    <value>Pull '{0}' up to '{1}'</value>
+  </data>
+  <data name="Wrap_and_align_expression" xml:space="preserve">
+    <value>Wrap and align expression</value>
+  </data>
+  <data name="Local_function_can_be_made_static" xml:space="preserve">
+    <value>Local function can be made static</value>
+  </data>
+  <data name="Make_local_function_static" xml:space="preserve">
+    <value>Make local function 'static'</value>
+  </data>
+  <data name="Use_simple_using_statement" xml:space="preserve">
+    <value>Use simple 'using' statement</value>
+  </data>
+  <data name="using_statement_can_be_simplified" xml:space="preserve">
+    <value>'using' statement can be simplified</value>
+  </data>
+  <data name="Make_readonly_fields_writable" xml:space="preserve">
+    <value>Make readonly fields writable</value>
+    <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Move_contents_to_namespace" xml:space="preserve">
+    <value>Move contents to namespace...</value>
+  </data>
+  <data name="Add_optional_parameter_to_constructor" xml:space="preserve">
+    <value>Add optional parameter to constructor</value>
+  </data>
+  <data name="Add_parameter_to_constructor" xml:space="preserve">
+    <value>Add parameter to constructor</value>
+  </data>
+  <data name="Target_type_matches" xml:space="preserve">
+    <value>Target type matches</value>
+  </data>
+  <data name="Generate_parameter_0" xml:space="preserve">
+    <value>Generate parameter '{0}'</value>
+  </data>
+  <data name="Generate_parameter_0_and_overrides_implementations" xml:space="preserve">
+    <value>Generate parameter '{0}' (and overrides/implementations)</value>
+  </data>
+  <data name="in_Source_attribute" xml:space="preserve">
+    <value>in Source (attribute)</value>
+  </data>
+  <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
+    <value>Stream must support read and seek operations.</value>
+  </data>
+  <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
+    <value>{0} must return a stream that supports read and seek operations.</value>
+  </data>
+  <data name="Dispose_objects_before_losing_scope" xml:space="preserve">
+    <value>Dispose objects before losing scope</value>
+  </data>
+  <data name="Disposable_object_created_by_0_is_never_disposed" xml:space="preserve">
+    <value>Disposable object created by '{0}' is never disposed</value>
+  </data>
+  <data name="Use_recommended_dispose_pattern" xml:space="preserve">
+    <value>Use recommended dispose pattern</value>
+  </data>
+  <data name="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally" xml:space="preserve">
+    <value>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</value>
+    <comment>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</comment>
+  </data>
+  <data name="UseRecommendedDisposePatternDescription" xml:space="preserve">
+    <value>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</value>
+  </data>
+  <data name="Disposable_fields_should_be_disposed" xml:space="preserve">
+    <value>Disposable fields should be disposed</value>
+  </data>
+  <data name="Disposable_field_0_is_never_disposed" xml:space="preserve">
+    <value>Disposable field '{0}' is never disposed</value>
+  </data>
+  <data name="DisposableFieldsShouldBeDisposedDescription" xml:space="preserve">
+    <value>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</value>
+  </data>
+  <data name="Wrap_and_align_call_chain" xml:space="preserve">
+    <value>Wrap and align call chain</value>
+  </data>
+  <data name="Wrap_and_align_long_call_chain" xml:space="preserve">
+    <value>Wrap and align long call chain</value>
+  </data>
+  <data name="Warning_colon_semantics_may_change_when_converting_statement" xml:space="preserve">
+    <value>Warning: Semantics may change when converting statement.</value>
+  </data>
+  <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
+    <value>Add null checks for all parameters</value>
   </data>
 </root>

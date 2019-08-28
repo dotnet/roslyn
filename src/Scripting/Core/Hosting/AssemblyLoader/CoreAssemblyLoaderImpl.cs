@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 //
                 // This order is necessary to avoid loading assemblies twice (by the host App and by interactive loader).
 
-                Resolving += (_, assemblyName) => 
-                    _loader.ResolveAssembly(AssemblyIdentity.FromAssemblyReference(assemblyName), _loadDirectoryOpt); 
+                Resolving += (_, assemblyName) =>
+                    _loader.ResolveAssembly(AssemblyIdentity.FromAssemblyReference(assemblyName), _loadDirectoryOpt);
             }
 
             protected override Assembly Load(AssemblyName assemblyName) => null;

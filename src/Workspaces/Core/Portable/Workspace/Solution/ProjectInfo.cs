@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -46,12 +48,30 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The path to the project file or null if there is no project file.
         /// </summary>
-        public string FilePath => Attributes.FilePath;
+        public string? FilePath => Attributes.FilePath;
 
         /// <summary>
         /// The path to the output file (module or assembly).
         /// </summary>
-        public string OutputFilePath => Attributes.OutputFilePath;
+        public string? OutputFilePath => Attributes.OutputFilePath;
+
+        /// <summary>
+        /// The path to the reference assembly output file.
+        /// </summary>
+        public string? OutputRefFilePath => Attributes.OutputRefFilePath;
+
+        /// <summary>
+        /// The default namespace of the project ("" if not defined, which means global namespace),
+        /// or null if it is unknown or not applicable. 
+        /// </summary>
+        /// <remarks>
+        /// Right now VB doesn't have the concept of "default namespace", but we conjure one in workspace 
+        /// by assigning the value of the project's root namespace to it. So various features can choose to 
+        /// use it for their own purpose.
+        /// In the future, we might consider officially exposing "default namespace" for VB project 
+        /// (e.g. through a "defaultnamespace" msbuild property)
+        /// </remarks>
+        internal string? DefaultNamespace => Attributes.DefaultNamespace;
 
         /// <summary>
         /// True if this is a submission project for interactive sessions.
@@ -68,12 +88,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The initial compilation options for the project, or null if the default options should be used.
         /// </summary>
-        public CompilationOptions CompilationOptions { get; }
+        public CompilationOptions? CompilationOptions { get; }
 
         /// <summary>
         /// The initial parse options for the source code documents in this project, or null if the default options should be used.
         /// </summary>
-        public ParseOptions ParseOptions { get; }
+        public ParseOptions? ParseOptions { get; }
 
         /// <summary>
         /// The list of source documents initially associated with the project.
@@ -101,20 +121,26 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<DocumentInfo> AdditionalDocuments { get; }
 
         /// <summary>
+        /// The list of analyzerconfig documents associated with this project.
+        /// </summary>
+        public IReadOnlyList<DocumentInfo> AnalyzerConfigDocuments { get; }
+
+        /// <summary>
         /// Type of the host object.
         /// </summary>
-        public Type HostObjectType { get; }
+        public Type? HostObjectType { get; }
 
         private ProjectInfo(
             ProjectAttributes attributes,
-            CompilationOptions compilationOptions,
-            ParseOptions parseOptions,
-            IEnumerable<DocumentInfo> documents,
-            IEnumerable<ProjectReference> projectReferences,
-            IEnumerable<MetadataReference> metadataReferences,
-            IEnumerable<AnalyzerReference> analyzerReferences,
-            IEnumerable<DocumentInfo> additionalDocuments,
-            Type hostObjectType)
+            CompilationOptions? compilationOptions,
+            ParseOptions? parseOptions,
+            IEnumerable<DocumentInfo>? documents,
+            IEnumerable<ProjectReference>? projectReferences,
+            IEnumerable<MetadataReference>? metadataReferences,
+            IEnumerable<AnalyzerReference>? analyzerReferences,
+            IEnumerable<DocumentInfo>? additionalDocuments,
+            IEnumerable<DocumentInfo>? analyzerConfigDocuments,
+            Type? hostObjectType)
         {
             Attributes = attributes;
             CompilationOptions = compilationOptions;
@@ -124,6 +150,7 @@ namespace Microsoft.CodeAnalysis
             MetadataReferences = metadataReferences.ToImmutableReadOnlyListOrEmpty();
             AnalyzerReferences = analyzerReferences.ToImmutableReadOnlyListOrEmpty();
             AdditionalDocuments = additionalDocuments.ToImmutableReadOnlyListOrEmpty();
+            AnalyzerConfigDocuments = analyzerConfigDocuments.ToImmutableReadOnlyListOrEmpty();
             HostObjectType = hostObjectType;
         }
 
@@ -136,17 +163,20 @@ namespace Microsoft.CodeAnalysis
             string name,
             string assemblyName,
             string language,
-            string filePath,
-            string outputFilePath,
-            CompilationOptions compilationOptions,
-            ParseOptions parseOptions,
-            IEnumerable<DocumentInfo> documents,
-            IEnumerable<ProjectReference> projectReferences,
-            IEnumerable<MetadataReference> metadataReferences,
-            IEnumerable<AnalyzerReference> analyzerReferences,
-            IEnumerable<DocumentInfo> additionalDocuments,
+            string? filePath,
+            string? outputFilePath,
+            string? outputRefFilePath,
+            string? defaultNamespace,
+            CompilationOptions? compilationOptions,
+            ParseOptions? parseOptions,
+            IEnumerable<DocumentInfo>? documents,
+            IEnumerable<ProjectReference>? projectReferences,
+            IEnumerable<MetadataReference>? metadataReferences,
+            IEnumerable<AnalyzerReference>? analyzerReferences,
+            IEnumerable<DocumentInfo>? additionalDocuments,
+            IEnumerable<DocumentInfo>? analyzerConfigDocuments,
             bool isSubmission,
-            Type hostObjectType,
+            Type? hostObjectType,
             bool hasAllInformation)
         {
             return new ProjectInfo(
@@ -158,6 +188,8 @@ namespace Microsoft.CodeAnalysis
                     language,
                     filePath,
                     outputFilePath,
+                    outputRefFilePath,
+                    defaultNamespace,
                     isSubmission,
                     hasAllInformation),
                 compilationOptions,
@@ -167,7 +199,37 @@ namespace Microsoft.CodeAnalysis
                 metadataReferences,
                 analyzerReferences,
                 additionalDocuments,
+                analyzerConfigDocuments,
                 hostObjectType);
+        }
+
+        // 2.7.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        /// <summary>
+        /// Create a new instance of a ProjectInfo.
+        /// </summary>
+        public static ProjectInfo Create(
+            ProjectId id,
+            VersionStamp version,
+            string name,
+            string assemblyName,
+            string language,
+            string? filePath,
+            string? outputFilePath,
+            CompilationOptions? compilationOptions,
+            ParseOptions? parseOptions,
+            IEnumerable<DocumentInfo>? documents,
+            IEnumerable<ProjectReference>? projectReferences,
+            IEnumerable<MetadataReference>? metadataReferences,
+            IEnumerable<AnalyzerReference>? analyzerReferences,
+            IEnumerable<DocumentInfo>? additionalDocuments,
+            bool isSubmission,
+            Type? hostObjectType)
+        {
+            return Create(
+                id, version, name, assemblyName, language,
+                filePath, outputFilePath, outputRefFilePath: null, defaultNamespace: null, compilationOptions, parseOptions,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments, analyzerConfigDocuments: null,
+                isSubmission, hostObjectType, hasAllInformation: true);
         }
 
         /// <summary>
@@ -179,35 +241,37 @@ namespace Microsoft.CodeAnalysis
             string name,
             string assemblyName,
             string language,
-            string filePath = null,
-            string outputFilePath = null,
-            CompilationOptions compilationOptions = null,
-            ParseOptions parseOptions = null,
-            IEnumerable<DocumentInfo> documents = null,
-            IEnumerable<ProjectReference> projectReferences = null,
-            IEnumerable<MetadataReference> metadataReferences = null,
-            IEnumerable<AnalyzerReference> analyzerReferences = null,
-            IEnumerable<DocumentInfo> additionalDocuments = null,
+            string? filePath = null,
+            string? outputFilePath = null,
+            CompilationOptions? compilationOptions = null,
+            ParseOptions? parseOptions = null,
+            IEnumerable<DocumentInfo>? documents = null,
+            IEnumerable<ProjectReference>? projectReferences = null,
+            IEnumerable<MetadataReference>? metadataReferences = null,
+            IEnumerable<AnalyzerReference>? analyzerReferences = null,
+            IEnumerable<DocumentInfo>? additionalDocuments = null,
             bool isSubmission = false,
-            Type hostObjectType = null)
+            Type? hostObjectType = null,
+            string? outputRefFilePath = null)
         {
             return Create(
                 id, version, name, assemblyName, language,
-                filePath, outputFilePath, compilationOptions, parseOptions,
-                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                filePath, outputFilePath, outputRefFilePath, defaultNamespace: null, compilationOptions, parseOptions,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments, analyzerConfigDocuments: null,
                 isSubmission, hostObjectType, hasAllInformation: true);
         }
 
         private ProjectInfo With(
-            ProjectAttributes attributes = null,
-            CompilationOptions compilationOptions = null,
-            ParseOptions parseOptions = null,
-            IEnumerable<DocumentInfo> documents = null,
-            IEnumerable<ProjectReference> projectReferences = null,
-            IEnumerable<MetadataReference> metadataReferences = null,
-            IEnumerable<AnalyzerReference> analyzerReferences = null,
-            IEnumerable<DocumentInfo> additionalDocuments = null,
-            Optional<Type> hostObjectType = default)
+            ProjectAttributes? attributes = null,
+            CompilationOptions? compilationOptions = null,
+            ParseOptions? parseOptions = null,
+            IEnumerable<DocumentInfo>? documents = null,
+            IEnumerable<ProjectReference>? projectReferences = null,
+            IEnumerable<MetadataReference>? metadataReferences = null,
+            IEnumerable<AnalyzerReference>? analyzerReferences = null,
+            IEnumerable<DocumentInfo>? additionalDocuments = null,
+            IEnumerable<DocumentInfo>? analyzerConfigDocuments = null,
+            Optional<Type?> hostObjectType = default)
         {
             var newAttributes = attributes ?? Attributes;
             var newCompilationOptions = compilationOptions ?? CompilationOptions;
@@ -217,6 +281,7 @@ namespace Microsoft.CodeAnalysis
             var newMetadataReferences = metadataReferences ?? MetadataReferences;
             var newAnalyzerReferences = analyzerReferences ?? AnalyzerReferences;
             var newAdditionalDocuments = additionalDocuments ?? AdditionalDocuments;
+            var newAnalyzerConfigDocuments = analyzerConfigDocuments ?? AnalyzerConfigDocuments;
             var newHostObjectType = hostObjectType.HasValue ? hostObjectType.Value : HostObjectType;
 
             if (newAttributes == Attributes &&
@@ -227,31 +292,38 @@ namespace Microsoft.CodeAnalysis
                 newMetadataReferences == MetadataReferences &&
                 newAnalyzerReferences == AnalyzerReferences &&
                 newAdditionalDocuments == AdditionalDocuments &&
+                newAnalyzerConfigDocuments == AnalyzerConfigDocuments &&
                 newHostObjectType == HostObjectType)
             {
                 return this;
             }
 
             return new ProjectInfo(
-                    newAttributes,
-                    newCompilationOptions,
-                    newParseOptions,
-                    newDocuments,
-                    newProjectReferences,
-                    newMetadataReferences,
-                    newAnalyzerReferences,
-                    newAdditionalDocuments,
-                    newHostObjectType);
+                newAttributes,
+                newCompilationOptions,
+                newParseOptions,
+                newDocuments,
+                newProjectReferences,
+                newMetadataReferences,
+                newAnalyzerReferences,
+                newAdditionalDocuments,
+                newAnalyzerConfigDocuments,
+                newHostObjectType);
         }
 
-        public ProjectInfo WithDocuments(IEnumerable<DocumentInfo> documents)
+        public ProjectInfo WithDocuments(IEnumerable<DocumentInfo>? documents)
         {
             return With(documents: documents.ToImmutableReadOnlyListOrEmpty());
         }
 
-        public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo> additionalDocuments)
+        public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo>? additionalDocuments)
         {
             return With(additionalDocuments: additionalDocuments.ToImmutableReadOnlyListOrEmpty());
+        }
+
+        public ProjectInfo WithAnalyzerConfigDocuments(IEnumerable<DocumentInfo>? analyzerConfigDocuments)
+        {
+            return With(analyzerConfigDocuments: analyzerConfigDocuments.ToImmutableReadOnlyListOrEmpty());
         }
 
         public ProjectInfo WithVersion(VersionStamp version)
@@ -264,7 +336,7 @@ namespace Microsoft.CodeAnalysis
             return With(attributes: Attributes.With(name: name));
         }
 
-        public ProjectInfo WithFilePath(string filePath)
+        public ProjectInfo WithFilePath(string? filePath)
         {
             return With(attributes: Attributes.With(filePath: filePath));
         }
@@ -274,32 +346,44 @@ namespace Microsoft.CodeAnalysis
             return With(attributes: Attributes.With(assemblyName: assemblyName));
         }
 
-        public ProjectInfo WithOutputFilePath(string outputFilePath)
+        public ProjectInfo WithOutputFilePath(string? outputFilePath)
         {
             return With(attributes: Attributes.With(outputPath: outputFilePath));
         }
 
-        public ProjectInfo WithCompilationOptions(CompilationOptions compilationOptions)
+        public ProjectInfo WithOutputRefFilePath(string? outputRefFilePath)
         {
+            return With(attributes: Attributes.With(outputRefPath: outputRefFilePath));
+        }
+
+        public ProjectInfo WithDefaultNamespace(string? defaultNamespace)
+        {
+            return With(attributes: Attributes.With(defaultNamespace: defaultNamespace));
+        }
+
+        public ProjectInfo WithCompilationOptions(CompilationOptions? compilationOptions)
+        {
+            // The With method here doesn't correctly handle the null value, tracked by https://github.com/dotnet/roslyn/issues/37880
             return With(compilationOptions: compilationOptions);
         }
 
-        public ProjectInfo WithParseOptions(ParseOptions parseOptions)
+        public ProjectInfo WithParseOptions(ParseOptions? parseOptions)
         {
+            // The With method here doesn't correctly handle the null value, tracked by https://github.com/dotnet/roslyn/issues/37880
             return With(parseOptions: parseOptions);
         }
 
-        public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference> projectReferences)
+        public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference>? projectReferences)
         {
             return With(projectReferences: projectReferences.ToImmutableReadOnlyListOrEmpty());
         }
 
-        public ProjectInfo WithMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
+        public ProjectInfo WithMetadataReferences(IEnumerable<MetadataReference>? metadataReferences)
         {
             return With(metadataReferences: metadataReferences.ToImmutableReadOnlyListOrEmpty());
         }
 
-        public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
+        public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference>? analyzerReferences)
         {
             return With(analyzerReferences: analyzerReferences.ToImmutableReadOnlyListOrEmpty());
         }
@@ -348,12 +432,22 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// The path to the project file or null if there is no project file.
             /// </summary>
-            public string FilePath { get; }
+            public string? FilePath { get; }
 
             /// <summary>
             /// The path to the output file (module or assembly).
             /// </summary>
-            public string OutputFilePath { get; }
+            public string? OutputFilePath { get; }
+
+            /// <summary>
+            /// The path to the reference assembly output file.
+            /// </summary>
+            public string? OutputRefFilePath { get; }
+
+            /// <summary>
+            /// The default namespace of the project.
+            /// </summary>
+            public string? DefaultNamespace { get; }
 
             /// <summary>
             /// True if this is a submission project for interactive sessions.
@@ -373,8 +467,10 @@ namespace Microsoft.CodeAnalysis
                 string name,
                 string assemblyName,
                 string language,
-                string filePath,
-                string outputFilePath,
+                string? filePath,
+                string? outputFilePath,
+                string? outputRefFilePath,
+                string? defaultNamespace,
                 bool isSubmission,
                 bool hasAllInformation)
             {
@@ -386,17 +482,21 @@ namespace Microsoft.CodeAnalysis
                 Version = version;
                 FilePath = filePath;
                 OutputFilePath = outputFilePath;
+                OutputRefFilePath = outputRefFilePath;
+                DefaultNamespace = defaultNamespace;
                 IsSubmission = isSubmission;
                 HasAllInformation = hasAllInformation;
             }
 
             public ProjectAttributes With(
                 VersionStamp? version = default,
-                string name = null,
-                string assemblyName = null,
-                string language = null,
-                Optional<string> filePath = default,
-                Optional<string> outputPath = default,
+                string? name = null,
+                string? assemblyName = null,
+                string? language = null,
+                Optional<string?> filePath = default,
+                Optional<string?> outputPath = default,
+                Optional<string?> outputRefPath = default,
+                Optional<string?> defaultNamespace = default,
                 Optional<bool> isSubmission = default,
                 Optional<bool> hasAllInformation = default)
             {
@@ -406,6 +506,8 @@ namespace Microsoft.CodeAnalysis
                 var newLanguage = language ?? Language;
                 var newFilepath = filePath.HasValue ? filePath.Value : FilePath;
                 var newOutputPath = outputPath.HasValue ? outputPath.Value : OutputFilePath;
+                var newOutputRefPath = outputRefPath.HasValue ? outputRefPath.Value : OutputRefFilePath;
+                var newDefaultNamespace = defaultNamespace.HasValue ? defaultNamespace.Value : DefaultNamespace;
                 var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : IsSubmission;
                 var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
 
@@ -415,6 +517,8 @@ namespace Microsoft.CodeAnalysis
                     newLanguage == Language &&
                     newFilepath == FilePath &&
                     newOutputPath == OutputFilePath &&
+                    newOutputRefPath == OutputRefFilePath &&
+                    newDefaultNamespace == DefaultNamespace &&
                     newIsSubmission == IsSubmission &&
                     newHasAllInformation == HasAllInformation)
                 {
@@ -422,16 +526,20 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return new ProjectAttributes(
-                        Id,
-                        newVersion,
-                        newName,
-                        newAssemblyName,
-                        newLanguage,
-                        newFilepath,
-                        newOutputPath,
-                        newIsSubmission,
-                        newHasAllInformation);
+                    Id,
+                    newVersion,
+                    newName,
+                    newAssemblyName,
+                    newLanguage,
+                    newFilepath,
+                    newOutputPath,
+                    newOutputRefPath,
+                    newDefaultNamespace,
+                    newIsSubmission,
+                    newHasAllInformation);
             }
+
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -445,6 +553,8 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteString(Language);
                 writer.WriteString(FilePath);
                 writer.WriteString(OutputFilePath);
+                writer.WriteString(OutputRefFilePath);
+                writer.WriteString(DefaultNamespace);
                 writer.WriteBoolean(IsSubmission);
                 writer.WriteBoolean(HasAllInformation);
 
@@ -462,13 +572,15 @@ namespace Microsoft.CodeAnalysis
                 var language = reader.ReadString();
                 var filePath = reader.ReadString();
                 var outputFilePath = reader.ReadString();
+                var outputRefFilePath = reader.ReadString();
+                var defaultNamespace = reader.ReadString();
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
 
-                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, isSubmission, hasAllInformation);
+                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, outputRefFilePath, defaultNamespace, isSubmission, hasAllInformation);
             }
 
-            private Checksum _lazyChecksum;
+            private Checksum? _lazyChecksum;
             Checksum IChecksummedObject.Checksum
             {
                 get

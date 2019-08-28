@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../CSharpEditorResources.resx">
     <body>
+      <trans-unit id="Complete_statement_on_semicolon">
+        <source>Complete statement on ;</source>
+        <target state="translated">Concluir instrução em ;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_interpolated_verbatim_string">
+        <source>Fix interpolated verbatim string</source>
+        <target state="translated">Corrigir cadeia de caracteres textual interpolada</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (Pressione TAB para inserir)</target>

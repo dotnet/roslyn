@@ -6,15 +6,17 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -32,14 +34,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected readonly object Provider;
         internal readonly CodeAction CodeAction;
 
+        private bool _isApplied;
+
         private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
 
         internal SuggestedAction(
+            IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
             object provider,
             CodeAction codeAction)
+            : base(threadingContext)
         {
             Contract.ThrowIfNull(provider);
             Contract.ThrowIfNull(codeAction);
@@ -53,17 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         internal virtual CodeActionPriority Priority => CodeAction.Priority;
 
-        protected static int GetTelemetryPrefix(CodeAction codeAction)
-        {
-            // AssemblyQualifiedName will change across version numbers, FullName won't
-            var type = codeAction.GetType();
-            type = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
-            return type.FullName.GetHashCode();
-        }
+        internal bool IsForCodeQualityImprovement
+            => (Provider as SyntaxEditorBasedCodeFixProvider)?.CodeFixCategory == CodeFixCategory.CodeQuality;
 
         public virtual bool TryGetTelemetryId(out Guid telemetryId)
         {
-            telemetryId = new Guid(GetTelemetryPrefix(CodeAction), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            telemetryId = CodeAction.GetType().GetTelemetryId();
             return true;
         }
 
@@ -101,13 +102,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // later in this call chain, do not await them.
                 SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
                 {
-                    using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitContext.CancellationToken))
+                    using var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken);
+                    InnerInvoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
+                    foreach (var actionCallback in SourceProvider.ActionCallbacks)
                     {
-                        InnerInvoke(waitContext.ProgressTracker, linkedSource.Token);
-                        foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                        {
-                            actionCallback.Value.OnSuggestedActionExecuted(this);
-                        }
+                        actionCallback.Value.OnSuggestedActionExecuted(this);
                     }
                 });
             }
@@ -167,9 +166,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
                     // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                    EditHandler.ApplyAsync(Workspace, getFromDocument(),
+                    _isApplied = EditHandler.Apply(Workspace, getFromDocument(),
                         operations.ToImmutableArray(), CodeAction.Title,
-                        progressTracker, cancellationToken).Wait(cancellationToken);
+                        progressTracker, cancellationToken);
                 }
             }
         }
@@ -177,14 +176,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private void CreateLogProperties(Dictionary<string, object> map)
         {
             // set various correlation info
-            if (CodeAction is CodeFixes.FixSomeCodeAction fixSome)
+            if (CodeAction is FixSomeCodeAction fixSome)
             {
                 // fix all correlation info
-                map[CodeFixes.FixAllLogger.CorrelationId] = fixSome.FixAllState.CorrelationId;
-                map[CodeFixes.FixAllLogger.FixAllScope] = fixSome.FixAllState.Scope.ToString();
+                map[FixAllLogger.CorrelationId] = fixSome.FixAllState.CorrelationId;
+                map[FixAllLogger.FixAllScope] = fixSome.FixAllState.Scope.ToString();
             }
 
-            if (TryGetTelemetryId(out Guid telemetryId))
+            if (TryGetTelemetryId(out var telemetryId))
             {
                 // Lightbulb correlation info
                 map["TelemetryId"] = telemetryId.ToString();
@@ -312,5 +311,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         #endregion
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly SuggestedAction _suggestedAction;
+
+            public TestAccessor(SuggestedAction suggestedAction)
+                => _suggestedAction = suggestedAction;
+
+            public ref bool IsApplied => ref _suggestedAction._isApplied;
+        }
     }
 }

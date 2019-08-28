@@ -34,14 +34,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression RewriteDeconstruction(BoundTupleExpression left, Conversion conversion, BoundExpression right, bool isUsed)
         {
+            var lhsTemps = ArrayBuilder<LocalSymbol>.GetInstance();
+            var lhsEffects = ArrayBuilder<BoundExpression>.GetInstance();
+            ArrayBuilder<Binder.DeconstructionVariable> lhsTargets = GetAssignmentTargetsAndSideEffects(left, lhsTemps, lhsEffects);
+            BoundExpression result = RewriteDeconstruction(lhsTargets, conversion, left.Type, right, isUsed);
+            Binder.DeconstructionVariable.FreeDeconstructionVariables(lhsTargets);
+            if (result is null)
+            {
+                lhsTemps.Free();
+                lhsEffects.Free();
+                return null;
+            }
+
+            return _factory.Sequence(lhsTemps.ToImmutableAndFree(), lhsEffects.ToImmutableAndFree(), result);
+        }
+
+        private BoundExpression RewriteDeconstruction(
+            ArrayBuilder<Binder.DeconstructionVariable> lhsTargets,
+            Conversion conversion,
+            TypeSymbol leftType,
+            BoundExpression right,
+            bool isUsed)
+        {
+            if (right.Kind == BoundKind.ConditionalOperator)
+            {
+                var conditional = (BoundConditionalOperator)right;
+                Debug.Assert(!conditional.IsRef);
+                return conditional.Update(
+                    conditional.IsRef,
+                    VisitExpression(conditional.Condition),
+                    RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Consequence, isUsed: true),
+                    RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Alternative, isUsed: true),
+                    conditional.ConstantValue,
+                    leftType);
+            }
+
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var effects = DeconstructionSideEffects.GetInstance();
-            ArrayBuilder<Binder.DeconstructionVariable> lhsTargets = GetAssignmentTargetsAndSideEffects(left, temps, effects.init);
-
             BoundExpression returnValue = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, isUsed, inInit: true);
             effects.Consolidate();
 
-            BoundExpression result;
             if (!isUsed)
             {
                 // When a deconstruction is not used, the last effect is used as return value
@@ -49,15 +81,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var last = effects.PopLast();
                 if (last is null)
                 {
-                    // Deconstructions with no effects lower to nothing. For example, `(_, _) = (1, 2);`
-                    result = null;
                     temps.Free();
-                    _ = effects.ToImmutableAndFree();
+                    effects.Free();
+                    // Deconstructions with no effects lower to nothing. For example, `(_, _) = (1, 2);`
+                    return null;
                 }
-                else
-                {
-                    result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), last);
-                }
+
+                return _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), last);
             }
             else
             {
@@ -65,11 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     returnValue = VisitExpression(returnValue);
                 }
-                result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
-            }
 
-            Binder.DeconstructionVariable.FreeDeconstructionVariables(lhsTargets);
-            return result;
+                return _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
+            }
         }
 
         /// <summary>
@@ -80,12 +108,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// invocation, subsequent side-effects from the right go into the deconstructions bucket (otherwise they would
         /// be evaluated out of order).
         /// </summary>
-        private BoundExpression ApplyDeconstructionConversion(ArrayBuilder<Binder.DeconstructionVariable> leftTargets,
-            BoundExpression right, Conversion conversion, ArrayBuilder<LocalSymbol> temps, DeconstructionSideEffects effects,
+        private BoundExpression ApplyDeconstructionConversion(
+            ArrayBuilder<Binder.DeconstructionVariable> leftTargets,
+            BoundExpression right,
+            Conversion conversion,
+            ArrayBuilder<LocalSymbol> temps,
+            DeconstructionSideEffects effects,
             bool isUsed, bool inInit)
         {
             Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
-            ImmutableArray<BoundExpression> rightParts = GetRightParts(right, conversion, ref temps, effects, ref inInit);
+            ImmutableArray<BoundExpression> rightParts = GetRightParts(right, conversion, temps, effects, ref inInit);
 
             ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;
             Debug.Assert(!underlyingConversions.IsDefault);
@@ -105,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var rightPart = rightParts[i];
                     if (inInit)
                     {
-                        rightPart = EvaluateSideEffectingArgumentToTemp(VisitExpression(rightPart), inInit ? effects.init : effects.deconstructions, ref temps);
+                        rightPart = EvaluateSideEffectingArgumentToTemp(rightPart, effects.init, temps);
                     }
                     BoundExpression leftTarget = leftTargets[i].Single;
 
@@ -123,12 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isUsed)
             {
-                var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypes: builder.SelectAsArray(e => e.Type),
+                var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypesWithAnnotations: builder.SelectAsArray(e => TypeWithAnnotations.Create(e.Type)),
                     elementLocations: default, elementNames: default,
-                    compilation: _compilation, shouldCheckConstraints: false, errorPositions: default);
+                    compilation: _compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default);
 
-                return new BoundTupleLiteral(right.Syntax, argumentNamesOpt: default, inferredNamesOpt: default,
-                    arguments: builder.ToImmutableAndFree(), type: tupleType);
+                return new BoundConvertedTupleLiteral(
+                    right.Syntax, sourceTuple: null, arguments: builder.ToImmutableAndFree(), argumentNamesOpt: default, inferredNamesOpt: default, tupleType);
             }
             else
             {
@@ -137,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private ImmutableArray<BoundExpression> GetRightParts(BoundExpression right, Conversion conversion,
-            ref ArrayBuilder<LocalSymbol> temps, DeconstructionSideEffects effects, ref bool inInit)
+            ArrayBuilder<LocalSymbol> temps, DeconstructionSideEffects effects, ref bool inInit)
         {
             // Example:
             // var (x, y) = new Point(1, 2);
@@ -146,11 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!IsTupleExpression(right.Kind));
 
-                BoundExpression evaluationResult = EvaluateSideEffectingArgumentToTemp(VisitExpression(right),
-                    inInit ? effects.init : effects.deconstructions, ref temps);
+                BoundExpression evaluationResult = EvaluateSideEffectingArgumentToTemp(right,
+                    inInit ? effects.init : effects.deconstructions, temps);
 
                 inInit = false;
-                return InvokeDeconstructMethod(deconstructionInfo, evaluationResult, effects.deconstructions, ref temps);
+                return InvokeDeconstructMethod(deconstructionInfo, evaluationResult, effects.deconstructions, temps);
             }
 
             // Example:
@@ -197,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(expression.Type.IsTupleType);
             var tupleType = expression.Type;
-            var tupleElementTypes = tupleType.TupleElementTypes;
+            var tupleElementTypes = tupleType.TupleElementTypesWithAnnotations;
 
             var numElements = tupleElementTypes.Length;
 
@@ -235,11 +267,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return expression;
             }
             var evalConversion = MakeConversionNode(expression.Syntax, expression, conversion, destinationType, @checked: false);
-            return EvaluateSideEffectingArgumentToTemp(evalConversion, effects, ref temps);
+            return EvaluateSideEffectingArgumentToTemp(evalConversion, effects, temps);
         }
 
         private ImmutableArray<BoundExpression> InvokeDeconstructMethod(DeconstructMethodInfo deconstruction, BoundExpression target,
-            ArrayBuilder<BoundExpression> effects, ref ArrayBuilder<LocalSymbol> temps)
+            ArrayBuilder<BoundExpression> effects, ArrayBuilder<LocalSymbol> temps)
         {
             AddPlaceholderReplacement(deconstruction.InputPlaceholder, target);
 
@@ -247,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outLocals = ArrayBuilder<BoundExpression>.GetInstance(outputPlaceholders.Length);
             foreach (var outputPlaceholder in outputPlaceholders)
             {
-                var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, outputPlaceholder.Type, SynthesizedLocalKind.LoweringTemp);
+                var localSymbol = new SynthesizedLocal(_factory.CurrentFunction, TypeWithAnnotations.Create(outputPlaceholder.Type), SynthesizedLocalKind.LoweringTemp);
 
                 var localBound = new BoundLocal(target.Syntax, localSymbol, constantValueOpt: null, type: outputPlaceholder.Type)
                 { WasCompilerGenerated = true };
@@ -268,26 +300,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return outLocals.ToImmutableAndFree();
         }
 
-        BoundExpression EvaluateSideEffectingArgumentToTemp(BoundExpression arg, ArrayBuilder<BoundExpression> effects,
-            ref ArrayBuilder<LocalSymbol> temps)
+        /// <summary>
+        /// Evaluate side effects into a temp, if any.  Return the expression to give the value later.
+        /// </summary>
+        /// <param name="arg">The argument to evaluate early.</param>
+        /// <param name="effects">A store of the argument into a temp, if necessary, is added here.</param>
+        /// <param name="temps">Any generated temps are added here.</param>
+        /// <returns>An expression evaluating the argument later (e.g. reading the temp), including a possible deferred user-defined conversion.</returns>
+        private BoundExpression EvaluateSideEffectingArgumentToTemp(
+            BoundExpression arg,
+            ArrayBuilder<BoundExpression> effects,
+            ArrayBuilder<LocalSymbol> temps)
         {
-            if (CanChangeValueBetweenReads(arg, localsMayBeAssignedOrCaptured: true))
+            var loweredArg = VisitExpression(arg);
+            if (CanChangeValueBetweenReads(loweredArg, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true))
             {
                 BoundAssignmentOperator store;
-                var temp = _factory.StoreToTemp(arg, out store);
-
-                if (temps == null)
-                {
-                    temps = ArrayBuilder<LocalSymbol>.GetInstance();
-                }
-
+                var temp = _factory.StoreToTemp(loweredArg, out store);
                 temps.Add(temp.LocalSymbol);
                 effects.Add(store);
                 return temp;
             }
             else
             {
-                return arg;
+                return loweredArg;
             }
         }
 
@@ -309,12 +345,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case BoundKind.TupleLiteral:
+                    case BoundKind.ConvertedTupleLiteral:
                         var tuple = (BoundTupleExpression)variable;
                         assignmentTargets.Add(new Binder.DeconstructionVariable(GetAssignmentTargetsAndSideEffects(tuple, temps, effects), tuple.Syntax));
                         break;
-
-                    case BoundKind.ConvertedTupleLiteral:
-                        throw ExceptionUtilities.UnexpectedValue(variable.Kind);
 
                     default:
                         var temp = this.TransformCompoundAssignmentLHS(variable, effects, temps, isDynamicAssignment: variable.Type.IsDynamic());
@@ -326,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return assignmentTargets;
         }
 
-        internal class DeconstructionSideEffects
+        private class DeconstructionSideEffects
         {
             internal ArrayBuilder<BoundExpression> init;
             internal ArrayBuilder<BoundExpression> deconstructions;
@@ -371,6 +405,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal ImmutableArray<BoundExpression> ToImmutableAndFree()
             {
                 return init.ToImmutableAndFree();
+            }
+
+            internal void Free()
+            {
+                init.Free();
             }
         }
     }

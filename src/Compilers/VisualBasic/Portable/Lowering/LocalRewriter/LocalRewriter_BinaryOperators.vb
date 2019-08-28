@@ -1297,6 +1297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                        Nothing,
                                                                        operatorCall.ReceiverOpt,
                                                                        ImmutableArray.Create(Of BoundExpression)(leftCallInput, rightCallInput),
+                                                                       Nothing,
                                                                        operatorCall.ConstantValueOpt,
                                                                        isLValue:=operatorCall.IsLValue,
                                                                        suppressObjectClone:=operatorCall.SuppressObjectClone,

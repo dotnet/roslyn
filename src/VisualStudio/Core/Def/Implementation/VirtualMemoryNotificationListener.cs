@@ -3,13 +3,14 @@
 using System;
 using System.Composition;
 using System.Linq;
+using System.Runtime;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -37,14 +38,24 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool _alreadyLogged;
 
         [ImportingConstructor]
-        private VirtualMemoryNotificationListener(
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VirtualMemoryNotificationListener(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
-            VisualStudioWorkspace workspace) : base(assertIsForeground: true)
+            VisualStudioWorkspace workspace)
+            : base(threadingContext, assertIsForeground: true)
         {
             _workspace = workspace;
-            _workspace.WorkspaceChanged += OnWorkspaceChanged;
-
             _workspaceCacheService = workspace.Services.GetService<IWorkspaceCacheService>() as WorkspaceCacheService;
+
+            if (GCSettings.IsServerGC)
+            {
+                // Server GC has been explicitly enabled, which tends to run with higher memory pressure than the
+                // default workstation GC. Allow this case without triggering frequent feature shutdown.
+                return;
+            }
+
+            _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             var shell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
             // Note: We never unhook this event sink. It lives for the lifetime of the host.

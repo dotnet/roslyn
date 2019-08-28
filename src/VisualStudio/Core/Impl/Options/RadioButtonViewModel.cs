@@ -9,8 +9,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly Option<TOption> _option;
         private readonly TOption _value;
 
-        public RadioButtonViewModel(string description, string preview, string group, TOption value, Option<TOption> option, AbstractOptionPreviewViewModel info, OptionSet options)
-            : base(description, preview, info, options, isChecked: options.GetOption(option).Equals(value), group: group)
+        public RadioButtonViewModel(string description, string preview, string group, TOption value, Option<TOption> option, AbstractOptionPreviewViewModel info, OptionStore optionStore)
+            : base(description, preview, info, isChecked: optionStore.GetOption(option).Equals(value), group: group)
         {
             _value = value;
             _option = option;

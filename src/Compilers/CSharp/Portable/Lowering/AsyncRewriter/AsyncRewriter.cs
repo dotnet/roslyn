@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
         private readonly bool _constructedSuccessfully;
         private readonly int _methodOrdinal;
-        private readonly bool _ignoreAccessibility;
 
         private FieldSymbol _builderField;
 
@@ -28,14 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _constructedSuccessfully = AsyncMethodBuilderMemberCollection.TryCreate(F, method, this.stateMachineType.TypeMap, out _asyncMethodBuilderMemberCollection);
             _methodOrdinal = methodOrdinal;
-            _ignoreAccessibility = compilationState.ModuleBuilderOpt.IgnoreAccessibility;
         }
 
         /// <summary>
         /// Rewrite an async method into a state machine type.
         /// </summary>
         internal static BoundStatement Rewrite(
-            BoundStatement body,
+            BoundStatement bodyWithAwaitLifted,
             MethodSymbol method,
             int methodOrdinal,
             VariableSlotAllocator slotAllocatorOpt,
@@ -46,21 +44,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!method.IsAsync)
             {
                 stateMachineType = null;
-                return body;
+                return bodyWithAwaitLifted;
+            }
+
+            CSharpCompilation compilation = method.DeclaringCompilation;
+            bool isAsyncEnumerableOrEnumerator = method.IsIAsyncEnumerableReturningAsync(compilation) ||
+                method.IsIAsyncEnumeratorReturningAsync(compilation);
+            if (isAsyncEnumerableOrEnumerator && !method.IsIterator)
+            {
+                bool containsAwait = AwaitDetector.ContainsAwait(bodyWithAwaitLifted);
+                diagnostics.Add(containsAwait ? ErrorCode.ERR_PossibleAsyncIteratorWithoutYield : ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait,
+                    method.Locations[0], method.ReturnTypeWithAnnotations);
+
+                stateMachineType = null;
+                return bodyWithAwaitLifted;
             }
 
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
-            var typeKind = compilationState.Compilation.Options.EnableEditAndContinue ? TypeKind.Class : TypeKind.Struct;
-
-            var bodyWithAwaitLifted = AwaitExpressionSpiller.Rewrite(body, method, compilationState, diagnostics);
+            // For async-iterators, we also need to generate a class.
+            var typeKind = (compilationState.Compilation.Options.EnableEditAndContinue || method.IsIterator) ? TypeKind.Class : TypeKind.Struct;
 
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
-            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
+
+            AsyncRewriter rewriter = isAsyncEnumerableOrEnumerator
+                ? new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+                : new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
 
             if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
-                return body;
+                return bodyWithAwaitLifted;
             }
 
             try
@@ -70,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                return new BoundBadStatement(body.Syntax, ImmutableArray.Create<BoundNode>(body), hasErrors: true);
+                return new BoundBadStatement(bodyWithAwaitLifted.Syntax, ImmutableArray.Create<BoundNode>(bodyWithAwaitLifted), hasErrors: true);
             }
         }
 
@@ -81,8 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DiagnosticBag bag = DiagnosticBag.GetInstance();
 
-            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
-            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
+            VerifyPresenceOfRequiredAPIs(bag);
 
             bool hasErrors = bag.HasAnyErrors();
             if (hasErrors)
@@ -94,15 +106,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !hasErrors && _constructedSuccessfully;
         }
 
+        protected virtual void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
+        {
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
+        }
+
         private Symbol EnsureWellKnownMember(WellKnownMember member, DiagnosticBag bag)
         {
             return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
         }
 
-        protected override bool PreserveInitialParameterValues
-        {
-            get { return false; }
-        }
+        protected override bool PreserveInitialParameterValuesAndThreadId
+            => false;
 
         protected override void GenerateControlFields()
         {
@@ -131,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasMethodBodyDependency: false);
 
             // SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
-            // If the state machine is a class there is no copy made and thus the initialization is not necessary. 
+            // If the state machine is a class there is no copy made and thus the initialization is not necessary.
             // In fact it is an error to reinitialize the builder since it already is initialized.
             if (F.CurrentType.TypeKind == TypeKind.Class)
             {
@@ -146,14 +162,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Call(
                                 F.Field(F.This(), _builderField),
                                 _asyncMethodBuilderMemberCollection.SetStateMachine,
-                                new BoundExpression[] { F.Parameter(F.CurrentMethod.Parameters[0]) })),
+                                new BoundExpression[] { F.Parameter(F.CurrentFunction.Parameters[0]) })),
                         F.Return()));
             }
 
             // Constructor
+            GenerateConstructor();
+        }
+
+        protected virtual void GenerateConstructor()
+        {
             if (stateMachineType.TypeKind == TypeKind.Class)
             {
-                F.CurrentMethod = stateMachineType.Constructor;
+                F.CurrentFunction = stateMachineType.Constructor;
                 F.CloseMethod(F.Block(ImmutableArray.Create(F.BaseInitialization(), F.Return())));
             }
         }
@@ -229,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.ToImmutableAndFree());
         }
 
-        private void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
+        protected virtual void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
         {
             var rewriter = new AsyncMethodToStateMachineRewriter(
                 method: method,
@@ -246,6 +267,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics);
 
             rewriter.GenerateMoveNext(body, moveNextMethod);
+        }
+
+        /// <summary>
+        /// Note: do not use a static/singleton instance of this type, as it holds state.
+        /// </summary>
+        private class AwaitDetector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private bool _sawAwait;
+
+            public static bool ContainsAwait(BoundNode node)
+            {
+                var detector = new AwaitDetector();
+                detector.Visit(node);
+                return detector._sawAwait;
+            }
+
+            public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
+            {
+                _sawAwait = true;
+                return null;
+            }
         }
     }
 }

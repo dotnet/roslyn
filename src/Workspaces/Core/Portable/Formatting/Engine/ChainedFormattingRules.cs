@@ -1,125 +1,114 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
     internal class ChainedFormattingRules
     {
-        private readonly List<IFormattingRule> _formattingRules;
+        private static readonly ConcurrentDictionary<(Type type, string name), Type> s_typeImplementingMethod = new ConcurrentDictionary<(Type type, string name), Type>();
+
+        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly OptionSet _optionSet;
 
-        // Operation func caches
-        //
-        // we cache funcs to all operations kind to make sure we don't allocate any heap memory
-        // during invocation of each method with continuation style.
-        //
-        // each of these operations will be called hundreds of thousands times during formatting,
-        // make sure it doesn't allocate any memory during invocations.
-        private readonly ActionCache<SuppressOperation> _suppressWrappingFuncCache;
-        private readonly ActionCache<AnchorIndentationOperation> _anchorFuncCache;
-        private readonly ActionCache<IndentBlockOperation> _indentFuncCache;
-        private readonly ActionCache<AlignTokensOperation> _alignFuncCache;
-        private readonly OperationCache<AdjustNewLinesOperation> _newLinesFuncCache;
-        private readonly OperationCache<AdjustSpacesOperation> _spaceFuncCache;
+        private readonly ImmutableArray<AbstractFormattingRule> _addSuppressOperationsRules;
+        private readonly ImmutableArray<AbstractFormattingRule> _addAnchorIndentationOperationsRules;
+        private readonly ImmutableArray<AbstractFormattingRule> _addIndentBlockOperationsRules;
+        private readonly ImmutableArray<AbstractFormattingRule> _addAlignTokensOperationsRules;
+        private readonly ImmutableArray<AbstractFormattingRule> _getAdjustNewLinesOperationRules;
+        private readonly ImmutableArray<AbstractFormattingRule> _getAdjustSpacesOperationRules;
 
-        public ChainedFormattingRules(IEnumerable<IFormattingRule> formattingRules, OptionSet set)
+        public ChainedFormattingRules(IEnumerable<AbstractFormattingRule> formattingRules, OptionSet set)
         {
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(set);
 
-            _formattingRules = formattingRules.ToList();
+            _formattingRules = formattingRules.ToImmutableArray();
             _optionSet = set;
 
-            // cache all funcs to reduce heap allocations
-            _suppressWrappingFuncCache = new ActionCache<SuppressOperation>(
-                (index, list, node, lastToken, next) => _formattingRules[index].AddSuppressOperations(list, node, lastToken, _optionSet, next),
-                this.AddContinuedOperations);
-
-            _anchorFuncCache = new ActionCache<AnchorIndentationOperation>(
-                (index, list, node, lastToken, next) => _formattingRules[index].AddAnchorIndentationOperations(list, node, _optionSet, next),
-                this.AddContinuedOperations);
-
-            _indentFuncCache = new ActionCache<IndentBlockOperation>(
-                (index, list, node, lastToken, next) => _formattingRules[index].AddIndentBlockOperations(list, node, _optionSet, next),
-                this.AddContinuedOperations);
-
-            _alignFuncCache = new ActionCache<AlignTokensOperation>(
-                (index, list, node, lastToken, next) => _formattingRules[index].AddAlignTokensOperations(list, node, _optionSet, next),
-                this.AddContinuedOperations);
-
-            _newLinesFuncCache = new OperationCache<AdjustNewLinesOperation>(
-                (index, token1, token2, next) => _formattingRules[index].GetAdjustNewLinesOperation(token1, token2, _optionSet, next),
-                this.GetContinuedOperations);
-
-            _spaceFuncCache = new OperationCache<AdjustSpacesOperation>(
-                (index, token1, token2, next) => _formattingRules[index].GetAdjustSpacesOperation(token1, token2, _optionSet, next),
-                this.GetContinuedOperations);
+            _addSuppressOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddSuppressOperations));
+            _addAnchorIndentationOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddAnchorIndentationOperations));
+            _addIndentBlockOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddIndentBlockOperations));
+            _addAlignTokensOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddAlignTokensOperations));
+            _getAdjustNewLinesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustNewLinesOperation));
+            _getAdjustSpacesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustSpacesOperation));
         }
 
-        public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode currentNode, SyntaxToken lastToken)
+        public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode currentNode)
         {
-            AddContinuedOperations(0, list, currentNode, lastToken, _suppressWrappingFuncCache);
+            var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, _optionSet, list);
+            action.Invoke();
         }
 
-        public void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode currentNode, SyntaxToken lastToken)
+        public void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode currentNode)
         {
-            AddContinuedOperations(0, list, currentNode, lastToken, _anchorFuncCache);
+            var action = new NextAnchorIndentationOperationAction(_addAnchorIndentationOperationsRules, index: 0, currentNode, _optionSet, list);
+            action.Invoke();
         }
 
-        public void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode currentNode, SyntaxToken lastToken)
+        public void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode currentNode)
         {
-            AddContinuedOperations(0, list, currentNode, lastToken, _indentFuncCache);
+            var action = new NextIndentBlockOperationAction(_addIndentBlockOperationsRules, index: 0, currentNode, _optionSet, list);
+            action.Invoke();
         }
 
-        public void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode currentNode, SyntaxToken lastToken)
+        public void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode currentNode)
         {
-            AddContinuedOperations(0, list, currentNode, lastToken, _alignFuncCache);
+            var action = new NextAlignTokensOperationAction(_addAlignTokensOperationsRules, index: 0, currentNode, _optionSet, list);
+            action.Invoke();
         }
 
         public AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            return GetContinuedOperations(0, previousToken, currentToken, _newLinesFuncCache);
+            var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0, previousToken, currentToken, _optionSet);
+            return action.Invoke();
         }
 
         public AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            return GetContinuedOperations(0, previousToken, currentToken, _spaceFuncCache);
+            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0, previousToken, currentToken, _optionSet);
+            return action.Invoke();
         }
 
-        private void AddContinuedOperations<TArg1>(int index, List<TArg1> arg1, SyntaxNode node, SyntaxToken lastToken, IActionHolder<TArg1> actionCache)
+        private static ImmutableArray<AbstractFormattingRule> FilterToRulesImplementingMethod(ImmutableArray<AbstractFormattingRule> rules, string name)
         {
-            // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (index >= _formattingRules.Count)
+            return rules.Where(rule =>
             {
-                return;
-            }
-            else
-            {
-                // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                var continuation = new NextAction<TArg1>(index + 1, node, lastToken, actionCache);
-                actionCache.NextOperation(index, arg1, node, lastToken, continuation);
-                return;
-            }
+                var type = GetTypeImplementingMethod(rule, name);
+                if (type == typeof(AbstractFormattingRule))
+                {
+                    return false;
+                }
+
+                if (type == typeof(CompatAbstractFormattingRule))
+                {
+                    type = GetTypeImplementingMethod(rule, name + "Slow");
+                    if (type == typeof(CompatAbstractFormattingRule))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }).ToImmutableArray();
         }
 
-        private TResult GetContinuedOperations<TResult>(int index, SyntaxToken token1, SyntaxToken token2, IOperationHolder<TResult> funcCache)
+        private static Type GetTypeImplementingMethod(object obj, string name)
         {
-            // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (index >= _formattingRules.Count)
-            {
-                return default;
-            }
-            else
-            {
-                // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                var continuation = new NextOperation<TResult>(index + 1, token1, token2, funcCache);
-                return funcCache.NextOperation(index, token1, token2, continuation);
-            }
+            return s_typeImplementingMethod.GetOrAdd(
+                (obj.GetType(), name),
+                key => key.type.GetRuntimeMethods().FirstOrDefault(method => method.Name == key.name)?.DeclaringType);
         }
     }
 }

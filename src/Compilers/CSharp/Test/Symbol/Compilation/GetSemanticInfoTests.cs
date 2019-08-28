@@ -530,7 +530,7 @@ enum E { zero, one }
 
             // sbyte? nullable = null;
             var v1 = (mainStats[0] as LocalDeclarationStatementSyntax).Declaration.Variables;
-            ConversionTestHelper(model, v1[0].Initializer.Value, ConversionKind.DefaultOrNullLiteral, ConversionKind.NoConversion);
+            ConversionTestHelper(model, v1[0].Initializer.Value, ConversionKind.NullLiteral, ConversionKind.NoConversion);
             // uint? nullable01 = 100;
             var v2 = (mainStats[1] as LocalDeclarationStatementSyntax).Declaration.Variables;
             ConversionTestHelper(model, v2[0].Initializer.Value, ConversionKind.ImplicitNullable, ConversionKind.ExplicitNullable);
@@ -599,10 +599,12 @@ class MyClass
             var impconv = model.GetConversion(expr1);
             Assert.Equal(Conversion.Identity, impconv);
             Conversion conv = model.ClassifyConversion(expr1, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(model, expr1);
             Assert.Equal(impconv, conv);
             Assert.Equal("Identity", conv.ToString());
 
             conv = model.ClassifyConversion(expr2, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(model, expr2);
             Assert.Equal(impconv, conv);
         }
 
@@ -629,9 +631,17 @@ class C {
             Assert.True(impconv.IsUserDefined);
 
             Conversion conv = model.ClassifyConversion(expr1, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(model, expr1);
             Assert.Equal(impconv, conv);
             Assert.True(conv.IsImplicit);
             Assert.True(conv.IsUserDefined);
+        }
+
+        private void CheckIsAssignableTo(SemanticModel model, ExpressionSyntax syntax)
+        {
+            var info = model.GetTypeInfo(syntax);
+            var conversion = info.Type != null && info.ConvertedType != null ? model.Compilation.ClassifyConversion(info.Type, info.ConvertedType) : Conversion.NoConversion;
+            Assert.Equal(conversion.IsImplicit, model.Compilation.HasImplicitConversion(info.Type, info.ConvertedType));
         }
 
         [Fact, WorkItem(544151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544151")]
@@ -681,7 +691,7 @@ class C {
                     Assert.False(conv.IsExplicit);
                     Assert.True(conv.IsNullable);
                     break;
-                case ConversionKind.DefaultOrNullLiteral:
+                case ConversionKind.NullLiteral:
                     Assert.True(conv.Exists);
                     Assert.True(conv.IsImplicit);
                     Assert.False(conv.IsExplicit);
@@ -833,6 +843,7 @@ class C {
 
             // NOT expect NoConversion
             Conversion act1 = semanticModel.ClassifyConversion(expr, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(semanticModel, expr);
             Assert.Equal(ept1, act1.Kind);
             ValidateConversion(act1, ept1);
             ValidateConversion(act1, conv.Kind);
@@ -858,6 +869,7 @@ class C {
 
             // NOT expect NoConversion
             Conversion act1 = semanticModel.ClassifyConversion(expr, expsym);
+            CheckIsAssignableTo(semanticModel, expr);
             Assert.Equal(expkind, act1.Kind);
             ValidateConversion(act1, expkind);
         }
@@ -2311,8 +2323,8 @@ class C
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var typeInfo = model.GetSymbolInfo(expr);
-            // lowest bound node with associated syntax is being picked up here ... fine for now.
-            Assert.Equal("System.IO.StreamReader", typeInfo.Symbol.ToTestDisplayString());
+            // the type info uses the type inferred for the first declared local
+            Assert.Equal("System.IO.StreamWriter", typeInfo.Symbol.ToTestDisplayString());
         }
 
         [WorkItem(543169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543169")]
@@ -3227,7 +3239,7 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.AdditionOperatorName).Cast<MethodSymbol>();
-            var operatorSymbol = operators.Where(method => method.Parameters[0].Type == method.Parameters[1].Type).Single();
+            var operatorSymbol = operators.Where(method => TypeSymbol.Equals(method.Parameters[0].Type, method.Parameters[1].Type, TypeCompareKind.ConsiderEverything2)).Single();
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.NotNull(expr);
@@ -3312,7 +3324,7 @@ class Z
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             var mngMethod = (MethodSymbol)comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Z").GetMembers("MNG").First();
-            var gNullableType = mngMethod.ParameterTypes[0];
+            var gNullableType = mngMethod.GetParameterType(0);
             Assert.True(gNullableType.IsNullableType(), "MNG parameter is not a nullable type?");
             Assert.Equal(gType, gNullableType.StrippedType());
 
@@ -3320,6 +3332,7 @@ class Z
             Assert.NotNull(expr);
 
             var conversion = model.ClassifyConversion(expr, gNullableType);
+            CheckIsAssignableTo(model, expr);
 
             // Here we have a situation where Roslyn deliberately violates the specification in order
             // to be compatible with the native compiler. 
@@ -3377,7 +3390,7 @@ class Z
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             var mngMethod = (MethodSymbol)comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Z").GetMembers("MNG").First();
-            var gNullableType = mngMethod.ParameterTypes[0];
+            var gNullableType = mngMethod.GetParameterType(0);
             Assert.True(gNullableType.IsNullableType(), "MNG parameter is not a nullable type?");
             Assert.Equal(gType, gNullableType.StrippedType());
 
@@ -3385,6 +3398,7 @@ class Z
             Assert.NotNull(expr);
 
             var conversion = model.ClassifyConversion(expr, gNullableType);
+            CheckIsAssignableTo(model, expr);
 
             Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
 
@@ -3663,6 +3677,7 @@ class C
             Assert.Equal(ConversionKind.Identity, castConversion.Kind);
 
             Assert.Equal(ConversionKind.Boxing, model.ClassifyConversion(literal, (TypeSymbol)castTypeInfo.Type).Kind);
+            CheckIsAssignableTo(model, literal);
         }
 
         [Fact]
@@ -3699,6 +3714,7 @@ class C
 
             // Note that this reflects the hypothetical conversion, not the cast in the code.
             Assert.Equal(ConversionKind.ImplicitNumeric, model.ClassifyConversion(literal, (TypeSymbol)cast1TypeInfo.Type).Kind);
+            CheckIsAssignableTo(model, literal);
 
             var cast2 = (CastExpressionSyntax)cast1.Parent;
 
@@ -3709,6 +3725,7 @@ class C
             Assert.Equal(ConversionKind.Identity, cast2Conversion.Kind);
 
             Assert.Equal(ConversionKind.Boxing, model.ClassifyConversion(cast1, (TypeSymbol)cast2TypeInfo.Type).Kind);
+            CheckIsAssignableTo(model, cast1);
         }
 
         [WorkItem(545136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545136")]
@@ -4223,7 +4240,7 @@ class C
             var syntax = tree.GetCompilationUnitRoot().FindToken(position).Parent.DescendantNodesAndSelf().OfType<OmittedTypeArgumentSyntax>().Single();
 
             var info = model.GetSpeculativeTypeInfo(syntax.SpanStart, syntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            Assert.Equal(default(TypeInfo), info);
+            Assert.Equal(TypeInfo.None, info);
         }
 
         [WorkItem(546266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546266")]
@@ -4660,9 +4677,9 @@ class C : A
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
-            var paramType0 = methodBar.ParameterTypes[0];
+            var paramType0 = methodBar.GetParameterType(0);
             Assert.Equal(TypeKind.TypeParameter, paramType0.TypeKind);
-            var paramType1 = methodBar.ParameterTypes[1];
+            var paramType1 = methodBar.GetParameterType(1);
             Assert.Equal(TypeKind.Class, paramType1.TypeKind);
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;
@@ -4705,9 +4722,9 @@ class C : A
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
-            var paramType0 = methodBar.ParameterTypes[0];
+            var paramType0 = methodBar.GetParameterType(0);
             Assert.Equal(TypeKind.TypeParameter, paramType0.TypeKind);
-            var paramType1 = methodBar.ParameterTypes[1];
+            var paramType1 = methodBar.GetParameterType(1);
             Assert.Equal(TypeKind.Class, paramType1.TypeKind);
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;
@@ -5517,6 +5534,7 @@ class Program
 
                 var otherFuncType = comp.GetWellKnownType(WellKnownType.System_Func_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
                 var conversion = model.ClassifyConversion(lambdaSyntax, otherFuncType);
+                CheckIsAssignableTo(model, lambdaSyntax);
 
                 var typeInfo = model.GetTypeInfo(lambdaSyntax);
                 Assert.Null(typeInfo.Type);
@@ -5564,6 +5582,7 @@ class C { }
             var typeC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             var conversion = model.ClassifyConversion(nullSyntax, typeC);
+            CheckIsAssignableTo(model, nullSyntax);
             Assert.Equal(ConversionKind.ImplicitReference, conversion.Kind);
         }
 
@@ -5602,6 +5621,7 @@ class B { }
             var typeFuncB = comp.GetWellKnownType(WellKnownType.System_Func_T).Construct(typeB);
 
             var conversion = model.ClassifyConversion(lambdaSyntax, typeFuncB);
+            CheckIsAssignableTo(model, lambdaSyntax);
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
@@ -5648,6 +5668,7 @@ class C { }
             var typeFuncC = comp.GetWellKnownType(WellKnownType.System_Func_T).Construct(typeC);
 
             var conversion = model.ClassifyConversion(lambdaSyntax, typeFuncC);
+            CheckIsAssignableTo(model, lambdaSyntax);
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
@@ -5708,6 +5729,7 @@ class C { }
             var typeFuncC = typeFunc.Construct(typeInt, typeC);
 
             var conversionA = model.ClassifyConversion(methodGroupSyntax, typeFuncA);
+            CheckIsAssignableTo(model, methodGroupSyntax);
             Assert.Equal(ConversionKind.MethodGroup, conversionA.Kind);
 
             var conversionB = model.ClassifyConversion(methodGroupSyntax, typeFuncB);
@@ -5893,6 +5915,60 @@ class C
             }
 
             Assert.True(exceptionThrown, $"{nameof(comp.GetSpecialType)} did not throw when it should have.");
+        }
+
+        [Fact]
+        [WorkItem(34984, "https://github.com/dotnet/roslyn/issues/34984")]
+        public void ConversionIsExplicit_UnsetConversionKind()
+        {
+            var source =
+@"class C1
+{
+}
+
+class C2
+{
+    public void M() 
+    {
+        var c = new C1();
+        foreach (string item in c.Items)
+        {
+        }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var foreachSyntaxNode = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var foreachSymbolInfo = model.GetForEachStatementInfo(foreachSyntaxNode);
+
+            Assert.Equal(Conversion.UnsetConversion, foreachSymbolInfo.CurrentConversion);
+            Assert.True(foreachSymbolInfo.CurrentConversion.Exists);
+            Assert.False(foreachSymbolInfo.CurrentConversion.IsImplicit);
+        }
+
+        [Fact, WorkItem(29933, "https://github.com/dotnet/roslyn/issues/29933")]
+        public void SpeculativelyBindBaseInXmlDoc()
+        {
+            var text = @"
+class C
+{
+    /// <summary> </summary>
+    static void M() { }
+}
+";
+
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var position = text.IndexOf(">", StringComparison.Ordinal);
+            var syntax = SyntaxFactory.ParseExpression("base");
+
+            var info = model.GetSpeculativeSymbolInfo(position, syntax, SpeculativeBindingOption.BindAsExpression);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.NotReferencable, info.CandidateReason);
         }
     }
 }

@@ -99,9 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
             }
 
-        done:
-            // Don't return until we've seen all of the CompletionParts. This ensures all
-            // diagnostics have been reported (not necessarily on this thread).
+done:
+// Don't return until we've seen all of the CompletionParts. This ensures all
+// diagnostics have been reported (not necessarily on this thread).
             CompletionPart allParts = (locationOpt == null) ? CompletionPart.NamespaceSymbolAll : CompletionPart.NamespaceSymbolAll & ~CompletionPart.MembersCompleted;
             _state.SpinWaitComplete(allParts, cancellationToken);
         }

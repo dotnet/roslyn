@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
+        <target state="translated">関係演算子: = &lt;&gt; &lt; &gt; &lt;= &gt;= Like Is</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
         <source>Microsoft Visual Basic</source>
         <target state="translated">Microsoft Visual Basic</target>
@@ -25,6 +30,21 @@
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">インターフェイスと MustOverride メンバーの自動挿入(_I)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">行わない</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
+        <source>Prefer 'Is Nothing' for reference equality checks</source>
+        <target state="translated">参照の等値性のチェックには 'Is Nothing' を優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="translated">インポートされていない名前空間の項目を表示する (試験段階)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -247,6 +267,16 @@
         <target state="translated">文字が入力された後に入力候補一覧を表示する(_S)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">未使用のローカル</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="translated">VB コーディング規約</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'nothing' のチェック中:</target>
@@ -257,11 +287,6 @@
         <target state="translated">未使用のインポートをフェードアウトします</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_Is_Nothing_over_ReferenceEquals">
-        <source>Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</source>
-        <target state="translated">Object.ReferenceEquals(..., Nothing)' より 'Is Nothing' を優先します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'String.Format' calls</source>
         <target state="translated">String.Format' の呼び出しで無効なプレース ホルダーをレポートします</target>
@@ -270,6 +295,16 @@
       <trans-unit id="Separate_import_directive_groups">
         <source>Separate import directive groups</source>
         <target state="translated">インポート ディレクティブのグループを分離します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</source>
+        <target state="translated">算術演算子: ^ * / \ Mod + - &amp; &lt;&lt; &gt;&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
+        <target state="translated">その他の 2 項演算子内で:  And   AndAlso   Or   OrElse</target>
         <note />
       </trans-unit>
     </body>

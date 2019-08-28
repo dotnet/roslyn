@@ -440,7 +440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim result As IEnumerable(Of NamedTypeSymbol) =
                 interfaces.Where(Function(sym As NamedTypeSymbol) As Boolean
                                      Return Not (base IsNot Nothing AndAlso
-                                                 base.ImplementsInterface(sym, Nothing) AndAlso
+                                                 base.ImplementsInterface(sym, EqualsIgnoringComparer.InstanceCLRSignatureCompare, Nothing) AndAlso
                                                  Not Me.ImplementsAllMembersOfInterface(sym))
                                  End Function)
 
@@ -845,11 +845,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert((DirectCast(Me, ITypeReference)).AsNestedTypeReference IsNot Nothing)
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
-            If Not Me.IsDefinition Then
-                Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
-            End If
-
-            Return Me.ContainingType
+            Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics, needDeclaration:=Me.IsDefinition)
         End Function
 
         Private ReadOnly Property ITypeDefinitionMemberContainingTypeDefinition As ITypeDefinition Implements ITypeDefinitionMember.ContainingTypeDefinition

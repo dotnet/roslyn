@@ -1096,24 +1096,19 @@ class Test
 
             CompileAndVerify(comp, expectedOutput: "10", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
-  // Code size       29 (0x1d)
+  // Code size       26 (0x1a)
   .maxstack  2
-  .locals init (System.Span<int> V_0, //x
-                int V_1)
-  IL_0000:  ldc.i4.s   10
-  IL_0002:  stloc.1
-  IL_0003:  ldloc.1
-  IL_0004:  conv.u
-  IL_0005:  ldc.i4.4
-  IL_0006:  mul.ovf.un
-  IL_0007:  localloc
-  IL_0009:  ldloc.1
-  IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_000f:  stloc.0
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  call       ""int System.Span<int>.Length.get""
-  IL_0017:  call       ""void System.Console.WriteLine(int)""
-  IL_001c:  ret
+  .locals init (System.Span<int> V_0) //x
+  IL_0000:  ldc.i4.s   40
+  IL_0002:  conv.u
+  IL_0003:  localloc
+  IL_0005:  ldc.i4.s   10
+  IL_0007:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int System.Span<int>.Length.get""
+  IL_0014:  call       ""void System.Console.WriteLine(int)""
+  IL_0019:  ret
 }");
         }
 
@@ -1176,6 +1171,92 @@ class Test
         }
 
         [Fact]
+        public void StackAllocSpanLengthConstantFolding()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    public static void Main()
+    {
+        const int a = 5, b = 6;
+        Span<int> x = stackalloc int[a * b];
+        Console.Write(x.Length);
+    }
+}", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "30", verify: Verification.Fails).VerifyIL("Test.Main", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (System.Span<int> V_0) //x
+  IL_0000:  ldc.i4.s   120
+  IL_0002:  conv.u
+  IL_0003:  localloc
+  IL_0005:  ldc.i4.s   30
+  IL_0007:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int System.Span<int>.Length.get""
+  IL_0014:  call       ""void System.Console.Write(int)""
+  IL_0019:  ret
+}");
+        }
+
+        [Fact]
+        public void StackAllocSpanLengthOverflow()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    static void M()
+    {
+        Span<int> x = stackalloc int[int.MaxValue];
+    }
+
+    public static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (OverflowException)
+        {
+            Console.WriteLine(""overflow"");
+        }
+    }
+}", TestOptions.ReleaseExe);
+
+            var expectedIL = @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldc.i4     0x7fffffff
+  IL_0005:  conv.u
+  IL_0006:  ldc.i4.4
+  IL_0007:  mul.ovf.un
+  IL_0008:  localloc
+  IL_000a:  ldc.i4     0x7fffffff
+  IL_000f:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_0014:  pop
+  IL_0015:  ret
+}";
+
+            var isx86 = (IntPtr.Size == 4);
+            if (isx86)
+            {
+                CompileAndVerify(comp, expectedOutput: "overflow", verify: Verification.Fails).VerifyIL("Test.M", expectedIL);
+            }
+            else
+            {
+                // On 64bit the native int does not overflow, so we get StackOverflow instead
+                // therefore we will just check the IL
+                CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.M", expectedIL);
+            }
+        }
+
+        [Fact]
         public void ImplicitCastOperatorOnStackAllocIsLoweredCorrectly()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -1225,6 +1306,1281 @@ unsafe class Test
 }", TestOptions.UnsafeReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void ReadOnlyMembers_Metadata()
+        {
+            var csharp = @"
+public struct S
+{
+    public void M1() {}
+    public readonly void M2() {}
+
+    public int P1 { get; set; }
+    public readonly int P2 => 42;
+    public int P3 { readonly get => 123; set {} }
+    public int P4 { get => 123; readonly set {} }
+    public static int P5 { get; set; }
+}
+";
+            CompileAndVerify(csharp, symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("S");
+                var m1 = type.GetMethod("M1");
+                var m2 = type.GetMethod("M2");
+
+                var p1 = type.GetProperty("P1");
+                var p2 = type.GetProperty("P2");
+                var p3 = type.GetProperty("P3");
+                var p4 = type.GetProperty("P4");
+                var p5 = type.GetProperty("P5");
+
+                var peModule = (PEModuleSymbol)module;
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Signature.ReturnParam.Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p1).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Signature.ReturnParam.Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.SetMethod).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Signature.ReturnParam.Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p4).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Signature.ReturnParam.Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p5).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.GetMethod).Signature.ReturnParam.Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.SetMethod).Signature.ReturnParam.Handle));
+
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
+            }
+        }
+
+        [Fact]
+        public void ReadOnlyMembers_RefReturn_Metadata()
+        {
+            var csharp = @"
+public struct S
+{
+    static int i;
+
+    public ref int M1() => ref i;
+    public readonly ref int M2() => ref i;
+    public ref readonly int M3() => ref i;
+    public readonly ref readonly int M4() => ref i;
+
+    public ref int P1 { get => ref i; }
+    public readonly ref int P2 { get => ref i; }
+    public ref readonly int P3 { get => ref i; }
+    public readonly ref readonly int P4 { get => ref i; }
+}
+";
+            CompileAndVerify(csharp, symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("S");
+                var m1 = type.GetMethod("M1");
+                var m2 = type.GetMethod("M2");
+                var m3 = type.GetMethod("M3");
+                var m4 = type.GetMethod("M4");
+
+                var p1 = type.GetProperty("P1");
+                var p2 = type.GetProperty("P2");
+                var p3 = type.GetProperty("P3");
+                var p4 = type.GetProperty("P4");
+
+                var peModule = (PEModuleSymbol)module;
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Signature.ReturnParam.Handle));
+
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m3).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m3).Signature.ReturnParam.Handle));
+
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m4).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m4).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p1).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Signature.ReturnParam.Handle));
+
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Signature.ReturnParam.Handle));
+
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p4).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Signature.ReturnParam.Handle));
+
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
+            }
+        }
+
+        [Fact]
+        public void ReadOnlyStruct_ReadOnlyMembers_Metadata()
+        {
+            var csharp = @"
+// note that both the type and member declarations are marked 'readonly'
+public readonly struct S
+{
+    public void M1() {}
+    public readonly void M2() {}
+
+    public int P1 { get; }
+    public readonly int P2 => 42;
+    public int P3 { readonly get => 123; set {} }
+    public int P4 { get => 123; readonly set {} }
+    public static int P5 { get; set; }
+}
+";
+            CompileAndVerify(csharp, symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("S");
+                var m1 = type.GetMethod("M1");
+                var m2 = type.GetMethod("M2");
+
+                var p1 = type.GetProperty("P1");
+                var p2 = type.GetProperty("P2");
+                var p3 = type.GetProperty("P3");
+                var p4 = type.GetProperty("P4");
+                var p5 = type.GetProperty("P5");
+
+                var peModule = (PEModuleSymbol)module;
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Signature.ReturnParam.Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p1).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Signature.ReturnParam.Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p4).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Signature.ReturnParam.Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p5).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.GetMethod).Signature.ReturnParam.Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.SetMethod).Signature.ReturnParam.Handle));
+
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
+            }
+        }
+
+        [Fact]
+        public void ReadOnlyMembers_MetadataRoundTrip()
+        {
+            var external = @"
+using System;
+
+public struct S1
+{
+    public void M1() {}
+    public readonly void M2() {}
+
+    public int P1 { get; set; }
+    public readonly int P2 => 42;
+    public int P3 { readonly get => 123; set {} }
+    public int P4 { get => 123; readonly set {} }
+    public static int P5 { get; set; }
+    public readonly event Action<EventArgs> E { add {} remove {} }
+}
+
+public readonly struct S2
+{
+    public void M1() {}
+    public int P1 { get; }
+    public int P2 => 42;
+    public int P3 { set {} }
+    public static int P4 { get; set; }
+    public event Action<EventArgs> E { add {} remove {} }
+}
+";
+            var externalComp = CreateCompilation(external);
+            externalComp.VerifyDiagnostics();
+            verify(externalComp);
+
+            var comp = CreateCompilation("", references: new[] { externalComp.EmitToImageReference() });
+            verify(comp);
+
+            var comp2 = CreateCompilation("", references: new[] { externalComp.ToMetadataReference() });
+            verify(comp2);
+
+            void verify(CSharpCompilation comp)
+            {
+                var s1 = comp.GetMember<NamedTypeSymbol>("S1");
+
+                verifyReadOnly(s1.GetMethod("M1"), false, RefKind.Ref);
+                verifyReadOnly(s1.GetMethod("M2"), true, RefKind.RefReadOnly);
+
+                verifyReadOnly(s1.GetProperty("P1").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P1").SetMethod, false, RefKind.Ref);
+
+                verifyReadOnly(s1.GetProperty("P2").GetMethod, true, RefKind.RefReadOnly);
+
+                verifyReadOnly(s1.GetProperty("P3").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P3").SetMethod, false, RefKind.Ref);
+
+                verifyReadOnly(s1.GetProperty("P4").GetMethod, false, RefKind.Ref);
+                verifyReadOnly(s1.GetProperty("P4").SetMethod, true, RefKind.RefReadOnly);
+
+                verifyReadOnly(s1.GetProperty("P5").GetMethod, false, null);
+                verifyReadOnly(s1.GetProperty("P5").SetMethod, false, null);
+
+                verifyReadOnly(s1.GetEvent("E").AddMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetEvent("E").RemoveMethod, true, RefKind.RefReadOnly);
+
+                var s2 = comp.GetMember<NamedTypeSymbol>("S2");
+
+                verifyReadOnly(s2.GetMethod("M1"), true, RefKind.RefReadOnly);
+
+                verifyReadOnly(s2.GetProperty("P1").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetProperty("P2").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetProperty("P3").SetMethod, true, RefKind.RefReadOnly);
+
+                verifyReadOnly(s2.GetProperty("P4").GetMethod, false, null);
+                verifyReadOnly(s2.GetProperty("P4").SetMethod, false, null);
+
+                verifyReadOnly(s2.GetEvent("E").AddMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetEvent("E").RemoveMethod, true, RefKind.RefReadOnly);
+
+                void verifyReadOnly(MethodSymbol method, bool isReadOnly, RefKind? refKind)
+                {
+                    Assert.Equal(isReadOnly, method.IsEffectivelyReadOnly);
+                    Assert.Equal(refKind, method.ThisParameter?.RefKind);
+                }
+            }
+        }
+
+        [Fact]
+        public void StaticReadOnlyMethod_FromMetadata()
+        {
+            var il = @"
+.class private auto ansi '<Module>'
+{
+} // end of class <Module>
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.IsReadOnlyAttribute
+    extends [mscorlib]System.Attribute
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor () cil managed
+    {
+        // Method begins at RVA 0x2050
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    } // end of method IsReadOnlyAttribute::.ctor
+
+} // end of class System.Runtime.CompilerServices.IsReadOnlyAttribute
+
+.class public sequential ansi sealed beforefieldinit S
+	extends [mscorlib]System.ValueType
+{
+	.pack 0
+	.size 1
+	// Methods
+	.method public hidebysig
+		instance void M1 () cil managed
+	{
+		.custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2058
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method S::M1
+
+	// Methods
+	.method public hidebysig static
+		void M2 () cil managed
+	{
+		.custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2058
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method S::M2
+} // end of class S
+";
+            var ilRef = CompileIL(il);
+
+            var comp = CreateCompilation("", references: new[] { ilRef });
+            var s = comp.GetMember<NamedTypeSymbol>("S");
+
+            var m1 = s.GetMethod("M1");
+            Assert.True(m1.IsDeclaredReadOnly);
+            Assert.True(m1.IsEffectivelyReadOnly);
+
+            // even though the IsReadOnlyAttribute is in metadata,
+            // we ruled out the possibility of the method being readonly because it's static
+            var m2 = s.GetMethod("M2");
+            Assert.False(m2.IsDeclaredReadOnly);
+            Assert.False(m2.IsEffectivelyReadOnly);
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallNormalMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+
+    public readonly void M1()
+    {
+        // should create local copy
+        M2();
+        System.Console.Write(i);
+
+        // explicit local copy, no warning
+        var copy = this;
+        copy.M2();
+        System.Console.Write(copy.i);
+    }
+
+    void M2()
+    {
+        i = 23;
+    }
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        s.M1();
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+
+            verifier.VerifyDiagnostics(
+                // (9,9): warning CS8655: Call to non-readonly member 'S.M2()' from a 'readonly' member results in an implicit copy of 'this'.
+                //         M2();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M2").WithArguments("S.M2()", "this").WithLocation(9, 9));
+
+            verifier.VerifyIL("S.M1", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (S V_0, //copy
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""void S.M2()""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""int S.i""
+  IL_0014:  call       ""void System.Console.Write(int)""
+  IL_0019:  ldarg.0
+  IL_001a:  ldobj      ""S""
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  call       ""void S.M2()""
+  IL_0027:  ldloc.0
+  IL_0028:  ldfld      ""int S.i""
+  IL_002d:  call       ""void System.Console.Write(int)""
+  IL_0032:  ret
+}");
+        }
+
+        [Fact]
+        public void InMethod_CallNormalMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+
+    public static void M1(in S s)
+    {
+        // should create local copy
+        s.M2();
+        System.Console.Write(s.i);
+
+        // explicit local copy, no warning
+        var copy = s;
+        copy.M2();
+        System.Console.Write(copy.i);
+    }
+
+    void M2()
+    {
+        i = 23;
+    }
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        M1(in s);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+            // should warn about calling s.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S.M1", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (S V_0, //copy
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""void S.M2()""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""int S.i""
+  IL_0014:  call       ""void System.Console.Write(int)""
+  IL_0019:  ldarg.0
+  IL_001a:  ldobj      ""S""
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  call       ""void S.M2()""
+  IL_0027:  ldloc.0
+  IL_0028:  ldfld      ""int S.i""
+  IL_002d:  call       ""void System.Console.Write(int)""
+  IL_0032:  ret
+}");
+        }
+
+        [Fact]
+        public void InMethod_CallMethodFromMetadata()
+        {
+            var external = @"
+public struct S
+{
+    public int i;
+
+    public readonly void M1() {}
+
+    public void M2()
+    {
+        i = 23;
+    }
+}
+";
+            var image = CreateCompilation(external).EmitToImageReference();
+
+            var csharp = @"
+public static class C
+{
+    public static void M1(in S s)
+    {
+        // should not copy, no warning
+        s.M1();
+        System.Console.Write(s.i);
+
+        // should create local copy, warn in warning wave
+        s.M2();
+        System.Console.Write(s.i);
+
+        // explicit local copy, no warning
+        var copy = s;
+        copy.M2();
+        System.Console.Write(copy.i);
+    }
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        M1(in s);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, references: new[] { image }, expectedOutput: "1123");
+            // should warn about calling s.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", @"
+{
+  // Code size       68 (0x44)
+  .maxstack  1
+  .locals init (S V_0, //copy
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""readonly void S.M1()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldfld      ""int S.i""
+  IL_000c:  call       ""void System.Console.Write(int)""
+  IL_0011:  ldarg.0
+  IL_0012:  ldobj      ""S""
+  IL_0017:  stloc.1
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  call       ""void S.M2()""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int S.i""
+  IL_0025:  call       ""void System.Console.Write(int)""
+  IL_002a:  ldarg.0
+  IL_002b:  ldobj      ""S""
+  IL_0030:  stloc.0
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  call       ""void S.M2()""
+  IL_0038:  ldloc.0
+  IL_0039:  ldfld      ""int S.i""
+  IL_003e:  call       ""void System.Console.Write(int)""
+  IL_0043:  ret
+}");
+        }
+
+        [Fact]
+        public void InMethod_CallGetAccessorFromMetadata()
+        {
+            var external = @"
+public struct S
+{
+    public int i;
+
+    public readonly int P1 => 42;
+
+    public int P2 => i = 23;
+}
+";
+            var image = CreateCompilation(external).EmitToImageReference();
+
+            var csharp = @"
+public static class C
+{
+    public static void M1(in S s)
+    {
+        // should not copy, no warning
+        _ = s.P1;
+        System.Console.Write(s.i);
+
+        // should create local copy, warn in warning wave
+        _ = s.P2;
+        System.Console.Write(s.i);
+
+        // explicit local copy, no warning
+        var copy = s;
+        _ = copy.P2;
+        System.Console.Write(copy.i);
+    }
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        M1(in s);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, references: new[] { image }, expectedOutput: "1123");
+            // should warn about calling s.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", @"
+{
+  // Code size       71 (0x47)
+  .maxstack  1
+  .locals init (S V_0, //copy
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""readonly int S.P1.get""
+  IL_0006:  pop
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""int S.i""
+  IL_000d:  call       ""void System.Console.Write(int)""
+  IL_0012:  ldarg.0
+  IL_0013:  ldobj      ""S""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  call       ""int S.P2.get""
+  IL_0020:  pop
+  IL_0021:  ldarg.0
+  IL_0022:  ldfld      ""int S.i""
+  IL_0027:  call       ""void System.Console.Write(int)""
+  IL_002c:  ldarg.0
+  IL_002d:  ldobj      ""S""
+  IL_0032:  stloc.0
+  IL_0033:  ldloca.s   V_0
+  IL_0035:  call       ""int S.P2.get""
+  IL_003a:  pop
+  IL_003b:  ldloc.0
+  IL_003c:  ldfld      ""int S.i""
+  IL_0041:  call       ""void System.Console.Write(int)""
+  IL_0046:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallReadOnlyMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public readonly int M1() => M2() + 1;
+    public readonly int M2() => i;
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyIL("S.M1", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""readonly int S.M2()""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  ret
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyGetAccessor_CallReadOnlyGetAccessor()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public readonly int P1 { get => P2 + 1; }
+    public readonly int P2 { get => i; }
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyIL("S.P1.get", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""readonly int S.P2.get""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  ret
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyGetAccessor_CallAutoGetAccessor()
+        {
+            var csharp = @"
+public struct S
+{
+    public readonly int P1 { get => P2 + 1; }
+    public int P2 { get; }
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyIL("S.P1.get", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""readonly int S.P2.get""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  ret
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InParam_CallReadOnlyMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public static int M1(in S s) => s.M2() + 1;
+    public readonly int M2() => i;
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyIL("S.M1", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""readonly int S.M2()""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  ret
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallReadOnlyMethodOnField()
+        {
+            var csharp = @"
+public struct S1
+{
+    public readonly void M1() {}
+}
+
+public struct S2
+{
+    S1 s1;
+
+    public readonly void M2()
+    {
+        s1.M1();
+    }
+}
+";
+            var comp = CompileAndVerify(csharp);
+
+            comp.VerifyIL("S2.M2", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S1 S2.s1""
+  IL_0006:  call       ""readonly void S1.M1()""
+  IL_000b:  ret
+}");
+
+            comp.VerifyDiagnostics(
+                // (9,8): warning CS0649: Field 'S2.s1' is never assigned to, and will always have its default value
+                //     S1 s1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s1").WithArguments("S2.s1", "").WithLocation(9, 8)
+);
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallNormalMethodOnField()
+        {
+            var csharp = @"
+public struct S1
+{
+    public void M1() {}
+}
+
+public struct S2
+{
+    S1 s1;
+
+    public readonly void M2()
+    {
+        s1.M1();
+    }
+}
+";
+            var comp = CompileAndVerify(csharp);
+
+            comp.VerifyIL("S2.M2", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 S2.s1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""void S1.M1()""
+  IL_000e:  ret
+}");
+
+            // should warn about calling s2.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallBaseMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    readonly void M()
+    {
+        // no warnings for calls to base members
+        GetType();
+        ToString();
+        GetHashCode();
+        Equals(null);
+    }
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyDiagnostics();
+
+            // ToString/GetHashCode/Equals should pass the address of 'this' (not a temp). GetType should box 'this'.
+            comp.VerifyIL("S.M", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  box        ""S""
+  IL_000b:  call       ""System.Type object.GetType()""
+  IL_0010:  pop
+  IL_0011:  ldarg.0
+  IL_0012:  constrained. ""S""
+  IL_0018:  callvirt   ""string object.ToString()""
+  IL_001d:  pop
+  IL_001e:  ldarg.0
+  IL_001f:  constrained. ""S""
+  IL_0025:  callvirt   ""int object.GetHashCode()""
+  IL_002a:  pop
+  IL_002b:  ldarg.0
+  IL_002c:  ldnull
+  IL_002d:  constrained. ""S""
+  IL_0033:  callvirt   ""bool object.Equals(object)""
+  IL_0038:  pop
+  IL_0039:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_OverrideBaseMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    // note: GetType can't be overridden
+    public override string ToString() => throw null;
+    public override int GetHashCode() => throw null;
+    public override bool Equals(object o) => throw null;
+
+    readonly void M()
+    {
+        // should warn--non-readonly invocation
+        ToString();
+        GetHashCode();
+        Equals(null);
+
+        // ok
+        base.ToString();
+        base.GetHashCode();
+        base.Equals(null);
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp);
+
+            verifier.VerifyDiagnostics(
+                // (12,9): warning CS8655: Call to non-readonly member 'S.ToString()' from a 'readonly' member results in an implicit copy of 'this'.
+                //         ToString();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("S.ToString()", "this").WithLocation(12, 9),
+                // (13,9): warning CS8655: Call to non-readonly member 'S.GetHashCode()' from a 'readonly' member results in an implicit copy of 'this'.
+                //         GetHashCode();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("S.GetHashCode()", "this").WithLocation(13, 9),
+                // (14,9): warning CS8655: Call to non-readonly member 'S.Equals(object)' from a 'readonly' member results in an implicit copy of 'this'.
+                //         Equals(null);
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("S.Equals(object)", "this").WithLocation(14, 9));
+
+            // Verify that calls to non-readonly overrides pass the address of a temp, not the address of 'this'
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size      117 (0x75)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S""
+  IL_000f:  callvirt   ""string object.ToString()""
+  IL_0014:  pop
+  IL_0015:  ldarg.0
+  IL_0016:  ldobj      ""S""
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  constrained. ""S""
+  IL_0024:  callvirt   ""int object.GetHashCode()""
+  IL_0029:  pop
+  IL_002a:  ldarg.0
+  IL_002b:  ldobj      ""S""
+  IL_0030:  stloc.0
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  ldnull
+  IL_0034:  constrained. ""S""
+  IL_003a:  callvirt   ""bool object.Equals(object)""
+  IL_003f:  pop
+  IL_0040:  ldarg.0
+  IL_0041:  ldobj      ""S""
+  IL_0046:  box        ""S""
+  IL_004b:  call       ""string System.ValueType.ToString()""
+  IL_0050:  pop
+  IL_0051:  ldarg.0
+  IL_0052:  ldobj      ""S""
+  IL_0057:  box        ""S""
+  IL_005c:  call       ""int System.ValueType.GetHashCode()""
+  IL_0061:  pop
+  IL_0062:  ldarg.0
+  IL_0063:  ldobj      ""S""
+  IL_0068:  box        ""S""
+  IL_006d:  ldnull
+  IL_006e:  call       ""bool System.ValueType.Equals(object)""
+  IL_0073:  pop
+  IL_0074:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_ReadOnlyOverrideBaseMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    // note: GetType can't be overridden
+    public readonly override string ToString() => throw null;
+    public readonly override int GetHashCode() => throw null;
+    public readonly override bool Equals(object o) => throw null;
+
+    readonly void M()
+    {
+        // no warnings
+        ToString();
+        GetHashCode();
+        Equals(null);
+
+        base.ToString();
+        base.GetHashCode();
+        base.Equals(null);
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp);
+            verifier.VerifyDiagnostics();
+
+            // Verify that calls to readonly override members pass the address of 'this' (not a temp)
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size       93 (0x5d)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""S""
+  IL_0007:  callvirt   ""string object.ToString()""
+  IL_000c:  pop
+  IL_000d:  ldarg.0
+  IL_000e:  constrained. ""S""
+  IL_0014:  callvirt   ""int object.GetHashCode()""
+  IL_0019:  pop
+  IL_001a:  ldarg.0
+  IL_001b:  ldnull
+  IL_001c:  constrained. ""S""
+  IL_0022:  callvirt   ""bool object.Equals(object)""
+  IL_0027:  pop
+  IL_0028:  ldarg.0
+  IL_0029:  ldobj      ""S""
+  IL_002e:  box        ""S""
+  IL_0033:  call       ""string System.ValueType.ToString()""
+  IL_0038:  pop
+  IL_0039:  ldarg.0
+  IL_003a:  ldobj      ""S""
+  IL_003f:  box        ""S""
+  IL_0044:  call       ""int System.ValueType.GetHashCode()""
+  IL_0049:  pop
+  IL_004a:  ldarg.0
+  IL_004b:  ldobj      ""S""
+  IL_0050:  box        ""S""
+  IL_0055:  ldnull
+  IL_0056:  call       ""bool System.ValueType.Equals(object)""
+  IL_005b:  pop
+  IL_005c:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_NewBaseMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public new System.Type GetType() => throw null;
+    public new string ToString() => throw null;
+    public new int GetHashCode() => throw null;
+    public new bool Equals(object o) => throw null;
+
+    readonly void M()
+    {
+        // should warn--non-readonly invocation
+        GetType();
+        ToString();
+        GetHashCode();
+        Equals(null);
+
+        // ok
+        base.GetType();
+        base.ToString();
+        base.GetHashCode();
+        base.Equals(null);
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp);
+
+            verifier.VerifyDiagnostics(
+                // (12,9): warning CS8655: Call to non-readonly member 'S.GetType()' from a 'readonly' member results in an implicit copy of 'this'.
+                //         GetType();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetType").WithArguments("S.GetType()", "this").WithLocation(12, 9),
+                // (13,9): warning CS8655: Call to non-readonly member 'S.ToString()' from a 'readonly' member results in an implicit copy of 'this'.
+                //         ToString();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("S.ToString()", "this").WithLocation(13, 9),
+                // (14,9): warning CS8655: Call to non-readonly member 'S.GetHashCode()' from a 'readonly' member results in an implicit copy of 'this'.
+                //         GetHashCode();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("S.GetHashCode()", "this").WithLocation(14, 9),
+                // (15,9): warning CS8655: Call to non-readonly member 'S.Equals(object)' from a 'readonly' member results in an implicit copy of 'this'.
+                //         Equals(null);
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("S.Equals(object)", "this").WithLocation(15, 9));
+
+            // Verify that calls to new non-readonly members pass an address to a temp and that calls to base members use a box.
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size      131 (0x83)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Type S.GetType()""
+  IL_000e:  pop
+  IL_000f:  ldarg.0
+  IL_0010:  ldobj      ""S""
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""string S.ToString()""
+  IL_001d:  pop
+  IL_001e:  ldarg.0
+  IL_001f:  ldobj      ""S""
+  IL_0024:  stloc.0
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""int S.GetHashCode()""
+  IL_002c:  pop
+  IL_002d:  ldarg.0
+  IL_002e:  ldobj      ""S""
+  IL_0033:  stloc.0
+  IL_0034:  ldloca.s   V_0
+  IL_0036:  ldnull
+  IL_0037:  call       ""bool S.Equals(object)""
+  IL_003c:  pop
+  IL_003d:  ldarg.0
+  IL_003e:  ldobj      ""S""
+  IL_0043:  box        ""S""
+  IL_0048:  call       ""System.Type object.GetType()""
+  IL_004d:  pop
+  IL_004e:  ldarg.0
+  IL_004f:  ldobj      ""S""
+  IL_0054:  box        ""S""
+  IL_0059:  call       ""string System.ValueType.ToString()""
+  IL_005e:  pop
+  IL_005f:  ldarg.0
+  IL_0060:  ldobj      ""S""
+  IL_0065:  box        ""S""
+  IL_006a:  call       ""int System.ValueType.GetHashCode()""
+  IL_006f:  pop
+  IL_0070:  ldarg.0
+  IL_0071:  ldobj      ""S""
+  IL_0076:  box        ""S""
+  IL_007b:  ldnull
+  IL_007c:  call       ""bool System.ValueType.Equals(object)""
+  IL_0081:  pop
+  IL_0082:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_ReadOnlyNewBaseMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public readonly new System.Type GetType() => throw null;
+    public readonly new string ToString() => throw null;
+    public readonly new int GetHashCode() => throw null;
+    public readonly new bool Equals(object o) => throw null;
+
+    readonly void M()
+    {
+        // no warnings
+        GetType();
+        ToString();
+        GetHashCode();
+        Equals(null);
+
+        base.GetType();
+        base.ToString();
+        base.GetHashCode();
+        base.Equals(null);
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp);
+            verifier.VerifyDiagnostics();
+
+            // Verify that calls to readonly new members pass the address of 'this' (not a temp) and that calls to base members use a box.
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size       99 (0x63)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""readonly System.Type S.GetType()""
+  IL_0006:  pop
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""readonly string S.ToString()""
+  IL_000d:  pop
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""readonly int S.GetHashCode()""
+  IL_0014:  pop
+  IL_0015:  ldarg.0
+  IL_0016:  ldnull
+  IL_0017:  call       ""readonly bool S.Equals(object)""
+  IL_001c:  pop
+  IL_001d:  ldarg.0
+  IL_001e:  ldobj      ""S""
+  IL_0023:  box        ""S""
+  IL_0028:  call       ""System.Type object.GetType()""
+  IL_002d:  pop
+  IL_002e:  ldarg.0
+  IL_002f:  ldobj      ""S""
+  IL_0034:  box        ""S""
+  IL_0039:  call       ""string System.ValueType.ToString()""
+  IL_003e:  pop
+  IL_003f:  ldarg.0
+  IL_0040:  ldobj      ""S""
+  IL_0045:  box        ""S""
+  IL_004a:  call       ""int System.ValueType.GetHashCode()""
+  IL_004f:  pop
+  IL_0050:  ldarg.0
+  IL_0051:  ldobj      ""S""
+  IL_0056:  box        ""S""
+  IL_005b:  ldnull
+  IL_005c:  call       ""bool System.ValueType.Equals(object)""
+  IL_0061:  pop
+  IL_0062:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_FixedThis()
+        {
+            var csharp = @"
+struct S
+{
+    int i;
+
+    readonly unsafe void M()
+    {
+        fixed (S* sp = &this)
+        {
+			sp->i = 42;
+        }
+    }
+
+    static void Main()
+    {
+        var s = new S();
+        s.M();
+        System.Console.Write(s.i);
+    }
+}
+";
+            CompileAndVerify(csharp, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: "42");
+        }
+
+        public static TheoryData<bool, CSharpParseOptions, Verification> ReadOnlyGetter_LangVersion_Data() =>
+            new TheoryData<bool, CSharpParseOptions, Verification>
+            {
+                {  false, TestOptions.Regular7_3, Verification.Passes },
+                {  true, null, Verification.Fails }
+            };
+
+        [Theory]
+        [MemberData(nameof(ReadOnlyGetter_LangVersion_Data))]
+        public void ReadOnlyGetter_LangVersion(bool isReadOnly, CSharpParseOptions parseOptions, Verification verify)
+        {
+            var csharp = @"
+struct S
+{
+    public int P { get; }
+
+    static readonly S Field = default;
+    static void M()
+    {
+        _ = Field.P;
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp, parseOptions: parseOptions, verify: verify);
+            var type = verifier.Compilation.GetMember<NamedTypeSymbol>("S");
+            Assert.Equal(isReadOnly, type.GetProperty("P").GetMethod.IsDeclaredReadOnly);
+            Assert.Equal(isReadOnly, type.GetProperty("P").GetMethod.IsEffectivelyReadOnly);
+        }
+
+        [Fact]
+        public void ReadOnlyEvent_Emit()
+        {
+            var csharp = @"
+public struct S
+{
+    public readonly event System.Action E { add { } remove { } }
+}
+";
+            CompileAndVerify(csharp, symbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var testStruct = module.ContainingAssembly.GetTypeByMetadataName("S");
+
+                var peModule = (PEModuleSymbol)module;
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)testStruct.GetEvent("E").AddMethod).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)testStruct.GetEvent("E").RemoveMethod).Handle));
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
+            }
         }
     }
 }

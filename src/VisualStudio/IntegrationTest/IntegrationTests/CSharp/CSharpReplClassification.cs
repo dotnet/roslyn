@@ -2,19 +2,21 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpReplClassification : AbstractInteractiveWindowTest
     {
-        public CSharpReplClassification(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpReplClassification(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
+        [WpfFact]
         public void VerifyColorOfSomeTokens()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"using System.Console;
@@ -34,7 +36,7 @@ public static void Main(string[] args)
             VisualStudio.InteractiveWindow.PlaceCaret("{");
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "punctuation");
             VisualStudio.InteractiveWindow.PlaceCaret("Main");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "method name");
             VisualStudio.InteractiveWindow.PlaceCaret("Hello");
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "string");
             VisualStudio.InteractiveWindow.PlaceCaret("<summary", charsOffset: -1);

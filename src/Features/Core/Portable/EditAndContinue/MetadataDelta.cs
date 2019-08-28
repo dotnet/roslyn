@@ -2,13 +2,13 @@
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct MetadataDelta
+    internal readonly struct MetadataDelta
     {
         public readonly byte[] Bytes;
 
         public MetadataDelta(byte[] bytes)
         {
-            this.Bytes = bytes;
+            Bytes = bytes;
         }
     }
 }

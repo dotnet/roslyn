@@ -27,8 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
         }
 
-        private ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModel;
-        private SyntaxNodeKey _nodeKey;
+        private readonly ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModel;
+        private readonly SyntaxNodeKey _nodeKey;
 
         private TypeCollection(
             CodeModelState state,
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             var nodesBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
             nodesBuilder.AddRange(CodeModelService.GetLogicalSupportedMemberNodes(node));
 
-            return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement, 
+            return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement,
                 nodesBuilder.ToImmutableAndFree());
         }
 

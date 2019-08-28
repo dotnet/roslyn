@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class StatementSyntaxExtensions
     {
+        public static StatementSyntax WithoutLeadingBlankLinesInTrivia(this StatementSyntax statement)
+            => statement.WithLeadingTrivia(statement.GetLeadingTrivia().WithoutLeadingBlankLines());
+
         public static StatementSyntax GetPreviousStatement(this StatementSyntax statement)
         {
             if (statement != null)

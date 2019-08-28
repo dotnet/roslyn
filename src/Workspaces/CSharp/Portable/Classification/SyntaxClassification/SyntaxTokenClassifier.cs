@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static readonly Func<ITypeSymbol, bool> s_shouldInclude = t => t.TypeKind != TypeKind.Error && t.GetArity() > 0;
 
         public override void AddClassifications(
+            Workspace workspace,
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
             ArrayBuilder<ClassifiedSpan> result,
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 // For example: X?.Y<
                 //
                 // In this case, this could never be a type, and we do not want to try to 
-                // resolve it as such as it can lead to innapropriate classifications.
+                // resolve it as such as it can lead to inappropriate classifications.
                 if (CouldBeGenericType(identifier))
                 {
                     var types = semanticModel.LookupTypeRegardlessOfArity(identifier, cancellationToken);
@@ -52,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             // Look for patterns that indicate that this could never be a partially written 
             // generic *Type* (although it could be a partially written generic method).
 
-            var identifierName = identifier.Parent as IdentifierNameSyntax;
-            if (identifierName == null)
+            if (!(identifier.Parent is IdentifierNameSyntax identifierName))
             {
                 // Definitely not a generic type if this isn't even an identifier name.
                 return false;

@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             /// <typeparamref name="TException"/>. any other exception from the call won't be handled here.
             /// </summary>
             public static async Task<TResult> RetryRemoteCallAsync<TException, TResult>(
+                Workspace workspace,
                 Func<Task<TResult>> funcAsync,
                 TimeSpan timeout,
                 CancellationToken cancellationToken) where TException : Exception
@@ -57,22 +58,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 // operation timed out, more than we are willing to wait
-                ShowInfoBar();
+                RemoteHostCrashInfoBar.ShowInfoBar(workspace);
 
-                // user didn't ask for cancellation, but we can't fullfill this request. so we
-                // create our own cancellation token and then throw it. this doesn't guarantee
-                // 100% that we won't crash, but this is at least safest way we know until user
-                // restart VS (with info bar)
-                using (var ownCancellationSource = new CancellationTokenSource())
-                {
-                    ownCancellationSource.Cancel();
-                    ownCancellationSource.Token.ThrowIfCancellationRequested();
-                }
-
-                throw ExceptionUtilities.Unreachable;
+                // throw soft crash exception to minimize hard crash. it doesn't
+                // gurantee 100% hard crash free. but 99% it doesn't cause
+                // hard crash
+                throw new SoftCrashException("retry timed out", cancellationToken);
             }
 
             public static async Task<Stream> RequestServiceAsync(
+                Workspace workspace,
                 HubClient client,
                 string serviceName,
                 HostGroup hostGroup,
@@ -105,6 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         // first retry most likely deal with real issue on servicehub, second retry (cancellation) is to deal with
                         // by design servicehub behavior we don't want to use.
                         return await RetryRemoteCallAsync<OperationCanceledException, Stream>(
+                            workspace,
                             () => client.RequestServiceAsync(descriptor, cancellationToken),
                             timeout,
                             cancellationToken).ConfigureAwait(false);
@@ -126,13 +122,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
                 }
 
-                // crash right away to get better dump. otherwise, we will get dump from async exception
-                // which most likely lost all valuable data
-                FatalError.ReportUnlessCanceled(lastException);
-                GC.KeepAlive(lastException);
+                RemoteHostCrashInfoBar.ShowInfoBar(workspace, lastException);
 
-                // unreachable
-                throw ExceptionUtilities.Unreachable;
+                // raise soft crash exception rather than doing hard crash.
+                // we had enough feedback from users not to crash VS on servicehub failure
+                throw new SoftCrashException("RequestServiceAsync Failed", lastException, cancellationToken);
             }
 
             #region code related to make diagnosis easier later
@@ -149,22 +143,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // report service hub logs along with dump
                     (new Exception("RequestServiceAsync Timeout")).ReportServiceHubNFW("RequestServiceAsync Timeout");
-                }
-            }
-
-            private static bool s_infoBarReported = false;
-
-            private static void ShowInfoBar()
-            {
-                // use info bar to show warning to users
-                if (CodeAnalysis.PrimaryWorkspace.Workspace != null && !s_infoBarReported)
-                {
-                    // do not report it multiple times
-                    s_infoBarReported = true;
-
-                    // use info bar to show warning to users
-                    CodeAnalysis.PrimaryWorkspace.Workspace.Services.GetService<IErrorReportingService>()?.ShowGlobalErrorInfo(
-                        ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio);
                 }
             }
             #endregion

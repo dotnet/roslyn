@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: 找不到參考組件 "{0}"。如果這個組件是由您的其他專案所產生的，請務必先建置該專案，才能建置此專案。</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">無法讀取檔案 "{0}": {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">共用編譯失敗; 將回到工具: {0}</target>
@@ -118,6 +123,26 @@
         <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
         <target state="translated">MSB3402: 建立 PDB 檔案 "{0}" 時發生錯誤。{1}</target>
         <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">{0} 包含具衝突中繼資料 '{2}' 的重複項目 '{1}': '{3}' 和 '{4}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">{0} 個路徑必須以斜線或反斜線作為結尾: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">在 {1} 為 true 的情況下，{0} 個項目必須包含至少一個高層級 (非巢狀) 項目</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">{1} 個項目中找不到 {0} 的值，或相對應項目不是高階層來源根目錄: '{2}'</target>
+        <note />
       </trans-unit>
     </body>
   </file>

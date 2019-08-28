@@ -623,7 +623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' multiple viable results, either produce an result with both symbols if they can overload each other,
         ' or produce an ambiguity error otherwise.
         Public Sub MergeMembersOfTheSameType(other As SingleLookupResult, imported As Boolean)
-            Debug.Assert(Not Me.HasSymbol OrElse other.Symbol Is Nothing OrElse Me.Symbols(0).ContainingType = other.Symbol.ContainingType)
+            Debug.Assert(Not Me.HasSymbol OrElse other.Symbol Is Nothing OrElse TypeSymbol.Equals(Me.Symbols(0).ContainingType, other.Symbol.ContainingType, TypeCompareKind.ConsiderEverything))
             Debug.Assert(Not other.IsAmbiguous)
 
             If Me.IsGoodOrAmbiguous AndAlso other.IsGood Then
@@ -631,9 +631,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MergeOverloadedOrAmbiguousInTheSameType(other, imported)
             ElseIf other.Kind > Me.Kind Then
                 SetFrom(other)
-            ElseIf Me.Kind <> LookupResultKind.Inaccessible OrElse Me.Kind > other.Kind OrElse
-                Not CanOverload(Me.Symbols(0), other.Symbol) Then
+            ElseIf Me.Kind <> LookupResultKind.Inaccessible OrElse Me.Kind > other.Kind Then
                 Return
+            ElseIf Not CanOverload(Me.Symbols(0), other.Symbol) Then
+                Debug.Assert(Me.Kind = LookupResultKind.Inaccessible)
+                Debug.Assert(Me.Kind = other.Kind)
+                If Me.Symbols.All(Function(candidate, otherSymbol) candidate.DeclaredAccessibility < otherSymbol.DeclaredAccessibility, other.Symbol) Then
+                    SetFrom(other)
+                End If
             Else
                 _symList.Add(other.Symbol)
             End If
@@ -730,7 +735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Shared Function AreEquivalentEnumConstants(symbol1 As Symbol, symbol2 As Symbol) As Boolean
-            Debug.Assert(symbol1.ContainingType = symbol2.ContainingType)
+            Debug.Assert(TypeSymbol.Equals(symbol1.ContainingType, symbol2.ContainingType, TypeCompareKind.ConsiderEverything))
             If symbol1.Kind <> SymbolKind.Field OrElse symbol2.Kind <> SymbolKind.Field OrElse symbol1.ContainingType.TypeKind <> TypeKind.Enum Then
                 Return False
             End If

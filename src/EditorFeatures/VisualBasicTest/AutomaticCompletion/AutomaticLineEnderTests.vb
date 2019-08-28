@@ -1,12 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
+Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletion
@@ -118,13 +120,13 @@ End Class</code>)
         Public Sub TestDim_After_MalformedStatement()
             Test(<code>Class C
     Sub Method()
-        Dim _ ' test
+        Dim _  test
 
         $$
     End Sub
 End Class</code>, <code>Class C
     Sub Method()
-        Dim _ ' test
+        Dim _  test
 $$
     End Sub
 End Class</code>)
@@ -216,6 +218,8 @@ End Module
 </code>)
         End Sub
 
+        ' The test verifies the integrated behavior which keeps the space '_'.
+        ' This corresponds to the actual VS behavior.
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Sub TestWithLineContinuation()
             Test(
@@ -236,17 +240,36 @@ End Module
 </code>)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        Public Sub TestWithLineContinuationCommentsAfterLineContinuation()
+            Test(
+<code>
+Module M
+    Sub Main()
+        Dim _ ' Test
+            $$
+    End Sub
+End Module
+</code>,
+<code>
+Module M
+    Sub Main()
+        Dim _ ' Test$$
+    End Sub
+End Module
+</code>)
+        End Sub
+
         Private Overloads Sub Test(expected As XElement, code As XElement)
             Test(expected.NormalizedValue(), code.NormalizedValue())
         End Sub
 
         Friend Overrides Function CreateCommandHandler(
-            waitIndicator As Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator,
             undoRegistry As ITextUndoHistoryRegistry,
             editorOperations As IEditorOperationsFactoryService
-        ) As ICommandHandler(Of AutomaticLineEnderCommandArgs)
+        ) As IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
 
-            Return New AutomaticLineEnderCommandHandler(waitIndicator, undoRegistry, editorOperations)
+            Return New AutomaticLineEnderCommandHandler(undoRegistry, editorOperations)
         End Function
 
         Protected Overrides Function CreateNextHandler(workspace As TestWorkspace) As Action
@@ -259,7 +282,7 @@ End Module
 
             Return Sub()
                        endConstructor.ExecuteCommand_AutomaticLineEnderCommandHandler(
-                           New AutomaticLineEnderCommandArgs(view, buffer), Sub() Exit Sub)
+                           New AutomaticLineEnderCommandArgs(view, buffer), Sub() Exit Sub, TestCommandExecutionContext.Create())
                    End Sub
         End Function
 

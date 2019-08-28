@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
@@ -19,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     internal class AdornmentManager<T> where T : GraphicsTag
     {
         private readonly object _invalidatedSpansLock = new object();
+
+        private readonly IThreadingContext _threadingContext;
 
         /// <summary>View that created us.</summary>
         private readonly IWpfTextView _textView;
@@ -36,30 +40,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         private List<IMappingSpan> _invalidatedSpans;
 
         public static AdornmentManager<T> Create(
+            IThreadingContext threadingContext,
             IWpfTextView textView,
             IViewTagAggregatorFactoryService aggregatorService,
             IAsynchronousOperationListener asyncListener,
             string adornmentLayerName)
         {
+            Contract.ThrowIfNull(threadingContext);
             Contract.ThrowIfNull(textView);
             Contract.ThrowIfNull(aggregatorService);
             Contract.ThrowIfNull(adornmentLayerName);
             Contract.ThrowIfNull(asyncListener);
 
-            return new AdornmentManager<T>(textView, aggregatorService, asyncListener, adornmentLayerName);
+            return new AdornmentManager<T>(threadingContext, textView, aggregatorService, asyncListener, adornmentLayerName);
         }
 
         internal AdornmentManager(
+            IThreadingContext threadingContext,
             IWpfTextView textView,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             IAsynchronousOperationListener asyncListener,
             string adornmentLayerName)
         {
+            Contract.ThrowIfNull(threadingContext);
             Contract.ThrowIfNull(textView);
             Contract.ThrowIfNull(tagAggregatorFactoryService);
             Contract.ThrowIfNull(adornmentLayerName);
             Contract.ThrowIfNull(asyncListener);
 
+            _threadingContext = threadingContext;
             _textView = textView;
             _adornmentLayer = textView.GetAdornmentLayer(adornmentLayerName);
             textView.LayoutChanged += OnLayoutChanged;
@@ -155,9 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                     if (_invalidatedSpans == null)
                     {
                         // set invalidated spans
-                        var newInvalidatedSpans = new List<IMappingSpan>();
-                        newInvalidatedSpans.Add(changedSpan);
-                        _invalidatedSpans = newInvalidatedSpans;
+                        _invalidatedSpans = new List<IMappingSpan> { changedSpan };
 
                         needToScheduleUpdate = true;
                     }
@@ -171,19 +178,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 if (needToScheduleUpdate)
                 {
                     // schedule an update
-                    var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".OnTagsChanged.2");
-                    _textView.VisualElement.Dispatcher.BeginInvoke(
-                        new System.Action(() =>
+                    _threadingContext.JoinableTaskFactory.WithPriority(_textView.VisualElement.Dispatcher, DispatcherPriority.Render).RunAsync(async () =>
                     {
-                        try
+                        using (_asyncListener.BeginAsyncOperation(GetType() + ".OnTagsChanged.2"))
                         {
+                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
                             UpdateInvalidSpans();
                         }
-                        finally
-                        {
-                            asyncToken.Dispose();
-                        }
-                    }), DispatcherPriority.Render);
+                    });
                 }
             }
         }

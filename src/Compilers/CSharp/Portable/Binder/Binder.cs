@@ -33,12 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Compilation = compilation;
         }
 
-        internal Binder(Binder next)
+        internal Binder(Binder next, Conversions conversions = null)
         {
             Debug.Assert(next != null);
             _next = next;
             this.Flags = next.Flags;
             this.Compilation = next.Compilation;
+            _lazyConversions = conversions;
         }
 
         protected Binder(Binder next, BinderFlags flags)
@@ -201,6 +202,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// True if this is the top-level binder for a local function or lambda
+        /// (including implicit lambdas from query expressions).
+        /// </summary>
+        internal virtual bool IsNestedFunctionBinder => false;
+
+        /// <summary>
         /// The member containing the binding context.  Note that for the purposes of the compiler,
         /// a lambda expression is considered a "member" of its enclosing method, field, or lambda.
         /// </summary>
@@ -210,6 +217,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return Next.ContainingMemberOrLambda;
             }
+        }
+
+        /// <summary>
+        /// Are we in a context where un-annotated types should be interpreted as non-null?
+        /// </summary>
+        internal bool AreNullableAnnotationsEnabled(SyntaxTree syntaxTree, int position)
+        {
+            bool? fromTree = ((CSharpSyntaxTree)syntaxTree).GetNullableContextState(position).AnnotationsState;
+
+            if (fromTree != null)
+            {
+                return fromTree.GetValueOrDefault();
+            }
+
+            return AreNullableAnnotationsGloballyEnabled();
+        }
+
+        internal bool AreNullableAnnotationsEnabled(SyntaxToken token)
+        {
+            return AreNullableAnnotationsEnabled(token.SyntaxTree, token.SpanStart);
+        }
+
+        internal virtual bool AreNullableAnnotationsGloballyEnabled()
+        {
+            return Next.AreNullableAnnotationsGloballyEnabled();
         }
 
         /// <summary>
@@ -289,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// inside a lambda expression"</param>
         /// <param name="diagnostics">Where to place any diagnostics</param>
         /// <returns>Element type of the current iterator, or an error type.</returns>
-        internal virtual TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal virtual TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             return Next.GetIteratorElementType(node, diagnostics);
         }
@@ -318,10 +350,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        internal virtual Imports GetImports(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _next.GetImports(basesBeingResolved);
         }
+
+        protected virtual bool InExecutableBinder
+            => _next.InExecutableBinder;
 
         /// <summary>
         /// The type containing the binding context
@@ -617,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))
             {
@@ -670,6 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
         {
+            Debug.Assert(statement.Kind != BoundKind.StatementList);
             var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
             if (locals.IsEmpty)
             {
@@ -677,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundBlock(statement.Syntax, locals, ImmutableArray.Create(statement))
-                { WasCompilerGenerated = true };
+            { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -707,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (Binder scope = this; scope != null; scope = scope.Next)
                 {
-                    var(description, snippet, locals) = Print(scope);
+                    var (description, snippet, locals) = Print(scope);
                     var sub = new List<TreeDumperNode>();
                     if (!locals.IsEmpty())
                     {

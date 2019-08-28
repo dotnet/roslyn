@@ -102,6 +102,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property Machine As System.Reflection.PortableExecutable.Machine
             Get
                 Select Case DeclaringCompilation.Options.Platform
+                    Case Platform.Arm64
+                        Return System.Reflection.PortableExecutable.Machine.Arm64
                     Case Platform.Arm
                         Return System.Reflection.PortableExecutable.Machine.ArmThumb2
                     Case Platform.X64

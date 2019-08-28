@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -165,7 +166,7 @@ enum Colors
 
         [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InYieldReturn()
+        public async Task InYieldReturnInMethod()
         {
             var markup =
 @"using System;
@@ -176,6 +177,27 @@ class Program
     IEnumerable<DayOfWeek> M()
     {
         yield return $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InYieldReturnInLocalFunction()
+        {
+            var markup =
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    void M()
+    {
+        IEnumerable<DayOfWeek> F()
+        {
+            yield return $$
+        }
     }
 }";
             await VerifyItemExistsAsync(markup, "DayOfWeek");
@@ -195,6 +217,184 @@ class Program
     {
         await Task.Delay(1);
         return $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InSimpleLambdaAfterArrow()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<bool, DayOfWeek> M()
+    {
+        return _ => $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InParenthesizedLambdaAfterArrow()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return () => $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInAnonymousMethodAfterParameterList()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return delegate () $$
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInSimpleLambdaAfterAsync()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<bool, DayOfWeek> M()
+    {
+        return async $$ _ =>
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInParenthesizedLambdaAfterAsync()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return async $$ () =>
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInAnonymousMethodAfterAsync()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return async $$ delegate ()
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInSimpleLambdaBlock()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<bool, DayOfWeek> M()
+    {
+        return _ => { $$ }
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInParenthesizedLambdaBlock()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return () => { $$ }
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotInAnonymousMethodBlock()
+        {
+            var markup =
+@"using System;
+
+class Program
+{
+    Func<DayOfWeek> M()
+    {
+        return delegate () { $$ }
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InExpressionTreeSimpleLambdaAfterArrow()
+        {
+            var markup =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    Expression<Func<bool, DayOfWeek>> M()
+    {
+        return _ => $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InExpressionTreeParenthesizedLambdaAfterArrow()
+        {
+            var markup =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    Expression<Func<DayOfWeek>> M()
+    {
+        return () => $$
     }
 }";
             await VerifyItemExistsAsync(markup, "DayOfWeek");

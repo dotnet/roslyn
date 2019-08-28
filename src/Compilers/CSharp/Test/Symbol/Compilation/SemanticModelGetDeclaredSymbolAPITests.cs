@@ -16,6 +16,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class SemanticModelTests : CSharpTestBase
     {
         [Fact]
+        public void RefForEachVar()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<int> span)
+    {
+        foreach (ref readonly int rx in span) { }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetCompilationUnitRoot();
+            var rxDecl = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+            ILocalSymbol rx = model.GetDeclaredSymbol(rxDecl);
+            Assert.NotNull(rx);
+            Assert.True(rx.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, rx.RefKind);
+        }
+
+        [Fact]
+        public void RefForVar()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(int x)
+    {
+        for (ref readonly int rx = ref x;;) { }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetCompilationUnitRoot();
+            var rxDecl = root.DescendantNodes().OfType<ForStatementSyntax>().Single().Declaration;
+            var model = comp.GetSemanticModel(tree);
+            ISymbol rx = model.GetDeclaredSymbol(rxDecl.Variables.Single());
+            Assert.NotNull(rx);
+            var rxLocal = Assert.IsAssignableFrom<ILocalSymbol>(rx);
+            Assert.True(rxLocal.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, rxLocal.RefKind);
+        }
+
+        [Fact]
         public void TestGetDeclaredSymbolFromNamespace()
         {
             var compilation = CreateCompilation(@"
@@ -1230,7 +1276,7 @@ namespace System
             var someMemberInC = (MemberDeclarationSyntax)typeDeclC.Members[0];
 
             var namesInC = model.LookupNames(someMemberInC.SpanStart);
-            Assert.Equal(15, namesInC.Count); // everything in System.Object is included, with an uncertain count
+            Assert.Equal(13, namesInC.Count); // everything with exception of protected members in System.Object is included, with an uncertain count
             Assert.Contains("A", namesInC);
             Assert.Contains("B", namesInC);
             Assert.Contains("C", namesInC);
@@ -1932,7 +1978,7 @@ static class E
 
             // Type not satisfying constraint.
             symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
-            CheckSymbols(symbols);
+            CheckSymbolsUnordered(symbols);
         }
 
         [Fact]
@@ -5147,6 +5193,32 @@ class C
                 this.Incompletes.Add(node);
                 base.VisitIncompleteMember(node);
             }
+        }
+
+        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
+        [Fact]
+        public void TestLookupStaticMembersLocalFunction()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    static void M()
+    {
+        void Local() {}
+    }
+}
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var cu = tree.GetCompilationUnitRoot();
+            var typeDeclC = (TypeDeclarationSyntax)cu.Members.Single();
+            var methodDeclM = (MethodDeclarationSyntax)typeDeclC.Members.Single();
+
+            var symbols = model.LookupStaticMembers(methodDeclM.Body.SpanStart);
+
+            Assert.Contains(symbols, s => s.Name == "Local");
         }
     }
 }

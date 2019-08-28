@@ -7,8 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -28,8 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly IRemotableDataService _remotableDataService;
         private readonly CancellationTokenSource _shutdownCancellationSource;
 
-        public RemotableDataJsonRpc(Microsoft.CodeAnalysis.Workspace workspace, TraceSource logger, Stream stream)
-            : base(logger, stream, callbackTarget: null, useThisAsCallback: true)
+        public RemotableDataJsonRpc(Workspace workspace, TraceSource logger, Stream stream)
+            : base(workspace, logger, stream, callbackTarget: null, useThisAsCallback: true)
         {
             _remotableDataService = workspace.Services.GetService<IRemotableDataService>();
 
@@ -45,18 +47,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             try
             {
-                using (var source = CancellationTokenSource.CreateLinkedTokenSource(_shutdownCancellationSource.Token, cancellationToken))
-                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, source.Token))
-                using (var stream = await DirectStream.GetAsync(streamName, source.Token).ConfigureAwait(false))
+                using (var combinedCancellationToken = _shutdownCancellationSource.Token.CombineWith(cancellationToken))
+                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, combinedCancellationToken.Token))
+                using (var stream = await DirectStream.GetAsync(streamName, combinedCancellationToken.Token).ConfigureAwait(false))
                 {
-                    using (var writer = new ObjectWriter(stream, source.Token))
+                    using (var writer = new ObjectWriter(stream, combinedCancellationToken.Token))
                     {
                         writer.WriteInt32(scopeId);
 
-                        await WriteAssetAsync(writer, scopeId, checksums, source.Token).ConfigureAwait(false);
+                        await WriteAssetAsync(writer, scopeId, checksums, combinedCancellationToken.Token).ConfigureAwait(false);
                     }
 
-                    await stream.FlushAsync(source.Token).ConfigureAwait(false);
+                    await stream.FlushAsync(combinedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
@@ -64,6 +66,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // only expected exception will be catched. otherwise, NFW and let it propagate
                 Debug.Assert(cancellationToken.IsCancellationRequested || ex is IOException);
             }
+        }
+
+        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken _)
+        {
+            return Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
         }
 
         private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
@@ -110,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private Task WriteNoAssetAsync(ObjectWriter writer)
         {
             writer.WriteInt32(0);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private async Task WriteOneAssetAsync(ObjectWriter writer, int scopeId, Checksum checksum, CancellationToken cancellationToken)
@@ -146,7 +153,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         protected override void Disconnected(JsonRpcDisconnectedEventArgs e)
         {
-            if (e.Reason != DisconnectedReason.Disposed)
+            // we don't expect OOP side to disconnect the connection. 
+            // Host (VS) always initiate or disconnect the connection.
+            if (e.Reason != DisconnectedReason.LocallyDisposed)
             {
                 // log when this happens
                 LogDisconnectInfo(e, new StackTrace().ToString());

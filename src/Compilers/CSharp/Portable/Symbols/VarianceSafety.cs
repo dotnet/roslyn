@@ -173,9 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
-                foreach (TypeSymbol constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                foreach (TypeWithAnnotations constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
                 {
-                    IsVarianceUnsafe(constraintType,
+                    IsVarianceUnsafe(constraintType.Type,
                         requireOutputSafety: false,
                         requireInputSafety: true,
                         context: context,
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 for (int i = 0; i < namedType.Arity; i++)
                 {
                     TypeParameterSymbol typeParam = namedType.TypeParameters[i];
-                    TypeSymbol typeArg = namedType.TypeArgumentsNoUseSiteDiagnostics[i];
+                    TypeSymbol typeArg = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
 
                     bool requireOut;
                     bool requireIn;

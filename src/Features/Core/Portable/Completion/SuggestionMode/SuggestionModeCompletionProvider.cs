@@ -13,14 +13,12 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            context.SuggestionModeItem = await this.GetSuggestionModeItemAsync(
+            context.SuggestionModeItem = await GetSuggestionModeItemAsync(
                 context.Document, context.Position, context.CompletionListSpan, context.Trigger, context.CancellationToken).ConfigureAwait(false);
         }
 
         protected CompletionItem CreateEmptySuggestionModeItem()
-        {
-            return CreateSuggestionModeItem(displayText: null, description: null);
-        }
+            => CreateSuggestionModeItem(displayText: null, description: null);
 
         internal override bool IsInsertionTrigger(SourceText text, int position, OptionSet options) => false;
     }

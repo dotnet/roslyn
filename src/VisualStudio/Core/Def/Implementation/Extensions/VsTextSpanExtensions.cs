@@ -13,19 +13,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         {
             spanInPrimaryBuffer = default;
 
-            var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace == null)
+            if (!(workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
             {
                 return false;
             }
 
-            var containedDocument = visualStudioWorkspace.GetHostDocument(documentId) as ContainedDocument;
+            var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
             if (containedDocument == null)
             {
                 return false;
             }
 
-            var bufferCoordinator = containedDocument.ContainedLanguage.BufferCoordinator;
+            var bufferCoordinator = containedDocument.BufferCoordinator;
 
             var primary = new VsTextSpan[1];
             var hresult = bufferCoordinator.MapSecondaryToPrimarySpan(spanInSecondaryBuffer, primary);

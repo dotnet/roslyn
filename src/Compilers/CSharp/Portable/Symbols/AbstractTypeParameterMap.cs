@@ -13,23 +13,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract class AbstractTypeParameterMap : AbstractTypeMap
     {
-        protected readonly SmallDictionary<TypeParameterSymbol, TypeWithModifiers> Mapping;
+        protected readonly SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> Mapping;
 
-        protected AbstractTypeParameterMap(SmallDictionary<TypeParameterSymbol, TypeWithModifiers> mapping)
+        protected AbstractTypeParameterMap(SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> mapping)
         {
             this.Mapping = mapping;
         }
 
-        protected sealed override TypeWithModifiers SubstituteTypeParameter(TypeParameterSymbol typeParameter)
+        protected sealed override TypeWithAnnotations SubstituteTypeParameter(TypeParameterSymbol typeParameter)
         {
             // It might need to be substituted directly.
-            TypeWithModifiers result;
+            TypeWithAnnotations result;
             if (Mapping.TryGetValue(typeParameter, out result))
             {
                 return result;
             }
 
-            return new TypeWithModifiers(typeParameter);
+            return TypeWithAnnotations.Create(typeParameter);
         }
 
         private string GetDebuggerDisplay()

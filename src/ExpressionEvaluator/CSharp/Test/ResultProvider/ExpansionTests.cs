@@ -630,6 +630,40 @@ class C
         }
 
         [Fact]
+        public void NullableProperty()
+        {
+            var source =
+@"
+class R
+{
+    public int? A { get; set; }
+    public int? B { get; set; }
+}
+class C
+{
+    R r = new R();
+    public C()
+    {
+        r.A = 1;
+        r.B = null;
+    }
+}";
+            var assembly = GetAssembly(source);
+            var type = assembly.GetType("C");
+            var value = CreateDkmClrValue(Activator.CreateInstance(type));
+            var rootExpr = "new C()";
+            var evalResult = FormatResult(rootExpr, value);
+            Verify(evalResult,
+                EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
+            var children = GetChildren(evalResult);
+            Verify(children,
+                EvalResult("r", "{R}", "R", "(new C()).r", flags: DkmEvaluationResultFlags.Expandable));
+            Verify(GetChildren(children[0]),
+                EvalResult("A", "1", "int?", "(new C()).r.A", category: DkmEvaluationResultCategory.Property),
+                EvalResult("B", "null", "int?", "(new C()).r.B", category: DkmEvaluationResultCategory.Property));
+        }
+
+        [Fact]
         public void Pointers()
         {
             var source =
@@ -709,11 +743,47 @@ unsafe class C
                 string fullName = string.Format("*({0}).p", rootExpr);
                 children = GetChildren(children[0]);
                 Verify(children,
-                    EvalResult(fullName, "{4}", "System.IntPtr", fullName, DkmEvaluationResultFlags.Expandable));
+                    EvalResult(fullName, IntPtr.Size == 8 ? "0x0000000000000004" : "0x00000004", "System.IntPtr", fullName, DkmEvaluationResultFlags.None));
+            }
+        }
+
+        [Fact]
+        public void UIntPtrPointer()
+        {
+            var source = @"
+using System;
+
+unsafe class C
+{
+    internal C(ulong p)
+    {
+        this.p = (UIntPtr*)p;
+    }
+    UIntPtr* p;
+    UIntPtr* q;
+}";
+            var assembly = GetUnsafeAssembly(source);
+            unsafe
+            {
+                // NOTE: We're depending on endian-ness to put
+                // the interesting bytes first when we run this
+                // test as 32-bit.
+                ulong i = 4;
+                ulong p = (ulong)&i;
+                var type = assembly.GetType("C");
+                var rootExpr = string.Format("new C({0})", p);
+                var value = CreateDkmClrValue(type.Instantiate(p));
+                var evalResult = FormatResult(rootExpr, value);
+                Verify(evalResult,
+                    EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("p", PointerToString(new UIntPtr(p)), "System.UIntPtr*", string.Format("({0}).p", rootExpr), DkmEvaluationResultFlags.Expandable),
+                    EvalResult("q", PointerToString(UIntPtr.Zero), "System.UIntPtr*", string.Format("({0}).q", rootExpr)));
+                string fullName = string.Format("*({0}).p", rootExpr);
                 children = GetChildren(children[0]);
                 Verify(children,
-                    EvalResult("m_value", PointerToString(new IntPtr(i)), "void*", string.Format("({0}).m_value", fullName)),
-                    EvalResult("Static members", null, "", "System.IntPtr", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+                    EvalResult(fullName, UIntPtr.Size == 8 ? "0x0000000000000004" : "0x00000004", "System.UIntPtr", fullName, DkmEvaluationResultFlags.None));
             }
         }
 

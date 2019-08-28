@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Roslyn.VisualStudio.Setup.Dependencies</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+
+    <!-- VSIX -->
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <ExtensionInstallationRoot>$(CommonExtensionInstallationRoot)</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\Dependencies</ExtensionInstallationFolder>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 
+    Roslyn dependencies that are installed by other VS components. 
+    This project deploys them to RoslynDev hive to enable F5 scenario, 
+    but the resulting VSIX not inserted into VS.
+    -->
+    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" />
+    <NuGetPackageToIncludeInVsix Include="System.Buffers" />
+    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
+    <NuGetPackageToIncludeInVsix Include="System.Memory" />
+    <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" />
+    <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
+    <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Needed to use RegistrationAttribute -->
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <!-- Work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/725508 -->
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
+    <!-- All packages that we depend on, either as facades or implementations -->
+    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+  </ItemGroup>
+
+  <!--
+    Workaround to make Roslyn work on Dev15. Deploys System.ValueTuple 4.0.3.0 and binding redirects to override System.ValueTuple 4.0.1.0 in PrivateAssemblies.
+    
+    Roslyn binaries are compiled against net472 and netstandard2.0. They reference ValueTuple types from mscorlib.dll and netstandard.dll, respectively.
+    netstandard.dll forwards to System.ValueTuple.dll 4.0.0.0, which in turn forwards to an implementation in mscorlib.dll.
+    System.ValueTuple.dll 4.0.1.0, which ships in PrivateAssemblies, also has an implementation of ValueTuple types (it does not forward to mscorlib.dll).
+    We need to prevent this assembly from loading since that would result in two different ValueTuple types loaded by different Roslyn components.
+    
+    The binding redirects are specified manually since ProvideDependencyBindingRedirection attribute doesn't generate the right version for some reason.
+    Using System.ValueTuple.dll from Framework directory does not work since we'd need a downgrading redirect 0.0.0.0-4.0.1.0 -> 4.0.0.0, which VS doesn't apply
+    since it already has a redirect 0.0.0.0-4.0.1.0 -> 4.0.1.0.
+    
+    TODO: Remove once we move to Dev16 (https://github.com/dotnet/roslyn/issues/29705)
+  -->
+  <ItemGroup>
+    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
+    <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
+    <Content Include="Roslyn.VisualStudio.Setup.Dependencies.ValueTuple.pkgdef" IncludeInVSIX="true" />
+  </ItemGroup>
+</Project>

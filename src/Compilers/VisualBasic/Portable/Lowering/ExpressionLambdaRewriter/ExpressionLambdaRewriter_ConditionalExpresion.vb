@@ -187,12 +187,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(outConv IsNot Nothing AndAlso
                          toType.IsSameTypeIgnoringAll(outConv.Type) OrElse
                          toType.IsSameTypeIgnoringAll([call].Type))
-            Debug.Assert(method.ReturnType = callType)
-            Debug.Assert(toType = conversion.Type)
+            Debug.Assert(TypeSymbol.Equals(method.ReturnType, callType, TypeCompareKind.ConsiderEverything))
+            Debug.Assert(TypeSymbol.Equals(toType, conversion.Type, TypeCompareKind.ConsiderEverything))
 
             Dim expectedParameterType As TypeSymbol = method.Parameters(0).Type
             Dim realParameterType As TypeSymbol = parameter.Type
-            Debug.Assert(expectedParameterType.GetNullableUnderlyingTypeOrSelf = realParameterType.GetNullableUnderlyingTypeOrSelf)
+            Debug.Assert(TypeSymbol.Equals(expectedParameterType.GetNullableUnderlyingTypeOrSelf, realParameterType.GetNullableUnderlyingTypeOrSelf, TypeCompareKind.ConsiderEverything))
 
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
             Dim innerConversion As ConversionKind = Conversions.ClassifyConversion(realParameterType, expectedParameterType, useSiteDiagnostics).Key
@@ -221,6 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Nothing,
                 Nothing,
                 ImmutableArray.Create(Of BoundExpression)(parameter),
+                Nothing,
                 Nothing,
                 isLValue:=False,
                 suppressObjectClone:=True,

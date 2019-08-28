@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
              SyntaxNode root, int position, CancellationToken cancellationToken)
         {
             return _highlighters.Where(h => h.Metadata.Language == root.Language)
-                               .Select(h => h.Value.GetHighlights(root, position, cancellationToken))
-                               .WhereNotNull()
-                               .Flatten()
-                               .Distinct();
+                                .Select(h => h.Value.GetHighlights(root, position, cancellationToken))
+                                .WhereNotNull()
+                                .Flatten()
+                                .Distinct();
         }
     }
 }

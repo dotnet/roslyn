@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -72,14 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return result;
         }
 
-        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
         {
             if (symbol is IAliasSymbol)
             {
-                return (symbol.Name, symbol.Name);
+                return (symbol.Name, "", symbol.Name);
             }
 
-            return base.GetDisplayAndInsertionText(symbol, context);
+            return base.GetDisplayAndSuffixAndInsertionText(symbol, context);
         }
 
         private static readonly CompletionItemRules s_arrayRules =

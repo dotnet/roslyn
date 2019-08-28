@@ -113,7 +113,7 @@ End Class"
         <Fact>
         Public Sub TestTupleAttributes()
             Dim comp = CreateCompilationWithMscorlib40({s_tuplesTestSource}, options:=TestOptions.ReleaseDll, references:=s_valueTupleRefs)
-            TupleAttributeValidator.ValidateTupleAttributes(comp)
+            CompileAndVerify(comp, symbolValidator:=Sub(m As ModuleSymbol) TupleAttributeValidator.ValidateTupleAttributes(m.ContainingAssembly))
         End Sub
 
         <Fact>
@@ -130,8 +130,7 @@ End Namespace"
             comp0.VerifyDiagnostics()
             Dim ref0 = comp0.EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlib40({s_tuplesTestSource, attributeSource}, options:=TestOptions.ReleaseDll, references:={SystemRuntimeFacadeRef, ref0})
-            comp.AssertTheseDiagnostics()
-            TupleAttributeValidator.ValidateTupleAttributes(comp)
+            CompileAndVerify(comp, symbolValidator:=Sub(m As ModuleSymbol) TupleAttributeValidator.ValidateTupleAttributes(m.ContainingAssembly))
         End Sub
 
         <Fact>
@@ -284,21 +283,14 @@ BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neut
         End Function
 
         Private Structure TupleAttributeValidator
-            Private ReadOnly _tupleAttrTransformNames As MethodSymbol
-            Private ReadOnly _comp As VisualBasicCompilation
             Private ReadOnly _base0Class As NamedTypeSymbol
             Private ReadOnly _base1Class As NamedTypeSymbol
             Private ReadOnly _base2Class As NamedTypeSymbol
             Private ReadOnly _outerClass As NamedTypeSymbol
             Private ReadOnly _derivedClass As NamedTypeSymbol
 
-            Private Sub New(comp As VisualBasicCompilation)
-                _tupleAttrTransformNames = DirectCast(
-                    comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames),
-                    MethodSymbol)
-                Assert.NotNull(_tupleAttrTransformNames)
-                _comp = comp
-                Dim globalNs = comp.SourceModule.GlobalNamespace
+            Private Sub New(assembly As AssemblySymbol)
+                Dim globalNs = assembly.GlobalNamespace
                 _base0Class = globalNs.GetTypeMember("Base0")
                 _base1Class = globalNs.GetTypeMember("Base1")
                 _base2Class = globalNs.GetTypeMember("Base2")
@@ -306,8 +298,8 @@ BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neut
                 _derivedClass = globalNs.GetTypeMember("Derived")
             End Sub
 
-            Shared Sub ValidateTupleAttributes(comp As VisualBasicCompilation)
-                Dim validator = New TupleAttributeValidator(comp)
+            Shared Sub ValidateTupleAttributes(assembly As AssemblySymbol)
+                Dim validator = New TupleAttributeValidator(assembly)
                 validator.ValidateAttributesOnNamedTypes()
                 validator.ValidateAttributesOnFields()
                 validator.ValidateAttributesOnMethods()
@@ -421,15 +413,19 @@ BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neut
                 Optional expectedElementNames As String() = Nothing,
                 Optional forReturnType As Boolean = False)
 
-                Dim synthesizedTupleElementNamesAttr = symbol.GetSynthesizedAttributes(forReturnType).
+                Dim tupleElementNamesAttr =
+                    If(forReturnType, DirectCast(symbol, MethodSymbol).GetReturnTypeAttributes(), symbol.GetAttributes()).
                     Where(Function(attr) String.Equals(attr.AttributeClass.Name, "TupleElementNamesAttribute", StringComparison.Ordinal)).
                     AsImmutable()
+
                 If Not expectedTupleNamesAttribute Then
-                    Assert.Empty(synthesizedTupleElementNamesAttr)
+                    Assert.Empty(tupleElementNamesAttr)
                     Assert.Null(expectedElementNames)
                 Else
-                    Dim tupleAttr = synthesizedTupleElementNamesAttr.Single()
-                    Assert.Equal(_tupleAttrTransformNames, tupleAttr.AttributeConstructor)
+                    Dim tupleAttr = tupleElementNamesAttr.Single()
+                    Assert.Equal("System.Runtime.CompilerServices.TupleElementNamesAttribute", tupleAttr.AttributeClass.ToTestDisplayString())
+                    Assert.Equal("System.String()", tupleAttr.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString())
+
                     If expectedElementNames Is Nothing Then
                         Assert.True(tupleAttr.CommonConstructorArguments.IsEmpty)
                     Else

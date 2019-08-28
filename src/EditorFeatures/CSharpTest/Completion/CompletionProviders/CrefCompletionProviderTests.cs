@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -24,21 +26,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new CrefCompletionProvider();
         }
 
-        protected override async Task VerifyWorkerAsync(
+        private protected override async Task VerifyWorkerAsync(
             string code, int position,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+            string inlineDescription = null, List<CompletionItemFilter> matchingFilters = null)
         {
-            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
-            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+            await VerifyAtPositionAsync(
+                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                matchingFilters);
+
+            await VerifyAtEndOfFileAsync(
+                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                matchingFilters);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
             if (!checkForAbsence && expectedItemOrNull != null)
             {
-                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
-                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+                await VerifyAtPosition_ItemPartiallyWrittenAsync(
+                    code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                    inlineDescription, matchingFilters);
+
+                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+                    code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                    inlineDescription, matchingFilters);
             }
         }
 
@@ -420,28 +437,26 @@ class C
 class C
 {
 }";
-            using (var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }))
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text });
+            var called = false;
+            var provider = new CrefCompletionProvider(testSpeculativeNodeCallbackOpt: n =>
             {
-                var called = false;
-                var provider = new CrefCompletionProvider(testSpeculativeNodeCallbackOpt: n =>
-                {
                     // asserts that we aren't be asked speculate on nodes inside documentation trivia.
                     // This verifies that the provider is asking for a speculative SemanticModel
                     // by walking to the node the documentation is attached to. 
 
                     called = true;
-                    var parent = n.GetAncestor<DocumentationCommentTriviaSyntax>();
-                    Assert.Null(parent);
-                });
+                var parent = n.GetAncestor<DocumentationCommentTriviaSyntax>();
+                Assert.Null(parent);
+            });
 
-                var hostDocument = workspace.DocumentWithCursor;
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var service = CreateCompletionService(workspace,
-                    ImmutableArray.Create<CompletionProvider>(provider));
-                var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Invoke);
+            var hostDocument = workspace.DocumentWithCursor;
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var service = CreateCompletionService(workspace,
+                ImmutableArray.Create<CompletionProvider>(provider));
+            var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Invoke);
 
-                Assert.True(called);
-            }
+            Assert.True(called);
         }
 
         [WorkItem(16060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16060")]
@@ -475,7 +490,7 @@ class C
 
             await VerifyNoItemsExistAsync(text);
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(23957, "https://github.com/dotnet/roslyn/issues/23957")]
         public async Task CRef_InParameter()

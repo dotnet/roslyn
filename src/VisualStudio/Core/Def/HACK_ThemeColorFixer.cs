@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool _done;
 
         [ImportingConstructor]
-        private HACK_ThemeColorFixer(
+        public HACK_ThemeColorFixer(
             IClassificationTypeRegistryService classificationTypeRegistryService,
             IClassificationFormatMapService classificationFormatMapService)
         {
@@ -64,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.ExcludedCode, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.Identifier, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.Keyword, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.ControlKeyword, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.NumericLiteral, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.StringLiteral, sourceFormatMap, targetFormatMap);
 
@@ -75,10 +76,21 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.XmlDocCommentComment, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.XmlDocCommentCDataSection, sourceFormatMap, targetFormatMap);
 
+            UpdateForegroundColor(ClassificationTypeNames.RegexComment, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexText, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexCharacterClass, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexQuantifier, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexAnchor, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexAlternation, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexGrouping, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexOtherEscape, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RegexSelfEscapedCharacter, sourceFormatMap, targetFormatMap);
+
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorKeyword, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.PreprocessorText, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.Operator, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.OperatorOverloaded, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.Punctuation, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.ClassName, sourceFormatMap, targetFormatMap);
@@ -90,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.ModuleName, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.FieldName, sourceFormatMap, targetFormatMap);
-            UpdateForegroundColor(ClassificationTypeNames.EnumFieldName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.EnumMemberName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.ConstantName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.LocalName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.ParameterName, sourceFormatMap, targetFormatMap);
@@ -98,8 +110,11 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.ExtensionMethodName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.PropertyName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.EventName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.NamespaceName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.LabelName, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.VerbatimStringLiteral, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.StringEscapeCharacter, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.XmlLiteralText, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.XmlLiteralProcessingInstruction, sourceFormatMap, targetFormatMap);

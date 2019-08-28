@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this symbol represents a metadata module returns the underlying <see cref="ModuleMetadata"/>.
         /// 
-        /// Otherwise, this returns <code>null</code>.
+        /// Otherwise, this returns <see langword="null"/>.
         /// </summary>
         public abstract ModuleMetadata GetMetadata();
 

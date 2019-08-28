@@ -10,39 +10,12 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.SyntaxNodeOrTokenExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
-    internal static class SyntaxTokenExtensions
+    internal static partial class SyntaxTokenExtensions
     {
-        public static bool IsKindOrHasMatchingText(this SyntaxToken token, SyntaxKind kind)
-        {
-            return token.Kind() == kind || token.HasMatchingText(kind);
-        }
-
-        public static bool HasMatchingText(this SyntaxToken token, SyntaxKind kind)
-        {
-            return token.ToString() == SyntaxFacts.GetText(kind);
-        }
-
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2)
-        {
-            return token.Kind() == kind1
-                || token.Kind() == kind2;
-        }
-
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
-        {
-            return token.Kind() == kind1
-                || token.Kind() == kind2
-                || token.Kind() == kind3;
-        }
-
-        public static bool IsKind(this SyntaxToken token, params SyntaxKind[] kinds)
-        {
-            return kinds.Contains(token.Kind());
-        }
-
         public static bool IsLiteral(this SyntaxToken token)
         {
             switch (token.Kind())
@@ -98,41 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool SpansPreprocessorDirective(this IEnumerable<SyntaxToken> tokens)
-        {
-            // we want to check all leading trivia of all tokens (except the 
-            // first one), and all trailing trivia of all tokens (except the
-            // last one).
-
-            var first = true;
-            var previousToken = default(SyntaxToken);
-
-            foreach (var token in tokens)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    // check the leading trivia of this token, and the trailing trivia
-                    // of the previous token.
-                    if (SpansPreprocessorDirective(token.LeadingTrivia) ||
-                        SpansPreprocessorDirective(previousToken.TrailingTrivia))
-                    {
-                        return true;
-                    }
-                }
-
-                previousToken = token;
-            }
-
-            return false;
-        }
-
-        private static bool SpansPreprocessorDirective(SyntaxTriviaList list)
-        {
-            return list.Any(t => t.GetStructure() is DirectiveTriviaSyntax);
-        }
+            => CSharpSyntaxFactsService.Instance.SpansPreprocessorDirective(tokens);
 
         /// <summary>
         /// Retrieves all trivia after this token, including it's trailing trivia and
@@ -185,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = genericIdentifier.GetNextToken(includeSkipped: true);
             Contract.ThrowIfFalse(token.Kind() == SyntaxKind.LessThanToken);
 
-            int stack = 0;
+            var stack = 0;
 
             do
             {
@@ -288,17 +227,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static bool IsOpenBraceOrCommaOfObjectInitializer(this SyntaxToken token)
-        {
-            return (token.IsKind(SyntaxKind.OpenBraceToken) || token.IsKind(SyntaxKind.CommaToken)) &&
-                token.Parent.IsKind(SyntaxKind.ObjectInitializerExpression);
-        }
-
-        public static bool IsOpenBraceOfAccessorList(this SyntaxToken token)
-        {
-            return token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.AccessorList);
-        }
-
         /// <summary>
         /// Returns true if this token is something that looks like a C# keyword. This includes 
         /// actual keywords, contextual keywords, and even 'var' and 'dynamic'
@@ -322,5 +250,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return false;
         }
+
+        public static SyntaxToken WithCommentsFrom(
+            this SyntaxToken token,
+            IEnumerable<SyntaxTrivia> leadingTrivia,
+            IEnumerable<SyntaxTrivia> trailingTrivia,
+            params SyntaxNodeOrToken[] trailingNodesOrTokens)
+            => token
+                .WithPrependedLeadingTrivia(leadingTrivia)
+                .WithTrailingTrivia((
+                    token.TrailingTrivia.Concat(SyntaxNodeOrTokenExtensions.GetTrivia(trailingNodesOrTokens).Concat(trailingTrivia))).FilterComments(addElasticMarker: false));
+
+        public static SyntaxToken KeepCommentsAndAddElasticMarkers(this SyntaxToken token)
+            => token
+                    .WithTrailingTrivia(token.TrailingTrivia.FilterComments(addElasticMarker: true))
+                    .WithLeadingTrivia(token.LeadingTrivia.FilterComments(addElasticMarker: true));
     }
 }

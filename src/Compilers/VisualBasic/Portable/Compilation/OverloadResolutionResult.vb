@@ -18,14 +18,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend Class OverloadResolutionResult(Of TMember As Symbol)
 
-        Private ReadOnly _validResult As MemberResolutionResult(Of TMember) ?
-        Private ReadOnly _bestResult As MemberResolutionResult(Of TMember) ?
+        Private ReadOnly _validResult As MemberResolutionResult(Of TMember)?
+        Private ReadOnly _bestResult As MemberResolutionResult(Of TMember)?
         Private _results As ImmutableArray(Of MemberResolutionResult(Of TMember))
 
         Friend Sub New(
             results As ImmutableArray(Of MemberResolutionResult(Of TMember)),
-            validResult As MemberResolutionResult(Of TMember) ?,
-            bestResult As MemberResolutionResult(Of TMember) ?
+            validResult As MemberResolutionResult(Of TMember)?,
+            bestResult As MemberResolutionResult(Of TMember)?
         )
             _results = results
             _validResult = validResult
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If overload resolution successfully selected a single best method, returns information
         ''' about that method. Otherwise returns Nothing.
         ''' </summary>
-        Public ReadOnly Property ValidResult As MemberResolutionResult(Of TMember) ?
+        Public ReadOnly Property ValidResult As MemberResolutionResult(Of TMember)?
             Get
                 Return _validResult
             End Get
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' not considered a successful overload resolution, as long as it was better than any other
         ''' potential method considered.
         ''' </summary>
-        Public ReadOnly Property BestResult As MemberResolutionResult(Of TMember) ?
+        Public ReadOnly Property BestResult As MemberResolutionResult(Of TMember)?
             Get
                 Return _bestResult
             End Get

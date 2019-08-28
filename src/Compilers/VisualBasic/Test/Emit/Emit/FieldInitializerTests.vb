@@ -583,6 +583,7 @@ BC30424: Constants must be of an intrinsic or enumerated type, not a class, stru
 </expected>)
         End Sub
 
+#If NET472 Then
         <Fact>
         Public Sub ChrChrWAscAscWAreConst()
             Dim source =
@@ -735,7 +736,7 @@ Chr:
     IL_002d:  ret
 }    ]]>)
         End Sub
-
+#End If
 
         <Fact>
         Public Sub TestFieldsConstInStructures()

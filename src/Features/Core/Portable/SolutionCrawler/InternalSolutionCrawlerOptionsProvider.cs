@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     [ExportOptionProvider, Shared]
     internal class InternalSolutionCrawlerOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public InternalSolutionCrawlerOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             InternalSolutionCrawlerOptions.SolutionCrawler,
             InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS,

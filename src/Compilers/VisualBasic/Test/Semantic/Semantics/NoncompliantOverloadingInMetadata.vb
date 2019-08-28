@@ -276,7 +276,7 @@ End Module
 
             ' x.Goo      - Dev10 reports error BC30456: 'Goo' is not a member of 'Integer'.
             ' Goo(x)     - no change, works
-            CompileAndVerify(compilation1, expectedOutput:="3" & vbCrLf & "3")
+            CompileAndVerify(compilation1, expectedOutput:="3" & Environment.NewLine & "3")
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">
@@ -573,7 +573,7 @@ End Module
 
             ' x.Goo      - Dev10 reports error BC30456: 'Goo' is not a member of 'Integer'.
             ' Goo(x)     - no change, works
-            CompileAndVerify(compilation1, expectedOutput:="3" & vbCrLf & "3")
+            CompileAndVerify(compilation1, expectedOutput:="3" & Environment.NewLine & "3")
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithCustomILSource(
 <compilation name="NamedArgumentsAndOverriding">

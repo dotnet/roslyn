@@ -1,20 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class CastExpressionSyntaxExtensions
     {
-        private static ITypeSymbol GetOuterCastType(ExpressionSyntax expression, SemanticModel semanticModel, out bool parentIsOrAsExpression)
+        private static ITypeSymbol GetOuterCastType(ExpressionSyntax expression, SemanticModel semanticModel,
+            out bool parentIsIsOrAsExpression)
         {
             expression = expression.WalkUpParentheses();
-            parentIsOrAsExpression = false;
+            parentIsIsOrAsExpression = false;
 
             var parentNode = expression.Parent;
             if (parentNode == null)
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (parentNode.IsKind(SyntaxKind.IsExpression) ||
                 parentNode.IsKind(SyntaxKind.AsExpression))
             {
-                parentIsOrAsExpression = true;
+                parentIsIsOrAsExpression = true;
                 return null;
             }
 
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 !semanticModel.GetConversion(expression).IsUserDefined)
             {
                 var parentExpression = (ExpressionSyntax)parentNode;
-                return GetOuterCastType(parentExpression, semanticModel, out parentIsOrAsExpression) ?? semanticModel.GetTypeInfo(parentExpression).ConvertedType;
+                return GetOuterCastType(parentExpression, semanticModel, out parentIsIsOrAsExpression) ?? semanticModel.GetTypeInfo(parentExpression).ConvertedType;
             }
 
             return null;
@@ -160,8 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // ...but not this cast...
             //
             // Goo((object)null);
-
-            if (cast.WalkUpParentheses().Parent is ArgumentSyntax argument)
+            var parent = cast.WalkUpParentheses().Parent;
+            if (parent is ArgumentSyntax argument)
             {
                 // If there are any arguments to the right, we can assume that this is not a
                 // *single* argument passed to a params parameter.
@@ -175,25 +178,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                if (parameter != null && parameter.IsParams)
+                return ParameterTypeMatchesParamsElementType(parameter, castType, semanticModel);
+            }
+
+            if (parent is AttributeArgumentSyntax attributeArgument)
+            {
+                if (attributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList)
                 {
-                    Debug.Assert(parameter.Type is IArrayTypeSymbol);
+                    // We don't check the position of the argument because in attributes it is allowed that 
+                    // params parameter are positioned in between if named arguments are used.
+                    // The *single* argument check above is also broken: https://github.com/dotnet/roslyn/issues/20742
+                    var parameter = attributeArgument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                    return ParameterTypeMatchesParamsElementType(parameter, castType, semanticModel);
+                }
+            }
 
-                    var parameterType = (IArrayTypeSymbol)parameter.Type;
+            return false;
+        }
 
-                    var conversion = semanticModel.Compilation.ClassifyConversion(castType, parameterType);
-                    if (conversion.Exists &&
-                        conversion.IsImplicit)
-                    {
-                        return false;
-                    }
+        private static bool ParameterTypeMatchesParamsElementType(IParameterSymbol parameter, ITypeSymbol castType, SemanticModel semanticModel)
+        {
+            if (parameter?.IsParams == true)
+            {
+                // if the method is defined with errors: void M(params int wrongDefined), paramter.IsParams == true but paramter.Type is not an array.
+                // In such cases is better to be conservative and opt out.
+                if (!(parameter.Type is IArrayTypeSymbol parameterType))
+                {
+                    return true;
+                }
 
-                    var conversionElementType = semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType);
-                    if (conversionElementType.Exists &&
-                        conversionElementType.IsImplicit)
-                    {
-                        return true;
-                    }
+                var conversion = semanticModel.Compilation.ClassifyConversion(castType, parameterType);
+                if (conversion.Exists &&
+                    conversion.IsImplicit)
+                {
+                    return false;
+                }
+
+                var conversionElementType = semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType);
+                if (conversionElementType.Exists &&
+                    conversionElementType.IsImplicit)
+                {
+                    return true;
                 }
             }
 
@@ -213,8 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool EnumCastDefinitelyCantBeRemoved(CastExpressionSyntax cast, ITypeSymbol expressionType)
         {
-            if (expressionType != null 
-                && expressionType.IsEnumType() 
+            if (expressionType != null
+                && expressionType.IsEnumType()
                 && cast.WalkUpParentheses().IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
             {
                 return true;
@@ -227,25 +252,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return conversion1.IsUserDefined
                 && conversion2.IsUserDefined
-                && conversion1.MethodSymbol == conversion2.MethodSymbol;
+                && Equals(conversion1.MethodSymbol, conversion2.MethodSymbol);
         }
 
         private static bool IsInDelegateCreationExpression(ExpressionSyntax expression, SemanticModel semanticModel)
         {
-            var argument = expression.WalkUpParentheses().Parent as ArgumentSyntax;
-            if (argument == null)
+            if (!(expression.WalkUpParentheses().Parent is ArgumentSyntax argument))
             {
                 return false;
             }
 
-            var argumentList = argument.Parent as ArgumentListSyntax;
-            if (argumentList == null)
+            if (!(argument.Parent is ArgumentListSyntax argumentList))
             {
                 return false;
             }
 
-            var objectCreation = argumentList.Parent as ObjectCreationExpressionSyntax;
-            if (objectCreation == null)
+            if (!(argumentList.Parent is ObjectCreationExpressionSyntax objectCreation))
             {
                 return false;
             }
@@ -427,6 +449,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var castToOuterType = semanticModel.ClassifyConversion(cast.SpanStart, cast, outerType);
                 var expressionToOuterType = GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer.ReplacedExpression, speculationAnalyzer, cancellationToken);
 
+                // if the conversion to the outer type doesn't exist, then we shouldn't offer, except for anonymous functions which can't be reasoned about the same way (see below)
+                if (!expressionToOuterType.Exists && !expressionToOuterType.IsAnonymousFunction)
+                {
+                    return false;
+                }
+
                 // CONSIDER: Anonymous function conversions cannot be compared from different semantic models as lambda symbol comparison requires syntax tree equality. Should this be a compiler bug?
                 // For now, just revert back to computing expressionToOuterType using the original semantic model.
                 if (expressionToOuterType.IsAnonymousFunction)
@@ -596,6 +624,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 default:
                     return false;
             }
+        }
+
+        public static ExpressionSyntax Uncast(this CastExpressionSyntax node)
+        {
+            var leadingTrivia = node.OpenParenToken.LeadingTrivia
+                .Concat(node.OpenParenToken.TrailingTrivia)
+                .Concat(node.Type.GetLeadingTrivia())
+                .Concat(node.Type.GetTrailingTrivia())
+                .Concat(node.CloseParenToken.LeadingTrivia)
+                .Concat(node.CloseParenToken.TrailingTrivia)
+                .Concat(node.Expression.GetLeadingTrivia())
+                .Where(t => !t.IsElastic());
+
+            var trailingTrivia = node.GetTrailingTrivia().Where(t => !t.IsElastic());
+
+            var resultNode = node.Expression
+                .WithLeadingTrivia(leadingTrivia)
+                .WithTrailingTrivia(trailingTrivia)
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+
+            resultNode = SimplificationHelpers.CopyAnnotations(from: node, to: resultNode);
+
+            return resultNode;
         }
     }
 }

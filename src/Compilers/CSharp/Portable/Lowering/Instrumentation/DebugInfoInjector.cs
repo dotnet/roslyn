@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static readonly DebugInfoInjector Singleton = new DebugInfoInjector(Instrumenter.NoOp);
 
         public DebugInfoInjector(Instrumenter previous)
-            : base (previous)
+            : base(previous)
         {
         }
 
@@ -63,11 +64,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddSequencePoint(rewritten);
         }
 
-        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement original, BoundStatement rewritten)
         {
-            rewritten = base.InstrumentExpressionStatement(original, rewritten);
+            rewritten = base.InstrumentFieldOrPropertyInitializer(original, rewritten);
             SyntaxNode syntax = original.Syntax;
 
+            if (rewritten.Kind == BoundKind.Block)
+            {
+                var block = (BoundBlock)rewritten;
+                return block.Update(block.Locals, block.LocalFunctions, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
+            }
+
+            return InstrumentFieldOrPropertyInitializer(rewritten, syntax);
+        }
+
+        private static BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement rewritten, SyntaxNode syntax)
+        {
             switch (syntax.Parent.Parent.Kind())
             {
                 case SyntaxKind.VariableDeclarator:
@@ -217,8 +229,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentForEachStatement(BoundForEachStatement original, BoundStatement rewritten)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
-            BoundSequencePointWithSpan foreachKeywordSequencePoint = new BoundSequencePointWithSpan(forEachSyntax, null, forEachSyntax.ForEachKeyword.Span);
-            return new BoundStatementList(forEachSyntax, 
+            var span = forEachSyntax.AwaitKeyword != default
+                ? TextSpan.FromBounds(forEachSyntax.AwaitKeyword.Span.Start, forEachSyntax.ForEachKeyword.Span.End)
+                : forEachSyntax.ForEachKeyword.Span;
+
+            var foreachKeywordSequencePoint = new BoundSequencePointWithSpan(forEachSyntax, null, span);
+            return new BoundStatementList(forEachSyntax,
                                             ImmutableArray.Create<BoundStatement>(foreachKeywordSequencePoint,
                                                                                 base.InstrumentForEachStatement(original, rewritten)));
         }
@@ -259,14 +275,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentForStatementConditionalGotoStartOrBreak(BoundForStatement original, BoundStatement branchBack)
         {
             // hidden sequence point if there is no condition
-            return new BoundSequencePoint(original.Condition?.Syntax, 
+            return new BoundSequencePoint(original.Condition?.Syntax,
                                           base.InstrumentForStatementConditionalGotoStartOrBreak(original, branchBack));
         }
 
         public override BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)
         {
             var syntax = (CommonForEachStatementSyntax)original.Syntax;
-            return new BoundSequencePointWithSpan(syntax, 
+            return new BoundSequencePointWithSpan(syntax,
                                                   base.InstrumentForEachStatementConditionalGotoStart(original, branchBack),
                                                   syntax.InKeyword.Span);
         }
@@ -302,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var labeledSyntax = (LabeledStatementSyntax)original.Syntax;
             var span = TextSpan.FromBounds(labeledSyntax.Identifier.SpanStart, labeledSyntax.ColonToken.Span.End);
             return new BoundSequencePointWithSpan(labeledSyntax,
-                                                  base.InstrumentLabelStatement(original, rewritten), 
+                                                  base.InstrumentLabelStatement(original, rewritten),
                                                   span);
         }
 
@@ -310,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return AddSequencePoint(original.Syntax.Kind() == SyntaxKind.VariableDeclarator ?
                                         (VariableDeclaratorSyntax)original.Syntax :
-                                        ((LocalDeclarationStatementSyntax)original.Syntax).Declaration.Variables.First(), 
+                                        ((LocalDeclarationStatementSyntax)original.Syntax).Declaration.Variables.First(),
                                     base.InstrumentLocalInitialization(original, rewritten));
         }
 
@@ -318,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             LockStatementSyntax lockSyntax = (LockStatementSyntax)original.Syntax;
             return new BoundSequencePointWithSpan(lockSyntax,
-                                                  base.InstrumentLockTargetCapture(original, lockTargetCapture), 
+                                                  base.InstrumentLockTargetCapture(original, lockTargetCapture),
                                                   TextSpan.FromBounds(lockSyntax.LockKeyword.SpanStart, lockSyntax.CloseParenToken.Span.End));
         }
 
@@ -340,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
             TextSpan switchSequencePointSpan = TextSpan.FromBounds(
                 switchSyntax.SwitchKeyword.SpanStart,
-                switchSyntax.CloseParenToken.Span.End);
+                (switchSyntax.CloseParenToken != default) ? switchSyntax.CloseParenToken.Span.End : switchSyntax.Expression.Span.End);
 
             return new BoundSequencePointWithSpan(
                 syntax: switchSyntax,
@@ -349,34 +365,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: false);
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
-        {
-            SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
-            TextSpan switchSequencePointSpan = TextSpan.FromBounds(
-                switchSyntax.SwitchKeyword.SpanStart,
-                switchSyntax.CloseParenToken.Span.End);
-
-            return new BoundSequencePointWithSpan(
-                syntax: switchSyntax,
-                statementOpt: base.InstrumentPatternSwitchStatement(original, rewritten),
-                span: switchSequencePointSpan,
-                hasErrors: false);
-        }
-
-        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
+        public override BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
             WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
             Debug.Assert(whenClause != null);
 
             return new BoundSequencePointWithSpan(
                 syntax: whenClause,
-                statementOpt: base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody),
+                statementOpt: base.InstrumentSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody),
                 span: whenClause.Span);
         }
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
         {
-            return AddSequencePoint((UsingStatementSyntax)original.Syntax, 
+            return AddSequencePoint((UsingStatementSyntax)original.Syntax,
                                     base.InstrumentUsingTargetCapture(original, usingTargetCapture));
         }
 
@@ -397,11 +399,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddConditionSequencePoint(base.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory), original.Syntax, factory);
         }
 
-        public override BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)
         {
             // Mark the code that binds pattern variables to their values as hidden.
             // We do it to tell that this is not a part of previous statement.
-            return new BoundSequencePoint(null, base.InstrumentPatternSwitchBindCasePatternVariables(bindings));
+            return new BoundSequencePoint(null, base.InstrumentSwitchBindCasePatternVariables(bindings));
         }
     }
 }

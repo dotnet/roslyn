@@ -62,6 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         raiseCallExpression.MethodGroupOpt,
                                                         tempAccess,
                                                         raiseCallExpression.Arguments,
+                                                        raiseCallExpression.DefaultArguments,
                                                         raiseCallExpression.ConstantValueOpt,
                                                         isLValue:=raiseCallExpression.IsLValue,
                                                         suppressObjectClone:=raiseCallExpression.SuppressObjectClone,
@@ -117,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__GetOrCreateEventRegistrationTokenTable), MethodSymbol)
 
             Debug.Assert(getOrCreateMethod IsNot Nothing, "Checked during initial binding")
-            Debug.Assert(getOrCreateMethod.ReturnType = fieldType.OriginalDefinition, "Shape of well-known member")
+            Debug.Assert(TypeSymbol.Equals(getOrCreateMethod.ReturnType, fieldType.OriginalDefinition, TypeCompareKind.ConsiderEverything), "Shape of well-known member")
 
             getOrCreateMethod = getOrCreateMethod.AsMember(fieldType)
 

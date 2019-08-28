@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             generateMethodBody As GenerateMethodBody)
 
             Debug.Assert(sourceMethod.IsDefinition)
-            Debug.Assert(sourceMethod.ContainingSymbol = container.SubstitutedSourceType.OriginalDefinition)
+            Debug.Assert(TypeSymbol.Equals(sourceMethod.ContainingType, container.SubstitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything))
             Debug.Assert(sourceLocals.All(Function(l) l.ContainingSymbol = sourceMethod))
 
             _compilation = compilation
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim substitutedSourceHasMeParameter = substitutedSourceMeParameter IsNot Nothing
             If substitutedSourceHasMeParameter Then
                 _meParameter = MakeParameterSymbol(0, GeneratedNames.MakeStateMachineCapturedMeName(), substitutedSourceMeParameter) ' NOTE: Name doesn't actually matter.
-                Debug.Assert(_meParameter.Type = Me.SubstitutedSourceMethod.ContainingType)
+                Debug.Assert(TypeSymbol.Equals(_meParameter.Type, Me.SubstitutedSourceMethod.ContainingType, TypeCompareKind.ConsiderEverything))
                 parameterBuilder.Add(_meParameter)
             End If
 
@@ -439,14 +439,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-#Disable Warning RS0010
+#Disable Warning CA1200 ' Avoid using cref tags with a prefix
         ''' <remarks>
         ''' The corresponding C# method, 
         ''' <see cref="M:Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.EEMethodSymbol.GenerateMethodBody(Microsoft.CodeAnalysis.CSharp.TypeCompilationState,Microsoft.CodeAnalysis.DiagnosticBag)"/>, 
         ''' invokes the <see cref="LocalRewriter"/> and the <see cref="LambdaRewriter"/> explicitly.
         ''' In VB, the caller (of this method) does that.
         ''' </remarks>
-#Enable Warning RS0010
+#Enable Warning CA1200 ' Avoid using cref tags with a prefix
         Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
             Dim body = _generateMethodBody(Me, diagnostics, _lazyResultProperties)
             Debug.Assert(body IsNot Nothing)

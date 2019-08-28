@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundObjectCreationExpression
+    internal partial class BoundObjectCreationExpression : IBoundInvalidNode
     {
         internal static ImmutableArray<BoundExpression> GetChildInitializers(BoundExpression objectOrCollectionInitializer)
         {
@@ -14,14 +15,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return objectInitializerExpression.Initializers;
             }
 
-            var collectionInitializerExpresion = objectOrCollectionInitializer as BoundCollectionInitializerExpression;
-            if (collectionInitializerExpresion != null)
+            var collectionInitializerExpression = objectOrCollectionInitializer as BoundCollectionInitializerExpression;
+            if (collectionInitializerExpression != null)
             {
-                return collectionInitializerExpresion.Initializers;
+                return collectionInitializerExpression.Initializers;
             }
 
             return ImmutableArray<BoundExpression>.Empty;
         }
+
+        ImmutableArray<BoundNode> IBoundInvalidNode.InvalidNodeChildren => CSharpOperationFactory.CreateInvalidChildrenFromArgumentsExpression(receiverOpt: null, Arguments, InitializerExpressionOpt);
+    }
+
+    internal sealed partial class BoundObjectInitializerMember : IBoundInvalidNode
+    {
+        ImmutableArray<BoundNode> IBoundInvalidNode.InvalidNodeChildren => StaticCast<BoundNode>.From(Arguments);
+    }
+
+    internal sealed partial class BoundCollectionElementInitializer : IBoundInvalidNode
+    {
+        ImmutableArray<BoundNode> IBoundInvalidNode.InvalidNodeChildren => CSharpOperationFactory.CreateInvalidChildrenFromArgumentsExpression(ImplicitReceiverOpt, Arguments);
     }
 
     internal sealed partial class BoundDeconstructionAssignmentOperator : BoundExpression
@@ -29,19 +42,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Left, this.Right);
     }
 
-    internal partial class BoundBadExpression
+    internal partial class BoundBadExpression : IBoundInvalidNode
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.ChildBoundNodes);
+
+        ImmutableArray<BoundNode> IBoundInvalidNode.InvalidNodeChildren => StaticCast<BoundNode>.From(this.ChildBoundNodes);
+    }
+
+    internal partial class BoundCall : IBoundInvalidNode
+    {
+        ImmutableArray<BoundNode> IBoundInvalidNode.InvalidNodeChildren => CSharpOperationFactory.CreateInvalidChildrenFromArgumentsExpression(ReceiverOpt, Arguments);
+    }
+
+    internal partial class BoundIndexerAccess : IBoundInvalidNode
+    {
+        ImmutableArray<BoundNode> IBoundInvalidNode.InvalidNodeChildren => CSharpOperationFactory.CreateInvalidChildrenFromArgumentsExpression(ReceiverOpt, Arguments);
     }
 
     internal partial class BoundDynamicIndexerAccess
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments.Insert(0, this.ReceiverOpt));
-    }
-
-    internal partial class BoundUserDefinedConditionalLogicalOperator
-    {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Left, this.Right);
     }
 
     internal partial class BoundAnonymousObjectCreationExpression
@@ -106,22 +126,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundStackAllocArrayCreation
     {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Count);
+        internal static ImmutableArray<BoundExpression> GetChildInitializers(BoundArrayInitialization arrayInitializer)
+        {
+            return arrayInitializer?.Initializers ?? ImmutableArray<BoundExpression>.Empty;
+        }
+
+        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(GetChildInitializers(this.InitializerOpt).Insert(0, this.Count));
     }
 
     internal partial class BoundConvertedStackAllocExpression
     {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Count);
+        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(GetChildInitializers(this.InitializerOpt).Insert(0, this.Count));
     }
 
     internal partial class BoundDynamicObjectCreationExpression
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments.AddRange(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt)));
-    }
-
-    internal partial class BoundNoPiaObjectCreationExpression
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt));
     }
 
     partial class BoundThrowExpression
@@ -141,12 +161,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundStatementList
     {
-        protected override ImmutableArray<BoundNode> Children => 
+        protected override ImmutableArray<BoundNode> Children =>
             (this.Kind == BoundKind.StatementList || this.Kind == BoundKind.Scope) ? StaticCast<BoundNode>.From(this.Statements) : ImmutableArray<BoundNode>.Empty;
     }
 
     internal partial class BoundPassByCopy
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Expression);
+    }
+
+    internal partial class BoundIndexOrRangePatternIndexerAccess
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(Receiver, Argument);
     }
 }

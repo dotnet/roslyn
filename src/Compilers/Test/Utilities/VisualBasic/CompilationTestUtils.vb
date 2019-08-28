@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -19,10 +19,24 @@ Friend Module CompilationUtils
         Return source.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
     End Function
 
-    Public Function CreateEmptyCompilation(source As IEnumerable(Of SyntaxTree),
-                                      Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                      Optional options As VisualBasicCompilationOptions = Nothing,
-                                      Optional assemblyName As String = Nothing) As VisualBasicCompilation
+    Public Function CreateCompilation(
+            source As BasicTestSource,
+            Optional references As IEnumerable(Of MetadataReference) = Nothing,
+            Optional options As VisualBasicCompilationOptions = Nothing,
+            Optional parseOptions As VisualBasicParseOptions = Nothing,
+            Optional targetFramework As TargetFramework = TargetFramework.StandardAndVBRuntime,
+            Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        references = TargetFrameworkUtil.GetReferences(targetFramework, references)
+        Return CreateEmptyCompilation(source, references, options, parseOptions, assemblyName)
+    End Function
+
+    Public Function CreateEmptyCompilation(
+            source As BasicTestSource,
+            Optional references As IEnumerable(Of MetadataReference) = Nothing,
+            Optional options As VisualBasicCompilationOptions = Nothing,
+            Optional parseOptions As VisualBasicParseOptions = Nothing,
+            Optional assemblyName As String = Nothing) As VisualBasicCompilation
+
         If options Is Nothing Then
             options = TestOptions.ReleaseDll
         End If
@@ -32,10 +46,11 @@ Friend Module CompilationUtils
             options = options.WithConcurrentBuild(False)
         End If
 
+        Dim trees = source.GetSyntaxTrees(parseOptions, assemblyName)
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(
                                             If(assemblyName, GetUniqueName()),
-                                            source,
+                                            trees,
                                             references,
                                             options)
                                       End Function
@@ -43,126 +58,53 @@ Friend Module CompilationUtils
         Return createCompilationLambda()
     End Function
 
+    Public Function CreateEmptyCompilation(
+            identity As AssemblyIdentity,
+            source As BasicTestSource,
+            Optional references As MetadataReference() = Nothing,
+            Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
 
-    Public Function CreateEmptyCompilation(source As IEnumerable(Of String),
-                                      Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                      Optional options As VisualBasicCompilationOptions = Nothing,
-                                      Optional assemblyName As String = Nothing,
-                                      Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-
-        Return CreateEmptyCompilation(ParseSources(source, parseOptions), references, options, assemblyName)
-    End Function
-
-    Public Function CreateEmptyCompilation(source As String,
-                                      Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                      Optional options As VisualBasicCompilationOptions = Nothing,
-                                      Optional assemblyName As String = Nothing,
-                                      Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-
-        Return CreateEmptyCompilation({source}, references, options, assemblyName, parseOptions)
-    End Function
-
-    Public Function CreateCompilationWithMscorlib40(source As IEnumerable(Of SyntaxTree),
-                                                  Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                  Optional options As VisualBasicCompilationOptions = Nothing,
-                                                  Optional assemblyName As String = Nothing) As VisualBasicCompilation
-
-        Dim metadataReferences = If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references))
-        assemblyName = If(assemblyName, GetUniqueName())
-
+        Dim trees = source.GetSyntaxTrees()
         Dim createCompilationLambda = Function()
-                                          Return VisualBasicCompilation.Create(assemblyName, source, metadataReferences, options)
-                                      End Function
-
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
-        Return createCompilationLambda()
-    End Function
-
-    Public Function CreateCompilationWithMscorlib40(source As IEnumerable(Of String),
-                                                  Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                  Optional options As VisualBasicCompilationOptions = Nothing,
-                                                  Optional assemblyName As String = Nothing,
-                                                  Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-
-        Return CreateCompilationWithMscorlib40(ParseSources(source, parseOptions), references, options, assemblyName)
-    End Function
-
-    Public Function CreateCompilationWithMscorlib40(source As String,
-                                                  Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                  Optional options As VisualBasicCompilationOptions = Nothing,
-                                                  Optional assemblyName As String = Nothing,
-                                                  Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-
-        Return CreateCompilationWithMscorlib40({source}, references, options, assemblyName, parseOptions)
-    End Function
-
-    Public Function CreateCompilationWithMscorlib45(source As IEnumerable(Of SyntaxTree),
-                                                    Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                    Optional options As VisualBasicCompilationOptions = Nothing,
-                                                    Optional assemblyName As String = Nothing) As VisualBasicCompilation
-        Dim additionalRefs = {MscorlibRef_v4_0_30316_17626}
-        Dim createCompilationLambda = Function()
-                                          Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), source, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
+                                          Return VisualBasicCompilation.Create(identity.Name, trees, references, options)
                                       End Function
         CompilationExtensions.ValidateIOperations(createCompilationLambda)
-        Return createCompilationLambda()
+        Dim c = createCompilationLambda()
+        Assert.NotNull(c.Assembly) ' force creation of SourceAssemblySymbol
+
+        DirectCast(c.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
+        Return c
     End Function
 
-
-    Public Function CreateCompilationWithMscorlib45(source As String,
-                                                  Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                  Optional options As VisualBasicCompilationOptions = Nothing,
-                                                  Optional assemblyName As String = Nothing,
-                                                  Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Dim additionalRefs = {MscorlibRef_v4_0_30316_17626}
-        Dim createCompilationLambda = Function()
-                                          Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), {Parse(source, parseOptions)}, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
-                                      End Function
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
-        Return createCompilationLambda()
+    Public Function CreateCompilationWithMscorlib40(
+            source As BasicTestSource,
+            Optional references As IEnumerable(Of MetadataReference) = Nothing,
+            Optional options As VisualBasicCompilationOptions = Nothing,
+            Optional parseOptions As VisualBasicParseOptions = Nothing,
+            Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        Return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName)
     End Function
 
-    Public Function CreateCompilationWithMscorlib45AndVBRuntime(source As IEnumerable(Of SyntaxTree),
-                                                                Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                                Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
-        Dim additionalRefs = {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}
-        Dim createCompilationLambda = Function()
-                                          Return VisualBasicCompilation.Create(GetUniqueName(), source, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
-                                      End Function
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
-        Return createCompilationLambda()
+    Public Function CreateCompilationWithMscorlib45(
+            source As BasicTestSource,
+            Optional references As IEnumerable(Of MetadataReference) = Nothing,
+            Optional options As VisualBasicCompilationOptions = Nothing,
+            Optional parseOptions As VisualBasicParseOptions = Nothing,
+            Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        Return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib45, assemblyName)
     End Function
 
-    Public Function CreateCompilationWithMscorlib40(source As SyntaxTree,
-                                                  Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                  Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
-        Dim createCompilationLambda = Function()
-                                          Return VisualBasicCompilation.Create(GetUniqueName(), {source}, If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
-                                      End Function
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
-        Return createCompilationLambda()
+    Public Function CreateCompilationWithMscorlib45AndVBRuntime(
+            source As BasicTestSource,
+            Optional references As IEnumerable(Of MetadataReference) = Nothing,
+            Optional options As VisualBasicCompilationOptions = Nothing,
+            Optional parseOptions As VisualBasicParseOptions = Nothing,
+            Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        Return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib45AndVBRuntime, assemblyName)
     End Function
-
 
     Public Function CreateCompilationWithWinRt(source As XElement) As VisualBasicCompilation
         Return CreateEmptyCompilationWithReferences(source, WinRtRefs)
-    End Function
-
-    ''' <summary>
-    ''' Create A Compilation With Mscorlib
-    ''' </summary>
-    ''' <param name="source">The sources compile according to the following schema        
-    ''' &lt;compilation name="assemblyname[optional]"&gt;
-    ''' &lt;file name="file1.vb[optional]"&gt;
-    ''' source
-    ''' &lt;/file&gt;
-    ''' &lt;/compilation&gt;
-    ''' </param>
-    Public Function CreateCompilationWithMscorlib40(source As XElement,
-                                                  Optional options As VisualBasicCompilationOptions = Nothing,
-                                                  Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                  Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return CreateEmptyCompilationWithReferences(source, If(references IsNot Nothing, {MscorlibRef}.Concat(references), {MscorlibRef}), options, parseOptions:=parseOptions)
     End Function
 
     Public Function CreateCompilationWithMscorlib40AndReferences(source As XElement,
@@ -216,7 +158,7 @@ Friend Module CompilationUtils
                                                               Optional assemblyName As String = Nothing) As VisualBasicCompilation
 
         Dim references = {MscorlibRef, SystemRef, MsvbRef}
-        Return CreateEmptyCompilation(source, references, options, assemblyName)
+        Return CreateEmptyCompilation(source.ToArray(), references, options:=options, assemblyName:=assemblyName)
     End Function
 
     Public Function CreateCompilationWithMscorlib40AndVBRuntime(source As XElement,
@@ -243,12 +185,12 @@ Friend Module CompilationUtils
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
         If references Is Nothing Then references = {}
-        Dim allRefereces = {MscorlibRef, SystemRef, MsvbRef}.Concat(references)
+        Dim allReferences = {MscorlibRef, SystemRef, MsvbRef}.Concat(references)
         If parseOptions Is Nothing AndAlso options IsNot Nothing Then
             parseOptions = options.ParseOptions
         End If
 
-        Return CreateEmptyCompilationWithReferences(source, allRefereces, options, parseOptions:=parseOptions)
+        Return CreateEmptyCompilationWithReferences(source, allReferences, options, parseOptions:=parseOptions)
     End Function
 
     ''' <summary>
@@ -333,37 +275,6 @@ Friend Module CompilationUtils
                                       End Function
         CompilationExtensions.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
-    End Function
-
-    ''' <param name="source">The sources compile according to the following schema        
-    ''' &lt;compilation name="assemblyname[optional]"&gt;
-    ''' &lt;file name="file1.vb[optional]"&gt;
-    ''' source
-    ''' &lt;/file&gt;
-    ''' &lt;/compilation&gt;
-    ''' </param>
-    Public Function CreateEmptyCompilation(source As XElement,
-                                                       Optional options As VisualBasicCompilationOptions = Nothing,
-                                                       Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return CreateEmptyCompilationWithReferences(source, DirectCast({}, IEnumerable(Of MetadataReference)), options, parseOptions)
-    End Function
-
-    Public Function CreateEmptyCompilation(
-            identity As AssemblyIdentity,
-            source() As String,
-            references() As MetadataReference,
-            Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
-
-        Dim trees = If(source Is Nothing, Nothing, source.Select(AddressOf VisualBasicSyntaxTree.ParseText).ToArray())
-        Dim createCompilationLambda = Function()
-                                          Return VisualBasicCompilation.Create(identity.Name, trees, references, options)
-                                      End Function
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
-        Dim c = createCompilationLambda()
-        Assert.NotNull(c.Assembly) ' force creation of SourceAssemblySymbol
-
-        DirectCast(c.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
-        Return c
     End Function
 
     ''' <summary>
@@ -915,8 +826,8 @@ Friend Module CompilationUtils
 
                     Assert.True(False, .ToString())
                 Else
-                    Dim expectedLines = expectedText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
-                    Dim actualLines = actualText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
+                    Dim expectedLines = expectedText.Split({vbCrLf, vbLf}, StringSplitOptions.RemoveEmptyEntries)
+                    Dim actualLines = actualText.Split({vbCrLf, vbLf}, StringSplitOptions.RemoveEmptyEntries)
 
                     Dim appendedLines As Integer = 0
 
@@ -1031,16 +942,16 @@ Friend Module CompilationUtils
             Dim sourceLocation = e.Location
             Dim offsetInLine As Integer = 0
             Dim lineText As String = GetLineText(sourceLocation.SourceTree.GetText(), sourceLocation.SourceSpan.Start, offsetInLine)
-            Return message + vbCrLf +
-                lineText + vbCrLf +
+            Return message + Environment.NewLine +
+                lineText + Environment.NewLine +
                 New String(" "c, offsetInLine) +
-                New String("~"c, Math.Max(Math.Min(sourceLocation.SourceSpan.Length, lineText.Length - offsetInLine + 1), 1)) + vbCrLf
+                New String("~"c, Math.Max(Math.Min(sourceLocation.SourceSpan.Length, lineText.Length - offsetInLine + 1), 1)) + Environment.NewLine
         ElseIf e.Location.IsInMetadata Then
-            Return message + vbCrLf +
-                String.Format("in metadata assembly '{0}'" + vbCrLf,
+            Return message + Environment.NewLine +
+                String.Format("in metadata assembly '{0}'" + Environment.NewLine,
                               e.Location.MetadataModule.ContainingAssembly.Identity.Name)
         Else
-            Return message + vbCrLf
+            Return message + Environment.NewLine
         End If
     End Function
 
@@ -1265,18 +1176,6 @@ Friend Module CompilationUtils
         Assert.Equal(SortAndMergeStrings(descriptions),
                      SortAndMergeStrings(symbols.Select(Function(s) s.ToDisplayString()).ToArray()))
     End Sub
-
-    <Extension>
-    Friend Function GetSynthesizedAttributes(symbol As ISymbol, Optional forReturnType As Boolean = False) As ImmutableArray(Of SynthesizedAttributeData)
-        Dim attributes As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
-        If Not forReturnType Then
-            Dim context = New ModuleCompilationState()
-            DirectCast(symbol, Symbol).AddSynthesizedAttributes(context, attributes)
-        Else
-            DirectCast(symbol, MethodSymbol).AddSynthesizedReturnTypeAttributes(attributes)
-        End If
-        Return If(attributes IsNot Nothing, attributes.ToImmutableAndFree(), ImmutableArray.Create(Of SynthesizedAttributeData)())
-    End Function
 
     <Extension>
     Friend Function LookupNames(model As SemanticModel,

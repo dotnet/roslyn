@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -9,8 +10,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -18,69 +19,64 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 {
     internal abstract partial class AbstractAddParameterCheckCodeRefactoringProvider<
         TParameterSyntax,
-        TMemberDeclarationSyntax,
         TStatementSyntax,
         TExpressionSyntax,
         TBinaryExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
             TParameterSyntax,
-            TMemberDeclarationSyntax,
             TStatementSyntax,
-            TExpressionSyntax,
-            TBinaryExpressionSyntax>
+            TExpressionSyntax>
         where TParameterSyntax : SyntaxNode
-        where TMemberDeclarationSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
-            Document document, IParameterSymbol parameter, TMemberDeclarationSyntax memberDeclaration,
-            IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
+            Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
+            IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
         {
-            // Only should provide null-checks for reference types and nullable types.
-            if (!parameter.Type.IsReferenceType &&
-                !parameter.Type.IsNullable())
+
+            // List to keep track of the valid parameters
+            var listOfParametersOrdinals = new List<int>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            foreach (var parameterNode in listOfParameterNodes)
+            {
+                var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+                if (ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
+                {
+                    listOfParametersOrdinals.Add(parameter.Ordinal);
+                }
+            }
+
+            // Min 2 parameters to offer the refactoring
+            if (listOfParametersOrdinals.Count() < 2)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            // Great.  The list has parameters that need null checks. Offer to add null checks for all.
+            return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+                 FeaturesResources.Add_null_checks_for_all_parameters,
+                     c => UpdateDocumentForRefactoringAsync(document, functionDeclaration, blockStatementOpt, listOfParametersOrdinals, position, c)));
+        }
+
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
+            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
+            IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
+        {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // Look for an existing "if (p == null)" statement, or "p ?? throw" check.  If we already
-            // have one, we don't want to offer to generate a new null check.
-            //
-            // Note: we only check the top level statements of the block.  I think that's sufficient
-            // as this will catch the 90% case, while not being that bad an experience even when 
-            // people do strange things in their constructors.
-            if (blockStatementOpt != null)
+            // Only should provide null-checks for reference types and nullable types.
+            if (!ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
             {
-                if (!CanOffer(blockStatementOpt.Syntax))
-                { 
-                    return ImmutableArray<CodeAction>.Empty;
-                }
-
-                foreach (var statement in blockStatementOpt.Operations)
-                {
-                    if (IsIfNullCheck(statement, parameter))
-                    {
-                        return ImmutableArray<CodeAction>.Empty;
-                    }
-
-                    if (ContainsNullCoalesceCheck(
-                            syntaxFacts, semanticModel, statement,
-                            parameter, cancellationToken))
-                    {
-                        return ImmutableArray<CodeAction>.Empty;
-                    }
-                }
+                return ImmutableArray<CodeAction>.Empty;
             }
 
             // Great.  There was no null check.  Offer to add one.
             var result = ArrayBuilder<CodeAction>.GetInstance();
             result.Add(new MyCodeAction(
                 FeaturesResources.Add_null_check,
-                c => AddNullCheckAsync(document, parameter, memberDeclaration, blockStatementOpt, c)));
+                c => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c)));
 
             // Also, if this was a string, offer to add the special checks to 
             // string.IsNullOrEmpty and string.IsNullOrWhitespace.
@@ -88,17 +84,72 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrEmpty_check,
-                    c => AddStringCheckAsync(document, parameter, memberDeclaration, blockStatementOpt, nameof(string.IsNullOrEmpty), c)));
+                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), c)));
 
                 result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
-                    c => AddStringCheckAsync(document, parameter, memberDeclaration, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c)));
+                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c)));
             }
 
             return result.ToImmutableAndFree();
         }
 
         protected abstract bool CanOffer(SyntaxNode body);
+
+        private async Task<Document> UpdateDocumentForRefactoringAsync(
+            Document document,
+            SyntaxNode functionDeclaration,
+            IBlockOperation blockStatementOpt,
+            List<int> listOfParametersOrdinals,
+            int position,
+            CancellationToken cancellationToken)
+        {
+            foreach (var index in listOfParametersOrdinals)
+            {
+                // Updates functionDeclaration and uses it to get the first valid ParameterNode using the ordinals (index).
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var token = root.FindToken(position);
+                var firstparameterNode = GetParameterNode(token, position);
+                functionDeclaration = firstparameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+                var generator = SyntaxGenerator.GetGenerator(document);
+                var parameterNodes = generator.GetParameters(functionDeclaration);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var parameter = GetParameterAtOrdinal(index, parameterNodes, semanticModel, cancellationToken);
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+                if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
+                {
+                    continue;
+                }
+
+                // If parameter is a string, default check would be IsNullOrEmpty. This is because IsNullOrEmpty is more commonly used in this regard according to telemetry and UX testing.
+                if (parameter.Type.SpecialType == SpecialType.System_String)
+                {
+                    document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
+
+                // For all other parameters, add null check - updates document
+                document = await AddNullCheckAsync(document, parameter, functionDeclaration,
+                    (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
+            }
+
+            return document;
+        }
+
+        private IParameterSymbol GetParameterAtOrdinal(int index, IReadOnlyList<SyntaxNode> parameterNodes, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            foreach (var parameterNode in parameterNodes)
+            {
+                var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+                if (index == parameter.Ordinal)
+                {
+                    return parameter;
+                }
+            }
+
+            return null;
+        }
 
         private bool ContainsNullCoalesceCheck(
             ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
@@ -141,6 +192,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         return true;
                     }
                 }
+                else if (condition is IIsPatternOperation isPatternOperation &&
+                         isPatternOperation.Pattern is IConstantPatternOperation constantPattern)
+                {
+                    // Look for code of the form "if (p is null)"
+                    if (IsNullCheck(constantPattern.Value, isPatternOperation.Value, parameter))
+                    {
+                        return true;
+                    }
+                }
                 else if (parameter.Type.SpecialType == SpecialType.System_String &&
                          IsStringCheck(condition, parameter))
                 {
@@ -149,6 +209,49 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             return false;
+        }
+
+        protected bool ParameterValidForNullCheck(Document document, IParameterSymbol parameter, SemanticModel semanticModel,
+            IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
+        {
+            if (!parameter.Type.IsReferenceType &&
+                !parameter.Type.IsNullable())
+            {
+                return false;
+            }
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            // Look for an existing "if (p == null)" statement, or "p ?? throw" check.  If we already
+            // have one, we don't want to offer to generate a new null check.
+            //
+            // Note: we only check the top level statements of the block.  I think that's sufficient
+            // as this will catch the 90% case, while not being that bad an experience even when 
+            // people do strange things in their constructors.
+            if (blockStatementOpt != null)
+            {
+                if (!CanOffer(blockStatementOpt.Syntax))
+                {
+                    return false;
+                }
+
+                foreach (var statement in blockStatementOpt.Operations)
+                {
+                    if (IsIfNullCheck(statement, parameter))
+                    {
+                        return false;
+                    }
+
+                    if (ContainsNullCoalesceCheck(
+                            syntaxFacts, semanticModel, statement,
+                            parameter, cancellationToken))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private bool IsStringCheck(IOperation condition, IParameterSymbol parameter)
@@ -179,7 +282,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private async Task<Document> AddNullCheckAsync(
             Document document,
             IParameterSymbol parameter,
-            TMemberDeclarationSyntax memberDeclaration,
+            SyntaxNode functionDeclaration,
+            IMethodSymbol method,
             IBlockOperation blockStatementOpt,
             CancellationToken cancellationToken)
         {
@@ -194,63 +298,61 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // If we can't, then just offer to add an "if (s == null)" statement.
             return await AddNullCheckStatementAsync(
-                document, parameter, memberDeclaration, blockStatementOpt,
-                (c, g) => CreateNullCheckStatement(c, g, parameter),
+                document, parameter, functionDeclaration, method, blockStatementOpt,
+                (s, g) => CreateNullCheckStatement(s, g, parameter),
                 cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Document> AddStringCheckAsync(
             Document document,
             IParameterSymbol parameter,
-            TMemberDeclarationSyntax memberDeclaration,
+            SyntaxNode functionDeclaration,
+            IMethodSymbol method,
             IBlockOperation blockStatementOpt,
             string methodName,
             CancellationToken cancellationToken)
         {
             return await AddNullCheckStatementAsync(
-                document, parameter, memberDeclaration, blockStatementOpt,
-                (c, g) => CreateStringCheckStatement(c, g, parameter, methodName),
+                document, parameter, functionDeclaration, method, blockStatementOpt,
+                (s, g) => CreateStringCheckStatement(s.Compilation, g, parameter, methodName),
                 cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Document> AddNullCheckStatementAsync(
-            Document document, 
+            Document document,
             IParameterSymbol parameter,
-            TMemberDeclarationSyntax memberDeclaration,
+            SyntaxNode functionDeclaration,
+            IMethodSymbol method,
             IBlockOperation blockStatementOpt,
-            Func<Compilation, SyntaxGenerator, TStatementSyntax> generateNullCheck,
+            Func<SemanticModel, SyntaxGenerator, TStatementSyntax> generateNullCheck,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = semanticModel.Compilation;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            var nullCheckStatement = generateNullCheck(compilation, editor.Generator);
+            var nullCheckStatement = generateNullCheck(semanticModel, editor.Generator);
+
+            // We may be inserting a statement into a single-line container.  In that case,
+            // we don't want the formatting engine to think this construct should stay single-line
+            // so add a newline after the check to help dissuade it from thinking we should stay
+            // on a single line.
+            nullCheckStatement = nullCheckStatement.WithAppendedTrailingTrivia(
+                editor.Generator.ElasticCarriageReturnLineFeed);
 
             // Find a good location to add the null check. In general, we want the order of checks
             // and assignments in the constructor to match the order of parameters in the method
             // signature.
             var statementToAddAfter = GetStatementToAddNullCheckAfter(
                 semanticModel, parameter, blockStatementOpt, cancellationToken);
-            InsertStatement(editor, memberDeclaration, statementToAddAfter, nullCheckStatement);
+            InsertStatement(editor, functionDeclaration, method, statementToAddAfter, nullCheckStatement);
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private static TStatementSyntax CreateNullCheckStatement(
-            Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
-        {
-            // generates: if (s == null) throw new ArgumentNullException(nameof(s))
-            return (TStatementSyntax)generator.IfStatement(
-                generator.ReferenceEqualsExpression(
-                    generator.IdentifierName(parameter.Name),
-                    generator.NullLiteralExpression()),
-                SpecializedCollections.SingletonEnumerable(
-                    generator.ThrowStatement(
-                        CreateArgumentNullException(compilation, generator, parameter))));
-        }
+        private static TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter)
+            => (TStatementSyntax)generator.CreateNullCheckAndThrowStatement(semanticModel, parameter);
 
         private static TStatementSyntax CreateStringCheckStatement(
             Compilation compilation, SyntaxGenerator generator,

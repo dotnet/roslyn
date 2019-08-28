@@ -3,9 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -18,7 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     internal sealed partial class CodeModelProjectCache
     {
         private readonly CodeModelState _state;
-        private readonly AbstractProject _project;
+        private readonly ProjectId _projectId;
+        private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;
 
         private readonly Dictionary<string, CacheEntry> _cache = new Dictionary<string, CacheEntry>(StringComparer.OrdinalIgnoreCase);
         private readonly object _cacheGate = new object();
@@ -26,15 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private EnvDTE.CodeModel _rootCodeModel;
         private bool _zombied;
 
-        internal CodeModelProjectCache(AbstractProject project, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
+        internal CodeModelProjectCache(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, ProjectCodeModelFactory projectFactory, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
         {
-            _project = project;
-            _state = new CodeModelState(serviceProvider, languageServices, workspace);
-        }
-
-        private bool IsZombied
-        {
-            get { return _zombied; }
+            _state = new CodeModelState(threadingContext, serviceProvider, languageServices, workspace, projectFactory);
+            _projectId = projectId;
+            _codeModelInstanceFactory = codeModelInstanceFactory;
         }
 
         /// <summary>
@@ -71,8 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // This ultimately ends up calling GetOrCreateFileCodeModel(fileName, parent) with the correct "parent" object
             // through the project system.
-            var provider = (IProjectCodeModelProvider)_project;
-            var newFileCodeModel = (EnvDTE80.FileCodeModel2)provider.ProjectCodeModel.CreateFileCodeModelThroughProject(filePath);
+            var newFileCodeModel = (EnvDTE80.FileCodeModel2)_codeModelInstanceFactory.TryCreateFileCodeModelThroughProjectSystem(filePath);
             return new ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>(newFileCodeModel);
         }
 
@@ -80,9 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var cacheEntry = GetCacheEntry(filePath);
 
-            return cacheEntry != null
-                ? cacheEntry.Value.ComHandle
-                : null;
+            return cacheEntry?.ComHandle;
         }
 
         public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath, object parent)
@@ -101,15 +97,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             // Check that we know about this file!
-            var hostDocument = _project.GetCurrentDocumentFromPath(filePath);
-            if (hostDocument == null)
+            var documentId = _state.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).Where(id => id.ProjectId == _projectId).FirstOrDefault();
+            if (documentId == null)
             {
                 // Matches behavior of native (C#) implementation
                 throw Exceptions.ThrowENotImpl();
             }
 
             // Create object (outside of lock)
-            var newFileCodeModel = FileCodeModel.Create(_state, parent, hostDocument.Id, new TextManagerAdapter());
+            var newFileCodeModel = FileCodeModel.Create(_state, parent, documentId, new TextManagerAdapter());
             var newCacheEntry = new CacheEntry(newFileCodeModel);
 
             // Second try (object might have been added by another thread at this point!)
@@ -135,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public EnvDTE.CodeModel GetOrCreateRootCodeModel(EnvDTE.Project parent)
         {
-            if (this.IsZombied)
+            if (_zombied)
             {
                 Debug.Fail("Cannot access root code model after code model was shutdown!");
                 throw Exceptions.ThrowEUnexpected();
@@ -143,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (_rootCodeModel == null)
             {
-                _rootCodeModel = RootCodeModel.Create(_state, parent, _project.Id);
+                _rootCodeModel = RootCodeModel.Create(_state, parent, _projectId);
             }
 
             return _rootCodeModel;
@@ -182,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 instance.Object.Shutdown();
             }
 
-            _zombied = false;
+            _zombied = true;
         }
 
         public void OnSourceFileRemoved(string fileName)

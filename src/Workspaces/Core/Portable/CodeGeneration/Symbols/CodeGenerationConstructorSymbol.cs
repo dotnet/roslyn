@@ -14,18 +14,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<AttributeData> attributes,
             Accessibility accessibility,
             DeclarationModifiers modifiers,
-            ImmutableArray<IParameterSymbol> parameters) :
-            base(containingType,
-                 attributes,
-                 accessibility,
-                 modifiers,
-                 returnType: null,
-                 refKind: RefKind.None,
-                 explicitInterfaceImplementations: default,
-                 name: string.Empty,
-                 typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-                 parameters: parameters,
-                 returnTypeAttributes: ImmutableArray<AttributeData>.Empty)
+            ImmutableArray<IParameterSymbol> parameters)
+            : base(containingType,
+                   attributes,
+                   accessibility,
+                   modifiers,
+                   returnType: null,
+                   refKind: RefKind.None,
+                   explicitInterfaceImplementations: default,
+                   name: string.Empty,
+                   typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+                   parameters: parameters,
+                   returnTypeAttributes: ImmutableArray<AttributeData>.Empty)
         {
         }
 

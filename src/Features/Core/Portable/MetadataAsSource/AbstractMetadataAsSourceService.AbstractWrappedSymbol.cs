@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             protected AbstractWrappedSymbol(ISymbol symbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
             {
                 _symbol = symbol;
-                this.CanImplementImplicitly = canImplementImplicitly;
-                this.DocCommentFormattingService = docCommentFormattingService;
+                CanImplementImplicitly = canImplementImplicitly;
+                DocCommentFormattingService = docCommentFormattingService;
             }
 
             public bool CanBeReferencedByName => _symbol.CanBeReferencedByName;
@@ -115,7 +115,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool Equals(ISymbol other)
             {
-                return this.Equals((object)other);
+                return Equals((object)other);
+            }
+
+            public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+            {
+                return equalityComparer.Equals(this, other);
             }
         }
     }

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Message IDs may refer to strings that need to be localized.   This struct makes an IFormattable wrapper around a MessageID
     ''' </summary>
     Public Structure LocalizableErrorArgument
-        Implements IFormattable, IMessageSerializable
+        Implements IFormattable
 
         Private ReadOnly _id As ERRID
 

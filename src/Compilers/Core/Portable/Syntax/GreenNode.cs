@@ -437,6 +437,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => ShouldReuseInSerialization;
+
+        internal virtual bool ShouldReuseInSerialization => this.IsCacheable;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             this.WriteTo(writer);
@@ -639,48 +643,51 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void WriteTo(TextWriter writer, bool leading, bool trailing)
         {
-            // Use an actual Stack so we can write out deeply recursive structures without overflowing.
-            var stack = new Stack<(GreenNode node, bool leading, bool trailing)>();
+            // Use an actual stack so we can write out deeply recursive structures without overflowing.
+            var stack = ArrayBuilder<(GreenNode node, bool leading, bool trailing)>.GetInstance();
             stack.Push((this, leading, trailing));
 
             // Separated out stack processing logic so that it does not unintentionally refer to 
-            // "this", "leading" or "trailing.
-            ProcessStack(writer, stack);
-        }
+            // "this", "leading" or "trailing".
+            processStack(writer, stack);
+            stack.Free();
+            return;
 
-        private static void ProcessStack(TextWriter writer,
-            Stack<(GreenNode node, bool leading, bool trailing)> stack)
-        {
-            while (stack.Count > 0)
+            static void processStack(
+                TextWriter writer,
+                ArrayBuilder<(GreenNode node, bool leading, bool trailing)> stack)
             {
-                var current = stack.Pop();
-                var currentNode = current.node;
-                var currentLeading = current.leading;
-                var currentTrailing = current.trailing;
-
-                if (currentNode.IsToken)
+                while (stack.Count > 0)
                 {
-                    currentNode.WriteTokenTo(writer, currentLeading, currentTrailing);
-                    continue;
-                }
+                    var current = stack.Pop();
+                    var currentNode = current.node;
+                    var currentLeading = current.leading;
+                    var currentTrailing = current.trailing;
 
-                if (currentNode.IsTrivia)
-                {
-                    currentNode.WriteTriviaTo(writer);
-                    continue;
-                }
-
-                var firstIndex = GetFirstNonNullChildIndex(currentNode);
-                var lastIndex = GetLastNonNullChildIndex(currentNode);
-
-                for (var i = lastIndex; i >= firstIndex; i--)
-                {
-                    var child = currentNode.GetSlot(i);
-                    if (child != null)
+                    if (currentNode.IsToken)
                     {
-                        var first = i == firstIndex;
-                        var last = i == lastIndex;
-                        stack.Push((child, currentLeading | !first, currentTrailing | !last));
+                        currentNode.WriteTokenTo(writer, currentLeading, currentTrailing);
+                        continue;
+                    }
+
+                    if (currentNode.IsTrivia)
+                    {
+                        currentNode.WriteTriviaTo(writer);
+                        continue;
+                    }
+
+                    var firstIndex = GetFirstNonNullChildIndex(currentNode);
+                    var lastIndex = GetLastNonNullChildIndex(currentNode);
+
+                    for (var i = lastIndex; i >= firstIndex; i--)
+                    {
+                        var child = currentNode.GetSlot(i);
+                        if (child != null)
+                        {
+                            var first = i == firstIndex;
+                            var last = i == lastIndex;
+                            stack.Push((child, currentLeading | !first, currentTrailing | !last));
+                        }
                     }
                 }
             }

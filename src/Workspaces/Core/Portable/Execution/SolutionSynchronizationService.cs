@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private readonly AssetStorages _assetStorages = new AssetStorages();
 
+        [ImportingConstructor]
+        public RemotableDataServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(workspaceServices, _assetStorages);
@@ -26,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly HostWorkspaceServices _workspaceServices;
             private readonly AssetStorages _assetStorages;
 
-            public Serializer Serializer_TestOnly => new Serializer(_workspaceServices);
+            public ISerializerService Serializer_TestOnly => _workspaceServices.GetService<ISerializerService>();
 
             public Service(HostWorkspaceServices workspaceServices, AssetStorages storages)
             {

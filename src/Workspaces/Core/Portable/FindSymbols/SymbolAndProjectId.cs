@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// issue in the future, this underlying comparer can absolutely be changed to something
         /// more appropriate.
         /// </summary>
-        private static readonly IEqualityComparer<ISymbol> _underlyingComparer = 
+        private static readonly IEqualityComparer<ISymbol> _underlyingComparer =
             SymbolEquivalenceComparer.Instance;
 
         private SymbolAndProjectIdComparer()
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// issue in the future, this underlying comparer can absolutely be changed to something
         /// more appropriate.
         /// </summary>
-        public static readonly SymbolAndProjectIdComparer SymbolEquivalenceInstance = 
+        public static readonly SymbolAndProjectIdComparer SymbolEquivalenceInstance =
             new SymbolAndProjectIdComparer(SymbolEquivalenceComparer.Instance);
 
         private readonly IEqualityComparer<ISymbol> _underlyingComparer;

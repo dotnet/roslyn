@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -39,20 +38,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             => condition.Kind() == SyntaxKind.NotEqualsExpression;
 
         protected override bool TryAnalyzePatternCondition(
-            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode, 
+            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode,
             out SyntaxNode conditionPartToCheck, out bool isEquals)
         {
             conditionPartToCheck = null;
             isEquals = true;
 
-            var patternExpression = conditionNode as IsPatternExpressionSyntax;
-            if (patternExpression == null)
+            if (!(conditionNode is IsPatternExpressionSyntax patternExpression))
             {
                 return false;
             }
 
-            var constantPattern = patternExpression.Pattern as ConstantPatternSyntax;
-            if (constantPattern == null)
+            if (!(patternExpression.Pattern is ConstantPatternSyntax constantPattern))
             {
                 return false;
             }

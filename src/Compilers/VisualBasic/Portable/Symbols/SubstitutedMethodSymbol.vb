@@ -433,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Function SetAssociatedPropertyOrEvent(propertyOrEventSymbol As Symbol) As Boolean
             If _propertyOrEventSymbolOpt Is Nothing Then
-                Debug.Assert(propertyOrEventSymbol.ContainingType = Me.ContainingType)
+                Debug.Assert(TypeSymbol.Equals(propertyOrEventSymbol.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything))
 
                 ' No locking required since SetAssociatedProperty will only be called by the
                 ' thread that created the method symbol (and will be called before the method

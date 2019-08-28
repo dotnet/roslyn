@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Sort methods.
             _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
-           
+
             // Sort proxy types.
             _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
         }
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal static string GenerateDataFieldName(ImmutableArray<byte> data)
         {
-            // TODO: replace SAH1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
+            // TODO: replace SHA1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
             var hash = CryptographicHashProvider.ComputeSha1(data);
             char[] c = new char[hash.Length * 2];
             int i = 0;
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             : base(name, containingType, type)
         {
             Debug.Assert(!block.IsDefault);
-            
+
             _block = block;
         }
 

@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
     }
 }";
-            CreateCompilation(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(text).VerifyDiagnostics();
         }
 
         [WorkItem(546832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546832")]
@@ -778,7 +778,6 @@ namespace System
                 );
         }
 
-
         [Fact]
         public void CoreLibraryIntPtr_m_value()
         {
@@ -951,6 +950,239 @@ namespace System
   IL_0016:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void FixedHelpersOnStringAndArray()
+        {
+            var text =
+@"
+namespace System
+{
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Char { }
+    public struct Boolean { }
+
+    public class String 
+    { 
+        public ref char GetPinnableReference() => throw null;
+    }
+
+    public class Object 
+    { 
+    }
+
+    public class Array 
+    { 
+        public ref char GetPinnableReference() => throw null;
+    }
+}
+  
+unsafe internal class program
+{
+    public static void Main()
+    {
+        fixed (char* p = ""A"")
+        {
+            *p = default;
+        }
+    }
+
+    public static void Main1()
+    {
+        fixed (char* p = new char[1])
+        {
+            *p = default;
+        }
+    }
+}
+";
+            var comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics();
+
+            var c = CompileAndVerify(comp, verify: Verification.Skipped);
+
+            c.VerifyIL("program.Main()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (pinned char& V_0)
+  IL_0000:  ldstr      ""A""
+  IL_0005:  call       ""ref char string.GetPinnableReference()""
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  conv.u
+  IL_000d:  ldc.i4.0
+  IL_000e:  stind.i2
+  IL_000f:  ldc.i4.0
+  IL_0010:  conv.u
+  IL_0011:  stloc.0
+  IL_0012:  ret
+}
+"
+                );
+
+            c.VerifyIL("program.Main1()", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (char* V_0, //p
+                pinned char[] V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     ""char""
+  IL_0006:  dup
+  IL_0007:  stloc.1
+  IL_0008:  brfalse.s  IL_000f
+  IL_000a:  ldloc.1
+  IL_000b:  ldlen
+  IL_000c:  conv.i4
+  IL_000d:  brtrue.s   IL_0014
+  IL_000f:  ldc.i4.0
+  IL_0010:  conv.u
+  IL_0011:  stloc.0
+  IL_0012:  br.s       IL_001d
+  IL_0014:  ldloc.1
+  IL_0015:  ldc.i4.0
+  IL_0016:  ldelema    ""char""
+  IL_001b:  conv.u
+  IL_001c:  stloc.0
+  IL_001d:  ldloc.0
+  IL_001e:  ldc.i4.0
+  IL_001f:  stind.i2
+  IL_0020:  ldnull
+  IL_0021:  stloc.1
+  IL_0022:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FixedHelperOnObject()
+        {
+            var text =
+@"
+namespace System
+{
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Char { }
+    public struct Boolean { }
+
+    public class String 
+    { 
+    }
+
+    public class Object 
+    { 
+        public ref char GetPinnableReference() => throw null;
+    }
+
+    public class Array 
+    { 
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class RuntimeHelpers
+    {
+        public static int OffsetToStringData => 0;
+    }
+}
+  
+unsafe internal class program
+{
+    public static void Main()
+    {
+        fixed (char* p = ""A"")
+        {
+            *p = default;
+        }
+
+        fixed (char* p = new char[1])
+        {
+            *p = default;
+        }
+
+        fixed (char* p = 42)
+        {
+            *p = default;
+        }
+    }
+}
+";
+            var comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, verify: Verification.Skipped).
+                VerifyIL("program.Main()", @"
+{
+  // Code size       83 (0x53)
+  .maxstack  2
+  .locals init (char* V_0, //p
+                pinned string V_1,
+                char* V_2, //p
+                pinned char[] V_3,
+                pinned char& V_4)
+  IL_0000:  ldstr      ""A""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  conv.u
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  brfalse.s  IL_0014
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0012:  add
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.0
+  IL_0015:  ldc.i4.0
+  IL_0016:  stind.i2
+  IL_0017:  ldnull
+  IL_0018:  stloc.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  newarr     ""char""
+  IL_001f:  dup
+  IL_0020:  stloc.3
+  IL_0021:  brfalse.s  IL_0028
+  IL_0023:  ldloc.3
+  IL_0024:  ldlen
+  IL_0025:  conv.i4
+  IL_0026:  brtrue.s   IL_002d
+  IL_0028:  ldc.i4.0
+  IL_0029:  conv.u
+  IL_002a:  stloc.2
+  IL_002b:  br.s       IL_0036
+  IL_002d:  ldloc.3
+  IL_002e:  ldc.i4.0
+  IL_002f:  ldelema    ""char""
+  IL_0034:  conv.u
+  IL_0035:  stloc.2
+  IL_0036:  ldloc.2
+  IL_0037:  ldc.i4.0
+  IL_0038:  stind.i2
+  IL_0039:  ldnull
+  IL_003a:  stloc.3
+  IL_003b:  ldc.i4.s   42
+  IL_003d:  box        ""int""
+  IL_0042:  call       ""ref char object.GetPinnableReference()""
+  IL_0047:  stloc.s    V_4
+  IL_0049:  ldloc.s    V_4
+  IL_004b:  conv.u
+  IL_004c:  ldc.i4.0
+  IL_004d:  stind.i2
+  IL_004e:  ldc.i4.0
+  IL_004f:  conv.u
+  IL_0050:  stloc.s    V_4
+  IL_0052:  ret
+}
+"
+                );
         }
     }
 }

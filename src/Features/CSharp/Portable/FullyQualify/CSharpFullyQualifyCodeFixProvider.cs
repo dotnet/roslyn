@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
@@ -41,17 +42,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
         /// </summary>
         private const string CS0308 = nameof(CS0308);
 
+        [ImportingConstructor]
+        public CSharpFullyQualifyCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308); }
+            get { return ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308, IDEDiagnosticIds.UnboundIdentifierId); }
         }
 
         protected override bool IgnoreCase => false;
 
         protected override bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node)
         {
-            var simpleName = node as SimpleNameSyntax;
-            if (simpleName == null)
+            if (!(node is SimpleNameSyntax simpleName))
             {
                 return false;
             }

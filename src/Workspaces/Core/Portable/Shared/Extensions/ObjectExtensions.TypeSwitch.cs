@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TDerivedType10, TDerivedType11, TDerivedType12, TDerivedType13, TDerivedType14, TDerivedType15, TDerivedType16, TDerivedType17, TDerivedType18, TDerivedType19, TDerivedType20, TDerivedType21, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TDerivedType10, TResult> matchFunc10, Func<TDerivedType11, TResult> matchFunc11, Func<TDerivedType12, TResult> matchFunc12, Func<TDerivedType13, TResult> matchFunc13, Func<TDerivedType14, TResult> matchFunc14, Func<TDerivedType15, TResult> matchFunc15, Func<TDerivedType16, TResult> matchFunc16, Func<TDerivedType17, TResult> matchFunc17, Func<TDerivedType18, TResult> matchFunc18, Func<TDerivedType19, TResult> matchFunc19, Func<TDerivedType20, TResult> matchFunc20, Func<TDerivedType21, TResult> matchFunc21, Func<TBaseType, TResult> defaultFunc = null)
+        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TDerivedType10, TDerivedType11, TDerivedType12, TDerivedType13, TDerivedType14, TDerivedType15, TDerivedType16, TDerivedType17, TDerivedType18, TDerivedType19, TDerivedType20, TDerivedType21, TDerivedType22, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TDerivedType10, TResult> matchFunc10, Func<TDerivedType11, TResult> matchFunc11, Func<TDerivedType12, TResult> matchFunc12, Func<TDerivedType13, TResult> matchFunc13, Func<TDerivedType14, TResult> matchFunc14, Func<TDerivedType15, TResult> matchFunc15, Func<TDerivedType16, TResult> matchFunc16, Func<TDerivedType17, TResult> matchFunc17, Func<TDerivedType18, TResult> matchFunc18, Func<TDerivedType19, TResult> matchFunc19, Func<TDerivedType20, TResult> matchFunc20, Func<TDerivedType21, TResult> matchFunc21, Func<TDerivedType22, TResult> matchFunc22, Func<TBaseType, TResult> defaultFunc = null)
             where TDerivedType1 : TBaseType
             where TDerivedType2 : TBaseType
             where TDerivedType3 : TBaseType
@@ -355,6 +355,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             where TDerivedType19 : TBaseType
             where TDerivedType20 : TBaseType
             where TDerivedType21 : TBaseType
+            where TDerivedType22 : TBaseType
         {
             if (obj is TDerivedType1)
             {
@@ -439,6 +440,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else if (obj is TDerivedType21)
             {
                 return matchFunc21((TDerivedType21)obj);
+            }
+            else if (obj is TDerivedType22)
+            {
+                return matchFunc22((TDerivedType22)obj);
             }
             else if (defaultFunc != null)
             {

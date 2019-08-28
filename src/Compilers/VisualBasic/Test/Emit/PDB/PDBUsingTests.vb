@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBUsingTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingNested()
             Dim source =
 <compilation>
@@ -42,7 +42,7 @@ End Class
             compilation.VerifyPdb("C1.Main",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -82,7 +82,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingExpression()
             Dim source =
 <compilation>
@@ -119,7 +119,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingVariableDeclaration()
             Dim source =
 <compilation>
@@ -156,7 +156,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingMultipleVariableDeclaration()
             Dim source =
 <compilation>
@@ -197,7 +197,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingVariableAsNewDeclaration()
             Dim source =
 <compilation>
@@ -236,7 +236,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingMultipleVariableAsNewDeclaration()
             Dim source =
 <compilation>
@@ -283,7 +283,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub NoPia()
             Dim piaSource = "
 Imports System.Runtime.InteropServices
@@ -324,7 +324,7 @@ End Namespace
             v.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="N1.C" name="M">
@@ -359,7 +359,7 @@ End Namespace
             )
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UnusedImports()
             Dim source = "
 Imports X = System.Linq.Enumerable
@@ -397,7 +397,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UnusedImports_Nonexisting()
             Dim source = "
 Imports A.B
@@ -425,7 +425,7 @@ End Class
             CompileAndVerify(comp)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub BadGlobalImports()
             Dim source1 = "
 Namespace N

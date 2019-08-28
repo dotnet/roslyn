@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -13,74 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal sealed class DiagnosticDataLocation
+    internal sealed class DiagnosticData : IEquatable<DiagnosticData>
     {
-        public readonly DocumentId DocumentId;
-
-        // text can be either given or calculated from original line/column
-        public readonly TextSpan? SourceSpan;
-
-        /// <summary>
-        /// Null if path is not mapped and <see cref="OriginalFilePath"/> contains the actual path.
-        /// Note that the value might be a relative path. In that case <see cref="OriginalFilePath"/> should be used
-        /// as a base path for path resolution.
-        /// </summary>
-        public readonly string MappedFilePath;
-        public readonly int MappedStartLine;
-        public readonly int MappedStartColumn;
-        public readonly int MappedEndLine;
-        public readonly int MappedEndColumn;
-        public readonly string OriginalFilePath;
-        public readonly int OriginalStartLine;
-        public readonly int OriginalStartColumn;
-        public readonly int OriginalEndLine;
-        public readonly int OriginalEndColumn;
-
-        public DiagnosticDataLocation(
-            DocumentId documentId = null,
-            TextSpan? sourceSpan = null,
-            string originalFilePath = null,
-            int originalStartLine = 0,
-            int originalStartColumn = 0,
-            int originalEndLine = 0,
-            int originalEndColumn = 0,
-            string mappedFilePath = null,
-            int mappedStartLine = 0,
-            int mappedStartColumn = 0,
-            int mappedEndLine = 0,
-            int mappedEndColumn = 0)
-        {
-            DocumentId = documentId;
-            SourceSpan = sourceSpan;
-            MappedFilePath = mappedFilePath;
-            MappedStartLine = mappedStartLine;
-            MappedStartColumn = mappedStartColumn;
-            MappedEndLine = mappedEndLine;
-            MappedEndColumn = mappedEndColumn;
-            OriginalFilePath = originalFilePath;
-            OriginalStartLine = originalStartLine;
-            OriginalStartColumn = originalStartColumn;
-            OriginalEndLine = originalEndLine;
-            OriginalEndColumn = originalEndColumn;
-        }
-
-        internal DiagnosticDataLocation WithCalculatedSpan(TextSpan newSourceSpan)
-        {
-            Contract.ThrowIfTrue(this.SourceSpan.HasValue);
-
-            return new DiagnosticDataLocation(this.DocumentId,
-                newSourceSpan, this.OriginalFilePath,
-                this.OriginalStartLine, this.OriginalStartColumn,
-                this.OriginalEndLine, this.OriginalEndColumn,
-                this.MappedFilePath, this.MappedStartLine, this.MappedStartColumn,
-                this.MappedEndLine, this.MappedEndColumn);
-        }
-    }
-
-    internal sealed class DiagnosticData
-    {
-        private static readonly ImmutableDictionary<string, string> s_Properties = ImmutableDictionary<string, string>.Empty.Add(WellKnownDiagnosticPropertyNames.Origin, WellKnownDiagnosticTags.Build);
-
         public readonly string Id;
         public readonly string Category;
 
@@ -98,38 +33,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public readonly string ENUMessageForBingSearch;
 
-        public readonly Workspace Workspace;
         public readonly ProjectId ProjectId;
-        public DocumentId DocumentId => this.DataLocation?.DocumentId;
+        public DocumentId DocumentId => DataLocation?.DocumentId;
 
         public readonly DiagnosticDataLocation DataLocation;
         public readonly IReadOnlyCollection<DiagnosticDataLocation> AdditionalLocations;
 
-        public DiagnosticData(
-            string id,
-            string category,
-            string message,
-            string enuMessageForBingSearch,
-            DiagnosticSeverity severity,
-            bool isEnabledByDefault,
-            int warningLevel,
-            Workspace workspace,
-            ProjectId projectId,
-            DiagnosticDataLocation location = null,
-            IReadOnlyCollection<DiagnosticDataLocation> additionalLocations = null,
-            string title = null,
-            string description = null,
-            string helpLink = null,
-            bool isSuppressed = false,
-            IReadOnlyList<string> customTags = null,
-            ImmutableDictionary<string, string> properties = null) :
-                this(
-                    id, category, message, enuMessageForBingSearch,
-                    severity, severity, isEnabledByDefault, warningLevel,
-                    customTags ?? ImmutableArray<string>.Empty, properties ?? ImmutableDictionary<string, string>.Empty,
-                    workspace, projectId, location, additionalLocations, title, description, helpLink, isSuppressed)
-        {
-        }
+        /// <summary>
+        /// Properties for a diagnostic generated by an explicit build.
+        /// </summary>
+        internal static ImmutableDictionary<string, string> PropertiesForBuildDiagnostic { get; }
+            = ImmutableDictionary<string, string>.Empty.Add(WellKnownDiagnosticPropertyNames.Origin, WellKnownDiagnosticTags.Build);
 
         public DiagnosticData(
             string id,
@@ -142,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             int warningLevel,
             IReadOnlyList<string> customTags,
             ImmutableDictionary<string, string> properties,
-            Workspace workspace,
             ProjectId projectId,
             DiagnosticDataLocation location = null,
             IReadOnlyCollection<DiagnosticDataLocation> additionalLocations = null,
@@ -151,27 +64,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string helpLink = null,
             bool isSuppressed = false)
         {
-            this.Id = id;
-            this.Category = category;
-            this.Message = message;
-            this.ENUMessageForBingSearch = enuMessageForBingSearch;
+            Id = id;
+            Category = category;
+            Message = message;
+            ENUMessageForBingSearch = enuMessageForBingSearch;
 
-            this.Severity = severity;
-            this.DefaultSeverity = defaultSeverity;
-            this.IsEnabledByDefault = isEnabledByDefault;
-            this.WarningLevel = warningLevel;
-            this.CustomTags = customTags;
-            this.Properties = properties;
+            Severity = severity;
+            DefaultSeverity = defaultSeverity;
+            IsEnabledByDefault = isEnabledByDefault;
+            WarningLevel = warningLevel;
+            CustomTags = customTags;
+            Properties = properties;
 
-            this.Workspace = workspace;
-            this.ProjectId = projectId;
-            this.DataLocation = location;
-            this.AdditionalLocations = additionalLocations;
+            ProjectId = projectId;
+            DataLocation = location;
+            AdditionalLocations = additionalLocations;
 
-            this.Title = title;
-            this.Description = description;
-            this.HelpLink = helpLink;
-            this.IsSuppressed = isSuppressed;
+            Title = title;
+            Description = description;
+            HelpLink = helpLink;
+            IsSuppressed = isSuppressed;
         }
 
         public bool HasTextSpan { get { return (DataLocation?.SourceSpan).HasValue; } }
@@ -185,37 +97,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public TextSpan TextSpan { get { return (DataLocation?.SourceSpan).Value; } }
 
         public override bool Equals(object obj)
+            => obj is DiagnosticData data && Equals(data);
+
+        public bool Equals(DiagnosticData other)
         {
-            DiagnosticData other = obj as DiagnosticData;
-            if (other == null)
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other is null)
             {
                 return false;
             }
 
-            return Id == other.Id &&
-                    Category == other.Category &&
-                    Message == other.Message &&
-                    Severity == other.Severity &&
-                    WarningLevel == other.WarningLevel &&
-                    IsSuppressed == other.IsSuppressed &&
-                    ProjectId == other.ProjectId &&
-                    DocumentId == other.DocumentId &&
-                    DataLocation?.OriginalStartLine == other?.DataLocation?.OriginalStartLine &&
-                    DataLocation?.OriginalStartColumn == other?.DataLocation?.OriginalStartColumn;
+            return
+               DataLocation?.OriginalStartLine == other.DataLocation?.OriginalStartLine &&
+               DataLocation?.OriginalStartColumn == other.DataLocation?.OriginalStartColumn &&
+               Id == other.Id &&
+               Category == other.Category &&
+               Severity == other.Severity &&
+               WarningLevel == other.WarningLevel &&
+               IsSuppressed == other.IsSuppressed &&
+               ProjectId == other.ProjectId &&
+               DocumentId == other.DocumentId &&
+               Message == other.Message;
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(this.Id,
-                   Hash.Combine(this.Category,
-                   Hash.Combine(this.Message,
-                   Hash.Combine(this.WarningLevel,
-                   Hash.Combine(this.IsSuppressed,
-                   Hash.Combine(this.ProjectId,
-                   Hash.Combine(this.DocumentId,
-                   Hash.Combine(this.DataLocation?.OriginalStartLine ?? 0,
-                   Hash.Combine(this.DataLocation?.OriginalStartColumn ?? 0, (int)this.Severity)))))))));
-        }
+            => Hash.Combine(Id,
+               Hash.Combine(Category,
+               Hash.Combine(Message,
+               Hash.Combine(WarningLevel,
+               Hash.Combine(IsSuppressed,
+               Hash.Combine(ProjectId,
+               Hash.Combine(DocumentId,
+               Hash.Combine(DataLocation?.OriginalStartLine ?? 0,
+               Hash.Combine(DataLocation?.OriginalStartColumn ?? 0, (int)Severity)))))))));
 
         public override string ToString()
         {
@@ -233,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
-            => HasTextSpan ? EnsureInBounds(TextSpan, text) : GetTextSpan(this.DataLocation, text);
+            => HasTextSpan ? EnsureInBounds(TextSpan, text) : GetTextSpan(DataLocation, text);
 
         private static TextSpan EnsureInBounds(TextSpan textSpan, SourceText text)
             => TextSpan.FromBounds(
@@ -242,27 +160,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public DiagnosticData WithCalculatedSpan(SourceText text)
         {
-            Contract.ThrowIfNull(this.DocumentId);
-            Contract.ThrowIfNull(this.DataLocation);
+            Contract.ThrowIfNull(DocumentId);
+            Contract.ThrowIfNull(DataLocation);
             Contract.ThrowIfTrue(HasTextSpan);
 
-            var span = GetTextSpan(this.DataLocation, text);
-            var newLocation = this.DataLocation.WithCalculatedSpan(span);
-            return new DiagnosticData(this.Id, this.Category, this.Message, this.ENUMessageForBingSearch,
-                this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel,
-                this.CustomTags, this.Properties, this.Workspace, this.ProjectId,
-                newLocation, this.AdditionalLocations, this.Title, this.Description, this.HelpLink, this.IsSuppressed);
+            var span = GetTextSpan(DataLocation, text);
+            var newLocation = DataLocation.WithCalculatedSpan(span);
+            return new DiagnosticData(Id, Category, Message, ENUMessageForBingSearch,
+                Severity, DefaultSeverity, IsEnabledByDefault, WarningLevel,
+                CustomTags, Properties, ProjectId,
+                newLocation, AdditionalLocations, Title, Description, HelpLink, IsSuppressed);
         }
 
         public async Task<Diagnostic> ToDiagnosticAsync(Project project, CancellationToken cancellationToken)
         {
-            var location = await this.DataLocation.ConvertLocationAsync(project, cancellationToken).ConfigureAwait(false);
-            var additionalLocations = await this.AdditionalLocations.ConvertLocationsAsync(project, cancellationToken).ConfigureAwait(false);
+            var location = await DataLocation.ConvertLocationAsync(project, cancellationToken).ConfigureAwait(false);
+            var additionalLocations = await AdditionalLocations.ConvertLocationsAsync(project, cancellationToken).ConfigureAwait(false);
 
             return Diagnostic.Create(
-                this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity,
-                this.IsEnabledByDefault, this.WarningLevel, this.IsSuppressed, this.Title, this.Description, this.HelpLink,
-                location, additionalLocations, customTags: this.CustomTags, properties: this.Properties);
+                Id, Category, Message, Severity, DefaultSeverity,
+                IsEnabledByDefault, WarningLevel, IsSuppressed, Title, Description, HelpLink,
+                location, additionalLocations, customTags: CustomTags, properties: Properties);
         }
 
         public static TextSpan GetTextSpan(DiagnosticDataLocation dataLocation, SourceText text)
@@ -279,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return new TextSpan(text.Length, 0);
             }
 
-            AdjustBoundaries(dataLocation, lines, 
+            AdjustBoundaries(dataLocation, lines,
                 out var startLine, out var startColumn, out var endLine, out var endColumn);
 
             var startLinePosition = new LinePosition(startLine, startColumn);
@@ -329,46 +247,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic)
+        public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic, ProjectId projectId = null)
         {
-            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
 
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(),
+                diagnostic.GetBingHelpMessage(workspace),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
                 diagnostic.Properties,
-                workspace,
-                projectId: null,
-                title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
-                description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
-                helpLink: diagnostic.Descriptor.HelpLinkUri,
-                isSuppressed: diagnostic.IsSuppressed);
-        }
-
-        public static DiagnosticData Create(Project project, Diagnostic diagnostic)
-        {
-            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
-
-            return new DiagnosticData(
-                diagnostic.Id,
-                diagnostic.Descriptor.Category,
-                diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(),
-                diagnostic.Severity,
-                diagnostic.DefaultSeverity,
-                diagnostic.Descriptor.IsEnabledByDefault,
-                diagnostic.WarningLevel,
-                diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
-                diagnostic.Properties,
-                project.Solution.Workspace,
-                project.Id,
+                projectId,
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: diagnostic.Descriptor.HelpLinkUri,
@@ -416,14 +310,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(),
+                diagnostic.GetBingHelpMessage(document.Project.Solution.Workspace),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
                 properties,
-                document.Project.Solution.Workspace,
                 document.Project.Id,
                 location,
                 additionalLocations,
@@ -443,14 +336,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return additionalProperties == null
                 ? properties
                 : properties.AddRange(additionalProperties);
-            throw new NotImplementedException();
         }
 
         /// <summary>
         /// Create a host/VS specific diagnostic with the given descriptor and message arguments for the given project.
         /// Note that diagnostic created through this API cannot be suppressed with in-source suppression due to performance reasons (see the PERF remark below for details).
         /// </summary>
-        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData, CancellationToken cancellationToken = default)
+        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData)
         {
             diagnosticData = null;
             var project = workspace.CurrentSolution.GetProject(projectId);
@@ -464,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Get the effective severity of the diagnostic from the compilation options.
                 // PERF: We do not check if the diagnostic was suppressed by a source suppression, as this requires us to force complete the assembly attributes, which is very expensive.
-                ReportDiagnostic reportDiagnostic = descriptor.GetEffectiveSeverity(project.CompilationOptions);
+                var reportDiagnostic = descriptor.GetEffectiveSeverity(project.CompilationOptions);
                 if (reportDiagnostic == ReportDiagnostic.Suppress)
                 {
                     // Rule is disabled by compilation options.
@@ -522,17 +414,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Properties for a diagnostic generated by an explicit build.
-        /// </summary>
-        internal static ImmutableDictionary<string, string> PropertiesForBuildDiagnostic => s_Properties;
-
-        /// <summary>
         /// Returns true if the diagnostic was generated by an explicit build, not live analysis.
         /// </summary>
         /// <returns></returns>
         internal bool IsBuildDiagnostic()
         {
-            return this.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value) &&
+            return Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value) &&
                 value == WellKnownDiagnosticTags.Build;
         }
     }

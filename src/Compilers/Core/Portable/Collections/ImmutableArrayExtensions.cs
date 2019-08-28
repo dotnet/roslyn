@@ -6,7 +6,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -184,6 +186,34 @@ namespace Microsoft.CodeAnalysis
 
                     return builder.ToImmutableAndFree();
             }
+        }
+
+        /// <summary>
+        /// Maps a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <param name="array">The array to transform</param>
+        /// <param name="predicate">The condition to use for filtering the array content.</param>
+        /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, TResult> selector)
+        {
+            if (array.Length == 0)
+            {
+                return ImmutableArray<TResult>.Empty;
+            }
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+            {
+                if (predicate(item))
+                {
+                    builder.Add(selector(item));
+                }
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -400,10 +430,11 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        // Swap the first and last elements of a read-only array, yielding a new read only array.
-        // Used in DEBUG to make sure that read-only array is not sorted.
-        internal static ImmutableArray<T> DeOrder<T>(this ImmutableArray<T> array)
+        // In DEBUG, swap the first and last elements of a read-only array, yielding a new read only array.
+        // This helps to avoid depending on accidentally sorted arrays.
+        internal static ImmutableArray<T> ConditionallyDeOrder<T>(this ImmutableArray<T> array)
         {
+#if DEBUG
             if (!array.IsDefault && array.Length >= 2)
             {
                 T[] copy = array.ToArray();
@@ -413,10 +444,8 @@ namespace Microsoft.CodeAnalysis
                 copy[last] = temp;
                 return copy.AsImmutable();
             }
-            else
-            {
-                return array;
-            }
+#endif
+            return array;
         }
 
         internal static ImmutableArray<TValue> Flatten<TKey, TValue>(
@@ -498,6 +527,27 @@ namespace Microsoft.CodeAnalysis
             return count;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ImmutableArrayProxy<T>
+        {
+            internal T[] MutableArray;
+        }
+
+        // TODO(https://github.com/dotnet/corefx/issues/34126): Remove when System.Collections.Immutable
+        // provides a Span API
+        internal static T[] DangerousGetUnderlyingArray<T>(this ImmutableArray<T> array)
+            => Unsafe.As<ImmutableArray<T>, ImmutableArrayProxy<T>>(ref array).MutableArray;
+
+        internal static ReadOnlySpan<T> AsSpan<T>(this ImmutableArray<T> array)
+            => array.DangerousGetUnderlyingArray();
+
+        internal static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>(ref T[] array)
+        {
+            var proxy = new ImmutableArrayProxy<T> { MutableArray = array };
+            array = null;
+            return Unsafe.As<ImmutableArrayProxy<T>, ImmutableArray<T>>(ref proxy);
+        }
+
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
         {
             if (items.Length == 1)
@@ -538,6 +588,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             return dictionary;
+        }
+
+        internal static Location FirstOrNone(this ImmutableArray<Location> items)
+        {
+            return items.IsEmpty ? Location.None : items[0];
         }
     }
 }

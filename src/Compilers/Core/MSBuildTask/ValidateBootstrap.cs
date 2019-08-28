@@ -21,44 +21,33 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private static readonly ConcurrentDictionary<AssemblyName, byte> s_failedLoadSet = new ConcurrentDictionary<AssemblyName, byte>();
         private static int s_failedServerConnectionCount = 0;
 
-        private string _bootstrapPath;
+        private string _tasksAssemblyFullPath;
 
-        public string BootstrapPath
+        public string TasksAssemblyFullPath
         {
-            get { return _bootstrapPath; }
-            set { _bootstrapPath = NormalizePath(value); }
+            get { return _tasksAssemblyFullPath; }
+            set { _tasksAssemblyFullPath = NormalizePath(Path.GetFullPath(value)); }
         }
 
         public ValidateBootstrap()
         {
 
-
         }
 
         public override bool Execute()
         {
-            if (_bootstrapPath == null)
+            if (TasksAssemblyFullPath is null)
             {
-                Log.LogError($"{nameof(ValidateBootstrap)} task must have a {nameof(BootstrapPath)} parameter.");
+                Log.LogError($"{nameof(ValidateBootstrap)} task must have a {nameof(TasksAssemblyFullPath)} parameter.");
                 return false;
             }
 
-            var dependencies = new[]
-            {
-                typeof(ValidateBootstrap).GetTypeInfo().Assembly,
-            };
-
             var allGood = true;
-            var comparer = StringComparer.OrdinalIgnoreCase;
-            foreach (var dependency in dependencies)
+            var fullPath = typeof(ValidateBootstrap).Assembly.Location;
+            if (!StringComparer.OrdinalIgnoreCase.Equals(TasksAssemblyFullPath, fullPath))
             {
-                var path = GetDirectory(dependency);
-                path = NormalizePath(path);
-                if (!comparer.Equals(path, _bootstrapPath))
-                {
-                    Log.LogError($"Bootstrap assembly {dependency.GetName().Name} incorrectly loaded from {path} instead of {_bootstrapPath}");
-                    allGood = false;
-                }
+                Log.LogError($"Bootstrap assembly {Path.GetFileName(fullPath)} incorrectly loaded from {fullPath} instead of {TasksAssemblyFullPath}");
+                allGood = false;
             }
 
             var failedLoads = s_failedLoadSet.Keys.ToList();

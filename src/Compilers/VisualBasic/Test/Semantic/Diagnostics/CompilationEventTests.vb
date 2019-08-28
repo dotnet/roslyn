@@ -136,7 +136,7 @@ End Module
     </compilation>
             Dim q = New AsyncQueue(Of CompilationEvent)()
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
-            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=compilationOptions).WithEventQueue(q)

@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -85,13 +88,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Deep Clone given IOperation
-        /// </summary>
-        internal T CloneOperation<T>(T operation) where T : IOperation => (T)CloneOperationCore(operation);
-
-        internal abstract IOperation CloneOperationCore(IOperation operation);
 
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
@@ -277,6 +273,15 @@ namespace Microsoft.CodeAnalysis
         /// Otherwise, returns null.
         /// </summary>
         protected abstract SemanticModel ParentModelCore
+        {
+            get;
+        }
+
+        /// <summary>
+        /// If this is a non-speculative member semantic model, then returns the containing semantic model for the entire tree.
+        /// Otherwise, returns this instance of the semantic model.
+        /// </summary>
+        internal abstract SemanticModel ContainingModelOrSelf
         {
             get;
         }
@@ -859,12 +864,12 @@ namespace Microsoft.CodeAnalysis
         /// If false, then <see cref="DeclarationInfo.DeclaredSymbol"/> is always null.</param>
         /// <param name="builder">Builder to add declarations.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        internal abstract void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken);
+        internal abstract void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken);
 
         /// <summary>
         /// Takes a node and returns a set of declarations that overlap the node's span.
         /// </summary>
-        internal abstract void ComputeDeclarationsInNode(SyntaxNode node, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null);
+        internal abstract void ComputeDeclarationsInNode(SyntaxNode node, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null);
 
         /// <summary>
         /// Takes a Symbol and syntax for one of its declaring syntax reference and returns the topmost syntax node to be used by syntax analyzer.
@@ -883,5 +888,11 @@ namespace Microsoft.CodeAnalysis
         /// Root of this semantic model
         /// </summary>
         protected abstract SyntaxNode RootCore { get; }
+
+        /// <summary>
+        /// Gets the <see cref="NullableContext"/> at a position in the file.
+        /// </summary>
+        /// <param name="position">The position to get the context for.</param>
+        public abstract NullableContext GetNullableContext(int position);
     }
 }

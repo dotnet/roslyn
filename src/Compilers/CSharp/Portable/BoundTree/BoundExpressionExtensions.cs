@@ -2,10 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -13,8 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// Returns the RefKind if the expression represents a symbol
-        /// that has a RefKind. This method is ILLEGAL to call for
-        /// other expressions.
+        /// that has a RefKind, or RefKind.None otherwise.
         /// </summary>
         public static RefKind GetRefKind(this BoundExpression node)
         {
@@ -33,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundPropertyAccess)node).PropertySymbol.RefKind;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
+                    return RefKind.None;
             }
         }
 
@@ -44,7 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsLiteralDefault(this BoundExpression node)
         {
-            return node.Kind == BoundKind.DefaultExpression && node.Syntax.Kind() == SyntaxKind.DefaultLiteralExpression;
+            return node.Kind == BoundKind.DefaultLiteral;
+        }
+
+        public static bool IsLiteralNullOrDefault(this BoundExpression node)
+        {
+            return node.IsLiteralNull() || node.IsLiteralDefault();
         }
 
         // returns true when expression has no side-effects and produces
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //       after some folding/propagation/algebraic transformations.
         public static bool IsDefaultValue(this BoundExpression node)
         {
-            if (node.Kind == BoundKind.DefaultExpression)
+            if (node.Kind == BoundKind.DefaultExpression || node.Kind == BoundKind.DefaultLiteral)
             {
                 return true;
             }

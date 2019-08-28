@@ -6,7 +6,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,10 +16,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
-    internal class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public CSharpUseDeconstructionDiagnosticAnalyzer() 
+        public CSharpUseDeconstructionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
+                   CodeStyleOptions.PreferDeconstructedVariableDeclaration,
                    new LocalizableResourceString(nameof(FeaturesResources.Deconstruct_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Variable_declaration_can_be_deconstructed), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -56,16 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             switch (context.Node)
             {
                 case VariableDeclarationSyntax variableDeclaration:
-                    AnalyzeVariableDeclaration(context, variableDeclaration, option.Notification.Value);
+                    AnalyzeVariableDeclaration(context, variableDeclaration, option.Notification.Severity);
                     return;
                 case ForEachStatementSyntax forEachStatement:
-                    AnalyzeForEachStatement(context, forEachStatement, option.Notification.Value);
+                    AnalyzeForEachStatement(context, forEachStatement, option.Notification.Severity);
                     return;
             }
         }
 
         private void AnalyzeVariableDeclaration(
-            SyntaxNodeAnalysisContext context, VariableDeclarationSyntax variableDeclaration, DiagnosticSeverity severity)
+            SyntaxNodeAnalysisContext context, VariableDeclarationSyntax variableDeclaration, ReportDiagnostic severity)
         {
             if (!TryAnalyzeVariableDeclaration(
                     context.SemanticModel, variableDeclaration, out _,
@@ -74,13 +71,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                this.GetDescriptorWithSeverity(severity),
-                variableDeclaration.Variables[0].Identifier.GetLocation()));
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                variableDeclaration.Variables[0].Identifier.GetLocation(),
+                severity,
+                additionalLocations: null,
+                properties: null));
         }
 
         private void AnalyzeForEachStatement(
-            SyntaxNodeAnalysisContext context, ForEachStatementSyntax forEachStatement, DiagnosticSeverity severity)
+            SyntaxNodeAnalysisContext context, ForEachStatementSyntax forEachStatement, ReportDiagnostic severity)
         {
             if (!TryAnalyzeForEachStatement(
                     context.SemanticModel, forEachStatement, out _,
@@ -89,9 +89,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                this.GetDescriptorWithSeverity(severity),
-                forEachStatement.Identifier.GetLocation()));
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                forEachStatement.Identifier.GetLocation(),
+                severity,
+                additionalLocations: null,
+                properties: null));
         }
 
         public static bool TryAnalyzeVariableDeclaration(
@@ -125,24 +128,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             }
 
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+            var initializerConversion = semanticModel.GetConversion(declarator.Initializer.Value, cancellationToken);
 
             return TryAnalyze(
-                semanticModel, local, variableDeclaration.Type,
-                declarator.Identifier, variableDeclaration.Parent.Parent,
-                out tupleType, out memberAccessExpressions, cancellationToken);
+                semanticModel, local, variableDeclaration.Type, declarator.Identifier, initializerConversion,
+                variableDeclaration.Parent.Parent, out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
         public static bool TryAnalyzeForEachStatement(
             SemanticModel semanticModel,
-            ForEachStatementSyntax forEachStatement, 
+            ForEachStatementSyntax forEachStatement,
             out INamedTypeSymbol tupleType,
             out ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions,
             CancellationToken cancellationToken)
         {
             var local = semanticModel.GetDeclaredSymbol(forEachStatement, cancellationToken);
+            var elementConversion = semanticModel.GetForEachStatementInfo(forEachStatement).ElementConversion;
 
             return TryAnalyze(
-                semanticModel, local, forEachStatement.Type, forEachStatement.Identifier,
+                semanticModel, local, forEachStatement.Type, forEachStatement.Identifier, elementConversion,
                 forEachStatement, out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
@@ -151,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             ILocalSymbol local,
             TypeSyntax typeNode,
             SyntaxToken identifier,
+            Conversion conversion,
             SyntaxNode searchScope,
             out INamedTypeSymbol tupleType,
             out ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions,
@@ -166,6 +171,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
             if (!IsViableTupleTypeSyntax(typeNode))
             {
+                return false;
+            }
+
+            if (conversion.Exists &&
+                !conversion.IsIdentity &&
+                !conversion.IsTupleConversion &&
+                !conversion.IsTupleLiteralConversion)
+            {
+                // If there is any other conversion, we bail out because the source type might not be a tuple
+                // or it is a tuple but only thanks to target type inference, which won't occur in a deconstruction.
+                // Interesting case that illustrates this is initialization with a default literal:
+                // (int a, int b) t = default;
+                // This is classified as conversion.IsNullLiteral.
                 return false;
             }
 

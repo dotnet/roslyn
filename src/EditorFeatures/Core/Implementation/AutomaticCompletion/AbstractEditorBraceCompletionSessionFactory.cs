@@ -4,13 +4,13 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 {
     internal abstract class AbstractEditorBraceCompletionSessionFactory : ForegroundThreadAffinitizedObject, IEditorBraceCompletionSessionFactory
     {
-        protected AbstractEditorBraceCompletionSessionFactory()
+        protected AbstractEditorBraceCompletionSessionFactory(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
         }
 

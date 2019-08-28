@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
     Partial Friend Class VisualBasicCaseCorrectionServiceFactory
         Implements ILanguageServiceFactory
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicCaseCorrectionService(provider)
         End Function

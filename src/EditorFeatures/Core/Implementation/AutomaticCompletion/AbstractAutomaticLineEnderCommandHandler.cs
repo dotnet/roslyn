@@ -2,35 +2,31 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 {
-    /// <summary>
-    /// abstract line ender command handler
-    /// </summary>
     internal abstract class AbstractAutomaticLineEnderCommandHandler :
-        ICommandHandler<AutomaticLineEnderCommandArgs>
+        IChainedCommandHandler<AutomaticLineEnderCommandArgs>
     {
-        private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
+        public string DisplayName => EditorFeaturesResources.Automatic_Line_Ender;
+
         public AbstractAutomaticLineEnderCommandHandler(
-            IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            _waitIndicator = waitIndicator;
             _undoRegistry = undoRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
@@ -55,12 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// </summary>
         protected abstract bool TreatAsReturn(Document document, int position, CancellationToken cancellationToken);
 
-        public CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
-            return CommandState.Available;
+            return VSCommanding.CommandState.Available;
         }
 
-        public void ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             // get editor operation
             var operations = _editorOperationsFactoryService.GetEditorOperations(args.TextView);
@@ -84,54 +80,53 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 return;
             }
 
-            _waitIndicator.Wait(
-                title: EditorFeaturesResources.Automatic_Line_Ender,
-                message: EditorFeaturesResources.Automatically_completing,
-                allowCancel: false, action: w =>
+            using (context.OperationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Automatically_completing))
+            {
+                // This is a non cancellable command
+                var userCancellationToken = CancellationToken.None;
+
+                // caret is not on the subject buffer. nothing we can do
+                var position = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                if (!position.HasValue)
                 {
-                    // caret is not on the subject buffer. nothing we can do
-                    var position = args.TextView.GetCaretPoint(args.SubjectBuffer);
-                    if (!position.HasValue)
-                    {
-                        NextAction(operations, nextHandler);
-                        return;
-                    }
+                    NextAction(operations, nextHandler);
+                    return;
+                }
 
-                    var subjectLineWhereCaretIsOn = position.Value.GetContainingLine();
-                    var insertionPoint = GetInsertionPoint(document, subjectLineWhereCaretIsOn, w.CancellationToken);
-                    if (!insertionPoint.HasValue)
-                    {
-                        NextAction(operations, nextHandler);
-                        return;
-                    }
+                var subjectLineWhereCaretIsOn = position.Value.GetContainingLine();
+                var insertionPoint = GetInsertionPoint(document, subjectLineWhereCaretIsOn, userCancellationToken);
+                if (!insertionPoint.HasValue)
+                {
+                    NextAction(operations, nextHandler);
+                    return;
+                }
 
-                    // special cases where we treat this command simply as Return.
-                    if (TreatAsReturn(document, position.Value.Position, w.CancellationToken))
-                    {
-                        // leave it to the VS editor to handle this command.
-                        // VS editor's default implementation of SmartBreakLine is simply BreakLine, which inserts
-                        // a new line and positions the caret with smart indent.
-                        nextHandler();
-                        return;
-                    }
+                // special cases where we treat this command simply as Return.
+                if (TreatAsReturn(document, position.Value.Position, userCancellationToken))
+                {
+                    // leave it to the VS editor to handle this command.
+                    // VS editor's default implementation of SmartBreakLine is simply BreakLine, which inserts
+                    // a new line and positions the caret with smart indent.
+                    nextHandler();
+                    return;
+                }
 
-                    using (var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService))
-                    {
-                        // try to move the caret to the end of the line on which the caret is
-                        args.TextView.TryMoveCaretToAndEnsureVisible(subjectLineWhereCaretIsOn.End);
+                using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
 
-                        // okay, now insert ending if we need to
-                        var newDocument = InsertEndingIfRequired(document, insertionPoint.Value, position.Value, w.CancellationToken);
+                // try to move the caret to the end of the line on which the caret is
+                args.TextView.TryMoveCaretToAndEnsureVisible(subjectLineWhereCaretIsOn.End);
 
-                        // format the document and apply the changes to the workspace
-                        FormatAndApply(newDocument, insertionPoint.Value, w.CancellationToken);
+                // okay, now insert ending if we need to
+                var newDocument = InsertEndingIfRequired(document, insertionPoint.Value, position.Value, userCancellationToken);
 
-                        // now, insert new line
-                        NextAction(operations, nextHandler);
+                // format the document and apply the changes to the workspace
+                FormatAndApply(newDocument, insertionPoint.Value, userCancellationToken);
 
-                        transaction.Complete();
-                    }
-                });
+                // now, insert new line
+                NextAction(operations, nextHandler);
+
+                transaction.Complete();
+            }
         }
 
         /// <summary>

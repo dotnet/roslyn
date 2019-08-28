@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
-        <target state="translated">正在格式化文档...</target>
+        <target state="translated">正在设置文档格式...</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_new_line">
@@ -87,11 +87,6 @@
         <target state="translated">Visual Basic 整齐列表</target>
         <note />
       </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;多种类型&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
         <target state="translated">不支持</target>
@@ -105,6 +100,11 @@
       <trans-unit id="Line_commit">
         <source>Line commit</source>
         <target state="translated">行提交</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface">
+        <source>Implement Abstract Class Or Interface</source>
+        <target state="translated">实现抽象类或接口</target>
         <note />
       </trans-unit>
     </body>

@@ -10,6 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportOptionProvider, Shared]
     internal class VisualStudioNavigationOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public VisualStudioNavigationOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             VisualStudioNavigationOptions.NavigateToObjectBrowser);
     }

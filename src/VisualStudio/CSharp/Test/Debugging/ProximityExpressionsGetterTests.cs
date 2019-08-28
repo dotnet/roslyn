@@ -5,14 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Debugging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -20,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
 {
+    [UseExportProvider]
     public partial class ProximityExpressionsGetterTests
     {
         private SyntaxTree GetTree()
@@ -37,64 +34,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             Console.WriteLine(typeof(FactAttribute));
 
             var text = Resources.ProximityExpressionsGetterTestFile;
-            using (var workspace = TestWorkspace.CreateCSharp(text))
+            using var workspace = TestWorkspace.CreateCSharp(text);
+            var languageDebugInfo = new CSharpLanguageDebugInfoService();
+
+            var hostdoc = workspace.Documents.First();
+            var snapshot = hostdoc.TextBuffer.CurrentSnapshot;
+            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+
+            var builder = new StringBuilder();
+            var statements = (await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Select(t => t.GetAncestor<StatementSyntax>()).Distinct().WhereNotNull();
+
+            // Try to get proximity expressions at every token position and the start of every
+            // line.
+            var index = 0;
+            foreach (var statement in statements)
             {
-                var languageDebugInfo = new CSharpLanguageDebugInfoService();
+                builder.AppendLine("[WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]");
+                builder.AppendLine("public void TestAtStartOfStatement_" + index + "()");
+                builder.AppendLine("{");
 
-                var hostdoc = workspace.Documents.First();
-                var snapshot = hostdoc.TextBuffer.CurrentSnapshot;
-                var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+                var token = statement.GetFirstToken();
+                var line = snapshot.GetLineFromPosition(token.SpanStart);
 
-                var builder = new StringBuilder();
-                var statements = (await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Select(t => t.GetAncestor<StatementSyntax>()).Distinct().WhereNotNull();
-
-                // Try to get proximity expressions at every token position and the start of every
-                // line.
-                var index = 0;
-                foreach (var statement in statements)
+                builder.AppendLine("    //// Line " + (line.LineNumber + 1));
+                builder.AppendLine();
+                if (line.LineNumber > 0)
                 {
-                    builder.AppendLine("[WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]");
-                    builder.AppendLine("public void TestAtStartOfStatement_" + index + "()");
-                    builder.AppendLine("{");
-
-                    var token = statement.GetFirstToken();
-                    var line = snapshot.GetLineFromPosition(token.SpanStart);
-
-                    builder.AppendLine("    //// Line " + (line.LineNumber + 1));
-                    builder.AppendLine();
-                    if (line.LineNumber > 0)
-                    {
-                        builder.AppendLine("    //// " + snapshot.GetLineFromLineNumber(line.LineNumber - 1).GetText());
-                    }
-
-                    builder.AppendLine("    //// " + line.GetText());
-                    var charIndex = token.SpanStart - line.Start;
-                    builder.AppendLine("    //// " + new string(' ', charIndex) + "^");
-                    builder.AppendLine("    var tree = GetTree(\"ProximityExpressionsGetterTestFile.cs\");");
-                    builder.AppendLine("    var terms = CSharpProximityExpressionsService.Do(tree, " + token.SpanStart + ");");
-
-                    var proximityExpressionsGetter = new CSharpProximityExpressionsService();
-                    var terms = await proximityExpressionsGetter.GetProximityExpressionsAsync(document, token.SpanStart, CancellationToken.None);
-                    if (terms == null)
-                    {
-                        builder.AppendLine("    Assert.Null(terms);");
-                    }
-                    else
-                    {
-                        builder.AppendLine("    Assert.NotNull(terms);");
-
-                        var termsString = terms.Select(t => "\"" + t + "\"").Join(", ");
-                        builder.AppendLine("    AssertEx.Equal(new[] { " + termsString + " }, terms);");
-                    }
-
-                    builder.AppendLine("}");
-                    builder.AppendLine();
-                    index++;
+                    builder.AppendLine("    //// " + snapshot.GetLineFromLineNumber(line.LineNumber - 1).GetText());
                 }
 
-                var str = builder.ToString();
-                Console.WriteLine(str);
+                builder.AppendLine("    //// " + line.GetText());
+                var charIndex = token.SpanStart - line.Start;
+                builder.AppendLine("    //// " + new string(' ', charIndex) + "^");
+                builder.AppendLine("    var tree = GetTree(\"ProximityExpressionsGetterTestFile.cs\");");
+                builder.AppendLine("    var terms = CSharpProximityExpressionsService.Do(tree, " + token.SpanStart + ");");
+
+                var proximityExpressionsGetter = new CSharpProximityExpressionsService();
+                var terms = await proximityExpressionsGetter.GetProximityExpressionsAsync(document, token.SpanStart, CancellationToken.None);
+                if (terms == null)
+                {
+                    builder.AppendLine("    Assert.Null(terms);");
+                }
+                else
+                {
+                    builder.AppendLine("    Assert.NotNull(terms);");
+
+                    var termsString = terms.Select(t => "\"" + t + "\"").Join(", ");
+                    builder.AppendLine("    AssertEx.Equal(new[] { " + termsString + " }, terms);");
+                }
+
+                builder.AppendLine("}");
+                builder.AppendLine();
+                index++;
             }
+
+            var str = builder.ToString();
+            Console.WriteLine(str);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
@@ -124,18 +119,16 @@ namespace ConsoleApplication1
             string markup,
             Func<CSharpProximityExpressionsService, Document, int, Task> continuation)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
-            {
-                var testDocument = workspace.Documents.Single();
-                var caretPosition = testDocument.CursorPosition.Value;
-                var snapshot = testDocument.TextBuffer.CurrentSnapshot;
-                var languageDebugInfo = new CSharpLanguageDebugInfoService();
-                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            using var workspace = TestWorkspace.CreateCSharp(markup);
+            var testDocument = workspace.Documents.Single();
+            var caretPosition = testDocument.CursorPosition.Value;
+            var snapshot = testDocument.TextBuffer.CurrentSnapshot;
+            var languageDebugInfo = new CSharpLanguageDebugInfoService();
+            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-                var proximityExpressionsGetter = new CSharpProximityExpressionsService();
+            var proximityExpressionsGetter = new CSharpProximityExpressionsService();
 
-                await continuation(proximityExpressionsGetter, document, caretPosition);
-            }
+            await continuation(proximityExpressionsGetter, document, caretPosition);
         }
 
         private async Task TestTryDoAsync(string input, params string[] expectedTerms)

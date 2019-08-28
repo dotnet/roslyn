@@ -1,12 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -33,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void ValidateParameterNameConflicts(
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
+            bool allowShadowingNames,
             DiagnosticBag diagnostics)
         {
             PooledHashSet<string> tpNames = null;
@@ -51,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Type parameter declaration name conflicts are detected elsewhere
                     }
-                    else
+                    else if (!allowShadowingNames)
                     {
                         ValidateDeclarationNameConflictsInScope(tp, diagnostics);
                     }
@@ -81,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // The parameter name '{0}' is a duplicate
                         diagnostics.Add(ErrorCode.ERR_DuplicateParamName, GetLocation(p), name);
                     }
-                    else
+                    else if (!allowShadowingNames)
                     {
                         ValidateDeclarationNameConflictsInScope(p, diagnostics);
                     }
@@ -95,30 +91,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Don't call this one directly - call one of the helpers.
         /// </remarks>
-        protected bool ValidateNameConflictsInScope(Symbol symbol, Location location, string name, DiagnosticBag diagnostics)
+        private bool ValidateNameConflictsInScope(Symbol symbol, Location location, string name, DiagnosticBag diagnostics)
         {
             if (string.IsNullOrEmpty(name))
             {
                 return false;
             }
 
-            bool error = false;
+            bool allowShadowing = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);
+
             for (Binder binder = this; binder != null; binder = binder.Next)
             {
                 // no local scopes enclose members
-                if (binder is InContainerBinder || error)
+                if (binder is InContainerBinder)
                 {
-                    break;
+                    return false;
                 }
 
                 var scope = binder as LocalScopeBinder;
-                if (scope != null)
+                if (scope?.EnsureSingleDefinition(symbol, name, location, diagnostics) == true)
                 {
-                    error |= scope.EnsureSingleDefinition(symbol, name, location, diagnostics);
+                    return true;
+                }
+
+                // If shadowing is enabled, avoid checking for conflicts outside of local functions or lambdas.
+                if (allowShadowing && binder.IsNestedFunctionBinder)
+                {
+                    return false;
                 }
             }
 
-            return error;
+            return false;
         }
     }
 }

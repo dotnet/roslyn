@@ -39,12 +39,18 @@ namespace Microsoft.CodeAnalysis
         /// Gets the name of a symbol as it appears in metadata. Most of the time, this
         /// is the same as the Name property, with the following exceptions:
         /// <list type="number">
-        /// <item> The metadata name of generic types includes the "`1", "`2" etc. suffix that
+        /// <item>
+        /// <description>The metadata name of generic types includes the "`1", "`2" etc. suffix that
         /// indicates the number of type parameters (it does not include, however, names of
-        /// containing types or namespaces). </item>
-        /// <item> The metadata name of explicit interface names have spaces removed, compared to
-        /// the name property. </item>
-        /// <item> The length of names is limited to not exceed metadata restrictions. </item>
+        /// containing types or namespaces). </description>
+        /// </item>
+        /// <item>
+        /// <description>The metadata name of explicit interface names have spaces removed, compared to
+        /// the name property.</description>
+        /// </item>
+        /// <item>
+        /// <description>The length of names is limited to not exceed metadata restrictions.</description>
+        /// </item>
         /// </list>
         /// </summary>
         string MetadataName { get; }
@@ -126,13 +132,13 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// Examples include (this list is not exhaustive):
         /// <list type="bullet">
-        /// <item> the default constructor for a class or struct that is created if one is not provided, </item>
-        /// <item> the BeginInvoke/Invoke/EndInvoke methods for a delegate, </item>
-        /// <item> the generated backing field for an auto property or a field-like event, </item>
-        /// <item> the "this" parameter for non-static methods, </item>
-        /// <item> the "value" parameter for a property setter, </item>
-        /// <item> the parameters on indexer accessor methods (not on the indexer itself), </item>
-        /// <item> methods in anonymous types </item>
+        /// <item><description>The default constructor for a class or struct that is created if one is not provided.</description></item>
+        /// <item><description>The BeginInvoke/Invoke/EndInvoke methods for a delegate.</description></item>
+        /// <item><description>The generated backing field for an auto property or a field-like event.</description></item>
+        /// <item><description>The "this" parameter for non-static methods.</description></item>
+        /// <item><description>The "value" parameter for a property setter.</description></item>
+        /// <item><description>The parameters on indexer accessor methods (not on the indexer itself).</description></item>
+        /// <item><description>Methods in anonymous types.</description></item>
         /// </list>
         /// </para>
         /// </remarks>
@@ -258,9 +264,9 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// Examples include:
         /// <list type="bullet">
-        /// <item> Pointer types in VB </item>
-        /// <item> ByRef return type </item>
-        /// <item> Required custom modifiers </item>
+        /// <item><description>Pointer types in VB</description></item>
+        /// <item><description>ByRef return type</description></item>
+        /// <item><description>Required custom modifiers</description></item>
         /// </list>
         /// </para>
         /// 
@@ -272,15 +278,23 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// This is set for metadata symbols, as follows:
         /// <list type="bullet">
-        /// <item> Type - if a type is unsupported (e.g., a pointer type, etc.) </item>
-        /// <item> Method - parameter or return type is unsupported </item>
-        /// <item> Field - type is unsupported </item>
-        /// <item> Event - type is unsupported </item>
-        /// <item> Property - type is unsupported </item>
-        /// <item> Parameter - type is unsupported </item>
+        /// <item><description>Type - if a type is unsupported (for example, a pointer type)</description></item>
+        /// <item><description>Method - parameter or return type is unsupported</description></item>
+        /// <item><description>Field - type is unsupported</description></item>
+        /// <item><description>Event - type is unsupported</description></item>
+        /// <item><description>Property - type is unsupported</description></item>
+        /// <item><description>Parameter - type is unsupported</description></item>
         /// </list>
         /// </para>
         /// </summary>
         bool HasUnsupportedMetadata { get; }
+
+        /// <summary>
+        /// Determines if this symbol is equal to another, according to the rules of the provided <see cref="SymbolEqualityComparer"/>
+        /// </summary>
+        /// <param name="other">The other symbol to compare against</param>
+        /// <param name="equalityComparer">The <see cref="SymbolEqualityComparer"/> to use when comparing symbols</param>
+        /// <returns>True if the symbols are equivalent.</returns>
+        bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer);
     }
 }

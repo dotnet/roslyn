@@ -31,24 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return node;
             }
 
-            var leadingTrivia = node.OpenParenToken.LeadingTrivia
-                .Concat(node.OpenParenToken.TrailingTrivia)
-                .Concat(node.Type.GetLeadingTrivia())
-                .Concat(node.Type.GetTrailingTrivia())
-                .Concat(node.CloseParenToken.LeadingTrivia)
-                .Concat(node.CloseParenToken.TrailingTrivia)
-                .Concat(node.Expression.GetLeadingTrivia())
-                .Where(t => !t.IsElastic());
-
-            var trailingTrivia = node.GetTrailingTrivia().Where(t => !t.IsElastic());
-
-            var resultNode = node.Expression
-                .WithLeadingTrivia(leadingTrivia)
-                .WithTrailingTrivia(trailingTrivia);
-
-            resultNode = SimplificationHelpers.CopyAnnotations(from: node, to: resultNode);
-
-            return resultNode;
+            return node.Uncast();
         }
     }
 }

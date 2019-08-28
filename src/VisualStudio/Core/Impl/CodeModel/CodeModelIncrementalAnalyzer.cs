@@ -20,45 +20,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     {
         private readonly IAsynchronousOperationListener _listener;
         private readonly IForegroundNotificationService _notificationService;
+        private readonly ProjectCodeModelFactory _projectCodeModelFactory;
 
         [ImportingConstructor]
         public CodeModelIncrementalAnalyzerProvider(
             IForegroundNotificationService notificationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            ProjectCodeModelFactory projectCodeModelFactory)
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
             _notificationService = notificationService;
+            _projectCodeModelFactory = projectCodeModelFactory;
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace == null)
+            if (!(workspace is VisualStudioWorkspace visualStudioWorkspace))
             {
                 return null;
             }
 
-            return new Analyzer(_notificationService, _listener, visualStudioWorkspace);
+            return new Analyzer(_notificationService, _listener, visualStudioWorkspace, _projectCodeModelFactory);
         }
 
         private class Analyzer : IIncrementalAnalyzer
         {
             private readonly IForegroundNotificationService _notificationService;
             private readonly IAsynchronousOperationListener _listener;
-            private readonly VisualStudioWorkspaceImpl _workspace;
+            private readonly VisualStudioWorkspace _workspace;
+            private readonly ProjectCodeModelFactory _projectCodeModelFactory;
 
-            public Analyzer(IForegroundNotificationService notificationService, IAsynchronousOperationListener listener, VisualStudioWorkspaceImpl workspace)
+            public Analyzer(IForegroundNotificationService notificationService, IAsynchronousOperationListener listener, VisualStudioWorkspace workspace, ProjectCodeModelFactory projectCodeModelFactory)
             {
                 _notificationService = notificationService;
                 _listener = listener;
                 _workspace = workspace;
+                _projectCodeModelFactory = projectCodeModelFactory;
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 FireEvents(document.Id, cancellationToken);
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void RemoveDocument(DocumentId documentId)
@@ -71,14 +75,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 _notificationService.RegisterNotification(() =>
                 {
-                    var project = _workspace.DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
-                    if (project == null)
-                    {
-                        return false;
-                    }
+                    var projectCodeModel = _projectCodeModelFactory.TryGetProjectCodeModel(documentId.ProjectId);
 
-                    var codeModelProvider = project as IProjectCodeModelProvider;
-                    if (codeModelProvider == null)
+                    if (projectCodeModel == null)
                     {
                         return false;
                     }
@@ -89,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         return false;
                     }
 
-                    if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
+                    if (!projectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
                     {
                         return false;
                     }
@@ -104,22 +103,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             #region unused
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -129,12 +128,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void RemoveProject(ProjectId projectId)

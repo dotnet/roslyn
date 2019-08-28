@@ -1122,7 +1122,7 @@ End Class
             Assert.True(type.GetMember(Of EventSymbol)("E").IsWindowsRuntimeEvent)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub ERR_WinRTEventWithoutDelegate_Custom()
             Dim source =
 <compilation>

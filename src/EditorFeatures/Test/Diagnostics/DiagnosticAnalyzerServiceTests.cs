@@ -13,14 +13,17 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
+    [UseExportProvider]
     public class DiagnosticAnalyzerServiceTests
     {
         [Fact]
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.CreateWaitTask().ConfigureAwait(false);
+            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
         }
 
         [Fact]
@@ -104,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var service = new MyDiagnosticAnalyzerService(diagnosticAnalyzer, listener);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
-            bool syntax = false;
-            bool semantic = false;
+            var syntax = false;
+            var semantic = false;
 
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
@@ -117,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.CreateWaitTask().ConfigureAwait(false);
+            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
 
             // two should have been called.
             Assert.Equal(expectedSyntax, syntax);
@@ -176,13 +179,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.CreateWaitTask().ConfigureAwait(false);
+            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task TestSynchronizeWithBuild()
         {
-            var workspace = new AdhocWorkspace(MefV1HostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic.AsExportProvider()));
+            var workspace = new AdhocWorkspace(VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic));
 
             var language = Workspaces.NoCompilationConstants.LanguageName;
 
@@ -207,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var service = new MyDiagnosticAnalyzerService(new NoNameAnalyzer(), listener, language);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
-            bool syntax = false;
+            var syntax = false;
 
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
@@ -236,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                             Location.Create(document.FilePath, TextSpan.FromBounds(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0)))).ToDiagnosticData(project))));
 
             // wait for all events to raised
-            await listener.CreateWaitTask().ConfigureAwait(false);
+            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
 
             // two should have been called.
             Assert.True(syntax);
@@ -247,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact]
         public void TestHostAnalyzerOrdering()
         {
-            var workspace = new AdhocWorkspace(MefV1HostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic.AsExportProvider()));
+            var workspace = new AdhocWorkspace(VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic));
 
             var project = workspace.AddProject(
                           ProjectInfo.Create(
@@ -327,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
             await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
 
-            await listener.CreateWaitTask();
+            await listener.CreateExpeditedWaitTask();
 
             Assert.True(called);
         }
@@ -427,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             {
-                return DiagnosticAnalyzerCategory.SyntaxAnalysis;
+                return DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
             }
 
             public bool OpenFileOnly(Workspace workspace)

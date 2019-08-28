@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
-                return _underlyingEvent.Type;
+                return _underlyingEvent.TypeWithAnnotations;
             }
         }
 
@@ -110,19 +110,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingEvent.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
-            return Equals(obj as TupleEventSymbol);
+            return Equals(obj as TupleEventSymbol, compareKind);
         }
 
-        public bool Equals(TupleEventSymbol other)
+        public bool Equals(TupleEventSymbol other, TypeCompareKind compareKind)
         {
             if ((object)other == this)
             {
                 return true;
             }
 
-            return (object)other != null && _containingType == other._containingType && _underlyingEvent == other._underlyingEvent;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && _underlyingEvent == other._underlyingEvent;
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()

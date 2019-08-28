@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             try
             {
                 string finalFlags = null;
-                using (var serverData = ServerUtil.CreateServer())
+                using (var serverData = await ServerUtil.CreateServer())
                 {
                     finalFlags = $"{ _flags } /shared:{ serverData.PipeName } /pathmap:{tempDir.Path}=/ /out:{ outFile } { srcFile }";
                     var result = CompilerServerUnitTests.RunCommandLineCompiler(

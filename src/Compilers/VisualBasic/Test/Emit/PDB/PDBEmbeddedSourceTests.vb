@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBEmbeddedSourceTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28045")>
         Public Sub StandalonePdb()
             Dim source1 = "
 Imports System
@@ -37,7 +37,7 @@ End Class
             c.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="f:/build/goo.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=" 3, 28, AD, AE,  3, 81, AD, 8B, 6E, C4, 60, 7B, 13, 4E, 9C, 4F, 8E, D6, D5, 65, " embeddedSourceLength="99"><![CDATA[﻿
+        <file id="1" name="f:/build/goo.vb" language="VB" checksumAlgorithm="SHA1" checksum="03-28-AD-AE-03-81-AD-8B-6E-C4-60-7B-13-4E-9C-4F-8E-D6-D5-65" embeddedSourceLength="99"><![CDATA[﻿
 Imports System
 Class C
     Public Shared Sub Main()
@@ -45,7 +45,7 @@ Class C
     End Sub
 End Class
 ]]></file>
-        <file id="2" name="f:/build/nocode.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="40, 43, 2C, 44, BA, 1C, C7, 1A, B3, F3, 68, E5, 96, 7C, 65, 9D, 61, 85, D5, 44, " embeddedSourceLength="20"><![CDATA[﻿
+        <file id="2" name="f:/build/nocode.vb" language="VB" checksumAlgorithm="SHA1" checksum="40-43-2C-44-BA-1C-C7-1A-B3-F3-68-E5-96-7C-65-9D-61-85-D5-44" embeddedSourceLength="20"><![CDATA[﻿
 ' no code
 ]]></file>
     </files>

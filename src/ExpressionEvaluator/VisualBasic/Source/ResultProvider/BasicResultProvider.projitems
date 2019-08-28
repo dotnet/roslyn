@@ -18,9 +18,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)VisualBasicResultProvider.vb" />
   </ItemGroup>
   <ItemGroup>
-    <VsdConfigXml Include="$(MSBuildThisFileDirectory)VisualBasicResultProvider.vsdconfigxml">
+    <VsdConfigXmlFiles Include="$(MSBuildThisFileDirectory)VisualBasicResultProvider.vsdconfigxml">
       <SubType>Designer</SubType>
-    </VsdConfigXml>
+    </VsdConfigXmlFiles>
   </ItemGroup>
   <ItemGroup>
     <Import Include="IdentifierComparison=Microsoft.CodeAnalysis.CaseInsensitiveComparison" />

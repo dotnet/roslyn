@@ -14,7 +14,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return CommonConstructorArguments.SelectAsArray(Function(arg) CreateMetadataExpression(arg, context))
         End Function
 
-        Private Function Constructor1(context As EmitContext) As Cci.IMethodReference Implements Cci.ICustomAttribute.Constructor
+        Private Function Constructor1(context As EmitContext, reportDiagnostics As Boolean) As Cci.IMethodReference Implements Cci.ICustomAttribute.Constructor
+            If Me.AttributeConstructor.IsDefaultValueTypeConstructor() Then
+                ' Parameter constructors for structs exist in symbol table, but are not emitted.
+                ' Produce an error since we cannot use it (instead of crashing):
+                ' Details: https://github.com/dotnet/roslyn/issues/19394
+
+                If reportDiagnostics Then
+                    context.Diagnostics.Add(ERRID.ERR_AttributeMustBeClassNotStruct1, If(context.SyntaxNodeOpt?.GetLocation(), NoLocation.Singleton), Me.AttributeClass)
+                End If
+
+                Return Nothing
+            End If
+
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Return moduleBeingBuilt.Translate(AttributeConstructor, needDeclaration:=False,
                                               syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)

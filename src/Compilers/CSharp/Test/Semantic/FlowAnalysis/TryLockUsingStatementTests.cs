@@ -1472,6 +1472,46 @@ class C {
             Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsOut));
         }
 
+        [Fact]
+        public void TestVariablesDeclaredInAwaitUsingStatement()
+        {
+            var (analysisControlFlow, analysis) = CompileAndAnalyzeControlAndDataFlowStatements(@"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.Task DisposeAsync();
+    }
+}
+class C : System.IAsyncDisposable 
+{
+    public void F(int x)
+    {
+        int a;
+/*<bind>*/
+        await using (var c = new C())
+        {
+            F(x);
+        }
+/*</bind>*/
+        int b;
+    }
+}");
+            Assert.Equal("c", GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Equal("c", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.WrittenOutside));
+            Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Equal("c", GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsOut));
+
+            Assert.Empty(analysisControlFlow.EntryPoints);
+            Assert.Empty(analysisControlFlow.ExitPoints);
+            Assert.Equal(0, analysisControlFlow.ReturnStatements.Count());
+            Assert.True(analysisControlFlow.EndPointIsReachable);
+        }
+
         #region "lock statement"
 
         [Fact]

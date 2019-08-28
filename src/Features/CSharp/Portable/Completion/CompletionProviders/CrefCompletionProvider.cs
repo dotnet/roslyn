@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using System;
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var symbols = GetSymbols(token, semanticModel, cancellationToken)
                 .FilterToVisibleAndBrowsableSymbols(
-                    options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), 
+                    options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language),
                     semanticModel.Compilation);
 
             return (token, semanticModel, symbols);
@@ -285,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private bool TryCreateSpecialTypeItem(
-            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, 
+            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder,
             ImmutableDictionary<string, string> options, out CompletionItem item)
         {
             // If the type is a SpecialType, create an additional item using 
@@ -332,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     builder.Append(symbol.IsIndexer() ? '[' : '(');
 
-                    for (int i = 0; i < parameters.Length; i++)
+                    for (var i = 0; i < parameters.Length; i++)
                     {
                         if (i > 0)
                         {
@@ -375,6 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: insertionText,
+                displayTextSuffix: "",
                 insertionText: insertionText,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: position,

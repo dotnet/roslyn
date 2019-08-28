@@ -10,10 +10,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Newtonsoft.Json;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
@@ -133,10 +133,21 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public void TestPinnedSolutionInfo()
         {
             var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
-            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, solutionChecksum: checksum), (x, y) =>
+            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, workspaceVersion: 100, solutionChecksum: checksum), (x, y) =>
             {
-                return (x.ScopeId == y.ScopeId && x.FromPrimaryBranch == y.FromPrimaryBranch && x.SolutionChecksum == y.SolutionChecksum) ? 0 : 1;
+                return (x.ScopeId == y.ScopeId &&
+                        x.FromPrimaryBranch == y.FromPrimaryBranch &&
+                        x.WorkspaceVersion == y.WorkspaceVersion &&
+                        x.SolutionChecksum == y.SolutionChecksum) ? 0 : 1;
             });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestAnalyzerPerformanceInfo()
+        {
+            VerifyJsonSerialization(
+                new AnalyzerPerformanceInfo("testAnalyzer", builtIn: false, timeSpan: TimeSpan.FromMilliseconds(12345)),
+                (x, y) => (x.AnalyzerId == y.AnalyzerId && x.BuiltIn == y.BuiltIn && x.TimeSpan == y.TimeSpan) ? 0 : 1);
         }
 
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)

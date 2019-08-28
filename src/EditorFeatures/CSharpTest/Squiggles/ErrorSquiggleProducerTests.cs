@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -26,7 +27,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
-    public class ErrorSquiggleProducerTests 
+    [UseExportProvider]
+    public class ErrorSquiggleProducerTests
     {
         private readonly DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider> _producer = new DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>();
 
@@ -67,13 +69,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
     </Project>
 </Workspace>";
 
-            using (var workspace = TestWorkspace.Create(workspaceXml))
-            {
-                var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
+            using var workspace = TestWorkspace.Create(workspaceXml);
+            var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
-                Assert.Equal(1, spans.Count());
-                Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
-            }
+            Assert.Equal(1, spans.Count());
+            Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
@@ -101,17 +101,16 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = TestWorkspace.Create(workspaceXml))
-            {
-                var options = new Dictionary<OptionKey, object>();
-                var language = workspace.Projects.Single().Language;
-                var preferIntrinsicPredefinedTypeOption = new OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
-                var preferIntrinsicPredefinedTypeOptionValue = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Error);
-                options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue);
+            using var workspace = TestWorkspace.Create(workspaceXml);
+            var options = new Dictionary<OptionKey, object>();
+            var language = workspace.Projects.Single().Language;
+            var preferIntrinsicPredefinedTypeOption = new OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
+            var preferIntrinsicPredefinedTypeOptionValue = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Error);
+            options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue);
 
-                workspace.ApplyOptions(options);
+            workspace.ApplyOptions(options);
 
-                var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>
+            var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>
                 {
                     {
                         LanguageNames.CSharp,
@@ -123,30 +122,29 @@ class Program
                     }
                 };
 
-                var spans =
-                    (await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
-                        .OrderBy(s => s.Span.Span.Start).ToImmutableArray();
+            var spans =
+                (await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
+                    .OrderBy(s => s.Span.Span.Start).ToImmutableArray();
 
-                Assert.Equal(3, spans.Length);
-                var first = spans[0];
-                var second = spans[1];
-                var third = spans[2];
+            Assert.Equal(3, spans.Length);
+            var first = spans[0];
+            var second = spans[1];
+            var third = spans[2];
 
-                Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
-                Assert.Equal(CSharpFeaturesResources.Using_directive_is_unnecessary, first.Tag.ToolTipContent);
-                Assert.Equal(40, first.Span.Start);
-                Assert.Equal(25, first.Span.Length);
+            Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
+            Assert.Equal(CSharpFeaturesResources.Using_directive_is_unnecessary, first.Tag.ToolTipContent);
+            Assert.Equal(40, first.Span.Start);
+            Assert.Equal(25, first.Span.Length);
 
-                Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType);
-                Assert.Equal(CSharpFeaturesResources.Using_directive_is_unnecessary, second.Tag.ToolTipContent);
-                Assert.Equal(82, second.Span.Start);
-                Assert.Equal(60, second.Span.Length);
+            Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType);
+            Assert.Equal(CSharpFeaturesResources.Using_directive_is_unnecessary, second.Tag.ToolTipContent);
+            Assert.Equal(82, second.Span.Start);
+            Assert.Equal(60, second.Span.Length);
 
-                Assert.Equal(PredefinedErrorTypeNames.SyntaxError, third.Tag.ErrorType);
-                Assert.Equal(WorkspacesResources.Name_can_be_simplified, third.Tag.ToolTipContent);
-                Assert.Equal(196, third.Span.Start);
-                Assert.Equal(5, third.Span.Length);
-            }
+            Assert.Equal(PredefinedErrorTypeNames.SyntaxError, third.Tag.ErrorType);
+            Assert.Equal(WorkspacesResources.Name_can_be_simplified, third.Tag.ToolTipContent);
+            Assert.Equal(196, third.Span.Start);
+            Assert.Equal(5, third.Span.Length);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
@@ -170,62 +168,54 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class"))
-            using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
-            {
-                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
-                using (var disposable = tagger as IDisposable)
-                {
-                    await wrapper.WaitForTags();
+            using var workspace = TestWorkspace.CreateCSharp("class");
+            using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace);
+            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+            using var disposable = tagger as IDisposable;
+            await wrapper.WaitForTags();
 
-                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
+            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
-                    // Initially, while the buffer is associated with a Document, we should get
-                    // error squiggles.
-                    Assert.True(spans.Count > 0);
+            // Initially, while the buffer is associated with a Document, we should get
+            // error squiggles.
+            Assert.True(spans.Count > 0);
 
-                    // Now remove the document.
-                    workspace.CloseDocument(workspace.Documents.First().Id);
-                    workspace.OnDocumentRemoved(workspace.Documents.First().Id);
-                    await wrapper.WaitForTags();
-                    spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
+            // Now remove the document.
+            workspace.CloseDocument(workspace.Documents.First().Id);
+            workspace.OnDocumentRemoved(workspace.Documents.First().Id);
+            await wrapper.WaitForTags();
+            spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
-                    // And we should have no errors for this document.
-                    Assert.True(spans.Count == 0);
-                }
-            }
+            // And we should have no errors for this document.
+            Assert.True(spans.Count == 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class"))
-            using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
-            {
-                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
-                using (var disposable = tagger as IDisposable)
-                {
-                    await wrapper.WaitForTags();
+            using var workspace = TestWorkspace.CreateCSharp("class");
+            using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace);
+            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+            using var disposable = tagger as IDisposable;
+            await wrapper.WaitForTags();
 
-                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
+            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
-                    // Initially, while the buffer is associated with a Document, we should get
-                    // error squiggles.
-                    Assert.True(spans.Count > 0);
+            // Initially, while the buffer is associated with a Document, we should get
+            // error squiggles.
+            Assert.True(spans.Count > 0);
 
-                    // Now remove the project.
-                    workspace.CloseDocument(workspace.Documents.First().Id);
-                    workspace.OnDocumentRemoved(workspace.Documents.First().Id);
-                    workspace.OnProjectRemoved(workspace.Projects.First().Id);
-                    await wrapper.WaitForTags();
-                    spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
+            // Now remove the project.
+            workspace.CloseDocument(workspace.Documents.First().Id);
+            workspace.OnDocumentRemoved(workspace.Documents.First().Id);
+            workspace.OnProjectRemoved(workspace.Projects.First().Id);
+            await wrapper.WaitForTags();
+            spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
-                    // And we should have no errors for this document.
-                    Assert.True(spans.Count == 0);
-                }
-            }
+            // And we should have no errors for this document.
+            Assert.True(spans.Count == 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
@@ -242,23 +232,21 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = TestWorkspace.Create(workspaceXml))
-            {
-                var document = workspace.Documents.First();
+            using var workspace = TestWorkspace.Create(workspaceXml);
+            var document = workspace.Documents.First();
 
-                var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                        new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
-                        ImmutableArray.Create(
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
+            var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                    new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
+                    ImmutableArray.Create(
+                        _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                        _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
-                var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
+            var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
 
-                Assert.Equal(1, spans.Count());
-                var first = spans.First();
+            Assert.Equal(1, spans.Count());
+            var first = spans.First();
 
-                Assert.Equal(1, first.Span.Span.Length);
-            }
+            Assert.Equal(1, first.Span.Span.Length);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
@@ -275,25 +263,23 @@ class Program
     </Project>
 </Workspace>";
 
-            using (var workspace = TestWorkspace.Create(workspaceXml))
-            {
-                var document = workspace.Documents.First();
+            using var workspace = TestWorkspace.Create(workspaceXml);
+            var document = workspace.Documents.First();
 
-                var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                        new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
-                        ImmutableArray.Create(
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
+            var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                    new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
+                    ImmutableArray.Create(
+                        _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                        _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
-                var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
+            var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
 
-                Assert.Equal(2, spans.Count());
-                var first = spans.First();
-                var second = spans.Last();
+            Assert.Equal(2, spans.Count());
+            var first = spans.First();
+            var second = spans.Last();
 
-                Assert.Equal(1, first.Span.Span.Length);
-                Assert.Equal(1, second.Span.Span.Length);
-            }
+            Assert.Equal(1, first.Span.Span.Length);
+            Assert.Equal(1, second.Span.Span.Length);
         }
 
         private class LiveId : ISupportLiveUpdate
@@ -305,10 +291,8 @@ class Program
 
         private async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(content))
-            {
-                return (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
-            }
+            using var workspace = TestWorkspace.CreateCSharp(content);
+            return (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }
     }
 }

@@ -16,10 +16,11 @@ namespace Microsoft.CodeAnalysis.CodeLens
         ///  Method full name is expected to be in the .NET full name type convention. That is,
         ///  namespace/type is delimited by '.' and nested type is delimited by '+'
         /// </remarks>
-        public ReferenceMethodDescriptor(string fullName, string filePath)
+        public ReferenceMethodDescriptor(string fullName, string filePath, string outputFilePath)
         {
             FullName = fullName;
             FilePath = filePath;
+            OutputFilePath = outputFilePath;
         }
 
         /// <summary>
@@ -31,5 +32,10 @@ namespace Microsoft.CodeAnalysis.CodeLens
         /// Returns method's file path.
         /// </summary>
         public string FilePath { get; private set; }
+
+        /// <summary>
+        /// Returns output file path for the project containing the method.
+        /// </summary>
+        public string OutputFilePath { get; private set; }
     }
 }

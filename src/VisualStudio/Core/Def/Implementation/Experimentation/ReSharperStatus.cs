@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Experimentation
         /// </summary>
         Suspended,
         /// <summary>
-        /// ReSharper is running.
+        /// ReSharper is installed and enabled.
         /// </summary>
         Enabled
     }

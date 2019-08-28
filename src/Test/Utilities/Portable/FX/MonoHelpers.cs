@@ -6,9 +6,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class MonoHelpers
     {
-        public static bool IsRunningOnMono()
-        {
-            return Type.GetType("Mono.Runtime") != null;
-        }
+        public static bool IsRunningOnMono() => Roslyn.Test.Utilities.ExecutionConditionUtil.IsMonoDesktop;
     }
 }

@@ -12,7 +12,6 @@ Option Strict On
 Option Explicit On
 
 Imports System
-Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     
@@ -23,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
-                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBResources", GetType(VBResources).GetTypeInfo.Assembly)
+                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBResources", GetType(VBResources).Assembly)
                     resourceMan = temp
                 End If
                 Return resourceMan
@@ -2378,6 +2377,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Please use language version {0} or greater to use comments after line continuation character..
+        '''</summary>
+        Friend ReadOnly Property ERR_CommentsAfterLineContinuationNotAvailable1() As String
+            Get
+                Return ResourceManager.GetString("ERR_CommentsAfterLineContinuationNotAvailable1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Conditional compilation constant &apos;{1}&apos; is not valid: {0}.
         '''</summary>
         Friend ReadOnly Property ERR_ConditionalCompilationConstantNotValid() As String
@@ -2432,7 +2440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
+        '''  Looks up a localized string similar to Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants..
         '''</summary>
         Friend ReadOnly Property ERR_ConstantStringTooLong() As String
             Get
@@ -2789,6 +2797,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_DefaultEventNotFound1() As String
             Get
                 Return ResourceManager.GetString("ERR_DefaultEventNotFound1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a non-abstract member. Consider setting the &apos;Embed Interop Types&apos; property to false..
+        '''</summary>
+        Friend ReadOnly Property ERR_DefaultInterfaceImplementationInNoPIAType() As String
+            Get
+                Return ResourceManager.GetString("ERR_DefaultInterfaceImplementationInNoPIAType", resourceCulture)
             End Get
         End Property
         
@@ -5171,7 +5188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to First operand in a binary &apos;If&apos; expression must be nullable or a reference type..
+        '''  Looks up a localized string similar to First operand in a binary &apos;If&apos; expression must be a nullable value type, a reference type, or an unconstrained generic type..
         '''</summary>
         Friend ReadOnly Property ERR_IllegalCondTypeInIIF() As String
             Get
@@ -6811,7 +6828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Line continuation character &apos;_&apos; must be preceded by at least one white space and must be the last character on the line..
+        '''  Looks up a localized string similar to The line continuation character &apos;_&apos; must be preceded by at least one white space and it must be followed by a comment or the &apos;_&apos; must be the last character on the line..
         '''</summary>
         Friend ReadOnly Property ERR_LineContWithCommentOrNoPrecSpace() As String
             Get
@@ -7419,6 +7436,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_MultilineLambdasCannotContainOnError() As String
             Get
                 Return ResourceManager.GetString("ERR_MultilineLambdasCannotContainOnError", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Multiple analyzer config files cannot be in the same directory (&apos;{0}&apos;)..
+        '''</summary>
+        Friend ReadOnly Property ERR_MultipleAnalyzerConfigsInSameDir() As String
+            Get
+                Return ResourceManager.GetString("ERR_MultipleAnalyzerConfigsInSameDir", resourceCulture)
             End Get
         End Property
         
@@ -9564,6 +9590,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_RaiseEventShapeMismatch1() As String
             Get
                 Return ResourceManager.GetString("ERR_RaiseEventShapeMismatch1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the &apos;Embed Interop Types&apos; property to false..
+        '''</summary>
+        Friend ReadOnly Property ERR_ReAbstractionInNoPIAType() As String
+            Get
+                Return ResourceManager.GetString("ERR_ReAbstractionInNoPIAType", resourceCulture)
             End Get
         End Property
         
@@ -12046,6 +12081,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to comments after line continuation.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_CommentsAfterLineContinuation() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_CommentsAfterLineContinuation", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to digit separators.
         '''</summary>
         Friend ReadOnly Property FEATURE_DigitSeparators() As String
@@ -12069,6 +12113,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite() As String
             Get
                 Return ResourceManager.GetString("FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to interpolated strings.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_InterpolatedStrings() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_InterpolatedStrings", resourceCulture)
             End Get
         End Property
         
@@ -12217,6 +12270,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to unconstrained type parameters in binary conditional expressions.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_UnconstrainedTypeParameterInConditional() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_UnconstrainedTypeParameterInConditional", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to warning directives.
         '''</summary>
         Friend ReadOnly Property FEATURE_WarningDirectives() As String
@@ -12246,9 +12308,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''<summary>
         '''  Looks up a localized string similar to File name &apos;{0}&apos; is empty, contains invalid characters, has a drive specification without an absolute path, or is too long.
         '''</summary>
-        Friend ReadOnly Property FTL_InputFileNameTooLong() As String
+        Friend ReadOnly Property FTL_InvalidInputFileName() As String
             Get
-                Return ResourceManager.GetString("FTL_InputFileNameTooLong", resourceCulture)
+                Return ResourceManager.GetString("FTL_InvalidInputFileName", resourceCulture)
             End Get
         End Property
         
@@ -12427,13 +12489,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''  Looks up a localized string similar to                   Visual Basic Compiler Options
         '''
         '''                                  - OUTPUT FILE -
-        '''/out:&lt;file&gt;                       Specifies the output file name.
-        '''/target:exe                       Create a console application (default). 
-        '''                                  (Short form: /t)
-        '''/target:winexe                    Create a Windows application.
-        '''/target:library                   Create a library assembly.
-        '''/target:module                    Create a module that can be added to an 
-        '''             [rest of string was truncated]&quot;;.
+        '''-out:&lt;file&gt;                       Specifies the output file name.
+        '''-target:exe                       Create a console application (default).
+        '''                                  (Short form: -t)
+        '''-target:winexe                    Create a Windows application.
+        '''-target:library                   Create a library assembly.
+        '''-target:module                    Create a module that can be added to an
+        '''               [rest of string was truncated]&quot;;.
         '''</summary>
         Friend ReadOnly Property IDS_VBCHelp() As String
             Get

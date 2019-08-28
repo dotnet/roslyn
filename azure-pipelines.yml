@@ -1,0 +1,239 @@
+# Branches that trigger a build on commit
+trigger:
+- master
+- master-vs-deps
+- release/*
+- features/*
+- demos/*
+
+# Branches that trigger builds on PR
+pr:
+- master
+- master-vs-deps
+- release/*
+- features/*
+- demos/*
+
+jobs:
+- job: Windows_Desktop_Unit_Tests
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.Open
+  strategy:
+    maxParallel: 4
+    matrix:
+      debug_32:
+        _configuration: Debug
+        _testKind: Test32
+      debug_64:
+        _configuration: Debug
+        _testKind: Test64
+      release_32:
+        _configuration: Release
+        _testKind: Test32
+      release_64:
+        _configuration: Release
+        _testKind: Test64
+  timeoutInMinutes: 90
+
+  steps:
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump -warnAsError
+      displayName: Build and Test
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Windows Desktop $(_configuration) $(_testKind)'
+      condition: always()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
+        ArtifactName: 'Windows Desktop $(_configuration) $(_testKind)' 
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+- job: Windows_Desktop_Spanish_Unit_Tests
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.ES.VS2017.Open
+  timeoutInMinutes: 90
+
+  steps:
+    - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop
+      displayName: Build and Test
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\Debug\*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Windows Desktop Spanish'
+      condition: always()
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Debug'
+        ArtifactName: 'Windows Desktop Spanish' 
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+- job: Windows_CoreClr_Unit_Tests
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+  strategy:
+    maxParallel: 2
+    matrix:
+      debug:
+        _configuration: Debug
+      release:
+        _configuration: Release
+  timeoutInMinutes: 90
+
+  steps:
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr
+      displayName: Build and Test
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Windows CoreClr $(_configuration)'
+      condition: always()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
+        ArtifactName: 'Windows CoreClr $(_configuration)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+           
+- job: Windows_Determinism_Test
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+  timeoutInMinutes: 90
+  steps:
+    - script: eng/test-determinism.cmd -configuration Debug
+      displayName: Build - Validate determinism
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Debug'
+        ArtifactName: 'Build Determinism Files'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+- job: Windows_Correctness_Test
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+  timeoutInMinutes: 90
+  steps:
+    - script: eng/test-build-correctness.cmd -configuration Release
+      displayName: Build - Validate correctness
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Release'
+        ArtifactName: 'Build Correctness Files'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
+        ArtifactName: 'Packages - PreRelease'
+        publishLocation: Container
+      condition: succeeded()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish VSIX Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
+        ArtifactName: 'VSIX - PreRelease'
+        publishLocation: Container
+      condition: succeeded()
+
+- job: Linux_Test
+  pool:
+   name: NetCorePublic-Pool
+   queue: BuildPool.Ubuntu.1604.amd64.Open
+  strategy:
+    maxParallel: 2
+    matrix:
+      coreclr:
+        _args: --testCoreClr --docker
+        _name: CoreClr
+        _configuration: Debug
+# Disabling Mono while https://github.com/mono/mono/issues/16373 is worked out
+#      mono:
+#        _args: --testMono --docker
+#        _name: Mono
+#        _configuration: Debug
+  timeoutInMinutes: 90
+  steps:
+    - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
+      displayName: Build and Test
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_configuration)/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Linux $(_name)'
+      condition: always()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(_configuration)'
+        ArtifactName: 'Linux $(_name)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+- job: macOS_Test
+  pool:
+    vmImage: 'macOS-10.13'
+  timeoutInMinutes: 90
+
+  steps:
+    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr
+      displayName: Build and Test
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/Debug/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'macOS CoreClr'
+      condition: always()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/Debug'
+        ArtifactName: 'macOS CoreClr'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+

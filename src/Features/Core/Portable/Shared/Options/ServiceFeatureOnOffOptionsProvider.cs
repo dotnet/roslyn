@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     [ExportOptionProvider, Shared]
     internal class ServiceFeatureOnOffOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public ServiceFeatureOnOffOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             ServiceFeatureOnOffOptions.ClosedFileDiagnostic);
     }

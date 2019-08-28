@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (members.Length == 1 && members[0].Kind == SymbolKind.Property)
             {
                 var property = (PropertySymbol)members[0];
-                if ((object)property.Type != null && property.Type.SpecialType == SpecialType.System_String &&
+                if (property.TypeWithAnnotations.HasType && property.Type.SpecialType == SpecialType.System_String &&
                     property.DeclaredAccessibility == Accessibility.Public && property.GetMemberArity() == 0 &&
                     (object)property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public)
                 {
@@ -650,7 +650,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 case SymbolKind.Property:
                     if (IsTargetAttribute(target, AttributeDescription.IndexerNameAttribute) ||
-                        IsTargetAttribute(target, AttributeDescription.SpecialNameAttribute))
+                        IsTargetAttribute(target, AttributeDescription.SpecialNameAttribute) ||
+                        IsTargetAttribute(target, AttributeDescription.DisallowNullAttribute) ||
+                        IsTargetAttribute(target, AttributeDescription.AllowNullAttribute) ||
+                        IsTargetAttribute(target, AttributeDescription.MaybeNullAttribute) ||
+                        IsTargetAttribute(target, AttributeDescription.NotNullAttribute))
                     {
                         return false;
                     }
@@ -681,6 +685,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(attribute is SourceAttributeData);
             return ((SourceAttributeData)attribute).GetAttributeArgumentSyntax(parameterIndex, attributeSyntax);
+        }
+
+        internal static string DecodeNotNullIfNotNullAttribute(this CSharpAttributeData attribute)
+        {
+            var arguments = attribute.CommonConstructorArguments;
+            return arguments.Length == 1 && arguments[0].TryDecodeValue(SpecialType.System_String, out string value) ? value : null;
         }
 
         internal static Location GetAttributeArgumentSyntaxLocation(this AttributeData attribute, int parameterIndex, AttributeSyntax attributeSyntaxOpt)

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -9,14 +7,14 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer 
+    internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
         : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
@@ -80,10 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
         }
 
-        internal static bool IsCandidate(SyntaxNode node)
-        {
-            return IsRegularCandidate(node) || IsCrefCandidate(node);
-        }
+        internal override bool IsCandidate(SyntaxNode node)
+            => IsRegularCandidate(node) || IsCrefCandidate(node);
 
         private static bool IsRegularCandidate(SyntaxNode node)
         {
@@ -95,15 +91,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return node is QualifiedCrefSyntax;
         }
 
-        protected sealed override bool CanSimplifyTypeNameExpressionCore(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
+        protected sealed override bool CanSimplifyTypeNameExpressionCore(
+            SemanticModel model, SyntaxNode node, OptionSet optionSet,
+            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
+            CancellationToken cancellationToken)
         {
-            return CanSimplifyTypeNameExpression(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken);
+            return CanSimplifyTypeNameExpression(
+                model, node, optionSet,
+                out issueSpan, out diagnosticId, out inDeclaration,
+                cancellationToken);
         }
 
-        internal static bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
+        internal override bool CanSimplifyTypeNameExpression(
+            SemanticModel model, SyntaxNode node, OptionSet optionSet,
+            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
+            CancellationToken cancellationToken)
         {
+            inDeclaration = false;
             issueSpan = default;
             diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId;
+
+            if (node is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression.IsKind(SyntaxKind.ThisExpression))
+            {
+                // don't bother analyzing "this.Goo" expressions.  They will be analyzed by
+                // the CSharpSimplifyThisOrMeDiagnosticAnalyzer.
+                return false;
+            }
 
             // For Crefs, currently only Qualified Crefs needs to be handled separately
             if (node.Kind() == SyntaxKind.QualifiedCref)
@@ -140,18 +153,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 // set proper diagnostic ids.
                 if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)))
                 {
-                    diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId;
+                    inDeclaration = true;
+                    diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
                 }
                 else if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
                 {
-                    diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId;
+                    inDeclaration = false;
+                    diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
                 }
                 else if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
-                    var memberAccess = (MemberAccessExpressionSyntax)expression;
-                    diagnosticId = memberAccess.Expression.Kind() == SyntaxKind.ThisExpression ?
-                        IDEDiagnosticIds.RemoveQualificationDiagnosticId :
-                        IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
+                    diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
                 }
             }
 

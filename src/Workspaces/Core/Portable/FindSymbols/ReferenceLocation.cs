@@ -39,7 +39,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Indicates if this is a location where the reference is written to.
         /// </summary>
-        internal bool IsWrittenTo { get; }
+        internal bool IsWrittenTo => SymbolUsageInfo.IsWrittenTo();
+
+        /// <summary>
+        /// Symbol usage info for this reference.
+        /// </summary>
+        internal SymbolUsageInfo SymbolUsageInfo { get; }
 
         /// <summary>
         /// Indicates if this location is a duplicate of some another ReferenceLocation.
@@ -50,14 +55,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, bool isWrittenTo, CandidateReason candidateReason)
+        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, CandidateReason candidateReason)
             : this()
         {
             this.Document = document;
             this.Alias = alias;
             this.Location = location;
             this.IsImplicit = isImplicit;
-            this.IsWrittenTo = isWrittenTo;
+            this.SymbolUsageInfo = symbolUsageInfo;
             this.CandidateReason = candidateReason;
         }
 

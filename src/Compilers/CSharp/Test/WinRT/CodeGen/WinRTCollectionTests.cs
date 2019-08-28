@@ -41,7 +41,7 @@ public sealed class BehaviorCollection : DependencyObjectCollection
      return this[i];
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: WinRtRefs);
+            var comp = CreateEmptyCompilation(source, references: WinRtRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -253,8 +253,8 @@ testKey2testValue3
 
             verifier.VerifyIL("Class1.Main",
 @"{
-// Code size      213 (0xd5)
-  .maxstack  3
+  // Code size      225 (0xe1)
+  .maxstack  4
   .locals init (Windows.ApplicationModel.DataTransfer.DataPackagePropertySet V_0, //dpps
   object V_1, //tv2
   System.Collections.Generic.IEnumerator<object> V_2, //valsEnumerator
@@ -305,21 +305,27 @@ testKey2testValue3
   IL_009c:  callvirt   ""System.Collections.Generic.ICollection<string> System.Collections.Generic.IDictionary<string, object>.Keys.get""
   IL_00a1:  callvirt   ""System.Collections.Generic.IEnumerator<string> System.Collections.Generic.IEnumerable<string>.GetEnumerator()""
   IL_00a6:  stloc.3
-  IL_00a7:  br.s       IL_00c4
+  IL_00a7:  br.s       IL_00d0
   IL_00a9:  call       ""System.IO.TextWriter System.Console.Out.get""
   IL_00ae:  ldloc.3
   IL_00af:  callvirt   ""string System.Collections.Generic.IEnumerator<string>.Current.get""
   IL_00b4:  ldloc.2
   IL_00b5:  callvirt   ""object System.Collections.Generic.IEnumerator<object>.Current.get""
-  IL_00ba:  call       ""string string.Concat(object, object)""
-  IL_00bf:  callvirt   ""void System.IO.TextWriter.WriteLine(string)""
-  IL_00c4:  ldloc.3
-  IL_00c5:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_00ca:  brfalse.s  IL_00d4
-  IL_00cc:  ldloc.2
-  IL_00cd:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_00d2:  brtrue.s   IL_00a9
-  IL_00d4:  ret
+  IL_00ba:  dup
+  IL_00bb:  brtrue.s   IL_00c1
+  IL_00bd:  pop
+  IL_00be:  ldnull
+  IL_00bf:  br.s       IL_00c6
+  IL_00c1:  callvirt   ""string object.ToString()""
+  IL_00c6:  call       ""string string.Concat(string, string)""
+  IL_00cb:  callvirt   ""void System.IO.TextWriter.WriteLine(string)""
+  IL_00d0:  ldloc.3
+  IL_00d1:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+  IL_00d6:  brfalse.s  IL_00e0
+  IL_00d8:  ldloc.2
+  IL_00d9:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+  IL_00de:  brtrue.s   IL_00a9
+  IL_00e0:  ret
 }");
         }
 
@@ -7405,7 +7411,7 @@ public class Class1
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: WinRtRefs);
+            var comp = CreateEmptyCompilation(source, references: WinRtRefs);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();

@@ -11,105 +11,85 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal partial class RemoveUnnecessaryCastCodeFixProvider : CodeFixProvider
+    internal partial class RemoveUnnecessaryCastCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
+        [ImportingConstructor]
+        public RemoveUnnecessaryCastCodeFixProvider()
         {
-            get { return ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId); }
         }
 
-        public sealed override FixAllProvider GetFixAllProvider()
-        {
-            return RemoveUnnecessaryCastFixAllProvider.Instance;
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId);
 
-        private static CastExpressionSyntax GetCastNode(SyntaxNode root, SemanticModel model, TextSpan span, CancellationToken cancellationToken)
-        {
-            var token = root.FindToken(span.Start);
-            if (!token.Span.IntersectsWith(span))
-            {
-                return null;
-            }
-
-            return token.GetAncestors<CastExpressionSyntax>()
-                .FirstOrDefault(c => c.Span.IntersectsWith(span) && c.IsUnnecessaryCast(model, cancellationToken));
-        }
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(
-                    CSharpFeaturesResources.Remove_Unnecessary_Cast,
-                    c => RemoveUnnecessaryCastAsync(context.Document, context.Span, c)),
+            context.RegisterCodeFix(new MyCodeAction(
+                FeaturesResources.Remove_Unnecessary_Cast,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
-        private static async Task<Document> RemoveUnnecessaryCastAsync(
-            Document document, TextSpan span, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var cast = GetCastNode(root, model, span, cancellationToken);
-            return await RemoveUnnecessaryCastAsync(document, cast, cancellationToken).ConfigureAwait(false);
+            var castNodes = diagnostics.SelectAsArray(
+                d => (CastExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
+
+            await editor.ApplyExpressionLevelSemanticEditsAsync(
+                document, castNodes,
+                (semanticModel, castExpression) => castExpression.IsUnnecessaryCast(semanticModel, cancellationToken),
+                (_, currentRoot, castExpression) =>
+                {
+                    var oldParent = castExpression.WalkUpParentheses();
+                    var newParent = Recurse(oldParent);
+
+                    return currentRoot.ReplaceNode(oldParent, newParent);
+                },
+                cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<Document> RemoveUnnecessaryCastAsync(
-            Document document, CastExpressionSyntax cast, CancellationToken cancellationToken)
+        private ExpressionSyntax Recurse(ExpressionSyntax old)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var annotatedCast = cast.WithAdditionalAnnotations(Simplifier.Annotation);
-
-            if (annotatedCast.Expression is ParenthesizedExpressionSyntax)
+            if (old is ParenthesizedExpressionSyntax parenthesizedExpression)
             {
-                annotatedCast = annotatedCast.WithExpression(
-                    annotatedCast.Expression.WithAdditionalAnnotations(Simplifier.Annotation));
+                // It's common in C# to have to write  ((Goo)expr).Etc(). we don't just want to
+                // remove the cast and produce (expr).Etc().  So we mark all parent parenthesized
+                // expressions as worthy of simplification.  The simplifier will remove these
+                // if possible, or leave them alone if not.
+                return parenthesizedExpression.ReplaceNode(parenthesizedExpression.Expression, Recurse(parenthesizedExpression.Expression))
+                                              .WithAdditionalAnnotations(Simplifier.Annotation);
+            }
+            else if (old is CastExpressionSyntax castExpression)
+            {
+                // parenthesize the uncasted value to help ensure any proper parsing. The excess
+                // parens will be removed if unnecessary. 
+                return castExpression.Uncast().WithAdditionalAnnotations(Formatter.Annotation)
+                                     .Parenthesize();
             }
             else
             {
-                annotatedCast = annotatedCast.WithExpression(
-                    annotatedCast.Expression.Parenthesize());
+                throw ExceptionUtilities.UnexpectedValue(old);
             }
-
-            ExpressionSyntax oldNode = cast;
-            ExpressionSyntax newNode = annotatedCast;
-
-            // Ensure that we simplify any parenting parenthesized expressions not just on the syntax tree level but also on Token based
-            // Case 1:
-            //  In the syntax, (((Task<Action>)x).Result)() 
-            //                 oldNode = (Task<Action>)x
-            //                 newNode = (Task<Action>)(x)
-            //                 Final newNode will be (((Task<Action>)(x)).Result)
-            while (oldNode.Parent.IsKind(SyntaxKind.ParenthesizedExpression) || oldNode.GetFirstToken().GetPreviousToken().Parent.IsKind(SyntaxKind.ParenthesizedExpression))
-            {
-                var parenthesizedExpression = (ParenthesizedExpressionSyntax)oldNode.GetFirstToken().GetPreviousToken().Parent;
-                newNode = parenthesizedExpression.ReplaceNode(oldNode, newNode)
-                    .WithAdditionalAnnotations(Simplifier.Annotation);
-                oldNode = parenthesizedExpression;
-            }
-
-            newNode = newNode.WithAdditionalAnnotations(Formatter.Annotation);
-
-            var newRoot = root.ReplaceNode(oldNode, newNode);
-
-            return document.WithSyntaxRoot(newRoot);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

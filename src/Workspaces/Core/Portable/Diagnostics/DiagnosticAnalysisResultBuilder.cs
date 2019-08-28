@@ -2,8 +2,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
@@ -60,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             Contract.ThrowIfTrue(Project.SupportsCompilation);
 
+            var workspace = Project.Solution.Workspace;
+
             foreach (var diagnostic in diagnostics)
             {
                 // REVIEW: what is our plan for additional locations? 
@@ -70,41 +74,27 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                             var diagnosticDocumentId = GetExternalDocumentId(diagnostic);
                             if (documentId == diagnosticDocumentId)
                             {
-                                var document = Project.GetDocument(diagnosticDocumentId);
-                                if (document != null)
-                                {
-                                    // local diagnostics to a file
-                                    lazyLocals = lazyLocals ?? new Dictionary<DocumentId, List<DiagnosticData>>();
-                                    lazyLocals.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
-
-                                    AddDocumentToSet(document);
-                                }
+                                // local diagnostics to a file
+                                AppendDiagnostics(ref lazyLocals, Project.GetDocument(diagnosticDocumentId), diagnostic);
                             }
                             else if (diagnosticDocumentId != null)
                             {
-                                var document = Project.GetDocument(diagnosticDocumentId);
-                                if (document != null)
-                                {
-                                    // non local diagnostics to a file
-                                    _lazyNonLocals = _lazyNonLocals ?? new Dictionary<DocumentId, List<DiagnosticData>>();
-                                    _lazyNonLocals.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
-
-                                    AddDocumentToSet(document);
-                                }
+                                // non local diagnostics to a file
+                                AppendDiagnostics(ref _lazyNonLocals, Project.GetDocument(diagnosticDocumentId), diagnostic);
                             }
                             else
                             {
                                 // non local diagnostics without location
-                                _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                                _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                                _lazyOthers ??= new List<DiagnosticData>();
+                                _lazyOthers.Add(DiagnosticData.Create(workspace, diagnostic, Project.Id));
                             }
 
                             break;
                         }
                     case LocationKind.None:
                         {
-                            _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                            _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                            _lazyOthers ??= new List<DiagnosticData>();
+                            _lazyOthers.Add(DiagnosticData.Create(workspace, diagnostic, Project.Id));
                             break;
                         }
                     case LocationKind.SourceFile:
@@ -123,6 +113,24 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             }
         }
 
+        private void AppendDiagnostics(ref Dictionary<DocumentId, List<DiagnosticData>> map, Document documentOpt, Diagnostic diagnostic)
+        {
+            if (documentOpt is null)
+            {
+                return;
+            }
+
+            if (!documentOpt.SupportsDiagnostics())
+            {
+                return;
+            }
+
+            map ??= new Dictionary<DocumentId, List<DiagnosticData>>();
+            map.GetOrAdd(documentOpt.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(documentOpt, diagnostic));
+
+            AddDocumentToSet(documentOpt);
+        }
+
         public void AddSyntaxDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
         {
             AddDiagnostics(ref _lazySyntaxLocals, tree, diagnostics);
@@ -139,12 +147,14 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             AddDiagnostics(ref dummy, tree: null, diagnostics: diagnostics);
 
             // dummy should be always null
-            Contract.Requires(dummy == null);
+            Debug.Assert(dummy == null);
         }
 
         private void AddDiagnostics(
             ref Dictionary<DocumentId, List<DiagnosticData>> lazyLocals, SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
         {
+            var workspace = Project.Solution.Workspace;
+
             foreach (var diagnostic in diagnostics)
             {
                 // REVIEW: what is our plan for additional locations? 
@@ -157,41 +167,27 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                         }
                     case LocationKind.None:
                         {
-                            _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                            _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                            _lazyOthers ??= new List<DiagnosticData>();
+                            _lazyOthers.Add(DiagnosticData.Create(workspace, diagnostic, Project.Id));
                             break;
                         }
                     case LocationKind.SourceFile:
                         {
                             if (tree != null && diagnostic.Location.SourceTree == tree)
                             {
-                                var document = GetDocument(diagnostic);
-                                if (document != null)
-                                {
-                                    // local diagnostics to a file
-                                    lazyLocals = lazyLocals ?? new Dictionary<DocumentId, List<DiagnosticData>>();
-                                    lazyLocals.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
-
-                                    AddDocumentToSet(document);
-                                }
+                                // local diagnostics to a file
+                                AppendDiagnostics(ref lazyLocals, GetDocument(diagnostic), diagnostic);
                             }
                             else if (diagnostic.Location.SourceTree != null)
                             {
-                                var document = Project.GetDocument(diagnostic.Location.SourceTree);
-                                if (document != null)
-                                {
-                                    // non local diagnostics to a file
-                                    _lazyNonLocals = _lazyNonLocals ?? new Dictionary<DocumentId, List<DiagnosticData>>();
-                                    _lazyNonLocals.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(document, diagnostic));
-
-                                    AddDocumentToSet(document);
-                                }
+                                // non local diagnostics to a file
+                                AppendDiagnostics(ref _lazyNonLocals, Project.GetDocument(diagnostic.Location.SourceTree), diagnostic);
                             }
                             else
                             {
                                 // non local diagnostics without location
-                                _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                                _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                                _lazyOthers ??= new List<DiagnosticData>();
+                                _lazyOthers.Add(DiagnosticData.Create(workspace, diagnostic, Project.Id));
                             }
 
                             break;
@@ -213,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private void AddDocumentToSet(Document document)
         {
-            _lazySet = _lazySet ?? new HashSet<DocumentId>();
+            _lazySet ??= new HashSet<DocumentId>();
             _lazySet.Add(document.Id);
         }
 

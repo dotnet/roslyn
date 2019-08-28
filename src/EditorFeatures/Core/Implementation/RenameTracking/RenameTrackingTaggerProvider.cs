@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed partial class RenameTrackingTaggerProvider : ITaggerProvider
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IWaitIndicator _waitIndicator;
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
         [ImportingConstructor]
         public RenameTrackingTaggerProvider(
+            IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IWaitIndicator waitIndicator,
             IInlineRenameService inlineRenameService,
@@ -49,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _undoHistoryRegistry = undoHistoryRegistry;
             _waitIndicator = waitIndicator;
             _inlineRenameService = inlineRenameService;
@@ -59,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(buffer, _inlineRenameService, _asyncListener, _diagnosticAnalyzerService));
+            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _asyncListener, _diagnosticAnalyzerService));
             return new Tagger(stateMachine, _undoHistoryRegistry, _waitIndicator, _refactorNotifyServices) as ITagger<T>;
         }
 
@@ -106,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             return false;
         }
 
-        internal static async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
+        internal static Diagnostic TryGetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
         {
             try
             {
@@ -117,11 +121,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var textBuffer = text.Container.TryGetTextBuffer();
                     if (textBuffer != null && textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                     {
-                        return await stateMachine.GetDiagnostic(tree, diagnosticDescriptor, cancellationToken).ConfigureAwait(false);
+                        return stateMachine.TryGetDiagnostic(tree, diagnosticDescriptor, cancellationToken);
                     }
                 }
 
-                return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+                return null;
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -132,7 +136,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         internal static CodeAction CreateCodeAction(
             Document document,
             Diagnostic diagnostic,
-            IWaitIndicator waitIndicator,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             ITextUndoHistoryRegistry undoHistoryRegistry)
         {
@@ -170,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         {
             try
             {
-                return isRenamableIdentifierTask.WaitAndGetResult(cancellationToken) != TriggerIdentifierKind.NotRenamable;
+                return isRenamableIdentifierTask.WaitAndGetResult_CanCallOnBackground(cancellationToken) != TriggerIdentifierKind.NotRenamable;
             }
             catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken || cancellationToken == CancellationToken.None)
             {
@@ -191,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             textBuffer = text.Container.TryGetTextBuffer();
             return textBuffer != null &&
                 textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine) &&
-                stateMachine.CanInvokeRename(out var unused);
+                stateMachine.CanInvokeRename(out _);
         }
     }
 }

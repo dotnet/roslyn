@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         // invoked on UI thread
         private readonly Action<DocumentId, SessionReadOnlyReason, ProjectReadOnlyReason> _onReadOnlyDocumentEditAttempt;
 
-        public ReadOnlyDocumentTracker(IEditAndContinueService encService, Action<DocumentId, SessionReadOnlyReason, ProjectReadOnlyReason> onReadOnlyDocumentEditAttempt)
-            : base(assertIsForeground: true)
+        public ReadOnlyDocumentTracker(IThreadingContext threadingContext, IEditAndContinueService encService, Action<DocumentId, SessionReadOnlyReason, ProjectReadOnlyReason> onReadOnlyDocumentEditAttempt)
+            : base(threadingContext, assertIsForeground: true)
         {
             Debug.Assert(encService.DebuggingSession != null);
 
@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private void OnDocumentOpened(object sender, DocumentEventArgs e)
         {
-            InvokeBelowInputPriority(() => TrackDocument(e.Document.Id));
+            InvokeBelowInputPriorityAsync(() => TrackDocument(e.Document.Id));
         }
 
         private void OnDocumentClosed(object sender, DocumentEventArgs e)
         {
             // The buffer is gone by now, so we don't need to remove the read-only region from it, just clean up our dictionary.
-            InvokeBelowInputPriority(() =>
+            InvokeBelowInputPriorityAsync(() =>
             {
                 if (_readOnlyRegions != null)
                 {
@@ -69,19 +69,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
 
             var textBuffer = GetTextBuffer(_workspace, documentId);
-            using (var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit())
-            {
-                _readOnlyRegions.Add(documentId, readOnlyEdit.CreateDynamicReadOnlyRegion(Span.FromBounds(0, readOnlyEdit.Snapshot.Length), SpanTrackingMode.EdgeInclusive, EdgeInsertionMode.Deny,
-                    isEdit => IsRegionReadOnly(documentId, isEdit)));
+            using var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit();
 
-                readOnlyEdit.Apply();
-            }
+            _readOnlyRegions.Add(documentId, readOnlyEdit.CreateDynamicReadOnlyRegion(Span.FromBounds(0, readOnlyEdit.Snapshot.Length), SpanTrackingMode.EdgeInclusive, EdgeInsertionMode.Deny,
+                isEdit => IsRegionReadOnly(documentId, isEdit)));
+
+            readOnlyEdit.Apply();
         }
 
         private bool IsRegionReadOnly(DocumentId documentId, bool isEdit)
         {
             AssertIsForeground();
-            bool isReadOnly = _encService.IsProjectReadOnly(documentId.ProjectId, out var sessionReason, out var projectReason);
+            var isReadOnly = _encService.IsProjectReadOnly(documentId.ProjectId, out var sessionReason, out var projectReason);
 
             if (isEdit && isReadOnly)
             {
@@ -112,11 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             AssertIsForeground();
 
             var textBuffer = GetTextBuffer(_workspace, documentId);
-            using (var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit())
-            {
-                readOnlyEdit.RemoveReadOnlyRegion(region);
-                readOnlyEdit.Apply();
-            }
+            using var readOnlyEdit = textBuffer.CreateReadOnlyRegionEdit();
+
+            readOnlyEdit.RemoveReadOnlyRegion(region);
+            readOnlyEdit.Apply();
         }
 
         private static ITextBuffer GetTextBuffer(Workspace workspace, DocumentId documentId)

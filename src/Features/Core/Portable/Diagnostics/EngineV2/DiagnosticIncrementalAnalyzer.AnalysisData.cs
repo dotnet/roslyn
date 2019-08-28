@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Simple data holder for local diagnostics for an analyzer
         /// </summary>
-        private struct DocumentAnalysisData
+        private readonly struct DocumentAnalysisData
         {
             public static readonly DocumentAnalysisData Empty = new DocumentAnalysisData(VersionStamp.Default, ImmutableArray<DiagnosticData>.Empty);
 
@@ -35,15 +35,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> items)
             {
-                this.Version = version;
-                this.Items = items;
-                this.OldItems = default;
+                Version = version;
+                Items = items;
+                OldItems = default;
             }
 
-            public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems) :
-                this(version, newItems)
+            public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
+                : this(version, newItems)
             {
-                this.OldItems = oldItems;
+                OldItems = oldItems;
             }
 
             public DocumentAnalysisData ToPersistData()
@@ -53,14 +53,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public bool FromCache
             {
-                get { return this.OldItems.IsDefault; }
+                get { return OldItems.IsDefault; }
             }
         }
 
         /// <summary>
         /// Data holder for all diagnostics for a project for an analyzer
         /// </summary>
-        private struct ProjectAnalysisData
+        private readonly struct ProjectAnalysisData
         {
             /// <summary>
             /// ProjectId of this data
@@ -95,10 +95,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ProjectId projectId,
                 VersionStamp version,
                 ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
-                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult) :
-                this(projectId, version, newResult)
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult)
+                : this(projectId, version, newResult)
             {
-                this.OldResult = oldResult;
+                OldResult = oldResult;
             }
 
             public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public bool FromCache
             {
-                get { return this.OldResult == null; }
+                get { return OldResult == null; }
             }
 
             public static async Task<ProjectAnalysisData> CreateAsync(Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)

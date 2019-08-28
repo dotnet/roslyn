@@ -310,7 +310,7 @@ class Res
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(// (6,19): error CS1026: ) expected
-                                                                    //         lock (Res d = new Res ())// Invalid
+                                                        //         lock (Res d = new Res ())// Invalid
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "d"),
                 // (6,33): error CS1002: ; expected
                 //         lock (Res d = new Res ())// Invalid
@@ -400,9 +400,6 @@ class Test
                 // (9,26): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         lock ((C + yield return +D).ToString())
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(9, 26),
-                // (9,33): error CS0029: Cannot implicitly convert type 'int' to 'System.Collections.Generic.IEnumerable<int>'
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "+D").WithArguments("int", "System.Collections.Generic.IEnumerable<int>").WithLocation(9, 33),
                 // (9,37): warning CS0162: Unreachable code detected
                 //         lock ((C + yield return +D).ToString())
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "ToString").WithLocation(9, 37)

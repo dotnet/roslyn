@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities.Desktop;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         result.Append(" ");
                         result.Append(member);
 
-                        if (namedType.BaseType() != null)
+                        if ((object)namedType.BaseType() != null)
                         {
                             result.AppendLine();
                             result.Append(memberIndent);
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         MetadataSignatureHelper.AppendFieldAttributes(result, field.Flags);
                         result.Append(" ");
 
-                        result.Append(field.Type);
+                        result.Append(field.TypeWithAnnotations);
                         result.Append(" ");
                         result.Append(member.Name);
                         result.AppendLine();
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                             result.Append(" ");
                         }
 
-                        result.Append(property.Type);
+                        result.Append(property.TypeWithAnnotations);
                         result.Append(" ");
                         result.Append(property.Name);
                         result.AppendLine();
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                             result.Append(" ");
                         }
 
-                        result.Append(evnt.Type);
+                        result.Append(evnt.TypeWithAnnotations);
                         result.Append(" ");
                         result.Append(evnt.Name);
                         result.AppendLine();

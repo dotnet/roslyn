@@ -1502,7 +1502,7 @@ End Class
     </file>
 </compilation>)
 
-            CompilationUtils.AssertTheseDiagnostics(Compilation,
+            CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC37243: Auto-implemented properties cannot be WriteOnly.
     Public Shared WriteOnly Property DefaultCapacity As Integer = 5
@@ -2585,7 +2585,7 @@ BC30057: Too many arguments to 'ReadOnly Default Property F(o As Object) As Obje
         ''' Should only generate DefaultMemberAttribute if not specified explicitly.
         ''' </summary>
         <Fact()>
-        Public Sub DefaultMemberAttribute()
+        Public Sub DefaultMemberAttribute_Errors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -2637,41 +2637,78 @@ BC32304: Conflict between the default property and the 'DefaultMemberAttribute' 
 Interface IE
           ~~
 ]]></errors>)
-            Dim globalNamespace = compilation.GlobalNamespace
-            Dim type = globalNamespace.GetMember(Of NamedTypeSymbol)("IA")
-            CheckDefaultMemberAttribute(compilation, type, "P", synthesized:=True)
-            type = globalNamespace.GetMember(Of NamedTypeSymbol)("IB")
-            CheckDefaultMemberAttribute(compilation, type, "P", synthesized:=False)
-            type = globalNamespace.GetMember(Of NamedTypeSymbol)("IC")
-            CheckDefaultMemberAttribute(compilation, type, "Q", synthesized:=False)
-            type = globalNamespace.GetMember(Of NamedTypeSymbol)("ID")
-            CheckDefaultMemberAttribute(compilation, type, Nothing, synthesized:=False)
-            type = globalNamespace.GetMember(Of NamedTypeSymbol)("IE")
-            CheckDefaultMemberAttribute(compilation, type, "", synthesized:=False)
-            type = globalNamespace.GetMember(Of NamedTypeSymbol)("IF")
-            CheckDefaultMemberAttribute(compilation, type, "p", synthesized:=False)
-            type = globalNamespace.GetMember(Of NamedTypeSymbol)("IG")
-            CheckDefaultMemberAttribute(compilation, type, "P", synthesized:=False)
         End Sub
 
-        Private Sub CheckDefaultMemberAttribute(compilation As VisualBasicCompilation, type As NamedTypeSymbol, name As String, synthesized As Boolean)
-            Dim attributes = type.GetAttributes()
-            Dim synthesizedAttributes = type.GetSynthesizedAttributes()
-            Dim attribute As VisualBasicAttributeData
+        ''' <summary>
+        ''' Should only generate DefaultMemberAttribute if not specified explicitly.
+        ''' </summary>
+        <Fact()>
+        Public Sub DefaultMemberAttribute()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Reflection
+' No DefaultMemberAttribute.
+Interface IA
+    Default ReadOnly Property P(o As Object)
+End Interface
+' Expected DefaultMemberAttribute.
+<DefaultMember("P")>
+Interface IB
+    Default ReadOnly Property P(o As Object)
+End Interface
+' Different DefaultMemberAttribute.
+Interface IC
+    Default ReadOnly Property P(o As Object)
+End Interface
+' Nothing DefaultMemberAttribute value.
+<DefaultMember(Nothing)>
+Interface ID
+    ReadOnly Property P(o As Object)
+End Interface
+' Empty DefaultMemberAttribute value.
+<DefaultMember("")>
+Interface IE
+    ReadOnly Property P(o As Object)
+End Interface
+' Different case.
+<DefaultMember("p")>
+Interface [IF]
+    Default ReadOnly Property P(o As Object)
+End Interface
+' Different case.
+<DefaultMember("P")>
+Interface IG
+    Default ReadOnly Property p(o As Object)
+End Interface
+]]></file>
+</compilation>)
 
-            If synthesized Then
-                Assert.Equal(attributes.Length, 0)
-                Assert.Equal(synthesizedAttributes.Length, 1)
-                attribute = synthesizedAttributes(0)
-            Else
-                Assert.Equal(attributes.Length, 1)
-                Assert.Equal(synthesizedAttributes.Length, 0)
-                attribute = attributes(0)
-            End If
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub(m As ModuleSymbol)
+                                 Dim globalNamespace = m.GlobalNamespace
+                                 Dim type = globalNamespace.GetMember(Of NamedTypeSymbol)("IA")
+                                 CheckDefaultMemberAttribute(type, "P")
+                                 type = globalNamespace.GetMember(Of NamedTypeSymbol)("IB")
+                                 CheckDefaultMemberAttribute(type, "P")
+                                 type = globalNamespace.GetMember(Of NamedTypeSymbol)("IC")
+                                 CheckDefaultMemberAttribute(type, "P")
+                                 type = globalNamespace.GetMember(Of NamedTypeSymbol)("ID")
+                                 CheckDefaultMemberAttribute(type, Nothing)
+                                 type = globalNamespace.GetMember(Of NamedTypeSymbol)("IE")
+                                 CheckDefaultMemberAttribute(type, "")
+                                 type = globalNamespace.GetMember(Of NamedTypeSymbol)("IF")
+                                 CheckDefaultMemberAttribute(type, "p")
+                                 type = globalNamespace.GetMember(Of NamedTypeSymbol)("IG")
+                                 CheckDefaultMemberAttribute(type, "P")
+                             End Sub)
+        End Sub
+
+        Private Sub CheckDefaultMemberAttribute(type As NamedTypeSymbol, name As String)
+            Dim attribute = type.GetAttributes().Single()
 
             Dim attributeType = attribute.AttributeConstructor.ContainingType
-            Dim defaultMemberType = compilation.GetWellKnownType(WellKnownType.System_Reflection_DefaultMemberAttribute)
-            Assert.Equal(attributeType, defaultMemberType)
+            Assert.Equal("DefaultMemberAttribute", attributeType.Name)
             Assert.Equal(attribute.ConstructorArguments(0).Value, name)
         End Sub
 
@@ -8103,24 +8140,24 @@ End Class
             Assert.NotNull([property])
             Assert.Equal([property].DeclaredAccessibility, declaredAccessibility)
 
-            Dim sourceProperty = TryCast([property], SourcePropertySymbol)
-            If sourceProperty IsNot Nothing Then
+            Dim field = type.GetMembers("_" + name).OfType(Of FieldSymbol)().SingleOrDefault()
+
+            If isFromSource Then
+                Dim sourceProperty = DirectCast([property], SourcePropertySymbol)
                 Assert.True(sourceProperty.IsAutoProperty)
 
-                Dim c = sourceProperty.DeclaringCompilation
-                Dim attributes = sourceProperty.AssociatedField.GetSynthesizedAttributes()
-
-                Assert.Equal(
-                    c.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor),
-                    attributes.Single().AttributeConstructor)
-            End If
-
-            Dim field = type.GetMembers("_" + name).OfType(Of FieldSymbol)().SingleOrDefault()
-            If isFromSource Then
                 Assert.NotNull(field)
                 Assert.Equal(field.DeclaredAccessibility, Accessibility.Private)
                 Assert.Equal(field.Type, [property].Type)
             Else
+                Dim getterAttribute = [property].GetMethod.GetAttributes().Single()
+                Assert.Equal("CompilerGeneratedAttribute", getterAttribute.AttributeClass.Name)
+                Assert.Empty(getterAttribute.ConstructorArguments)
+
+                Dim setterAttribute = [property].SetMethod.GetAttributes().Single()
+                Assert.Equal("CompilerGeneratedAttribute", setterAttribute.AttributeClass.Name)
+                Assert.Empty(setterAttribute.ConstructorArguments)
+
                 Assert.Null(field)
             End If
         End Sub

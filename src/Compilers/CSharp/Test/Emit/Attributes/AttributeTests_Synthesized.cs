@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// See tests having verify: !outputKind.IsNetModule()
     /// https://github.com/dotnet/roslyn/issues/23475
     /// </summary>
-    public class AttributeTests_Synthesized: WellKnownAttributesTestBase
+    public class AttributeTests_Synthesized : WellKnownAttributesTestBase
     {
         #region Theory Data
         public static IEnumerable<object[]> OptimizationLevelTheoryData
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void VerifyCompilationRelaxationsAttribute(CSharpAttributeData attribute, bool isSynthesized)
         {
             Assert.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute", attribute.AttributeClass.ToTestDisplayString());
-            Assert.Equal("System.Int32", attribute.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", attribute.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
             Assert.Empty(attribute.CommonNamedArguments);
 
             int expectedArgValue = isSynthesized ? (int)CompilationRelaxations.NoStringInterning : 0;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void VerifyDebuggableAttribute(CSharpAttributeData attribute, OptimizationLevel optimizations, bool isSynthesized)
         {
             Assert.Equal("System.Diagnostics.DebuggableAttribute", attribute.AttributeClass.ToTestDisplayString());
-            Assert.Equal("System.Diagnostics.DebuggableAttribute.DebuggingModes", attribute.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+            Assert.Equal("System.Diagnostics.DebuggableAttribute.DebuggingModes", attribute.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
             Assert.Empty(attribute.CommonNamedArguments);
 
             Assert.Equal(1, attribute.CommonConstructorArguments.Length);
@@ -1180,7 +1180,7 @@ unsafe class C
     }
 }";
 
-            var compilation = CreateCompilation(source, options: new CSharpCompilationOptions(
+            var compilation = CreateCompilationWithMscorlib40(source, options: new CSharpCompilationOptions(
                 outputKind: outputKind,
                 optimizationLevel: OptimizationLevel.Release,
                 allowUnsafe: true));
@@ -1199,7 +1199,7 @@ unsafe class C
                 {
                     // Modules security attributes are copied to assemblies they're included in
                     var moduleReference = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).GetReference();
-                    CompileAndVerify("", references: new[] { moduleReference }, symbolValidator: validateSecurity, verify: Verification.Skipped);
+                    CompileAndVerifyWithMscorlib40("", references: new[] { moduleReference }, symbolValidator: validateSecurity, verify: Verification.Skipped);
                 }
                 else
                 {

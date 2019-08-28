@@ -1,11 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.VisualBasicHelpers
+Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
+    <[UseExportProvider]>
     Public Class VisualBasicSpecialReferencesTests
         <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
@@ -141,97 +143,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project.Disconnect()
             End Using
         End Sub
-
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Public Sub AddingReferenceToProjectMetadataPromotesToProjectReference()
-            Using environment = New TestEnvironment()
-
-                Dim project1 = CreateVisualBasicProject(environment, "project1")
-                project1.SetBinOutputPathAndRelatedData("C:\project1.dll")
-
-                Dim project2 = CreateVisualBasicProject(environment, "project2")
-                project2.SetBinOutputPathAndRelatedData("C:\project2.dll")
-
-                ' since this is known to be the output path of project1, the metadata reference is converted to a project reference
-                project2.AddMetaDataReference("c:\project1.dll", True)
-
-                Assert.Equal(True, project2.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project1.Id))
-
-                project2.Disconnect()
-                project1.Disconnect()
-            End Using
-        End Sub
-
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Public Sub AddCyclicProjectMetadataReferences()
-            Using environment = New TestEnvironment()
-
-                Dim project1 = CreateVisualBasicProject(environment, "project1")
-                project1.SetBinOutputPathAndRelatedData("C:\project1.dll")
-
-                Dim project2 = CreateVisualBasicProject(environment, "project2")
-                project2.SetBinOutputPathAndRelatedData("C:\project2.dll")
-
-                project1.AddProjectReference(project2)
-
-                ' normally this metadata reference would be elevated to a project reference, but fails because of cyclicness
-                project2.AddMetaDataReference("c:\project1.dll", True)
-
-                Assert.Equal(True, project1.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project2.Id))
-                Assert.Equal(False, project2.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project1.Id))
-
-                project2.Disconnect()
-                project1.Disconnect()
-            End Using
-        End Sub
-
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Public Sub AddCyclicProjectReferences()
-            Using environment = New TestEnvironment()
-
-                Dim project1 = CreateVisualBasicProject(environment, "project1")
-                Dim project2 = CreateVisualBasicProject(environment, "project2")
-
-                project1.AddProjectReference(project2)
-                project2.AddProjectReference(project1)
-
-                Assert.Equal(True, project1.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project2.Id))
-                Assert.Equal(False, project2.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project1.Id))
-
-                project2.Disconnect()
-                project1.Disconnect()
-            End Using
-        End Sub
-
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Public Sub AddCyclicProjectReferencesDeep()
-            Using environment = New TestEnvironment()
-
-                Dim project1 = CreateVisualBasicProject(environment, "project1")
-                Dim project2 = CreateVisualBasicProject(environment, "project2")
-                Dim project3 = CreateVisualBasicProject(environment, "project3")
-                Dim project4 = CreateVisualBasicProject(environment, "project4")
-
-                project1.AddProjectReference(project2)
-                project2.AddProjectReference(project3)
-                project3.AddProjectReference(project4)
-                project4.AddProjectReference(project1)
-
-                Assert.Equal(True, project1.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project2.Id))
-                Assert.Equal(True, project2.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project3.Id))
-                Assert.Equal(True, project3.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project4.Id))
-                Assert.Equal(False, project4.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project1.Id))
-
-                project4.Disconnect()
-                project3.Disconnect()
-                project2.Disconnect()
-                project1.Disconnect()
-            End Using
-        End Sub
-
     End Class
 End Namespace

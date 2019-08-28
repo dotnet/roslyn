@@ -1245,7 +1245,7 @@ class C
     static void F(dynamic d) { }
     static void F(C<dynamic[]> d) { }
 }";
-            var compilation = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef });
+            var compilation = CreateCompilation(source, references: new[] { CSharpRef });
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;

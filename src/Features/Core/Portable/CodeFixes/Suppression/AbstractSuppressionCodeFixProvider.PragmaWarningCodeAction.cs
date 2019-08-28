@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         internal sealed class PragmaWarningCodeAction : AbstractSuppressionCodeAction, IPragmaBasedCodeAction
         {
@@ -60,16 +60,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     _document,
                     _diagnostic.Location.SourceSpan,
                     _suppressionTargetInfo,
-                    async (startToken, currentDiagnosticSpan) =>
+                    (startToken, currentDiagnosticSpan) =>
                     {
                         return includeStartTokenChange
-                            ? await PragmaHelpers.GetNewStartTokenWithAddedPragmaAsync(startToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNodeAsync).ConfigureAwait(false)
+                            ? PragmaHelpers.GetNewStartTokenWithAddedPragma(startToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode)
                             : startToken;
                     },
-                    async (endToken, currentDiagnosticSpan) =>
+                    (endToken, currentDiagnosticSpan) =>
                     {
                         return includeEndTokenChange
-                            ? await PragmaHelpers.GetNewEndTokenWithAddedPragmaAsync(endToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNodeAsync).ConfigureAwait(false)
+                            ? PragmaHelpers.GetNewEndTokenWithAddedPragma(endToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode)
                             : endToken;
                     },
                     cancellationToken).ConfigureAwait(false);
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public SyntaxToken StartToken_TestOnly => _suppressionTargetInfo.StartToken;
             public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
-            private Task<SyntaxNode> FormatNodeAsync(SyntaxNode node)
+            private SyntaxNode FormatNode(SyntaxNode node)
             {
-                return Formatter.FormatAsync(node, _document.Project.Solution.Workspace);
+                return Formatter.Format(node, _document.Project.Solution.Workspace);
             }
         }
     }

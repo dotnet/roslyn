@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Versions
             s_logAggregator.IncreaseCount(DependentProject);
         }
 
-        public static void LogSummary()
+        public static void ReportTelemetry()
         {
             Logger.Log(FunctionId.PersistedSemanticVersion_Info, KeyValueLogMessage.Create(m =>
             {

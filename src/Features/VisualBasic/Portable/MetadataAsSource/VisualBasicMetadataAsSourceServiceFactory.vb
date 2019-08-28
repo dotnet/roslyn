@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
     Friend Class VisualBasicMetadataAsSourceServiceFactory
         Implements ILanguageServiceFactory
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicMetadataAsSourceService(provider)
         End Function

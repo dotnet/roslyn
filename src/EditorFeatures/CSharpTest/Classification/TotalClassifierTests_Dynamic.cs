@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Class("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Class("EventArgs"),
                 Punctuation.Semicolon);
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Delegate("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Delegate("Action"),
                 Punctuation.Semicolon);
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Struct("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Struct("DateTime"),
                 Punctuation.Semicolon);
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Enum("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Enum("DayOfWeek"),
                 Punctuation.Semicolon);
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Interface("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Interface("IDisposable"),
                 Punctuation.Semicolon);
@@ -144,13 +145,13 @@ class C
 }",
                 Keyword("extern"),
                 Keyword("alias"),
-                Identifier("dynamic"),
+                Namespace("dynamic"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
-                Identifier("dynamic"),
-                Operators.Text("::"),
+                Namespace("dynamic"),
+                Operators.ColonColon,
                 Identifier("Goo"),
                 Field("a"),
                 Punctuation.Semicolon,
@@ -203,7 +204,7 @@ class C
                 Operators.Equals,
                 Number("10"),
                 Punctuation.Semicolon,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Local("dynamic"),
                 Operators.Dot,
                 Method("ToString"),
@@ -285,7 +286,7 @@ class C
                 Keyword("static"),
                 Keyword("dynamic"),
                 Keyword("operator"),
-                Operators.Text("+"),
+                Operators.Plus,
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
                 Parameter("d1"),
@@ -378,7 +379,7 @@ class C
                 Identifier("Select"),
                 Punctuation.OpenParen,
                 Parameter("dynamic"),
-                Operators.Text("=>"),
+                Operators.EqualsGreaterThan,
                 Parameter("dynamic"),
                 Operators.Dot,
                 Identifier("Length"),
@@ -405,7 +406,7 @@ class C
                 Operators.Equals,
                 String(@"""a"""),
                 Punctuation.Semicolon,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Local("dynamic"),
                 Operators.Dot,
                 Property("Length"),
@@ -439,6 +440,7 @@ class C
                 Keyword("static"),
                 Keyword("dynamic"),
                 Method("dynamic"),
+                Static("dynamic"),
                 Punctuation.OpenParen,
                 Keyword("params"),
                 Keyword("dynamic"),
@@ -597,7 +599,7 @@ partial void F(dynamic d)
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Keyword("sizeof"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
@@ -638,11 +640,11 @@ partial void F(dynamic d)
         public async Task DynamicInForeach()
         {
             await TestInMethodAsync(@"foreach (dynamic dynamic in dynamic",
-                Keyword("foreach"),
+                ControlKeyword("foreach"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
                 Local("dynamic"),
-                Keyword("in"),
+                ControlKeyword("in"),
                 Identifier("dynamic"));
         }
 
@@ -674,7 +676,7 @@ partial void F(dynamic d)
 {
 }",
                 Keyword("namespace"),
-                Identifier("dynamic"),
+                Namespace("dynamic"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
@@ -705,7 +707,7 @@ partial void F(dynamic d)
                 Keyword("class"),
                 Class("dynamic"),
                 Punctuation.OpenCurly,
-                Identifier("dynamic"),
+                Class("dynamic"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -731,15 +733,15 @@ partial void F(dynamic d)
             await TestInMethodAsync(
 @"dynamic: int i = 0;
         goto dynamic;",
-                Identifier("dynamic"),
+                Label("dynamic"),
                 Punctuation.Colon,
                 Keyword("int"),
                 Local("i"),
                 Operators.Equals,
                 Number("0"),
                 Punctuation.Semicolon,
-                Keyword("goto"),
-                Identifier("dynamic"),
+                ControlKeyword("goto"),
+                Label("dynamic"),
                 Punctuation.Semicolon);
         }
 
@@ -768,7 +770,7 @@ partial void F(dynamic d)
                 Keyword("enum"),
                 Enum("A"),
                 Punctuation.OpenCurly,
-                EnumField("dynamic"),
+                EnumMember("dynamic"),
                 Punctuation.CloseCurly);
         }
 
@@ -825,7 +827,8 @@ partial void F(dynamic d)
             await TestInClassAsync(@"static dynamic d",
                 Keyword("static"),
                 Keyword("dynamic"),
-                Field("d"));
+                Field("d"),
+                Static("d"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -862,9 +865,9 @@ partial void F(dynamic d)
                 Keyword("dynamic"),
                 Parameter("d"),
                 Punctuation.CloseParen,
-                Operators.Text("=>"),
+                Operators.EqualsGreaterThan,
                 Parameter("d"),
-                Operators.Text("=="),
+                Operators.EqualsEquals,
                 Identifier("dynamic"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon);
@@ -905,7 +908,7 @@ partial void F(dynamic d)
         public async Task DynamicAfterIs()
         {
             await TestInMethodAsync(@"if (a is dynamic)",
-                Keyword("if"),
+                ControlKeyword("if"),
                 Punctuation.OpenParen,
                 Identifier("a"),
                 Keyword("is"),

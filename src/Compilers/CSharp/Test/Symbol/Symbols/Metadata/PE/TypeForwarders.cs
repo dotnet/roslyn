@@ -936,15 +936,48 @@ class Test
             var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
-                // (8,21): error CS0246: The type or namespace name 'Forwarded' could not be found (are you missing a using directive or an assembly reference?)
+                // (8,21): error CS1069: The type name 'Forwarded' could not be found in the namespace 'Namespace'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
                 //         var f = new Forwarded();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Forwarded").WithArguments("Forwarded"),
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "Forwarded").WithArguments("Forwarded", "Namespace", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using Namespace;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Namespace;"));
+        }
 
-            // We'd like to report this diagnostic, but the dev cost is too high.
-            // (8,21): error CS1069: The type name 'Forwarded' could not be found in the namespace 'Namespace'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+        [Fact]
+        public void LookupMissingForwardedGenericTypeImplicitNamespace()
+        {
+            var il1 = @"
+.assembly extern pe2 { }
+.assembly pe1 { }
+
+.class extern forwarder Namespace.Forwarded`1
+{
+  .assembly extern pe2
+}
+";
+
+            var csharp = @"
+using Namespace;
+
+class Test
+{
+    static void Main()
+    {
+        var f = new Forwarded<int>();
+    }
+}
+";
+
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+
+            CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
+                // (8,21): error CS1069: The type name 'Forwarded<>' could not be found in the namespace 'Namespace'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //         var f = new Forwarded<int>();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "Forwarded<int>").WithArguments("Forwarded<>", "Namespace", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (2,1): info CS8019: Unnecessary using directive.
+                // using Namespace;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Namespace;"));
         }
 
         [Fact]
@@ -969,6 +1002,21 @@ class Test
 {
   .assembly extern pe2
 }
+
+.class extern forwarder T4`1
+{
+  .assembly extern pe2
+}
+
+.class extern forwarder Ns.T5`1
+{
+  .assembly extern pe2
+}
+
+.class extern forwarder Ns.Ms.T6`1
+{
+  .assembly extern pe2
+}
 ";
 
             var csharp = @"
@@ -979,10 +1027,15 @@ class Test
     Ns.Ms.T2 P2 { get; set; }
     Ns.Ms.Ls.T3 P3 { get; set; }
 
-    Nope P4 { get; set; }
-    Ns.Nope P5 { get; set; }
-    Ns.Ms.Nope P6 { get; set; }
-    Ns.Ms.Ls.Nope P7 { get; set; }
+    T4<int> P4 { get; set; }
+    Ns.T5<int> P5 { get; set; }
+    Ns.Ms.T6<int> P6 { get; set; }
+    Ns.Ms.Ls.T7<int> P7 { get; set; }
+
+    Nope P8 { get; set; }
+    Ns.Nope P9 { get; set; }
+    Ns.Ms.Nope P10 { get; set; }
+    Ns.Ms.Ls.Nope P11 { get; set; }
 }
 ";
 
@@ -1003,23 +1056,35 @@ class Test
                 // (7,11): error CS0234: The type or namespace name 'Ls' does not exist in the namespace 'Ns.Ms' (are you missing an assembly reference?)
                 //     Ns.Ms.Ls.T3 P3 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Ls").WithArguments("Ls", "Ns.Ms"),
-                // (9,5): error CS0246: The type or namespace name 'Nope' could not be found (are you missing a using directive or an assembly reference?)
-                //     Nope P4 { get; set; }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nope").WithArguments("Nope"),
-                // (10,8): error CS0234: The type or namespace name 'Nope' does not exist in the namespace 'Ns' (are you missing an assembly reference?)
-                //     Ns.Nope P5 { get; set; }
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Nope").WithArguments("Nope", "Ns"),
-                // (11,11): error CS0234: The type or namespace name 'Nope' does not exist in the namespace 'Ns.Ms' (are you missing an assembly reference?)
-                //     Ns.Ms.Nope P6 { get; set; }
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Nope").WithArguments("Nope", "Ns.Ms"),
+                // (9,5): error CS1070: The type name 'T4<>' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
+                //     T4<int> P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "T4<int>").WithArguments("T4<>", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (10,8): error CS1069: The type name 'T5<>' could not be found in the namespace 'Ns'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //     Ns.T5<int> P5 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T5<int>").WithArguments("T5<>", "Ns", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (11,11): error CS1069: The type name 'T6<>' could not be found in the namespace 'Ns.Ms'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //     Ns.Ms.T6<int> P6 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T6<int>").WithArguments("T6<>", "Ns.Ms", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (12,11): error CS0234: The type or namespace name 'Ls' does not exist in the namespace 'Ns.Ms' (are you missing an assembly reference?)
-                //     Ns.Ms.Ls.Nope P7 { get; set; }
+                //     Ns.Ms.Ls.T7<int> P7 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Ls").WithArguments("Ls", "Ns.Ms"),
+                // (14,5): error CS0246: The type or namespace name 'Nope' could not be found (are you missing a using directive or an assembly reference?)
+                //     Nope P8 { get; set; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nope").WithArguments("Nope"),
+                // (15,8): error CS0234: The type or namespace name 'Nope' does not exist in the namespace 'Ns' (are you missing an assembly reference?)
+                //     Ns.Nope P9 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Nope").WithArguments("Nope", "Ns"),
+                // (16,11): error CS0234: The type or namespace name 'Nope' does not exist in the namespace 'Ns.Ms' (are you missing an assembly reference?)
+                //     Ns.Ms.Nope P10 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Nope").WithArguments("Nope", "Ns.Ms"),
+                // (17,11): error CS0234: The type or namespace name 'Ls' does not exist in the namespace 'Ns.Ms' (are you missing an assembly reference?)
+                //     Ns.Ms.Ls.Nope P11 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Ls").WithArguments("Ls", "Ns.Ms"));
 
-            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => 
-                !ns.StartsWith("System", StringComparison.Ordinal) && 
-                !ns.StartsWith("Windows", StringComparison.Ordinal) && 
-                !ns.StartsWith("FxResources", StringComparison.Ordinal) && 
+            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns =>
+                !ns.StartsWith("System", StringComparison.Ordinal) &&
+                !ns.StartsWith("Windows", StringComparison.Ordinal) &&
+                !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
                 !ns.StartsWith("Microsoft", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "Ns", "Ns.Ms" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
@@ -1078,10 +1143,72 @@ namespace N1
                 //         N1.N2.N3.T t4 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T").WithArguments("T", "N1.N2.N3", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
-            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => 
-                !ns.StartsWith("System", StringComparison.Ordinal) && 
-                !ns.StartsWith("Windows", StringComparison.Ordinal) && 
-                !ns.StartsWith("FxResources", StringComparison.Ordinal) && 
+            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns =>
+                !ns.StartsWith("System", StringComparison.Ordinal) &&
+                !ns.StartsWith("Windows", StringComparison.Ordinal) &&
+                !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+            var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
+            Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
+        }
+
+        [Fact]
+        public void NamespacesMentionedInForwardersGeneric()
+        {
+            var il1 = @"
+.assembly extern pe2 { }
+.assembly extern mscorlib { }
+.assembly pe1 { }
+
+.class extern forwarder N1.N2.N3.T`1
+{
+  .assembly extern pe2
+}
+
+.class public auto ansi beforefieldinit N1.N2.T`1<U>
+       extends [mscorlib]System.Object
+{
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+      ldarg.0
+      call       instance void [mscorlib]System.Object::.ctor()
+      ret
+    }
+
+} // end of class N1.N2.T`1
+";
+
+            var csharp = @"
+namespace N1
+{
+    class Test
+    {
+        N2.T<int> t1 { get; set; }
+        N2.N3.T<int> t2 { get; set; }
+        N1.N2.T<int> t3 { get; set; }
+        N1.N2.N3.T<int> t4 { get; set; }
+    }
+}
+";
+
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+
+            var compilation = CreateCompilation(csharp, new[] { ref1 });
+
+            compilation.VerifyDiagnostics(
+                // (7,15): error CS1069: The type name 'T<>' could not be found in the namespace 'N1.N2.N3'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //         N2.N3.T<int> t2 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T<int>").WithArguments("T<>", "N1.N2.N3", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (9,18): error CS1069: The type name 'T<>' could not be found in the namespace 'N1.N2.N3'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //         N1.N2.N3.T<int> t4 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T<int>").WithArguments("T<>", "N1.N2.N3", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+
+            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns =>
+                !ns.StartsWith("System", StringComparison.Ordinal) &&
+                !ns.StartsWith("Windows", StringComparison.Ordinal) &&
+                !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
                 !ns.StartsWith("Microsoft", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
@@ -1480,7 +1607,7 @@ public class CF1
             EntityHandle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            // Exported types in .Net module cause PEVerify to fail.
+            // Exported types in .NET module cause PEVerify to fail.
             CompileAndVerify(appCompilation, verify: Verification.Fails,
                 symbolValidator: m =>
                 {
@@ -1741,6 +1868,134 @@ public class Forwarded<T>
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Aliases to forwarded types are not supported currently.
+        /// </summary>
+        [WorkItem(27375, "https://github.com/dotnet/roslyn/issues/27375")]
+        [Fact]
+        public void AliasToTypeForwarder()
+        {
+            // Library v1: no forwarding.
+            const string sourceA1 =
+@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+namespace MyNamespace
+{
+    public class MyClass { }
+}";
+            var compA1 = CreateCompilation(sourceA1, assemblyName: "A");
+            var refA1 = compA1.EmitToImageReference(aliases: ImmutableArray.Create("A"));
+
+            const string sourceB1 = sourceA1;
+            var compB1 = CreateCompilation(sourceB1, assemblyName: "B");
+            var refB1 = compB1.EmitToImageReference(aliases: ImmutableArray.Create("B"));
+
+            const string sourceProgram =
+@"extern alias A;
+extern alias B;
+class Program
+{
+    static void Main()
+    {
+        var a = new A::MyNamespace.MyClass();
+        var b = new B::MyNamespace.MyClass();
+    }
+}";
+            var comp = CreateCompilation(sourceProgram, references: new[] { refA1, refB1 });
+            comp.VerifyDiagnostics();
+
+            // Library v2: forwarding to implementation assembly.
+            const string sourceBImpl =
+@"namespace MyNamespace
+{
+    public class MyClass { }
+}";
+            var compBImpl = CreateCompilation(sourceBImpl, assemblyName: "BImpl");
+            var refBImpl = compBImpl.EmitToImageReference();
+
+            const string sourceB2 =
+@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(MyNamespace.MyClass))]";
+            var compB2 = CreateCompilation(sourceB2, references: new[] { refBImpl }, assemblyName: "B");
+
+            // Alias to PE assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, compB2.EmitToImageReference(aliases: ImmutableArray.Create("B")), refBImpl });
+            comp.VerifyDiagnostics(
+                // (8,36): error CS1069: The type name 'MyClass' could not be found in the namespace 'MyNamespace'. This type has been forwarded to assembly 'BImpl, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //         var b = new B::MyNamespace.MyClass();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "MyClass").WithArguments("MyClass", "MyNamespace", "BImpl, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 36));
+
+            // Alias to source assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, new CSharpCompilationReference(compB2, aliases: ImmutableArray.Create("B")), refBImpl });
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0234: The type or namespace name 'MyNamespace' does not exist in the namespace 'B' (are you missing an assembly reference?)
+                //         var b = new B::MyNamespace.MyClass();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "MyNamespace").WithArguments("MyNamespace", "B").WithLocation(8, 24));
+        }
+
+        /// <summary>
+        /// Aliases to forwarded types are not supported currently.
+        /// </summary>
+        [WorkItem(27375, "https://github.com/dotnet/roslyn/issues/27375")]
+        [Fact]
+        public void AliasToGenericTypeForwarder()
+        {
+            // Library v1: no forwarding.
+            const string sourceA1 =
+@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+namespace MyNamespace
+{
+    public class MyClass<T> { }
+}";
+            var compA1 = CreateCompilation(sourceA1, assemblyName: "A");
+            var refA1 = compA1.EmitToImageReference(aliases: ImmutableArray.Create("A"));
+
+            const string sourceB1 = sourceA1;
+            var compB1 = CreateCompilation(sourceB1, assemblyName: "B");
+            var refB1 = compB1.EmitToImageReference(aliases: ImmutableArray.Create("B"));
+
+            const string sourceProgram =
+@"extern alias A;
+extern alias B;
+class Program
+{
+    static void Main()
+    {
+        var a = new A::MyNamespace.MyClass<int>();
+        var b = new B::MyNamespace.MyClass<int>();
+    }
+}";
+            var comp = CreateCompilation(sourceProgram, references: new[] { refA1, refB1 });
+            comp.VerifyDiagnostics();
+
+            // Library v2: forwarding to implementation assembly.
+            const string sourceBImpl =
+@"namespace MyNamespace
+{
+    public class MyClass<T> { }
+}";
+            var compBImpl = CreateCompilation(sourceBImpl, assemblyName: "BImpl");
+            var refBImpl = compBImpl.EmitToImageReference();
+
+            const string sourceB2 =
+@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(MyNamespace.MyClass<>))]";
+            var compB2 = CreateCompilation(sourceB2, references: new[] { refBImpl }, assemblyName: "B");
+
+            // Alias to PE assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, compB2.EmitToImageReference(aliases: ImmutableArray.Create("B")), refBImpl });
+            comp.VerifyDiagnostics(
+                // (8,36): error CS1069: The type name 'MyClass<>' could not be found in the namespace 'MyNamespace'. This type has been forwarded to assembly 'BImpl, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //         var b = new B::MyNamespace.MyClass<int>();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "MyClass<int>").WithArguments("MyClass<>", "MyNamespace", "BImpl, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 36));
+
+            // Alias to source assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, new CSharpCompilationReference(compB2, aliases: ImmutableArray.Create("B")), refBImpl });
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0234: The type or namespace name 'MyNamespace' does not exist in the namespace 'B' (are you missing an assembly reference?)
+                //         var b = new B::MyNamespace.MyClass<int>();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "MyNamespace").WithArguments("MyNamespace", "B").WithLocation(8, 24));
         }
     }
 }

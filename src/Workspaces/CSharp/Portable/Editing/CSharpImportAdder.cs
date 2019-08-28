@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
     [ExportLanguageService(typeof(ImportAdderService), LanguageNames.CSharp), Shared]
     internal class CSharpImportAdder : ImportAdderService
     {
+        [ImportingConstructor]
+        public CSharpImportAdder()
+        {
+        }
+
         protected override INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model)
         {
             switch (node)
@@ -27,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
         {
             // name must refer to something that is not a namespace, but be qualified with a namespace.
             var symbol = model.GetSymbolInfo(fullName).Symbol;
-            var nsSymbol = model.GetSymbolInfo(namespacePart).Symbol as INamespaceSymbol;
-            if (symbol != null && symbol.Kind != SymbolKind.Namespace && nsSymbol != null)
+            if (symbol != null && symbol.Kind != SymbolKind.Namespace && model.GetSymbolInfo(namespacePart).Symbol is INamespaceSymbol nsSymbol)
             {
                 // use the symbols containing namespace, and not the potentially less than fully qualified namespace in the full name expression.
                 var ns = symbol.ContainingNamespace;

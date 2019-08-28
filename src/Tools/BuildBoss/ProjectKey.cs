@@ -18,8 +18,8 @@ namespace BuildBoss
             FilePath = Path.GetFullPath(filePath);
         }
 
-        public static bool operator==(ProjectKey left, ProjectKey right) => StringComparer.OrdinalIgnoreCase.Equals(left.FilePath, right.FilePath);
-        public static bool operator!=(ProjectKey left, ProjectKey right) => !(left == right);
+        public static bool operator ==(ProjectKey left, ProjectKey right) => StringComparer.OrdinalIgnoreCase.Equals(left.FilePath, right.FilePath);
+        public static bool operator !=(ProjectKey left, ProjectKey right) => !(left == right);
         public bool Equals(ProjectKey other) => other == this;
         public override bool Equals(object obj) => obj is ProjectKey && Equals((ProjectKey)obj);
         public override int GetHashCode() => FilePath?.GetHashCode() ?? 0;

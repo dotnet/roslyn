@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBEmbeddedSourceTests : CSharpTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28045")]
         public void StandalonePdb()
         {
             string source1 = @"
@@ -35,7 +35,7 @@ class C
             var tree1 = Parse(source1, "f:/build/goo.cs");
             var tree2 = Parse(source2, "f:/build/nocode.cs");
             var c = CreateCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
-            var embeddedTexts = new[] 
+            var embeddedTexts = new[]
             {
                 EmbeddedText.FromSource(tree1.FilePath, tree1.GetText()),
                 EmbeddedText.FromSource(tree2.FilePath, tree2.GetText())
@@ -44,7 +44,7 @@ class C
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name=""f:/build/goo.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""5D, 7D, CF, 1B, 79, 12,  E,  A, 80, 13, E0, 98, 7E, 5C, AA, 3B, 63, D8, 7E, 4F, "" embeddedSourceLength=""98""><![CDATA[﻿
+    <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F"" embeddedSourceLength=""98""><![CDATA[﻿
 using System;
 class C
 {
@@ -54,7 +54,7 @@ class C
     }
 }
 ]]></file>
-    <file id=""2"" name=""f:/build/nocode.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""8B, 1D, 3F, 75, E0, A8, 8F, 90, B2, D3, 52, CF, 71, 9B, 17, 29, 3C, 70, 7A, 42, "" embeddedSourceLength=""21""><![CDATA[﻿
+    <file id=""2"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42"" embeddedSourceLength=""21""><![CDATA[﻿
 // no code
 ]]></file>
   </files>

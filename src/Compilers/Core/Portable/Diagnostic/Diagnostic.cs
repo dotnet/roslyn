@@ -445,6 +445,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract Diagnostic WithIsSuppressed(bool isSuppressed);
 
+        /// <summary>
+        /// Create a new instance of this diagnostic with the given programmatic suppression info.
+        /// </summary>
+        internal Diagnostic WithProgrammaticSuppression(ProgrammaticSuppressionInfo programmaticSuppressionInfo)
+        {
+            Debug.Assert(this.ProgrammaticSuppressionInfo == null);
+            Debug.Assert(programmaticSuppressionInfo != null);
+
+            return new DiagnosticWithProgrammaticSuppression(this, programmaticSuppressionInfo);
+        }
+
+        internal virtual ProgrammaticSuppressionInfo ProgrammaticSuppressionInfo { get { return null; } }
+
         // compatibility
         internal virtual int Code { get { return 0; } }
 
@@ -546,14 +559,33 @@ namespace Microsoft.CodeAnalysis
         {
             return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
         }
+
+        /// <summary>
+        /// Returns true if this is an error diagnostic which cannot be suppressed and is guaranteed to break the build.
+        /// Only diagnostics which have default severity error and are tagged as NotConfigurable fall in this bucket.
+        /// This includes all compiler error diagnostics and specific analyzer error diagnostics that are marked as not configurable by the analyzer author.
+        /// </summary>
+        internal bool IsUnsuppressableError()
+            => DefaultSeverity == DiagnosticSeverity.Error && IsNotConfigurable();
+
+        /// <summary>
+        /// Returns true if this is a unsuppressed diagnostic with an effective error severity.
+        /// </summary>
+        internal bool IsUnsuppressedError
+            => Severity == DiagnosticSeverity.Error && !IsSuppressed;
     }
 
     /// <summary>
     /// This type is attached to diagnostics for required language version and should only be used
     /// on such diagnostics, as they are recognized by <see cref="Compilation.GetRequiredLanguageVersion"/>.
     /// </summary>
-    internal abstract class RequiredLanguageVersion : IMessageSerializable
+    internal abstract class RequiredLanguageVersion : IFormattable
     {
         public abstract override string ToString();
+
+        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        {
+            return ToString();
+        }
     }
 }

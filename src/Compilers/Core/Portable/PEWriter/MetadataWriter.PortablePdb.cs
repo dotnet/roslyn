@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -145,10 +146,10 @@ namespace Microsoft.Cci
             }
         }
 
-        private static LocalVariableHandle NextHandle(LocalVariableHandle handle) => 
+        private static LocalVariableHandle NextHandle(LocalVariableHandle handle) =>
             MetadataTokens.LocalVariableHandle(MetadataTokens.GetRowNumber(handle) + 1);
 
-        private static LocalConstantHandle NextHandle(LocalConstantHandle handle) => 
+        private static LocalConstantHandle NextHandle(LocalConstantHandle handle) =>
             MetadataTokens.LocalConstantHandle(MetadataTokens.GetRowNumber(handle) + 1);
 
         private BlobHandle SerializeLocalConstantSignature(ILocalDefinition localConstant)
@@ -812,7 +813,7 @@ namespace Microsoft.Cci
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
-                throw new PdbWritingException(e);
+                throw new SymUnmanagedWriterException(e.Message, e);
             }
 
             _debugMetadataOpt.AddCustomDebugInformation(

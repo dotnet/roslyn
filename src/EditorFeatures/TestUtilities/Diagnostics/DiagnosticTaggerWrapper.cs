@@ -6,10 +6,11 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private readonly ImmutableArray<IIncrementalAnalyzer> _incrementalAnalyzers;
         private readonly SolutionCrawlerRegistrationService _solutionCrawlerService;
         public readonly DiagnosticService DiagnosticService;
-        private readonly AsynchronousOperationListenerProvider _listenerProvider;
+        private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         private ITaggerProvider _taggerProvider;
 
@@ -58,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             IDiagnosticUpdateSource updateSource,
             bool createTaggerProvider)
         {
-            _listenerProvider = new AsynchronousOperationListenerProvider();
+            _threadingContext = workspace.GetService<IThreadingContext>();
+            _listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
 
             if (analyzerMap != null || updateSource == null)
             {
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             _registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(workspace);
 
-            DiagnosticService = new DiagnosticService(_listenerProvider);
+            DiagnosticService = new DiagnosticService(_listenerProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
             DiagnosticService.Register(updateSource);
 
             if (createTaggerProvider)
@@ -96,16 +99,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 if (_taggerProvider == null)
                 {
-                    WpfTestCase.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
+                    WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
 
                     if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider))
                     {
                         _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
+                            _threadingContext,
                             DiagnosticService, _workspace.GetService<IForegroundNotificationService>(), _listenerProvider);
                     }
                     else if (typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider))
                     {
                         _taggerProvider = new DiagnosticsSuggestionTaggerProvider(
+                            _threadingContext,
                             DiagnosticService,
                             _workspace.GetService<IForegroundNotificationService>(), _listenerProvider);
                     }
@@ -131,8 +136,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(_workspace, _incrementalAnalyzers);
             }
 
-            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask();
-            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateExpeditedWaitTask();
         }
 
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService

@@ -10,12 +10,14 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 Imports Microsoft.VisualStudio.Text.Classification
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
+    <[UseExportProvider]>
     Public Class ReorderParametersViewModelTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
@@ -355,7 +357,7 @@ class MyClass
 
                 Dim viewModel = New ChangeSignatureDialogViewModel(
                     New TestNotificationService(),
-                    ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol.IsExtensionMethod()),
+                    ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol.IsExtensionMethod(), selectedIndex:=0),
                     symbol,
                     workspace.ExportProvider.GetExportedValue(Of IClassificationFormatMapService)().GetClassificationFormatMap("text"),
                     workspace.ExportProvider.GetExportedValue(Of ClassificationTypeMap)())

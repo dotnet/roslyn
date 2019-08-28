@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -9,19 +10,19 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
+    [UseExportProvider]
     public class AddImportsTests
     {
-        private readonly AdhocWorkspace _ws = new AdhocWorkspace();
-        private readonly Project _emptyProject;
-
-        public AddImportsTests()
+        private Document GetDocument(string code)
         {
-            _emptyProject = _ws.AddProject(
+            var ws = new AdhocWorkspace();
+            var emptyProject = ws.AddProject(
                 ProjectInfo.Create(
                     ProjectId.CreateNewId(),
                     VersionStamp.Default,
@@ -29,17 +30,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     "test.dll",
                     LanguageNames.CSharp,
                     metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib }));
+
+            return emptyProject.AddDocument("test.cs", code);
         }
 
-        private Document GetDocument(string code)
-        {
-            return _emptyProject.AddDocument("test.cs", code);
-        }
-
-        private async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, OptionSet options = null)
+        private async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, Func<OptionSet, OptionSet> optionsTransform = null)
         {
             var doc = GetDocument(initialText);
-            options = options ?? await doc.GetOptionsAsync();
+            OptionSet options = await doc.GetOptionsAsync();
+            if (optionsTransform != null)
+            {
+                options = optionsTransform(options);
+            }
 
             var imported = await ImportAdder.AddImportsAsync(doc, options);
 
@@ -138,7 +140,7 @@ class C
 {
     public List<int> F;
 }",
-    _ws.Options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, false)
+                options => options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, false)
 );
         }
 
@@ -510,7 +512,17 @@ class C
 
             var otherAssemblyReference = GetInMemoryAssemblyReferenceForCode(externalCode);
 
-            var project = _emptyProject
+            var ws = new AdhocWorkspace();
+            var emptyProject = ws.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Default,
+                    "test",
+                    "test.dll",
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib }));
+
+            var project = emptyProject
                 .AddMetadataReferences(new[] { otherAssemblyReference })
                 .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
@@ -520,7 +532,7 @@ class C
             var options = document.Project.Solution.Workspace.Options;
 
             var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
-            ImmutableArray<Diagnostic> compilerDiagnostics = compilation.GetDiagnostics(CancellationToken.None);
+            var compilerDiagnostics = compilation.GetDiagnostics(CancellationToken.None);
             Assert.Empty(compilerDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
 
             var attribute = compilation.GetTypeByMetadataName("N.M.A");
@@ -530,13 +542,13 @@ class C
 
             // Add N.M.A attribute to p1.
             var editor = await DocumentEditor.CreateAsync(document, CancellationToken.None).ConfigureAwait(false);
-            SyntaxNode attributeSyntax = editor.Generator.Attribute(editor.Generator.TypeExpression(attribute));
+            var attributeSyntax = editor.Generator.Attribute(editor.Generator.TypeExpression(attribute));
 
             editor.AddAttribute(p1SyntaxNode, attributeSyntax);
-            Document documentWithAttribute = editor.GetChangedDocument();
+            var documentWithAttribute = editor.GetChangedDocument();
 
             // Add namespace import.
-            Document imported = await ImportAdder.AddImportsAsync(documentWithAttribute, null,
+            var imported = await ImportAdder.AddImportsAsync(documentWithAttribute, null,
                 CancellationToken.None).ConfigureAwait(false);
 
             var formatted = await Formatter.FormatAsync(imported, options);
@@ -556,9 +568,9 @@ class C
 
         private static MetadataReference GetInMemoryAssemblyReferenceForCode(string code)
         {
-            SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
+            var tree = CSharpSyntaxTree.ParseText(code);
 
-            CSharpCompilation compilation = CSharpCompilation
+            var compilation = CSharpCompilation
                 .Create("test.dll", new[] { tree })
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib);

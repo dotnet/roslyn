@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                     Return result
 
-                Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+                Catch ex As InsufficientExecutionStackException
                     Throw New CancelledByStackGuardException(ex, node)
                 End Try
             End Function
@@ -702,6 +702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     node.MethodGroupOpt,
                     receiver,
                     rewrittenArguments,
+                    node.DefaultArguments,
                     node.ConstantValueOpt,
                     isLValue:=node.IsLValue,
                     suppressObjectClone:=node.SuppressObjectClone,
@@ -745,7 +746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Debug.Assert(node.InitializerOpt Is Nothing)
                 Me._counter += 1
 
-                Return node.Update(constructor, rewrittenArguments, Nothing, node.Type)
+                Return node.Update(constructor, rewrittenArguments, node.DefaultArguments, Nothing, node.Type)
             End Function
 
             Public Overrides Function VisitArrayAccess(node As BoundArrayAccess) As BoundNode

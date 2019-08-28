@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,22 +28,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static NameSyntax GenerateNameSyntax(
-            this INamespaceOrTypeSymbol symbol)
+            this INamespaceOrTypeSymbol symbol, bool allowVar = true)
         {
-            return (NameSyntax)GenerateTypeSyntax(symbol, nameSyntax: true);
+            return (NameSyntax)GenerateTypeSyntax(symbol, nameSyntax: true, allowVar: allowVar);
         }
 
         public static TypeSyntax GenerateTypeSyntax(
-            this INamespaceOrTypeSymbol symbol)
+            this INamespaceOrTypeSymbol symbol, bool allowVar = true)
         {
-            return GenerateTypeSyntax(symbol, nameSyntax: false);
+            return GenerateTypeSyntax(symbol, nameSyntax: false, allowVar: allowVar);
         }
 
         private static TypeSyntax GenerateTypeSyntax(
-            INamespaceOrTypeSymbol symbol, bool nameSyntax)
+            INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
         {
-            return symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
-                         .WithAdditionalAnnotations(Simplifier.Annotation);
+            if (symbol is ITypeSymbol type && type.ContainsAnonymousType())
+            {
+                // something with an anonymous type can only be represented with 'var', regardless
+                // of what the user's preferences might be.
+                return SyntaxFactory.IdentifierName("var");
+            }
+
+            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
+                               .WithAdditionalAnnotations(Simplifier.Annotation);
+
+            if (!allowVar)
+            {
+                syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);
+            }
+
+            return syntax;
         }
 
         public static TypeSyntax GenerateRefTypeSyntax(
@@ -83,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static async Task<ISymbol> FindApplicableAlias(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public static async Task<ISymbol?> FindApplicableAlias(this ITypeSymbol type, int position, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             try
             {
@@ -95,11 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-                IEnumerable<UsingDirectiveSyntax> applicableUsings = GetApplicableUsings(position, root as CompilationUnitSyntax);
+                var applicableUsings = GetApplicableUsings(position, (CompilationUnitSyntax)root);
                 foreach (var applicableUsing in applicableUsings)
                 {
                     var alias = semanticModel.GetOriginalSemanticModel().GetDeclaredSymbol(applicableUsing, cancellationToken);
-                    if (alias != null && alias.Target == type)
+                    if (alias != null && Equals(alias.Target, type))
                     {
                         return alias;
                     }
@@ -145,35 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 default:
                     return false;
             }
-        }
-
-        public static TypeSyntax GenerateTypeSyntaxOrVar(
-            this ITypeSymbol symbol, OptionSet options, bool typeIsApparent)
-        {
-            var useVar = IsVarDesired(symbol, options, typeIsApparent);
-
-            return useVar
-                ? SyntaxFactory.IdentifierName("var")
-                : symbol.GenerateTypeSyntax();
-        }
-
-        private static bool IsVarDesired(ITypeSymbol type, OptionSet options, bool typeIsApperant)
-        {
-            // If they want it for intrinsics, and this is an intrinsic, then use var.
-            if (type.IsSpecialType() == true)
-            {
-                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
-            }
-
-            // If they want it only for apperant types, then only use "var" if the caller
-            // says the type was apperant.
-            if (typeIsApperant)
-            {
-                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Value;
-            }
-
-            // If they want "var" whenever possible, then use "var".
-            return  options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
         }
     }
 }

@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -12,21 +10,20 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class PopulateSwitchDiagnosticAnalyzer : 
-        AbstractCodeStyleDiagnosticAnalyzer
+    internal sealed class PopulateSwitchDiagnosticAnalyzer :
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_missing_cases), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Populate_switch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
         public PopulateSwitchDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.PopulateSwitchDiagnosticId,
+                   option: null,
                    s_localizableTitle, s_localizableMessage)
         {
         }
 
         #region Interface methods
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterOperationAction(AnalyzeOperation, OperationKind.Switch);
@@ -46,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     .Add(PopulateSwitchHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
                 var diagnostic = Diagnostic.Create(
-                    HiddenDescriptor,
+                    Descriptor,
                     switchBlock.GetFirstToken().GetLocation(),
                     properties: properties,
                     additionalLocations: new[] { switchBlock.GetLocation() });

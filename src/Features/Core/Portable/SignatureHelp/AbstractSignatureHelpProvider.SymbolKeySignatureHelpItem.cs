@@ -20,34 +20,34 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 IEnumerable<TaggedText> separatorParts,
                 IEnumerable<TaggedText> suffixParts,
                 IEnumerable<SignatureHelpParameter> parameters,
-                IEnumerable<TaggedText> descriptionParts) : 
-                base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
+                IEnumerable<TaggedText> descriptionParts)
+                : base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
             {
-                this.SymbolKey = symbol?.GetSymbolKey();
+                SymbolKey = symbol?.GetSymbolKey();
             }
 
             public override bool Equals(object obj)
             {
-                return this.Equals(obj as SymbolKeySignatureHelpItem);
+                return Equals(obj as SymbolKeySignatureHelpItem);
             }
 
             public bool Equals(SymbolKeySignatureHelpItem obj)
             {
                 return ReferenceEquals(this, obj) ||
                     (obj?.SymbolKey != null &&
-                     this.SymbolKey != null &&
-                     CodeAnalysis.SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false).Equals(this.SymbolKey.Value, obj.SymbolKey.Value));
+                     SymbolKey != null &&
+                     CodeAnalysis.SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false).Equals(SymbolKey.Value, obj.SymbolKey.Value));
             }
 
             public override int GetHashCode()
             {
-                if (this.SymbolKey == null)
+                if (SymbolKey == null)
                 {
                     return 0;
                 }
 
                 var comparer = CodeAnalysis.SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
-                return comparer.GetHashCode(this.SymbolKey.Value);
+                return comparer.GetHashCode(SymbolKey.Value);
             }
         }
     }

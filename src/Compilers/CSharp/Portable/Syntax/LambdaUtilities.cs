@@ -115,14 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static SyntaxNode GetNestedFunctionBody(SyntaxNode nestedFunction)
-        {
-            switch (nestedFunction)
+            => nestedFunction switch
             {
-                case AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax: return anonymousFunctionExpressionSyntax.Body;
-                case LocalFunctionStatementSyntax localFunctionStatementSyntax: return (CSharpSyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody.Expression;
-                default: throw ExceptionUtilities.UnexpectedValue(nestedFunction);
-            }
-        }
+                AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax => anonymousFunctionExpressionSyntax.Body,
+                LocalFunctionStatementSyntax localFunctionStatementSyntax => (CSharpSyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody.Expression,
+                _ => throw ExceptionUtilities.UnexpectedValue(nestedFunction),
+            };
 
         public static bool IsNotLambdaBody(SyntaxNode node)
         {
@@ -395,11 +393,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConstructorDeclaration:
                     return true;
 
-                // With the introduction of pattern-matching, many nodes now contain top-level
-                // expressions that may introduce pattern variables.
-                case SyntaxKind.EqualsValueClause:
-                    return true;
-
                 // Due to pattern-matching, any statement that contains an expression may introduce a scope.
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.ExpressionStatement:
@@ -423,7 +416,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // that lambda needs a closure that captures the analysis payload of the constructor.
                     return true;
 
+                case SyntaxKind.SwitchExpression:
+                case SyntaxKind.AwaitExpression:
+                    // These translate into a BoundSpillSequence, which is then translated into a block
+                    // containing temps required for spilling subexpressions. That block has the syntax of the switch
+                    // expression or await expression.
+                    return true;
+
                 default:
+                    // With the introduction of pattern-matching, many nodes now contain top-level
+                    // expressions that may introduce pattern variables.
+                    if (node.Parent != null)
+                    {
+                        switch (node.Parent.Kind())
+                        {
+                            case SyntaxKind.EqualsValueClause:
+                                return true;
+
+                            case SyntaxKind.ForStatement:
+                                SeparatedSyntaxList<ExpressionSyntax> incrementors = ((ForStatementSyntax)node.Parent).Incrementors;
+                                if (incrementors.FirstOrDefault() == node)
+                                {
+                                    return true;
+                                }
+                                break;
+                        }
+                    }
+
                     break;
             }
 
@@ -439,6 +458,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Given a node that represents a variable declaration, lambda or a closure scope return the position to be used to calculate 
+        /// the node's syntax offset with respect to its containing member.
+        /// </summary>
+        internal static int GetDeclaratorPosition(SyntaxNode node)
+        {
+            // To differentiate between nested switch expressions that start at the same offset, use the offset of the `switch` keyword.
+            return (node is SwitchExpressionSyntax switchExpression) ? switchExpression.SwitchKeyword.SpanStart : node.SpanStart;
         }
 
         private static SyntaxNode GetLocalFunctionBody(LocalFunctionStatementSyntax localFunctionStatementSyntax)

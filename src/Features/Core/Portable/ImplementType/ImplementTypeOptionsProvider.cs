@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.ImplementType
     [ExportOptionProvider, Shared]
     internal class ImplementTypeOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public ImplementTypeOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             ImplementTypeOptions.InsertionBehavior);
     }

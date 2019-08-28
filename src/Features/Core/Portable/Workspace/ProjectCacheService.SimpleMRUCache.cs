@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                 }
 
-                Contract.Requires(oldIndex >= 0);
+                Debug.Assert(oldIndex >= 0);
                 _nodes[oldIndex] = new Node(instance, DateTime.UtcNow);
             }
 
@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly ProjectCacheService _owner;
             private readonly SemaphoreSlim _gate;
 
-            public ImplicitCacheMonitor(ProjectCacheService owner, int backOffTimeSpanInMS) :
-                base(AsynchronousOperationListenerProvider.NullListener,
-                     backOffTimeSpanInMS,
-                     CancellationToken.None)
+            public ImplicitCacheMonitor(ProjectCacheService owner, int backOffTimeSpanInMS)
+                : base(AsynchronousOperationListenerProvider.NullListener,
+                       backOffTimeSpanInMS,
+                       CancellationToken.None)
             {
                 _owner = owner;
                 _gate = new SemaphoreSlim(0);
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 _owner.ClearExpiredImplicitCache(DateTime.UtcNow - TimeSpan.FromMilliseconds(BackOffTimeSpanInMS));
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void Touch()
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Host
                     return _gate.WaitAsync(cancellationToken);
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -15,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class SolutionService : ISolutionController
     {
         private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
-        public static readonly RemoteWorkspace PrimaryWorkspace = new RemoteWorkspace();
 
         private readonly AssetService _assetService;
 
@@ -28,14 +30,41 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetService = assetService;
         }
 
+        public static RemoteWorkspace PrimaryWorkspace
+        {
+            get
+            {
+                var exportProvider = (IMefHostExportProvider)RoslynServices.HostServices;
+                var primaryWorkspace = exportProvider.GetExports<PrimaryWorkspace>().Single().Value;
+                if (primaryWorkspace.Workspace == null)
+                {
+                    // The Roslyn OOP service assumes a singleton workspace exists, but doesn't initialize it anywhere.
+                    // If we get here, code is asking for a workspace before it exists, so we create one on the fly.
+                    // The RemoteWorkspace constructor assigns itself as the new singleton instance.
+                    new RemoteWorkspace();
+                }
+
+                return (RemoteWorkspace)primaryWorkspace.Workspace;
+            }
+        }
+
+        public Task<SolutionInfo> GetSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        {
+            return SolutionInfoCreator.CreateSolutionInfoAsync(_assetService, solutionChecksum, cancellationToken);
+        }
+
         public Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             // this method is called by users which means we don't know whether the solution is from primary branch or not.
             // so we will be conservative and assume it is not. meaning it won't update any internal caches but only consume cache if possible.
-            return GetSolutionInternalAsync(solutionChecksum, fromPrimaryBranch: false, cancellationToken: cancellationToken);
+            return GetSolutionInternalAsync(solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, cancellationToken: cancellationToken);
         }
 
-        private async Task<Solution> GetSolutionInternalAsync(Checksum solutionChecksum, bool fromPrimaryBranch, CancellationToken cancellationToken)
+        private async Task<Solution> GetSolutionInternalAsync(
+            Checksum solutionChecksum,
+            bool fromPrimaryBranch,
+            int workspaceVersion,
+            CancellationToken cancellationToken)
         {
             var currentSolution = GetAvailableSolution(solutionChecksum);
             if (currentSolution != null)
@@ -52,7 +81,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     return currentSolution;
                 }
 
-                var solution = await CreateSolution_NoLockAsync(solutionChecksum, fromPrimaryBranch, PrimaryWorkspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                var solution = await CreateSolution_NoLockAsync(
+                    solutionChecksum,
+                    fromPrimaryBranch,
+                    workspaceVersion,
+                    PrimaryWorkspace.CurrentSolution,
+                    cancellationToken).ConfigureAwait(false);
                 s_lastSolution = Tuple.Create(solutionChecksum, solution);
 
                 return solution;
@@ -81,7 +115,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// these 2 are complimentary to each other. #1 makes OOP's primary solution to be ready for next call (push), #2 makes OOP's primary
         /// solution be not stale as much as possible. (pull)
         /// </summary>
-        private async Task<Solution> CreateSolution_NoLockAsync(Checksum solutionChecksum, bool fromPrimaryBranch, Solution baseSolution, CancellationToken cancellationToken)
+        private async Task<Solution> CreateSolution_NoLockAsync(
+            Checksum solutionChecksum,
+            bool fromPrimaryBranch,
+            int workspaceVersion,
+            Solution baseSolution,
+            CancellationToken cancellationToken)
         {
             var updater = new SolutionCreator(_assetService, baseSolution, cancellationToken);
 
@@ -94,8 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (fromPrimaryBranch)
                 {
                     // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
-                    PrimaryWorkspace.UpdateSolution(solution);
-                    return PrimaryWorkspace.CurrentSolution;
+                    return PrimaryWorkspace.UpdateSolutionIfPossible(solution, workspaceVersion);
                 }
 
                 // otherwise, just return the solution
@@ -106,28 +144,28 @@ namespace Microsoft.CodeAnalysis.Remote
             await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // get new solution info
-            var solutionInfo = await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false);
+            var solutionInfo = await GetSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             if (fromPrimaryBranch)
             {
                 // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
-                PrimaryWorkspace.ClearSolution();
-                PrimaryWorkspace.AddSolution(solutionInfo);
-
-                return PrimaryWorkspace.CurrentSolution;
+                if (PrimaryWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion, out var solution))
+                {
+                    return solution;
+                }
             }
 
             // otherwise, just return new solution
-            var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
+            var workspace = new TemporaryWorkspace(solutionInfo);
             return workspace.CurrentSolution;
         }
 
-        async Task<Solution> ISolutionController.GetSolutionAsync(Checksum solutionChecksum, bool primary, CancellationToken cancellationToken)
+        Task<Solution> ISolutionController.GetSolutionAsync(Checksum solutionChecksum, bool primary, int workspaceVersion, CancellationToken cancellationToken)
         {
-            return await GetSolutionInternalAsync(solutionChecksum, primary, cancellationToken).ConfigureAwait(false);
+            return GetSolutionInternalAsync(solutionChecksum, primary, workspaceVersion, cancellationToken);
         }
 
-        async Task ISolutionController.UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        async Task ISolutionController.UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
         {
             var currentSolution = PrimaryWorkspace.CurrentSolution;
 
@@ -140,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 var primary = true;
-                var solution = await CreateSolution_NoLockAsync(solutionChecksum, primary, currentSolution, cancellationToken).ConfigureAwait(false);
+                var solution = await CreateSolution_NoLockAsync(solutionChecksum, primary, workspaceVersion, currentSolution, cancellationToken).ConfigureAwait(false);
                 s_primarySolution = Tuple.Create(solutionChecksum, solution);
             }
         }

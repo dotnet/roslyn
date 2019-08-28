@@ -157,7 +157,7 @@ public class Test : C107
 }
 ";
 
-            CompileAndVerify(source, new[] { metadataTestLib1, metadataTestLib2 }, assemblyValidator: (assembly) =>
+            CompileAndVerifyWithMscorlib40(source, new[] { metadataTestLib1, metadataTestLib2 }, assemblyValidator: (assembly) =>
             {
                 var refs = assembly.Modules[0].ReferencedAssemblies.OrderBy(r => r.Name).ToArray();
                 Assert.Equal(2, refs.Length);
@@ -174,7 +174,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
+            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
@@ -519,12 +519,12 @@ public class A
                 var f4 = classA.GetMembers("F4").OfType<FieldSymbol>().Single();
 
                 Assert.False(f1.IsVolatile);
-                Assert.Equal(0, f1.CustomModifiers.Length);
+                Assert.Equal(0, f1.TypeWithAnnotations.CustomModifiers.Length);
 
                 Assert.True(f2.IsVolatile);
-                Assert.Equal(1, f2.CustomModifiers.Length);
+                Assert.Equal(1, f2.TypeWithAnnotations.CustomModifiers.Length);
 
-                CustomModifier mod = f2.CustomModifiers[0];
+                CustomModifier mod = f2.TypeWithAnnotations.CustomModifiers[0];
 
                 Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
                 Assert.Equal(Accessibility.Internal, f2.DeclaredAccessibility);
@@ -560,7 +560,7 @@ public class A
 }";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var type = module.GlobalNamespace.GetNamespaceMembers().Single().GetTypeMembers("C").Single();
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("N.C");
                 var ctor = (MethodSymbol)type.GetMembers(".ctor").SingleOrDefault();
                 var cctor = (MethodSymbol)type.GetMembers(".cctor").SingleOrDefault();
 
@@ -581,7 +581,7 @@ public class A
                 // Bug - 2067
                 Assert.Equal("N.C." + WellKnownMemberNames.InstanceConstructorName + "()", ctor.ToTestDisplayString());
                 Assert.Equal(0, ctor.TypeParameters.Length);
-                Assert.Equal("Void", ctor.ReturnType.Name);
+                Assert.Equal("Void", ctor.ReturnTypeWithAnnotations.Type.Name);
 
                 if (isFromSource)
                 {
@@ -601,9 +601,9 @@ public class A
                     Assert.False(cctor.IsVararg);
                     // Bug - 2067
                     Assert.Equal("N.C." + WellKnownMemberNames.StaticConstructorName + "()", cctor.ToTestDisplayString());
-                    Assert.Equal(0, cctor.TypeArguments.Length);
+                    Assert.Equal(0, cctor.TypeArgumentsWithAnnotations.Length);
                     Assert.Equal(0, cctor.Parameters.Length);
-                    Assert.Equal("Void", cctor.ReturnType.Name);
+                    Assert.Equal("Void", cctor.ReturnTypeWithAnnotations.Type.Name);
                 }
                 else
                 {
@@ -695,7 +695,7 @@ class Properties
 }";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var nmspace = module.GlobalNamespace.GetNamespaceMembers().Single();
+                var nmspace = module.GlobalNamespace.GetMember<NamespaceSymbol>("Namespace");
                 Assert.NotNull(nmspace.GetTypeMembers("Public").SingleOrDefault());
                 Assert.NotNull(nmspace.GetTypeMembers("Internal").SingleOrDefault());
 
@@ -1131,7 +1131,7 @@ public class C : I
 
         private static void CheckPropertyAccessibility(PropertySymbol property, Accessibility propertyAccessibility, Accessibility getterAccessibility, Accessibility setterAccessibility)
         {
-            var type = property.Type;
+            var type = property.TypeWithAnnotations;
             Assert.NotEqual(type.PrimitiveTypeCode, Microsoft.Cci.PrimitiveTypeCode.Void);
             Assert.Equal(propertyAccessibility, property.DeclaredAccessibility);
             CheckPropertyAccessorAccessibility(property, propertyAccessibility, property.GetMethod, getterAccessibility);
@@ -1345,7 +1345,7 @@ class C : B<string>
             Assert.Equal(field.ConstantValue, value);
 
             var sourceType = type as SourceNamedTypeSymbol;
-            if (sourceType != null)
+            if ((object)sourceType != null)
             {
                 var fieldDefinition = (Microsoft.Cci.IFieldDefinition)field;
                 Assert.False(fieldDefinition.IsSpecialName);
@@ -1366,7 +1366,7 @@ class C : B<string>
             Assert.Null(field);
 
             var sourceType = type as SourceNamedTypeSymbol;
-            if (sourceType != null)
+            if ((object)sourceType != null)
             {
                 field = sourceType.EnumValueField;
                 Assert.NotNull(field);
@@ -2057,7 +2057,7 @@ class C
                 {
                     if (invoke.Parameters[i].RefKind != RefKind.None)
                     {
-                        Assert.Equal(invoke.Parameters[i].Type, endInvoke.Parameters[k].Type);
+                        Assert.Equal(invoke.Parameters[i].TypeWithAnnotations, endInvoke.Parameters[k].TypeWithAnnotations);
                         Assert.Equal(invoke.Parameters[i].RefKind, endInvoke.Parameters[k++].RefKind);
                     }
                 }
@@ -2195,7 +2195,7 @@ class Program
             var options = EmitOptions.Default.WithFileAlignment(0x2000);
             var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
 
-            var peStream = CreateCompilation(
+            var peStream = CreateCompilationWithMscorlib40(
                 syntax,
                 options: TestOptions.ReleaseDll.WithDeterministic(true),
                 assemblyName: "46B9C2B2-B7A0-45C5-9EF9-28DDF739FD9E").EmitToStream(options);
@@ -2384,7 +2384,7 @@ class Program
 
             var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular);
 
-            var peStream = CreateCompilation(
+            var peStream = CreateCompilationWithMscorlib40(
                 syntax,
                 options: TestOptions.DebugExe.WithPlatform(Platform.X64).WithDeterministic(true),
                 assemblyName: "B37A4FCD-ED76-4924-A2AD-298836056E00").EmitToStream(options);
@@ -2643,7 +2643,7 @@ class T
         [Fact]
         public void InParametersShouldHaveMetadataIn_NoPIA()
         {
-            var comAssembly = CreateCompilation(@"
+            var comAssembly = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""test.dll"")]

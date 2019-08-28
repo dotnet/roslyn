@@ -3,6 +3,7 @@
 using System;
 using System.Composition;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -24,11 +25,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         [ImportingConstructor]
         public VisualStudioSymbolSearchProgressService(VSShell.SVsServiceProvider serviceProvider)
         {
-            _taskCenterServiceOpt = new Lazy<IVsTaskStatusCenterService>(() => 
+            _taskCenterServiceOpt = new Lazy<IVsTaskStatusCenterService>(() =>
                 (IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService)));
         }
 
-        public async Task OnDownloadFullDatabaseStartedAsync(string title)
+        public async Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken)
         {
             try
             {
@@ -64,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             var handler = _taskCenterServiceOpt.Value?.PreRegister(options, data);
             handler?.RegisterTask(localTaskCompletionSource.Task);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private static TaskHandlerOptions GetOptions(string title)
@@ -72,36 +73,36 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             var options = new TaskHandlerOptions
             {
                 Title = title,
-                ActionsAfterCompletion = CompletionActions.RetainOnFaulted
+                ActionsAfterCompletion = CompletionActions.None
             };
 
             return options;
         }
 
-        public Task OnDownloadFullDatabaseSucceededAsync()
+        public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellation)
         {
             lock (_gate)
             {
                 _taskCompletionSource?.TrySetResult(true);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 
-        public Task OnDownloadFullDatabaseCanceledAsync()
+        public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken)
         {
             lock (_gate)
             {
                 _taskCompletionSource?.TrySetCanceled();
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 
-        public Task OnDownloadFullDatabaseFailedAsync(string message)
+        public Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
                 _taskCompletionSource?.TrySetException(new Exception(message));
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

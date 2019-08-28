@@ -10,21 +10,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal class StreamingFindReferencesProgress : IStreamingFindReferencesProgress
     {
-        public static readonly IStreamingFindReferencesProgress Instance = 
+        public static readonly IStreamingFindReferencesProgress Instance =
             new StreamingFindReferencesProgress();
 
         private StreamingFindReferencesProgress()
         {
         }
 
-        public Task ReportProgressAsync(int current, int maximum) => SpecializedTasks.EmptyTask;
+        public Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
 
-        public Task OnCompletedAsync() => SpecializedTasks.EmptyTask;
-        public Task OnStartedAsync() => SpecializedTasks.EmptyTask;
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbol) => SpecializedTasks.EmptyTask;
-        public Task OnReferenceFoundAsync(SymbolAndProjectId symbol, ReferenceLocation location) => SpecializedTasks.EmptyTask;
-        public Task OnFindInDocumentStartedAsync(Document document) => SpecializedTasks.EmptyTask;
-        public Task OnFindInDocumentCompletedAsync(Document document) => SpecializedTasks.EmptyTask;
+        public Task OnCompletedAsync() => Task.CompletedTask;
+        public Task OnStartedAsync() => Task.CompletedTask;
+        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbol) => Task.CompletedTask;
+        public Task OnReferenceFoundAsync(SymbolAndProjectId symbol, ReferenceLocation location) => Task.CompletedTask;
+        public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
+        public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
     }
 
     /// <summary>
@@ -43,43 +43,43 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public Task OnCompletedAsync()
         {
             _progress.OnCompleted();
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task OnDefinitionFoundAsync(SymbolAndProjectId symbolAndProjectId)
         {
             _progress.OnDefinitionFound(symbolAndProjectId.Symbol);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task OnFindInDocumentCompletedAsync(Document document)
         {
             _progress.OnFindInDocumentCompleted(document);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task OnFindInDocumentStartedAsync(Document document)
         {
             _progress.OnFindInDocumentStarted(document);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task OnReferenceFoundAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
         {
             _progress.OnReferenceFound(symbolAndProjectId.Symbol, location);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task OnStartedAsync()
         {
             _progress.OnStarted();
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public Task ReportProgressAsync(int current, int maximum)
         {
             _progress.ReportProgress(current, maximum);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
     }
 }

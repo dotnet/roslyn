@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     [ExportWorkspaceService(typeof(ISymbolRenamedCodeActionOperationFactoryWorkspaceService), WorkspaceKind.Test), Shared]
     public class TestSymbolRenamedCodeActionOperationFactoryWorkspaceService : ISymbolRenamedCodeActionOperationFactoryWorkspaceService
     {
+        [ImportingConstructor]
+        public TestSymbolRenamedCodeActionOperationFactoryWorkspaceService()
+        {
+        }
+
         public CodeActionOperation CreateSymbolRenamedOperation(ISymbol symbol, string newName, Solution startingSolution, Solution updatedSolution)
         {
             return new Operation(symbol, newName, startingSolution, updatedSolution);

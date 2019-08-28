@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         private sealed class NullRemotableData : RemotableData
         {
-            public NullRemotableData() :
-                base(Checksum.Null, WellKnownSynchronizationKind.Null)
+            public NullRemotableData()
+                : base(Checksum.Null, WellKnownSynchronizationKind.Null)
             {
                 // null object has null kind and null checksum. 
                 // this null object is known to checksum framework and transportation framework to handle null case
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 // it write out nothing to stream. for null kind and checksum, checksum/transportation framework knows
                 // there is no data in stream and skip reading any data from the stream.
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

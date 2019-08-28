@@ -2,36 +2,27 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     {
-        internal override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options))
-            {
-                var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
-                var document = workspace.CurrentSolution.Projects.First().Documents.First();
-                var tree = await document.GetSyntaxTreeAsync();
+            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options);
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-                var service = document.GetLanguageService<ISyntaxClassificationService>();
-                var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                service.AddSyntacticClassifications(tree, textSpan, result, CancellationToken.None);
-
-                return result.ToImmutableAndFree();
-            }
+            return GetSyntacticClassificationsAsync(document, span);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -154,8 +145,8 @@ class yield
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
-                Keyword("yield"),
-                Keyword("return"),
+                ControlKeyword("yield"),
+                ControlKeyword("return"),
                 Identifier("yield"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
@@ -166,8 +157,8 @@ class yield
         public async Task YieldReturn()
         {
             await TestInMethodAsync("yield return 42",
-                Keyword("yield"),
-                Keyword("return"),
+                ControlKeyword("yield"),
+                ControlKeyword("return"),
                 Number("42"));
         }
 
@@ -177,8 +168,8 @@ class yield
             await TestInMethodAsync(
 @"yield return this.items[0]; yield break; fixed (int* i = 0) {
 }",
-                Keyword("yield"),
-                Keyword("return"),
+                ControlKeyword("yield"),
+                ControlKeyword("return"),
                 Keyword("this"),
                 Operators.Dot,
                 Identifier("items"),
@@ -186,13 +177,13 @@ class yield
                 Number("0"),
                 Punctuation.CloseBracket,
                 Punctuation.Semicolon,
-                Keyword("yield"),
-                Keyword("break"),
+                ControlKeyword("yield"),
+                ControlKeyword("break"),
                 Punctuation.Semicolon,
                 Keyword("fixed"),
                 Punctuation.OpenParen,
                 Keyword("int"),
-                Operators.Star,
+                Operators.Asterisk,
                 Local("i"),
                 Operators.Equals,
                 Number("0"),
@@ -1092,6 +1083,7 @@ class Bar {
         {
             var code = @"#!/usr/bin/env scriptcs
 System.Console.WriteLine();";
+
             var expected = new[]
             {
                 Comment("#!/usr/bin/env scriptcs"),
@@ -1104,7 +1096,8 @@ System.Console.WriteLine();";
                 Punctuation.CloseParen,
                 Punctuation.Semicolon
             };
-            await TestAsync(code, code, expected, Options.Script);
+
+            await TestAsync(code, code, parseOptions: Options.Script, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1112,6 +1105,7 @@ System.Console.WriteLine();";
         {
             var code = @"#!/usr/bin/env scriptcs
 System.Console.WriteLine();";
+
             var expected = new[]
             {
                 PPKeyword("#"),
@@ -1125,7 +1119,8 @@ System.Console.WriteLine();";
                 Punctuation.CloseParen,
                 Punctuation.Semicolon
             };
-            await TestAsync(code, code, expected, Options.Regular);
+
+            await TestAsync(code, code, parseOptions: Options.Regular, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1133,6 +1128,7 @@ System.Console.WriteLine();";
         {
             var code = @" #!/usr/bin/env scriptcs
 System.Console.WriteLine();";
+
             var expected = new[]
             {
                 PPKeyword("#"),
@@ -1146,7 +1142,8 @@ System.Console.WriteLine();";
                 Punctuation.CloseParen,
                 Punctuation.Semicolon
             };
-            await TestAsync(code, code, expected, Options.Script);
+
+            await TestAsync(code, code, parseOptions: Options.Script, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1544,6 +1541,42 @@ class Bar { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(31410, "https://github.com/dotnet/roslyn/pull/31410")]
+        public async Task XmlDocComment_MalformedXmlDocComment()
+        {
+            var code = @"
+///<summary>
+///<a: b, c />.
+///</summary>
+class C { }";
+            await TestAsync(code,
+                XmlDoc.Delimiter("///"),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                XmlDoc.Delimiter("///"),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("a"),
+                XmlDoc.Name(":"),
+                XmlDoc.Name(" "),
+                XmlDoc.Name("b"),
+                XmlDoc.Text(","),
+                XmlDoc.Name(" "),
+                XmlDoc.Text("c"),
+                XmlDoc.Delimiter(" "),
+                XmlDoc.Delimiter("/>"),
+                XmlDoc.Text("."),
+                XmlDoc.Delimiter("///"),
+                XmlDoc.Delimiter("</"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task MultilineXmlDocComment_ExteriorTrivia()
         {
             var code =
@@ -1621,6 +1654,7 @@ public class Program
                 Keyword("static"),
                 Keyword("void"),
                 Method("Main"),
+                Static("Main"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -1725,7 +1759,7 @@ public class Program
                 Keyword("enum"),
                 Enum("E"),
                 Punctuation.OpenCurly,
-                EnumField("Min"),
+                EnumMember("Min"),
                 Operators.Equals,
                 Identifier("System"),
                 Operators.Dot,
@@ -1849,7 +1883,7 @@ public class Program
                 Parameter("t"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Keyword("default"),
                 Punctuation.OpenParen,
                 Identifier("T"),
@@ -1885,10 +1919,10 @@ public class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task Label()
+        public async Task TestLabel()
         {
             await TestInMethodAsync("goo:",
-                Identifier("goo"),
+                Label("goo"),
                 Punctuation.Colon);
         }
 
@@ -1933,8 +1967,8 @@ public class Program
             await TestInMethodAsync(
 @"yield return goo;",
 
-                Keyword("yield"),
-                Keyword("return"),
+                ControlKeyword("yield"),
+                ControlKeyword("return"),
                 Identifier("goo"),
                 Punctuation.Semicolon);
         }
@@ -2068,7 +2102,7 @@ void M()
                 Punctuation.Colon,
                 Identifier("A"),
                 Punctuation.CloseBracket,
-                Identifier("C"),
+                Class("C"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -2095,8 +2129,8 @@ void M()
                 Punctuation.Colon,
                 Identifier("A"),
                 Punctuation.CloseBracket,
-                Operators.Text("~"),
-                Identifier("C"),
+                Operators.Tilde,
+                Class("C"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -2126,7 +2160,7 @@ static T operator +(T a, T b)
                 Keyword("static"),
                 Identifier("T"),
                 Keyword("operator"),
-                Operators.Text("+"),
+                Operators.Plus,
                 Punctuation.OpenParen,
                 Identifier("T"),
                 Parameter("a"),
@@ -2338,6 +2372,7 @@ const int a = 0;",
                 Keyword("const"),
                 Keyword("int"),
                 Constant("a"),
+                Static("a"),
                 Operators.Equals,
                 Number("0"),
                 Punctuation.Semicolon);
@@ -2515,6 +2550,12 @@ namespace MyNamespace
         private void method(params object[] args)
         {
         }
+
+        private string aMethod(object o) => o switch
+        {
+            int => string.Empty,
+            _ when true => throw new System.Exception()
+        };
     }
 
     interface Bar
@@ -2522,6 +2563,7 @@ namespace MyNamespace
     }
 }
 #endregion TaoRegion",
+                new[] { new CSharpParseOptions(LanguageVersion.CSharp8) },
                 Keyword("using"),
                 Identifier("System"),
                 Punctuation.Semicolon,
@@ -2529,7 +2571,7 @@ namespace MyNamespace
                 PPKeyword("region"),
                 PPText("TaoRegion"),
                 Keyword("namespace"),
-                Identifier("MyNamespace"),
+                Namespace("MyNamespace"),
                 Punctuation.OpenCurly,
                 Keyword("abstract"),
                 Keyword("class"),
@@ -2554,6 +2596,7 @@ namespace MyNamespace
                 Keyword("const"),
                 Keyword("int"),
                 Constant("goo3"),
+                Static("goo3"),
                 Operators.Equals,
                 Number("999"),
                 Punctuation.Semicolon,
@@ -2572,11 +2615,11 @@ namespace MyNamespace
                 Keyword("enum"),
                 Enum("MyEnum"),
                 Punctuation.OpenCurly,
-                EnumField("one"),
+                EnumMember("one"),
                 Punctuation.Comma,
-                EnumField("two"),
+                EnumMember("two"),
                 Punctuation.Comma,
-                EnumField("three"),
+                EnumMember("three"),
                 Punctuation.CloseCurly,
                 Punctuation.Semicolon,
                 Keyword("event"),
@@ -2589,6 +2632,7 @@ namespace MyNamespace
                 Keyword("static"),
                 Keyword("int"),
                 Field("x"),
+                Static("x"),
                 Punctuation.Semicolon,
                 Keyword("long"),
                 Field("goo7"),
@@ -2633,7 +2677,7 @@ namespace MyNamespace
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Keyword("public"),
-                Identifier("Goo"),
+                Class("Goo"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Parameter("i"),
@@ -2646,35 +2690,35 @@ namespace MyNamespace
                 Keyword("is"),
                 Keyword("int"),
                 Punctuation.Semicolon,
-                Keyword("try"),
+                ControlKeyword("try"),
                 Punctuation.OpenCurly,
-                Keyword("while"),
+                ControlKeyword("while"),
                 Punctuation.OpenParen,
                 Keyword("true"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("continue"),
+                ControlKeyword("continue"),
                 Punctuation.Semicolon,
-                Keyword("break"),
+                ControlKeyword("break"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
-                Keyword("switch"),
+                ControlKeyword("switch"),
                 Punctuation.OpenParen,
                 Identifier("goo"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("case"),
+                ControlKeyword("case"),
                 Keyword("true"),
                 Punctuation.Colon,
-                Keyword("break"),
+                ControlKeyword("break"),
                 Punctuation.Semicolon,
-                Keyword("default"),
+                ControlKeyword("default"),
                 Punctuation.Colon,
-                Keyword("break"),
+                ControlKeyword("break"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
-                Keyword("catch"),
+                ControlKeyword("catch"),
                 Punctuation.OpenParen,
                 Identifier("System"),
                 Operators.Dot,
@@ -2682,7 +2726,7 @@ namespace MyNamespace
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
-                Keyword("finally"),
+                ControlKeyword("finally"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Keyword("checked"),
@@ -2693,24 +2737,24 @@ namespace MyNamespace
                 Number("10000"),
                 Punctuation.Semicolon,
                 Identifier("i2"),
-                Operators.Text("++"),
+                Operators.PlusPlus,
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
-                Keyword("do"),
+                ControlKeyword("do"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
-                Keyword("while"),
+                ControlKeyword("while"),
                 Punctuation.OpenParen,
                 Keyword("true"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
-                Keyword("if"),
+                ControlKeyword("if"),
                 Punctuation.OpenParen,
                 Keyword("false"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
-                Keyword("else"),
+                ControlKeyword("else"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Keyword("unsafe"),
@@ -2718,16 +2762,16 @@ namespace MyNamespace
                 Keyword("fixed"),
                 Punctuation.OpenParen,
                 Keyword("int"),
-                Operators.Star,
+                Operators.Asterisk,
                 Local("p"),
                 Operators.Equals,
-                Operators.Text("&"),
+                Operators.Ampersand,
                 Identifier("x"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Keyword("char"),
-                Operators.Star,
+                Operators.Asterisk,
                 Local("buffer"),
                 Operators.Equals,
                 Keyword("stackalloc"),
@@ -2737,7 +2781,7 @@ namespace MyNamespace
                 Punctuation.CloseBracket,
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
-                Keyword("for"),
+                ControlKeyword("for"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Local("i1"),
@@ -2749,7 +2793,7 @@ namespace MyNamespace
                 Number("10"),
                 Punctuation.Semicolon,
                 Identifier("i1"),
-                Operators.Text("++"),
+                Operators.PlusPlus,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
@@ -2769,11 +2813,11 @@ namespace MyNamespace
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
-                Keyword("foreach"),
+                ControlKeyword("foreach"),
                 Punctuation.OpenParen,
                 Keyword("object"),
                 Local("o"),
-                Keyword("in"),
+                ControlKeyword("in"),
                 Identifier("al"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -2805,7 +2849,7 @@ namespace MyNamespace
                 Operators.Equals,
                 Number("5"),
                 Punctuation.Semicolon,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Identifier("i"),
                 Keyword("as"),
                 Identifier("Goo"),
@@ -2821,7 +2865,7 @@ namespace MyNamespace
                 Parameter("i"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Keyword("new"),
                 Identifier("Baz"),
                 Punctuation.OpenParen,
@@ -2839,7 +2883,7 @@ namespace MyNamespace
                 Parameter("x"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Keyword("new"),
                 Identifier("Baz"),
                 Punctuation.OpenParen,
@@ -2862,25 +2906,25 @@ namespace MyNamespace
                 Parameter("o"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("if"),
+                ControlKeyword("if"),
                 Punctuation.OpenParen,
                 Identifier("o"),
-                Operators.DoubleEquals,
+                Operators.EqualsEquals,
                 Keyword("null"),
                 Punctuation.CloseParen,
-                Keyword("goto"),
+                ControlKeyword("goto"),
                 Identifier("Output"),
                 Punctuation.Semicolon,
-                Keyword("if"),
+                ControlKeyword("if"),
                 Punctuation.OpenParen,
                 Identifier("o"),
                 Keyword("is"),
                 Identifier("Baz"),
                 Punctuation.CloseParen,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Punctuation.Semicolon,
-                Keyword("else"),
-                Keyword("throw"),
+                ControlKeyword("else"),
+                ControlKeyword("throw"),
                 Keyword("new"),
                 Identifier("System"),
                 Operators.Dot,
@@ -2888,7 +2932,7 @@ namespace MyNamespace
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
-                Identifier("Output"),
+                Label("Output"),
                 Punctuation.Colon,
                 Identifier("Console"),
                 Operators.Dot,
@@ -2910,7 +2954,7 @@ namespace MyNamespace
                 Field("field"),
                 Punctuation.Semicolon,
                 Keyword("public"),
-                Identifier("Baz"),
+                Class("Baz"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Parameter("i"),
@@ -2968,7 +3012,7 @@ namespace MyNamespace
                 Number("1"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("++"),
+                Operators.PlusPlus,
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
@@ -2984,6 +3028,36 @@ namespace MyNamespace
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
+                Keyword("private"),
+                Keyword("string"),
+                Method("aMethod"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Identifier("o"),
+                ControlKeyword("switch"),
+                Punctuation.OpenCurly,
+                Keyword("int"),
+                Operators.EqualsGreaterThan,
+                Keyword("string"),
+                Operators.Dot,
+                Identifier("Empty"),
+                Punctuation.Comma,
+                Keyword("_"),
+                ControlKeyword("when"),
+                Keyword("true"),
+                Operators.EqualsGreaterThan,
+                ControlKeyword("throw"),
+                Keyword("new"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Exception"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.CloseCurly,
+                Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Keyword("interface"),
                 Interface("Bar"),
@@ -3129,32 +3203,32 @@ public class Goo<T>
                 Identifier("i"),
                 Operators.Equals,
                 Identifier("i"),
-                Operators.Text("+"),
+                Operators.Plus,
                 Identifier("i"),
-                Operators.Text("-"),
+                Operators.Minus,
                 Identifier("i"),
-                Operators.Star,
+                Operators.Asterisk,
                 Identifier("i"),
-                Operators.Text("/"),
+                Operators.Slash,
                 Identifier("i"),
-                Operators.Text("%"),
+                Operators.Percent,
                 Identifier("i"),
-                Operators.Text("&"),
+                Operators.Ampersand,
                 Identifier("i"),
-                Operators.Text("|"),
+                Operators.Bar,
                 Identifier("i"),
-                Operators.Text("^"),
+                Operators.Caret,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Keyword("bool"),
                 Local("b"),
                 Operators.Equals,
                 Keyword("true"),
-                Operators.Text("&"),
+                Operators.Ampersand,
                 Keyword("false"),
-                Operators.Text("|"),
+                Operators.Bar,
                 Keyword("true"),
-                Operators.Text("^"),
+                Operators.Caret,
                 Keyword("false"),
                 Punctuation.Semicolon,
                 Identifier("b"),
@@ -3164,7 +3238,7 @@ public class Goo<T>
                 Punctuation.Semicolon,
                 Identifier("i"),
                 Operators.Equals,
-                Operators.Text("~"),
+                Operators.Tilde,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("b"),
@@ -3172,7 +3246,7 @@ public class Goo<T>
                 Identifier("i"),
                 Operators.LessThan,
                 Identifier("i"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("i"),
                 Operators.GreaterThan,
                 Identifier("i"),
@@ -3193,92 +3267,92 @@ public class Goo<T>
                 Number("0"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("++"),
+                Operators.PlusPlus,
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("--"),
+                Operators.MinusMinus,
                 Punctuation.Semicolon,
                 Identifier("b"),
                 Operators.Equals,
                 Keyword("true"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Keyword("false"),
-                Operators.DoublePipe,
+                Operators.BarBar,
                 Keyword("true"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("<<"),
+                Operators.LessThanLessThan,
                 Number("5"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text(">>"),
+                Operators.GreaterThanGreaterThan,
                 Number("5"),
                 Punctuation.Semicolon,
                 Identifier("b"),
                 Operators.Equals,
                 Identifier("i"),
-                Operators.DoubleEquals,
+                Operators.EqualsEquals,
                 Identifier("i"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("i"),
                 Operators.ExclamationEquals,
                 Identifier("i"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("i"),
-                Operators.Text("<="),
+                Operators.LessThanEquals,
                 Identifier("i"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("i"),
-                Operators.Text(">="),
+                Operators.GreaterThanEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("+="),
+                Operators.PlusEquals,
                 Number("5.0"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("-="),
+                Operators.MinusEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("*="),
+                Operators.AsteriskEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("/="),
+                Operators.SlashEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("%="),
+                Operators.PercentEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("&="),
+                Operators.AmpersandEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("|="),
+                Operators.BarEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("^="),
+                Operators.CaretEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text("<<="),
+                Operators.LessThanLessThanEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
-                Operators.Text(">>="),
+                Operators.GreaterThanGreaterThanEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Keyword("object"),
                 Local("s"),
                 Operators.Equals,
                 Parameter("x"),
-                Operators.Text("=>"),
+                Operators.EqualsGreaterThan,
                 Identifier("x"),
-                Operators.Text("+"),
+                Operators.Plus,
                 Number("1"),
                 Punctuation.Semicolon,
                 Identifier("Point"),
@@ -3287,21 +3361,21 @@ public class Goo<T>
                 Keyword("unsafe"),
                 Punctuation.OpenCurly,
                 Identifier("Point"),
-                Operators.Star,
+                Operators.Asterisk,
                 Local("p"),
                 Operators.Equals,
-                Operators.Text("&"),
+                Operators.Ampersand,
                 Identifier("point"),
                 Punctuation.Semicolon,
                 Identifier("p"),
-                Operators.Text("->"),
+                Operators.MinusGreaterThan,
                 Identifier("x"),
                 Operators.Equals,
                 Number("10"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Identifier("IO"),
-                Operators.Text("::"),
+                Operators.ColonColon,
                 Identifier("BinaryReader"),
                 Local("br"),
                 Operators.Equals,
@@ -3434,7 +3508,7 @@ public class Goo<T>
                 Punctuation.OpenCurly,
                 Keyword("set"),
                 Punctuation.OpenCurly,
-                Identifier("value"),
+                Label("value"),
                 Punctuation.Colon,
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
@@ -3466,10 +3540,12 @@ class var<T>
                 Keyword("static"),
                 Keyword("class"),
                 Class("Program"),
+                Static("Program"),
                 Punctuation.OpenCurly,
                 Keyword("static"),
                 Keyword("void"),
                 Method("Main"),
+                Static("Main"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -3530,6 +3606,7 @@ class B : A
                 Keyword("static"),
                 Keyword("void"),
                 Method("Main"),
+                Static("Main"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -3560,6 +3637,7 @@ class B : A
                 Keyword("static"),
                 Keyword("void"),
                 Method("Main"),
+                Static("Main"),
                 Punctuation.OpenParen,
                 Keyword("string"),
                 Punctuation.OpenBracket,
@@ -3614,16 +3692,18 @@ class B : A
                 Keyword("int"),
                 Punctuation.CloseAngle,
                 Method("GetVarT"),
+                Static("GetVarT"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Keyword("null"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Keyword("static"),
                 Keyword("void"),
                 Method("Main"),
+                Static("Main"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -3675,11 +3755,11 @@ class B : A
                 Parameter("args"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("foreach"),
+                ControlKeyword("foreach"),
                 Punctuation.OpenParen,
                 Identifier("var"),
                 Local("v"),
-                Keyword("in"),
+                ControlKeyword("in"),
                 Identifier("args"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -3793,11 +3873,11 @@ catch when (true)
 }
 ";
             await TestInMethodAsync(code,
-                Keyword("try"),
+                ControlKeyword("try"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
-                Keyword("catch"),
-                Keyword("when"),
+                ControlKeyword("catch"),
+                ControlKeyword("when"),
                 Punctuation.OpenParen,
                 Keyword("true"),
                 Punctuation.CloseParen,
@@ -3817,16 +3897,16 @@ catch (System.Exception) when (true)
 }
 ";
             await TestInMethodAsync(code,
-                Keyword("try"),
+                ControlKeyword("try"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
-                Keyword("catch"),
+                ControlKeyword("catch"),
                 Punctuation.OpenParen,
                 Identifier("System"),
                 Operators.Dot,
                 Identifier("Exception"),
                 Punctuation.CloseParen,
-                Keyword("when"),
+                ControlKeyword("when"),
                 Punctuation.OpenParen,
                 Keyword("true"),
                 Punctuation.CloseParen,
@@ -3917,8 +3997,7 @@ void M()
         public async Task TupleDeclaration()
         {
             await TestInMethodAsync("(int, string) x",
-                TestOptions.Regular,
-                Options.Script,
+                ParseOptions(TestOptions.Regular, Options.Script),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Punctuation.Comma,
@@ -3931,8 +4010,7 @@ void M()
         public async Task TupleDeclarationWithNames()
         {
             await TestInMethodAsync("(int a, string b) x",
-                TestOptions.Regular,
-                Options.Script,
+                ParseOptions(TestOptions.Regular, Options.Script),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Identifier("a"),
@@ -3947,8 +4025,7 @@ void M()
         public async Task TupleLiteral()
         {
             await TestInMethodAsync("var values = (1, 2)",
-                TestOptions.Regular,
-                Options.Script,
+                ParseOptions(TestOptions.Regular, Options.Script),
                 Keyword("var"),
                 Local("values"),
                 Operators.Equals,
@@ -3963,8 +4040,7 @@ void M()
         public async Task TupleLiteralWithNames()
         {
             await TestInMethodAsync("var values = (a: 1, b: 2)",
-                TestOptions.Regular,
-                Options.Script,
+                ParseOptions(TestOptions.Regular, Options.Script),
                 Keyword("var"),
                 Local("values"),
                 Operators.Equals,
@@ -3980,7 +4056,7 @@ void M()
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task  TestConflictMarkers1()
+        public async Task TestConflictMarkers1()
         {
             await TestAsync(
 @"class C
@@ -4012,5 +4088,1029 @@ void M()
                 Punctuation.CloseCurly);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_InsideMethod()
+        {
+            await TestInMethodAsync(@"
+var unmanaged = 0;
+unmanaged++;",
+                Keyword("var"),
+                Local("unmanaged"),
+                Operators.Equals,
+                Number("0"),
+                Punctuation.Semicolon,
+                Identifier("unmanaged"),
+                Operators.PlusPlus,
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_Keyword()
+        {
+            await TestAsync(
+                "class X<T> where T : unmanaged { }",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+class X<T> where T : unmanaged { }",
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+class X<T> where T : unmanaged { }",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_Keyword()
+        {
+            await TestAsync(
+                "delegate void D<T>() where T : unmanaged;",
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+delegate void D<T>() where T : unmanaged;",
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+delegate void D<T>() where T : unmanaged;",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_LocalFunction_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        void M<T>() where T : unmanaged { }
+    }
+}",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : unmanaged { }
+    }
+}",
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : unmanaged { }
+    }
+}",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestDeclarationIsPattern()
+        {
+            await TestInMethodAsync(@"
+object foo;
+
+if (foo is Action action)
+{
+}",
+                Keyword("object"),
+                Local("foo"),
+                Punctuation.Semicolon,
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Identifier("foo"),
+                Keyword("is"),
+                Identifier("Action"),
+                Local("action"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestDeclarationSwitchPattern()
+        {
+            await TestInMethodAsync(@"
+object y;
+
+switch (y)
+{
+    case int x:
+        break;
+}",
+
+                Keyword("object"),
+                Local("y"),
+                Punctuation.Semicolon,
+                ControlKeyword("switch"),
+                Punctuation.OpenParen,
+                Identifier("y"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("case"),
+                Keyword("int"),
+                Local("x"),
+                Punctuation.Colon,
+                ControlKeyword("break"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestDeclarationExpression()
+        {
+            await TestInMethodAsync(@"
+int (foo, bar) = (1, 2);",
+                Keyword("int"),
+                Punctuation.OpenParen,
+                Local("foo"),
+                Punctuation.Comma,
+                Local("bar"),
+                Punctuation.CloseParen,
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestTupleTypeSyntax()
+        {
+            await TestInClassAsync(@"
+public (int a, int b) Get() => null;",
+                Keyword("public"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Identifier("a"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Identifier("b"),
+                Punctuation.CloseParen,
+                Method("Get"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Keyword("null"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOutParameter()
+        {
+            await TestInMethodAsync(@"
+if (int.TryParse(""1"", out int x))
+{
+}",
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Operators.Dot,
+                Identifier("TryParse"),
+                Punctuation.OpenParen,
+                String(@"""1"""),
+                Punctuation.Comma,
+                Keyword("out"),
+                Keyword("int"),
+                Local("x"),
+                Punctuation.CloseParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOutParameter2()
+        {
+            await TestInClassAsync(@"
+int F = int.TryParse(""1"", out int x) ? x : -1;
+",
+                Keyword("int"),
+                Field("F"),
+                Operators.Equals,
+                Keyword("int"),
+                Operators.Dot,
+                Identifier("TryParse"),
+                Punctuation.OpenParen,
+                String(@"""1"""),
+                Punctuation.Comma,
+                Keyword("out"),
+                Keyword("int"),
+                Local("x"),
+                Punctuation.CloseParen,
+                Operators.QuestionMark,
+                Identifier("x"),
+                Operators.Colon,
+                Operators.Minus,
+                Number("1"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUsingDirective()
+        {
+            var code = @"using System.Collections.Generic;";
+
+            await TestAsync(code,
+                Keyword("using"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Collections"),
+                Operators.Dot,
+                Identifier("Generic"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUsingAliasDirectiveForIdentifier()
+        {
+            var code = @"using Col = System.Collections;";
+
+            await TestAsync(code,
+                Keyword("using"),
+                Identifier("Col"),
+                Operators.Equals,
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Collections"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUsingAliasDirectiveForClass()
+        {
+            var code = @"using Con = System.Console;";
+
+            await TestAsync(code,
+                Keyword("using"),
+                Identifier("Con"),
+                Operators.Equals,
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Console"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUsingStaticDirective()
+        {
+            var code = @"using static System.Console;";
+
+            await TestAsync(code,
+                Keyword("using"),
+                Keyword("static"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Console"),
+                Punctuation.Semicolon);
+        }
+
+        [WorkItem(33039, "https://github.com/dotnet/roslyn/issues/33039")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ForEachVariableStatement()
+        {
+            await TestInMethodAsync(@"
+foreach (var (x, y) in new[] { (1, 2) });
+",
+                ControlKeyword("foreach"),
+                Punctuation.OpenParen,
+                Identifier("var"),
+                Punctuation.OpenParen,
+                Local("x"),
+                Punctuation.Comma,
+                Local("y"),
+                Punctuation.CloseParen,
+                ControlKeyword("in"),
+                Keyword("new"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Punctuation.OpenCurly,
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen,
+                Punctuation.CloseCurly,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task CatchDeclarationStatement()
+        {
+            await TestInMethodAsync(@"
+try { } catch (Exception ex) { }
+",
+                ControlKeyword("try"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                ControlKeyword("catch"),
+                Punctuation.OpenParen,
+                Identifier("Exception"),
+                Local("ex"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_InsideMethod()
+        {
+            await TestInMethodAsync(@"
+var notnull = 0;
+notnull++;",
+                Keyword("var"),
+                Local("notnull"),
+                Operators.Equals,
+                Number("0"),
+                Punctuation.Semicolon,
+                Identifier("notnull"),
+                Operators.PlusPlus,
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Type_Keyword()
+        {
+            await TestAsync(
+                "class X<T> where T : notnull { }",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Type_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+class X<T> where T : notnull { }",
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Type_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+class X<T> where T : notnull { }",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Method_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void M<T>() where T : notnull { }
+}",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Method_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+class X
+{
+    void M<T>() where T : notnull { }
+}",
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Method_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+class X
+{
+    void M<T>() where T : notnull { }
+}",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Delegate_Keyword()
+        {
+            await TestAsync(
+                "delegate void D<T>() where T : notnull;",
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Delegate_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+delegate void D<T>() where T : notnull;",
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Delegate_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+delegate void D<T>() where T : notnull;",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_LocalFunction_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        void M<T>() where T : notnull { }
+    }
+}",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_LocalFunction_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : notnull { }
+    }
+}",
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_LocalFunction_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : notnull { }
+    }
+}",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }

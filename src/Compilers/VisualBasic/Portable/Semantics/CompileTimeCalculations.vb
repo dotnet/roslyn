@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case ConstantValueTypeDiscriminator.Char
                     resultValue = UncheckedCUShort(sourceValue)
-                ' // ?? overflow?
+                    ' // ?? overflow?
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(resultType)

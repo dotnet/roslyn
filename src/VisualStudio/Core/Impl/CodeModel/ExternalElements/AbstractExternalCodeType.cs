@@ -43,8 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             }
 
             var compilation = GetCompilation();
-            var metadataReference = compilation.GetMetadataReference(assembly) as PortableExecutableReference;
-            if (metadataReference == null)
+            if (!(compilation.GetMetadataReference(assembly) is PortableExecutableReference metadataReference))
             {
                 return string.Empty;
             }
@@ -68,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
                     builder.Add(typeSymbol.BaseType);
                 }
 
-                return ExternalTypeCollection.Create(this.State, this, this.ProjectId, 
+                return ExternalTypeCollection.Create(this.State, this, this.ProjectId,
                     builder.ToImmutableAndFree());
             }
         }

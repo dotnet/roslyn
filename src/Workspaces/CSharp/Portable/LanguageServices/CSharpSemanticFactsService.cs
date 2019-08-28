@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -15,12 +16,38 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class CSharpSemanticFactsService : ISemanticFactsService
+    internal class CSharpSemanticFactsService : AbstractSemanticFactsService, ISemanticFactsService
     {
         internal static readonly CSharpSemanticFactsService Instance = new CSharpSemanticFactsService();
 
+        protected override ISyntaxFactsService SyntaxFactsService => CSharpSyntaxFactsService.Instance;
+
         private CSharpSemanticFactsService()
         {
+        }
+
+        protected override IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
+        {
+            // Get all the symbols visible to the current location.
+            var visibleSymbols = semanticModel.LookupSymbols(location.SpanStart);
+
+            // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
+            // E.g. symbols inside if statements / try catch statements.
+            var symbolsInBlock = semanticModel.GetExistingSymbols(container, cancellationToken,
+                descendInto: n => ShouldDescendInto(n));
+
+            return symbolsInBlock.Concat(visibleSymbols);
+
+            // Walk through the enclosing block symbols, but avoid exploring local functions
+            //     a) Visible symbols from the local function would be returned by LookupSymbols
+            //        (e.g. location is inside a local function, the local function method name).
+            //     b) Symbols declared inside the local function do not cause collisions with symbols declared outside them, so avoid considering those symbols.
+            // Exclude lambdas as well when the language version is C# 8 or higher because symbols declared inside no longer collide with outer variables.
+            bool ShouldDescendInto(SyntaxNode node)
+            {
+                var isLanguageVersionGreaterOrEqualToCSharp8 = (semanticModel.Compilation as CSharpCompilation)?.LanguageVersion >= LanguageVersion.CSharp8;
+                return isLanguageVersionGreaterOrEqualToCSharp8 ? !SyntaxFactsService.IsAnonymousOrLocalFunction(node) : !SyntaxFactsService.IsLocalFunctionStatement(node);
+            }
         }
 
         public bool SupportsImplicitInterfaceImplementation => true;
@@ -68,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsMemberDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             return semanticModel.SyntaxTree.IsMemberDeclarationContext(
-                position, semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken), cancellationToken);
+                position, semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken));
         }
 
         public bool IsPreProcessorDirectiveContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -141,24 +168,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public bool SupportsParameterizedProperties
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool SupportsParameterizedProperties => false;
 
         public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
         {
-            Contract.Requires(oldNode.Kind() == newNode.Kind());
+            Debug.Assert(oldNode.Kind() == newNode.Kind());
 
             var model = oldSemanticModel;
-
-            // currently we only support method. field support will be added later.
-            var oldMethod = oldNode as BaseMethodDeclarationSyntax;
-            var newMethod = newNode as BaseMethodDeclarationSyntax;
-            if (oldMethod == null || newMethod == null || oldMethod.Body == null)
+            if (!(oldNode is BaseMethodDeclarationSyntax oldMethod) || !(newNode is BaseMethodDeclarationSyntax newMethod) || oldMethod.Body == null)
             {
                 speculativeModel = null;
                 return false;
@@ -228,6 +245,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public IMethodSymbol GetGetAwaiterMethod(SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (node is AwaitExpressionSyntax awaitExpression)
+            {
+                var info = semanticModel.GetAwaitExpressionInfo(awaitExpression);
+                return info.GetAwaiterMethod;
+            }
+
+            return null;
+        }
+
         public ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node)
         {
             if (node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction())
@@ -266,18 +294,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation)
-        {
-            return fromSymbol != null &&
-                toSymbol != null &&
-                ((CSharpCompilation)compilation).ClassifyConversion(fromSymbol, toSymbol).IsImplicit;
-        }
-
-        public bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsNameOfContext(position, semanticModel, cancellationToken);
-        }
-
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
@@ -296,5 +312,84 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SpecializedCollections.SingletonEnumerable(
                 semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
+
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+            => ((ArgumentSyntax)argumentNode).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
+
+        public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            switch (node)
+            {
+                case AssignmentExpressionSyntax assignment when token.Kind() == SyntaxKind.EqualsToken:
+                    return GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>();
+
+                case ForEachVariableStatementSyntax deconstructionForeach when token.Kind() == SyntaxKind.InKeyword:
+                    return GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>();
+            }
+
+            return GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols();
+        }
+
+        private SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            switch (node)
+            {
+                case OrderByClauseSyntax orderByClauseSyntax:
+                    if (token.Kind() == SyntaxKind.CommaToken)
+                    {
+                        // Returning SymbolInfo for a comma token is the last resort
+                        // in an order by clause if no other tokens to bind to a are present.
+                        // See also the proposal at https://github.com/dotnet/roslyn/issues/23394
+                        var separators = orderByClauseSyntax.Orderings.GetSeparators().ToImmutableList();
+                        var index = separators.IndexOf(token);
+                        if (index >= 0 && (index + 1) < orderByClauseSyntax.Orderings.Count)
+                        {
+                            var ordering = orderByClauseSyntax.Orderings[index + 1];
+                            if (ordering.AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
+                            {
+                                return semanticModel.GetSymbolInfo(ordering, cancellationToken);
+                            }
+                        }
+                    }
+                    else if (orderByClauseSyntax.Orderings[0].AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
+                    {
+                        // The first ordering is displayed on the "orderby" keyword itself if there isn't a 
+                        // ascending/descending keyword.
+                        return semanticModel.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken);
+                    }
+
+                    return default;
+                case QueryClauseSyntax queryClauseSyntax:
+                    var queryInfo = semanticModel.GetQueryClauseInfo(queryClauseSyntax, cancellationToken);
+                    var hasCastInfo = queryInfo.CastInfo.Symbol != null;
+                    var hasOperationInfo = queryInfo.OperationInfo.Symbol != null;
+
+                    if (hasCastInfo && hasOperationInfo)
+                    {
+                        // In some cases a single clause binds to more than one method. In those cases 
+                        // the tokens in the clause determine which of the two SymbolInfos are returned.
+                        // See also the proposal at https://github.com/dotnet/roslyn/issues/23394
+                        return token.IsKind(SyntaxKind.InKeyword) ? queryInfo.CastInfo : queryInfo.OperationInfo;
+                    }
+
+                    if (hasCastInfo)
+                    {
+                        return queryInfo.CastInfo;
+                    }
+
+                    return queryInfo.OperationInfo;
+            }
+
+            //Only in the orderby clause a comma can bind to a symbol.
+            if (token.IsKind(SyntaxKind.CommaToken))
+            {
+                return default;
+            }
+
+            return semanticModel.GetSymbolInfo(node, cancellationToken);
+        }
+
+        public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => (node as ExpressionSyntax).IsInsideNameOfExpression(semanticModel, cancellationToken);
     }
 }

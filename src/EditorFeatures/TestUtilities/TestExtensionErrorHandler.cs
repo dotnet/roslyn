@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     {
         private ImmutableList<Exception> _exceptions = ImmutableList<Exception>.Empty;
 
+        [ImportingConstructor]
+        public TestExtensionErrorHandler()
+        {
+        }
+
         public void HandleError(object sender, Exception exception)
         {
             ExceptionUtilities.FailFast(exception);

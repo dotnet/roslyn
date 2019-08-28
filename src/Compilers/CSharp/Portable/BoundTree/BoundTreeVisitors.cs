@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitArrayAccess(node as BoundArrayAccess, arg);
                 case BoundKind.TypeOfOperator:
                     return VisitTypeOfOperator(node as BoundTypeOfOperator, arg);
+                case BoundKind.DefaultLiteral:
+                    return VisitDefaultLiteral(node as BoundDefaultLiteral, arg);
                 case BoundKind.DefaultExpression:
                     return VisitDefaultExpression(node as BoundDefaultExpression, arg);
                 case BoundKind.IsOperator:
@@ -78,8 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitThrowStatement(node as BoundThrowStatement, arg);
                 case BoundKind.ExpressionStatement:
                     return VisitExpressionStatement(node as BoundExpressionStatement, arg);
-                case BoundKind.SwitchStatement:
-                    return VisitSwitchStatement(node as BoundSwitchStatement, arg);
                 case BoundKind.BreakStatement:
                     return VisitBreakStatement(node as BoundBreakStatement, arg);
                 case BoundKind.ContinueStatement:
@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Consumers must provide implementation for <see cref="VisitExpressionWithoutStackGuard"/>.
         /// </summary>
+        [DebuggerStepThrough]
         protected BoundExpression VisitExpressionWithStackGuard(ref int recursionDepth, BoundExpression node)
         {
             BoundExpression result;
@@ -218,13 +219,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        [DebuggerStepThrough]
         private BoundExpression VisitExpressionWithStackGuard(BoundExpression node)
         {
             try
             {
                 return VisitExpressionWithoutStackGuard(node);
             }
-            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            catch (InsufficientExecutionStackException ex)
             {
                 throw new CancelledByStackGuardException(ex, node);
             }

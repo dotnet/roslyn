@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         AsynchronousTaggerProvider<TRegionTag>
         where TRegionTag : class, ITag
     {
-        private static IComparer<BlockSpan> s_blockSpanComparer =
+        private static readonly IComparer<BlockSpan> s_blockSpanComparer =
             Comparer<BlockSpan>.Create((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
         protected readonly ITextEditorFactoryService TextEditorFactoryService;
@@ -42,12 +43,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
         protected AbstractStructureTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             ITextEditorFactoryService textEditorFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(listenerProvider.GetListener(FeatureAttribute.Outlining), notificationService)
+                : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Outlining), notificationService)
         {
             TextEditorFactoryService = textEditorFactoryService;
             EditorOptionsFactoryService = editorOptionsFactoryService;

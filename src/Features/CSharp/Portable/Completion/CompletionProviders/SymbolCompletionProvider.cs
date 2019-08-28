@@ -26,10 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override bool IsInstrinsic(ISymbol s)
-        {
-            var ts = s as ITypeSymbol;
-            return ts != null && ts.IsIntrinsicType();
-        }
+            => s is ITypeSymbol ts && ts.IsIntrinsicType();
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
@@ -38,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override async Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
-            bool? result = await IsTriggerOnDotAsync(document, characterPosition, cancellationToken).ConfigureAwait(false);
+            var result = await IsTriggerOnDotAsync(document, characterPosition, cancellationToken).ConfigureAwait(false);
             if (result.HasValue)
             {
                 return result.Value;
@@ -74,12 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
-            => CompletionUtilities.GetDisplayAndInsertionText(symbol, context);
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
+            => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
 
         protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
-            cachedRules.TryGetValue(ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext), out var rule);
+            cachedRules.TryGetValue(ValueTuple.Create(((CSharpSyntaxContext)context).IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
             return rule ?? CompletionItemRules.Default;
         }
@@ -90,11 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var result = new Dictionary<ValueTuple<bool, bool, bool>, CompletionItemRules>();
 
-            for (int importDirective = 0; importDirective < 2; importDirective++)
+            for (var importDirective = 0; importDirective < 2; importDirective++)
             {
-                for (int preselect = 0; preselect < 2; preselect++)
+                for (var preselect = 0; preselect < 2; preselect++)
                 {
-                    for (int tupleLiteral = 0; tupleLiteral < 2; tupleLiteral++)
+                    for (var tupleLiteral = 0; tupleLiteral < 2; tupleLiteral++)
                     {
                         if (importDirective == 1 && tupleLiteral == 1)
                         {

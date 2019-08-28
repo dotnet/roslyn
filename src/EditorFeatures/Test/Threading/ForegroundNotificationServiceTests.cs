@@ -1,26 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 {
+    [UseExportProvider]
     public class ForegroundNotificationServiceTests
     {
-        private readonly ForegroundNotificationService _service;
+        private ForegroundNotificationService _service;
         private bool _done;
 
-        public ForegroundNotificationServiceTests()
+        private ForegroundNotificationService Service
         {
-            TestWorkspace.ResetThreadAffinity();
-            _service = new ForegroundNotificationService();
+            get
+            {
+                if (_service is null)
+                {
+                    var threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IThreadingContext>();
+                    _service = new ForegroundNotificationService(threadingContext);
+                }
+
+                return _service;
+            }
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -29,38 +38,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             var asyncToken = EmptyAsyncToken.Instance;
             var ran = false;
 
-            _service.RegisterNotification(() => { Thread.Sleep(100); }, asyncToken, CancellationToken.None);
-            _service.RegisterNotification(() => { /* do nothing */ }, asyncToken, CancellationToken.None);
-            _service.RegisterNotification(() => { ran = true; _done = true; }, asyncToken, CancellationToken.None);
+            Service.RegisterNotification(() => { Thread.Sleep(100); }, asyncToken, CancellationToken.None);
+            Service.RegisterNotification(() => { /* do nothing */ }, asyncToken, CancellationToken.None);
+            Service.RegisterNotification(() => { ran = true; _done = true; }, asyncToken, CancellationToken.None);
 
             await PumpWait();
 
             Assert.True(_done);
             Assert.True(ran);
-            Assert.True(_service.IsEmpty_TestOnly);
+            Assert.True(Service.IsEmpty_TestOnly);
         }
 
         [WpfFact]
         public async Task Test_Cancellation()
         {
-            using (var waitEvent = new AutoResetEvent(initialState: false))
-            {
-                var asyncToken = EmptyAsyncToken.Instance;
-                var ran = false;
+            using var waitEvent = new AutoResetEvent(initialState: false);
+            var asyncToken = EmptyAsyncToken.Instance;
+            var ran = false;
 
-                var source = new CancellationTokenSource();
-                source.Cancel();
+            var source = new CancellationTokenSource();
+            source.Cancel();
 
-                _service.RegisterNotification(() => { waitEvent.WaitOne(); }, asyncToken, CancellationToken.None);
-                _service.RegisterNotification(() => { ran = true; }, asyncToken, source.Token);
-                _service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
+            Service.RegisterNotification(() => { waitEvent.WaitOne(); }, asyncToken, CancellationToken.None);
+            Service.RegisterNotification(() => { ran = true; }, asyncToken, source.Token);
+            Service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
 
-                waitEvent.Set();
-                await PumpWait();
+            waitEvent.Set();
+            await PumpWait();
 
-                Assert.False(ran);
-                Assert.True(_service.IsEmpty_TestOnly);
-            }
+            Assert.False(ran);
+            Assert.True(Service.IsEmpty_TestOnly);
         }
 
         [WpfFact]
@@ -72,10 +79,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
             var asyncToken = EmptyAsyncToken.Instance;
 
-            int startMilliseconds = Environment.TickCount;
+            var startMilliseconds = Environment.TickCount;
             int? elapsedMilliseconds = null;
 
-            _service.RegisterNotification(() =>
+            Service.RegisterNotification(() =>
             {
                 elapsedMilliseconds = Environment.TickCount - startMilliseconds;
 
@@ -85,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             await PumpWait();
 
             Assert.True(elapsedMilliseconds >= 50, $"Notification fired after {elapsedMilliseconds}, instead of 50.");
-            Assert.True(_service.IsEmpty_TestOnly);
+            Assert.True(Service.IsEmpty_TestOnly);
         }
 
         [WpfFact]
@@ -101,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
                 var index = i;
                 var retry = false;
 
-                _service.RegisterNotification(() =>
+                Service.RegisterNotification(() =>
                 {
                     if (retry)
                     {
@@ -110,9 +117,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
                     var source = new CancellationTokenSource();
 
-                    _service.RegisterNotification(() =>
+                    Service.RegisterNotification(() =>
                     {
-                        for (int j = 0; j < 100; j++)
+                        for (var j = 0; j < 100; j++)
                         {
                             count++;
                         }
@@ -128,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
                     if (index == loopCount - 1)
                     {
-                        _service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
+                        Service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
                     }
 
                     return false;
@@ -138,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             await PumpWait().ConfigureAwait(false);
             Assert.True(_done);
             Assert.Equal(count, 9000000);
-            Assert.True(_service.IsEmpty_TestOnly);
+            Assert.True(Service.IsEmpty_TestOnly);
         }
 
         private async Task PumpWait()

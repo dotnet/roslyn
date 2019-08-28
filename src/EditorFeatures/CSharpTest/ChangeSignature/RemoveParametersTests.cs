@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -187,7 +189,7 @@ public class DP20<T>
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSharpAssembly"" CommonReferences=""true"">";
 
-            for (int i = 0; i <= 4; i++)
+            for (var i = 0; i <= 4; i++)
             {
                 workspaceXml += $@"
 <Document FilePath = ""C{i}.cs"">
@@ -216,7 +218,7 @@ public static class C5Ext
 }
 </Document>";
 
-            for (int i = 6; i <= 9; i++)
+            for (var i = 6; i <= 9; i++)
             {
                 workspaceXml += $@"
 <Document FilePath = ""C{i}.cs"">
@@ -241,25 +243,23 @@ class C{i}
 
             var updatedSignature = new[] { 0, 2 };
 
-            using (var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml)))
+            using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
+            testState.TestChangeSignatureOptionsService.IsCancelled = false;
+            testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
+            var result = testState.ChangeSignature();
+
+            Assert.True(result.Succeeded);
+            Assert.Null(testState.ErrorMessage);
+
+            foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
             {
-                testState.TestChangeSignatureOptionsService.IsCancelled = false;
-                testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
-                var result = testState.ChangeSignature();
-
-                Assert.True(result.Succeeded);
-                Assert.Null(testState.ErrorMessage);
-
-                foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
+                if (updatedDocument.Name == "C5.cs")
                 {
-                    if (updatedDocument.Name == "C5.cs")
-                    {
-                        Assert.Contains("void Ext(this C5 c, string s)", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
-                    }
-                    else
-                    {
-                        Assert.Contains(@"c.Ext(""two"");", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
-                    }
+                    Assert.Contains("void Ext(this C5 c, string s)", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                }
+                else
+                {
+                    Assert.Contains(@"c.Ext(""two"");", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
                 }
             }
         }
@@ -269,10 +269,12 @@ class C{i}
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ChangeSignatureCommandDisabledInSubmission()
         {
-            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(
+                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
+                .CreateExportProvider();
 
-            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
+            using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C
@@ -284,30 +286,19 @@ class C{i}
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider))
-            {
-                // Force initialization.
-                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+                exportProvider: exportProvider);
+            // Force initialization.
+            workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
-                var textView = workspace.Documents.Single().GetTextView();
+            var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new CSharpChangeSignatureCommandHandler(TestWaitIndicator.Default);
-                var delegatedToNext = false;
-                CommandState nextHandler()
-                {
-                    delegatedToNext = true;
-                    return CommandState.Unavailable;
-                }
+            var handler = new CSharpChangeSignatureCommandHandler();
 
-                var state = handler.GetCommandState(new Commands.RemoveParametersCommandArgs(textView, textView.TextBuffer), nextHandler);
-                Assert.True(delegatedToNext);
-                Assert.False(state.IsAvailable);
+            var state = handler.GetCommandState(new RemoveParametersCommandArgs(textView, textView.TextBuffer));
+            Assert.True(state.IsUnspecified);
 
-                delegatedToNext = false;
-                state = handler.GetCommandState(new Commands.ReorderParametersCommandArgs(textView, textView.TextBuffer), nextHandler);
-                Assert.True(delegatedToNext);
-                Assert.False(state.IsAvailable);
-            }
+            state = handler.GetCommandState(new ReorderParametersCommandArgs(textView, textView.TextBuffer));
+            Assert.True(state.IsUnspecified);
         }
     }
 }

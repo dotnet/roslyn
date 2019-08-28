@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     {
         int ICompilerOptionsHostObject.SetCompilerOptions(string compilerOptions, out bool supported)
         {
-            SetArgumentsAndUpdateOptions(compilerOptions);
+            VisualStudioProjectOptionsProcessor.CommandLine = compilerOptions;
             supported = true;
             return VSConstants.S_OK;
         }

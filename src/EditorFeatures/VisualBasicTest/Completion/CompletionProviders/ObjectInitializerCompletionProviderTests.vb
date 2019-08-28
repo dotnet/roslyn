@@ -12,12 +12,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Protected Overrides Async Function VerifyWorkerAsync(
+        Private Protected Overrides Async Function VerifyWorkerAsync(
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
-                hasSuggestionItem As Boolean?) As Task
+                hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
+                matchingFilters As List(Of CompletionItemFilter)) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> SourceCodeKind.Regular Then
@@ -27,7 +28,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await BaseVerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
-                matchPriority, hasSuggestionItem)
+                matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                matchingFilters)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -133,6 +135,50 @@ End Program</a>.Value
 
             Await VerifyItemExistsAsync(text, "bar")
             Await VerifyItemExistsAsync(text, "goo")
+        End Function
+
+        <WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestObjectInitializerOfGenericTypeСonstraint1() As Task
+            Dim text = <a>Class C
+    Public Function testSub(Of T As {IExample, New})()
+        Return New T With { .$$
+    End Function
+End Class
+
+Interface IExample
+    Property A As String
+    Property B As String
+End Interface</a>.Value
+
+            Await VerifyItemExistsAsync(text, "A")
+            Await VerifyItemExistsAsync(text, "B")
+        End Function
+
+        <WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestObjectInitializerOfGenericTypeСonstraint2() As Task
+            Dim text = <a>Class C
+    Public Function testSub(Of T As {New})()
+        Return New T With { .$$
+    End Function
+End Class
+</a>.Value
+
+            Await VerifyNoItemsExistAsync(text)
+        End Function
+
+        <WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestObjectInitializerOfGenericTypeСonstraint3() As Task
+            Dim text = <a>Class C
+    Public Function testSub(Of T As {Structure})()
+        Return New T With {.$$
+    End Function
+End Class
+</a>.Value
+
+            Await VerifyNoItemsExistAsync(text)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -415,7 +461,7 @@ End Program</Document>
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim service = GetCompletionService(workspace)
                 Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Invoke)
-                Assert.True(completionList Is Nothing OrElse completionList.IsExclusive, "Expected always exclusive")
+                Assert.True(completionList Is Nothing OrElse completionList.GetTestAccessor().IsExclusive, "Expected always exclusive")
             End Using
         End Function
 
@@ -433,6 +479,32 @@ Class Program
 End Program"
 
             Await VerifySendEnterThroughToEditorAsync(code, "bar", expected:=False)
+        End Function
+
+        <WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestKeywordsEscaped() As Task
+            Dim text = <a>Class C
+    Public Property [Wend] As Integer
+
+    Public Property [New] As Integer
+
+    Public Property A As Integer
+End Class
+
+
+Class Program
+    Sub Main()
+        Dim c As New C With { .$$ }
+    End Sub
+End Class</a>.Value
+
+            Await VerifyItemExistsAsync(text, "[Wend]")
+            Await VerifyItemExistsAsync(text, "[New]")
+            Await VerifyItemExistsAsync(text, "A")
+
+            Await VerifyItemIsAbsentAsync(text, "Wend")
+            Await VerifyItemIsAbsentAsync(text, "New")
         End Function
 
         Friend Overrides Function CreateCompletionProvider() As CompletionProvider

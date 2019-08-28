@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructor
     Public Class GenerateConstructorTests
@@ -13,6 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New GenerateConstructorCodeFixProvider())
         End Function
+
+        Private ReadOnly options As NamingStylesTestOptionSets = New NamingStylesTestOptionSets(LanguageNames.VisualBasic)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateIntoContainingType() As Task
@@ -865,6 +868,7 @@ End Class")
         End Function
 
         <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestDetectAssignmentToSharedFieldFromInstanceConstructor() As Task
             Await TestInRegularAndScriptAsync(
@@ -882,10 +886,10 @@ End Class",
     End Sub
 End Class
 Class A
-    Private P1 As Integer
+    Private p As Integer
 
     Public Sub New(P As Integer)
-        P1 = P
+        Me.p = P
     End Sub
 
     Shared Property P As Integer
@@ -1299,6 +1303,7 @@ End Class")
         End Function
 
         <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestAttributesWithNamedArguments() As Task
             Await TestInRegularAndScriptAsync(
@@ -1315,12 +1320,12 @@ Public Class MyAttribute
 
     Private v1 As Boolean
     Private v2 As Integer
-    Private Topic As String
+    Private topic As String
 
     Public Sub New(v1 As Boolean, v2 As Integer, Topic As String)
         Me.v1 = v1
         Me.v2 = v2
-        Me.Topic = Topic
+        Me.topic = Topic
     End Sub
 End Class
 <MyAttribute(true, 1, Topic:=""hello"")>
@@ -1812,6 +1817,128 @@ End Class",
         Me.New(a, b, c)
     End Sub
 End Class")
+        End Function
+
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function CreateFieldDefaultNamingStyle() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C([|x|])
+    End Sub
+End Class",
+"Class C
+    Private x As Integer
+
+    Public Sub New(x As Integer)
+        Me.x = x
+    End Sub
+
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C(x)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function CreateFieldSpecifiedNamingStyle() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C([|x|])
+    End Sub
+End Class",
+"Class C
+    Private _x As Integer
+
+    Public Sub New(x As Integer)
+        _x = x
+    End Sub
+
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C(x)
+    End Sub
+End Class", options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix)
+        End Function
+
+        <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestFieldWithNamingStyleAlreadyExists() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Sub Test()
+        Dim x = New A([|P|]:=5)
+    End Sub
+End Class
+Class A
+    Shared Property _p As Integer
+End Class",
+"Class Program
+    Sub Test()
+        Dim x = New A(P:=5)
+    End Sub
+End Class
+Class A
+    Private _p1 As Integer
+
+    Public Sub New(P As Integer)
+        _p1 = P
+    End Sub
+
+    Shared Property _p As Integer
+End Class", options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix)
+        End Function
+
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestFieldAndPropertyNamingStyles() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C([|x|])
+    End Sub
+End Class",
+"Class C
+    Private _x As Integer
+
+    Public Sub New(p_x As Integer)
+        _x = p_x
+    End Sub
+
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C(x)
+    End Sub
+End Class", options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.VisualBasic))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(23807, "https://github.com/dotnet/roslyn/issues/23807")>
+        Public Async Function TestAsNewClause() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class Test
+    Private field As New Test([|1|])
+End Class
+",
+"
+Class Test
+    Private field As New Test(1)
+    Private v As Integer
+
+    Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+End Class
+")
         End Function
     End Class
 End Namespace

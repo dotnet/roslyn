@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public ChangeSignatureResult(bool succeeded, Solution updatedSolution = null, string name = null, Glyph? glyph = null, bool previewChanges = false)
         {
-            this.Succeeded = succeeded;
-            this.UpdatedSolution = updatedSolution;
-            this.Name = name;
-            this.Glyph = glyph;
-            this.PreviewChanges = previewChanges;
+            Succeeded = succeeded;
+            UpdatedSolution = updatedSolution;
+            Name = name;
+            Glyph = glyph;
+            PreviewChanges = previewChanges;
         }
     }
 }

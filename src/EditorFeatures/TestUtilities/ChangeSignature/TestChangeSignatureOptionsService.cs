@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         public bool IsCancelled = true;
         public int[] UpdatedSignature = null;
 
+        [ImportingConstructor]
+        public TestChangeSignatureOptionsService()
+        {
+        }
+
         public ChangeSignatureOptionsResult GetChangeSignatureOptions(ISymbol symbol, ParameterConfiguration parameters, INotificationService notificationService)
         {
             var list = parameters.ToListOfParameters();
@@ -23,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 IsCancelled = IsCancelled,
                 UpdatedSignature = new SignatureChange(
                     parameters,
-                    UpdatedSignature == null ? parameters : ParameterConfiguration.Create(UpdatedSignature.Select(i => list[i]).ToList(), parameters.ThisParameter != null))
+                    UpdatedSignature == null ? parameters : ParameterConfiguration.Create(UpdatedSignature.Select(i => list[i]).ToList(), parameters.ThisParameter != null, selectedIndex: 0))
             };
         }
     }

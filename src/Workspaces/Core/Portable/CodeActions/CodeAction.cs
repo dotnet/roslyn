@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// code actions result from code fixes or refactorings for a single Visual Studio light bulb instance,
         /// the light bulb UI will present only one code action from each set of equivalent code actions.
         /// Additionally, a Fix All operation will apply only code actions that are equivalent to the original code action.
-        /// 
+        ///
         /// If two code actions that could be treated as equivalent do not have equal <see cref="EquivalenceKey"/> values, Visual Studio behavior
         /// may be less helpful than would be optimal. If two code actions that should be treated as distinct have
         /// equal <see cref="EquivalenceKey"/> values, Visual Studio behavior may appear incorrect.
@@ -68,10 +69,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return GetOperationsAsync(new ProgressTracker(), cancellationToken);
         }
 
-        internal async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
+        internal Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            return await GetOperationsCoreAsync(progressTracker, cancellationToken).ConfigureAwait(false);
+            return GetOperationsCoreAsync(progressTracker, cancellationToken);
         }
 
         /// <summary>
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         /// <summary>
-        /// The sequence of operations used to construct a preview. 
+        /// The sequence of operations used to construct a preview.
         /// </summary>
         public async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
         {
@@ -130,9 +131,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// Override this method if you want to implement a <see cref="CodeAction"/> that has a set of preview operations that are different
         /// than the operations produced by <see cref="ComputeOperationsAsync(CancellationToken)"/>.
         /// </summary>
-        protected virtual async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        protected virtual Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
-            return await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
+            return ComputeOperationsAsync(cancellationToken);
         }
 
         /// <summary>
@@ -179,9 +180,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return await this.PostProcessChangesAsync(solution, cancellationToken).ConfigureAwait(false);
         }
 
-        internal async Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
+        internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
         {
-            return await this.GetChangedDocumentAsync(cancellation).ConfigureAwait(false);
+            return GetChangedDocumentAsync(cancellation);
         }
 
         /// <summary>
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // process changed projects
             foreach (var projectChanges in solutionChanges.GetProjectChanges())
             {
-                var documentsToProcess = projectChanges.GetChangedDocuments().Concat(
+                var documentsToProcess = projectChanges.GetChangedDocuments(true).Concat(
                     projectChanges.GetAddedDocuments());
 
                 foreach (var documentId in documentsToProcess)
@@ -283,8 +284,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal virtual bool PerformFinalApplicabilityCheck => false;
 
         /// <summary>
-        /// Called by the CodeActions on the UI thread to determine if the CodeAction is still 
-        /// applicable and should be presented to the user.  CodeActions can override this if they 
+        /// Called by the CodeActions on the UI thread to determine if the CodeAction is still
+        /// applicable and should be presented to the user.  CodeActions can override this if they
         /// need to do any final checking that must be performed on the UI thread (for example
         /// accessing and querying the Visual Studio DTE).
         /// </summary>
@@ -296,12 +297,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
         #region Factories for standard code actions
 
         /// <summary>
-        /// Creates a <see cref="CodeAction"/> for a change to a single <see cref="Document"/>. 
+        /// Creates a <see cref="CodeAction"/> for a change to a single <see cref="Document"/>.
         /// Use this factory when the change is expensive to compute and should be deferred until requested.
         /// </summary>
         /// <param name="title">Title of the <see cref="CodeAction"/>.</param>
         /// <param name="createChangedDocument">Function to create the <see cref="Document"/>.</param>
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
+        [SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "Preserving existing public API")]
         public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
         {
             if (title == null)
@@ -324,6 +326,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="title">Title of the <see cref="CodeAction"/>.</param>
         /// <param name="createChangedSolution">Function to create the <see cref="Solution"/>.</param>
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
+        [SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "Preserving existing public API")]
         public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
         {
             if (title == null)
@@ -337,6 +340,28 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
 
             return new SolutionChangeAction(title, createChangedSolution, equivalenceKey);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="CodeAction"/> representing a group of code actions.
+        /// </summary>
+        /// <param name="title">Title of the <see cref="CodeAction"/> group.</param>
+        /// <param name="nestedActions">The code actions within the group.</param>
+        /// <param name="isInlinable"><see langword="true"/> to allow inlining the members of the group into the parent;
+        /// otherwise, <see langword="false"/> to require that this group appear as a group with nested actions.</param>
+        public static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+        {
+            if (title is null)
+            {
+                throw new ArgumentNullException(nameof(title));
+            }
+
+            if (nestedActions == null)
+            {
+                throw new ArgumentNullException(nameof(nestedActions));
+            }
+
+            return new CodeActionWithNestedActions(title, nestedActions, isInlinable);
         }
 
         internal abstract class SimpleCodeAction : CodeAction
@@ -359,13 +384,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal class CodeActionWithNestedActions : SimpleCodeAction
         {
             public CodeActionWithNestedActions(
-                string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+                string title, ImmutableArray<CodeAction> nestedActions,
+                bool isInlinable, CodeActionPriority priority = CodeActionPriority.Medium)
                 : base(title, ComputeEquivalenceKey(nestedActions))
             {
                 Debug.Assert(nestedActions.Length > 0);
                 NestedCodeActions = nestedActions;
                 IsInlinable = isInlinable;
+                Priority = priority;
             }
+
+            internal override CodeActionPriority Priority { get; }
 
             internal sealed override bool IsInlinable { get; }
 

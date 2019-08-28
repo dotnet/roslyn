@@ -7,12 +7,13 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Elfie.Model
 Imports Microsoft.CodeAnalysis.SymbolSearch
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.RemoteControl
 Imports Moq
-Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
+    <[UseExportProvider]>
     Public Class SymbolSearchUpdateEngineTests
         Private Shared ReadOnly s_allButMoqExceptions As Func(Of Exception, Boolean) =
             Function(e) TypeOf e IsNot MockException
@@ -750,12 +751,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Private Sub New()
             End Sub
 
-            Public Function LogExceptionAsync(exception As String, text As String) As Task Implements ISymbolSearchLogService.LogExceptionAsync
-                Return SpecializedTasks.EmptyTask
+            Public Function LogExceptionAsync(exception As String, text As String, cancellationToken As CancellationToken) As Task Implements ISymbolSearchLogService.LogExceptionAsync
+                Return Task.CompletedTask
             End Function
 
-            Public Function LogInfoAsync(text As String) As Task Implements ISymbolSearchLogService.LogInfoAsync
-                Return SpecializedTasks.EmptyTask
+            Public Function LogInfoAsync(text As String, cancellationToken As CancellationToken) As Task Implements ISymbolSearchLogService.LogInfoAsync
+                Return Task.CompletedTask
             End Function
         End Class
 
@@ -767,20 +768,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Private Sub New()
             End Sub
 
-            Public Function OnDownloadFullDatabaseStartedAsync(title As String) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseStartedAsync
-                Return SpecializedTasks.EmptyTask
+            Public Function OnDownloadFullDatabaseStartedAsync(title As String, cancellationToken As CancellationToken) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseStartedAsync
+                Return Task.CompletedTask
             End Function
 
-            Public Function OnDownloadFullDatabaseSucceededAsync() As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseSucceededAsync
-                Return SpecializedTasks.EmptyTask
+            Public Function OnDownloadFullDatabaseSucceededAsync(cancellationToken As CancellationToken) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseSucceededAsync
+                Return Task.CompletedTask
             End Function
 
-            Public Function OnDownloadFullDatabaseCanceledAsync() As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseCanceledAsync
-                Return SpecializedTasks.EmptyTask
+            Public Function OnDownloadFullDatabaseCanceledAsync(cancellationToken As CancellationToken) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseCanceledAsync
+                Return Task.CompletedTask
             End Function
 
-            Public Function OnDownloadFullDatabaseFailedAsync(message As String) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseFailedAsync
-                Return SpecializedTasks.EmptyTask
+            Public Function OnDownloadFullDatabaseFailedAsync(message As String, cancellationToken As CancellationToken) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseFailedAsync
+                Return Task.CompletedTask
             End Function
         End Class
     End Class

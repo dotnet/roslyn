@@ -2,6 +2,31 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="translated">添加成员名称</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_null_checks_for_all_parameters">
+        <source>Add null checks for all parameters</source>
+        <target state="new">Add null checks for all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_optional_parameter_to_constructor">
+        <source>Add optional parameter to constructor</source>
+        <target state="translated">将可选参数添加到构造函数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
+        <source>Add parameter to '{0}' (and overrides/implementations)</source>
+        <target state="translated">将参数添加到“{0}”(和重写/实现)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_constructor">
+        <source>Add parameter to constructor</source>
+        <target state="translated">将参数添加到构造函数</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
         <source>Add project reference to '{0}'.</source>
         <target state="translated">将参数引用添加到“{0}”。</target>
@@ -17,6 +42,601 @@
         <target state="translated">操作不能为空。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_tuple_element_name_0">
+        <source>Add tuple element name '{0}'</source>
+        <target state="translated">添加元组元素名称 "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface method will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
+        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
+        <target state="translated">添加具有显式接口说明符的方法将阻止调试会话继续。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Align_wrapped_arguments">
+        <source>Align wrapped arguments</source>
+        <target state="translated">对齐包装的参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Align_wrapped_parameters">
+        <source>Align wrapped parameters</source>
+        <target state="translated">对齐包装参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
+        <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="translated">请避免在代码中使用不必要的值赋值，因为这些值极有可能指示冗余的值计算。如果值计算不是冗余的，并且打算保留该赋值，请将分配目标更改为名称以下划线开头或在下划线后面跟一个整数的局部变量(如 "_"、"_1"、"_2" 等)。这些被视为特殊丢弃符号名。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
+        <source>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="translated">请避免在代码中使用未使用的参数。如果无法删除该参数，请更改其名称，使其以下划线开头，也可在下划线后面跟一个整数(如 "_"、"_1"、"_2" 等)。这些被视为特殊丢弃符号名。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_namespace_to_0">
+        <source>Change namespace to '{0}'</source>
+        <target state="translated">将名称空间更改为“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_global_namespace">
+        <source>Change to global namespace</source>
+        <target state="translated">更改为全局命名空间</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
+        <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
+        <target state="new">Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
+        <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
+        <target state="new">Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_Quality">
+        <source>Code Quality</source>
+        <target state="translated">代码质量</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_code_style">
+        <source>Configure {0} code style</source>
+        <target state="new">Configure {0} code style</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_severity">
+        <source>Configure {0} severity</source>
+        <target state="new">Configure {0} severity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq">
+        <source>Convert to LINQ</source>
+        <target state="translated">转换为 LINQ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_0">
+        <source>Add to '{0}'</source>
+        <target state="translated">添加到“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_class">
+        <source>Convert to class</source>
+        <target state="translated">转换为类</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq_call_form">
+        <source>Convert to LINQ (call form)</source>
+        <target state="translated">转换为 LINQ (调用表单)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_struct">
+        <source>Convert to struct</source>
+        <target state="translated">转换为结构</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="translated">转换为元组</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
+        <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
+        <target state="translated">实现 System.IDisposable 的类型将声明一些字段，这些字段所属的类型还实现 IDisposable。字段的 Dispose 方法不由声明类型的 Dispose 方法调用。若要修复此规则的违规行为，如果你负责分配和释放该字段持有的非托管资源，请在其所属类型实现 IDisposable 的字段上调用 Dispose。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_field_0_is_never_disposed">
+        <source>Disposable field '{0}' is never disposed</source>
+        <target state="translated">从未释放可释放字段 "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_fields_should_be_disposed">
+        <source>Disposable fields should be disposed</source>
+        <target state="translated">应释放可释放的字段</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
+        <source>Disposable object created by '{0}' is never disposed</source>
+        <target state="translated">从未释放由 "{0}" 创建的可释放对象</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Dispose_objects_before_losing_scope">
+        <source>Dispose objects before losing scope</source>
+        <target state="translated">丢失范围之前释放对象</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_value_is_never_used">
+        <source>Expression value is never used</source>
+        <target state="translated">永远不会使用表达式值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_analyze_data_flow_for_0">
+        <source>Failed to analyze data-flow for: {0}</source>
+        <target state="translated">未能分析 {0} 的数据流</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="translated">解决格式问题</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_typo_0">
+        <source>Fix typo '{0}'</source>
+        <target state="translated">修正笔误“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_document">
+        <source>Formatting document</source>
+        <target state="translated">设置文档格式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0">
+        <source>Generate parameter '{0}'</source>
+        <target state="translated">生成参数 "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
+        <source>Generate parameter '{0}' (and overrides/implementations)</source>
+        <target state="translated">生成参数 {0}(和重写/实现)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_all_arguments">
+        <source>Indent all arguments</source>
+        <target state="translated">缩进所有参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_all_parameters">
+        <source>Indent all parameters</source>
+        <target state="translated">缩进所有参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_arguments">
+        <source>Indent wrapped arguments</source>
+        <target state="translated">缩进包装的参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_parameters">
+        <source>Indent wrapped parameters</source>
+        <target state="translated">缩进包装参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexing_can_be_simplified">
+        <source>Indexing can be simplified</source>
+        <target state="translated">索引可以简化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_constant">
+        <source>Introduce constant</source>
+        <target state="translated">引入常量</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_field">
+        <source>Introduce field</source>
+        <target state="translated">介绍领域</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local">
+        <source>Introduce local</source>
+        <target state="translated">引入局部</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_query_variable">
+        <source>Introduce query variable</source>
+        <target state="translated">引入查询变量</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_readonly_fields_writable">
+        <source>Make readonly fields writable</source>
+        <target state="translated">使 readonly 字段可写</target>
+        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Invert_conditional">
+        <source>Invert conditional</source>
+        <target state="translated">反转条件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_function_can_be_made_static">
+        <source>Local function can be made static</source>
+        <target state="translated">可以使本地函数成为静态函数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_local_function_static">
+        <source>Make local function 'static'</source>
+        <target state="translated">使本地函数成为静态函数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_nested_0_statement">
+        <source>Merge with nested '{0}' statement</source>
+        <target state="translated">与嵌套的 "{0}" 语句合并</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_next_0_statement">
+        <source>Merge with next '{0}' statement</source>
+        <target state="translated">与下一个 "{0}" 语句合并</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_outer_0_statement">
+        <source>Merge with outer '{0}' statement</source>
+        <target state="translated">与外部 "{0}" 语句合并</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_previous_0_statement">
+        <source>Merge with previous '{0}' statement</source>
+        <target state="translated">与以前的 "{0}" 语句合并</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
+        <source>{0} must return a stream that supports read and seek operations.</source>
+        <target state="translated">{0} 必须返回支持读取和查找操作的流。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
+        <target state="new">Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_contents_to_namespace">
+        <source>Move contents to namespace...</source>
+        <target state="translated">将内容移动到命名空间...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_0">
+        <source>Move file to '{0}'</source>
+        <target state="translated">将文件移至“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_project_root_folder">
+        <source>Move file to project root folder</source>
+        <target state="translated">将文件移动到项目根文件夹</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to namespace...</source>
+        <target state="translated">移动到命名空间...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
+        <target state="translated">可删除私有成员“{0}”，因为永不会读取分配给它的值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_is_unused">
+        <source>Private member '{0}' is unused.</source>
+        <target state="translated">未使用私有成员“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
+        <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
+        <target state="translated">修改源文件 {0} 将防止调试会话因内部错误 {1} 而继续进行。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
+        <source>Private method '{0}' can be removed as it is never invoked.</source>
+        <target state="translated">私有方法“{0}”可以删除，因为它永远不会被调用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
+        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
+        <target state="translated">私有属性 "{0}" 可以转换为方法，因为永远不会调用它的 get 访问器。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_0_up">
+        <source>Pull '{0}' up</source>
+        <target state="translated">向上拉 "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_0_up_to_1">
+        <source>Pull '{0}' up to '{1}'</source>
+        <target state="translated">将 "{0}" 拉到 "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_members_up_to_base_type">
+        <source>Pull members up to base type...</source>
+        <target state="translated">将成员拉到基本类型..。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
+        <source>Related method signatures found in metadata will not be updated.</source>
+        <target state="translated">不更新在元数据中发现的相关方法签名。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_redundant_assignment">
+        <source>Remove redundant assignment</source>
+        <target state="translated">删除冗余分配</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unread_private_members">
+        <source>Remove unread private members</source>
+        <target state="translated">删除未读的私有成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_member">
+        <source>Remove unused member</source>
+        <target state="translated">删除未使用的成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter">
+        <source>Remove unused parameter</source>
+        <target state="translated">删除未使用的参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0">
+        <source>Remove unused parameter '{0}'</source>
+        <target state="translated">删除未使用的参数 "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
+        <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
+        <target state="translated">如果未使用的参数 "{0}" 不是已发布的公共 api 的一部分, 请将其删除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
+        <target state="translated">删除未使用的参数“{0}”如果它不是已发布的公共API的一部分，则永远不会使用其初始值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
+        <source>Remove unused parameter '{0}', its initial value is never used</source>
+        <target state="translated">删除未使用的参数 “{0}” ，因为它的值从未被使用过</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_private_members">
+        <source>Remove unused private members</source>
+        <target state="translated">删除未使用的私有成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_1">
+        <source>Replace '{0}' with '{1}' </source>
+        <target state="translated">将 "{0}" 替换为 "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_into_consecutive_0_statements">
+        <source>Split into consecutive '{0}' statements</source>
+        <target state="translated">拆分为连续的 "{0}" 语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_into_nested_0_statements">
+        <source>Split into nested '{0}' statements</source>
+        <target state="translated">拆分为嵌套的 "{0}" 语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="translated">流必须支持读取和搜寻操作。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_0">
+        <source>Suppress {0}</source>
+        <target state="new">Suppress {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_type_matches">
+        <source>Target type matches</source>
+        <target state="translated">目标类型匹配</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_assignment_of_a_value">
+        <source>Unnecessary assignment of a value</source>
+        <target state="translated">不需要赋值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
+        <source>Unnecessary assignment of a value to '{0}'</source>
+        <target state="translated">不需要对 "{0}" 赋值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_all_arguments">
+        <source>Unwrap all arguments</source>
+        <target state="translated">解开所有参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_all_parameters">
+        <source>Unwrap all parameters</source>
+        <target state="translated">打开所有参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_arguments">
+        <source>Unwrap and indent all arguments</source>
+        <target state="translated">展开和缩进所有参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_parameters">
+        <source>Unwrap and indent all parameters</source>
+        <target state="translated">展开和缩进所有参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_argument_list">
+        <source>Unwrap argument list</source>
+        <target state="translated">展开参数列表</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_call_chain">
+        <source>Unwrap call chain</source>
+        <target state="new">Unwrap call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_expression">
+        <source>Unwrap expression</source>
+        <target state="translated">展开表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_parameter_list">
+        <source>Unwrap parameter list</source>
+        <target state="translated">展开参数列表</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Updating a '{0}' around an active statement will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseRecommendedDisposePatternDescription">
+        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
+        <target state="translated">使用推荐的 Dispose 模式以确保在所有路径中释放局部可释放对象。如果可能，请将创建包装在 "using" 语句或 "using" 声明中。否则，请使用 try-finally 模式，在 try 区域之前声明一个专用的局部变量，在 "finally" 区域中对非 null 值进行无条件 Dispose 调用，比如，"x?.Dispose()"。如果对象显式释放在 try 区域内或释放所有权转让给另一个对象或方法，则在这样的操作之后立即将 "null" 分配给局部变量，以防止在 "finally" 中进行双重释放。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="translated">对 lambda 表达式使用块正文</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_local_functions">
+        <source>Use block body for local functions</source>
+        <target state="translated">对本地函数使用块体</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_compound_assignment">
+        <source>Use compound assignment</source>
+        <target state="translated">使用复合分配</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_discard_underscore">
+        <source>Use discard '_'</source>
+        <target state="translated">使用丢弃 "_"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_discarded_local">
+        <source>Use discarded local</source>
+        <target state="translated">使用丢弃的本地</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="translated">对 lambda 表达式使用表达式正文</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="translated">将表达式主体用于本地函数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_index_operator">
+        <source>Use index operator</source>
+        <target state="translated">使用索引运算符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="translated">使用内插的原义字符串</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_range_operator">
+        <source>Use range operator</source>
+        <target state="translated">使用范围运算符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recommended_dispose_pattern">
+        <source>Use recommended dispose pattern</source>
+        <target state="translated">使用建议的 dispose 模式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
+        <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
+        <target state="translated">使用建议的 dispose 模式以确保在所有路径上释放由 "{0}" 创建的对象: using 语句/声明或 try/finally</target>
+        <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Use_simple_using_statement">
+        <source>Use simple 'using' statement</source>
+        <target state="translated">使用简单的 "using" 语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
+        <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
+        <target state="translated">警告: 更改命名空间可能会产生无效的代码并更改代码的含义。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_call_chain">
+        <source>Wrap and align call chain</source>
+        <target state="new">Wrap and align call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
+        <source>Warning: Semantics may change when converting statement.</source>
+        <target state="new">Warning: Semantics may change when converting statement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_expression">
+        <source>Wrap and align expression</source>
+        <target state="translated">环绕和对齐表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_long_call_chain">
+        <source>Wrap and align long call chain</source>
+        <target state="new">Wrap and align long call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_call_chain">
+        <source>Wrap call chain</source>
+        <target state="new">Wrap call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_every_argument">
+        <source>Wrap every argument</source>
+        <target state="translated">包装每个参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_every_parameter">
+        <source>Wrap every parameter</source>
+        <target state="translated">包装每个参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_expression">
+        <source>Wrap expression</source>
+        <target state="translated">包装表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_argument_list">
+        <source>Wrap long argument list</source>
+        <target state="translated">包装长参数列表</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_call_chain">
+        <source>Wrap long call chain</source>
+        <target state="new">Wrap long call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_parameter_list">
+        <source>Wrap long parameter list</source>
+        <target state="translated">包装长参数列表</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping">
+        <source>Wrapping</source>
+        <target state="translated">换行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_can_be_simplified">
+        <source>{0} can be simplified</source>
+        <target state="translated">{0} 可以简化</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">泛型重载</target>
@@ -25,6 +645,11 @@
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">多个泛型重载</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_Source_attribute">
+        <source>in Source (attribute)</source>
+        <target state="translated">在源(属性)中</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -232,36 +857,6 @@
         <target state="translated">实现接口</target>
         <note />
       </trans-unit>
-      <trans-unit id="Loading_context_from_0">
-        <source>Loading context from '{0}'.</source>
-        <target state="translated">从“{0}”加载上下文。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Sharphelp_for_more_information">
-        <source>Type "#help" for more information.</source>
-        <target state="translated">键入“#help”，了解更多信息。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found_colon_0">
-        <source>Specified file not found: {0}</source>
-        <target state="translated">未找到指定文件:{0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found">
-        <source>Specified file not found.</source>
-        <target state="translated">未找到指定文件。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directory_colon">
-        <source>Searched in directory:</source>
-        <target state="translated">已在目录中搜索:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directories_colon">
-        <source>Searched in directories:</source>
-        <target state="translated">已在多个目录中搜索:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_field_for_0">
         <source>Introduce field for '{0}'</source>
         <target state="translated">为“{0}”引入字段</target>
@@ -364,7 +959,7 @@
       </trans-unit>
       <trans-unit id="in_">
         <source>in</source>
-        <target state="translated">在</target>
+        <target state="translated">隶属</target>
         <note />
       </trans-unit>
       <trans-unit id="Summary_colon">
@@ -394,7 +989,7 @@
       </trans-unit>
       <trans-unit id="Remarks_colon">
         <source>Remarks:</source>
-        <target state="translated">备注:</target>
+        <target state="translated">言论：</target>
         <note />
       </trans-unit>
       <trans-unit id="generating_source_for_symbols_of_this_type_is_not_supported">
@@ -662,11 +1257,6 @@
         <target state="translated">活动语句已从其初始方法中删除。必须还原更改才能继续或重新启动调试会话。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">更新活动语句周围的“{0}”语句将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">更新当前语句的 async 或 iterator 修饰符可以阻止调试会话继续。</target>
@@ -792,54 +1382,9 @@
         <target state="translated">生成方法“{1}.{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
-        <source>Failed to create a remote process for interactive code execution.</source>
-        <target state="translated">为交互代码的执行创建远程进程失败。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_initialize_remote_interactive_process">
-        <source>Failed to initialize remote interactive process.</source>
-        <target state="translated">初始化远程交互进程失败。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
-        <source>Attempt to connect to process #{0} failed, retrying ...</source>
-        <target state="translated">尝试连接到进程 #{0} 失败，正在重试...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
-        <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
-        <target state="translated">启动“{0}”进程失败(退出代码:{1})，输出:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Hosting_process_exited_with_exit_code_0">
-        <source>Hosting process exited with exit code {0}.</source>
-        <target state="translated">宿主进程已退出，退出代码为 {0}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Host_not_initialized">
-        <source>Interactive Host not initialized.</source>
-        <target state="translated">未初始化交互式主机。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_resolve_reference_0">
-        <source>Cannot resolve reference '{0}'.</source>
-        <target state="translated">无法解析“{0}”引用。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
         <source>Requested assembly already loaded from '{0}'.</source>
         <target state="translated">已从“{0}”中加载请求的程序集。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="plus_additional_0_1">
-        <source> + additional {0} {1}</source>
-        <target state="translated"> + 其他 {0} {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unable_to_create_hosting_process">
-        <source>Unable to create hosting process.</source>
-        <target state="translated">无法创建宿主进程。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
@@ -1033,11 +1578,6 @@ Do you want to continue?</source>
         <target state="translated">样式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_0">
-        <source>Suppress {0}</source>
-        <target state="translated">取消 {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">
         <source>Re-triage {0}(currently '{1}')</source>
         <target state="translated">对 {0}(当前为“{1}”) 进行重新分类</target>
@@ -1120,12 +1660,12 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="enum_value">
         <source>enum value</source>
-        <target state="translated">枚举值</target>
+        <target state="translated">enum 值</target>
         <note>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="const_field">
         <source>const field</source>
-        <target state="translated">常量字段</target>
+        <target state="translated">const 字段</target>
         <note>{Locked="const"} "const" is a C#/VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="method">
@@ -1575,11 +2115,6 @@ This version used in: {2}</source>
         <target state="translated">使用属性的表达式主体</target>
         <note />
       </trans-unit>
-      <trans-unit id="Spell_check_0">
-        <source>Spell check '{0}'</source>
-        <target state="translated">拼写检查“{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">完全限定“{0}”</target>
@@ -1960,21 +2495,6 @@ This version used in: {2}</source>
         <target state="translated">添加参数名“{0}”(包括尾随参数)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">使用只读结构将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">使用 ref 结构将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">使用只读引用将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">本地函数</target>
@@ -1983,6 +2503,86 @@ This version used in: {2}</source>
       <trans-unit id="indexer_">
         <source>indexer</source>
         <target state="translated">索引器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_can_be_removed">
+        <source>Parentheses can be removed</source>
+        <target state="translated">可以删除括号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_parentheses">
+        <source>Remove unnecessary parentheses</source>
+        <target state="translated">删除不必要的括号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_for_clarity">
+        <source>Add parentheses for clarity</source>
+        <target state="translated">为清楚起见，请添加括号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_should_be_added_for_clarity">
+        <source>Parentheses should be added for clarity</source>
+        <target state="translated">为清楚起见，应添加括号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="translated">别名多义类型“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
+        <source>Warning: Collection was modified during iteration.</source>
+        <target state="translated">警告: 迭代期间已修改集合。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
+        <source>Warning: Iteration variable crossed function boundary.</source>
+        <target state="translated">警告: 迭代变量跨函数边界。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
+        <source>Warning: Collection may be modified during iteration.</source>
+        <target state="translated">警告: 迭代期间可能修改集合。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_readonly_modifier">
+        <source>Add readonly modifier</source>
+        <target state="translated">添加只读修饰符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_field_readonly">
+        <source>Make field readonly</source>
+        <target state="translated">将字段设置为只读</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="translated">转换为条件表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_member">
+        <source>updating usages in containing member</source>
+        <target state="translated">更新包含成员的用法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_project">
+        <source>updating usages in containing project</source>
+        <target state="translated">更新包含项目中的用法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_type">
+        <source>updating usages in containing type</source>
+        <target state="translated">更新包含类型中的用法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_dependent_projects">
+        <source>updating usages in dependent projects</source>
+        <target state="translated">更新相关项目中的用法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_statement_can_be_simplified">
+        <source>'using' statement can be simplified</source>
+        <target state="translated">可简化 "using" 语句</target>
         <note />
       </trans-unit>
     </body>

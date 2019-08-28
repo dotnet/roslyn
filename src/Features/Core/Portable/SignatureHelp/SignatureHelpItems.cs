@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public string ArgumentName { get; }
 
         /// <summary>
-        /// The item to select by default.  If this is <code>null</code> then the controller will
+        /// The item to select by default.  If this is <see langword="null"/> then the controller will
         /// pick the first item that has enough arguments to be viable based on what argument 
         /// position the user is currently inside of.
         /// </summary>
@@ -92,12 +92,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 Debug.Assert(selectedItem.Value >= 0, "actual item was not part of the final list");
             }
 
-            this.Items = distinctItems;
-            this.ApplicableSpan = applicableSpan;
-            this.ArgumentIndex = argumentIndex;
-            this.ArgumentCount = argumentCount;
-            this.SelectedItemIndex = selectedItem;
-            this.ArgumentName = argumentName;
+            Items = distinctItems;
+            ApplicableSpan = applicableSpan;
+            ArgumentIndex = argumentIndex;
+            ArgumentCount = argumentCount;
+            SelectedItemIndex = selectedItem;
+            ArgumentName = argumentName;
         }
     }
 }

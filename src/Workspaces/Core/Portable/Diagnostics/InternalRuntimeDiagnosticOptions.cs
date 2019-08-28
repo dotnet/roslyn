@@ -8,5 +8,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public static readonly Option<bool> Syntax = new Option<bool>(nameof(InternalRuntimeDiagnosticOptions), nameof(Syntax), defaultValue: false);
         public static readonly Option<bool> Semantic = new Option<bool>(nameof(InternalRuntimeDiagnosticOptions), nameof(Semantic), defaultValue: false);
+        public static readonly Option<bool> ScriptSemantic = new Option<bool>(nameof(InternalRuntimeDiagnosticOptions), nameof(ScriptSemantic), defaultValue: false);
     }
 }

@@ -1630,7 +1630,8 @@ class C : PublicClass.ProtectedInternalClass
             compilation2.VerifyDiagnostics(
                 // (2,23): error CS0122: 'PublicClass.ProtectedInternalClass' is inaccessible due to its protection level
                 // class C : PublicClass.ProtectedInternalClass
-                Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedInternalClass").WithArguments("PublicClass.ProtectedInternalClass"));
+                Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedInternalClass").WithArguments("PublicClass.ProtectedInternalClass").WithLocation(2, 23)
+                );
         }
 
         [WorkItem(545365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545365")]
@@ -1683,7 +1684,8 @@ class C : PublicClass.ProtectedAndInternalClass
             CreateCompilationWithILAndMscorlib40(csharp, il, appendDefaultHeader: false).VerifyDiagnostics(
                 // (2,23): error CS0122: 'PublicClass.ProtectedAndInternalClass' is inaccessible due to its protection level
                 // class C : PublicClass.ProtectedAndInternalClass
-                Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedAndInternalClass").WithArguments("PublicClass.ProtectedAndInternalClass"));
+                Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedAndInternalClass").WithArguments("PublicClass.ProtectedAndInternalClass").WithLocation(2, 23)
+                );
         }
 
         [WorkItem(530144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530144")]
@@ -1725,21 +1727,21 @@ class C : PublicClass.ProtectedAndInternalClass
 public class D : I<int> {}
 public interface I2 : I<int> {}";
             CreateCompilationWithILAndMscorlib40(csharp, il, appendDefaultHeader: false).VerifyDiagnostics(
-                // (10,14): error CS0648: 'I<int>' is a type not supported by the language
-                // public class D : I<int> {}
-                Diagnostic(ErrorCode.ERR_BogusType, "D").WithArguments("I<int>"),
-                // (11,18): error CS0648: 'I<int>' is a type not supported by the language
-                // public interface I2 : I<int> {}
-                Diagnostic(ErrorCode.ERR_BogusType, "I2").WithArguments("I<int>"),
                 // (4,26): error CS0648: 'I<int>' is a type not supported by the language
                 //     static void F(I<int> x)
-                Diagnostic(ErrorCode.ERR_BogusType, "x").WithArguments("I<int>"),
-                // (3,19): error CS0648: 'I<int>' is a type not supported by the language
+                Diagnostic(ErrorCode.ERR_BogusType, "x").WithArguments("I<int>").WithLocation(4, 26),
+                // (3,26): error CS0648: 'I<int>' is a type not supported by the language
                 //     public static I<int> x;
-                Diagnostic(ErrorCode.ERR_BogusType, "I<int>").WithArguments("I<int>"),
+                Diagnostic(ErrorCode.ERR_BogusType, "x").WithArguments("I<int>").WithLocation(3, 26),
+                // (10,14): error CS0648: 'I<int>' is a type not supported by the language
+                // public class D : I<int> {}
+                Diagnostic(ErrorCode.ERR_BogusType, "D").WithArguments("I<int>").WithLocation(10, 14),
+                // (11,18): error CS0648: 'I<int>' is a type not supported by the language
+                // public interface I2 : I<int> {}
+                Diagnostic(ErrorCode.ERR_BogusType, "I2").WithArguments("I<int>").WithLocation(11, 18),
                 // (6,9): error CS0648: 'I<int>' is a type not supported by the language
                 //         I<int> t = C.x;
-                Diagnostic(ErrorCode.ERR_BogusType, "I<int>").WithArguments("I<int>")
+                Diagnostic(ErrorCode.ERR_BogusType, "I<int>").WithArguments("I<int>").WithLocation(6, 9)
             );
         }
 
@@ -1781,13 +1783,13 @@ public interface I2 : I<int> {}";
             CreateCompilationWithILAndMscorlib40(csharp, il, appendDefaultHeader: false, targetFramework: TargetFramework.Standard).VerifyDiagnostics(
                 // (4,30): error CS0648: 'I<dynamic>' is a type not supported by the language
                 //     static void F(I<dynamic> x)
-                Diagnostic(ErrorCode.ERR_BogusType, "x").WithArguments("I<dynamic>"),
-                // (3,19): error CS0648: 'I<dynamic>' is a type not supported by the language
+                Diagnostic(ErrorCode.ERR_BogusType, "x").WithArguments("I<dynamic>").WithLocation(4, 30),
+                // (3,30): error CS0648: 'I<dynamic>' is a type not supported by the language
                 //     public static I<dynamic> x;
-                Diagnostic(ErrorCode.ERR_BogusType, "I<dynamic>").WithArguments("I<dynamic>"),
+                Diagnostic(ErrorCode.ERR_BogusType, "x").WithArguments("I<dynamic>").WithLocation(3, 30),
                 // (6,9): error CS0648: 'I<dynamic>' is a type not supported by the language
                 //         I<dynamic> t = C.x;
-                Diagnostic(ErrorCode.ERR_BogusType, "I<dynamic>").WithArguments("I<dynamic>")
+                Diagnostic(ErrorCode.ERR_BogusType, "I<dynamic>").WithArguments("I<dynamic>").WithLocation(6, 9)
             );
         }
 
@@ -2068,8 +2070,11 @@ namespace CrashTest
 }";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
+    // (2,14): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'Crash<T>'. There is no implicit reference conversion from 'object' to 'CrashTest.Crash<object>.AbstractClass'.
+    // using static CrashTest.Crash<object>;
+    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "CrashTest.Crash<object>").WithArguments("CrashTest.Crash<T>", "CrashTest.Crash<object>.AbstractClass", "T", "object").WithLocation(2, 14),
     // (6,11): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'Crash<T>'. There is no implicit reference conversion from 'object' to 'CrashTest.Crash<object>.AbstractClass'.
-    //     class Class2 : AbstractClass 
+    //     class Class2 : AbstractClass
     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Class2").WithArguments("CrashTest.Crash<T>", "CrashTest.Crash<object>.AbstractClass", "T", "object").WithLocation(6, 11),
     // (21,23): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'Crash<T>'. There is no implicit reference conversion from 'object' to 'CrashTest.Crash<object>.AbstractClass'.
     //         AbstractClass Test()
@@ -2257,18 +2262,18 @@ class Derived : Base
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D*>.B { }
                 Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Base.D").WithLocation(13, 17),
-                // (13,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.D')
-                //     class F : A<D*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "D*").WithArguments("Base.D").WithLocation(13, 17),
                 // (13,11): error CS0306: The type 'Base.D*' may not be used as a type argument
                 //     class F : A<D*>.B { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("Base.D*").WithLocation(13, 11),
-                // (12,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
-                //     class E : A<C*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("Base.C").WithLocation(12, 17),
+                // (13,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.D')
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "F").WithArguments("Base.D").WithLocation(13, 11),
                 // (12,11): error CS0306: The type 'Base.C*' may not be used as a type argument
                 //     class E : A<C*>.B { }
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11),
+                // (12,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
+                //     class E : A<C*>.B { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
         }
     }
 }

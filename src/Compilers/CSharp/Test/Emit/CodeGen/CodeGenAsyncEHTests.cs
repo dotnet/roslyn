@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerifyWithMscorlib40(source, expectedOutput: expectedOutput, references: references, options: options);
+            return base.CompileAndVerify(source, targetFramework: TargetFramework.Empty, expectedOutput: expectedOutput, references: references, options: options);
         }
 
         [Fact]
@@ -569,7 +567,7 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
         }
-        
+
         [Fact, WorkItem(855080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855080")]
         public void GenericCatchVariableInAsyncMethod()
         {
@@ -839,7 +837,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void AsyncInFinally002()
         {
             var source = @"
@@ -896,8 +894,7 @@ class Test
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AsyncInFinally003()
         {
             var source = @"
@@ -936,7 +933,7 @@ class Test
             var expected = @"
 2
 ";
-            var v = CompileAndVerifyWithMscorlib40(source, s_asyncRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expected, symbolValidator: module =>
+            var v = CompileAndVerify(source, s_asyncRefs, targetFramework: TargetFramework.Empty, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expected, symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -956,7 +953,7 @@ class Test
             v.VerifyPdb("Test.G", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <entryPoint declaringType=""Test"" methodName=""Main"" />
   <methods>
@@ -978,8 +975,8 @@ class Test
 </symbols>
 ");
 
-            v.VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
-{
+            v.VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"{
   // Code size      461 (0x1cd)
   .maxstack  3
   .locals init (int V_0,
@@ -1788,7 +1785,6 @@ Attempted to divide by zero.
 ";
             CompileAndVerify(source, expectedOutput: expected);
         }
-
 
         [Fact]
         public void AsyncInCatchFilter()

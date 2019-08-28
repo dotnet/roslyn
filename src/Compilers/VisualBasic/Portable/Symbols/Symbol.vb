@@ -6,6 +6,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Display = Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay
@@ -18,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
     Friend MustInherit Class Symbol
-        Implements ISymbol, IMessageSerializable
+        Implements ISymbol, ISymbolInternal, IFormattable
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -187,6 +188,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim sourceModuleSymbol = TryCast(Me.ContainingModule, SourceModuleSymbol)
                 Return If(sourceModuleSymbol Is Nothing, Nothing, sourceModuleSymbol.DeclaringCompilation)
+            End Get
+        End Property
+
+        ReadOnly Property ISymbolInternal_DeclaringCompilation As Compilation Implements ISymbolInternal.DeclaringCompilation
+            Get
+                Return DeclaringCompilation
             End Get
         End Property
 
@@ -754,8 +761,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me Is obj
         End Function
 
-        Public Overloads Function [Equals](other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
-            Return Me.[Equals](CObj(other))
+        Private Overloads Function IEquatable_Equals(other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
+            Return Me.[Equals](other, SymbolEqualityComparer.Default.CompareKind)
+        End Function
+
+        Private Overloads Function ISymbol_Equals(other As ISymbol, equalityComparer As SymbolEqualityComparer) As Boolean Implements ISymbol.Equals
+            Return equalityComparer.Equals(Me, other)
+        End Function
+
+        Overloads Function Equals(other As ISymbol, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
+            Return Me.Equals(TryCast(other, Symbol), compareKind)
+        End Function
+
+        ' By default we don't consider the compareKind. This can be overridden.
+        Public Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
+            Return Me.Equals(other)
         End Function
 
         ' By default, we do reference equality. This can be overridden.
@@ -1191,5 +1211,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 #End Region
+
+        Protected Shared Function ConstructTypeArguments(ParamArray typeArguments() As ITypeSymbol) As ImmutableArray(Of TypeSymbol)
+            Dim builder = ArrayBuilder(Of TypeSymbol).GetInstance(typeArguments.Length)
+            For Each typeArg In typeArguments
+                builder.Add(typeArg.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(typeArguments)))
+            Next
+            Return builder.ToImmutableAndFree()
+        End Function
+
+        Protected Shared Function ConstructTypeArguments(typeArguments As ImmutableArray(Of ITypeSymbol), typeArgumentNullableAnnotations As ImmutableArray(Of CodeAnalysis.NullableAnnotation)) As ImmutableArray(Of TypeSymbol)
+            If typeArguments.IsDefault Then
+                Throw New ArgumentException(NameOf(typeArguments))
+            End If
+
+            Dim n = typeArguments.Length
+            If Not typeArgumentNullableAnnotations.IsDefault AndAlso typeArgumentNullableAnnotations.Length <> n Then
+                Throw New ArgumentException(NameOf(typeArgumentNullableAnnotations))
+            End If
+
+            Return typeArguments.SelectAsArray(Function(typeArg) typeArg.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(typeArguments)))
+        End Function
+
+        Private Overloads Function IFormattable_ToString(format As String, formatProvider As IFormatProvider) As String Implements IFormattable.ToString
+            Return ToString()
+        End Function
     End Class
 End Namespace

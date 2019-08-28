@@ -13,9 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class EditAndContinuePdbTests
         Inherits EditAndContinueTestBase
 
-        <Theory>
-        <InlineData(DebugInformationFormat.Pdb)>
-        <InlineData(DebugInformationFormat.PortablePdb)>
+        <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <MemberData(NameOf(ExternalPdbFormats))>
         Public Sub MethodExtents(format As DebugInformationFormat)
             Dim source0 = MarkedSource("
 Imports System
@@ -186,9 +185,9 @@ End Class", fileName:="C:\Enc1.vb")
             diff1.VerifyPdb(Enumerable.Range(&H6000001, 20),
 <symbols>
     <files>
-        <file id="1" name="C:\F\A.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-        <file id="2" name="C:\F\C.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-        <file id="3" name="C:\Enc1.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="E2, 3A, 75, D7, B2, 2D, 78, 1C,  E, F7, 75, E2, 8C,  9, 4B, 4E, E1, 68, 2E, 9D, "/>
+        <file id="1" name="C:\F\A.vb" language="VB"/>
+        <file id="2" name="C:\F\C.vb" language="VB"/>
+        <file id="3" name="C:\Enc1.vb" language="VB" checksumAlgorithm="SHA1" checksum="E2-3A-75-D7-B2-2D-78-1C-0E-F7-75-E2-8C-09-4B-4E-E1-68-2E-9D"/>
     </files>
     <methods>
         <method token="0x600000b">
@@ -299,9 +298,9 @@ End Class", fileName:="C:\Enc1.vb")
             diff2.VerifyPdb(Enumerable.Range(&H6000001, 20),
 <symbols>
     <files>
-        <file id="1" name="C:\F\A.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-        <file id="2" name="C:\F\E.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-        <file id="3" name="C:\Enc1.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="DB, 81, EA, 11, DD, DE, 3B, 51, F3,  7, C3, A7, 7E,  B, 41, D3, D4, 12, 86, 93, "/>
+        <file id="1" name="C:\F\A.vb" language="VB"/>
+        <file id="2" name="C:\F\E.vb" language="VB"/>
+        <file id="3" name="C:\Enc1.vb" language="VB" checksumAlgorithm="SHA1" checksum="DB-81-EA-11-DD-DE-3B-51-F3-07-C3-A7-7E-0B-41-D3-D4-12-86-93"/>
     </files>
     <methods>
         <method token="0x600000b">

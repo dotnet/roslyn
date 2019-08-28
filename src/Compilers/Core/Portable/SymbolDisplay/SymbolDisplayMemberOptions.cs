@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Includes the <c>ref</c>, <c>ref readonly</c>, <c>ByRef</c> keywords for ref-returning methods and properties/indexers.
+        /// Also includes the <c>readonly</c> keyword on methods, properties/indexers, and events due to the keyword
+        /// changing the <c>this</c> parameter's ref kind from <c>ref</c> to <c>ref readonly</c>.
         /// </summary>
         IncludeRef = 1 << 7,
     }

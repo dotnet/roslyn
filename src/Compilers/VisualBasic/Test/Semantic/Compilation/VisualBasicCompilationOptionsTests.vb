@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                                        validNonDefaultValue As T)
             TestPropertyGeneric(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), factory, getter, validNonDefaultValue)
         End Sub
-        
+
         <Fact>
         Public Sub ShadowInvariants()
             TestHiddenProperty(Function(old, value) old.WithOutputKind(value), Function(opt) opt.OutputKind, OutputKind.DynamicallyLinkedLibrary)
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         Private Shared Sub TestPropertyGeneric(Of TOptions As CompilationOptions, T)(oldOptions As TOptions,
-                                                     factory As Func(Of TOptions, T, TOptions), 
+                                                     factory As Func(Of TOptions, T, TOptions),
                                                      getter As Func(Of TOptions, T), validNonDefaultValue As T)
             Dim validDefaultValue = getter(oldOptions)
 
@@ -536,6 +536,7 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                 "OptionCompareText",
                 "EmbedVbCoreRuntime",
                 "SuppressEmbeddedDeclarations",
+                "NullableContextOptions",
                 "ParseOptions",
                 "IgnoreCorLibraryDuplicatedTypes")
         End Sub

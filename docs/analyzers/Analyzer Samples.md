@@ -1,6 +1,6 @@
 **Samples Location:**
 
-Sample analyzers to demonstrate recommended implementation models for different analysis scenarios have been added to [CSharpAnalyzers.sln](..//..//src//Samples//CSharp//Analyzers//CSharpAnalyzers.sln) and [BasicAnalyzers.sln](..//..//src//Samples//VisualBasic//Analyzers//BasicAnalyzers.sln).
+Sample analyzers to demonstrate recommended implementation models for different analysis scenarios have been added to [Samples.sln](https://github.com/dotnet/roslyn-sdk/tree/master/Samples.sln).
 
 **Description:**
 

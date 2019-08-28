@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssemblyName">
     <file name="a.vb">
-        <%= My.Resources.Resource.LongTypeName_vb %>
+        <%= SemanticResourceUtil.LongTypeName_vb %>
     </file>
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(c, <expected></expected>)
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssemblyName">
     <file name="a.vb">
-        <%= My.Resources.Resource.LongTypeNameNative_vb %>
+        <%= SemanticResourceUtil.LongTypeNameNative_vb %>
     </file>
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(c, <expected></expected>)

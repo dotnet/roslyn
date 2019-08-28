@@ -28,8 +28,8 @@ namespace Microsoft.Cci
         public readonly ImmutableArray<byte> EmbeddedTextBlob;
 
         public DebugSourceInfo(
-            ImmutableArray<byte> checksum, 
-            SourceHashAlgorithm checksumAlgorithm, 
+            ImmutableArray<byte> checksum,
+            SourceHashAlgorithm checksumAlgorithm,
             ImmutableArray<byte> embeddedTextBlob = default(ImmutableArray<byte>))
             : this(checksum, DebugSourceDocument.GetAlgorithmGuid(checksumAlgorithm), embeddedTextBlob)
         {

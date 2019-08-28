@@ -191,9 +191,9 @@ End Class
 
             CompileAndVerify(comp,
                              expectedOutput:=
-                                "65536" & vbCrLf &
-                                "string2" & vbCrLf &
-                                "string1" & vbCrLf)
+                                "65536" & Environment.NewLine &
+                                "string2" & Environment.NewLine &
+                                "string1" & Environment.NewLine)
         End Sub
 
         <Fact>

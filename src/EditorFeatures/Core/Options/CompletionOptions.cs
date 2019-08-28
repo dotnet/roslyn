@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     [ExportOptionProvider, Shared]
     internal class EditorCompletionOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public EditorCompletionOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             EditorCompletionOptions.UseSuggestionMode,
             EditorCompletionOptions.UseSuggestionMode_Debugger);

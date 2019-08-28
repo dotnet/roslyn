@@ -1,0 +1,39 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+
+    <IsPackable>true</IsPackable>
+    <NuspecPackageId>Microsoft.Net.Compilers</NuspecPackageId>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <PackageDescription>
+      .NET Compilers package.
+      Referencing this package will cause the project to be built using the specific version of the C# and Visual Basic compilers contained in the package, as opposed to any system installed version.
+
+      This package can be used to compile code targeting any platform, but can only be run using the desktop .NET 4.7.2+ Full Framework.
+      $(RoslynPackageDescriptionDetails)
+    </PackageDescription>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\CSharp\csc\csc.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\Compilers\VisualBasic\vbc\vbc.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeDesktopCompilerArtifacts">
+    <ItemGroup>
+      <_File Include="@(DesktopCompilerArtifact)" TargetDir="tools"/>
+      <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tools"/>
+      <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" TargetDir="build" />
+
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+    </ItemGroup>
+  </Target>
+
+  <Import Project="..\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets"/>
+</Project>

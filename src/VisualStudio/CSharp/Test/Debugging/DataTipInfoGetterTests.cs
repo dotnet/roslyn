@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Debugging;
 using Roslyn.Test.Utilities;
@@ -14,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
+    [UseExportProvider]
     public class DataTipInfoGetterTests
     {
         private async Task TestAsync(string markup, string expectedText = null)
@@ -38,19 +40,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         private async Task TestSpanGetterAsync(string markup, Func<Document, int, TextSpan?, Task> continuation)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
-            {
-                var testHostDocument = workspace.Documents.Single();
-                var position = testHostDocument.CursorPosition.Value;
-                var expectedSpan = testHostDocument.SelectedSpans.Any()
-                    ? testHostDocument.SelectedSpans.Single()
-                    : (TextSpan?)null;
+            using var workspace = TestWorkspace.CreateCSharp(markup);
+            var testHostDocument = workspace.Documents.Single();
+            var position = testHostDocument.CursorPosition.Value;
+            var expectedSpan = testHostDocument.SelectedSpans.Any()
+                ? testHostDocument.SelectedSpans.Single()
+                : (TextSpan?)null;
 
-                await continuation(
-                    workspace.CurrentSolution.Projects.First().Documents.First(),
-                    position,
-                    expectedSpan);
-            }
+            await continuation(
+                workspace.CurrentSolution.Projects.First().Documents.First(),
+                position,
+                expectedSpan);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]

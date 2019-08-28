@@ -3293,7 +3293,7 @@ End Class
                 Dim compilationDef =
     <compilation name="VBExplicitConversions1">
         <file name="lib.vb">
-            <%= My.Resources.Resource.PrintResultTestSource %>
+            <%= SemanticResourceUtil.PrintResultTestSource %>
         </file>
         <file name="a.vb">
 Option Strict Off
@@ -3465,7 +3465,7 @@ UShort: 12
         Public Sub DirectCast1()
             Dim compilationDef =
 <compilation name="DirectCast1">
-    <file name="helper.vb"><%= My.Resources.Resource.PrintResultTestSource %></file>
+    <file name="helper.vb"><%= SemanticResourceUtil.PrintResultTestSource %></file>
     <file name="a.vb">
 Option Strict Off
 
@@ -3704,7 +3704,7 @@ Decimal: 24
         Public Sub TryCast1()
             Dim compilationDef =
 <compilation name="TryCast1">
-    <file name="helper.vb"><%= My.Resources.Resource.PrintResultTestSource %></file>
+    <file name="helper.vb"><%= SemanticResourceUtil.PrintResultTestSource %></file>
     <file name="a.vb">
 Option Strict Off
 
@@ -4295,7 +4295,7 @@ BC30519: Overload resolution failed because no accessible 'Test' can be called w
 
         <WorkItem(571095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571095")>
         <Fact()>
-        Public Sub Bug571095()
+        Public Sub Bug571095_01()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
@@ -4326,6 +4326,43 @@ BC30311: Value of type 'Integer' cannot be converted to 'String()'.
 BC30311: Value of type 'Integer' cannot be converted to 'Integer(*,*)'.
         For Each x As Integer(,) In Y
                                     ~
+</expected>)
+
+        End Sub
+
+        <WorkItem(571095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571095")>
+        <Fact()>
+        Public Sub Bug571095_02()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+imports System
+
+Module Module1
+    Sub Main()
+        Dim Y(10) As Integer
+        'COMPILEERROR: BC30311, "Y"
+        For Each x As string() In Y
+            Console.WriteLine(x)
+        Next x
+        'COMPILEERROR: BC30311, "Y"
+        For Each x As Integer() In Y
+            Console.WriteLine(x)
+        Next x
+    End Sub
+End Module
+
+    ]]></file>
+    </compilation>, TestOptions.ReleaseExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30311: Value of type 'Integer' cannot be converted to 'String()'.
+        For Each x As string() In Y
+                                  ~
+BC30311: Value of type 'Integer' cannot be converted to 'Integer()'.
+        For Each x As Integer() In Y
+                                   ~
 </expected>)
 
         End Sub

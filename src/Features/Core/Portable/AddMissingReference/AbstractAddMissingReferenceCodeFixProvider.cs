@@ -29,6 +29,13 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
 
         protected override bool IncludePrerelease => false;
 
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not support for this code fix
+            // https://github.com/dotnet/roslyn/issues/34459
+            return null;
+        }
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;

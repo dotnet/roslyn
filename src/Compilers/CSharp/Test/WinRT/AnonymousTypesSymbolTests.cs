@@ -230,7 +230,7 @@ class Program
 
         private void TestAnonymousTypeFieldSymbols_InQuery(ImmutableArray<byte> image)
         {
-            Assembly refAsm = CorLightup.Desktop.LoadAssembly(image.ToArray());
+            Assembly refAsm = Assembly.Load(image.ToArray());
             Type type = refAsm.GetType("<>f__AnonymousType0`2");
             Assert.NotNull(type);
             Assert.Equal(2, type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Count());
@@ -1157,7 +1157,7 @@ class Query
             Assert.False(method.IsVararg);
             Assert.False(method.IsVirtual);
             Assert.Equal(isVirtualAndOverride, method.IsMetadataVirtual());
-            Assert.Equal(retType, method.ReturnType.ToDisplayString());
+            Assert.Equal(retType, method.ReturnTypeWithAnnotations.ToDisplayString());
 
             TestAttributeOnSymbol(method, attr == null ? new AttributeInfo[] { } : new AttributeInfo[] { attr });
         }
@@ -1870,9 +1870,11 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                // (12,24): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var x1 = new { local?.M() };
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "local?.M()").WithLocation(12, 24),
-                // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                // (13,24): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var x2 = new { array?[0] };
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "array?[0]").WithLocation(13, 24));
         }
 
@@ -1942,10 +1944,9 @@ class C
   IL_0008:  ret
 }";
 
-
             CompileAndVerify(source).VerifyIL("C.Main", expectedIL);
 
-            var compilation = GetCompilationForEmit(new[] { source }, references: null, options: null, parseOptions: null);
+            var compilation = CreateCompilationWithMscorlib40(source);
             compilation.CreateAnonymousTypeSymbol(
                 ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
                 ImmutableArray.Create("m1", "m2"));

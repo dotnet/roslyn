@@ -2,11 +2,13 @@
 
 using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -16,12 +18,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpFindReferences))
+        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpFindReferences))
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToCtor()
         {
             SetUpEditor(@"
@@ -70,12 +72,11 @@ class SomeOtherClass
                 });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
-            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
-            {
-                SetUpEditor(@"
+            using var telemetry = VisualStudio.EnableTestTelemetryChannel();
+            SetUpEditor(@"
 class Program
 {
     static void Main()
@@ -86,18 +87,18 @@ class Program
 }
 ");
 
-                VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-                const string localReferencesCaption = "'local' references";
-                var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
+            const string localReferencesCaption = "'local' references";
+            var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
 
-                var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-                Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
+            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
+            Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
 
-                Assert.Collection(
-                    results,
-                    new Action<Reference>[]
-                    {
+            Assert.Collection(
+                results,
+                new Action<Reference>[]
+                {
                     reference =>
                     {
                         Assert.Equal(expected: "int local = 1;", actual: reference.Code);
@@ -110,13 +111,12 @@ class Program
                         Assert.Equal(expected: 6, actual: reference.Line);
                         Assert.Equal(expected: 26, actual: reference.Column);
                     }
-                    });
+                });
 
-                telemetry.VerifyFired("vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference");
-            }
+            telemetry.VerifyFired("vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToString()
         {
             SetUpEditor(@"
@@ -148,6 +148,20 @@ class Program
                         Assert.Equal(expected: 24, actual: reference.Column);
                     }
                 });
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        public void VerifyWorkingFolder()
+        {
+            SetUpEditor(@"class EmptyContent {$$}");
+
+            // verify working folder has set
+            Assert.NotNull(VisualStudio.Workspace.GetWorkingFolder());
+
+            VisualStudio.SolutionExplorer.CloseSolution();
+
+            // verify working folder has not set
+            Assert.Null(VisualStudio.Workspace.GetWorkingFolder());
         }
     }
 }

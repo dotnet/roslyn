@@ -4,14 +4,13 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax>
+    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
     {
         private partial class State
         {
-            private bool IsInAttributeContext(
-                CancellationToken cancellationToken)
+            private bool IsInAttributeContext()
             {
-                if (!_service.IsInAttributeArgumentInitializer(this.Expression))
+                if (!_service.IsInAttributeArgumentInitializer(Expression))
                 {
                     return false;
                 }

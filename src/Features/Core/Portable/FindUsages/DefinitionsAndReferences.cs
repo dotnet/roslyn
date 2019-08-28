@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// that can be presented in an editor and used to navigate to the defintions and
     /// references found for a symbol.
     /// </summary>
-    internal struct DefinitionsAndReferences
+    internal readonly struct DefinitionsAndReferences
     {
         public static readonly DefinitionsAndReferences Empty =
             new DefinitionsAndReferences(ImmutableArray<DefinitionItem>.Empty, ImmutableArray<SourceReferenceItem>.Empty);

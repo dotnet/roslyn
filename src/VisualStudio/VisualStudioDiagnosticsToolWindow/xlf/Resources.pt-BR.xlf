@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="CanNotCreateWindow">
         <source>Can not create tool window.</source>
-        <target state="translated">Não é possível criar uma janela de ferramentas.</target>
+        <target state="translated">Não é possível criar janela de ferramentas.</target>
         <note />
       </trans-unit>
       <trans-unit id="ToolWindowTitle">

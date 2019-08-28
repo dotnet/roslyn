@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
@@ -44,10 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnTyping), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing"));
 
-        public static readonly PerLanguageOption<bool> AutoFormattingOnReturn = new PerLanguageOption<bool>(
-            nameof(FeatureOnOffOptions), nameof(AutoFormattingOnReturn), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return"));
-
         public static readonly PerLanguageOption<bool> AutoFormattingOnCloseBrace = new PerLanguageOption<bool>(
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnCloseBrace), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
@@ -60,16 +57,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.RenameTrackingPreview" : "TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview"));
 
         /// <summary>
-        /// This option is currently used by Roslyn, but we might want to implement it in the 
-        /// future. Keeping the option while it's unimplemented allows all upgrade paths to 
+        /// This option is currently used by Roslyn, but we might want to implement it in the
+        /// future. Keeping the option while it's unimplemented allows all upgrade paths to
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
         /// </summary>
         public static readonly PerLanguageOption<bool> RenameTracking = new PerLanguageOption<bool>(nameof(FeatureOnOffOptions), nameof(RenameTracking), defaultValue: true);
 
         /// <summary>
-        /// This option is currently used by Roslyn, but we might want to implement it in the 
-        /// future. Keeping the option while it's unimplemented allows all upgrade paths to 
+        /// This option is currently used by Roslyn, but we might want to implement it in the
+        /// future. Keeping the option while it's unimplemented allows all upgrade paths to
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
         /// </summary>
@@ -83,6 +80,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(NavigateToDecompiledSources)}"));
 
+        public static readonly Option<int> UseEnhancedColors = new Option<int>(
+            nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
+            storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
+
+        /// <summary>
+        /// Feature to enable <see cref="CompilerFeatureFlags.RunNullableAnalysis"/> in the compiler flags for all csharp projects.
+        /// 0 = default, which leaves the flag unset.
+        /// 1 = set to true
+        /// -1 = set to false
+        /// </summary>
+        public static readonly Option<int> UseNullableReferenceTypeAnalysis = new Option<int>(
+            nameof(FeatureOnOffOptions), nameof(UseNullableReferenceTypeAnalysis), defaultValue: 0,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.{nameof(UseNullableReferenceTypeAnalysis)}"));
+
         // Note: no storage location since this is intentionally a session variable
         public static readonly Option<bool> AcceptedDecompilerDisclaimer = new Option<bool>(
             nameof(FeatureOnOffOptions), nameof(AcceptedDecompilerDisclaimer), defaultValue: false);
@@ -91,6 +102,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     [ExportOptionProvider, Shared]
     internal class FeatureOnOffOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public FeatureOnOffOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             FeatureOnOffOptions.EndConstruct,
             FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers,
@@ -103,12 +119,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.AutoInsertBlockCommentStartString,
             FeatureOnOffOptions.PrettyListing,
             FeatureOnOffOptions.AutoFormattingOnTyping,
-            FeatureOnOffOptions.AutoFormattingOnReturn,
             FeatureOnOffOptions.AutoFormattingOnCloseBrace,
             FeatureOnOffOptions.AutoFormattingOnSemicolon,
             FeatureOnOffOptions.RenameTrackingPreview,
             FeatureOnOffOptions.RenameTracking,
             FeatureOnOffOptions.RefactoringVerification,
-            FeatureOnOffOptions.StreamingGoToImplementation);
+            FeatureOnOffOptions.StreamingGoToImplementation,
+            FeatureOnOffOptions.NavigateToDecompiledSources,
+            FeatureOnOffOptions.AcceptedDecompilerDisclaimer,
+            FeatureOnOffOptions.UseEnhancedColors);
     }
 }

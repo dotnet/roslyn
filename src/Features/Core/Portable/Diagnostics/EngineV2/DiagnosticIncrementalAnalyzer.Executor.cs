@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -27,22 +26,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private class Executor
         {
             private readonly DiagnosticIncrementalAnalyzer _owner;
+            private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
 
             public Executor(DiagnosticIncrementalAnalyzer owner)
             {
                 _owner = owner;
-            }
-
-            public IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)
-            {
-                var project = targetDocument.Project;
-
-                if (project.SupportsCompilation)
-                {
-                    return ConvertToLocalDiagnosticsWithCompilation(targetDocument, diagnostics, span);
-                }
-
-                return ConvertToLocalDiagnosticsWithoutCompilation(targetDocument, diagnostics, span);
+                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(_owner.Owner, _owner.HostDiagnosticUpdateSource);
             }
 
             /// <summary>
@@ -76,6 +65,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                         var nullFilterSpan = (TextSpan?)null;
                         var diagnostics = await ComputeDiagnosticsAsync(analyzerDriverOpt, document, stateSet.Analyzer, kind, nullFilterSpan, cancellationToken).ConfigureAwait(false);
+
+                        // this is no-op in product. only run in test environment
+                        Logger.Log(functionId, (t, d, a, ds) => $"{GetDocumentLogMessage(t, d, a)}, {string.Join(Environment.NewLine, ds)}",
+                            title, document, stateSet.Analyzer, diagnostics);
 
                         // we only care about local diagnostics
                         return new DocumentAnalysisData(version, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());
@@ -159,34 +152,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"Failed to Load Successfully ({p.FilePath ?? p.Name})", project);
 
                 // get rid of any result except syntax from compiler analyzer result
-                var newCompilerAnalysisResult = new DiagnosticAnalysisResult(
-                    analysisResult.ProjectId,
-                    analysisResult.Version,
-                    analysisResult.SyntaxLocals,
-                    semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                    nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                    others: ImmutableArray<DiagnosticData>.Empty,
-                    documentIds: null,
-                    fromBuild: false);
+                var newCompilerAnalysisResult = analysisResult.DropExceptSyntax();
 
                 // return new result
                 return result.SetItem(compilerAnalyzer, newCompilerAnalysisResult);
             }
 
-            /// <summary>
-            /// Return all local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer) by calculating them
-            /// </summary>
-            public async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
-                CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? spanOpt, CancellationToken cancellationToken)
+            public Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
+               CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? spanOpt, CancellationToken cancellationToken)
             {
-                if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
-                {
-                    var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, kind, analyzerDriverOpt?.Compilation, cancellationToken).ConfigureAwait(false);
-                    return ConvertToLocalDiagnostics(document, diagnostics);
-                }
-
-                var documentDiagnostics = await ComputeDiagnosticAnalyzerDiagnosticsAsync(analyzerDriverOpt, document, analyzer, kind, spanOpt, cancellationToken).ConfigureAwait(false);
-                return ConvertToLocalDiagnostics(document, documentDiagnostics);
+                return _owner.Owner.ComputeDiagnosticsAsync(analyzerDriverOpt, document, analyzer, kind, spanOpt, _owner.DiagnosticLogAggregator, cancellationToken);
             }
 
             /// <summary>
@@ -207,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         result = compilerResult.AnalysisResult;
 
                         // record telemetry data
-                        UpdateAnalyzerTelemetryData(compilerResult, project, cancellationToken);
+                        UpdateAnalyzerTelemetryData(compilerResult, project);
                     }
 
                     // check whether there is IDE specific project diagnostic analyzer
@@ -360,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // merge the result to existing one.
                         // there can be existing one from compiler driver with empty set. overwrite it with
                         // ide one.
-                        result = result.SetItem(analyzer, new DiagnosticAnalysisResult(builder));
+                        result = result.SetItem(analyzer, DiagnosticAnalysisResult.CreateFromBuilder(builder));
                     }
 
                     return result;
@@ -371,135 +346,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private async Task<IEnumerable<Diagnostic>> ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(
-                Project project, ProjectDiagnosticAnalyzer analyzer, Compilation compilationOpt, CancellationToken cancellationToken)
+            private Task<IEnumerable<Diagnostic>> ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(
+                Project project,
+                ProjectDiagnosticAnalyzer analyzer,
+                Compilation compilationOpt,
+                CancellationToken cancellationToken)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                try
-                {
-                    var diagnostics = (await analyzer.AnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false)).NullToEmpty();
-
-                    // Apply filtering from compilation options (source suppressions, ruleset, etc.)
-                    if (compilationOpt != null)
-                    {
-                        diagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt).ToImmutableArrayOrEmpty();
-                    }
-
-#if DEBUG
-                    // since all ProjectDiagnosticAnalyzers are from internal users, we only do debug check. also this can be expensive at runtime
-                    // since it requires await. if we find any offender through NFW, we should be able to fix those since all those should
-                    // from intern teams.
-                    await VerifyDiagnosticLocationsAsync(diagnostics, project, cancellationToken).ConfigureAwait(false);
-#endif
-
-                    return diagnostics;
-                }
-                catch (Exception e) when (!IsCanceled(e, cancellationToken))
-                {
-                    OnAnalyzerException(analyzer, project.Id, compilationOpt, e);
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
+                return _owner.Owner.ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(project, analyzer, compilationOpt, _owner.DiagnosticLogAggregator, cancellationToken);
             }
 
-            private async Task<IEnumerable<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
-                Document document, DocumentDiagnosticAnalyzer analyzer, AnalysisKind kind, Compilation compilationOpt, CancellationToken cancellationToken)
+            private Task<IEnumerable<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
+                Document document,
+                DocumentDiagnosticAnalyzer analyzer,
+                AnalysisKind kind,
+                Compilation compilationOpt,
+                CancellationToken cancellationToken)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                try
-                {
-                    Task<ImmutableArray<Diagnostic>> analyzeAsync;
-
-                    switch (kind)
-                    {
-                        case AnalysisKind.Syntax:
-                            analyzeAsync = analyzer.AnalyzeSyntaxAsync(document, cancellationToken);
-                            break;
-
-                        case AnalysisKind.Semantic:
-                            analyzeAsync = analyzer.AnalyzeSemanticsAsync(document, cancellationToken);
-                            break;
-
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(kind);
-                    }
-
-                    var diagnostics = (await analyzeAsync.ConfigureAwait(false)).NullToEmpty();
-                    if (compilationOpt != null)
-                    {
-                        return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
-                    }
-
-#if DEBUG
-                    // since all DocumentDiagnosticAnalyzers are from internal users, we only do debug check. also this can be expensive at runtime
-                    // since it requires await. if we find any offender through NFW, we should be able to fix those since all those should
-                    // from intern teams.
-                    await VerifyDiagnosticLocationsAsync(diagnostics, document.Project, cancellationToken).ConfigureAwait(false);
-#endif
-
-                    return diagnostics;
-                }
-                catch (Exception e) when (!IsCanceled(e, cancellationToken))
-                {
-                    OnAnalyzerException(analyzer, document.Project.Id, compilationOpt, e);
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-            }
-
-            private async Task<IEnumerable<Diagnostic>> ComputeDiagnosticAnalyzerDiagnosticsAsync(
-                CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? spanOpt, CancellationToken cancellationToken)
-            {
-                // quick optimization to reduce allocations.
-                if (analyzerDriverOpt == null || !_owner.SupportAnalysisKind(analyzer, document.Project.Language, kind))
-                {
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
-                if (!await AnalysisEnabled(document, analyzer, kind, cancellationToken).ConfigureAwait(false))
-                {
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
-                // REVIEW: more unnecessary allocations just to get diagnostics per analyzer
-                var oneAnalyzers = ImmutableArray.Create(analyzer);
-
-                switch (kind)
-                {
-                    case AnalysisKind.Syntax:
-                        var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        var diagnostics = await analyzerDriverOpt.GetAnalyzerSyntaxDiagnosticsAsync(tree, oneAnalyzers, cancellationToken).ConfigureAwait(false);
-
-                        Contract.Requires(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
-                        return diagnostics.ToImmutableArrayOrEmpty();
-                    case AnalysisKind.Semantic:
-                        var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        diagnostics = await analyzerDriverOpt.GetAnalyzerSemanticDiagnosticsAsync(model, spanOpt, oneAnalyzers, cancellationToken).ConfigureAwait(false);
-
-                        Contract.Requires(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
-                        return diagnostics.ToImmutableArrayOrEmpty();
-                    default:
-                        return Contract.FailWithReturn<ImmutableArray<Diagnostic>>("shouldn't reach here");
-                }
-            }
-
-            private async Task<bool> AnalysisEnabled(Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, CancellationToken cancellationToken)
-            {
-                // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
-                if (kind == AnalysisKind.Syntax || !_owner.HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer))
-                {
-                    return true;
-                }
-
-                var enabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-
-                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a.ToString()}, ({d.FilePath ?? d.Name}), Enabled:{e}", analyzer, document, enabled);
-
-                return enabled;
+                return _owner.Owner.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, analyzer, kind, compilationOpt, _owner.DiagnosticLogAggregator, cancellationToken);
             }
 
             private void UpdateAnalyzerTelemetryData(
-                DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult> analysisResults, Project project, CancellationToken cancellationToken)
+                DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult> analysisResults, Project project)
             {
                 foreach (var kv in analysisResults.TelemetryInfo)
                 {
@@ -524,49 +391,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
-            {
-                return (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
-            }
-
-            private void OnAnalyzerException(DiagnosticAnalyzer analyzer, ProjectId projectId, Compilation compilationOpt, Exception ex)
-            {
-                var exceptionDiagnostic = AnalyzerHelper.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
-
-                if (compilationOpt != null)
-                {
-                    exceptionDiagnostic = CompilationWithAnalyzers.GetEffectiveDiagnostics(ImmutableArray.Create(exceptionDiagnostic), compilationOpt).SingleOrDefault();
-                }
-
-                var onAnalyzerException = _owner.GetOnAnalyzerException(projectId);
-                onAnalyzerException(ex, analyzer, exceptionDiagnostic);
-            }
-
-            private IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithoutCompilation(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)
-            {
-                var project = targetDocument.Project;
-                Contract.ThrowIfTrue(project.SupportsCompilation);
-
-                foreach (var diagnostic in diagnostics)
-                {
-                    var location = diagnostic.Location;
-                    if (location.Kind != LocationKind.ExternalFile)
-                    {
-                        continue;
-                    }
-
-                    var lineSpan = location.GetLineSpan();
-
-                    var documentIds = project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
-                    if (documentIds.IsEmpty || documentIds.All(id => id != targetDocument.Id))
-                    {
-                        continue;
-                    }
-
-                    yield return DiagnosticData.Create(targetDocument, diagnostic);
-                }
-            }
-
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(
                 CompilationWithAnalyzers analyzerDriver, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
             {
@@ -578,110 +402,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
                 }
 
-                var executor = project.Solution.Workspace.Services.GetService<ICodeAnalysisDiagnosticAnalyzerExecutor>();
-                return await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
-            }
-
-            private IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithCompilation(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)
-            {
-                var project = targetDocument.Project;
-                Contract.ThrowIfFalse(project.SupportsCompilation);
-
-                foreach (var diagnostic in diagnostics)
-                {
-                    var document = project.GetDocument(diagnostic.Location.SourceTree);
-                    if (document == null || document != targetDocument)
-                    {
-                        continue;
-                    }
-
-                    if (span.HasValue && !span.Value.Contains(diagnostic.Location.SourceSpan))
-                    {
-                        continue;
-                    }
-
-                    yield return DiagnosticData.Create(document, diagnostic);
-                }
-            }
-
-            private static async Task VerifyDiagnosticLocationsAsync(ImmutableArray<Diagnostic> diagnostics, Project project, CancellationToken cancellationToken)
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    await VerifyDiagnosticLocationAsync(diagnostic.Id, diagnostic.Location, project, cancellationToken).ConfigureAwait(false);
-
-                    if (diagnostic.AdditionalLocations != null)
-                    {
-                        foreach (var location in diagnostic.AdditionalLocations)
-                        {
-                            await VerifyDiagnosticLocationAsync(diagnostic.Id, diagnostic.Location, project, cancellationToken).ConfigureAwait(false);
-                        }
-                    }
-                }
-            }
-
-            private static async Task VerifyDiagnosticLocationAsync(string id, Location location, Project project, CancellationToken cancellationToken)
-            {
-                switch (location.Kind)
-                {
-                    case LocationKind.None:
-                    case LocationKind.MetadataFile:
-                    case LocationKind.XmlFile:
-                        // ignore these kinds
-                        break;
-                    case LocationKind.SourceFile:
-                    {
-                        if (project.GetDocument(location.SourceTree) == null)
-                        {
-                            // Disallow diagnostics with source locations outside this project.
-                            throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceTree.FilePath), "diagnostic");
-                        }
-
-                        if (location.SourceSpan.End > location.SourceTree.Length)
-                        {
-                            // Disallow diagnostics with source locations outside this project.
-                            throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
-                        }
-                    }
-                    break;
-                    case LocationKind.ExternalFile:
-                    {
-                        var filePath = location.GetLineSpan().Path;
-                        var document = TryGetDocumentWithFilePath(project, filePath);
-                        if (document == null)
-                        {
-                            // this is not a roslyn file. we don't care about this file.
-                            return;
-                        }
-
-                        // this can be potentially expensive since it will load text if it is not already loaded.
-                        // but, this text is most likely already loaded since producer of this diagnostic (Document/ProjectDiagnosticAnalyzers)
-                        // should have loaded it to produce the diagnostic at the first place. once loaded, it should stay in memory until
-                        // project cache goes away. when text is already there, await should return right away.
-                        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        if (location.SourceSpan.End > text.Length)
-                        {
-                            // Disallow diagnostics with locations outside this project.
-                            throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, filePath), "diagnostic");
-                        }
-                    }
-                    break;
-                    default:
-                        throw ExceptionUtilities.Unreachable;
-                }
-            }
-
-            private static Document TryGetDocumentWithFilePath(Project project, string path)
-            {
-                foreach (var documentId in project.Solution.GetDocumentIdsWithFilePath(path))
-                {
-                    if (documentId.ProjectId == project.Id)
-                    {
-                        return project.GetDocument(documentId);
-                    }
-                }
-
-                return null;
+                return await _diagnosticAnalyzerRunner.AnalyzeAsync(analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
             }
 
             private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)

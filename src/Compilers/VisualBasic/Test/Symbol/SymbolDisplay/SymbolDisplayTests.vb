@@ -565,7 +565,7 @@ end namespace
                 SymbolDisplayPartKind.TypeParameterName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.ExtensionMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Space,
@@ -825,7 +825,7 @@ end namespace
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.ExtensionMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -884,7 +884,7 @@ end namespace
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.ExtensionMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2139,7 +2139,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2191,7 +2191,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2201,7 +2201,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName)
+                SymbolDisplayPartKind.EnumMemberName)
         End Sub
 
         <Fact>
@@ -2247,7 +2247,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2257,7 +2257,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName)
+                SymbolDisplayPartKind.EnumMemberName)
         End Sub
 
         <Fact>
@@ -2294,7 +2294,7 @@ End Enum
                 "E.B = 1",
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
@@ -2337,25 +2337,25 @@ End Enum
                 "E.D = E.A Or E.B Or E.C",
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName)
+                SymbolDisplayPartKind.EnumMemberName)
         End Sub
 
         <Fact>
@@ -2393,7 +2393,7 @@ End Enum
                 "E.D = 7",
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
@@ -4653,6 +4653,30 @@ class Outer
             Assert.Equal(Nothing, SymbolDisplay.FormatPrimitive(New Object(), quoteStrings:=False, useHexadecimalNumbers:=False))
         End Sub
 
+        <Fact>
+        Public Sub AllowDefaultLiteral()
+            Dim text =
+                <compilation>
+                    <file name="a.vb">
+Class C
+    Sub Method(Optional cancellationToken as CancellationToken = Nothing)
+    End Sub
+End Class
+                    </file>
+                </compilation>
+
+            Dim formatWithoutAllowDefaultLiteral = SymbolDisplayFormat.MinimallyQualifiedFormat
+            Assert.False(formatWithoutAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
+            Dim formatWithAllowDefaultLiteral = formatWithoutAllowDefaultLiteral.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral)
+            Assert.True(formatWithAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
+
+            ' Visual Basic doesn't have default expressions, so AllowDefaultLiteral does not change behavior
+            Const ExpectedText As String = "Sub C.Method(cancellationToken As CancellationToken = Nothing)"
+
+            TestSymbolDescription(text, FindSymbol("C.Method"), formatWithoutAllowDefaultLiteral, ExpectedText)
+            TestSymbolDescription(text, FindSymbol("C.Method"), formatWithAllowDefaultLiteral, ExpectedText)
+        End Sub
+
         <Fact()>
         Public Sub Tuple()
             TestSymbolDescription(
@@ -4728,14 +4752,14 @@ End Class
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation)
@@ -4808,14 +4832,14 @@ End Class
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation)
@@ -4899,14 +4923,14 @@ End Class"
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation)

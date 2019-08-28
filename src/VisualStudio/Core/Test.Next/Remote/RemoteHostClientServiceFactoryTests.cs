@@ -9,15 +9,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Moq;
-using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.Remote;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
@@ -25,6 +26,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
+    [UseExportProvider]
     public class RemoteHostClientServiceFactoryTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -49,6 +51,26 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var disabledClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
             Assert.Null(disabledClient);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task ClientId()
+        {
+            var service = CreateRemoteHostClientService();
+            service.Enable();
+
+            var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            var id1 = client1.ClientId;
+
+            await service.RequestNewRemoteHostAsync(CancellationToken.None);
+
+            var client2 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            var id2 = client2.ClientId;
+
+            Assert.NotEqual(id1, id2);
+
+            service.Disable();
+        }
+
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task GlobalAssets()
@@ -114,10 +136,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // wait for listener
             var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
-            await workspaceListener.CreateWaitTask();
+            await workspaceListener.CreateExpeditedWaitTask();
 
             var listener = listenerProvider.GetWaiter(FeatureAttribute.RemoteHostClient);
-            await listener.CreateWaitTask();
+            await listener.CreateExpeditedWaitTask();
 
             // checksum should already exist
             Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out var checksums));
@@ -166,7 +188,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var session = await client.TryCreateKeepAliveSessionAsync("Test", CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
-            var task = session.TryInvokeAsync("TestMethodAsync", SpecializedCollections.EmptyReadOnlyList<object>(), CancellationToken.None);
+            var task = session.TryInvokeAsync("TestMethodAsync", arguments: null, CancellationToken.None);
 
             // make client to go away
             service.Disable();
@@ -218,7 +240,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
 
-            var factory = new RemoteHostClientServiceFactory(listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider, analyzerService);
+            var threadingContext = ((IMefHostExportProvider)workspace.Services.HostServices).GetExports<IThreadingContext>().Single().Value;
+            var factory = new RemoteHostClientServiceFactory(threadingContext, listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider, analyzerService);
             return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
         }
 
@@ -231,12 +254,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class TestService : ServiceHubServiceBase
         {
-            public TestService(Stream stream, IServiceProvider serviceProvider) :
-                base(serviceProvider, stream)
+            public TestService(Stream stream, IServiceProvider serviceProvider)
+                : base(serviceProvider, stream)
             {
                 Event = new ManualResetEvent(false);
 
-                Rpc.StartListening();
+                StartService();
             }
 
             public readonly ManualResetEvent Event;
@@ -245,7 +268,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 Event.WaitOne();
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 
@@ -264,13 +287,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
         {
-            public Task LogExceptionAsync(string exception, string text) => SpecializedTasks.EmptyTask;
-            public Task LogInfoAsync(string text) => SpecializedTasks.EmptyTask;
+            public Task LogExceptionAsync(string exception, string text, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task LogInfoAsync(string text, CancellationToken cancellationToken) => Task.CompletedTask;
 
-            public Task OnDownloadFullDatabaseStartedAsync(string title) => SpecializedTasks.EmptyTask;
-            public Task OnDownloadFullDatabaseSucceededAsync() => SpecializedTasks.EmptyTask;
-            public Task OnDownloadFullDatabaseCanceledAsync() => SpecializedTasks.EmptyTask;
-            public Task OnDownloadFullDatabaseFailedAsync(string message) => SpecializedTasks.EmptyTask;
+            public Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken) => Task.CompletedTask;
         }
     }
 }

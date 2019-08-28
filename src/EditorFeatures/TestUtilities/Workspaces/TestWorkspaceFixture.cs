@@ -3,41 +3,66 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public abstract class TestWorkspaceFixture : IDisposable
     {
-        private TestWorkspace _workspace;
+        public int Position;
+        public string Code;
 
-        public TestWorkspace GetWorkspace()
+        private TestWorkspace _workspace;
+        private TestHostDocument _currentDocument;
+
+        public TestHostDocument CurrentDocument => _currentDocument ?? _workspace.Documents.Single();
+
+        public TestWorkspace GetWorkspace(ExportProvider exportProvider = null)
         {
-            _workspace = _workspace ?? CreateWorkspace();
+            _workspace = _workspace ?? CreateWorkspace(exportProvider);
             return _workspace;
+        }
+
+        public TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider = null)
+        {
+            if (TryParseXElement(markup, out var workspaceElement) && workspaceElement.Name == "Workspace")
+            {
+                _workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider: exportProvider);
+                _currentDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
+                Position = _currentDocument.CursorPosition.Value;
+                Code = _currentDocument.TextBuffer.CurrentSnapshot.GetText();
+                return _workspace;
+            }
+            else
+            {
+                MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out Code, out Position);
+                var workspace = GetWorkspace(exportProvider);
+                _currentDocument = workspace.Documents.Single();
+                return workspace;
+            }
         }
 
         public TestWorkspaceFixture()
         {
         }
 
-        protected abstract TestWorkspace CreateWorkspace();
+        protected abstract TestWorkspace CreateWorkspace(ExportProvider exportProvider);
 
         public void Dispose()
         {
             if (_workspace != null)
             {
-                _workspace.Dispose();
-                _workspace = null;
+                throw new InvalidOperationException($"Tests which use {nameof(TestWorkspaceFixture)}.{nameof(GetWorkspace)} must call {nameof(DisposeAfterTest)} after each test.");
             }
         }
 
         public Document UpdateDocument(string text, SourceCodeKind sourceCodeKind, bool cleanBeforeUpdate = true)
         {
-            var hostDocument = (GetWorkspace()).Documents.Single();
-            var textBuffer = hostDocument.TextBuffer;
+            var hostDocument = _currentDocument ?? (GetWorkspace()).Documents.Single();
 
             // clear the document
             if (cleanBeforeUpdate)
@@ -48,9 +73,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // and set the content
             UpdateText(hostDocument.TextBuffer, text);
 
-            (GetWorkspace()).OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
+            GetWorkspace().OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
 
-            return (GetWorkspace()).CurrentSolution.GetDocument(hostDocument.Id);
+            return GetWorkspace().CurrentSolution.GetDocument(hostDocument.Id);
         }
 
         private static void UpdateText(ITextBuffer textBuffer, string text)
@@ -62,11 +87,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public void CloseTextView()
+        public void DisposeAfterTest()
+        {
+            try
+            {
+                CloseTextView();
+                _currentDocument = null;
+                Code = null;
+                Position = 0;
+                _workspace?.Dispose();
+            }
+            finally
+            {
+                _workspace = null;
+            }
+        }
+
+        private void CloseTextView()
         {
             // The standard use for TestWorkspaceFixture is to call this method in the test's dispose to make sure it's ready to be used for
             // the next test. But some tests in a test class won't use it, so _workspace might still be null.
-            _workspace?.Documents.Single().CloseTextView();
+            if (_workspace?.Documents != null)
+            {
+                foreach (var document in _workspace?.Documents)
+                {
+                    document.CloseTextView();
+                }
+            }
 
             // The editor caches TextFormattingRunProperties instances for better perf, but since things like
             // Brushes are DispatcherObjects, they are tied to the thread they are created on. Since we're going
@@ -75,6 +122,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var existingPropertiesField = textFormattingRunPropertiesType.GetField("ExistingProperties", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             var existingProperties = (List<VisualStudio.Text.Formatting.TextFormattingRunProperties>)existingPropertiesField.GetValue(null);
             existingProperties.Clear();
+        }
+
+        private static bool TryParseXElement(string input, out XElement output)
+        {
+            try
+            {
+                output = XElement.Parse(input);
+                return true;
+            }
+            catch (XmlException)
+            {
+                output = null;
+                return false;
+            }
         }
     }
 }

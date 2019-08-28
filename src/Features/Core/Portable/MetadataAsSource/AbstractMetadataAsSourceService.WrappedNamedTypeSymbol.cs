@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
             public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
+            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _symbol.TypeArgumentNullableAnnotations;
             public ImmutableArray<IMethodSymbol> InstanceConstructors => _symbol.InstanceConstructors;
             public ImmutableArray<IMethodSymbol> StaticConstructors => _symbol.StaticConstructors;
             public ImmutableArray<IMethodSymbol> Constructors => _symbol.Constructors;
@@ -101,6 +102,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
             {
                 return _symbol.Construct(typeArguments);
+            }
+
+            public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
+            {
+                return _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
             }
 
             public INamedTypeSymbol ConstructUnboundGenericType()
@@ -140,10 +146,36 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 throw new NotImplementedException();
             }
 
+            public string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
             ITypeSymbol ITypeSymbol.OriginalDefinition => _symbol.OriginalDefinition;
             public new INamedTypeSymbol OriginalDefinition => this;
 
             public bool IsSerializable => throw new NotImplementedException();
+
+            public bool IsRefLikeType => _symbol.IsRefLikeType;
+
+            public bool IsUnmanagedType => throw new NotImplementedException();
+
+            public bool IsReadOnly => _symbol.IsReadOnly;
         }
     }
 }

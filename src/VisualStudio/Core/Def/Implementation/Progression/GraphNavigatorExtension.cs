@@ -21,7 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
     {
         private readonly Workspace _workspace;
 
-        public GraphNavigatorExtension(Workspace workspace)
+        public GraphNavigatorExtension(IThreadingContext threadingContext, Workspace workspace)
+            : base(threadingContext)
         {
             _workspace = workspace;
         }
@@ -73,10 +74,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         // background thread then the current NewDocumentStateScope is unrelated to
                         // this navigation and it is safe to continue on the UI thread 
                         // asynchronously.
-                        Task.Factory.SafeStartNew(
-                            () => NavigateOnForegroundThread(sourceLocation, symbolId, project, document),
+                        Task.Factory.SafeStartNewFromAsync(
+                            async () =>
+                            {
+                                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                                NavigateOnForegroundThread(sourceLocation, symbolId, project, document);
+                            },
                             CancellationToken.None,
-                            ForegroundTaskScheduler);
+                            TaskScheduler.Default);
                     }
                 }
             }

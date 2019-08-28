@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal sealed class CSharpUseInferredMemberNameCodeFixProvider : AbstractUseInferredMemberNameCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseInferredMemberNameCodeFixProvider()
+        {
+        }
+
         protected override void LanguageSpecificRemoveSuggestedNode(SyntaxEditor editor, SyntaxNode node)
         {
             editor.RemoveNode(node, SyntaxRemoveOptions.KeepExteriorTrivia | SyntaxRemoveOptions.AddElasticMarker);

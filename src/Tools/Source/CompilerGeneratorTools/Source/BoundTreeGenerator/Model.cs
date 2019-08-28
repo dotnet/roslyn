@@ -49,6 +49,13 @@ namespace BoundTreeGenerator
         [XmlAttribute]
         public string Errors;
 
+        /// <summary>
+        /// For nodes such as BoundBinaryOperators where we use an iterative algorithm instead of the standard
+        /// recursive algorithm to deal with deeply-nested stacks
+        /// </summary>
+        [XmlAttribute]
+        public string SkipInNullabilityRewriter;
+
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
         public List<Kind> Kinds;
 

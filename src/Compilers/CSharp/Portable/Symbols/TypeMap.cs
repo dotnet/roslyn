@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,10 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class TypeMap : AbstractTypeParameterMap
     {
-        public static readonly System.Func<TypeSymbol, TypeWithModifiers> TypeSymbolAsTypeWithModifiers = t => new TypeWithModifiers(t);
+        public static readonly System.Func<TypeWithAnnotations, TypeSymbol> AsTypeSymbol = t => t.Type;
+
+        internal static ImmutableArray<TypeWithAnnotations> TypeParametersAsTypeSymbolsWithAnnotations(ImmutableArray<TypeParameterSymbol> typeParameters)
+        {
+            return typeParameters.SelectAsArray((tp) => TypeWithAnnotations.Create(tp));
+        }
+
+        internal static ImmutableArray<TypeSymbol> AsTypeSymbols(ImmutableArray<TypeWithAnnotations> typesOpt)
+        {
+            return typesOpt.IsDefault ? default : typesOpt.SelectAsArray(AsTypeSymbol);
+        }
 
         // Only when the caller passes allowAlpha=true do we tolerate substituted (alpha-renamed) type parameters as keys
-        internal TypeMap(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeWithModifiers> to, bool allowAlpha = false)
+        internal TypeMap(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeWithAnnotations> to, bool allowAlpha = false)
             : base(ConstructMapping(from, to))
         {
             // mapping contents are read-only hereafter
@@ -27,32 +38,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Only when the caller passes allowAlpha=true do we tolerate substituted (alpha-renamed) type parameters as keys
         internal TypeMap(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeParameterSymbol> to, bool allowAlpha = false)
-            : this(from, to.SelectAsArray(TypeSymbolAsTypeWithModifiers), allowAlpha)
+            : this(from, TypeParametersAsTypeSymbolsWithAnnotations(to), allowAlpha)
         {
             // mapping contents are read-only hereafter
         }
 
-        private TypeMap(SmallDictionary<TypeParameterSymbol, TypeWithModifiers> mapping)
-            : base(new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(mapping, ReferenceEqualityComparer.Instance))
+        private TypeMap(SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> mapping)
+            : base(new SmallDictionary<TypeParameterSymbol, TypeWithAnnotations>(mapping, ReferenceEqualityComparer.Instance))
         {
             // mapping contents are read-only hereafter
         }
 
-        private static SmallDictionary<TypeParameterSymbol, TypeWithModifiers> ForType(NamedTypeSymbol containingType)
+        private static SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> ForType(NamedTypeSymbol containingType)
         {
             var substituted = containingType as SubstitutedNamedTypeSymbol;
             return (object)substituted != null ?
-                new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(substituted.TypeSubstitution.Mapping, ReferenceEqualityComparer.Instance) :
-                new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(ReferenceEqualityComparer.Instance);
+                new SmallDictionary<TypeParameterSymbol, TypeWithAnnotations>(substituted.TypeSubstitution.Mapping, ReferenceEqualityComparer.Instance) :
+                new SmallDictionary<TypeParameterSymbol, TypeWithAnnotations>(ReferenceEqualityComparer.Instance);
         }
 
-        internal TypeMap(NamedTypeSymbol containingType, ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeWithModifiers> typeArguments)
+        internal TypeMap(NamedTypeSymbol containingType, ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeWithAnnotations> typeArguments)
             : base(ForType(containingType))
         {
             for (int i = 0; i < typeParameters.Length; i++)
             {
                 TypeParameterSymbol tp = typeParameters[i];
-                TypeWithModifiers ta = typeArguments[i];
+                TypeWithAnnotations ta = typeArguments[i];
                 if (!ta.Is(tp))
                 {
                     Mapping.Add(tp, ta);
@@ -60,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly SmallDictionary<TypeParameterSymbol, TypeWithModifiers> s_emptyDictionary =
-            new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(ReferenceEqualityComparer.Instance);
+        private static readonly SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> s_emptyDictionary =
+            new SmallDictionary<TypeParameterSymbol, TypeWithAnnotations>(ReferenceEqualityComparer.Instance);
 
         private TypeMap()
             : base(s_emptyDictionary)
@@ -106,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var newTp = synthesized ?
                     new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal) :
                     new SubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal);
-                result.Mapping.Add(tp, new TypeWithModifiers(newTp));
+                result.Mapping.Add(tp, TypeWithAnnotations.Create(newTp));
                 newTypeParametersBuilder.Add(newTp);
                 ordinal++;
             }
@@ -117,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal TypeMap WithAlphaRename(NamedTypeSymbol oldOwner, NamedTypeSymbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
-            Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
+            Debug.Assert(TypeSymbol.Equals(oldOwner.ConstructedFrom, oldOwner, TypeCompareKind.ConsiderEverything2));
             return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
         }
 
@@ -176,16 +187,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithAlphaRename(oldTypeParameters, newOwner, out newTypeParameters);
         }
 
-        private static SmallDictionary<TypeParameterSymbol, TypeWithModifiers> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeWithModifiers> to)
+        private static SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeWithAnnotations> to)
         {
-            var mapping = new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(ReferenceEqualityComparer.Instance);
+            var mapping = new SmallDictionary<TypeParameterSymbol, TypeWithAnnotations>(ReferenceEqualityComparer.Instance);
 
             Debug.Assert(from.Length == to.Length);
 
             for (int i = 0; i < from.Length; i++)
             {
                 TypeParameterSymbol tp = from[i];
-                TypeWithModifiers ta = to[i];
+                TypeWithAnnotations ta = to[i];
                 if (!ta.Is(tp))
                 {
                     mapping.Add(tp, ta);
@@ -193,13 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return mapping;
-        }
-
-        public ImmutableArray<CustomModifier> GetTypeArgumentsCustomModifiersFor(TypeParameterSymbol originalDefinition)
-        {
-            Debug.Assert((object)originalDefinition != null);
-            Debug.Assert(originalDefinition.IsDefinition);
-            return SubstituteTypeParameter(originalDefinition).CustomModifiers;
         }
     }
 }

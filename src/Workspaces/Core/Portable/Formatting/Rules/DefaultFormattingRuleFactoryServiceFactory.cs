@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), ServiceLayer.Default), Shared]
     internal sealed class DefaultFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
         public DefaultFormattingRuleFactoryServiceFactory()
         {
         }
@@ -22,16 +23,14 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         private sealed class Factory : IHostDependentFormattingRuleFactoryService
         {
-            private readonly IFormattingRule _singleton = new NoOpFormattingRule();
-
             public bool ShouldUseBaseIndentation(Document document)
             {
                 return false;
             }
 
-            public IFormattingRule CreateRule(Document document, int position)
+            public AbstractFormattingRule CreateRule(Document document, int position)
             {
-                return _singleton;
+                return NoOpFormattingRule.Instance;
             }
 
             public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)

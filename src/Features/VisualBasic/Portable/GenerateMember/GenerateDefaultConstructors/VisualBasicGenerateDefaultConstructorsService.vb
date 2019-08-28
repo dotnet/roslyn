@@ -14,22 +14,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateDefaultConst
     Partial Friend Class VisualBasicGenerateDefaultConstructorsService
         Inherits AbstractGenerateDefaultConstructorsService(Of VisualBasicGenerateDefaultConstructorsService)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function TryInitializeState(
-                document As SemanticDocument, textSpan As TextSpan, cancellationToken As CancellationToken,
+                semanticDocument As SemanticDocument, textSpan As TextSpan, cancellationToken As CancellationToken,
                 ByRef classType As INamedTypeSymbol) As Boolean
             cancellationToken.ThrowIfCancellationRequested()
 
             ' Offer the feature if we're on the header for the class/struct, or if we're on the 
             ' first base-type of a class.
 
-            Dim syntaxFacts = document.Document.GetLanguageService(Of ISyntaxFactsService)()
-            If syntaxFacts.IsOnTypeHeader(document.Root, textSpan.Start) Then
+            Dim syntaxFacts = semanticDocument.Document.GetLanguageService(Of ISyntaxFactsService)()
+            If syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, Nothing) Then
                 classType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                    document.SemanticModel, document.Root, textSpan.Start, cancellationToken)
+                    semanticDocument.SemanticModel, semanticDocument.Root, textSpan.Start)
                 Return classType IsNot Nothing AndAlso classType.TypeKind = TypeKind.Class
             End If
 
-            Dim token = document.Root.FindToken(textSpan.Start)
+            Dim token = semanticDocument.Root.FindToken(textSpan.Start)
 
             Dim type = token.GetAncestor(Of TypeSyntax)()
             If type IsNot Nothing AndAlso type.IsParentKind(SyntaxKind.InheritsStatement) Then
@@ -39,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateDefaultConst
                    baseList.Types(0) Is type AndAlso
                    baseList.IsParentKind(SyntaxKind.ClassBlock) Then
 
-                    classType = TryCast(document.SemanticModel.GetDeclaredSymbol(baseList.Parent, cancellationToken), INamedTypeSymbol)
+                    classType = TryCast(semanticDocument.SemanticModel.GetDeclaredSymbol(baseList.Parent, cancellationToken), INamedTypeSymbol)
                     Return classType IsNot Nothing
                 End If
             End If

@@ -23,16 +23,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return;
             }
 
+            var operand = conversion.Operand;
+
             if (!used && !conversion.ConversionHasSideEffects())
             {
-                EmitExpression(conversion.Operand, false); // just do expr side effects
+                EmitExpression(operand, false); // just do expr side effects
                 return;
             }
 
-            EmitExpression(conversion.Operand, true);
+            EmitExpression(operand, true);
             EmitConversion(conversion);
 
             EmitPopIfUnused(used);
+        }
+
+        private void EmitReadOnlySpanFromArrayExpression(BoundReadOnlySpanFromArray expression, bool used)
+        {
+            BoundExpression operand = expression.Operand;
+            var typeTo = (NamedTypeSymbol)expression.Type;
+
+            Debug.Assert((operand.Type.IsArray()) &&
+                         this._module.Compilation.IsReadOnlySpanType(typeTo),
+                         "only special kinds of conversions involving ReadOnlySpan may be handled in emit");
+
+            if (!TryEmitReadonlySpanAsBlobWrapper(typeTo, operand, used, inPlace: false))
+            {
+                // there are several reasons that could prevent us from emitting a wrapper
+                // in such case we just emit the operand and then invoke the conversion method 
+                EmitExpression(operand, used);
+                if (used)
+                {
+                    // consumes 1 argument (array) and produces one result (span)
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                    EmitSymbolToken(expression.ConversionMethod, expression.Syntax, optArgList: null);
+                }
+            }
         }
 
         private void EmitConversion(BoundConversion conversion)

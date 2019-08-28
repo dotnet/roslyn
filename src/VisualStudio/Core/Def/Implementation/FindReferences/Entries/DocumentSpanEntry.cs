@@ -2,26 +2,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
-using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using DocumentHighlighting = Microsoft.CodeAnalysis.DocumentHighlighting;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -34,49 +30,61 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// </summary>
         private class DocumentSpanEntry : AbstractDocumentSpanEntry
         {
-            private readonly DocumentHighlighting.HighlightSpanKind _spanKind;
-            private readonly ClassifiedSpansAndHighlightSpan _classifiedSpansAndHighlights;
+            private readonly HighlightSpanKind _spanKind;
+            private readonly ExcerptResult _excerptResult;
+            private readonly ImmutableDictionary<string, string> _customColumnsData;
 
             public DocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
-                DocumentSpan documentSpan,
-                DocumentHighlighting.HighlightSpanKind spanKind,
+                HighlightSpanKind spanKind,
                 string documentName,
                 Guid projectGuid,
-                SourceText sourceText,
-                ClassifiedSpansAndHighlightSpan classifiedSpans)
-                : base(context, definitionBucket, documentSpan, documentName, projectGuid, sourceText)
+                MappedSpanResult mappedSpanResult,
+                ExcerptResult excerptResult,
+                SourceText lineText,
+                ImmutableDictionary<string, string> customColumnsData)
+                : base(context,
+                      definitionBucket,
+                      documentName,
+                      projectGuid,
+                      lineText,
+                      mappedSpanResult)
             {
                 _spanKind = spanKind;
-                _classifiedSpansAndHighlights = classifiedSpans;
+                _excerptResult = excerptResult;
+                _customColumnsData = customColumnsData;
             }
 
             protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
             {
-                var propertyId = _spanKind == DocumentHighlighting.HighlightSpanKind.Definition
+                var propertyId = _spanKind == HighlightSpanKind.Definition
                     ? DefinitionHighlightTag.TagId
-                    : _spanKind == DocumentHighlighting.HighlightSpanKind.WrittenReference
+                    : _spanKind == HighlightSpanKind.WrittenReference
                         ? WrittenReferenceHighlightTag.TagId
                         : ReferenceHighlightTag.TagId;
 
                 var properties = Presenter.FormatMapService
                                           .GetEditorFormatMap("text")
                                           .GetProperties(propertyId);
-                var highlightBrush = properties["Background"] as Brush;
 
-                var classifiedSpans = _classifiedSpansAndHighlights.ClassifiedSpans;
+                // Remove additive classified spans before creating classified text.
+                // Otherwise the text will be repeated since there are two classifications
+                // for the same span. Additive classifications should not change the foreground
+                // color, so the resulting classified text will retain the proper look.
+                var classifiedSpans = _excerptResult.ClassifiedSpans.WhereAsArray(
+                    cs => !ClassificationTypeNames.AdditiveTypeNames.Contains(cs.ClassificationType));
                 var classifiedTexts = classifiedSpans.SelectAsArray(
-                    cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
+                    cs => new ClassifiedText(cs.ClassificationType, _excerptResult.Content.ToString(cs.TextSpan)));
 
                 var inlines = classifiedTexts.ToInlines(
                     Presenter.ClassificationFormatMap,
                     Presenter.TypeMap,
                     runCallback: (run, classifiedText, position) =>
                     {
-                        if (highlightBrush != null)
+                        if (properties["Background"] is Brush highlightBrush)
                         {
-                            if (position == _classifiedSpansAndHighlights.HighlightSpan.Start)
+                            if (position == _excerptResult.MappedSpan.Start)
                             {
                                 run.SetValue(
                                     System.Windows.Documents.TextElement.BackgroundProperty,
@@ -92,7 +100,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 if (base.TryCreateColumnContent(columnName, out content))
                 {
-                    LazyToolTip.AttachTo(content, CreateDisposableToolTip);
+                    // this lazy tooltip causes whole solution to be kept in memory until find all reference result gets cleared.
+                    // solution is never supposed to be kept alive for long time, meaning there is bunch of conditional weaktable or weak reference
+                    // keyed by solution/project/document or corresponding states. this will cause all those to be kept alive in memory as well.
+                    // probably we need to dig in to see how expensvie it is to support this
+                    var controlService = _excerptResult.Document.Project.Solution.Workspace.Services.GetService<IContentControlService>();
+                    controlService.AttachToolTipToControl(content, () =>
+                        CreateDisposableToolTip(_excerptResult.Document, _excerptResult.Span));
 
                     return true;
                 }
@@ -100,91 +114,71 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
 
-            private DisposableToolTip CreateDisposableToolTip()
+            protected override object GetValueWorker(string keyName)
+                => _customColumnsData.TryGetValue(keyName, out var value) ? value : base.GetValueWorker(keyName);
+
+            private DisposableToolTip CreateDisposableToolTip(Document document, TextSpan sourceSpan)
             {
                 Presenter.AssertIsForeground();
 
-                // Create a new buffer that we'll show a preview for.  We can't search for an 
-                // existing buffer because:
-                //   1. the file may not be open.
-                //   2. our results may not be in sync with what's actually in the editor.
-                var textBuffer = CreateNewBuffer();
+                var controlService = document.Project.Solution.Workspace.Services.GetService<IContentControlService>();
+                var sourceText = document.GetTextSynchronously(CancellationToken.None);
 
-                // Create the actual tooltip around the region of that text buffer we want to show.
-                var toolTip = new ToolTip
+                var excerptService = document.Services.GetService<IDocumentExcerptService>();
+                if (excerptService != null)
                 {
-                    Content = CreateToolTipContent(textBuffer),
-                    Background = (Brush)Application.Current.Resources[EnvironmentColors.ToolWindowBackgroundBrushKey]
-                };
+                    var excerpt = Presenter.ThreadingContext.JoinableTaskFactory.Run(() => excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.Tooltip, CancellationToken.None));
+                    if (excerpt != null)
+                    {
+                        // get tooltip from excerpt service
+                        var clonedBuffer = excerpt.Value.Content.CreateTextBufferWithRoslynContentType(document.Project.Solution.Workspace);
+                        SetHighlightSpan(_spanKind, clonedBuffer, excerpt.Value.MappedSpan);
+                        SetStaticClassifications(clonedBuffer, excerpt.Value.ClassifiedSpans);
 
-                // Create a preview workspace for this text buffer and open it's corresponding 
-                // document.  That way we'll get nice things like classification as well as the
-                // reference highlight span.
-                var newDocument = Document.WithText(textBuffer.AsTextContainer().CurrentText);
-                var workspace = new PreviewWorkspace(newDocument.Project.Solution);
-                workspace.OpenDocument(newDocument.Id);
+                        return controlService.CreateDisposableToolTip(clonedBuffer, EnvironmentColors.ToolWindowBackgroundBrushKey);
+                    }
+                }
 
-                return new DisposableToolTip(toolTip, workspace);
+                // get default behavior
+                var textBuffer = document.CloneTextBuffer(sourceText);
+                SetHighlightSpan(_spanKind, textBuffer, sourceSpan);
+
+                var contentSpan = GetRegionSpanForReference(sourceText, sourceSpan);
+                return controlService.CreateDisposableToolTip(document, textBuffer, contentSpan, EnvironmentColors.ToolWindowBackgroundBrushKey);
             }
 
-            private ContentControl CreateToolTipContent(ITextBuffer textBuffer)
+            private void SetStaticClassifications(ITextBuffer textBuffer, ImmutableArray<ClassifiedSpan> classifiedSpans)
             {
-                var regionSpan = this.GetRegionSpanForReference();
-                var snapshotSpan = textBuffer.CurrentSnapshot.GetSpan(regionSpan);
-
-                var contentType = Presenter.ContentTypeRegistryService.GetContentType(
-                    IProjectionBufferFactoryServiceExtensions.RoslynPreviewContentType);
-
-                var roleSet = Presenter.TextEditorFactoryService.CreateTextViewRoleSet(
-                    TextViewRoles.PreviewRole,
-                    PredefinedTextViewRoles.Analyzable,
-                    PredefinedTextViewRoles.Document,
-                    PredefinedTextViewRoles.Editable);
-
-                var content = new ProjectionBufferDeferredContent(
-                    snapshotSpan,
-                    contentType,
-                    roleSet);
-
-                return (ContentControl)Presenter.DeferredContentFrameworkElementFactory.CreateElement(content);
+                var key = PredefinedPreviewTaggerKeys.StaticClassificationSpansKey;
+                textBuffer.Properties.RemoveProperty(key);
+                textBuffer.Properties.AddProperty(key, classifiedSpans);
             }
 
-            private ITextBuffer CreateNewBuffer()
+            private static void SetHighlightSpan(HighlightSpanKind spanKind, ITextBuffer textBuffer, TextSpan span)
             {
-                Presenter.AssertIsForeground();
-
-                // is it okay to create buffer from threads other than UI thread?
-                var contentTypeService = Document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
-                var contentType = contentTypeService.GetDefaultContentType();
-
-                var textBuffer = Presenter.TextBufferFactoryService.CreateTextBuffer(
-                    _sourceText.ToString(), contentType);
-
                 // Create an appropriate highlight span on that buffer for the reference.
-                var key = _spanKind == DocumentHighlighting.HighlightSpanKind.Definition
+                var key = spanKind == HighlightSpanKind.Definition
                     ? PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey
-                    : _spanKind == DocumentHighlighting.HighlightSpanKind.WrittenReference
+                    : spanKind == HighlightSpanKind.WrittenReference
                         ? PredefinedPreviewTaggerKeys.WrittenReferenceHighlightingSpansKey
                         : PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey;
-                textBuffer.Properties.RemoveProperty(key);
-                textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(
-                    SourceSpan.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
 
-                return textBuffer;
+                textBuffer.Properties.RemoveProperty(key);
+                textBuffer.Properties.AddProperty(key, new NormalizedSnapshotSpanCollection(span.ToSnapshotSpan(textBuffer.CurrentSnapshot)));
             }
 
-            private Span GetRegionSpanForReference()
+            private static Span GetRegionSpanForReference(SourceText sourceText, TextSpan sourceSpan)
             {
                 const int AdditionalLineCountPerSide = 3;
 
-                var referenceSpan = this.SourceSpan;
-                var lineNumber = _sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
+                var referenceSpan = sourceSpan;
+                var lineNumber = sourceText.Lines.GetLineFromPosition(referenceSpan.Start).LineNumber;
                 var firstLineNumber = Math.Max(0, lineNumber - AdditionalLineCountPerSide);
-                var lastLineNumber = Math.Min(_sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
+                var lastLineNumber = Math.Min(sourceText.Lines.Count - 1, lineNumber + AdditionalLineCountPerSide);
 
                 return Span.FromBounds(
-                    _sourceText.Lines[firstLineNumber].Start,
-                    _sourceText.Lines[lastLineNumber].End);
+                    sourceText.Lines[firstLineNumber].Start,
+                    sourceText.Lines[lastLineNumber].End);
             }
         }
     }

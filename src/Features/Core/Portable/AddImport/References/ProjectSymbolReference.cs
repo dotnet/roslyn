@@ -36,7 +36,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 return document.Project.Id == _project.Id
                     ? ImmutableArray<string>.Empty
-                    : WellKnownTagArrays.AddReference;
+                    : _project.Language == LanguageNames.CSharp
+                        ? WellKnownTagArrays.CSharpProject
+                        : _project.Language == LanguageNames.VisualBasic
+                            ? WellKnownTagArrays.VisualBasicProject
+                            : WellKnownTagArrays.AddReference;
             }
 
             /// <summary>
@@ -49,7 +53,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             protected override CodeActionPriority GetPriority(Document document)
             {
-                // The only normal priority fix we have is when we find a hit in our
+                // The only high priority fix we have is when we find a hit in our
                 // own project and we don't need to do a rename.  Anything else (i.e.
                 // we need to add a project reference, or we need to rename) is low
                 // priority.
@@ -58,8 +62,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                 {
                     if (SearchResult.DesiredNameMatchesSourceName(document))
                     {
-                        // The name doesn't change.  This is a normal priority action.
-                        return CodeActionPriority.Medium;
+                        // Set priority to high so Add Imports will appear above other suggested actions
+                        // https://github.com/dotnet/roslyn/pull/33214
+                        return CodeActionPriority.High;
                     }
                 }
 

@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
     [ExportWorkspaceService(typeof(IPreviewPaneService), ServiceLayer.Host), Shared]
     internal class MockPreviewPaneService : IPreviewPaneService
     {
+        [ImportingConstructor]
+        public MockPreviewPaneService()
+        {
+        }
+
         public object GetPreviewPane(DiagnosticData diagnostic, string language, string projectType, IReadOnlyList<object> previewContents)
         {
             var contents = previewContents ?? SpecializedCollections.EmptyEnumerable<object>();

@@ -101,7 +101,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public sealed override int OnRequestSource(object pIUnknownTextView)
         {
-            if (pIUnknownTextView != null && Children.Changes != null && Children.Changes.Length > 0)
+            // When adding a project reference `Children` can be null, so check before looking at `Changes`
+            if (pIUnknownTextView != null && Children?.Changes != null && Children.Changes.Length > 0)
             {
                 engine.SetTextView(pIUnknownTextView);
                 UpdatePreview();

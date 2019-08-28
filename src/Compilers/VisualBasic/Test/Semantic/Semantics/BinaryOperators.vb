@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
+Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SpecialType
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class BinaryOperators
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test1()
 
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
@@ -28,10 +29,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 Dim compilationDef =
 <compilation name="VBBinaryOperators1">
     <file name="lib.vb">
-        <%= My.Resources.Resource.PrintResultTestSource %>
+        <%= SemanticResourceUtil.PrintResultTestSource %>
     </file>
     <file name="a.vb">
-        <%= My.Resources.Resource.BinaryOperatorsTestSource1 %>
+        <%= SemanticResourceUtil.BinaryOperatorsTestSource1 %>
     </file>
 </compilation>
 
@@ -39,13 +40,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                 Assert.True(compilation.Options.CheckOverflow)
 
-                CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
+                CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline1)
 
                 compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
 
                 Assert.False(compilation.Options.CheckOverflow)
 
-                CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
+                CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline1)
 
             Catch ex As Exception
                 Assert.Null(ex)
@@ -67,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 Dim compilationDef =
 <compilation name="VBBinaryOperators11">
     <file name="lib.vb">
-        <%= My.Resources.Resource.PrintResultTestSource %>
+        <%= SemanticResourceUtil.PrintResultTestSource %>
     </file>
     <file name="a.vb">
         <![CDATA[
@@ -236,13 +237,13 @@ End Module
             Dim compilationDef =
 <compilation name="VBBinaryOperators2">
     <file name="a.vb">
-        <%= My.Resources.Resource.BinaryOperatorsTestSource2 %>
+        <%= SemanticResourceUtil.BinaryOperatorsTestSource2 %>
     </file>
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation, My.Resources.Resource.BinaryOperatorsTestBaseline2)
+            CompilationUtils.AssertTheseDiagnostics(compilation, SemanticResourceUtil.BinaryOperatorsTestBaseline2)
 
         End Sub
 
@@ -328,13 +329,13 @@ False
             Dim compilationDef =
 <compilation name="VBBinaryOperators3">
     <file name="a.vb">
-        <%= My.Resources.Resource.BinaryOperatorsTestSource3 %>
+        <%= SemanticResourceUtil.BinaryOperatorsTestSource3 %>
     </file>
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation, My.Resources.Resource.BinaryOperatorsTestBaseline3)
+            CompilationUtils.AssertTheseDiagnostics(compilation, SemanticResourceUtil.BinaryOperatorsTestBaseline3)
 
         End Sub
 
@@ -344,35 +345,35 @@ False
             Dim compilationDef =
 <compilation name="VBBinaryOperators4">
     <file name="a.vb">
-        <%= My.Resources.Resource.BinaryOperatorsTestSource4 %>
+        <%= SemanticResourceUtil.BinaryOperatorsTestSource4 %>
     </file>
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline4)
+            CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline4)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test5()
 
             Dim compilationDef =
 <compilation name="VBBinaryOperators52">
     <file name="lib.vb">
-        <%= My.Resources.Resource.PrintResultTestSource %>
+        <%= SemanticResourceUtil.PrintResultTestSource %>
     </file>
     <file name="a.vb">
-        <%= My.Resources.Resource.BinaryOperatorsTestSource5 %>
+        <%= SemanticResourceUtil.BinaryOperatorsTestSource5 %>
     </file>
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             Assert.True(compilation.Options.CheckOverflow)
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline5)
+            CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline5)
 
             compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
             Assert.False(compilation.Options.CheckOverflow)
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline5)
+            CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline5)
 
         End Sub
 
@@ -387,7 +388,7 @@ False
                 Dim compilationDef =
     <compilation name="VBBinaryOperators52">
         <file name="lib.vb">
-            <%= My.Resources.Resource.PrintResultTestSource %>
+            <%= SemanticResourceUtil.PrintResultTestSource %>
         </file>
         <file name="a.vb">
             <![CDATA[
@@ -850,15 +851,17 @@ Expected: 0.
 
             compilation.VerifyOperationTree(node.Declarators.Last.Initializer.Value, expectedOperationTree:=
             <![CDATA[
-IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Expected:  ...  line & "."')
+IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: '"Expected:  ...  line & "."')
   Left: 
-    IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Expected: " & line')
+    IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: '"Expected: " & line')
       Left: 
         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Expected: ") (Syntax: '"Expected: "')
       Right: 
         ICoalesceOperation (OperationKind.Coalesce, Type: System.String, IsImplicit) (Syntax: 'line')
           Expression: 
             IParameterReferenceOperation: line (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'line')
+          ValueConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingString)
           WhenNull: 
             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: null, IsImplicit) (Syntax: 'line')
   Right: 
@@ -866,7 +869,7 @@ IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary
 ]]>.Value)
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         Public Sub IntrinsicSymbols()
             Dim operators() As BinaryOperatorKind =
             {
@@ -964,7 +967,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll.WithOverflowChecks(True))
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll.WithOverflowChecks(True))
 
             Dim types(typeNames.Length - 1) As NamedTypeSymbol
 
@@ -1090,7 +1093,7 @@ End Class
                (leftSpecial = SpecialType.None OrElse rightSpecial = SpecialType.None OrElse
                 (op = BinaryOperatorKind.Subtract AndAlso leftSpecial = SpecialType.System_DateTime AndAlso rightSpecial = SpecialType.System_DateTime)) Then
 
-                If leftSpecial = SpecialType.System_Object OrElse rightSpecial = SpecialType.System_Object OrElse leftType = rightType Then
+                If leftSpecial = SpecialType.System_Object OrElse rightSpecial = SpecialType.System_Object OrElse TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything) Then
                     If leftSpecial = SpecialType.System_Object OrElse rightSpecial = SpecialType.System_Object Then
                         resultType = SpecialType.System_Object
                     End If
@@ -1102,8 +1105,8 @@ End Class
                             Dim method = DirectCast(m, MethodSymbol)
                             If method.MethodKind = MethodKind.UserDefinedOperator AndAlso
                                method.ParameterCount = 2 AndAlso
-                               method.Parameters(0).Type = nonSpecialType AndAlso
-                               method.Parameters(1).Type = nonSpecialType Then
+                               TypeSymbol.Equals(method.Parameters(0).Type, nonSpecialType, TypeCompareKind.ConsiderEverything) AndAlso
+                               TypeSymbol.Equals(method.Parameters(1).Type, nonSpecialType, TypeCompareKind.ConsiderEverything) Then
                                 userDefined = method
                                 resultType = SpecialType.None
                             End If
@@ -1184,7 +1187,7 @@ End Class
                     End If
 
                 Case BinaryOperatorKind.Xor, BinaryOperatorKind.And, BinaryOperatorKind.Or
-                    If leftType.IsEnumType() AndAlso leftType = rightType Then
+                    If leftType.IsEnumType() AndAlso TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything) Then
                         containerName = leftType.ToTestDisplayString()
                         rightName = containerName
                         returnName = containerName
@@ -1220,15 +1223,15 @@ End Class
             Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters(0).Type)
 
             Dim match As Integer = 0
-            If symbol1.ContainingSymbol = symbol1.ReturnType Then
+            If TypeSymbol.Equals(symbol1.ContainingType, symbol1.ReturnType, TypeCompareKind.ConsiderEverything) Then
                 match += 1
             End If
 
-            If symbol1.ContainingSymbol = symbol1.Parameters(0).Type Then
+            If TypeSymbol.Equals(symbol1.ContainingType, symbol1.Parameters(0).Type, TypeCompareKind.ConsiderEverything) Then
                 match += 1
             End If
 
-            If symbol1.ContainingSymbol = symbol1.Parameters(1).Type Then
+            If TypeSymbol.Equals(symbol1.ContainingType, symbol1.Parameters(1).Type, TypeCompareKind.ConsiderEverything) Then
                 match += 1
             End If
 
@@ -1295,7 +1298,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll.WithOverflowChecks(False))
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -1362,7 +1365,7 @@ End Structure
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -1415,6 +1418,88 @@ BC42038: This expression will always evaluate to Nothing (due to null propagatio
                         Throw ExceptionUtilities.UnexpectedValue(i)
                 End Select
             Next
+        End Sub
+
+        <Fact, WorkItem(529600, "DevDiv"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        Public Sub Bug529600()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module M
+    Sub Main()
+    End Sub
+
+    Const c0 = "<%= New String("0"c, 65000) %>"
+
+    Const C1=C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
+             C0
+
+    Const C2=C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
+             C1
+
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef)
+
+            Dim err = compilation.GetDiagnostics().Single()
+
+            Assert.Equal(ERRID.ERR_ConstantStringTooLong, err.Code)
+            Assert.Equal("Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
+        End Sub
+
+        <Fact, WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        Public Sub TestLargeStringConcatenation()
+
+            Dim mid = New StringBuilder()
+            For i As Integer = 0 To 4999
+                mid.Append("""Lorem ipsum dolor sit amet"" + "", consectetur adipiscing elit, sed"" + "" do eiusmod tempor incididunt"" + "" ut labore et dolore magna aliqua. "" +" + vbCrLf)
+            Next
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module M
+    Sub Main()
+        Dim s As String = "BEGIN "+
+        <%= mid.ToString() %> "END"
+        System.Console.WriteLine(System.Linq.Enumerable.Sum(s, Function(c As Char) System.Convert.ToInt32(c)))
+    End Sub
+End Module
+    </file>
+</compilation>
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
+            compilation.VerifyDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="58430604")
         End Sub
 
     End Class

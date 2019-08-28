@@ -1,15 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Composition
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-    <ExportFormattingRule(ElasticTriviaFormattingRule.Name, LanguageNames.VisualBasic), [Shared]>
-    <ExtensionOrder(After:=StructuredTriviaFormattingRule.Name)>
     Friend Class ElasticTriviaFormattingRule
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Elastic Trivia Formatting Rule"
@@ -17,12 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, lastToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation))
-            nextOperation.Invoke(list)
+        Public Overrides Sub AddSuppressOperationsSlow(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextSuppressOperationAction)
+            nextOperation.Invoke()
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation))
-            nextOperation.Invoke(list)
+        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextIndentBlockOperationAction)
+            nextOperation.Invoke()
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then
                 Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
@@ -59,11 +55,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperations(list As List(Of AlignTokensOperation),
+        Public Overrides Sub AddAlignTokensOperationsSlow(list As List(Of AlignTokensOperation),
                                                       node As SyntaxNode,
                                                       optionSet As OptionSet,
-                                                      nextOperation As NextAction(Of AlignTokensOperation))
-            nextOperation.Invoke(list)
+                                                      ByRef nextOperation As NextAlignTokensOperationAction)
+            nextOperation.Invoke()
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then
                 Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
@@ -88,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Public Overrides Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As Rules.NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
                 Return nextOperation.Invoke()
@@ -124,11 +120,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return operation
         End Function
 
-        Public Overrides Function GetAdjustNewLinesOperation(
+        Public Overrides Function GetAdjustNewLinesOperationSlow(
                 previousToken As SyntaxToken,
                 currentToken As SyntaxToken,
                 optionSet As OptionSet,
-                nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
+                ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
 
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
@@ -370,6 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Function TopLevelStatement(statement As StatementSyntax) As Boolean
             Return TypeOf statement Is MethodStatementSyntax OrElse
                    TypeOf statement Is SubNewStatementSyntax OrElse
+                   TypeOf statement Is LambdaHeaderSyntax OrElse
                    TypeOf statement Is OperatorStatementSyntax OrElse
                    TypeOf statement Is PropertyStatementSyntax OrElse
                    TypeOf statement Is EventStatementSyntax OrElse

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -20,15 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         internal override IBraceMatchingService GetBraceMatchingService(TestWorkspace workspace)
             => new TestBraceMatchingService();
 
-        private ImmutableArray<TextSpan> GetSpans(BraceMatchingResult? result)
-            => result.HasValue
-                ? ImmutableArray.Create(result.Value.LeftSpan, result.Value.RightSpan)
-                : ImmutableArray<TextSpan>.Empty;
-
         private class TestBraceMatchingService : IBraceMatchingService
         {
             public async Task<BraceMatchingResult?> GetMatchingBracesAsync(
-                Document document, int position, CancellationToken cancellationToken = default(CancellationToken))
+                Document document, int position, CancellationToken cancellationToken = default)
             {
                 var text = (await document.GetTextAsync(cancellationToken)).ToString();
                 var braces = GetMatchingBraces(text, position);

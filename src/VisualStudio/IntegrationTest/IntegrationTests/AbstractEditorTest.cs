@@ -1,46 +1,63 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractEditorTest : AbstractIntegrationTest
     {
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        private readonly string _solutionName;
+        private readonly string _projectTemplate;
+
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
-            : this(instanceFactory, solutionName, WellKnownProjectTemplates.ClassLibrary)
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string solutionName)
+            : this(instanceFactory, testOutputHelper, solutionName, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
         protected AbstractEditorTest(
             VisualStudioInstanceFactory instanceFactory,
+            ITestOutputHelper testOutputHelper,
             string solutionName,
             string projectTemplate)
-           : base(instanceFactory)
+           : base(instanceFactory, testOutputHelper)
         {
-            VisualStudio.SolutionExplorer.CreateSolution(solutionName);
-            VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project(ProjectName), projectTemplate, LanguageName);
-
-            // Winforms and XAML do not open text files on creation
-            // so these editor tasks will not work if that is the project template being used.
-            if (projectTemplate != WellKnownProjectTemplates.WinFormsApplication &&
-                projectTemplate != WellKnownProjectTemplates.WpfApplication &&
-                projectTemplate != WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
-            {
-                VisualStudio.Workspace.SetUseSuggestionMode(false);
-                ClearEditor();
-            }
+            _solutionName = solutionName;
+            _projectTemplate = projectTemplate;
         }
 
         protected abstract string LanguageName { get; }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
+
+            if (_solutionName != null)
+            {
+                VisualStudio.SolutionExplorer.CreateSolution(_solutionName);
+                VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project(ProjectName), _projectTemplate, LanguageName);
+                VisualStudio.SolutionExplorer.RestoreNuGetPackages(new ProjectUtils.Project(ProjectName));
+
+                // Winforms and XAML do not open text files on creation
+                // so these editor tasks will not work if that is the project template being used.
+                if (_projectTemplate != WellKnownProjectTemplates.WinFormsApplication &&
+                    _projectTemplate != WellKnownProjectTemplates.WpfApplication &&
+                    _projectTemplate != WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+                {
+                    VisualStudio.Editor.SetUseSuggestionMode(false);
+                    ClearEditor();
+                }
+            }
+        }
 
         protected void ClearEditor()
             => SetUpEditor("$$");

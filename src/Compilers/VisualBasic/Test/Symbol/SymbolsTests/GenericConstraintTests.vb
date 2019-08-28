@@ -3889,12 +3889,6 @@ End Class
                 </compilation>
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC32078: 'Public Sub M2(Of U As Structure)()' cannot implement 'IB.Sub M2(Of U As {Structure, Object})()' because they differ by type parameter constraints.
-    Public Sub M2(Of U As Structure)() Implements IB.M2 ' Dev10 error
-                                                  ~~~~~
-BC32077: 'Public Overrides Sub M2(Of U As Structure)()' cannot override 'Public MustOverride Overrides Sub M2(Of U As {Structure, Object})()' because they differ by type parameter constraints.
-    Public Overrides Sub M2(Of U As Structure)() ' Dev10 error
-                         ~~
 BC32077: 'Public Overrides Sub M2(Of U As {Structure, ValueType})()' cannot override 'Public MustOverride Overrides Sub M2(Of U As Structure)()' because they differ by type parameter constraints.
     Public Overrides Sub M2(Of U As {Structure, System.ValueType})() ' Dev10 error
                          ~~
@@ -5716,6 +5710,109 @@ BC40008: 'Class2' is obsolete.
 BC40008: 'Class2' is obsolete.
     Private Partial Sub M4(Of S As Class2)
                                    ~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub EnumConstraint_FromCSharp()
+            Dim reference = CreateCSharpCompilation("
+public class Test<T> where T : System.Enum
+{
+}", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3)).EmitToImageReference()
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Enum E1
+    A
+End Enum
+Public Class Test2
+    Public Sub M()
+        Dim a = new Test(Of E1)()             ' enum
+        Dim b = new Test(Of Integer)()        ' value type
+        Dim c = new Test(Of string)()         ' reference type
+        Dim d = new Test(Of System.Enum)()    ' Enum type
+    End Sub
+End Class
+    </file>
+</compilation>, {reference})
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32044: Type argument 'Integer' does not inherit from or implement the constraint type '[Enum]'.
+        Dim b = new Test(Of Integer)()        ' value type
+                            ~~~~~~~
+BC32044: Type argument 'String' does not inherit from or implement the constraint type '[Enum]'.
+        Dim c = new Test(Of string)()         ' reference type
+                            ~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateConstraint_FromCSharp()
+            Dim reference = CreateCSharpCompilation("
+public class Test<T> where T : System.Delegate
+{
+}", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3)).EmitToImageReference()
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Delegate Sub D1()
+
+Public Class Test2
+    Public Sub M()
+        Dim a = new Test(Of D1)()                   ' delegate
+        Dim b = new Test(Of Integer)()              ' value type
+        Dim c = new Test(Of string)()               ' reference type
+        Dim d = new Test(Of System.Delegate)()      ' Delegate type
+    End Sub
+End Class
+    </file>
+</compilation>, {reference})
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32044: Type argument 'Integer' does not inherit from or implement the constraint type '[Delegate]'.
+        Dim b = new Test(Of Integer)()              ' value type
+                            ~~~~~~~
+BC32044: Type argument 'String' does not inherit from or implement the constraint type '[Delegate]'.
+        Dim c = new Test(Of string)()               ' reference type
+                            ~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub MulticastDelegateConstraint_FromCSharp()
+            Dim reference = CreateCSharpCompilation("
+public class Test<T> where T : System.MulticastDelegate
+{
+}", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3)).EmitToImageReference()
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Delegate Sub D1()
+
+Public Class Test2
+    Public Sub M()
+        Dim a = new Test(Of D1)()                           ' delegate
+        Dim b = new Test(Of Integer)()                      ' value type
+        Dim c = new Test(Of string)()                       ' reference type
+        Dim d = new Test(Of System.MulticastDelegate)()     ' MulticastDelegate type
+    End Sub
+End Class
+    </file>
+</compilation>, {reference})
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32044: Type argument 'Integer' does not inherit from or implement the constraint type 'MulticastDelegate'.
+        Dim b = new Test(Of Integer)()                      ' value type
+                            ~~~~~~~
+BC32044: Type argument 'String' does not inherit from or implement the constraint type 'MulticastDelegate'.
+        Dim c = new Test(Of string)()                       ' reference type
+                            ~~~~~~
 </expected>)
         End Sub
 

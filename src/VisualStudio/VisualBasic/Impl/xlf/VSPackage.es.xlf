@@ -8,23 +8,23 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Editor de páginas de código de Microsoft Visual Basic</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="needs-review-translation">Editor de páginas de código de Microsoft Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Editor de Microsoft Visual Basic</target>
+        <source>Visual Basic Editor</source>
+        <target state="needs-review-translation">Editor de Microsoft Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off</source>
-        <target state="translated">Inserción automática de construcciones End;Cambiar configuración de la lista descriptiva;Cambiar modo de esquematización;Inserción automática de miembros Interface y MustOverride;Mostrar u ocultar separadores de línea de procedimientos;Activar o desactivar sugerencias de corrección de errores;Activar o desactivar resaltado de referencias y palabras clave</target>
+        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
+        <target state="translated">Inserción automática de construcciones End;Cambiar configuración de la lista descriptiva;Cambiar modo de esquematización;Inserción automática de miembros Interface y MustOverride;Mostrar u ocultar separadores de línea de procedimientos;Activar o desactivar sugerencias de corrección de errores;Activar o desactivar resaltado de referencias y palabras clave;Regex;Colorear expresiones regulares;Resaltar componentes relacionados bajo el cursor;Informar sobre expresiones regulares no válidas;regex;expresión regular;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
         <source>Advanced</source>
-        <target state="translated">Avanzadas</target>
+        <target state="translated">Opciones avanzadas</target>
         <note>"Advanced" node under Tools &gt;Options, Basic editor.</note>
       </trans-unit>
       <trans-unit id="103">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="10161">
         <source>Qualify with Me;Prefer intrinsic types;Style;Code Style</source>
-        <target state="translated">Calificar con tipos intrínsecos Me;Prefer;Style;Code Style</target>
+        <target state="translated">Qualify with Me;Prefer intrinsic types;Style;Code Style</target>
         <note>Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="110">
@@ -101,6 +101,16 @@
         <source>Visual Basic Tools</source>
         <target state="translated">Herramientas de Visual Basic</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_Visual_Basic_script_file">
+        <source>An empty Visual Basic script file.</source>
+        <target state="translated">Un archivo de script de Visual Basic vacío.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_Script">
+        <source>Visual Basic Script</source>
+        <target state="translated">Script de Visual Basic</target>
+        <note />
       </trans-unit>
     </body>
   </file>

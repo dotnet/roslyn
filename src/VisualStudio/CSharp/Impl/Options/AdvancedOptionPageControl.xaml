@@ -17,10 +17,13 @@
                 <StackPanel>
                     <CheckBox x:Name="Enable_full_solution_analysis"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_full_solution_analysis}" />
-                    <CheckBox x:Name="Perform_editor_feature_analysis_in_external_process"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Perform_editor_feature_analysis_in_external_process}" />
                     <CheckBox x:Name="Enable_navigation_to_decompiled_sources"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
+                    <CheckBox x:Name="Enable_use_nullable_reference_types"
+                              IsThreeState="True"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_nullable_reference_analysis_IDE_features}" />
+                    <CheckBox x:Name="Use_editorconfig_compatibility_mode"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_editorconfig_compatibility_mode}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"
@@ -99,6 +102,29 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                 </StackPanel>
             </GroupBox>
+
+          <GroupBox x:Uid="RegularExpressionsGroupBox"
+                    Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
+            <StackPanel>
+              <CheckBox x:Name="Colorize_regular_expressions"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
+              <CheckBox x:Name="Report_invalid_regular_expressions"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
+              <CheckBox x:Name="Highlight_related_components_under_cursor"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
+              <CheckBox x:Name="Show_completion_list"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
+            </StackPanel>
+          </GroupBox>
+
+            <GroupBox x:Uid="ClassificationsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Classifications}">
+                <StackPanel>
+                    <CheckBox x:Name="Use_enhanced_colors"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Use_enhanced_colors_for_C_and_Basic}" />
+                </StackPanel>
+            </GroupBox>
+
             <GroupBox x:Uid="ExtractMethodGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
                 <StackPanel>

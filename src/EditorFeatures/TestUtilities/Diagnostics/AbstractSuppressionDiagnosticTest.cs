@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -26,7 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex);
         }
 
-        internal abstract Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
+        internal abstract Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
+
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        {
+            return actions.SelectMany(a => a is AbstractConfigurationActionWithNestedActions
+                ? a.NestedCodeActions
+                : ImmutableArray.Create(a)).ToImmutableArray();
+        }
 
         private ImmutableArray<Diagnostic> FilterDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
@@ -59,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return FilterDiagnostics(diagnostics);
         }
 
-        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
+        internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
@@ -73,14 +81,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
             var fixer = providerAndFixer.Item2;
-            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(provider, document, span))
-                .Where(d => fixer.CanBeSuppressedOrUnsuppressed(d));
+            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span))
+                .Where(d => fixer.IsFixableDiagnostic(d));
 
             var filteredDiagnostics = FilterDiagnostics(diagnostics);
 
             var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, filteredDiagnostics.Select(d => d.Id));
             return await GetDiagnosticAndFixesAsync(
-                filteredDiagnostics, provider, wrapperCodeFixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
+                filteredDiagnostics, wrapperCodeFixer, testDriver, document,
+                span, annotation, parameters.index);
         }
     }
 }

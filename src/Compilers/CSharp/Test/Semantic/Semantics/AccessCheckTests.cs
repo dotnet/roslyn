@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -432,16 +433,6 @@ class B
         [Fact]
         public void AccessCheckProtected04()
         {
-            // SPEC VIOLATION: The specification implies that first overload resolution chooses the
-            // SPEC VIOLATION: best method, and then if the receiver is the wrong type and the
-            // SPEC VIOLATION: best method is protected, then an error occurs. The native compiler
-            // SPEC VIOLATION: does it in the other order: first protected methods with potentially
-            // SPEC VIOLATION: the wrong receiver type are discarded from the candidate set, and
-            // SPEC VIOLATION: then the best method is chosen.
-            // SPEC VIOLATION: We should consider changing the specification to match the native
-            // SPEC VIOLATION: compiler behavior; it is arguably sensible and would be a 
-            // SPEC VIOLATION: bad breaking change to fix now.
-
             CSharpCompilation c = CreateCompilation(@"
 public class B
 {
@@ -454,9 +445,7 @@ public class D : B
     public void X()
     {
        B b = new D();
-       b.M(123);
-       // According to the spec, this should choose the int version and then error;
-       // the native compiler chooses the double version. We match the native compiler behavior.
+       b.M(123); // because of the receiver type, only M(double x) is accessible.
     }
 }
 ");
@@ -467,16 +456,7 @@ public class D : B
         [Fact]
         public void AccessCheckProtectedColorColor()
         {
-            // SPEC VIOLATION: The specification implies that first overload resolution chooses the
-            // SPEC VIOLATION: best method, and then if the receiver is the wrong type and the
-            // SPEC VIOLATION: best method is protected, then an error occurs. The native compiler
-            // SPEC VIOLATION: does it in the other order: first protected methods with potentially
-            // SPEC VIOLATION: the wrong receiver type are discarded from the candidate set, and
-            // SPEC VIOLATION: then the best method is chosen.
-            // SPEC VIOLATION: We should consider changing the specification to match the native
-            // SPEC VIOLATION: compiler behavior; it is arguably sensible and would be a 
-            // SPEC VIOLATION: bad breaking change to fix now.
-            //
+            // Inaccessible methods are not a member of a method group.
             // This fact has interesting implications in "Color Color" scenarios; when one 
             // interpretation would produce an error, we fall back to the non-error producing
             // interpretation.
@@ -528,9 +508,6 @@ namespace CS1540
         public void Md(int x) {}
         public void Me(int x) {}
         public void Mf(int x) {}
-
-
-        
     }
 
     public class Derived : Base
@@ -663,7 +640,8 @@ public class A
                 Diagnostic(ErrorCode.ERR_BadAccess, "c_priv").WithArguments("C.c_priv").WithLocation(9, 19),
                 // (10,17): error CS0122: 'D' is inaccessible due to its protection level
                 //         int f = D.d_pub;
-                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("D").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("D").WithLocation(10, 17)
+                );
         }
 
         [Fact]
@@ -706,14 +684,16 @@ public class A: C
                 Diagnostic(ErrorCode.ERR_BadAccess, "c_priv").WithArguments("C.c_priv").WithLocation(9, 19),
                 // (10,17): error CS0122: 'D' is inaccessible due to its protection level
                 //         int f = D.d_pub;
-                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("D").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("D").WithLocation(10, 17)
+                );
         }
 
         [Fact]
-        public void AccessCheckApi1()
+        public void AccessCheckApi_01()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Collections.Generic;
+using AliasForA = A;
 class A
 {
     static private int priv;
@@ -725,8 +705,15 @@ class A
 
     private K[] karray;
     private A[] aarray;
+    private K* kptr;
+    private A* aptr;
     private IEnumerable<K> kenum;
     private IEnumerable<A> aenum;
+    void M()
+    {
+        _ = new A.K(); // K discard
+        _ = new A(); // A discard
+    }
 }
 
 class B
@@ -738,10 +725,14 @@ class ADerived: A
 class ADerived2: A
 {}
 ");
+            Compilation compilation = c;
             NamespaceSymbol globalNS = c.GlobalNamespace;
             AssemblySymbol sourceAssem = c.SourceModule.ContainingAssembly;
             AssemblySymbol mscorlibAssem = c.GetReferencedAssemblySymbol(c.ExternalReferences[0]);
             NamedTypeSymbol classA = globalNS.GetMembers("A").Single() as NamedTypeSymbol;
+            var tree = c.SyntaxTrees[0];
+            var model = c.GetSemanticModel(tree);
+            AliasSymbol aliasA = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(u => u.Alias != null).Single()) as AliasSymbol;
             NamedTypeSymbol classADerived = globalNS.GetMembers("ADerived").Single() as NamedTypeSymbol;
             NamedTypeSymbol classADerived2 = globalNS.GetMembers("ADerived2").Single() as NamedTypeSymbol;
             NamedTypeSymbol classB = globalNS.GetMembers("B").Single() as NamedTypeSymbol;
@@ -751,34 +742,209 @@ class ADerived2: A
             FieldSymbol protField = classA.GetMembers("prot").Single() as FieldSymbol;
             TypeSymbol karrayType = (classA.GetMembers("karray").Single() as FieldSymbol).Type;
             TypeSymbol aarrayType = (classA.GetMembers("aarray").Single() as FieldSymbol).Type;
+            TypeSymbol kptrType = (classA.GetMembers("kptr").Single() as FieldSymbol).Type;
+            TypeSymbol aptrType = (classA.GetMembers("aptr").Single() as FieldSymbol).Type;
             TypeSymbol kenumType = (classA.GetMembers("kenum").Single() as FieldSymbol).Type;
             TypeSymbol aenumType = (classA.GetMembers("aenum").Single() as FieldSymbol).Type;
+            var discards = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken).ToArray();
+            DiscardSymbol kdiscard = (DiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
+            DiscardSymbol adiscard = (DiscardSymbol)model.GetSymbolInfo(discards[1]).Symbol;
             TypeSymbol unknownType = (classA.GetMembers("unknowntype").Single() as FieldSymbol).Type;
-            var semanticModel = c.GetSemanticModel(c.SyntaxTrees[0]);
+
+            ISymbol nullSymbol = null;
+            Assert.Throws<ArgumentNullException>(() => { compilation.IsSymbolAccessibleWithin(classA, nullSymbol); });
+            Assert.Throws<ArgumentNullException>(() => { compilation.IsSymbolAccessibleWithin(nullSymbol, classA); });
+            Assert.Throws<ArgumentException>(() => { compilation.IsSymbolAccessibleWithin(classA, pubField); });
 
             Assert.True(Symbol.IsSymbolAccessible(classA, classB));
+            Assert.True(compilation.IsSymbolAccessibleWithin(classA, classB));
+            Assert.True(Symbol.IsSymbolAccessible(aliasA, classB));
+            Assert.True(compilation.IsSymbolAccessibleWithin(aliasA, classB));
             Assert.True(Symbol.IsSymbolAccessible(pubField, classB));
+            Assert.True(compilation.IsSymbolAccessibleWithin(pubField, classB));
             Assert.False(Symbol.IsSymbolAccessible(privField, classB));
+            Assert.False(compilation.IsSymbolAccessibleWithin(privField, classB));
             Assert.False(Symbol.IsSymbolAccessible(karrayType, classB));
+            Assert.False(compilation.IsSymbolAccessibleWithin(karrayType, classB));
             Assert.True(Symbol.IsSymbolAccessible(aarrayType, classB));
+            Assert.True(compilation.IsSymbolAccessibleWithin(aarrayType, classB));
+            Assert.False(Symbol.IsSymbolAccessible(kptrType, classB));
+            Assert.False(compilation.IsSymbolAccessibleWithin(kptrType, classB));
+            Assert.True(Symbol.IsSymbolAccessible(aptrType, classB));
+            Assert.True(compilation.IsSymbolAccessibleWithin(aptrType, classB));
+            Assert.False(Symbol.IsSymbolAccessible(kdiscard, classB));
+            Assert.False(compilation.IsSymbolAccessibleWithin(kdiscard, classB));
+            Assert.True(Symbol.IsSymbolAccessible(adiscard, classB));
+            Assert.True(compilation.IsSymbolAccessibleWithin(adiscard, classB));
             Assert.False(Symbol.IsSymbolAccessible(kenumType, classB));
+            Assert.False(compilation.IsSymbolAccessibleWithin(kenumType, classB));
             Assert.True(Symbol.IsSymbolAccessible(aenumType, classB));
+            Assert.True(compilation.IsSymbolAccessibleWithin(aenumType, classB));
             Assert.True(Symbol.IsSymbolAccessible(unknownType, classB));
+            Assert.True(compilation.IsSymbolAccessibleWithin(unknownType, classB));
             Assert.True(Symbol.IsSymbolAccessible(globalNS, classB));
+            Assert.True(compilation.IsSymbolAccessibleWithin(globalNS, classB));
             Assert.True(Symbol.IsSymbolAccessible(protField, classA));
+            Assert.True(compilation.IsSymbolAccessibleWithin(protField, classA));
             Assert.True(Symbol.IsSymbolAccessible(protField, classA, classADerived));
+            Assert.True(compilation.IsSymbolAccessibleWithin(protField, classA, classADerived));
             Assert.False(Symbol.IsSymbolAccessible(protField, classB));
+            Assert.False(compilation.IsSymbolAccessibleWithin(protField, classB));
             Assert.False(Symbol.IsSymbolAccessible(protField, classB, classADerived));
+            Assert.False(compilation.IsSymbolAccessibleWithin(protField, classB, classADerived));
             Assert.True(Symbol.IsSymbolAccessible(protField, classA));
+            Assert.True(compilation.IsSymbolAccessibleWithin(protField, classA));
             Assert.True(Symbol.IsSymbolAccessible(protField, classADerived, classADerived));
+            Assert.True(compilation.IsSymbolAccessibleWithin(protField, classADerived, classADerived));
             Assert.False(Symbol.IsSymbolAccessible(protField, classADerived, classADerived2));
+            Assert.False(compilation.IsSymbolAccessibleWithin(protField, classADerived, classADerived2));
 
             Assert.True(Symbol.IsSymbolAccessible(classA, sourceAssem));
+            Assert.True(compilation.IsSymbolAccessibleWithin(classA, sourceAssem));
+            Assert.True(Symbol.IsSymbolAccessible(aliasA, sourceAssem));
+            Assert.True(compilation.IsSymbolAccessibleWithin(aliasA, sourceAssem));
             Assert.True(Symbol.IsSymbolAccessible(aarrayType, sourceAssem));
+            Assert.True(compilation.IsSymbolAccessibleWithin(aarrayType, sourceAssem));
             Assert.False(Symbol.IsSymbolAccessible(karrayType, sourceAssem));
+            Assert.False(compilation.IsSymbolAccessibleWithin(karrayType, sourceAssem));
+            Assert.True(Symbol.IsSymbolAccessible(aptrType, sourceAssem));
+            Assert.True(compilation.IsSymbolAccessibleWithin(aptrType, sourceAssem));
+            Assert.False(Symbol.IsSymbolAccessible(kptrType, sourceAssem));
+            Assert.False(compilation.IsSymbolAccessibleWithin(kptrType, sourceAssem));
+            Assert.True(Symbol.IsSymbolAccessible(adiscard, sourceAssem));
+            Assert.True(compilation.IsSymbolAccessibleWithin(adiscard, sourceAssem));
+            Assert.False(Symbol.IsSymbolAccessible(kdiscard, sourceAssem));
+            Assert.False(compilation.IsSymbolAccessibleWithin(kdiscard, sourceAssem));
             Assert.False(Symbol.IsSymbolAccessible(classA, mscorlibAssem));
+            Assert.False(compilation.IsSymbolAccessibleWithin(classA, mscorlibAssem));
+            Assert.False(Symbol.IsSymbolAccessible(aliasA, mscorlibAssem));
+            Assert.False(compilation.IsSymbolAccessibleWithin(aliasA, mscorlibAssem));
             Assert.True(Symbol.IsSymbolAccessible(unknownType, sourceAssem));
+            Assert.True(compilation.IsSymbolAccessibleWithin(unknownType, sourceAssem));
             Assert.True(Symbol.IsSymbolAccessible(mscorlibAssem, sourceAssem));
+            Assert.True(compilation.IsSymbolAccessibleWithin(mscorlibAssem, sourceAssem));
+
+            CSharpCompilation otherC = CreateCompilation(@"
+class Other
+{
+}");
+            NamespaceSymbol otherGlobalNS = otherC.GlobalNamespace;
+            NamedTypeSymbol classOther = otherGlobalNS.GetMembers("Other").Single() as NamedTypeSymbol;
+            Assert.Throws<ArgumentException>(() => { compilation.IsSymbolAccessibleWithin(classA, classOther); });
+        }
+
+        [Fact]
+        public void AccessCheckApi_02()
+        {
+            CSharpCompilation c1 = CreateCompilation(@"
+using SomeAlias = System.Int32;
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C3"")]
+internal class Outer
+{
+    private class Inner
+    {
+        public int Field;
+    }
+
+    private Inner* Pointer;
+    private int Integer = 1 + 2;
+
+    protected int Protected;
+    protected internal int ProtectedInternal;
+    private protected int PrivateProtected;
+}
+internal class Other
+{
+}
+private class Private
+{
+}
+internal class Derived : Outer
+{
+}
+");
+            Compilation compilation1 = c1;
+            var tree = c1.SyntaxTrees[0];
+            var model = c1.GetSemanticModel(tree);
+            IAliasSymbol SomeAlias = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(u => u.Alias != null).Single());
+            INamespaceSymbol globalNS = c1.GlobalNamespace;
+            IAssemblySymbol sourceAssem = c1.SourceModule.ContainingAssembly;
+            IAssemblySymbol mscorlibAssem = c1.GetReferencedAssemblySymbol(c1.ExternalReferences[0]);
+            INamedTypeSymbol Outer = globalNS.GetMembers("Outer").Single() as INamedTypeSymbol;
+            INamedTypeSymbol Outer_Inner = Outer.GetMembers("Inner").Single() as INamedTypeSymbol;
+            IFieldSymbol Outer_Inner_Field = Outer_Inner.GetMembers("Field").Single() as IFieldSymbol;
+            IFieldSymbol Outer_Pointer = Outer.GetMembers("Pointer").Single() as IFieldSymbol;
+            IFieldSymbol Outer_Protected = Outer.GetMembers("Protected").Single() as IFieldSymbol;
+            IFieldSymbol Outer_ProtectedInternal = Outer.GetMembers("ProtectedInternal").Single() as IFieldSymbol;
+            IFieldSymbol Outer_PrivateProtected = Outer.GetMembers("PrivateProtected").Single() as IFieldSymbol;
+            INamedTypeSymbol Other = globalNS.GetMembers("Other").Single() as INamedTypeSymbol;
+            INamedTypeSymbol Private = globalNS.GetMembers("Private").Single() as INamedTypeSymbol;
+            Assert.Equal(Accessibility.Private, Private.DeclaredAccessibility);
+            IMethodSymbol IntegerPlus = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single()).Symbol as IMethodSymbol;
+            INamedTypeSymbol Derived = globalNS.GetMembers("Derived").Single() as INamedTypeSymbol;
+
+            Assert.True(compilation1.IsSymbolAccessibleWithin(SomeAlias, Outer));
+            Assert.True(compilation1.IsSymbolAccessibleWithin(Outer_Pointer.Type, Outer));
+            Assert.False(compilation1.IsSymbolAccessibleWithin(Outer_Pointer.Type, Other));
+            Assert.True(compilation1.IsSymbolAccessibleWithin(IntegerPlus, Other));
+            Assert.True(compilation1.IsSymbolAccessibleWithin(IntegerPlus, sourceAssem));
+            Assert.False(compilation1.IsSymbolAccessibleWithin(Private, Other));
+            Assert.False(compilation1.IsSymbolAccessibleWithin(Private, sourceAssem));
+            Assert.False(compilation1.IsSymbolAccessibleWithin(Outer_Inner_Field, Other));
+            Assert.False(compilation1.IsSymbolAccessibleWithin(Outer_Protected, Derived, Outer));
+            Assert.True(compilation1.IsSymbolAccessibleWithin(Outer_ProtectedInternal, Derived, Outer));
+            Assert.False(compilation1.IsSymbolAccessibleWithin(Outer_PrivateProtected, Derived, Outer));
+            Assert.True(compilation1.IsSymbolAccessibleWithin(Outer_Protected, Derived));
+            Assert.True(compilation1.IsSymbolAccessibleWithin(Outer_ProtectedInternal, Derived));
+            Assert.True(compilation1.IsSymbolAccessibleWithin(Outer_PrivateProtected, Derived));
+            Assert.False(compilation1.IsSymbolAccessibleWithin(Outer_Protected, sourceAssem));
+            Assert.True(compilation1.IsSymbolAccessibleWithin(Outer_Protected, Outer_Inner));
+
+            CSharpCompilation c2 = CreateCompilation(@"
+internal class InOtherCompilation
+{
+}
+");
+            INamedTypeSymbol InOtherCompilation = c2.GlobalNamespace.GetMember("InOtherCompilation") as INamedTypeSymbol;
+
+            CSharpCompilation c3 = CreateCompilation(@"
+internal class InFriendCompilation
+{
+}
+", assemblyName: "C3");
+            INamedTypeSymbol InFriendCompilation = c3.GlobalNamespace.GetMember("InFriendCompilation") as INamedTypeSymbol;
+            Compilation compilation3 = c3;
+            Assert.Throws<ArgumentException>(() => { compilation3.IsSymbolAccessibleWithin(Outer, InOtherCompilation); });
+            Assert.Throws<ArgumentException>(() => { compilation3.IsSymbolAccessibleWithin(Outer, InFriendCompilation); });
+        }
+
+        [Fact]
+        public void AccessCheckApi_03()
+        {
+            var r1 = AssemblyMetadata.CreateFromImage(TestResources.General.C1).GetReference(filePath: @"c:\temp\a.dll", display: "R1");
+            var r2 = AssemblyMetadata.CreateFromImage(TestResources.General.C1).GetReference(filePath: @"c:\temp\a.dll", display: "R2");
+            var source = @"class Q : C { }";
+            var c = CreateCompilation(source, new[] { r1 });
+            Compilation compilation = c;
+            c.VerifyDiagnostics();
+            Assert.NotNull(c.GetReferencedAssemblySymbol(r1));
+            var classC = c.GlobalNamespace.GetMembers("C").OfType<INamedTypeSymbol>().Single();
+            var classQ = c.GlobalNamespace.GetMembers("Q").OfType<INamedTypeSymbol>().Single();
+            Assert.True(compilation.IsSymbolAccessibleWithin(classC, classQ));
+
+            c = CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(TargetFramework.Standard).AddRange(new[] { r1, r2 }));
+            c.VerifyDiagnostics();
+
+            // duplicate assembly results in no assembly symbol
+            Assert.Null(c.GetReferencedAssemblySymbol(r1));
+            // The variable classC represents a symbol from r1, which did not result in any symbols in c
+            var c2 = c.GlobalNamespace.GetMembers("C").OfType<INamedTypeSymbol>().Single();
+            Assert.NotEqual(classC, c2);
+
+            Assert.NotNull(c.GetReferencedAssemblySymbol(r2));
+            classQ = c.GlobalNamespace.GetMembers("Q").OfType<INamedTypeSymbol>().Single();
+            // the below should not throw a null reference exception.
+            Assert.Throws<ArgumentException>(() => compilation.IsSymbolAccessibleWithin(classC, classQ));
         }
 
         [Fact]
@@ -821,7 +987,8 @@ public class A
             c.VerifyDiagnostics(
                 // (6,17): error CS0122: 'C' is inaccessible due to its protection level
                 //     protected B(C o) {}
-                Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("C").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("C").WithLocation(6, 17)
+                );
         }
 
         [Fact]
@@ -871,8 +1038,9 @@ public class A
 
             assembly2Compilation.VerifyDiagnostics(
                 // (7,35): error CS0122: 'InstancePropertyContainer.PropIntProProSet' is inaccessible due to its protection level
-                //         PropIntProProSet
-                Diagnostic(ErrorCode.ERR_BadAccess, "PropIntProProSet").WithArguments("InstancePropertyContainer.PropIntProProSet"));
+                //         InstancePropertyContainer.PropIntProProSet = 12;
+                Diagnostic(ErrorCode.ERR_BadAccess, "PropIntProProSet").WithArguments("InstancePropertyContainer.PropIntProProSet").WithLocation(7, 35)
+                );
         }
 
         [WorkItem(546209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")]
@@ -1063,7 +1231,7 @@ class C
     }
 }
 ";
-            var compilationC = CreateCompilation(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB, SystemCoreRef });
+            var compilationC = CreateCompilation(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB });
             compilationC.VerifyDiagnostics(
                 // (6,9): error CS0122: 'B.M(int)' is inaccessible due to its protection level
                 //         b.M(d);
@@ -1238,6 +1406,75 @@ public abstract class Class1
     }
 }";
             CompileAndVerify(text).VerifyDiagnostics();
+        }
+
+        [WorkItem(29253, "https://github.com/dotnet/roslyn/issues/29253")]
+        [Fact]
+        public void InaccessibleToUnnamedExe_01()
+        {
+            string sourceA =
+@"class A { }";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB =
+@"class B
+{
+    static void Main()
+    {
+        new A();
+    }
+}";
+            // Unnamed assembly (the default from the command-line compiler).
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: null);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
+
+            // Named assembly.
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: "B");
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
+        }
+
+        [WorkItem(29253, "https://github.com/dotnet/roslyn/issues/29253")]
+        [Fact]
+        public void InaccessibleToUnnamedExe_02()
+        {
+            string sourceA =
+@"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""B"")]
+class A { }";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB =
+@"class B
+{
+    static void Main()
+    {
+        new A();
+    }
+}";
+            // Unnamed assembly (the default from the command-line compiler).
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: null);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
+
+            // Named assembly.
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: "B");
+            comp.VerifyDiagnostics();
+
+            // Named assembly (distinct).
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: "B2");
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
         }
     }
 }

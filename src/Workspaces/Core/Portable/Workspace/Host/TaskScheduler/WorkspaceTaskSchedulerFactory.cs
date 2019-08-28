@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.Host
     [Shared]
     internal partial class WorkspaceTaskSchedulerFactory : IWorkspaceTaskSchedulerFactory
     {
+        [ImportingConstructor]
+        public WorkspaceTaskSchedulerFactory()
+        {
+        }
+
         public virtual IWorkspaceTaskScheduler CreateBackgroundTaskScheduler()
         {
             return new WorkspaceTaskScheduler(this, TaskScheduler.Default);

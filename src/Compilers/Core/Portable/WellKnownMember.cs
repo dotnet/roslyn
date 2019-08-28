@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis
 
         System_IEquatable_T__Equals,
 
+        System_Collections_Generic_IEqualityComparer_T__Equals,
+
         System_Collections_Generic_EqualityComparer_T__Equals,
         System_Collections_Generic_EqualityComparer_T__GetHashCode,
         System_Collections_Generic_EqualityComparer_T__get_Default,
@@ -144,6 +146,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeHelpers__GetObjectValueObject,
         System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
+        System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
 
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw,
@@ -156,6 +159,7 @@ namespace Microsoft.CodeAnalysis
         System_Activator__CreateInstance,
         System_Activator__CreateInstance_T,
 
+        System_Threading_Interlocked__CompareExchange,
         System_Threading_Interlocked__CompareExchange_T,
 
         System_Threading_Monitor__Enter, //Monitor.Enter(object)
@@ -417,6 +421,10 @@ namespace Microsoft.CodeAnalysis
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
 
+        System_Runtime_CompilerServices_NullableAttribute__ctorByte,
+        System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
+        System_Runtime_CompilerServices_NullableContextAttribute__ctor,
+        System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
         System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
         System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
@@ -427,9 +435,74 @@ namespace Microsoft.CodeAnalysis
         System_Span_T__get_Item,
         System_Span_T__get_Length,
 
+        System_ReadOnlySpan_T__ctor,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
 
+        System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+
+        Microsoft_VisualBasic_Conversion__FixSingle,
+        Microsoft_VisualBasic_Conversion__FixDouble,
+        Microsoft_VisualBasic_Conversion__IntSingle,
+        Microsoft_VisualBasic_Conversion__IntDouble,
+
+        System_Math__CeilingDouble,
+        System_Math__FloorDouble,
+        System_Math__TruncateDouble,
+
+        System_Index__ctor,
+        System_Index__GetOffset,
+        System_Range__ctor,
+        System_Range__StartAt,
+        System_Range__EndAt,
+        System_Range__get_All,
+        System_Range__get_Start,
+        System_Range__get_End,
+
+        System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
+
+        System_IAsyncDisposable__DisposeAsync,
+        System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
+        System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
+        System_Collections_Generic_IAsyncEnumerator_T__get_Current,
+
+        System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult,
+        System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus,
+        System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__OnCompleted,
+        System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset,
+        System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException,
+        System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult,
+        System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__get_Version,
+        System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
+        System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus,
+        System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
+        System_Threading_Tasks_Sources_IValueTaskSource__GetResult,
+        System_Threading_Tasks_Sources_IValueTaskSource__GetStatus,
+        System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted,
+        System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
+        System_Threading_Tasks_ValueTask_T__ctorValue,
+        System_Threading_Tasks_ValueTask__ctor,
+
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted,
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,
+        System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
+
+        System_Runtime_CompilerServices_ITuple__get_Item,
+        System_Runtime_CompilerServices_ITuple__get_Length,
+
+        System_InvalidOperationException__ctor,
+        System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+        System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+
+        System_Threading_CancellationToken__Equals,
+        System_Threading_CancellationTokenSource__CreateLinkedTokenSource,
+        System_Threading_CancellationTokenSource__Token,
+        System_Threading_CancellationTokenSource__Dispose,
+
         Count
+
+        // Remember to update the AllWellKnownTypeMembers tests when making changes here
     }
 }

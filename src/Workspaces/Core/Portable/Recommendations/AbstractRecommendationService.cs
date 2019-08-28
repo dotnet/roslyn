@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -13,89 +14,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
-    internal abstract class AbstractRecommendationService : IRecommendationService
+    internal abstract class AbstractRecommendationService<TSyntaxContext> : IRecommendationService
+        where TSyntaxContext : SyntaxContext
     {
-        protected abstract Task<Tuple<ImmutableArray<ISymbol>, SyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken);
+        protected abstract Task<TSyntaxContext> CreateContext(
+            Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+
+        protected abstract AbstractRecommendationServiceRunner<TSyntaxContext> CreateRunner(
+            TSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            var result = await GetRecommendedSymbolsAtPositionWorkerAsync(workspace, semanticModel, position, options, cancellationToken).ConfigureAwait(false);
+            var context = await CreateContext(workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+            var filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language);
+            var symbols = CreateRunner(context, filterOutOfScopeLocals, cancellationToken).GetSymbols();
 
-            var symbols = result.Item1;
-            var context = new ShouldIncludeSymbolContext(result.Item2, cancellationToken);
+            var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language);
+            symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation);
 
-            symbols = symbols.WhereAsArray(context.ShouldIncludeSymbol);
+            var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(context, cancellationToken);
+            symbols = symbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
             return symbols;
-        }
-
-        protected static ImmutableArray<ISymbol> GetRecommendedNamespaceNameSymbols(
-            SemanticModel semanticModel, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
-        {
-            if (declarationSyntax == null)
-            {
-                throw new ArgumentNullException(nameof(declarationSyntax));
-            }
-
-            var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
-                semanticModel.GetEnclosingNamespace(declarationSyntax.SpanStart, cancellationToken));
-
-            var symbols = semanticModel.LookupNamespacesAndTypes(declarationSyntax.SpanStart, containingNamespaceSymbol)
-                                       .WhereAsArray(recommendationSymbol => IsNonIntersectingNamespace(recommendationSymbol, declarationSyntax));
-
-            return symbols;
-        }
-
-        protected static bool IsNonIntersectingNamespace(
-            ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
-        {
-            //
-            // Apart from filtering out non-namespace symbols, this also filters out the symbol
-            // currently being declared. For example...
-            //
-            //     namespace X$$
-            //
-            // ...X won't show in the completion list (unless it is also declared elsewhere).
-            //
-            // In addition, in VB, it will filter out Bar from the sample below...
-            //
-            //     Namespace Goo.$$
-            //         Namespace Bar
-            //         End Namespace
-            //     End Namespace
-            //
-            // ...unless, again, it's also declared elsewhere.
-            //
-            return recommendationSymbol.IsNamespace() &&
-                   recommendationSymbol.Locations.Any(
-                       candidateLocation => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
-                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
-        }
-
-        /// <summary>
-        /// If container is a tuple type, any of its tuple element which has a friendly name will cause
-        /// the suppression of the corresponding default name (ItemN).
-        /// In that case, Rest is also removed.
-        /// </summary>
-        protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(
-            INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
-        {
-            var namedType = container as INamedTypeSymbol;
-            if (namedType?.IsTupleType != true)
-            {
-                // container is not a tuple
-                return symbols;
-            }
-
-            //return tuple elements followed by other members that are not fields
-            return ImmutableArray<ISymbol>.CastUp(namedType.TupleElements).
-                Concat(symbols.WhereAsArray(s => s.Kind != SymbolKind.Field));
-        }
-
-        private static bool IsFriendlyName(int i, string elementName)
-        {
-            return elementName != null && string.Compare(elementName, "Item" + (i + 1), StringComparison.OrdinalIgnoreCase) != 0;
         }
 
         private sealed class ShouldIncludeSymbolContext
@@ -151,8 +91,10 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
                 if (_context.IsAttributeNameContext)
                 {
-                    var enclosingSymbol = _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken);
-                    return symbol.IsOrContainsAccessibleAttribute(enclosingSymbol, _context.SemanticModel.Compilation.Assembly);
+                    return symbol.IsOrContainsAccessibleAttribute(
+                        _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken),
+                        _context.SemanticModel.Compilation.Assembly,
+                        _cancellationToken);
                 }
 
                 if (_context.IsEnumTypeMemberAccessContext)

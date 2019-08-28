@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
@@ -242,7 +243,7 @@ class Test
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
-}").ToMetadataReference();
+}", assemblyName: "reference").ToMetadataReference();
 
             var code = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(Microsoft.CodeAnalysis.EmbeddedAttribute))]
@@ -373,12 +374,12 @@ public class Test
 }";
 
             CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // (7,14): error CS0518: Predefined type 'System.Void' is not defined or imported
-                // public class Test
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Void").WithLocation(7, 14),
                 // (4,18): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     public class Attribute {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Attribute").WithArguments("System.Void").WithLocation(4, 18),
+                // (7,14): error CS0518: Predefined type 'System.Void' is not defined or imported
+                // public class Test
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Void").WithLocation(7, 14),
                 // error CS0518: Predefined type 'System.Void' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Void' is not defined or imported

@@ -4,13 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -37,22 +35,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |.............|n|rr|cccccccc|vvvvvvvv|
+            // |...|fffffffff|n|rr|cccccccc|vvvvvvvv|
             // 
             // v = decoded well known attribute values. 8 bits.
             // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
+            // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
 
             private const int WellKnownAttributeDataOffset = 0;
             private const int WellKnownAttributeCompletionFlagOffset = 8;
             private const int RefKindOffset = 16;
+            private const int FlowAnalysisAnnotationsOffset = 20;
 
             private const int RefKindMask = 0x3;
             private const int WellKnownAttributeDataMask = 0xFF;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
+            private const int FlowAnalysisAnnotationsMask = 0xFF;
 
             private const int HasNameInMetadataBit = 0x1 << 18;
+            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 19;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -71,20 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #if DEBUG
             static PackedFlags()
             {
-                // Verify a few things about the values we combine into flags.  This way, if they ever
-                // change, this will get hit and you will know you have to update this type as well.
-
-                // 1) Verify that the range of well known attributes doesn't fall outside the bounds of
-                // the attribute completion and data mask.
-                var attributeFlags = EnumUtilities.GetValues<WellKnownAttributeFlags>();
-                var maxAttributeFlag = (int)System.Linq.Enumerable.Aggregate(attributeFlags, (f1, f2) => f1 | f2);
-                Debug.Assert((maxAttributeFlag & WellKnownAttributeDataMask) == maxAttributeFlag);
-
-                // 2) Verify that the range of ref kinds doesn't fall outside the bounds of
-                // the ref kind mask.
-                var refKinds = EnumUtilities.GetValues<RefKind>();
-                var maxRefKind = (int)System.Linq.Enumerable.Aggregate(refKinds, (r1, r2) => r1 | r2);
-                Debug.Assert((maxRefKind & RefKindMask) == maxRefKind);
+                // Verify masks are sufficient for values.
+                Debug.Assert(EnumUtilities.ContainsAllValues<WellKnownAttributeFlags>(WellKnownAttributeDataMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<RefKind>(RefKindMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<FlowAnalysisAnnotations>(FlowAnalysisAnnotationsMask));
             }
 #endif
 
@@ -117,11 +109,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 value = (theBits & ((int)flag << WellKnownAttributeDataOffset)) != 0;
                 return (theBits & ((int)flag << WellKnownAttributeCompletionFlagOffset)) != 0;
             }
+
+            public bool SetFlowAnalysisAnnotations(FlowAnalysisAnnotations value)
+            {
+                int bitsToSet = FlowAnalysisAnnotationsCompletionBit | (((int)value & FlowAnalysisAnnotationsMask) << FlowAnalysisAnnotationsOffset);
+                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public bool TryGetFlowAnalysisAnnotations(out FlowAnalysisAnnotations value)
+            {
+                int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
+                value = (FlowAnalysisAnnotations)((theBits >> FlowAnalysisAnnotationsOffset) & FlowAnalysisAnnotationsMask);
+                var result = (theBits & FlowAnalysisAnnotationsCompletionBit) != 0;
+                Debug.Assert(value == 0 || result);
+                return result;
+            }
         }
 
         private readonly Symbol _containingSymbol;
         private readonly string _name;
-        private readonly TypeSymbol _type;
+        private readonly TypeWithAnnotations _typeWithAnnotations;
         private readonly ParameterHandle _handle;
         private readonly ParameterAttributes _flags;
         private readonly PEModuleSymbol _moduleSymbol;
@@ -145,13 +152,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isContainingSymbolVirtual,
             int ordinal,
             ParamInfo<TypeSymbol> parameterInfo,
+            Symbol nullableContext,
             bool isReturn,
             out bool isBad)
         {
             return Create(
                 moduleSymbol, containingSymbol, isContainingSymbolVirtual, ordinal,
                 parameterInfo.IsByRef, parameterInfo.RefCustomModifiers, parameterInfo.Type,
-                parameterInfo.Handle, parameterInfo.CustomModifiers, isReturn, out isBad);
+                parameterInfo.Handle, nullableContext, parameterInfo.CustomModifiers, isReturn, out isBad);
         }
 
         /// <summary>
@@ -162,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <param name="ordinal"></param>
         /// <param name="handle">The property parameter doesn't have a name in metadata,
         /// so this is the handle of a corresponding accessor parameter, if there is one,
-        /// or of the ParamInfo passed in, otherwise).</param>
+        /// or of the ParamInfo passed in, otherwise.</param>
         /// <param name="parameterInfo" />
         /// <param name="isBad" />
         internal static PEParameterSymbol Create(
@@ -172,12 +180,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int ordinal,
             ParameterHandle handle,
             ParamInfo<TypeSymbol> parameterInfo,
+            Symbol nullableContext,
             out bool isBad)
         {
             return Create(
                 moduleSymbol, containingSymbol, isContainingSymbolVirtual, ordinal,
                 parameterInfo.IsByRef, parameterInfo.RefCustomModifiers, parameterInfo.Type,
-                handle, parameterInfo.CustomModifiers, isReturn: false, out isBad);
+                handle, nullableContext, parameterInfo.CustomModifiers, isReturn: false, out isBad);
         }
 
         private PEParameterSymbol(
@@ -185,15 +194,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Symbol containingSymbol,
             int ordinal,
             bool isByRef,
-            TypeSymbol type,
+            TypeWithAnnotations typeWithAnnotations,
             ParameterHandle handle,
+            Symbol nullableContext,
             int countOfCustomModifiers,
             out bool isBad)
         {
             Debug.Assert((object)moduleSymbol != null);
             Debug.Assert((object)containingSymbol != null);
             Debug.Assert(ordinal >= 0);
-            Debug.Assert((object)type != null);
+            Debug.Assert(typeWithAnnotations.HasType);
 
             isBad = false;
             _moduleSymbol = moduleSymbol;
@@ -208,9 +218,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
 
-                type = TupleTypeSymbol.TransformToTupleIfCompatible(type);
-                _type = type;
-
+                typeWithAnnotations = TupleTypeSymbol.TryTransformToTuple(typeWithAnnotations.Type, out TupleTypeSymbol tuple) ?
+                    TypeWithAnnotations.Create(tuple) :
+                    typeWithAnnotations;
+                byte? value = nullableContext.GetNullableContextValue();
+                if (value.HasValue)
+                {
+                    typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, value.GetValueOrDefault(), default);
+                }
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
                 _lazyHiddenAttributes = ImmutableArray<CSharpAttributeData>.Empty;
                 _lazyDefaultValue = ConstantValue.NotAvailable;
@@ -245,11 +260,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                // CONSIDER: Can we make parameter type computation lazy?
-                type = DynamicTypeDecoder.TransformType(type, countOfCustomModifiers, handle, moduleSymbol, refKind);
+                var typeSymbol = DynamicTypeDecoder.TransformType(typeWithAnnotations.Type, countOfCustomModifiers, handle, moduleSymbol, refKind);
+                typeWithAnnotations = typeWithAnnotations.WithTypeAndModifiers(typeSymbol, typeWithAnnotations.CustomModifiers);
+                // Decode nullable before tuple types to avoid converting between
+                // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
 
-                _type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
+                // The containing type is passed to NullableTypeDecoder.TransformType to determine access
+                // for property parameters because the property does not have explicit accessibility in metadata.
+                var accessSymbol = containingSymbol.Kind == SymbolKind.Property ? containingSymbol.ContainingSymbol : containingSymbol;
+                typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, handle, moduleSymbol, accessSymbol: accessSymbol, nullableContext: nullableContext);
+                typeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithAnnotations, handle, moduleSymbol);
             }
+
+            _typeWithAnnotations = typeWithAnnotations;
 
             bool hasNameInMetadata = !string.IsNullOrEmpty(_name);
             if (!hasNameInMetadata)
@@ -281,13 +304,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
             TypeSymbol type,
             ParameterHandle handle,
+            Symbol nullableContext,
             ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
             bool isReturn,
             out bool isBad)
         {
+            // We start without annotation (they will be decoded below)
+            var typeWithModifiers = TypeWithAnnotations.Create(type, customModifiers: CSharpCustomModifier.Convert(customModifiers));
+
             PEParameterSymbol parameter = customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty
-                ? new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, 0, out isBad)
-                : new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, type, handle, customModifiers, out isBad);
+                ? new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, handle, nullableContext, 0, out isBad)
+                : new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, typeWithModifiers, handle, nullableContext, out isBad);
 
             bool hasInAttributeModifier = parameter.RefCustomModifiers.HasInAttributeModifier();
 
@@ -312,7 +339,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private sealed class PEParameterSymbolWithCustomModifiers : PEParameterSymbol
         {
-            private readonly ImmutableArray<CustomModifier> _customModifiers;
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
             public PEParameterSymbolWithCustomModifiers(
@@ -321,26 +347,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 int ordinal,
                 bool isByRef,
                 ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
-                TypeSymbol type,
+                TypeWithAnnotations type,
                 ParameterHandle handle,
-                ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
+                Symbol nullableContext,
                 out bool isBad) :
-                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle,
-                         refCustomModifiers.NullToEmpty().Length + customModifiers.NullToEmpty().Length,
+                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, nullableContext,
+                         refCustomModifiers.NullToEmpty().Length + type.CustomModifiers.Length,
                          out isBad)
             {
-                _customModifiers = CSharpCustomModifier.Convert(customModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(refCustomModifiers);
 
                 Debug.Assert(_refCustomModifiers.IsEmpty || isByRef);
-            }
-
-            public override ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get
-                {
-                    return _customModifiers;
-                }
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -630,19 +647,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override TypeSymbol Type
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get
             {
-                return _type;
+                FlowAnalysisAnnotations value;
+                if (!_packedFlags.TryGetFlowAnalysisAnnotations(out value))
+                {
+                    value = DecodeFlowAnalysisAttributes(_moduleSymbol.Module, _handle);
+                    _packedFlags.SetFlowAnalysisAnnotations(value);
+                }
+                return value;
             }
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
+        private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(PEModule module, ParameterHandle handle)
+        {
+            FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
+            if (module.HasAttribute(handle, AttributeDescription.AllowNullAttribute)) annotations |= FlowAnalysisAnnotations.AllowNull;
+            if (module.HasAttribute(handle, AttributeDescription.DisallowNullAttribute)) annotations |= FlowAnalysisAnnotations.DisallowNull;
+
+            if (module.HasAttribute(handle, AttributeDescription.MaybeNullAttribute))
+            {
+                annotations |= FlowAnalysisAnnotations.MaybeNull;
+            }
+            else if (module.HasMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(handle, AttributeDescription.MaybeNullWhenAttribute, out bool when))
+            {
+                annotations |= (when ? FlowAnalysisAnnotations.MaybeNullWhenTrue : FlowAnalysisAnnotations.MaybeNullWhenFalse);
+            }
+
+            if (module.HasAttribute(handle, AttributeDescription.NotNullAttribute))
+            {
+                annotations |= FlowAnalysisAnnotations.NotNull;
+            }
+            else if (module.HasMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(handle, AttributeDescription.NotNullWhenAttribute, out bool when))
+            {
+                annotations |= (when ? FlowAnalysisAnnotations.NotNullWhenTrue : FlowAnalysisAnnotations.NotNullWhenFalse);
+            }
+
+            if (module.HasMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(handle, AttributeDescription.DoesNotReturnIfAttribute, out bool condition))
+            {
+                annotations |= (condition ? FlowAnalysisAnnotations.DoesNotReturnIfTrue : FlowAnalysisAnnotations.DoesNotReturnIfFalse);
+            }
+
+            return annotations;
+        }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
         {
             get
             {
-                return ImmutableArray<CustomModifier>.Empty;
+                var attributes = GetAttributes();
+                var result = ImmutableHashSet<string>.Empty;
+                foreach (var attribute in attributes)
+                {
+                    if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
+                    {
+                        if (attribute.DecodeNotNullIfNotNullAttribute() is string parameterName)
+                        {
+                            result = result.Add(parameterName);
+                        }
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        public override TypeWithAnnotations TypeWithAnnotations
+        {
+            get
+            {
+                return _typeWithAnnotations;
             }
         }
 

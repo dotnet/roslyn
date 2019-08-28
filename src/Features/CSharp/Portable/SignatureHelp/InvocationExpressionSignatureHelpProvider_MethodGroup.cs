@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProvider
     {
-        private IList<SignatureHelpItem> GetMethodGroupItems(
+        private (IList<SignatureHelpItem>, int?) GetMethodGroupItemsAndSelection(
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IDocumentationCommentFormattingService documentationCommentFormattingService,
             ISymbol within,
             IEnumerable<IMethodSymbol> methodGroup,
+            SymbolInfo currentSymbol,
             CancellationToken cancellationToken)
         {
             ITypeSymbol throughType = null;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
                 var includeStatic = throughSymbol is INamedTypeSymbol ||
                     (throughExpression.IsKind(SyntaxKind.IdentifierName) &&
-                    semanticModel.LookupNamespacesAndTypes(throughExpression.SpanStart, name: throughSymbol.Name).Any(t => t.GetSymbolType() == throughType));
+                    semanticModel.LookupNamespacesAndTypes(throughExpression.SpanStart, name: throughSymbol.Name).Any(t => Equals(t.GetSymbolType(), throughType)));
 
                 Contract.ThrowIfFalse(includeInstance || includeStatic);
                 methodGroup = methodGroup.Where(m => (m.IsStatic && includeStatic) || (!m.IsStatic && includeInstance));
@@ -58,24 +59,25 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 methodGroup = methodGroup.Where(m => m.IsStatic);
             }
 
-            var accessibleMethods = methodGroup.Where(m => m.IsAccessibleWithin(within, throughTypeOpt: throughType)).ToList();
-            if (accessibleMethods.Count == 0)
+            var accessibleMethods = methodGroup.Where(m => m.IsAccessibleWithin(within, throughType: throughType)).ToImmutableArrayOrEmpty();
+            if (accessibleMethods.Length == 0)
             {
-                return null;
+                return default;
             }
 
             var methodSet = accessibleMethods.ToSet();
-            accessibleMethods = accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToList();
+            accessibleMethods = accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToImmutableArrayOrEmpty();
 
-            return accessibleMethods.Select(m =>
-                ConvertMethodGroupMethod(m, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList();
+            return (accessibleMethods.Select(m =>
+                ConvertMethodGroupMethod(m, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                TryGetSelectedIndex(accessibleMethods, currentSymbol));
         }
 
         private bool IsHiddenByOtherMethod(IMethodSymbol method, ISet<IMethodSymbol> methodSet)
         {
             foreach (var m in methodSet)
             {
-                if (m != method)
+                if (!Equals(m, method))
                 {
                     if (IsHiddenBy(method, m))
                     {

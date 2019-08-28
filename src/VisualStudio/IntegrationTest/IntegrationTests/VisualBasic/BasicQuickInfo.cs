@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -12,12 +14,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicQuickInfo(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicQuickInfo))
+        public BasicQuickInfo(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicQuickInfo))
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38301"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfo1()
         {
             SetUpEditor(@"
@@ -27,10 +29,10 @@ Class Program
     End Sub
 End Class");
             VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal("Class\u200e System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", VisualStudio.Editor.GetQuickInfo());
+            Assert.Equal("Class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void International()
         {
             SetUpEditor(@"
@@ -43,7 +45,7 @@ Class العربية123
     End Sub
 End Class");
             VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal(@"Class" + '\u200e' + @" TestProj.العربية123
+            Assert.Equal(@"Class TestProj.العربية123
 This is an XML doc comment defined in code.", VisualStudio.Editor.GetQuickInfo());
         }
     }

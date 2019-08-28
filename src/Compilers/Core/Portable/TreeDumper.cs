@@ -53,20 +53,24 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// This is ONLY used id BoundNode.cs Debug method - Dump()
     /// </summary>
-    internal sealed class TreeDumper
+    internal class TreeDumper
     {
         private readonly StringBuilder _sb;
 
-        private TreeDumper()
+        protected TreeDumper()
         {
             _sb = new StringBuilder();
         }
 
         public static string DumpCompact(TreeDumperNode root)
         {
-            var dumper = new TreeDumper();
-            dumper.DoDumpCompact(root, string.Empty);
-            return dumper._sb.ToString();
+            return new TreeDumper().DoDumpCompact(root);
+        }
+
+        protected string DoDumpCompact(TreeDumperNode root)
+        {
+            DoDumpCompact(root, string.Empty);
+            return _sb.ToString();
         }
 
         private void DoDumpCompact(TreeDumperNode node, string indent)
@@ -162,7 +166,7 @@ namespace Microsoft.CodeAnalysis
                 (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, Array.Empty<object>());
         }
 
-        private static string DumperString(object o)
+        protected virtual string DumperString(object o)
         {
             if (o == null)
             {

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -21,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     [TagType(typeof(IClassificationTag))]
     internal partial class SyntacticClassificationTaggerProvider : ITaggerProvider
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IForegroundNotificationService _notificationService;
         private readonly IAsynchronousOperationListener _listener;
         private readonly ClassificationTypeMap _typeMap;
@@ -29,10 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         [ImportingConstructor]
         public SyntacticClassificationTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _notificationService = notificationService;
             _typeMap = typeMap;
             _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
@@ -54,9 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             tagComputer.IncrementReferenceCount();
 
             var tagger = new Tagger(tagComputer);
-            var typedTagger = tagger as ITagger<T>;
 
-            if (typedTagger == null)
+            if (!(tagger is ITagger<T> typedTagger))
             {
                 // Oops, we can't actually return this tagger, so just clean up
                 tagger.Dispose();

@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override bool IsTrivia => true;
 
+        internal override bool ShouldReuseInSerialization => this.Kind == SyntaxKind.WhitespaceTrivia &&
+                                                             FullWidth < Lexer.MaxCachedTokenSize;
+
         internal override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);

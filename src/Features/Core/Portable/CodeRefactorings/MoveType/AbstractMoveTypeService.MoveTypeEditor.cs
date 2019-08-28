@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// 3. Add this forked document to the solution.
             /// 4. Finally, update the original document and remove the type from it.
             /// </remarks>
-            internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
+            public override async Task<Solution> GetModifiedSolutionAsync()
             {
                 var solution = SemanticDocument.Document.Project.Solution;
 
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var solutionWithBothDocumentsUpdated = await RemoveTypeFromSourceDocumentAsync(
                       sourceDocument, documentWithMovedType).ConfigureAwait(false);
 
-                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(solutionWithBothDocumentsUpdated));
+                return solutionWithBothDocumentsUpdated;
             }
 
             /// <summary>
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // Make the type chain above the type we're moving 'partial'.  
                 // However, keep all the attributes on these types as theses are the 
                 // original attributes and we don't want to mess with them. 
-                AddPartialModifiersToTypeChain(documentEditor, 
+                AddPartialModifiersToTypeChain(documentEditor,
                     removeAttributesAndComments: false, removeTypeInheritance: false);
                 documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
@@ -250,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     var symbol = (ITypeSymbol)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
                     if (!semanticFacts.IsPartial(symbol, CancellationToken))
                     {
-                        documentEditor.SetModifiers(node, 
+                        documentEditor.SetModifiers(node,
                             documentEditor.Generator.GetModifiers(node) | DeclarationModifiers.Partial);
                     }
 

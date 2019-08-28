@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return CommonCompletionItem.Create(
                 displayText: displayText,
+                displayTextSuffix: "",
                 glyph: Glyph.Keyword,
                 properties: props,
                 rules: rules);

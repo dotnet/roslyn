@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
@@ -27,8 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
     internal sealed partial class SnippetExpansionClient : AbstractSnippetExpansionClient
     {
-        public SnippetExpansionClient(Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(languageServiceGuid, textView, subjectBuffer, editorAdaptersFactoryService)
+        public SnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
+            : base(threadingContext, languageServiceGuid, textView, subjectBuffer, editorAdaptersFactoryService)
         {
         }
 
@@ -36,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         /// otherwise.</returns>
         protected override ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan()
         {
-            VsTextSpan[] endSpanInSurfaceBuffer = new VsTextSpan[1];
+            var endSpanInSurfaceBuffer = new VsTextSpan[1];
             if (ExpansionSession.GetEndSpan(endSpanInSurfaceBuffer) != VSConstants.S_OK)
             {
                 return null;
@@ -49,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
             var endPosition = subjectBufferEndSpan.Start.Position;
 
-            string commentString = "/**/";
+            var commentString = "/**/";
             SubjectBuffer.Insert(endPosition, commentString);
 
             var commentSpan = new Span(endPosition, commentString.Length);
@@ -95,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var contextLocation = root.FindToken(position).Parent;
 
-            var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode, cancellationToken);
+            var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode);
             if (!newUsingDirectives.Any())
             {
                 return document;
@@ -121,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         }
 
         private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
-            SyntaxNode contextLocation, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
+            SyntaxNode contextLocation, XElement snippetNode, XElement importsNode)
         {
             var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
             var existingUsings = contextLocation.GetEnclosingUsingDirectives();
@@ -154,11 +155,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             }
 
             return newUsings;
-        }
-
-        private static string GetAliasName(UsingDirectiveSyntax usingDirective)
-        {
-            return (usingDirective.Alias == null || usingDirective.Alias.Name == null) ? null : usingDirective.Alias.Name.ToString();
         }
     }
 }

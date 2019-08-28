@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         public static bool IsContext(Document document, int position, CancellationToken cancellationToken)
         {
             // Check to see if we're to the right of an $ or an @$
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = document.GetTextSynchronously(cancellationToken);
 
             var start = position - 1;
             if (start < 0)

@@ -180,8 +180,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If interfaceType.IsInterfaceType() Then
                 Dim errorReported As Boolean = False        ' was an error already reported?
+                Dim interfaceNamedType As NamedTypeSymbol = DirectCast(interfaceType, NamedTypeSymbol)
 
-                If Not containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(DirectCast(interfaceType, NamedTypeSymbol)) Then
+                If Not containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics(interfaceNamedType).Contains(interfaceNamedType) Then
                     ' Class doesn't implement the interface that was named
                     Binder.ReportDiagnostic(diagBag, interfaceName, ERRID.ERR_InterfaceNotImplemented1,
                                             interfaceType)
@@ -252,11 +253,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     Continue For ' has been eliminated already
                                 End If
 
-                                If second.ContainingType.ImplementsInterface(first.ContainingType, Nothing) Then
+                                If second.ContainingType.ImplementsInterface(first.ContainingType, comparer:=Nothing, useSiteDiagnostics:=Nothing) Then
                                     candidates(i) = Nothing
                                     candidatesCount -= 1
                                     GoTo Next_i
-                                ElseIf first.ContainingType.ImplementsInterface(second.ContainingType, Nothing) Then
+                                ElseIf first.ContainingType.ImplementsInterface(second.ContainingType, comparer:=Nothing, useSiteDiagnostics:=Nothing) Then
                                     candidates(j) = Nothing
                                     candidatesCount -= 1
                                 End If
@@ -286,7 +287,7 @@ Next_i:
                                     Continue For ' has been eliminated already
                                 End If
 
-                                If first.ContainingType = second.ContainingType Then
+                                If TypeSymbol.Equals(first.ContainingType, second.ContainingType, TypeCompareKind.ConsiderEverything) Then
                                     ' type substitution can create two methods with same signature in the same type
                                     ' report ambiguity
                                     Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_AmbiguousImplements3,
@@ -341,7 +342,7 @@ DoneWithErrorReporting:
                     End If
 
                     If foundMember IsNot Nothing Then
-                        Dim coClassContext As Boolean = DirectCast(interfaceType, NamedTypeSymbol).CoClassType IsNot Nothing
+                        Dim coClassContext As Boolean = interfaceNamedType.CoClassType IsNot Nothing
                         If coClassContext AndAlso (implementingSym.Kind = SymbolKind.Event) <> (foundMember.Kind = SymbolKind.Event) Then
                             ' Following Dev11 implementation: in COM Interface context if the implementing symbol 
                             ' is an event and the found candidate is not (or vice versa) we just pretend we didn't 
@@ -362,6 +363,7 @@ DoneWithErrorReporting:
                             resultKind = LookupResult.WorseResultKind(resultKind, lookup.Kind)
                             If Not binder.IsAccessible(foundMember, useSiteDiagnostics) Then
                                 resultKind = LookupResult.WorseResultKind(resultKind, LookupResultKind.Inaccessible) ' we specified IgnoreAccessibility above.
+                                Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, binder.GetInaccessibleErrorInfo(foundMember))
                             End If
                         End If
                     End If
@@ -455,16 +457,28 @@ DoneWithErrorReporting:
             ' Validate that implementing property implements all accessors of the implemented property
             If implementedSym.Kind = SymbolKind.Property Then
                 Dim implementedProperty As PropertySymbol = TryCast(implementedSym, PropertySymbol)
+
+                Dim implementedPropertyGetMethod As MethodSymbol = implementedProperty.GetMethod
+                If Not implementedPropertyGetMethod?.RequiresImplementation() Then
+                    implementedPropertyGetMethod = Nothing
+                End If
+
+                Dim implementedPropertySetMethod As MethodSymbol = implementedProperty.SetMethod
+                If Not implementedPropertySetMethod?.RequiresImplementation() Then
+                    implementedPropertySetMethod = Nothing
+                End If
+
                 Dim implementingProperty As PropertySymbol = TryCast(implementingSym, PropertySymbol)
-                If (implementedProperty.GetMethod IsNot Nothing AndAlso implementingProperty.GetMethod Is Nothing) OrElse
-                    (implementedProperty.SetMethod IsNot Nothing AndAlso implementingProperty.SetMethod Is Nothing) Then
+
+                If (implementedPropertyGetMethod IsNot Nothing AndAlso implementingProperty.GetMethod Is Nothing) OrElse
+                    (implementedPropertySetMethod IsNot Nothing AndAlso implementingProperty.SetMethod Is Nothing) Then
                     ' "'{0}' cannot be implemented by a {1} property."
                     Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_PropertyDoesntImplementAllAccessors,
                                             implementedProperty,
                                             implementingProperty.GetPropertyKindText())
                     errorReported = True
 
-                ElseIf ((implementedProperty.GetMethod Is Nothing) Xor (implementedProperty.SetMethod Is Nothing)) AndAlso
+                ElseIf ((implementedPropertyGetMethod Is Nothing) Xor (implementedPropertySetMethod Is Nothing)) AndAlso
                        implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing Then
 
                     errorReported = errorReported Or
@@ -543,9 +557,11 @@ DoneWithErrorReporting:
 
             While currType IsNot Nothing
                 ' First, check for explicit interface implementation.
-                Dim currTypeExplicitImpl As TSymbol = currType.GetExplicitImplementationForInterfaceMember(interfaceMember)
-                If currTypeExplicitImpl IsNot Nothing Then
-                    Return currTypeExplicitImpl
+                Dim currTypeExplicitImpl As MultiDictionary(Of Symbol, Symbol).ValueSet = currType.ExplicitInterfaceImplementationMap(interfaceMember)
+                If currTypeExplicitImpl.Count = 1 Then
+                    Return DirectCast(currTypeExplicitImpl.Single(), TSymbol)
+                ElseIf currTypeExplicitImpl.Count > 1 Then
+                    Return Nothing
                 End If
 
                 ' VB only supports explicit interface implementation, but for the purpose of finding implementation, we must
@@ -573,7 +589,8 @@ DoneWithErrorReporting:
                 '   implementations.  As in dev11, we drop interfaces from the interface list if any of their
                 '   members are implemented in a base type (so that CLR implicit implementation will pick the
                 '   same method as the VB language).
-                If Not currType.Dangerous_IsFromSomeCompilationIncludingRetargeting AndAlso currType.InterfacesNoUseSiteDiagnostics.Contains(interfaceType) Then
+                If Not currType.Dangerous_IsFromSomeCompilationIncludingRetargeting AndAlso
+                   currType.InterfacesNoUseSiteDiagnostics.Contains(interfaceType, EqualsIgnoringComparer.InstanceCLRSignatureCompare) Then
                     seenMDTypeDeclaringInterface = True
                 End If
 

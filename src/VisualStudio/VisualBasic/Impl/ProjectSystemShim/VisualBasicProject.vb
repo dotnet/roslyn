@@ -1,56 +1,65 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Runtime.InteropServices.ComTypes
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.VisualStudio.ComponentModelHost
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.TextManager.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
-    Partial Friend MustInherit Class VisualBasicProject
+    Partial Friend NotInheritable Class VisualBasicProject
         Inherits AbstractLegacyProject
         Implements IVbCompilerProject
 
         Private ReadOnly _compilerHost As IVbCompilerHost
-        Private ReadOnly _imports As New List(Of GlobalImport)
-        Private _rawOptions As VBCompilerOptions
-        Private ReadOnly _explicitlyAddedDefaultReferences As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
-        Private _lastOutputPath As String
-        Private _runtimeLibraries As IList(Of String) = SpecializedCollections.EmptyList(Of String)
+
+        Private _runtimeLibraries As ImmutableArray(Of String) = ImmutableArray(Of String).Empty
 
         ''' <summary>
-        ''' Maps a string to the related <see cref="GlobalImport"/>. Since many projects in a solution
-        ''' will have similar (if not identical) sets of imports, there are performance benefits to
-        ''' caching these rather than parsing them anew for each project. It is expected that the total
-        ''' number of imports will be rather small, which is why we never evict anything from this cache.
+        ''' To support the old contract of VB runtimes, we must ourselves add additional references beyond what the
+        ''' project system tells us. If the project system _also_ tells us about those, we put the in here so we can
+        ''' record that and make removal later work properly.
         ''' </summary>
-        Private Shared s_importsCache As Dictionary(Of String, GlobalImport) = New Dictionary(Of String, GlobalImport)
+        Private ReadOnly _explicitlyAddedRuntimeLibraries As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
 
-        Friend Sub New(projectTracker As VisualStudioProjectTracker,
-                       ProjectSystemName As String,
+        Friend Sub New(projectSystemName As String,
                        compilerHost As IVbCompilerHost,
                        hierarchy As IVsHierarchy,
                        serviceProvider As IServiceProvider,
-                       Optional reportExternalErrorCreatorOpt As Func(Of ProjectId, IVsReportExternalErrors) = Nothing,
-                       Optional visualStudioWorkspaceOpt As VisualStudioWorkspaceImpl = Nothing,
+                       threadingContext As IThreadingContext,
                        Optional hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource = Nothing,
                        Optional commandLineParserServiceOpt As ICommandLineParserService = Nothing)
-            MyBase.New(projectTracker, reportExternalErrorCreatorOpt, ProjectSystemName, hierarchy, LanguageNames.VisualBasic,
-                       serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
+            MyBase.New(projectSystemName, hierarchy, LanguageNames.VisualBasic,
+                       serviceProvider, threadingContext, "VB", hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
 
             _compilerHost = compilerHost
 
-            projectTracker.AddProject(Me)
+            Dim componentModel = DirectCast(serviceProvider.GetService(GetType(SComponentModel)), IComponentModel)
+
+            ProjectCodeModel = componentModel.GetService(Of IProjectCodeModelFactory).CreateProjectCodeModel(VisualStudioProject.Id, New VisualBasicCodeModelInstanceFactory(Me))
+            VisualStudioProjectOptionsProcessor = New OptionsProcessor(VisualStudioProject, Workspace.Services)
         End Sub
+
+        Private Shadows Property VisualStudioProjectOptionsProcessor As OptionsProcessor
+            Get
+                Return DirectCast(MyBase.VisualStudioProjectOptionsProcessor, OptionsProcessor)
+            End Get
+            Set(value As OptionsProcessor)
+                MyBase.VisualStudioProjectOptionsProcessor = value
+            End Set
+        End Property
 
         Public Sub AddApplicationObjectVariable(wszClassName As String, wszMemberName As String) Implements IVbCompilerProject.AddApplicationObjectVariable
             Throw New NotImplementedException()
@@ -61,94 +70,51 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Sub
 
         Public Function AddEmbeddedMetaDataReference(wszFileName As String) As Integer Implements IVbCompilerProject.AddEmbeddedMetaDataReference
-            Try
-                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties(embedInteropTypes:=True))
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            VisualStudioProject.AddMetadataReference(wszFileName, New MetadataReferenceProperties(embedInteropTypes:=True))
+            Return VSConstants.S_OK
         End Function
 
         Public Overloads Function AddMetaDataReference(wszFileName As String, bAssembly As Boolean) As Integer Implements IVbCompilerProject.AddMetaDataReference
-            Try
-                ' If this is a reference already added due to it being a standard reference, just record the add
-                If _runtimeLibraries.Contains(wszFileName, StringComparer.OrdinalIgnoreCase) Then
-                    _explicitlyAddedDefaultReferences.Add(wszFileName)
-                    Return VSConstants.S_OK
-                End If
-
-                Return AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(wszFileName, New MetadataReferenceProperties())
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            ' If this is a reference already added due to it being a standard reference, just record the add
+            If _runtimeLibraries.Contains(wszFileName, StringComparer.OrdinalIgnoreCase) Then
+                _explicitlyAddedRuntimeLibraries.Add(wszFileName)
+                Return VSConstants.S_OK
+            Else
+                VisualStudioProject.AddMetadataReference(wszFileName, MetadataReferenceProperties.Assembly)
+                Return VSConstants.S_OK
+            End If
         End Function
 
         Public Sub AddEmbeddedProjectReference(pReferencedCompilerProject As IVbCompilerProject) Implements IVbCompilerProject.AddEmbeddedProjectReference
-            Try
-                Dim project = TryCast(pReferencedCompilerProject, VisualBasicProject)
+            Dim referencedProject = TryCast(pReferencedCompilerProject, VisualBasicProject)
 
-                If project Is Nothing Then
-                    ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
-                    ' with it.
-                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
-                End If
+            If referencedProject Is Nothing Then
+                ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
+                ' with it.
+                Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
+            End If
 
-                MyBase.AddProjectReference(New ProjectReference(project.Id, embedInteropTypes:=True))
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            VisualStudioProject.AddProjectReference(New ProjectReference(referencedProject.VisualStudioProject.Id, embedInteropTypes:=True))
         End Sub
 
         Public Shadows Sub AddFile(wszFileName As String, itemid As UInteger, fAddDuringOpen As Boolean) Implements IVbCompilerProject.AddFile
-            Try
-                ' We trust the project system to only tell us about files that we can use.
-                Dim canUseTextBuffer As Func(Of ITextBuffer, Boolean) = Function(t) True
-
-                MyBase.AddFile(wszFileName, SourceCodeKind.Regular)
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            MyBase.AddFile(wszFileName, SourceCodeKind.Regular)
         End Sub
 
         Public Sub AddImport(wszImport As String) Implements IVbCompilerProject.AddImport
-            Try
-                ' Add the import to the list. The legacy language services didn't do any sort of
-                ' checking to see if the import is already added. Instead, they'd just have two entries
-                ' in the list. This is OK because the UI in Project Property Pages disallows users from
-                ' adding multiple entries. Hence the potential first-chance exception here is not a
-                ' problem, it should in theory never happen.
-
-                Try
-                    Dim import As GlobalImport = Nothing
-                    If Not s_importsCache.TryGetValue(wszImport, import) Then
-                        import = GlobalImport.Parse(wszImport)
-                        s_importsCache(wszImport) = import
-                    End If
-
-                    _imports.Add(import)
-                Catch ex As ArgumentException
-                    'TODO: report error
-                End Try
-
-                PushUpdatedGlobalImportsToWorkspace()
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            VisualStudioProjectOptionsProcessor.AddImport(wszImport)
         End Sub
 
         Public Shadows Sub AddProjectReference(pReferencedCompilerProject As IVbCompilerProject) Implements IVbCompilerProject.AddProjectReference
-            Try
-                Dim project = TryCast(pReferencedCompilerProject, VisualBasicProject)
+            Dim referencedProject = TryCast(pReferencedCompilerProject, VisualBasicProject)
 
-                If project Is Nothing Then
-                    ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
-                    ' with it.
-                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
-                End If
+            If referencedProject Is Nothing Then
+                ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
+                ' with it.
+                Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
+            End If
 
-                MyBase.AddProjectReference(New ProjectReference(project.Id))
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            VisualStudioProject.AddProjectReference(New ProjectReference(referencedProject.VisualStudioProject.Id))
         End Sub
 
         Public Sub AddResourceReference(wszFileName As String, wszName As String, fPublic As Boolean, fEmbed As Boolean) Implements IVbCompilerProject.AddResourceReference
@@ -166,7 +132,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Function AdviseBuildStatusCallback(pIVbBuildStatusCallback As IVbBuildStatusCallback) As UInteger Implements IVbCompilerProject.AdviseBuildStatusCallback
             Try
-                Contract.Requires(_buildStatusCallback Is Nothing, "IVbBuildStatusCallback already set")
+                Debug.Assert(_buildStatusCallback Is Nothing, "IVbBuildStatusCallback already set")
 
                 _buildStatusCallback = pIVbBuildStatusCallback
 
@@ -177,30 +143,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                     pIVbBuildStatusCallback.ProjectBound()
                 End If
 
-                Return 0
+                Return VSConstants.S_OK
             Catch e As Exception When FatalError.Report(e)
-                Return 0
+                Return VSConstants.S_OK
             End Try
         End Function
 
         Public Sub UnadviseBuildStatusCallback(dwCookie As UInteger) Implements IVbCompilerProject.UnadviseBuildStatusCallback
-            Contract.Requires(dwCookie = 0, "Bad cookie")
+            Debug.Assert(dwCookie = 0, "Bad cookie")
 
             _buildStatusCallback = Nothing
         End Sub
 
 #End Region
+        Public Function CreateCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppCodeModel As EnvDTE.CodeModel) As Integer Implements IVbCompilerProject.CreateCodeModel
+            ppCodeModel = ProjectCodeModel.GetOrCreateRootCodeModel(pProject)
 
-        Public MustOverride Function CreateCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppCodeModel As EnvDTE.CodeModel) As Integer Implements IVbCompilerProject.CreateCodeModel
-        Public MustOverride Function CreateFileCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppFileCodeModel As EnvDTE.FileCodeModel) As Integer Implements IVbCompilerProject.CreateFileCodeModel
+            Return VSConstants.S_OK
+        End Function
+
+        Public Function CreateFileCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppFileCodeModel As EnvDTE.FileCodeModel) As Integer Implements IVbCompilerProject.CreateFileCodeModel
+            ppFileCodeModel = Nothing
+
+            If pProjectItem IsNot Nothing Then
+                Dim fileName = pProjectItem.FileNames(1)
+
+                If Not String.IsNullOrWhiteSpace(fileName) Then
+                    ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, pProjectItem)
+                    Return VSConstants.S_OK
+                End If
+            End If
+
+            Return VSConstants.E_INVALIDARG
+        End Function
 
         Public Sub DeleteAllImports() Implements IVbCompilerProject.DeleteAllImports
-            Try
-                _imports.Clear()
-                PushUpdatedGlobalImportsToWorkspace()
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            VisualStudioProjectOptionsProcessor.DeleteAllImports()
         End Sub
 
         Public Sub DeleteAllResourceReferences() Implements IVbCompilerProject.DeleteAllResourceReferences
@@ -208,23 +186,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Sub
 
         Public Sub DeleteImport(wszImport As String) Implements IVbCompilerProject.DeleteImport
-            Try
-                Dim index = _imports.FindIndex(Function(import) import.Clause.ToFullString() = wszImport)
-                If index >= 0 Then
-                    _imports.RemoveAt(index)
-                    PushUpdatedGlobalImportsToWorkspace()
-                End If
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
-        End Sub
-
-        Public Overrides Sub Disconnect() Implements IVbCompilerProject.Disconnect
-            Try
-                MyBase.Disconnect()
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            VisualStudioProjectOptionsProcessor.DeleteImport(wszImport)
         End Sub
 
         Public Function ENCRebuild(in_pProgram As Object, ByRef out_ppUpdate As Object) As Integer Implements IVbCompilerProject.ENCRebuild
@@ -236,22 +198,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Function
 
         Public Sub GetEntryPointsList(cItems As Integer, strList() As String, ByVal pcActualItems As IntPtr) Implements IVbCompilerProject.GetEntryPointsList
-            Try
-                Dim project = Workspace.CurrentSolution.GetProject(Id)
-                Dim compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+            Dim project = Workspace.CurrentSolution.GetProject(VisualStudioProject.Id)
+            Dim compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
 
-                GetEntryPointsWorker(cItems, strList, pcActualItems, findFormsOnly:=False)
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            GetEntryPointsWorker(compilation, cItems, strList, pcActualItems, findFormsOnly:=False)
         End Sub
 
-        Public Sub GetEntryPointsWorker(cItems As Integer,
+        Public Shared Sub GetEntryPointsWorker(compilation As Compilation,
+                                               cItems As Integer,
                                                strList() As String,
                                                ByVal pcActualItems As IntPtr,
                                                findFormsOnly As Boolean)
-            Dim project = Workspace.CurrentSolution.GetProject(Id)
-            Dim compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
 
             ' If called with cItems = 0 and pcActualItems != NULL, GetEntryPointsList returns in pcActualItems the number of items available.
             Dim entryPoints = EntryPointFinder.FindEntryPoints(compilation.Assembly.GlobalNamespace, findFormsOnly:=findFormsOnly)
@@ -297,11 +254,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Sub
 
         Public Shadows Sub RemoveFile(wszFileName As String, itemid As UInteger) Implements IVbCompilerProject.RemoveFile
-            Try
-                MyBase.RemoveFile(wszFileName)
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            MyBase.RemoveFile(wszFileName)
         End Sub
 
         Public Sub RemoveFileByName(wszPath As String) Implements IVbCompilerProject.RemoveFileByName
@@ -311,38 +264,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Public Shadows Sub RemoveMetaDataReference(wszFileName As String) Implements IVbCompilerProject.RemoveMetaDataReference
             wszFileName = FileUtilities.NormalizeAbsolutePath(wszFileName)
 
-            Try
-                ' If this is a reference which was explicitly added and is also a runtime library, leave it
-                If _explicitlyAddedDefaultReferences.Remove(wszFileName) Then
-                    Return
-                End If
+            ' If this is a reference which was explicitly added and is also a runtime library, leave it
+            If _explicitlyAddedRuntimeLibraries.Remove(wszFileName) Then
+                Return
+            End If
 
-                MyBase.RemoveMetadataReference(wszFileName)
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            VisualStudioProject.RemoveMetadataReference(wszFileName, VisualStudioProject.GetPropertiesForMetadataReference(wszFileName).Single())
         End Sub
 
         Public Shadows Sub RemoveProjectReference(pReferencedCompilerProject As IVbCompilerProject) Implements IVbCompilerProject.RemoveProjectReference
-            Try
-                Dim project = TryCast(pReferencedCompilerProject, VisualBasicProject)
+            Dim referencedProject = TryCast(pReferencedCompilerProject, VisualBasicProject)
 
-                If project Is Nothing Then
-                    ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
-                    ' with it.
-                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
-                End If
+            If referencedProject Is Nothing Then
+                ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
+                ' with it.
+                Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
+            End If
 
-                If Not Me.CurrentProjectReferencesContains(project.Id) Then
-                    Throw New ArgumentException("Project reference to remove is not referenced by this project.", NameOf(pReferencedCompilerProject))
-                End If
-
-                Dim projectReference = GetCurrentProjectReferences().Single(Function(r) r.ProjectId Is project.Id)
-
-                MyBase.RemoveProjectReference(projectReference)
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            Dim projectReference = VisualStudioProject.GetProjectReferences().Single(Function(p) p.ProjectId = referencedProject.VisualStudioProject.Id)
+            VisualStudioProject.RemoveProjectReference(projectReference)
         End Sub
 
         Public Sub RenameDefaultNamespace(bstrDefaultNamespace As String) Implements IVbCompilerProject.RenameDefaultNamespace
@@ -350,13 +290,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Sub
 
         Public Sub RenameFile(wszOldFileName As String, wszNewFileName As String, itemid As UInteger) Implements IVbCompilerProject.RenameFile
-            Try
-                ' We treat the rename as a removal of the old file and the addition of a new one.
-                RemoveFile(wszOldFileName, itemid)
-                AddFile(wszNewFileName, itemid, fAddDuringOpen:=False)
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
+            ' We treat the rename as a removal of the old file and the addition of a new one.
+            RemoveFile(wszOldFileName, itemid)
+            AddFile(wszNewFileName, itemid, fAddDuringOpen:=False)
         End Sub
 
         Public Sub RenameProject(wszNewProjectName As String) Implements IVbCompilerProject.RenameProject
@@ -374,72 +310,51 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Sub
 
         Public Sub SetCompilerOptions(ByRef pCompilerOptions As VBCompilerOptions) Implements IVbCompilerProject.SetCompilerOptions
-            _rawOptions = pCompilerOptions
+            Dim oldRuntimeLibraries = _runtimeLibraries
+            VisualStudioProjectOptionsProcessor.SetNewRawOptions(pCompilerOptions)
 
-            Try
-                UpdateOptions()
-            Catch e As Exception When FilterException(e)
-                Throw ExceptionUtilities.Unreachable
-            End Try
-        End Sub
+            If Not String.IsNullOrEmpty(pCompilerOptions.wszExeName) Then
+                VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(pCompilerOptions.wszExeName)
 
-        Protected Overrides Function CreateCompilationOptions(commandLineArguments As CommandLineArguments, newParseOptions As ParseOptions) As CompilationOptions
-            Dim baseCompilationOptions = DirectCast(MyBase.CreateCompilationOptions(commandLineArguments, newParseOptions), VisualBasicCompilationOptions)
-            Dim vbParseOptions = DirectCast(newParseOptions, VisualBasicParseOptions)
-            Return VisualBasicProjectOptionsHelper.CreateCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, RuleSetFile)
-        End Function
-
-        Protected Overrides Function CreateParseOptions(commandLineArguments As CommandLineArguments) As ParseOptions
-            Dim baseParseOptions = DirectCast(MyBase.CreateParseOptions(commandLineArguments), VisualBasicParseOptions)
-
-            Dim resultParseOptions = VisualBasicProjectOptionsHelper.CreateParseOptions(baseParseOptions, _rawOptions)
-
-            Dim commandLineOptions = DirectCast(commandLineArguments.ParseOptions, VisualBasicParseOptions)
-            If commandLineOptions.LanguageVersion > LanguageVersion.VisualBasic15 Then
-                ' For language versions after VB 15, we expect the version to be passed from MSBuild to the IDE
-                ' via command-line arguments (`ICompilerOptionsHostObject.SetCompilerOptions`)
-                ' instead of using `IVbcHostObject3.SetLanguageVersion`
-                resultParseOptions = resultParseOptions.WithLanguageVersion(commandLineOptions.LanguageVersion)
-            End If
-
-            Return resultParseOptions
-        End Function
-
-        Private Shadows Sub UpdateOptions()
-            MyBase.UpdateOptions()
-
-            ' NOTE: _NOT_ using OrdinalIgnoreCase, even though this is a path. If the user
-            ' changes the casing in options, we want that to be reflected in the binary we 
-            ' produce, etc.
-            Dim outputPath = VisualBasicProjectOptionsHelper.GetOutputPath(_rawOptions)
-            If _lastOutputPath Is Nothing OrElse Not outputPath.Equals(_lastOutputPath, StringComparison.Ordinal) Then
-                SetOutputPathAndRelatedData(outputPath)
-                _lastOutputPath = outputPath
-            End If
-
-            ' Push down the new runtime libraries
-            Dim newRuntimeLibraries = VisualBasicProjectOptionsHelper.GetRuntimeLibraries(_compilerHost, _rawOptions)
-            If Not newRuntimeLibraries.SequenceEqual(_runtimeLibraries, StringComparer.Ordinal) Then
-                For Each oldRuntimeLibrary In _runtimeLibraries
-                    If Not _explicitlyAddedDefaultReferences.Contains(oldRuntimeLibrary) Then
-                        MyBase.RemoveMetadataReference(oldRuntimeLibrary)
-                    End If
-                Next
-
-                _explicitlyAddedDefaultReferences.Clear()
-
-                For Each newRuntimeLibrary In newRuntimeLibraries
-                    newRuntimeLibrary = FileUtilities.NormalizeAbsolutePath(newRuntimeLibrary)
-
-                    ' If we already reference this, just skip it
-                    If HasMetadataReference(newRuntimeLibrary) Then
-                        _explicitlyAddedDefaultReferences.Add(newRuntimeLibrary)
+                ' Some legacy projects (e.g. Venus IntelliSense project) set '\' as the wszOutputPath.
+                ' /src/venus/project/vb/vbprj/vbintelliproj.cpp
+                ' Ignore paths that are not absolute.
+                If Not String.IsNullOrEmpty(pCompilerOptions.wszOutputPath) Then
+                    If PathUtilities.IsAbsolute(pCompilerOptions.wszOutputPath) Then
+                        VisualStudioProject.IntermediateOutputFilePath = Path.Combine(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName)
                     Else
-                        MyBase.AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(newRuntimeLibrary, MetadataReferenceProperties.Assembly)
+                        VisualStudioProject.IntermediateOutputFilePath = Nothing
                     End If
-                Next
+                End If
+            End If
 
-                _runtimeLibraries = newRuntimeLibraries
+            RefreshBinOutputPath()
+
+            _runtimeLibraries = VisualStudioProjectOptionsProcessor.GetRuntimeLibraries(_compilerHost)
+
+            If Not _runtimeLibraries.SequenceEqual(oldRuntimeLibraries, StringComparer.Ordinal) Then
+                Using batchScope = VisualStudioProject.CreateBatchScope()
+                    ' To keep things simple, we'll just remove everything and add everything back in
+                    For Each oldRuntimeLibrary In oldRuntimeLibraries
+                        ' If this one was added explicitly in addition to our computation, we don't have to remove it 
+                        If _explicitlyAddedRuntimeLibraries.Contains(oldRuntimeLibrary) Then
+                            _explicitlyAddedRuntimeLibraries.Remove(oldRuntimeLibrary)
+                        Else
+                            VisualStudioProject.RemoveMetadataReference(oldRuntimeLibrary, MetadataReferenceProperties.Assembly)
+                        End If
+                    Next
+
+                    For Each newRuntimeLibrary In _runtimeLibraries
+                        newRuntimeLibrary = FileUtilities.NormalizeAbsolutePath(newRuntimeLibrary)
+
+                        ' If we already reference this, just skip it
+                        If VisualStudioProject.ContainsMetadataReference(newRuntimeLibrary, MetadataReferenceProperties.Assembly) Then
+                            _explicitlyAddedRuntimeLibraries.Add(newRuntimeLibrary)
+                        Else
+                            VisualStudioProject.AddMetadataReference(newRuntimeLibrary, MetadataReferenceProperties.Assembly)
+                        End If
+                    Next
+                End Using
             End If
         End Sub
 
@@ -468,14 +383,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Sub
 
         Public Sub StartEdit() Implements IVbCompilerProject.StartEdit
-            ' These are called by third parties during batch edit scenarios. Historically, this would stop the
-            ' background compiler so we wouldn't repeatedly decompile/recompile. For Roslyn, we have nothing to
-            ' currently do here. If we have some special "batch" edits we can do to the Workspace API, then we could
-            ' consider taking advantage of them here.
+            ' Since Roslyn's creation this method has not been implemented, because we didn't have a good batching concept in the project system shim code.
+            ' We now have that (with VisualStudioProject.CreateBatchScope), but unfortunately clients are not very well behaved. The native language service
+            ' relies on the old behavior, which was calling VisualBasicProject.StartBackgroundCompiler/VisualBasicProject.StopBackgroundCompiler and this
+            ' method here all increment the same global counter in the end: it was OK to call StopBackgroundCompiler to stop it but FinishEdit() to restart it.
+            ' Rather than trying to make this all work again, we'll leave this unimplemented still until we have evidence that this will help, and time to do it.
         End Sub
 
         Public Sub FinishEdit() Implements IVbCompilerProject.FinishEdit
-            ' Called by third parties to finish batch edit scenarios. See comments in StartEdit for details.
+            ' See comment in StartEdit for why this isn't implemented.
         End Sub
 
         Public Sub SuspendPostedNotifications() Implements IVbCompilerProject.SuspendPostedNotifications
@@ -492,15 +408,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Throw New NotSupportedException()
         End Sub
 
-        Private Sub PushUpdatedGlobalImportsToWorkspace()
-            ' We'll just use the last converted options with the global imports changed. If we don't
-            ' have any last options, then we won't push anything down at all. We'll call
-            ' SetCompilationOptions later once we get the call through
-            ' IVbCompiler.SetCompilerOptions
-            Dim lastCompilationOptions = TryCast(CurrentCompilationOptions, VisualBasicCompilationOptions)
-            If lastCompilationOptions IsNot Nothing Then
-                SetOptions(lastCompilationOptions.WithGlobalImports(_imports), CurrentParseOptions)
-            End If
+        Public Shadows Sub Disconnect() Implements IVbCompilerProject.Disconnect
+            MyBase.Disconnect()
         End Sub
     End Class
 End Namespace

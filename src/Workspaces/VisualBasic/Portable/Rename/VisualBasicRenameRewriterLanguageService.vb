@@ -198,6 +198,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 Me._speculativeModel = GetSemanticModelForNode(speculativeNewNode, Me._semanticModel)
                 Debug.Assert(_speculativeModel IsNot Nothing, "expanding a syntax node which cannot be speculated?")
+
+                ' There are cases when we change the type of node to make speculation work (e.g.,
+                ' for AsNewClauseSyntax), so getting the newNode from the _speculativeModel 
+                ' ensures the final node replacing the original node is found.
+                probableRenameNode = Me._speculativeModel.SyntaxTree.GetRoot(_cancellationToken).GetAnnotatedNodes(Of SyntaxNode)(annotation).First()
+                speculativeNewNode = Me._speculativeModel.SyntaxTree.GetRoot(_cancellationToken).GetAnnotatedNodes(Of SyntaxNode)(annotationForSpeculativeNode).First()
+
                 Dim renamedNode = MyBase.Visit(probableRenameNode)
 
                 If Not ReferenceEquals(renamedNode, probableRenameNode) Then
@@ -336,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     isNamespaceDeclarationReference = True
                 End If
 
-                Dim isMemberGroupReference = _semanticFactsService.IsNameOfContext(_semanticModel, token.Span.Start, _cancellationToken)
+                Dim isMemberGroupReference = _semanticFactsService.IsInsideNameOfExpression(_semanticModel, token.Parent, _cancellationToken)
 
                 Dim renameAnnotation = New RenameActionAnnotation(
                                     token.Span,
@@ -373,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     If TypeOf token.Parent Is SimpleNameSyntax AndAlso token.Kind <> SyntaxKind.GlobalKeyword AndAlso token.Parent.Parent.IsKind(SyntaxKind.QualifiedName, SyntaxKind.QualifiedCrefOperatorReference) Then
                         Dim symbol = Me._speculativeModel.GetSymbolInfo(token.Parent, Me._cancellationToken).Symbol
                         If symbol IsNot Nothing AndAlso Me._renamedSymbol.Kind <> SymbolKind.Local AndAlso Me._renamedSymbol.Kind <> SymbolKind.RangeVariable AndAlso
-                            (symbol Is Me._renamedSymbol OrElse SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False).Equals(symbol.GetSymbolKey(), Me._renamedSymbol.GetSymbolKey())) Then
+                            (Equals(symbol, Me._renamedSymbol) OrElse SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False).Equals(symbol.GetSymbolKey(), Me._renamedSymbol.GetSymbolKey())) Then
                             Return True
                         End If
                     End If
@@ -681,6 +688,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
                                .Select(Function(loc) reverseMappedLocations(loc)))
 
+                ' If this is a parameter symbol for a partial method definition, be sure we visited 
+                ' the implementation part's body.
+                If renamedSymbol.Kind = SymbolKind.Parameter AndAlso
+                    renamedSymbol.ContainingSymbol.Kind = SymbolKind.Method Then
+                    Dim methodSymbol = DirectCast(renamedSymbol.ContainingSymbol, IMethodSymbol)
+                    If methodSymbol.PartialImplementationPart IsNot Nothing Then
+                        Dim matchingParameterSymbol = methodSymbol.PartialImplementationPart.Parameters((DirectCast(renamedSymbol, IParameterSymbol)).Ordinal)
+
+                        token = matchingParameterSymbol.Locations.Single().FindToken(cancellationToken)
+                        methodBase = token.GetAncestor(Of MethodBlockSyntax)
+                        visitor = New LocalConflictVisitor(token, newSolution, cancellationToken)
+                        visitor.Visit(methodBase)
+
+                        conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
+                                       .Select(Function(loc) reverseMappedLocations(loc)))
+                    End If
+                End If
+
                 ' in VB parameters of properties are not allowed to be the same as the containing property
                 If renamedSymbol.Kind = SymbolKind.Parameter AndAlso
                     renamedSymbol.ContainingSymbol.Kind = SymbolKind.Property AndAlso
@@ -713,6 +738,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         .Select(Function(loc) reverseMappedLocations(loc)))
 
             ElseIf renamedSymbol.Kind = SymbolKind.Property Then
+                conflicts.AddRange(
+                    DeclarationConflictHelpers.GetMembersWithConflictingSignatures(DirectCast(renamedSymbol, IPropertySymbol), trimOptionalParameters:=True) _
+                        .Select(Function(loc) reverseMappedLocations(loc)))
                 ConflictResolver.AddConflictingParametersOfProperties(
                     referencedSymbols.Select(Function(s) s.Symbol).Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
                     renamedSymbol.Name,

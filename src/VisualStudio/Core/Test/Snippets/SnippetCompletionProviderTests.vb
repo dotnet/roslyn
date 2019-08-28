@@ -6,10 +6,12 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Snippets
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
+    <[UseExportProvider]>
     Public Class SnippetCompletionProviderTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function SnippetCompletion() As Task
@@ -127,6 +129,10 @@ End Class</File>.Value
     <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), [Shared]>
     Friend Class MockSnippetInfoService
         Implements ISnippetInfoService
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Function GetSnippetsAsync_NonBlocking() As IEnumerable(Of SnippetInfo) Implements ISnippetInfoService.GetSnippetsIfAvailable
             Return SpecializedCollections.SingletonEnumerable(New SnippetInfo("Shortcut", "Title", "Description", "Path"))

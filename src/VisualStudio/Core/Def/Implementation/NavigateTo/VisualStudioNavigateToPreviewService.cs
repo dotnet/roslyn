@@ -24,13 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
 
         public bool CanPreview(Document document)
         {
-            var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace == null)
+            if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
             {
                 return false;
             }
 
-            return !(visualStudioWorkspace.GetHostDocument(document.Id) is ContainedDocument);
+            return visualStudioWorkspace.TryGetContainedDocument(document.Id) == null;
         }
 
         public void PreviewItem(INavigateToItemDisplay itemDisplay)

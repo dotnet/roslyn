@@ -10,6 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices
     [ExportWorkspaceService(typeof(IWorkspaceCacheService), ServiceLayer.Host), Shared]
     internal sealed class WorkspaceCacheService : IWorkspaceCacheService
     {
+        [ImportingConstructor]
+        public WorkspaceCacheService()
+        {
+        }
+
         /// <summary>
         /// Called by the host to try and reduce memory occupied by caches.
         /// </summary>

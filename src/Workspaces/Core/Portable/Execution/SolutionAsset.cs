@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal abstract class SolutionAsset : RemotableData
     {
-        protected SolutionAsset(Checksum checksum, WellKnownSynchronizationKind kind) 
+        protected SolutionAsset(Checksum checksum, WellKnownSynchronizationKind kind)
             : base(checksum, kind)
         {
         }
 
-        public static RemotableData Create(Checksum checksum, object value, Serializer serializer)
+        public static RemotableData Create(Checksum checksum, object value, ISerializerService serializer)
         {
             // treat SourceText specially since we get TextDocumentState rather than SourceText when searching the checksum
             // from solution due to it requiring async-ness when retrieving SourceText.
@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Execution
         internal sealed class SimpleSolutionAsset : SolutionAsset
         {
             private readonly object _value;
-            private readonly Serializer _serializer;
+            private readonly ISerializerService _serializer;
 
-            public SimpleSolutionAsset(Checksum checksum, object value, Serializer serializer) :
-                base(checksum, value.GetWellKnownSynchronizationKind())
+            public SimpleSolutionAsset(Checksum checksum, object value, ISerializerService serializer)
+                : base(checksum, value.GetWellKnownSynchronizationKind())
             {
                 _value = value;
                 _serializer = serializer;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Execution
             public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
             {
                 _serializer.Serialize(_value, writer, cancellationToken);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 
@@ -61,10 +61,10 @@ namespace Microsoft.CodeAnalysis.Execution
             //       we should think about whether we can change recoverable text to work like recoverable tree
             //       so we can serialize text without bring in text to memory first
             private readonly TextDocumentState _state;
-            private readonly Serializer _serializer;
+            private readonly ISerializerService _serializer;
 
-            public SourceTextAsset(Checksum checksum, TextDocumentState state, Serializer serializer) :
-                base(checksum, WellKnownSynchronizationKind.SourceText)
+            public SourceTextAsset(Checksum checksum, TextDocumentState state, ISerializerService serializer)
+                : base(checksum, WellKnownSynchronizationKind.SourceText)
             {
                 _state = state;
                 _serializer = serializer;

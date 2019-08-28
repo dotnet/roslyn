@@ -8,18 +8,18 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Éditeur de page de codes Microsoft Visual Basic</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="needs-review-translation">Éditeur de page de codes Microsoft Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Microsoft Visual Basic Editor</target>
+        <source>Visual Basic Editor</source>
+        <target state="needs-review-translation">Microsoft Visual Basic Editor</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off</source>
-        <target state="translated">Insertion automatique des constructions de fin ; Modifier les paramètres de liste automatique ; Modifier le mode Plan ; Insertion automatique des membres Interface et MustOverride ; Afficher ou masquer les séparateurs de ligne de procédure ; Activer ou désactiver les suggestions de correction d'erreurs ; Activer ou désactiver la mise en surbrillance des références et des mots clés</target>
+        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
+        <target state="translated">Insertion automatique des constructions de fin;Changer les paramètres de listing en mode Pretty;Changer le mode Plan;Insertion automatique des membres Interface et MustOverride;Afficher ou masquer les séparateurs de ligne de procédure;Activer ou désactiver les suggestions de correction d'erreurs;Activer ou désactiver la mise en surbrillance des références et des mots clés;Regex;Mettre en couleurs les expressions régulières;Mettre en surbrillance les composants connexes sous le curseur;Signaler les expressions régulières non valides;regex;expression régulière;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="10161">
         <source>Qualify with Me;Prefer intrinsic types;Style;Code Style</source>
-        <target state="translated">Qualifier avec Me ; Préférer les types intrinsèques;Style;Style de code</target>
+        <target state="translated">Qualifier avec Me;Préférer les types intrinsèques;Style;Style de code</target>
         <note>Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="110">
         <source>Naming</source>
-        <target state="translated">Affectation de noms</target>
+        <target state="translated">Nommage</target>
         <note>"Naming Style" node under Tools &gt;Options &gt; Basic editor &gt;Code Style.</note>
       </trans-unit>
       <trans-unit id="10162">
@@ -101,6 +101,16 @@
         <source>Visual Basic Tools</source>
         <target state="translated">Outils Visual Basic</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_Visual_Basic_script_file">
+        <source>An empty Visual Basic script file.</source>
+        <target state="translated">Fichier de script Visual Basic vide.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_Script">
+        <source>Visual Basic Script</source>
+        <target state="translated">Script Visual Basic</target>
+        <note />
       </trans-unit>
     </body>
   </file>

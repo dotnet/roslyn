@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -33,11 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         public static ITaggerEventSource OnCompletionClosed(
-            ITextView textView,
             IIntellisenseSessionStack sessionStack,
             TaggerDelay delay)
         {
-            return new CompletionClosedEventSource(textView, sessionStack, delay);
+            return new CompletionClosedEventSource(sessionStack, delay);
         }
 
         public static ITaggerEventSource OnTextChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return new WorkspaceRegistrationChangedEventSource(subjectBuffer, delay);
         }
 
-        public static ITaggerEventSource OnViewSpanChanged(ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
+        public static ITaggerEventSource OnViewSpanChanged(IThreadingContext threadingContext, ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
         {
-            return new ViewSpanChangedEventSource(textView, textChangeDelay, scrollChangeDelay);
+            return new ViewSpanChangedEventSource(threadingContext, textView, textChangeDelay, scrollChangeDelay);
         }
     }
 }

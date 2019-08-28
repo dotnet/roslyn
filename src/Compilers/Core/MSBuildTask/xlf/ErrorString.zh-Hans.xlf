@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: 未找到引用的程序集“{0}”。如果此程序集是由你的另一个项目生成的，请确保在生成该项目之后再生成此程序集。</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">无法读取文件 "{0}": {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">共享编译失败; 回到工具: {0}</target>
@@ -118,6 +123,26 @@
         <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
         <target state="translated">MSB3402: 创建 pdb 文件“{0}”时出现错误。{1}</target>
         <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">{0} 包含重复项“{1}”和冲突元数据“{2}”:“{3}”和“{4}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">要求“{0}”路径以斜杠或反斜杠结尾:“{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">当 {1} 为 true，{0} 项必须包括至少一个顶级(未嵌套)项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">未在 {1} 项中找到值 {0}，或者对应项不是顶级源根目录:“{2}”</target>
+        <note />
       </trans-unit>
     </body>
   </file>

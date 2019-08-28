@@ -32,11 +32,6 @@
         <target state="translated">診斷屬性</target>
         <note />
       </trans-unit>
-      <trans-unit id="Could_not_find_project_0">
-        <source>Could not find project {0}.</source>
-        <target state="translated">找不到專案 {0}。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_rule_set_file_is_specified_or_the_file_does_not_exist">
         <source>No rule set file is specified, or the file does not exist.</source>
         <target state="translated">未指定任何規則集檔案，或該檔案不存在。</target>
@@ -109,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Category">
         <source>Category</source>
-        <target state="translated">類別</target>
+        <target state="translated">分類</target>
         <note />
       </trans-unit>
       <trans-unit id="Default_severity">

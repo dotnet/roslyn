@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../Commands.vsct">
     <body>
+      <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
+        <source>Sort &amp;Usings</source>
+        <target state="new">Sort &amp;Usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidCSharpOrganizeSortUsings|LocCanonicalName">
+        <source>SortUsings</source>
+        <target state="new">SortUsings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|ButtonText">
         <source>Remove &amp;and Sort</source>
         <target state="translated">Odebrat &amp;a seřadit</target>
@@ -129,7 +139,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityWarning|LocCanonicalName">
         <source>Warning</source>
-        <target state="translated">Varování</target>
+        <target state="translated">Upozornění</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityWarning|CommandName">
@@ -174,7 +184,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">Žádná</target>
+        <target state="translated">žádné</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|CommandName">
@@ -314,12 +324,12 @@
       </trans-unit>
       <trans-unit id="cmdidDiagnosticContextMenu|ButtonText">
         <source>Diagnostic</source>
-        <target state="translated">Diagnostika</target>
+        <target state="translated">Diagnostický</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDiagnosticContextMenu|LocCanonicalName">
         <source>Diagnostic</source>
-        <target state="translated">Diagnostika</target>
+        <target state="translated">Diagnostický</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|ButtonText">

@@ -64,5 +64,15 @@ Catch x As Exception _
 |
 End Try</MethodBody>, "When")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>
+Try
+Catch x As Exception _ ' Test
+|
+End Try</MethodBody>, "When")
+        End Function
     End Class
 End Namespace

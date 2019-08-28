@@ -10,44 +10,18 @@ Build all cross-platform projects with:
 
 ```
 cd <roslyn-git-directory>
-./build/scripts/restore.sh
-dotnet build Compilers.sln
+./build.sh --restore
 ```
 
-If you do not have a system-wide `dotnet` install, you can obtain one with `./build/scripts/obtain_dotnet.sh`. This will install a compatible version of the CLI to `./Binaries/Tools/dotnet` - add this to your PATH before trying to build `Compilers.sln`. Alternatively, sourcing the script with `source ./build/scripts/obtain_dotnet.sh` will add it to your PATH for you.
+The script will install .NET Core to `.dotnet` directory if it is not found on `$PATH`. It will then restore required NuGet packages and build `Compilers.sln` solution. The option `--restore` (or `-r`) is only needed when building for the first time, or when NuGet references change.
 
 ## Using the compiler
 
-After building, there will be a `csc` in the `Binaries/Debug/Exes/csc/netcoreapp2.0` directory.
+After building, there will be a `csc` in the `artifacts/bin/csc/Debug/netcoreapp2.1` and `artifacts/bin/csc/Debug/net472` directories. Use the former to run on .NET Core and the latter on Mono.
 
-### Known issues when running `csc.exe`
+### Running `csc.exe` on Mono
 
-##### Output:
+Use `mono artifacts/bin/csc/Debug/net472/csc.exe -noconfig` to run the C# compiler.
 
-  ```
-  Microsoft (R) Visual C# Compiler version 42.42.42.42
- Copyright (C) Microsoft Corporation. All rights reserved.
-
-error CS0006: Metadata file 'System.Deployment.dll' could not be found
-error CS0006: Metadata file 'System.Web.Mobile.dll' could not be found
-error CS0006: Metadata file 'System.Web.RegularExpressions.dll' could not be found
-error CS0006: Metadata file 'System.Workflow.Activities.dll' could not be found
-error CS0006: Metadata file 'System.Workflow.ComponentModel.dll' could not be found
-error CS0006: Metadata file 'System.Workflow.Runtime.dll' could not be found
-```
-
-##### Fix: 
-
-  This is because `csc.exe` by default references the `csc.rsp` file next to it. This is the Windows response file, so not all
-  assemblies are present when running on Mono. Pass the `-noconfig` option to ignore this response file.
-  
-##### Output:
-
-```
-error CS0041: Unexpected error writing debug information -- 'The requested feature is not implemented
-```
-
-##### Fix:
-
-  The compiler is defaulting to writing full PDBs, which are not supported outside of Windows. Use the `/debug:portable` flag
-  to generate a portable PDB instead.
+`-noconfig` is needed because `csc.exe` by default references the `csc.rsp` file next to it. This is the Windows response file, so not all 
+assemblies are present when running on Mono. Pass the `-noconfig` option to ignore this response file.

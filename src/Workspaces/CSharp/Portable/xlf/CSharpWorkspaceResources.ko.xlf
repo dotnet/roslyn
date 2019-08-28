@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CSharpWorkspaceResources.resx">
     <body>
+      <trans-unit id="Code_block_preferences">
+        <source>Code-block preferences</source>
+        <target state="translated">코드 블록 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_bodied_members">
+        <source>Expression-bodied members</source>
+        <target state="translated">식 본문 멤버</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_preferences">
+        <source>Indentation preferences</source>
+        <target state="translated">들여쓰기 기본 설정</target>
+        <note />
+      </trans-unit>
       <trans-unit id="No_available_location_found_to_add_statements_to">
         <source>No available location found to add statements to.</source>
         <target state="translated">문을 추가할 위치가 없습니다.</target>
@@ -27,6 +42,21 @@
         <target state="translated">부모의 자식 목록에 노드가 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Null_checking_preferences">
+        <source>Null-checking preferences</source>
+        <target state="translated">Null 검사 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pattern_matching_preferences">
+        <source>Pattern matching preferences</source>
+        <target state="translated">패턴 일치 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Space_preferences">
+        <source>Space preferences</source>
+        <target state="translated">공간 기본 설정</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trivia_is_not_associated_with_token">
         <source>Trivia is not associated with token</source>
         <target state="translated">Trivia가 토큰에 연결되어 있지 않습니다.</target>
@@ -45,6 +75,21 @@
       <trans-unit id="Implement_Interface">
         <source>Implement Interface</source>
         <target state="translated">인터페이스 구현</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping_preferences">
+        <source>Wrapping preferences</source>
+        <target state="translated">기본 설정 줄 바꿈</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_directive_preferences">
+        <source>'using' directive preferences</source>
+        <target state="translated">'using' 지시문 기본 설정</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="var_preferences">
+        <source>var preferences</source>
+        <target state="translated">var 기본 설정</target>
         <note />
       </trans-unit>
     </body>

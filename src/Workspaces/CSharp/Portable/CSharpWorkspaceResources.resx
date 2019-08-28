@@ -144,4 +144,32 @@
   <data name="Implement_Interface" xml:space="preserve">
     <value>Implement Interface</value>
   </data>
+  <data name="Code_block_preferences" xml:space="preserve">
+    <value>Code-block preferences</value>
+  </data>
+  <data name="Expression_bodied_members" xml:space="preserve">
+    <value>Expression-bodied members</value>
+  </data>
+  <data name="Indentation_preferences" xml:space="preserve">
+    <value>Indentation preferences</value>
+  </data>
+  <data name="Null_checking_preferences" xml:space="preserve">
+    <value>Null-checking preferences</value>
+  </data>
+  <data name="Pattern_matching_preferences" xml:space="preserve">
+    <value>Pattern matching preferences</value>
+  </data>
+  <data name="Space_preferences" xml:space="preserve">
+    <value>Space preferences</value>
+  </data>
+  <data name="var_preferences" xml:space="preserve">
+    <value>var preferences</value>
+  </data>
+  <data name="Wrapping_preferences" xml:space="preserve">
+    <value>Wrapping preferences</value>
+  </data>
+  <data name="using_directive_preferences" xml:space="preserve">
+    <value>'using' directive preferences</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

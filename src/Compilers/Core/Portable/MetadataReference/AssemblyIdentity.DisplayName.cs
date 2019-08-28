@@ -58,6 +58,19 @@ namespace Microsoft.CodeAnalysis
             return GetDisplayName(fullKey: false);
         }
 
+        internal static string PublicKeyToString(ImmutableArray<byte> key)
+        {
+            if (key.IsDefaultOrEmpty)
+            {
+                return "";
+            }
+
+            PooledStringBuilder sb = PooledStringBuilder.GetInstance();
+            StringBuilder builder = sb.Builder;
+            AppendKey(sb, key);
+            return sb.ToStringAndFree();
+        }
+
         private string BuildDisplayName(bool fullKey)
         {
             PooledStringBuilder pooledBuilder = PooledStringBuilder.GetInstance();

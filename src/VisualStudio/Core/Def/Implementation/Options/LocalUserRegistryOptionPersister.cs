@@ -6,8 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// Serializes options marked with <see cref="LocalUserProfileStorageLocation"/> to the local hive-specific registry.
     /// </summary>
     [Export(typeof(IOptionPersister))]
-    internal sealed class LocalUserRegistryOptionPersister : ForegroundThreadAffinitizedObject, IOptionPersister
+    internal sealed class LocalUserRegistryOptionPersister : IOptionPersister
     {
         /// <summary>
         /// An object to gate access to <see cref="_registryKey"/>.
@@ -27,9 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly RegistryKey _registryKey;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LocalUserRegistryOptionPersister([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(assertIsForeground: true) // The VSRegistry.RegistryRoot call requires being on the UI thread or else it will marshal and risk deadlock
         {
+            // Starting in Dev16, the ILocalRegistry service behind this call is free-threaded, and since the service is offered by msenv.dll can be requested
+            // without any marshalling (explicit or otherwise) to the UI thread.
             this._registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
         }
 
@@ -62,64 +64,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             lock (_gate)
             {
-                using (var subKey = this._registryKey.OpenSubKey(path))
+                using var subKey = this._registryKey.OpenSubKey(path);
+                if (subKey == null)
                 {
-                    if (subKey == null)
-                    {
-                        value = null;
-                        return false;
-                    }
+                    value = null;
+                    return false;
+                }
 
-                    // Options that are of type bool have to be serialized as integers
-                    if (optionKey.Option.Type == typeof(bool))
+                // Options that are of type bool have to be serialized as integers
+                if (optionKey.Option.Type == typeof(bool))
+                {
+                    value = subKey.GetValue(key, defaultValue: (bool)optionKey.Option.DefaultValue ? 1 : 0).Equals(1);
+                    return true;
+                }
+                else if (optionKey.Option.Type == typeof(long))
+                {
+                    var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+                    switch (untypedValue)
                     {
-                        value = subKey.GetValue(key, defaultValue: (bool)optionKey.Option.DefaultValue ? 1 : 0).Equals(1);
-                        return true;
-                    }
-                    else if (optionKey.Option.Type == typeof(long))
-                    {
-                        var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
-                        switch (untypedValue)
-                        {
-                            case string stringValue:
-                                {
-                                    // Due to a previous bug we were accidentally serializing longs as strings.
-                                    // Gracefully convert those back.
-                                    var suceeded = long.TryParse(stringValue, out long longValue);
-                                    value = longValue;
-                                    return suceeded;
-                                }
-
-                            case long longValue:
+                        case string stringValue:
+                            {
+                                // Due to a previous bug we were accidentally serializing longs as strings.
+                                // Gracefully convert those back.
+                                var suceeded = long.TryParse(stringValue, out var longValue);
                                 value = longValue;
-                                return true;
-                        }
-                    }
-                    else if (optionKey.Option.Type == typeof(int))
-                    {
-                        var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
-                        switch (untypedValue)
-                        {
-                            case string stringValue:
-                                {
-                                    // Due to a previous bug we were accidentally serializing ints as strings. 
-                                    // Gracefully convert those back.
-                                    var suceeded = int.TryParse(stringValue, out int intValue);
-                                    value = intValue;
-                                    return suceeded;
-                                }
+                                return suceeded;
+                            }
 
-                            case int intValue:
-                                value = intValue;
-                                return true;
-                        }
+                        case long longValue:
+                            value = longValue;
+                            return true;
                     }
-                    else
+                }
+                else if (optionKey.Option.Type == typeof(int))
+                {
+                    var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+                    switch (untypedValue)
                     {
-                        // Otherwise we can just store normally
-                        value = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
-                        return true;
+                        case string stringValue:
+                            {
+                                // Due to a previous bug we were accidentally serializing ints as strings. 
+                                // Gracefully convert those back.
+                                var suceeded = int.TryParse(stringValue, out var intValue);
+                                value = intValue;
+                                return suceeded;
+                            }
+
+                        case int intValue:
+                            value = intValue;
+                            return true;
                     }
+                }
+                else
+                {
+                    // Otherwise we can just store normally
+                    value = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+                    return true;
                 }
             }
 
@@ -142,37 +142,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             lock (_gate)
             {
-                using (var subKey = this._registryKey.CreateSubKey(path))
+                using var subKey = this._registryKey.CreateSubKey(path);
+                // Options that are of type bool have to be serialized as integers
+                if (optionKey.Option.Type == typeof(bool))
                 {
-                    // Options that are of type bool have to be serialized as integers
-                    if (optionKey.Option.Type == typeof(bool))
+                    subKey.SetValue(key, (bool)value ? 1 : 0, RegistryValueKind.DWord);
+                    return true;
+                }
+                else if (optionKey.Option.Type == typeof(long))
+                {
+                    subKey.SetValue(key, value, RegistryValueKind.QWord);
+                    return true;
+                }
+                else if (optionKey.Option.Type.IsEnum)
+                {
+                    // If the enum is larger than an int, store as a QWord
+                    if (Marshal.SizeOf(Enum.GetUnderlyingType(optionKey.Option.Type)) > Marshal.SizeOf(typeof(int)))
                     {
-                        subKey.SetValue(key, (bool)value ? 1 : 0, RegistryValueKind.DWord);
-                        return true;
-                    }
-                    else if (optionKey.Option.Type == typeof(long))
-                    {
-                        subKey.SetValue(key, value, RegistryValueKind.QWord);
-                        return true;
-                    }
-                    else if (optionKey.Option.Type.IsEnum)
-                    {
-                        // If the enum is larger than an int, store as a QWord
-                        if (Marshal.SizeOf(Enum.GetUnderlyingType(optionKey.Option.Type)) > Marshal.SizeOf(typeof(int)))
-                        {
-                            subKey.SetValue(key, (long)value, RegistryValueKind.QWord);
-                        }
-                        else
-                        {
-                            subKey.SetValue(key, (int)value, RegistryValueKind.DWord);
-                        }
-                        return true;
+                        subKey.SetValue(key, (long)value, RegistryValueKind.QWord);
                     }
                     else
                     {
-                        subKey.SetValue(key, value);
-                        return true;
+                        subKey.SetValue(key, (int)value, RegistryValueKind.DWord);
                     }
+                    return true;
+                }
+                else
+                {
+                    subKey.SetValue(key, value);
+                    return true;
                 }
             }
         }

@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -13,12 +15,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicEndConstruct(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicEndConstruct))
+        public BasicEndConstruct(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicEndConstruct))
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void EndConstruct()
         {
             SetUpEditor(@"
@@ -39,7 +41,7 @@ Class Program
 End Class", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void IntelliSenseCompletedWhile()
         {
             SetUpEditor(@"
@@ -60,7 +62,7 @@ Class Program
 End Class", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void InterfaceToClassFixup()
         {
             SetUpEditor(@"
@@ -74,7 +76,7 @@ Class C
 End Class");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void CaseInsensitveSubToFunction()
         {
             SetUpEditor(@"

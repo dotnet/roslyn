@@ -2,13 +2,13 @@
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct ILDelta
+    internal readonly struct ILDelta
     {
         public readonly byte[] Value;
 
         public ILDelta(byte[] value)
         {
-            this.Value = value;
+            Value = value;
         }
     }
 }

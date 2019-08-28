@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 // VB should read hoisted scope information from local variables:
                 var hoistedLocalScopeRecords = isVisualBasicMethod ?
-                    default(ImmutableArray<HoistedLocalScopeRecord>) : 
+                    default(ImmutableArray<HoistedLocalScopeRecord>) :
                     ImmutableArray<HoistedLocalScopeRecord>.Empty;
 
                 ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap = null;
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var importStringGroups = CustomDebugInfoReader.GetCSharpGroupedImportStrings(
                 methodToken,
-                KeyValuePair.Create(reader, methodVersion),
+                KeyValuePairUtil.Create(reader, methodVersion),
                 getMethodCustomDebugInfo: (token, arg) => GetCustomDebugInfoBytes(arg.Key, token, arg.Value),
                 getMethodImportStrings: (token, arg) => GetImportStrings(arg.Key, token, arg.Value),
                 externAliasStrings: out externAliasStrings);
@@ -531,8 +531,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             importRecordGroups = ImmutableArray<ImmutableArray<ImportRecord>>.Empty;
 
             var importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(
-                methodToken,  
-                KeyValuePair.Create(reader, methodVersion),
+                methodToken,
+                KeyValuePairUtil.Create(reader, methodVersion),
                 (token, arg) => GetImportStrings(arg.Key, token, arg.Value));
 
             if (importStrings.IsDefault)

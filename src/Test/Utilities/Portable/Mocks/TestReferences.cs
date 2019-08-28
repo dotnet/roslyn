@@ -131,10 +131,13 @@ public static class TestReferences
             public static PortableExecutableReference SystemCore => s_systemCore.Value;
         }
 
+        /// <summary>
+        /// References here map to net40 RTM
+        /// </summary>
         public static class v4_0_30319
         {
             private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib).GetReference(filePath: @"R:\v4_0_30319\mscorlib.dll"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(filePath: @"R:\v4_0_30319\mscorlib.dll"),
         LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference mscorlib => s_mscorlib.Value;
 
@@ -212,10 +215,13 @@ public static class TestReferences
             public static PortableExecutableReference System_Runtime_Serialization => s_system_Runtime_Serialization.Value;
         }
 
-        public static class v4_0_30316_17626
+        /// <summary>
+        /// References here map to net45 beta.
+        /// </summary>
+        public static class v4_0_30319_17626
         {
             private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: @"mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib).GetReference(display: @"mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
         LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference mscorlib => s_mscorlib.Value;
         }
@@ -224,7 +230,7 @@ public static class TestReferences
     public static class NetStandard13
     {
         private static readonly Lazy<PortableExecutableReference> s_systemRuntime = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.ReferenceAssemblies_netstandard1_3.System_Runtime).GetReference(display: @"System.Runtime.dll (netstandard13 ref)"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard13.System_Runtime).GetReference(display: @"System.Runtime.dll (netstandard13 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemRuntime => s_systemRuntime.Value;
     }
@@ -246,10 +252,661 @@ public static class TestReferences
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemRuntimeRef => s_systemRuntime.Value;
 
+        private static readonly Lazy<PortableExecutableReference> s_systemCore = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.System_Core).GetReference(display: "System.Core.dll (netstandard 2.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemCoreRef => s_systemCore.Value;
+
         private static readonly Lazy<PortableExecutableReference> s_systemDynamicRuntime = new Lazy<PortableExecutableReference>(
         () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 2.0 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemDynamicRuntimeRef => s_systemDynamicRuntime.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_microsoftCSharp = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.dll (netstandard 2.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference MicrosoftCSharpRef => s_microsoftCSharp.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_system_Threading_Tasks_Extensions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.System_Threading_Tasks_Extensions).GetReference(display: "System.Threading.Tasks.Extensions.dll (netstandard 2.0)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference TasksExtensionsRef => s_system_Threading_Tasks_Extensions.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_system_Runtime_CompilerServices_Unsafe = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.System_Runtime_CompilerServices_Unsafe).GetReference(display: "System.Runtime.CompilerServices.Unsafe.dll (netstandard 2.0)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference UnsafeRef => s_system_Runtime_CompilerServices_Unsafe.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_microsoftVisualBasic = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.Microsoft_VisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (netstandard 2.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference MicrosoftVisualBasicRef => s_microsoftVisualBasic.Value;
+    }
+
+    public static class NetCoreApp30
+    {
+        private static readonly Lazy<PortableExecutableReference> s_netstandard = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.netstandard).GetReference(display: "netstandard.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference NetStandard => s_netstandard.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.mscorlib).GetReference(display: "mscorlib.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference MscorlibRef => s_mscorlib.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntime = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Runtime).GetReference(display: "System.Runtime.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeRef => s_systemRuntime.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemCore = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Core).GetReference(display: "System.Core.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemCoreRef => s_systemCore.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDynamicRuntime = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDynamicRuntimeRef => s_systemDynamicRuntime.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemCollections = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Collections).GetReference(display: "System.Collections.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemCollectionsRef => s_systemCollections.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemConsole = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Console).GetReference(display: "System.Console.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemConsoleRef => s_systemConsole.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_system_Threading_Tasks = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Threading_Tasks).GetReference(display: "System.Threading.Tasks.dll (netcoreapp 3.0)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemThreadingTasksRef => s_system_Threading_Tasks.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemLinq = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Linq).GetReference(display: "System.Linq.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemLinqRef => s_systemLinq.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemLinqExpressions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Linq_Expressions).GetReference(display: "System.Linq.Expressions.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemLinqExpressionsRef => s_systemLinqExpressions.Value;
+    }
+
+    public static class Net461
+    {
+        private static readonly Lazy<PortableExecutableReference> s_microsoftWin32Primitives = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.Microsoft_Win32_Primitives).GetReference(display: "Microsoft.Win32.Primitives.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference MicrosoftWin32PrimitivesRef => s_microsoftWin32Primitives.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.mscorlib).GetReference(display: "mscorlib.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference mscorlibRef => s_mscorlib.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_netfxforceconflicts = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.netfx_force_conflicts).GetReference(display: "netfx.force.conflicts.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference netfxforceconflictsRef => s_netfxforceconflicts.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_netstandard = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.netstandard).GetReference(display: "netstandard.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference netstandardRef => s_netstandard.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemAppContext = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_AppContext).GetReference(display: "System.AppContext.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemAppContextRef => s_systemAppContext.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemCollectionsConcurrent = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Collections_Concurrent).GetReference(display: "System.Collections.Concurrent.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemCollectionsConcurrentRef => s_systemCollectionsConcurrent.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemCollections = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Collections).GetReference(display: "System.Collections.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemCollectionsRef => s_systemCollections.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemCollectionsNonGeneric = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Collections_NonGeneric).GetReference(display: "System.Collections.NonGeneric.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemCollectionsNonGenericRef => s_systemCollectionsNonGeneric.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemCollectionsSpecialized = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Collections_Specialized).GetReference(display: "System.Collections.Specialized.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemCollectionsSpecializedRef => s_systemCollectionsSpecialized.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemComponentModelComposition = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_ComponentModel_Composition).GetReference(display: "System.ComponentModel.Composition.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemComponentModelCompositionRef => s_systemComponentModelComposition.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemComponentModel = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_ComponentModel).GetReference(display: "System.ComponentModel.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemComponentModelRef => s_systemComponentModel.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemComponentModelEventBasedAsync = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_ComponentModel_EventBasedAsync).GetReference(display: "System.ComponentModel.EventBasedAsync.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemComponentModelEventBasedAsyncRef => s_systemComponentModelEventBasedAsync.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemComponentModelPrimitives = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_ComponentModel_Primitives).GetReference(display: "System.ComponentModel.Primitives.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemComponentModelPrimitivesRef => s_systemComponentModelPrimitives.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemComponentModelTypeConverter = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_ComponentModel_TypeConverter).GetReference(display: "System.ComponentModel.TypeConverter.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemComponentModelTypeConverterRef => s_systemComponentModelTypeConverter.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemConsole = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Console).GetReference(display: "System.Console.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemConsoleRef => s_systemConsole.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemCore = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Core).GetReference(display: "System.Core.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemCoreRef => s_systemCore.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDataCommon = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Data_Common).GetReference(display: "System.Data.Common.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDataCommonRef => s_systemDataCommon.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemData = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Data).GetReference(display: "System.Data.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDataRef => s_systemData.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDiagnosticsContracts = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Diagnostics_Contracts).GetReference(display: "System.Diagnostics.Contracts.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDiagnosticsContractsRef => s_systemDiagnosticsContracts.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDiagnosticsDebug = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Diagnostics_Debug).GetReference(display: "System.Diagnostics.Debug.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDiagnosticsDebugRef => s_systemDiagnosticsDebug.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDiagnosticsFileVersionInfo = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Diagnostics_FileVersionInfo).GetReference(display: "System.Diagnostics.FileVersionInfo.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDiagnosticsFileVersionInfoRef => s_systemDiagnosticsFileVersionInfo.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDiagnosticsProcess = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Diagnostics_Process).GetReference(display: "System.Diagnostics.Process.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDiagnosticsProcessRef => s_systemDiagnosticsProcess.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDiagnosticsStackTrace = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Diagnostics_StackTrace).GetReference(display: "System.Diagnostics.StackTrace.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDiagnosticsStackTraceRef => s_systemDiagnosticsStackTrace.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDiagnosticsTextWriterTraceListener = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Diagnostics_TextWriterTraceListener).GetReference(display: "System.Diagnostics.TextWriterTraceListener.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDiagnosticsTextWriterTraceListenerRef => s_systemDiagnosticsTextWriterTraceListener.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDiagnosticsTools = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Diagnostics_Tools).GetReference(display: "System.Diagnostics.Tools.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDiagnosticsToolsRef => s_systemDiagnosticsTools.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDiagnosticsTraceSource = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Diagnostics_TraceSource).GetReference(display: "System.Diagnostics.TraceSource.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDiagnosticsTraceSourceRef => s_systemDiagnosticsTraceSource.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDiagnosticsTracing = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Diagnostics_Tracing).GetReference(display: "System.Diagnostics.Tracing.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDiagnosticsTracingRef => s_systemDiagnosticsTracing.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_system = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System).GetReference(display: "System.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRef => s_system.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDrawing = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Drawing).GetReference(display: "System.Drawing.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDrawingRef => s_systemDrawing.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDrawingPrimitives = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Drawing_Primitives).GetReference(display: "System.Drawing.Primitives.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDrawingPrimitivesRef => s_systemDrawingPrimitives.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemDynamicRuntime = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemDynamicRuntimeRef => s_systemDynamicRuntime.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemGlobalizationCalendars = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Globalization_Calendars).GetReference(display: "System.Globalization.Calendars.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemGlobalizationCalendarsRef => s_systemGlobalizationCalendars.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemGlobalization = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Globalization).GetReference(display: "System.Globalization.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemGlobalizationRef => s_systemGlobalization.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemGlobalizationExtensions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Globalization_Extensions).GetReference(display: "System.Globalization.Extensions.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemGlobalizationExtensionsRef => s_systemGlobalizationExtensions.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIOCompression = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO_Compression).GetReference(display: "System.IO.Compression.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIOCompressionRef => s_systemIOCompression.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIOCompressionFileSystem = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO_Compression_FileSystem).GetReference(display: "System.IO.Compression.FileSystem.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIOCompressionFileSystemRef => s_systemIOCompressionFileSystem.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIOCompressionZipFile = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO_Compression_ZipFile).GetReference(display: "System.IO.Compression.ZipFile.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIOCompressionZipFileRef => s_systemIOCompressionZipFile.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIO = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO).GetReference(display: "System.IO.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIORef => s_systemIO.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIOFileSystem = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO_FileSystem).GetReference(display: "System.IO.FileSystem.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIOFileSystemRef => s_systemIOFileSystem.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIOFileSystemDriveInfo = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO_FileSystem_DriveInfo).GetReference(display: "System.IO.FileSystem.DriveInfo.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIOFileSystemDriveInfoRef => s_systemIOFileSystemDriveInfo.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIOFileSystemPrimitives = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO_FileSystem_Primitives).GetReference(display: "System.IO.FileSystem.Primitives.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIOFileSystemPrimitivesRef => s_systemIOFileSystemPrimitives.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIOFileSystemWatcher = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO_FileSystem_Watcher).GetReference(display: "System.IO.FileSystem.Watcher.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIOFileSystemWatcherRef => s_systemIOFileSystemWatcher.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIOIsolatedStorage = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO_IsolatedStorage).GetReference(display: "System.IO.IsolatedStorage.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIOIsolatedStorageRef => s_systemIOIsolatedStorage.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIOMemoryMappedFiles = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO_MemoryMappedFiles).GetReference(display: "System.IO.MemoryMappedFiles.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIOMemoryMappedFilesRef => s_systemIOMemoryMappedFiles.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIOPipes = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO_Pipes).GetReference(display: "System.IO.Pipes.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIOPipesRef => s_systemIOPipes.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemIOUnmanagedMemoryStream = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_IO_UnmanagedMemoryStream).GetReference(display: "System.IO.UnmanagedMemoryStream.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemIOUnmanagedMemoryStreamRef => s_systemIOUnmanagedMemoryStream.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemLinq = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Linq).GetReference(display: "System.Linq.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemLinqRef => s_systemLinq.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemLinqExpressions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Linq_Expressions).GetReference(display: "System.Linq.Expressions.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemLinqExpressionsRef => s_systemLinqExpressions.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemLinqParallel = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Linq_Parallel).GetReference(display: "System.Linq.Parallel.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemLinqParallelRef => s_systemLinqParallel.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemLinqQueryable = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Linq_Queryable).GetReference(display: "System.Linq.Queryable.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemLinqQueryableRef => s_systemLinqQueryable.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNet = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net).GetReference(display: "System.Net.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetRef => s_systemNet.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNetHttp = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net_Http).GetReference(display: "System.Net.Http.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetHttpRef => s_systemNetHttp.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNetNameResolution = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net_NameResolution).GetReference(display: "System.Net.NameResolution.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetNameResolutionRef => s_systemNetNameResolution.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNetNetworkInformation = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net_NetworkInformation).GetReference(display: "System.Net.NetworkInformation.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetNetworkInformationRef => s_systemNetNetworkInformation.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNetPing = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net_Ping).GetReference(display: "System.Net.Ping.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetPingRef => s_systemNetPing.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNetPrimitives = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net_Primitives).GetReference(display: "System.Net.Primitives.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetPrimitivesRef => s_systemNetPrimitives.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNetRequests = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net_Requests).GetReference(display: "System.Net.Requests.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetRequestsRef => s_systemNetRequests.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNetSecurity = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net_Security).GetReference(display: "System.Net.Security.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetSecurityRef => s_systemNetSecurity.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNetSockets = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net_Sockets).GetReference(display: "System.Net.Sockets.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetSocketsRef => s_systemNetSockets.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNetWebHeaderCollection = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net_WebHeaderCollection).GetReference(display: "System.Net.WebHeaderCollection.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetWebHeaderCollectionRef => s_systemNetWebHeaderCollection.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNetWebSocketsClient = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net_WebSockets_Client).GetReference(display: "System.Net.WebSockets.Client.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetWebSocketsClientRef => s_systemNetWebSocketsClient.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNetWebSockets = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Net_WebSockets).GetReference(display: "System.Net.WebSockets.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNetWebSocketsRef => s_systemNetWebSockets.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemNumerics = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Numerics).GetReference(display: "System.Numerics.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemNumericsRef => s_systemNumerics.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemObjectModel = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_ObjectModel).GetReference(display: "System.ObjectModel.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemObjectModelRef => s_systemObjectModel.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemReflection = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Reflection).GetReference(display: "System.Reflection.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemReflectionRef => s_systemReflection.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemReflectionExtensions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Reflection_Extensions).GetReference(display: "System.Reflection.Extensions.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemReflectionExtensionsRef => s_systemReflectionExtensions.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemReflectionPrimitives = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Reflection_Primitives).GetReference(display: "System.Reflection.Primitives.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemReflectionPrimitivesRef => s_systemReflectionPrimitives.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemResourcesReader = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Resources_Reader).GetReference(display: "System.Resources.Reader.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemResourcesReaderRef => s_systemResourcesReader.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemResourcesResourceManager = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Resources_ResourceManager).GetReference(display: "System.Resources.ResourceManager.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemResourcesResourceManagerRef => s_systemResourcesResourceManager.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemResourcesWriter = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Resources_Writer).GetReference(display: "System.Resources.Writer.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemResourcesWriterRef => s_systemResourcesWriter.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntimeCompilerServicesVisualC = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime_CompilerServices_VisualC).GetReference(display: "System.Runtime.CompilerServices.VisualC.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeCompilerServicesVisualCRef => s_systemRuntimeCompilerServicesVisualC.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntime = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime).GetReference(display: "System.Runtime.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeRef => s_systemRuntime.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntimeExtensions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime_Extensions).GetReference(display: "System.Runtime.Extensions.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeExtensionsRef => s_systemRuntimeExtensions.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntimeHandles = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime_Handles).GetReference(display: "System.Runtime.Handles.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeHandlesRef => s_systemRuntimeHandles.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntimeInteropServices = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime_InteropServices).GetReference(display: "System.Runtime.InteropServices.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeInteropServicesRef => s_systemRuntimeInteropServices.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntimeInteropServicesRuntimeInformation = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime_InteropServices_RuntimeInformation).GetReference(display: "System.Runtime.InteropServices.RuntimeInformation.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeInteropServicesRuntimeInformationRef => s_systemRuntimeInteropServicesRuntimeInformation.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntimeNumerics = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime_Numerics).GetReference(display: "System.Runtime.Numerics.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeNumericsRef => s_systemRuntimeNumerics.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntimeSerialization = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime_Serialization).GetReference(display: "System.Runtime.Serialization.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeSerializationRef => s_systemRuntimeSerialization.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntimeSerializationFormatters = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime_Serialization_Formatters).GetReference(display: "System.Runtime.Serialization.Formatters.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeSerializationFormattersRef => s_systemRuntimeSerializationFormatters.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntimeSerializationJson = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime_Serialization_Json).GetReference(display: "System.Runtime.Serialization.Json.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeSerializationJsonRef => s_systemRuntimeSerializationJson.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntimeSerializationPrimitives = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime_Serialization_Primitives).GetReference(display: "System.Runtime.Serialization.Primitives.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeSerializationPrimitivesRef => s_systemRuntimeSerializationPrimitives.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemRuntimeSerializationXml = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Runtime_Serialization_Xml).GetReference(display: "System.Runtime.Serialization.Xml.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeSerializationXmlRef => s_systemRuntimeSerializationXml.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemSecurityClaims = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Security_Claims).GetReference(display: "System.Security.Claims.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemSecurityClaimsRef => s_systemSecurityClaims.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemSecurityCryptographyAlgorithms = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Security_Cryptography_Algorithms).GetReference(display: "System.Security.Cryptography.Algorithms.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemSecurityCryptographyAlgorithmsRef => s_systemSecurityCryptographyAlgorithms.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemSecurityCryptographyCsp = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Security_Cryptography_Csp).GetReference(display: "System.Security.Cryptography.Csp.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemSecurityCryptographyCspRef => s_systemSecurityCryptographyCsp.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemSecurityCryptographyEncoding = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Security_Cryptography_Encoding).GetReference(display: "System.Security.Cryptography.Encoding.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemSecurityCryptographyEncodingRef => s_systemSecurityCryptographyEncoding.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemSecurityCryptographyPrimitives = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Security_Cryptography_Primitives).GetReference(display: "System.Security.Cryptography.Primitives.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemSecurityCryptographyPrimitivesRef => s_systemSecurityCryptographyPrimitives.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemSecurityCryptographyX509Certificates = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Security_Cryptography_X509Certificates).GetReference(display: "System.Security.Cryptography.X509Certificates.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemSecurityCryptographyX509CertificatesRef => s_systemSecurityCryptographyX509Certificates.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemSecurityPrincipal = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Security_Principal).GetReference(display: "System.Security.Principal.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemSecurityPrincipalRef => s_systemSecurityPrincipal.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemSecuritySecureString = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Security_SecureString).GetReference(display: "System.Security.SecureString.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemSecuritySecureStringRef => s_systemSecuritySecureString.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemServiceModelWeb = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_ServiceModel_Web).GetReference(display: "System.ServiceModel.Web.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemServiceModelWebRef => s_systemServiceModelWeb.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemTextEncoding = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Text_Encoding).GetReference(display: "System.Text.Encoding.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemTextEncodingRef => s_systemTextEncoding.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemTextEncodingExtensions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Text_Encoding_Extensions).GetReference(display: "System.Text.Encoding.Extensions.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemTextEncodingExtensionsRef => s_systemTextEncodingExtensions.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemTextRegularExpressions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Text_RegularExpressions).GetReference(display: "System.Text.RegularExpressions.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemTextRegularExpressionsRef => s_systemTextRegularExpressions.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemThreading = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Threading).GetReference(display: "System.Threading.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemThreadingRef => s_systemThreading.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemThreadingOverlapped = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Threading_Overlapped).GetReference(display: "System.Threading.Overlapped.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemThreadingOverlappedRef => s_systemThreadingOverlapped.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemThreadingTasks = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Threading_Tasks).GetReference(display: "System.Threading.Tasks.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemThreadingTasksRef => s_systemThreadingTasks.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemThreadingTasksParallel = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Threading_Tasks_Parallel).GetReference(display: "System.Threading.Tasks.Parallel.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemThreadingTasksParallelRef => s_systemThreadingTasksParallel.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemThreadingThread = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Threading_Thread).GetReference(display: "System.Threading.Thread.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemThreadingThreadRef => s_systemThreadingThread.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemThreadingThreadPool = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Threading_ThreadPool).GetReference(display: "System.Threading.ThreadPool.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemThreadingThreadPoolRef => s_systemThreadingThreadPool.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemThreadingTimer = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Threading_Timer).GetReference(display: "System.Threading.Timer.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemThreadingTimerRef => s_systemThreadingTimer.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemTransactions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Transactions).GetReference(display: "System.Transactions.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemTransactionsRef => s_systemTransactions.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemValueTuple = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_ValueTuple).GetReference(display: "System.ValueTuple.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemValueTupleRef => s_systemValueTuple.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemWeb = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Web).GetReference(display: "System.Web.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemWebRef => s_systemWeb.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemWindows = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Windows).GetReference(display: "System.Windows.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemWindowsRef => s_systemWindows.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemXml = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Xml).GetReference(display: "System.Xml.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemXmlRef => s_systemXml.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemXmlLinq = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Xml_Linq).GetReference(display: "System.Xml.Linq.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemXmlLinqRef => s_systemXmlLinq.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemXmlReaderWriter = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Xml_ReaderWriter).GetReference(display: "System.Xml.ReaderWriter.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemXmlReaderWriterRef => s_systemXmlReaderWriter.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemXmlSerialization = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Xml_Serialization).GetReference(display: "System.Xml.Serialization.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemXmlSerializationRef => s_systemXmlSerialization.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemXmlXDocument = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Xml_XDocument).GetReference(display: "System.Xml.XDocument.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemXmlXDocumentRef => s_systemXmlXDocument.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemXmlXmlDocument = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Xml_XmlDocument).GetReference(display: "System.Xml.XmlDocument.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemXmlXmlDocumentRef => s_systemXmlXmlDocument.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemXmlXmlSerializer = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Xml_XmlSerializer).GetReference(display: "System.Xml.XmlSerializer.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemXmlXmlSerializerRef => s_systemXmlXmlSerializer.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemXmlXPath = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Xml_XPath).GetReference(display: "System.Xml.XPath.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemXmlXPathRef => s_systemXmlXPath.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemXmlXPathXDocument = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.System_Xml_XPath_XDocument).GetReference(display: "System.Xml.XPath.XDocument.dll (net461 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemXmlXPathXDocumentRef => s_systemXmlXPathXDocument.Value;
     }
 
     public static class DiagnosticTests

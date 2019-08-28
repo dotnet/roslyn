@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public Reference[] GetContents(string windowCaption)
         {
-            return InvokeOnUIThread(() =>
+            return InvokeOnUIThread(cancellationToken =>
             {
                 // Find the tool window
                 var toolWindow = ((DTE2)GetDTE()).ToolWindows.GetToolWindow(windowCaption);

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos, emitDebugInformation);
 
             var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
-            if (_compiler.ReportErrors(errors, _console.Error, errorLogger))
+            if (_compiler.ReportDiagnostics(errors, _console.Error, errorLogger))
             {
                 return CommonCompiler.Failed;
             }
@@ -155,7 +155,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 metadataResolver: metadataResolver,
                 sourceResolver: sourceResolver,
                 emitDebugInformation: emitDebugInformation,
-                fileEncoding: null);
+                fileEncoding: null,
+                optimizationLevel: OptimizationLevel.Debug,
+                allowUnsafe: true,
+                checkOverflow: false,
+                warningLevel: 4,
+                parseOptions: null);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
@@ -189,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             catch (CompilationErrorException e)
             {
-                _compiler.ReportErrors(e.Diagnostics, _console.Error, errorLogger);
+                _compiler.ReportDiagnostics(e.Diagnostics, _console.Error, errorLogger);
                 return CommonCompiler.Failed;
             }
             catch (Exception e)
@@ -235,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                     input.AppendLine(line);
 
-                    var tree = _scriptCompiler.ParseSubmission(SourceText.From(input.ToString()), cancellationToken);
+                    var tree = _scriptCompiler.ParseSubmission(SourceText.From(input.ToString()), options.ParseOptions, cancellationToken);
                     if (_scriptCompiler.IsCompleteSubmission(tree))
                     {
                         break;
@@ -323,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             try
             {
-                _console.ForegroundColor = ConsoleColor.Red;
+                _console.SetForegroundColor(ConsoleColor.Red);
 
                 if (e is FileLoadException && e.InnerException is InteractiveAssemblyLoaderException)
                 {
@@ -368,14 +373,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 foreach (var diagnostic in ordered.Take(MaxDisplayCount))
                 {
-                    _console.ForegroundColor = (diagnostic.Severity == DiagnosticSeverity.Error) ? ConsoleColor.Red : ConsoleColor.Yellow;
+                    _console.SetForegroundColor(diagnostic.Severity == DiagnosticSeverity.Error ? ConsoleColor.Red : ConsoleColor.Yellow);
                     _console.Error.WriteLine(diagnostic.ToString());
                 }
 
                 if (diagnostics.Length > MaxDisplayCount)
                 {
                     int notShown = diagnostics.Length - MaxDisplayCount;
-                    _console.ForegroundColor = ConsoleColor.DarkRed;
+                    _console.SetForegroundColor(ConsoleColor.DarkRed);
                     _console.Error.WriteLine(string.Format(ScriptingResources.PlusAdditionalError, notShown));
                 }
             }
