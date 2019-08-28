@@ -3020,20 +3020,13 @@ struct S
     static async Task Main()
     {
         S s = default;
-        await M(s);
-        s.i = 0;
-        await M(s);
-    }
-
-    static async Task M(S s)
-    {
         Console.WriteLine(s.i += await GetInt());
     }
 
     static Task<int?> GetInt() => Task.FromResult((int?)1);
 }";
-            CompileAndVerify(source, expectedOutput: "1", options: TestOptions.DebugExe);
-            CompileAndVerify(source, expectedOutput: "1", options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
         }
 
         [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
@@ -3090,8 +3083,8 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
         }
 
         [Fact]
