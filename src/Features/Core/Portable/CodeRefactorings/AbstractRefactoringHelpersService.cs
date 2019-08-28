@@ -332,10 +332,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                     // -> `b`
                     var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(declaredVariable);
-                    if (initializer != default)
+                    if (initializer != null)
                     {
                         var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
-                        if (value != default)
+                        if (value != null)
                         {
                             yield return value;
                         }
@@ -348,10 +348,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 // -> `b`
                 var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(node);
-                if (initializer != default)
+                if (initializer != null)
                 {
                     var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
-                    if (value != default)
+                    if (value != null)
                     {
                         yield return value;
                     }

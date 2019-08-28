@@ -953,6 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new ForEachStatementInfo(
+                enumeratorInfoOpt.IsAsync,
                 enumeratorInfoOpt.GetEnumeratorMethod,
                 enumeratorInfoOpt.MoveNextMethod,
                 currentProperty: (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol,

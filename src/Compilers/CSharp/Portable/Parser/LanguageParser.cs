@@ -8132,7 +8132,7 @@ tryAgain:
             {
                 usingKeyword = CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations);
             }
-            bool canParseAsLocalFunction = usingKeyword == default;
+            bool canParseAsLocalFunction = usingKeyword == null;
 
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);

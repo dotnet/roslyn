@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol resultType = expr.Type;
             BoundKind exprKind = expr.Kind;
 
-            if (expr.HasAnyErrors && ((object)resultType != null || exprKind == BoundKind.UnboundLambda))
+            if (expr.HasAnyErrors && ((object)resultType != null || exprKind == BoundKind.UnboundLambda || exprKind == BoundKind.DefaultLiteral))
             {
                 return expr;
             }
@@ -229,9 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckValue(result, valueKind, diagnostics);
         }
 
-        internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, DiagnosticBag diagnostics)
+        internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, DiagnosticBag diagnostics, bool reportDefaultMissingType = true)
         {
-            return BindToNaturalType(BindValue(node, diagnostics, BindValueKind.RValue), diagnostics);
+            return BindToNaturalType(BindValue(node, diagnostics, BindValueKind.RValue), diagnostics, reportDefaultMissingType);
         }
 
         /// <summary>
@@ -241,32 +241,50 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// that such a conversion occurs when needed.  It also handles tuple expressions which need to be
         /// converted to their own natural type because they may contain switch expressions.
         /// </summary>
-        internal BoundExpression BindToNaturalType(BoundExpression expression, DiagnosticBag diagnostics)
+        internal BoundExpression BindToNaturalType(BoundExpression expression, DiagnosticBag diagnostics, bool reportDefaultMissingType = true)
         {
             BoundExpression result;
             switch (expression)
             {
                 case BoundUnconvertedSwitchExpression expr:
-                    var commonType = expr.Type;
-                    var exprSyntax = (SwitchExpressionSyntax)expr.Syntax;
-                    bool hasErrors = expression.HasErrors;
-                    if (commonType is null)
                     {
-                        diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
-                        commonType = CreateErrorType();
-                        hasErrors = true;
+                        var commonType = expr.Type;
+                        var exprSyntax = (SwitchExpressionSyntax)expr.Syntax;
+                        bool hasErrors = expression.HasErrors;
+                        if (commonType is null)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
+                            commonType = CreateErrorType();
+                            hasErrors = true;
+                        }
+                        result = ConvertSwitchExpression(expr, commonType, diagnostics, hasErrors);
                     }
-                    result = ConvertSwitchExpression(expr, commonType, diagnostics, hasErrors);
                     break;
                 case BoundTupleLiteral sourceTuple:
                     result = new BoundConvertedTupleLiteral(
                         sourceTuple.Syntax,
                         sourceTuple,
-                        sourceTuple.Arguments.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
+                        sourceTuple.Arguments.SelectAsArray(e => BindToNaturalType(e, diagnostics, reportDefaultMissingType)),
                         sourceTuple.ArgumentNamesOpt,
                         sourceTuple.InferredNamesOpt,
                         sourceTuple.Type, // same type to keep original element names
                         sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                    break;
+                case BoundDefaultLiteral defaultExpr:
+                    {
+                        if (reportDefaultMissingType)
+                        {
+                            // In some cases, we let the caller report the error
+                            diagnostics.Add(ErrorCode.ERR_DefaultLiteralNoTargetType, defaultExpr.Syntax.GetLocation());
+                        }
+
+                        result = new BoundDefaultExpression(
+                            defaultExpr.Syntax,
+                            targetType: null,
+                            defaultExpr.ConstantValue,
+                            CreateErrorType(),
+                            hasErrors: true).WithSuppression(defaultExpr.IsSuppressed);
+                    }
                     break;
                 default:
                     result = expression;
@@ -531,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindLiteralConstant((LiteralExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.DefaultLiteralExpression:
-                    return BindDefaultLiteral(node);
+                    return new BoundDefaultLiteral(node);
 
                 case SyntaxKind.ParenthesizedExpression:
                     // Parenthesis tokens are ignored, and operand is bound in the context of parent
@@ -644,11 +662,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
                     return BadExpression(node);
             }
-        }
-
-        private static BoundExpression BindDefaultLiteral(ExpressionSyntax node)
-        {
-            return new BoundDefaultExpression(node, type: null);
         }
 
         internal virtual BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
@@ -5879,7 +5892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void WarnOnAccessOfOffDefault(SyntaxNode node, BoundExpression boundLeft, DiagnosticBag diagnostics)
         {
-            if (boundLeft != null && boundLeft.Kind == BoundKind.DefaultExpression && boundLeft.ConstantValue == ConstantValue.Null &&
+            if ((boundLeft is BoundDefaultLiteral || boundLeft is BoundDefaultExpression) && boundLeft.ConstantValue == ConstantValue.Null &&
                 Compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 Error(diagnostics, ErrorCode.WRN_DotOnDefault, node, boundLeft.Type);
@@ -6342,12 +6355,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 this.PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, expression, left, methodName, typeArgumentsWithAnnotations, diagnostics);
 
-                // Arguments will be null if the caller is resolving to the first method group that can accept
-                // that receiver, regardless of arguments, when the signature cannot
-                // be inferred. (In the case of nameof(o.M) or the error case of o.M = null; for instance.)
-                if (analyzedArguments == null && methodGroup.Methods.Count != 0)
+                // analyzedArguments will be null if the caller is resolving for error recovery to the first method group
+                // that can accept that receiver, regardless of arguments, when the signature cannot be inferred.
+                // (In the error case of nameof(o.M) or the error case of o.M = null; for instance.)
+                if (analyzedArguments == null)
                 {
-                    return new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
+                    if (expression == EnclosingNameofArgument)
+                    {
+                        for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
+                        {
+                            if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, this.Compilation) == null)
+                                methodGroup.Methods.RemoveAt(i);
+                        }
+                    }
+
+                    if (methodGroup.Methods.Count != 0)
+                    {
+                        return new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
+                    }
                 }
 
                 if (methodGroup.Methods.Count == 0)

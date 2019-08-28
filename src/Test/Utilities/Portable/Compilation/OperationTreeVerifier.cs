@@ -600,6 +600,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var propertyStringBuilder = new StringBuilder();
             propertyStringBuilder.Append(" (");
             propertyStringBuilder.Append($"{nameof(LoopKind)}.{operation.LoopKind}");
+            if (operation is IForEachLoopOperation { IsAsynchronous: true })
+            {
+                propertyStringBuilder.Append($", IsAsynchronous");
+            }
             propertyStringBuilder.Append($", Continue Label Id: {GetLabelId(operation.ContinueLabel)}");
             propertyStringBuilder.Append($", Exit Label Id: {GetLabelId(operation.ExitLabel)}");
             if (isChecked.GetValueOrDefault())
@@ -709,6 +713,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitUsing(IUsingOperation operation)
         {
             LogString(nameof(IUsingOperation));
+            if (operation.IsAsynchronous)
+            {
+                LogString($" (IsAsynchronous)");
+            }
             LogCommonPropertiesAndNewLine(operation);
 
             LogLocals(operation.Locals);

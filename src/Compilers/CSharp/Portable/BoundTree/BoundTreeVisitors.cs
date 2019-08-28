@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitArrayAccess(node as BoundArrayAccess, arg);
                 case BoundKind.TypeOfOperator:
                     return VisitTypeOfOperator(node as BoundTypeOfOperator, arg);
+                case BoundKind.DefaultLiteral:
+                    return VisitDefaultLiteral(node as BoundDefaultLiteral, arg);
                 case BoundKind.DefaultExpression:
                     return VisitDefaultExpression(node as BoundDefaultExpression, arg);
                 case BoundKind.IsOperator:
