@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             ' here we have loaded a ref to a temp And its boxed value { &T, O }
                         Else
                             ' we are calling the expression on a copy of the target anyway, 
-                            ' so even if T Is a struct, we don't need to make sure we call the expression on the original target.
+                            ' so even if T is a struct, we don't need to make sure we call the expression on the original target.
 
                             _builder.EmitLocalLoad(receiverTemp)
                             EmitBox(receiverType, receiver.Syntax)

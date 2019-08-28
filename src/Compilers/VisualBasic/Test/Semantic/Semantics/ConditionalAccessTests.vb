@@ -5295,24 +5295,60 @@ C1
 <compilation>
     <file name="a.vb">
 Imports System
-Public Class Foo(Of T)
+
+Public Class C(Of T)
+    Public Sub New(t As T)
+        field = t
+    End Sub
+
+    Public Sub New()
+    End Sub
+
     Private field As T
 
     Public Sub Print()
         Console.WriteLine(field?.ToString())
+        Console.WriteLine(field)
     End Sub
 End Class
-    </file>
-</compilation>)
 
-            c.VerifyIL("Foo(Of T).Print()",
+Public Structure S
+    Private a As Integer
+
+    Public Overrides Function ToString() As String
+        Dim result = a.ToString()
+        a = a + 1
+        Return result
+    End Function
+End Structure
+
+Module Program
+    Sub Main()
+        Call New C(Of S)().Print()
+        Call New C(Of S?)().Print()
+        Call New C(Of S?)(New S()).Print()
+        Call New C(Of String)("hello").Print()
+        Call New C(Of String)().Print()
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="0
+1
+
+
+0
+0
+hello
+hello")
+
+            c.VerifyIL("C(Of T).Print()",
             <![CDATA[
 {
-  // Code size       59 (0x3b)
+  // Code size       75 (0x4b)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldflda     "Foo(Of T).field As T"
+  IL_0001:  ldflda     "C(Of T).field As T"
   IL_0006:  ldloca.s   V_0
   IL_0008:  initobj    "T"
   IL_000e:  ldloc.0
@@ -5330,7 +5366,11 @@ End Class
   IL_002a:  constrained. "T"
   IL_0030:  callvirt   "Function Object.ToString() As String"
   IL_0035:  call       "Sub System.Console.WriteLine(String)"
-  IL_003a:  ret
+  IL_003a:  ldarg.0
+  IL_003b:  ldfld      "C(Of T).field As T"
+  IL_0040:  box        "T"
+  IL_0045:  call       "Sub System.Console.WriteLine(Object)"
+  IL_004a:  ret
 }
 ]]>)
         End Sub
@@ -5342,24 +5382,58 @@ End Class
 <compilation>
     <file name="a.vb">
 Imports System
-Public Class Foo(Of T)
-    Private ReadOnly field As T
+
+Public Class C(Of T)
+    Public Sub New(ByVal t As T)
+        field = t
+    End Sub
+
+    Public Sub New()
+    End Sub
+
+    ReadOnly field As T
 
     Public Sub Print()
         Console.WriteLine(field?.ToString())
+        Console.WriteLine(field)
     End Sub
 End Class
-    </file>
-</compilation>)
 
-            c.VerifyIL("Foo(Of T).Print()",
+Public Structure S
+    Private a As Integer
+
+    Public Overrides Function ToString() As String
+        Return Math.Min(System.Threading.Interlocked.Increment(a), a - 1).ToString()
+    End Function
+End Structure
+
+Module Program
+    Sub Main()
+		Call New C(Of S)().Print()
+		Call New C(Of S?)().Print()
+		Call New C(Of S?)(New S()).Print()
+		Call New C(Of String)("hello").Print()
+		Call New C(Of String)().Print()
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="0
+0
+
+
+0
+0
+hello
+hello")
+
+            c.VerifyIL("C(Of T).Print()",
             <![CDATA[
 {
-  // Code size       38 (0x26)
+  // Code size       54 (0x36)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Foo(Of T).field As T"
+  IL_0001:  ldfld      "C(Of T).field As T"
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldloc.0
@@ -5371,7 +5445,11 @@ End Class
   IL_0015:  constrained. "T"
   IL_001b:  callvirt   "Function Object.ToString() As String"
   IL_0020:  call       "Sub System.Console.WriteLine(String)"
-  IL_0025:  ret
+  IL_0025:  ldarg.0
+  IL_0026:  ldfld      "C(Of T).field As T"
+  IL_002b:  box        "T"
+  IL_0030:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0035:  ret
 }
 ]]>)
         End Sub
@@ -5383,25 +5461,59 @@ End Class
 <compilation>
     <file name="a.vb">
 Imports System
-Public Class Foo(Of T)
-    Private ReadOnly field As T
+
+Public Class C(Of T)
+    Public Sub New(ByVal t As T)
+        field = t
+    End Sub
+
+    Public Sub New()
+    End Sub
+
+    Private field As T
 
     Public Sub Print()
         Dim temp = field
         Console.WriteLine(temp?.ToString())
+        Console.WriteLine(temp)
     End Sub
 End Class
-    </file>
-</compilation>)
 
-            c.VerifyIL("Foo(Of T).Print()",
+Public Structure S
+    Private a As Integer
+
+    Public Overrides Function ToString() As String
+        Return Math.Min(System.Threading.Interlocked.Increment(a), a - 1).ToString()
+    End Function
+End Structure
+
+Module Program
+	Sub Main()
+		Call New C(Of S)().Print()
+		Call New C(Of S?)().Print()
+		Call New C(Of S?)(New S()).Print()
+		Call New C(Of String)("hello").Print()
+		Call New C(Of String)().Print()
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="0
+1
+
+
+0
+1
+hello
+hello")
+
+            c.VerifyIL("C(Of T).Print()",
             <![CDATA[
 {
   // Code size       37 (0x25)
   .maxstack  1
   .locals init (T V_0) //temp
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Foo(Of T).field As T"
+  IL_0001:  ldfld      "C(Of T).field As T"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  box        "T"
@@ -5424,26 +5536,50 @@ End Class
 <compilation>
     <file name="a.vb">
 Imports System
-Public Class Foo(Of T)
+
+Public Class C(Of T)
+    Public Sub New(ByVal t As T)
+        field = t
+    End Sub
+
+    Public Sub New()
+    End Sub
+
+    Private field As T
+
     Private Function M() As T
-        Return Nothing
+        Return field
     End Function
 
     Public Sub Print()
         Console.WriteLine(M()?.ToString())
     End Sub
 End Class
-    </file>
-</compilation>)
 
-            c.VerifyIL("Foo(Of T).Print()",
+Module Program
+    Sub Main()
+        Call New C(Of Integer)().Print()
+        Call New C(Of Integer?)().Print()
+        Call New C(Of Integer?)(0).Print()
+        Call New C(Of String)("hello").Print()
+        Call New C(Of String)().Print()
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="0
+
+0
+hello
+")
+
+            c.VerifyIL("C(Of T).Print()",
             <![CDATA[
 {
   // Code size       38 (0x26)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       "Function Foo(Of T).M() As T"
+  IL_0001:  call       "Function C(Of T).M() As T"
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldloc.0

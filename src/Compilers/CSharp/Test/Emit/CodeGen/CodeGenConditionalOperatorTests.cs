@@ -2769,10 +2769,10 @@ class Program
         public void ConditionalAccessUnconstrainedTField()
         {
             var source = @"using System;
-public class Foo<T>
+public class C<T>
 {
-    public Foo(T t) => this.t = t;
-    public Foo(){}
+    public C(T t) => this.t = t;
+    public C(){}
 
     private T t;
     
@@ -2794,11 +2794,11 @@ public static class Program
 {
     public static void Main()
     {
-        new Foo<S>().Print();
-        new Foo<S?>().Print();
-        new Foo<S?>(new S()).Print();
-        new Foo<string>(""hello"").Print();
-        new Foo<string>().Print();
+        new C<S>().Print();
+        new C<S?>().Print();
+        new C<S?>(new S()).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
     }
 }";
             var verify = CompileAndVerify(source, expectedOutput: @"0
@@ -2810,13 +2810,13 @@ public static class Program
 hello
 hello");
 
-            verify.VerifyIL("Foo<T>.Print()", @"
+            verify.VerifyIL("C<T>.Print()", @"
 {
   // Code size       75 (0x4b)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""T Foo<T>.t""
+  IL_0001:  ldflda     ""T C<T>.t""
   IL_0006:  ldloca.s   V_0
   IL_0008:  initobj    ""T""
   IL_000e:  ldloc.0
@@ -2835,7 +2835,7 @@ hello");
   IL_0030:  callvirt   ""string object.ToString()""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
   IL_003a:  ldarg.0
-  IL_003b:  ldfld      ""T Foo<T>.t""
+  IL_003b:  ldfld      ""T C<T>.t""
   IL_0040:  box        ""T""
   IL_0045:  call       ""void System.Console.WriteLine(object)""
   IL_004a:  ret
@@ -2848,10 +2848,10 @@ hello");
         public void ConditionalAccessReadonlyUnconstrainedTField()
         {
             var source = @"using System;
-public class Foo<T> 
+public class C<T> 
 {
-    public Foo(T t) => this.t = t;
-    public Foo(){}
+    public C(T t) => this.t = t;
+    public C(){}
 
     readonly T t;
     
@@ -2872,11 +2872,11 @@ public static class Program
 {
     public static void Main()
     {
-        new Foo<S>().Print();
-        new Foo<S?>().Print();
-        new Foo<S?>(new S()).Print();
-        new Foo<string>(""hello"").Print();
-        new Foo<string>().Print();
+        new C<S>().Print();
+        new C<S?>().Print();
+        new C<S?>(new S()).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
     }
 }
 ";
@@ -2889,13 +2889,13 @@ public static class Program
 hello
 hello");
 
-            verify.VerifyIL("Foo<T>.Print()", @"
+            verify.VerifyIL("C<T>.Print()", @"
 {
   // Code size       54 (0x36)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""T Foo<T>.t""
+  IL_0001:  ldfld      ""T C<T>.t""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldloc.0
@@ -2908,7 +2908,7 @@ hello");
   IL_001b:  callvirt   ""string object.ToString()""
   IL_0020:  call       ""void System.Console.WriteLine(string)""
   IL_0025:  ldarg.0
-  IL_0026:  ldfld      ""T Foo<T>.t""
+  IL_0026:  ldfld      ""T C<T>.t""
   IL_002b:  box        ""T""
   IL_0030:  call       ""void System.Console.WriteLine(object)""
   IL_0035:  ret
@@ -2921,10 +2921,10 @@ hello");
         public void ConditionalAccessUnconstrainedTLocal()
         {
             var source = @"using System;
-public class Foo<T>
+public class C<T>
 {
-    public Foo(T t) => this.t = t;
-    public Foo(){}
+    public C(T t) => this.t = t;
+    public C(){}
 
     private T t;
     
@@ -2947,11 +2947,11 @@ public static class Program
 {
     public static void Main()
     {
-        new Foo<S>().Print();
-        new Foo<S?>().Print();
-        new Foo<S?>(new S()).Print();
-        new Foo<string>(""hello"").Print();
-        new Foo<string>().Print();
+        new C<S>().Print();
+        new C<S?>().Print();
+        new C<S?>(new S()).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
     }
 }";
             var verify = CompileAndVerify(source, expectedOutput: @"0
@@ -2963,13 +2963,13 @@ public static class Program
 hello
 hello");
 
-            verify.VerifyIL("Foo<T>.Print()", @"
+            verify.VerifyIL("C<T>.Print()", @"
 {
   // Code size       48 (0x30)
   .maxstack  1
   .locals init (T V_0) //temp
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""T Foo<T>.t""
+  IL_0001:  ldfld      ""T C<T>.t""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  box        ""T""
@@ -2993,10 +2993,10 @@ hello");
         public void ConditionalAccessUnconstrainedTTemp()
         {
             var source = @"using System;
-public class Foo<T>
+public class C<T>
 {
-    public Foo(T t) => this.t = t;
-    public Foo(){}
+    public C(T t) => this.t = t;
+    public C(){}
 
     T t;
 
@@ -3009,23 +3009,27 @@ public static class Program
 {
     public static void Main()
     {
-        new Foo<int>().Print();
-        new Foo<int?>().Print();
-        new Foo<int?>(0).Print();
-        new Foo<string>(""hello"").Print();
-        new Foo<string>().Print();
+        new C<int>().Print();
+        new C<int?>().Print();
+        new C<int?>(0).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
     }
 }
 ";
-            var verify = CompileAndVerify(source);
+            var verify = CompileAndVerify(source, expectedOutput: @"0
 
-            verify.VerifyIL("Foo<T>.Print()", @"
+0
+hello
+");
+
+            verify.VerifyIL("C<T>.Print()", @"
 {
   // Code size       38 (0x26)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""T Foo<T>.M()""
+  IL_0001:  call       ""T C<T>.M()""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldloc.0
