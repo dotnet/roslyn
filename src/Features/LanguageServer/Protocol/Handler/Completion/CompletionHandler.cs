@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Kind = GetCompletionKind(item.Tags),
                     Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText }
                 };
+        }
 
         private static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)
         {
