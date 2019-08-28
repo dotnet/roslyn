@@ -118,7 +118,7 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.LiveShare" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
     <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35076" />
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35076" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
