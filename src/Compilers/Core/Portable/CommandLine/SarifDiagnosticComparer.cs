@@ -26,6 +26,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class SarifDiagnosticComparer : IEqualityComparer<DiagnosticDescriptor>
     {
+        public static readonly SarifDiagnosticComparer Instance = new SarifDiagnosticComparer();
+
+        private SarifDiagnosticComparer()
+        {
+        }
+
         public bool Equals(DiagnosticDescriptor x, DiagnosticDescriptor y)
         {
             if (ReferenceEquals(x, y))

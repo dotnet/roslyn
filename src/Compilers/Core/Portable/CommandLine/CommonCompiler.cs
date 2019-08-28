@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis
                 string compilerVersion = GetCompilerVersion();
                 Version assemblyVersion = GetAssemblyVersion();
 
-                if (Arguments.SarifVersion == SarifVersion.V1_0_0)
+                if (Arguments.SarifVersion == SarifVersion.Sarif1)
                 {
                     logger = new SarifV1ErrorLogger(errorLog, toolName, compilerVersion, assemblyVersion, Culture);
                 }

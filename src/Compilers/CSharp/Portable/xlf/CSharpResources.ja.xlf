@@ -83,8 +83,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSarifVersion">
-        <source>Invalid value '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</source>
-        <target state="new">Invalid value '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</target>
+        <source>Invalid value '{0}' for /sarifversion. Supported values are 1, 1.0, 1.0.0, 2, 2.1, and 2.1.0. 1, 1.0, and 1.0.0 are equivalent. 2, 2.1, and 2.1.0 are equivalent. Default is 1.</source>
+        <target state="new">Invalid value '{0}' for /sarifversion. Supported values are 1, 1.0, 1.0.0, 2, 2.1, and 2.1.0. 1, 1.0, and 1.0.0 are equivalent. 2, 2.1, and 2.1.0 are equivalent. Default is 1.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -554,8 +554,10 @@
                               diagnostics.
 -errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
                               diagnostics.
--sarifversion:[1|2]           Specify the version of the SARIF format in the
-                              error log file.
+-sarifversion:[1|1.0|1.0.0|2|2.1|2.1.0]
+                              Specify the version of the SARIF format in the
+                              error log file. 1, 1.0, and 1.0.0 are equivalent.
+                              2, 2.1, and 2.1.0 are equivalent. Default is 1.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
 
@@ -628,7 +630,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Visual C# コンパイラのオプション
 
                        - 出力ファイル -

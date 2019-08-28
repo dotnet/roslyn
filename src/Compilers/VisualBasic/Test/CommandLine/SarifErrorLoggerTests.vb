@@ -6,7 +6,6 @@ Imports System.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Xunit
-
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Roslyn.Test.Utilities.SharedResourceHelpers
 
