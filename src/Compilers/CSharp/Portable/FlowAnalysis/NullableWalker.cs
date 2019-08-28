@@ -663,6 +663,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             _snapshotBuilderOpt?.TakeIncrementalSnapshot(node, State);
         }
 
+        private void SetUpdatedSymbol(BoundNode node, Symbol originalSymbol, Symbol updatedSymbol)
+        {
+            if (_updatedSymbolMapOpt is object && (object)originalSymbol != updatedSymbol)
+            {
+                _updatedSymbolMapOpt[(node, originalSymbol)] = updatedSymbol;
+            }
+        }
+
         protected override void Normalize(ref LocalState state)
         {
             if (!state.Reachable)
@@ -2932,10 +2940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SetResult(node, returnState, method.ReturnTypeWithAnnotations);
-            if (_updatedSymbolMapOpt is object)
-            {
-                _updatedSymbolMapOpt[(node, node.Method)] = method;
-            }
+            SetUpdatedSymbol(node, node.Method, method);
         }
 
         private void LearnFromEqualsMethod(MethodSymbol method, BoundCall node, TypeWithState receiverType, ImmutableArray<VisitArgumentResult> results)
@@ -6181,13 +6186,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
-            VisitMemberAccess(node, node.ReceiverOpt, node.FieldSymbol);
+            var updatedSymbol = VisitMemberAccess(node, node.ReceiverOpt, node.FieldSymbol);
+            Debug.Assert(updatedSymbol.Kind == SymbolKind.Field);
+            SetUpdatedSymbol(node, node.FieldSymbol, updatedSymbol);
             return null;
         }
 
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
-            VisitMemberAccess(node, node.ReceiverOpt, node.PropertySymbol);
+            var updatedMember = VisitMemberAccess(node, node.ReceiverOpt, node.PropertySymbol);
+            Debug.Assert(updatedMember.Kind == SymbolKind.Property);
+            SetUpdatedSymbol(node, node.PropertySymbol, updatedMember);
             return null;
         }
 
@@ -6234,11 +6243,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitEventAccess(BoundEventAccess node)
         {
-            VisitMemberAccess(node, node.ReceiverOpt, node.EventSymbol);
+            var updatedSymbol = VisitMemberAccess(node, node.ReceiverOpt, node.EventSymbol);
+            SetUpdatedSymbol(node, node.EventSymbol, updatedSymbol);
             return null;
         }
 
-        private void VisitMemberAccess(BoundExpression node, BoundExpression receiverOpt, Symbol member)
+        private Symbol VisitMemberAccess(BoundExpression node, BoundExpression receiverOpt, Symbol member)
         {
             Debug.Assert(!IsConditionalState);
 
@@ -6282,6 +6292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SetResult(node, resultType, type);
+            return member;
         }
 
         private SpecialMember? GetNullableOfTMember(Symbol member)
@@ -7050,6 +7061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
                 // after arguments have been visited, and only if the receiver has not changed.
                 _ = CheckPossibleNullReceiver(receiverOpt);
+                SetUpdatedSymbol(node, node.Event, @event);
             }
             VisitRvalue(node.Argument);
             // https://github.com/dotnet/roslyn/issues/31018: Check for delegate mismatch.

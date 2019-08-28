@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Net;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var ((expr, originalSymbol), updatedSymbol) in updatedMethodSymbols)
                 {
+                    Debug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {expr.Syntax}");
                     Debug.Assert(originalSymbol.Equals(updatedSymbol, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames), @$"Symbol for `{expr.Syntax}` changed:
 Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
 Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
@@ -80,12 +82,6 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                     return VisitExpressionWithStackGuard(ref _recursionDepth, expr);
                 }
                 return base.Visit(node);
-            }
-
-            public override BoundNode? VisitCall(BoundCall node)
-            {
-                Debug.Assert(_updatedMethodSymbols.ContainsKey((node, node.Method)), $"Did not find updated method symbol for {node} `{node.Syntax}`.");
-                return base.VisitCall(node);
             }
 
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
