@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Nerdbank;
 using Roslyn.Utilities;
@@ -79,6 +80,11 @@ namespace Roslyn.Test.Utilities.Remote
             _inprocServices.RegisterService(name, serviceCreator);
         }
 
+        public Task<Stream> RequestServiceAsync(string serviceName)
+        {
+            return _inprocServices.RequestServiceAsync(serviceName);
+        }
+
         public override string ClientId { get; }
 
         public override async Task<Connection> TryCreateConnectionAsync(
@@ -142,23 +148,25 @@ namespace Roslyn.Test.Utilities.Remote
         private class InProcRemoteServices
         {
             private readonly ServiceProvider _serviceProvider;
-            private readonly Dictionary<string, Func<Stream, IServiceProvider, ServiceHubServiceBase>> _creatorMap;
+            private readonly Dictionary<string, Func<Stream, IServiceProvider, ServiceBase>> _creatorMap;
 
             public InProcRemoteServices(bool runCacheCleanup)
             {
                 _serviceProvider = new ServiceProvider(runCacheCleanup);
-                _creatorMap = new Dictionary<string, Func<Stream, IServiceProvider, ServiceHubServiceBase>>();
+                _creatorMap = new Dictionary<string, Func<Stream, IServiceProvider, ServiceBase>>();
 
                 RegisterService(WellKnownRemoteHostServices.RemoteHostService, (s, p) => new RemoteHostService(s, p));
                 RegisterService(WellKnownServiceHubServices.CodeAnalysisService, (s, p) => new CodeAnalysisService(s, p));
                 RegisterService(WellKnownServiceHubServices.SnapshotService, (s, p) => new SnapshotService(s, p));
                 RegisterService(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
+                RegisterService(WellKnownServiceHubServices.CSharpLanguageServer, (s, p) => new CSharpLanguageServer(s, p));
+                RegisterService(WellKnownServiceHubServices.VisualBasicLanguageServer, (s, p) => new VisualBasicLanguageServer(s, p));
             }
 
             public AssetStorage AssetStorage => _serviceProvider.AssetStorage;
             public TraceSource Logger { get; } = new TraceSource("Default");
 
-            public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceHubServiceBase> serviceCreator)
+            public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
             {
                 _creatorMap.Add(name, serviceCreator);
             }
