@@ -3934,5 +3934,63 @@ class X
                 Assert.Null(semanticModel.GetTypeInfo(name).Type);
             }
         }
+
+        [WorkItem(27060, "https://github.com/dotnet/roslyn/issues/27060")]
+        [Fact]
+        public void GetTypeInfoForBadExpression_01()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+interface I : IEnumerable<int>
+{
+    void Add(int i);
+}
+
+class C
+{
+    void M()
+    {
+        I i = new I() { 1, 2 }
+    }
+}";
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "2");
+            var node = nodes.First();
+            var typeInfo = semanticModel.GetTypeInfo(node);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.ConvertedType.SpecialType);
+        }
+
+        [WorkItem(27060, "https://github.com/dotnet/roslyn/issues/27060")]
+        [Fact]
+        public void GetTypeInfoForBadExpression_02()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+interface I : IEnumerable<int>
+{
+    void Add(int i);
+}
+
+class C
+{
+    void M()
+    {
+        var x = new I[] { 1, 2 }
+    }
+}";
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "2");
+            var node = nodes.First();
+            var typeInfo = semanticModel.GetTypeInfo(node);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            Assert.Equal("I", typeInfo.ConvertedType.ToDisplayString());
+        }
     }
 }

@@ -656,10 +656,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindSuppressNullableWarningExpression((PostfixUnaryExpressionSyntax)node, diagnostics);
 
                 default:
-                    // NOTE: We could probably throw an exception here, but it's conceivable
-                    // that a non-parser syntax tree could reach this point with an unexpected
-                    // SyntaxKind and we don't want to throw if that occurs.
-                    Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
+                    // NOTE: We should not throw an exception here, as a syntax tree can reach this
+                    // point with an unexpected SyntaxKind through the SemanticModel in error scenarios
+                    // and we don't want to throw if that occurs.
+                    // See https://github.com/dotnet/roslyn/issues/27060 for such a scenario.
                     return BadExpression(node);
             }
         }
