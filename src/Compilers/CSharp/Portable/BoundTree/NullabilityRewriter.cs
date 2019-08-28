@@ -74,23 +74,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return currentBinary!;
         }
 
-        public override BoundNode? VisitCall(BoundCall node)
+        private T GetUpdatedSymbol<T>(BoundNode expr, T sym) where T : Symbol?
         {
-            BoundExpression? receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
-            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
-            BoundCall updatedNode;
+            if (sym is null) return sym;
 
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType) &&
-                _updatedMethodSymbols.TryGetValue(node, out MethodSymbol updatedMethodSymbol))
+            if (_updatedSymbols.TryGetValue((expr, sym), out var updatedSymbol))
             {
-                updatedNode = node.Update(receiverOpt, updatedMethodSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.OriginalMethodsOpt, node.BinderOpt, infoAndType.Type);
-                updatedNode.TopLevelNullability = infoAndType.Info;
+                Debug.Assert(updatedSymbol is object);
+                return (T)updatedSymbol;
             }
-            else
-            {
-                updatedNode = node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.OriginalMethodsOpt, node.BinderOpt, node.Type);
-            }
-            return updatedNode;
+
+            return sym;
         }
     }
 }
