@@ -60,30 +60,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             static TCompletionItem CreateCompletionItem<TCompletionItem>(LSP.CompletionParams request, CompletionItem item) where TCompletionItem : LSP.CompletionItem, new()
+            => new TCompletionItem
             {
-                var label = "";
-                if (item.DisplayTextPrefix != null)
-                {
-                    label += item.DisplayTextPrefix;
-                }
-                label += item.DisplayText;
-                if (item.DisplayTextSuffix != null)
-                {
-                    label += item.DisplayTextSuffix;
-                }
-                return new TCompletionItem
-                {
-                    Label = label,
-                    InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : item.DisplayText,
-                    SortText = item.SortText,
-                    FilterText = item.FilterText,
-                    Kind = GetCompletionKind(item.Tags),
-                    Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText }
-                };
-            }
-        }
+                Label = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix,
+                InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : item.DisplayText,
+                SortText = item.SortText,
+                FilterText = item.FilterText,
+                Kind = GetCompletionKind(item.Tags),
+                Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText }
+            };
 
-        private static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)
+            private static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)
         {
             foreach (var tag in tags)
             {
