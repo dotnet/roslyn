@@ -6248,7 +6248,7 @@ class C
         if (!await enumerator.MoveNextAsync()) throw null;
         System.Console.Write($""{enumerator.Current} ""); // 43
 
-        if (source != default)
+        if (source != null)
             source.Cancel();
         try
         {

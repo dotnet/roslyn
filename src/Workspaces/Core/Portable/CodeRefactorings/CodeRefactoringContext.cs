@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
             : this(document, span, (action, textSpan) => registerRefactoring(action), isBlocking: false, cancellationToken)
-        {
-        }
+        { }
 
         /// <summary>
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.

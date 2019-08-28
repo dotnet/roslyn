@@ -144,9 +144,9 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class ForEachLoopOperation : BaseForEachLoopOperation, IForEachLoopOperation
     {
         public ForEachLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation loopControlVariable,
-                                    IOperation collection, ImmutableArray<IOperation> nextVariables, IOperation body, ForEachLoopOperationInfo info,
+                                    IOperation collection, ImmutableArray<IOperation> nextVariables, bool isAsynchronous, IOperation body, ForEachLoopOperationInfo info,
                                     SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            this(loopControlVariable, collection, nextVariables, LoopKind.ForEach, body, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+            this(loopControlVariable, collection, nextVariables, isAsynchronous, LoopKind.ForEach, body, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Info = info;
         }

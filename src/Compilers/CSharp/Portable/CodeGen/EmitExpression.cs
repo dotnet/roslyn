@@ -3284,11 +3284,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
                     var conversionKind = conversion.ConversionKind;
-                    Debug.Assert(conversionKind != ConversionKind.DefaultOrNullLiteral);
+                    Debug.Assert(conversionKind != ConversionKind.NullLiteral && conversionKind != ConversionKind.DefaultLiteral);
 
                     if (conversionKind.IsImplicitConversion() &&
                         conversionKind != ConversionKind.MethodGroup &&
-                        conversionKind != ConversionKind.DefaultOrNullLiteral)
+                        conversionKind != ConversionKind.NullLiteral &&
+                        conversionKind != ConversionKind.DefaultLiteral)
                     {
                         return StackMergeType(conversion.Operand);
                     }

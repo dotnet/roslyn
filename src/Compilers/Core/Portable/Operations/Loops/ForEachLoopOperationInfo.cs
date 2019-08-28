@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public readonly IPropertySymbol CurrentProperty;
         public readonly IMethodSymbol MoveNextMethod;
 
+        public readonly bool IsAsynchronous;
         public readonly bool NeedsDispose;
         public readonly bool KnownToImplementIDisposable;
 
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IMethodSymbol getEnumeratorMethod,
             IPropertySymbol currentProperty,
             IMethodSymbol moveNextMethod,
+            bool isAsynchronous,
             bool needsDispose,
             bool knownToImplementIDisposable,
             IConvertibleConversion currentConversion,
@@ -50,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Operations
             GetEnumeratorMethod = getEnumeratorMethod;
             CurrentProperty = currentProperty;
             MoveNextMethod = moveNextMethod;
+            IsAsynchronous = isAsynchronous;
             NeedsDispose = needsDispose;
             KnownToImplementIDisposable = knownToImplementIDisposable;
             CurrentConversion = currentConversion;

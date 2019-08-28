@@ -284,6 +284,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
             return PlaceholderReplacement(node);
@@ -843,6 +848,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Intentionally ignored to let the overflow get caught in a more crucial visitor
                 }
+            }
+
+            public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
+            {
+                Fail(node);
+                return null;
             }
 
             public override BoundNode VisitUsingStatement(BoundUsingStatement node)

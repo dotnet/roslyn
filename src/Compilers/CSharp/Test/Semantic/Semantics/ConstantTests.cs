@@ -2347,11 +2347,13 @@ b --> False
 
             // Confirm that both branches are evaluated, even if the value is Bad
             // Duplicate "(byte)2" is because there's an implicit conversion to uint.
+            // Duplicate "b ? (uint)1 : (byte)2" is because there's an implicit conversion to int.
             var expected =
 @"true ? 1 + i : (int)4u --> BAD
 1 + i --> BAD
 i --> BAD
 (int)4u --> 4
+b ? (uint)1 : (byte)2 --> BAD
 b ? (uint)1 : (byte)2 --> BAD
 b --> BAD
 (uint)1 --> 1

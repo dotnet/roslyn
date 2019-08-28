@@ -4120,6 +4120,31 @@ new B; B->new C; .";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
+        [Fact]
+        public void TargetTypedSwitch_StringInsert()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write($""{false switch { false => new A(), true => new B() }}"");
+        Console.Write($""{true switch { false => new A(), true => new B() }}"");
+    }
+}
+class A
+{
+}
+class B
+{
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "AB");
+        }
+
         #endregion Target Typed Switch
     }
 }

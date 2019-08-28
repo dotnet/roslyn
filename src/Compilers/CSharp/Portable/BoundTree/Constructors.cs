@@ -605,12 +605,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultExpression
+    internal sealed partial class BoundDefaultExpression
     {
         public BoundDefaultExpression(SyntaxNode syntax, TypeSymbol type, bool hasErrors = false)
             : this(syntax, targetType: null, type?.GetDefaultValue(), type, hasErrors)
         {
         }
+
+        public override ConstantValue ConstantValue => ConstantValueOpt;
     }
 
     internal partial class BoundTryStatement
