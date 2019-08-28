@@ -2287,7 +2287,7 @@ static class ArrayExtensions
         }
 
         [Fact]
-        public void GetSymbolInfo_ParameterSymbols()
+        public void GetSymbolInfo_PropertySymbols()
         {
             var source = @"
 class C<T>

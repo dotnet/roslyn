@@ -6187,7 +6187,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
             var updatedSymbol = VisitMemberAccess(node, node.ReceiverOpt, node.FieldSymbol);
-            Debug.Assert(updatedSymbol.Kind == SymbolKind.Field);
             SetUpdatedSymbol(node, node.FieldSymbol, updatedSymbol);
             return null;
         }
@@ -6195,7 +6194,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
             var updatedMember = VisitMemberAccess(node, node.ReceiverOpt, node.PropertySymbol);
-            Debug.Assert(updatedMember.Kind == SymbolKind.Property);
             SetUpdatedSymbol(node, node.PropertySymbol, updatedMember);
             return null;
         }
