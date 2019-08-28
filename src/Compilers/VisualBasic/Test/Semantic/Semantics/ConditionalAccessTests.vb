@@ -5509,7 +5509,7 @@ hello")
             c.VerifyIL("C(Of T).Print()",
             <![CDATA[
 {
-  // Code size       37 (0x25)
+  // Code size       48 (0x30)
   .maxstack  1
   .locals init (T V_0) //temp
   IL_0000:  ldarg.0
@@ -5524,7 +5524,10 @@ hello")
   IL_0014:  constrained. "T"
   IL_001a:  callvirt   "Function Object.ToString() As String"
   IL_001f:  call       "Sub System.Console.WriteLine(String)"
-  IL_0024:  ret
+  IL_0024:  ldloc.0
+  IL_0025:  box        "T"
+  IL_002a:  call       "Sub System.Console.WriteLine(Object)"
+  IL_002f:  ret
 }
 ]]>)
         End Sub
