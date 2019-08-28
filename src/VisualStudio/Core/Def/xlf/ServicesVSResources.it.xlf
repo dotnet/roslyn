@@ -1868,30 +1868,6 @@ Informazioni aggiuntive: {1}</target>
         <target state="translated">Dissolvenza</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="translated">Le modifiche non sono consentite se l'assembly non è stato caricato.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="translated">Le modifiche non sono consentite se il progetto non era stato compilato quando è stato avviato il debug.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="translated">Le modifiche non sono consentite se il progetto non era stato caricato e compilato quando è stato avviato il debug.
-
-L'opzione 'Caricamento leggero soluzioni' è abilitata per la soluzione corrente. Disabilitarla per essere certi che tutti i progetti siano stati caricati all'avvio del debug.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="translated">Le modifiche non sono consentite se il codice è in esecuzione.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
         <target state="translated">Preferisci la funzione locale a quella anonima</target>
@@ -1927,19 +1903,9 @@ L'opzione 'Caricamento leggero soluzioni' è abilitata per la soluzione corrente
         <target state="translated">preferisci proprietà automatiche</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading file '{0}': {1}</source>
-        <target state="translated">Si è verificato un errore durante la lettura del file '{0}': {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
         <source>Module has been unloaded.</source>
         <target state="translated">Il modulo è stato scaricato.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="translated">Non è possibile applicare le modifiche. Il modulo '{0}' è stato scaricato.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1981,11 +1947,6 @@ L'utente accetta le condizioni sopra riportate:</target>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">Sincronizza visualizzazione classi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="translated">Non è possibile applicare le modifiche. Errore imprevisto: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
