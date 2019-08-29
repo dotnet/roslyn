@@ -528,6 +528,23 @@ public class Class1
         }
 
         [Fact]
+        [WorkItem(37837, "https://github.com/dotnet/roslyn/issues/37837")]
+        public async Task TestEmptyParameter()
+        {
+            var testText = @"
+using System;
+public class TestAttribute : Attribute { }
+public class Class1
+{
+    static void foo({|result:[Test][||]
+|}    {
+
+    }
+}";
+            await TestAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
         [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
         public async Task TestMissingEmptyMember2()
         {
@@ -863,6 +880,38 @@ class C
     }
 }";
             await TestAsync<ObjectCreationExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractFromDeclarator()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        var [|a = {|result:new object()|}|];
+    }
+}";
+            await TestAsync<ObjectCreationExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractFromDeclarator2()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        {|result:var [|a = new object()|];|}
+    }
+}";
+            await TestAsync<LocalDeclarationStatementSyntax>(testText);
         }
 
         [Fact]

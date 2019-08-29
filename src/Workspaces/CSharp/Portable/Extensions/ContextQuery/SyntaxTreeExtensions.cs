@@ -1303,7 +1303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
 
-        public static bool IsPossibleTupleOpenParenOrComma(SyntaxToken possibleCommaOrParen)
+        public static bool IsPossibleTupleOpenParenOrComma(this SyntaxToken possibleCommaOrParen)
         {
             if (!possibleCommaOrParen.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
             {

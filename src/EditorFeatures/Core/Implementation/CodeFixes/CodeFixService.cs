@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<CodeFixCollection>.Empty;
             }
 
-            var result = ArrayBuilder<CodeFixCollection>.GetInstance();
+            using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
             foreach (var spanAndDiagnostic in aggregatedDiagnostics)
             {
                 await AppendFixesAsync(
@@ -178,24 +178,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 // sort the result to the order defined by the fixers
                 var priorityMap = _fixerPriorityMap[document.Project.Language].Value;
-                result.Sort((d1, d2) =>
-                {
-                    if (priorityMap.TryGetValue((CodeFixProvider)d1.Provider, out var priority1))
-                    {
-                        if (priorityMap.TryGetValue((CodeFixProvider)d2.Provider, out var priority2))
-                        {
-                            return priority1 - priority2;
-                        }
-                        else
-                        {
-                            return -1;
-                        }
-                    }
-                    else
-                    {
-                        return 1;
-                    }
-                });
+                result.Sort((d1, d2) => GetValue(d1).CompareTo(GetValue(d2)));
+
+                int GetValue(CodeFixCollection c)
+                    => priorityMap.TryGetValue((CodeFixProvider)c.Provider, out var value) ? value : int.MaxValue;
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
@@ -209,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         public async Task<CodeFixCollection> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
@@ -220,12 +206,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return null;
             }
 
-            var result = ArrayBuilder<CodeFixCollection>.GetInstance();
+            using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
             await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, result, cancellationToken).ConfigureAwait(false);
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
-            return result.ToImmutableAndFree().FirstOrDefault();
+            return result.ToImmutable().FirstOrDefault();
         }
 
         public async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -327,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document, TextSpan span, CodeFixProvider fixer,
             ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            var fixes = ArrayBuilder<CodeFix>.GetInstance();
+            using var fixesDisposer = ArrayBuilder<CodeFix>.GetInstance(out var fixes);
             var context = new CodeFixContext(document, span, diagnostics,
                 // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
                 (action, applicableDiagnostics) =>
@@ -343,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var task = fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
             await task.ConfigureAwait(false);
-            return fixes.ToImmutableAndFree();
+            return fixes.ToImmutable();
         }
 
         private async Task AppendConfigurationsAsync(
@@ -680,14 +666,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             static ImmutableArray<IConfigurationFixProvider> GetConfigurationFixProviders(List<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> languageKindAndFixers)
             {
-                var builder = ArrayBuilder<IConfigurationFixProvider>.GetInstance();
+                using var builderDisposer = ArrayBuilder<IConfigurationFixProvider>.GetInstance(out var builder);
                 var orderedLanguageKindAndFixers = ExtensionOrderer.Order(languageKindAndFixers);
                 foreach (var languageKindAndFixersValue in orderedLanguageKindAndFixers)
                 {
                     builder.Add(languageKindAndFixersValue.Value);
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
         }
 

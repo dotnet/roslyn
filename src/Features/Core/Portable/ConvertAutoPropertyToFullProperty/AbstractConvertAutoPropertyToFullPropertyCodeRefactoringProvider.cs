@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var property = await GetPropertyAsync(context).ConfigureAwait(false);
@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             context.RegisterRefactoring(
                 new ConvertAutoPropertyToFullPropertyCodeAction(
                     FeaturesResources.Convert_to_full_property,
-                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c)));
+                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c)),
+                property.Span);
         }
 
         internal bool IsValidAutoProperty(IPropertySymbol propertySymbol)
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(
                 default, Accessibility.Private,
                 DeclarationModifiers.From(propertySymbol),
-                propertySymbol.Type, fieldName,
+                propertySymbol.GetTypeWithAnnotatedNullability(), fieldName,
                 initializer: GetInitializerValue(property));
 
             var typeDeclaration = propertySymbol.ContainingType.DeclaringSyntaxReferences;

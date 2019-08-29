@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitRecursivePattern(BoundRecursivePattern node)
         {
             Visit(node.DeclaredType);
-            VisitAll(node.Deconstruction);
-            VisitAll(node.Properties);
+            VisitAndUnsplitAll(node.Deconstruction);
+            VisitAndUnsplitAll(node.Properties);
             Visit(node.VariableAccess);
             return null;
         }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitITuplePattern(BoundITuplePattern node)
         {
-            VisitAll(node.Subpatterns);
+            VisitAndUnsplitAll(node.Subpatterns);
             return null;
         }
 
@@ -158,8 +158,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // visit switch header
             var expressionState = VisitRvalueWithState(node.Expression);
             LocalState initialState = this.State.Clone();
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref initialState);
 
+            DeclareLocals(node.InnerLocals);
+            foreach (var section in node.SwitchSections)
+            {
+                // locals can be alive across jumps in the switch sections, so we declare them early.
+                DeclareLocals(section.Locals);
+            }
+
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref initialState);
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
@@ -275,8 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 break;
                                         }
                                         State[outputSlot] = NullableFlowState.NotNull;
-                                        var outputType = TypeWithState.Create(e.Type, inputState);
-                                        addToTempMap(output, outputSlot, outputType.Type);
+                                        addToTempMap(output, outputSlot, e.Type);
                                         break;
                                     }
                                 case BoundDagFieldEvaluation e:
@@ -385,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(foundTemp);
                             var (tempSlot, tempType) = tempSlotAndType;
                             var tempState = this.State[tempSlot];
-                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol { IsVar: true } local })
+                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local })
                             {
                                 var inferredType = TypeWithState.Create(tempType, tempState).ToTypeWithAnnotations();
                                 if (_variableTypes.TryGetValue(local, out var existingType))

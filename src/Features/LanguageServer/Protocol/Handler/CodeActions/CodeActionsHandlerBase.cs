@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var codeRefactorings = await _codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(keepThreadContext);
 
             var codeActions = codeFixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).Concat(
-                                codeRefactorings.SelectMany(r => r.Actions));
+                                codeRefactorings.SelectMany(r => r.CodeActions.Select(ca => ca.action)));
 
             // Flatten out the nested codeactions.
             var nestedCodeActions = codeActions.Where(c => c is CodeAction.CodeActionWithNestedActions nc && nc.IsInlinable).SelectMany(nc => nc.NestedCodeActions);

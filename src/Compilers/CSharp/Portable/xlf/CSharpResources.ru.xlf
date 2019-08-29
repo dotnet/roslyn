@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
-        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <target state="translated">"{0}": абстрактное событие не может использовать синтаксис метода доступа к событиям.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
-        <target state="translated">Чтобы применять "@$" вместо "$@" для интерполированной строки verbatim, используйте версию языка "{0}" или более позднюю.</target>
+        <target state="translated">Чтобы применять "@$" вместо "$@" для интерполированной строки verbatim, следует использовать версию языка "{0}" или более позднюю.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -37,19 +37,19 @@
         <target state="translated">Недопустимо использовать ссылочный тип "{0}", допускающий значения NULL, в выражении "as". Используйте вместо него базовый тип "{0}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="new">Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
-        <target state="new">Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</target>
+        <target state="translated">Автоматически реализуемое свойство "{0}" не может быть помечено как readonly, так как имеет метод доступа set.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
-        <target state="new">Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</target>
+        <target state="translated">Автоматически реализуемый метод доступа set "{0}" не может быть помечен как readonly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">Атрибут "{0}" запрещено использовать в методах доступа к событиям. Он допустим только для объявлений "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="needs-review-translation">Недопустимый параметр "{0}" для /nullable. Требуется "disable", "enable", "safeonly", "warnings" или "safeonlywarnings".</target>
+        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
-        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <target state="translated">Оператор typeof невозможно использовать для ссылочного типа, допускающего значения NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
-        <target state="new">An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</target>
+        <target state="translated">Выражение типа "{0}" не может быть обработано шаблоном типа "{1}". Используйте версию языка "{2}" или более позднюю, чтобы сопоставить открытый тип с постоянным шаблоном.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
@@ -104,7 +104,12 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="translated">Невозможно внедрить тип "{0}", так как он имеет неабстрактный элемент. Попробуйте задать свойству "Внедрить типы взаимодействия" значение false (ложь).</target>
+        <target state="translated">Не удается внедрить тип "{0}", так как он имеет неабстрактный член. Попробуйте задать для свойства "Внедрить типы взаимодействия" значение false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -129,7 +134,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
-        <target state="new">Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</target>
+        <target state="translated">Запрещено указывать модификаторы readonly для обоих методов доступа свойства или индексатора "{0}". Вместо этого укажите модификатор modifier для самого свойства.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -189,7 +194,7 @@
       </trans-unit>
       <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
         <source>Field-like event '{0}' cannot be 'readonly'.</source>
-        <target state="new">Field-like event '{0}' cannot be 'readonly'.</target>
+        <target state="translated">Подобное полю событие "{0}" не может быть readonly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -234,7 +239,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
-        <target state="new">Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</target>
+        <target state="translated">Запрещено указывать модификаторы readonly для свойства или индексатора "{0}" и его метода доступа. Удалите один из них.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidStackAllocArray">
@@ -264,12 +269,12 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">В одном каталоге ("{0}") не может находиться несколько файлов конфигурации анализатора.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
         <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
-        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
+        <target state="translated">Атрибут [EnumeratorCancellation] невозможно использовать для нескольких параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -289,12 +294,12 @@
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
-        <target state="new">The 'notnull' constraint must come before any other constraints</target>
+        <target state="translated">Ограничение "notnull" должно предшествовать любым другим ограничениям.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
-        <target state="needs-review-translation">Ожидается "enable", "safeonly", "disable" или "restore"</target>
+        <target state="translated">Ожидается "enable", "disable" или "restore"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
@@ -304,7 +309,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">Недопустимое значение "{1}" элемента "{0}" для C# {2}. Используйте версию языка "{3}" или более позднюю.</target>
+        <target state="translated">Недопустимое значение "{0}": "{1}" для C# {2}. Используйте версию языка "{3}" или более позднюю.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -319,17 +324,17 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
-        <target state="new">Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</target>
+        <target state="translated">Метод "{0}" задает ограничение class для параметра типа "{1}", но соответствующий параметр типа "{2}" переопределенного или явно реализованного метода "{3}" не является ссылочным типом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
-        <target state="new">Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</target>
+        <target state="translated">Метод "{0}" задает ограничение struct для параметра типа "{1}", но соответствующий параметр типа "{2}" переопределенного или явно реализованного метода "{3}" не является типом значения, не допускающим значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
-        <target state="new">Both partial method declarations must be readonly or neither may be readonly</target>
+        <target state="translated">Либо оба объявления разделяемого метода должны иметь модификатор readonly, либо ни одно из них не должно иметь модификатор readonly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -352,9 +357,14 @@
         <target state="translated">Для вложенного шаблона свойств требуется ссылка на свойство или поле для сопоставления, например, "{{ Name: {0} }}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
         <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
-        <target state="new">'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</target>
+        <target state="translated">'"{0}": readonly можно использовать для методов доступа, только если свойство или индексатор имеет оба метода доступа, get и set.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -369,7 +379,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
-        <target state="translated">Целевая среда выполнения не поддерживает уровень доступности "защищенный", "защищенный внутренний" или "частный защищенный" для элемента интерфейса.</target>
+        <target state="translated">Целевая среда выполнения не поддерживает специальные возможности "защищенный", "внутренний защищенный" или "частный защищенный" для члена интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
@@ -389,7 +399,7 @@
       </trans-unit>
       <trans-unit id="ERR_StaticMemberCantBeReadOnly">
         <source>Static member '{0}' cannot be marked 'readonly'.</source>
-        <target state="new">Static member '{0}' cannot be marked 'readonly'.</target>
+        <target state="translated">Статический член "{0}" не может быть помечен как readonly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -611,151 +621,151 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
-                              Параметры компилятора Visual C#
+        <target state="translated">
+                             Параметры компилятора Visual C#
 
-                        - ВЫХОДНЫЕ ФАЙЛЫ -
--out:&lt;файл&gt;                   Указывает имя выходного файла (по умолчанию: базовое имя
-                               файла с классом main или имя первого файла)
+                       - Выходные файлы -
+-out:&lt;file&gt;                   Указывает имя выходного файла (по умолчанию: базовое имя
+                              файла с классом main или имя первого файла)
 -target:exe                   По умолчанию выполняет сборку консольного исполняемого файла (краткая
-                               форма: -t:exe)
+                              форма: -t:exe)
 -target:winexe                Выполняет сборку исполняемого файла Windows (краткая форма:
-                               -t:winexe)
+                              -t:winexe)
 -target:library               Выполняет сборку библиотеки (краткая форма: -t:library)
 -target:module                Выполняет сборку модуля, который может быть добавлен в другую
-                               сборку (краткая форма: -t:module)
+                              сборку (краткая форма: -t:module)
 -target:appcontainerexe       Выполняет сборку исполняемого файла контейнера приложений (краткая форма:
-                               -t:appcontainerexe)
+                              -t:appcontainerexe)
 -target:winmdobj              Выполняет сборку промежуточного файла среды выполнения Windows,
-                               используемого в WinMDExp (краткая форма: -t:winmdobj)
--doc:&lt;файл&gt;                   Создаваемый XML-файл документации
--refout:&lt;файл&gt;                Создаваемые выходные данные базовой сборки.
--platform:&lt;строка&gt;            Ограничить платформы, на которых может выполняться этот код: x86,
-                               Itanium, x64, arm, arm64, anycpu32bitpreferred или
-                               anycpu. Значение по умолчанию — anycpu.
+                              используемого в WinMDExp (краткая форма: -t:winmdobj)
+-doc:&lt;file&gt;                   Создаваемый XML-файл документации
+-refout:&lt;file&gt;                Создаваемые выходные данные базовой сборки
+-platform:&lt;string&gt;            Ограничить платформы, на которых может выполняться этот код: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred или
+                              anycpu. Значение по умолчанию — anycpu.
 
-                        - ВХОДНЫЕ ФАЙЛЫ -
--recurse:&lt;подстановочный знак&gt;           Включить все файлы в текущем каталоге и
-                               подкаталогах в соответствии с заданным
-                               подстановочным знаком
--reference:&lt;псевдоним&gt;=&lt;файл&gt;     Ссылаться на метаданные из заданного файла
-                               сборки с помощью определенного псевдонима (краткая форма: -r)
--reference:&lt;список файлов&gt;        Ссылаться на метаданные из заданных файлов
-                               сборки (краткая форма: -r)
--addmodule:&lt;список файлов&gt;        Скомпоновать указанные модули вместе с этой сборкой
--link:&lt;список файлов&gt;             Внедрить метаданные из указанных файлов
-                               сборок взаимодействия (краткая форма: -l)
--analyzer:&lt;список файлов&gt;         Запускать анализаторы из этой сборки
-                               (краткая форма: -a)
--additionalfile:&lt;список файлов&gt;   Дополнительные файлы, которые не оказывают прямого влияния на создание
-                               кода, но могут использоваться анализаторами для вывода
-                               ошибок или предупреждений.
+                       - Входные файлы -
+-recurse:&lt;wildcard&gt;           Включить все файлы в текущем каталоге и
+                              подкаталогах в соответствии с заданным
+                              подстановочным знаком
+-reference:&lt;alias&gt;=&lt;file&gt;     Сослаться на метаданные из заданного файла
+                              сборки с помощью определенного псевдонима (краткая форма: -r)
+-reference:&lt;file list&gt;        Сослаться на метаданные из заданных файлов
+                              сборки (краткая форма: -r)
+-addmodule:&lt;file list&gt;        Скомпоновать указанные модули вместе с этой сборкой
+-link:&lt;file list&gt;             Внедрить метаданные из указанных файлов
+                              сборок взаимодействия (краткая форма: -l)
+-analyzer:&lt;file list&gt;         Запускать анализаторы из этой сборки
+                              (краткая форма: -a)
+-additionalfile:&lt;file list&gt;   Дополнительные файлы, которые не оказывают прямого влияния на создание
+                              кода, но могут использоваться анализаторами для вывода
+                              ошибок или предупреждений.
 -embed                        Внедрить все исходные файлы в PDB.
--embed:&lt;список файлов&gt;            Внедрить указанные файлы в PDB.
+-embed:&lt;file list&gt;            Внедрить указанные файлы в PDB.
 
-                        - РЕСУРСЫ -
--win32res:&lt;файл&gt;              Задает файл ресурсов Win32 (RES-файл)
--win32icon:&lt;файл&gt;             Использовать этот значок для вывода.
--win32manifest:&lt;файл&gt;         Задает файл манифеста Win32 (XML-файл).
--nowin32manifest              Не включать манифест Win32 по умолчанию.
--resource:&lt;ресурс&gt;           Внедрить указанный ресурс (краткая форма: -res)
--linkresource:&lt;ресурс&gt;       Скомпоновать указанный ресурс вместе с этой сборкой
-                               (краткая форма: -linkres), где данные о ресурсах имеют формат
-                               &lt;файл&gt;[,&lt;имя строки&gt;[,public|private]]
+                       - Ресурсы -
+-win32res:&lt;file&gt;              Задает файл ресурсов Win32 (RES-файл)
+-win32icon:&lt;file&gt;             Использовать этот значок для вывода
+-win32manifest:&lt;file&gt;         Задает файл манифеста Win32 (XML-файл)
+-nowin32manifest              Не включать манифест Win32 по умолчанию
+-resource:&lt;resinfo&gt;           Внедрить указанный ресурс (краткая форма: -res)
+-linkresource:&lt;resinfo&gt;       Скомпоновать указанный ресурс вместе с этой сборкой
+                              (краткая форма: -linkres), где данные о ресурсах имеют формат
+                              &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                        - СОЗДАНИЕ КОДА -
--debug[+|-]                   Выдать отладочную информацию.
+                       - Создание кода -
+-debug[+|-]                   Выдать отладочную информацию
 -debug:{full|pdbonly|portable|embedded}
-                               Задать тип отладки (по умолчанию — "full",
-                               "portable" — кроссплатформенный формат,
-                               "embedded" — кроссплатформенный формат, внедряемый в
-                               целевой DLL- или EXE-файл)
+                              Задать тип отладки (по умолчанию —full,
+                              portable — кроссплатформенный формат,
+                              embedded — кроссплатформенный формат, внедряемый в
+                              целевой DLL- или EXE-файл)
 -optimize[+|-]                Включить оптимизацию (краткая форма: -o)
 -deterministic                Создать детерминированную сборку
-                               (включая GUID версии модуля и метку времени)
--refonly                      Создать базовую сборку вместо основных выходных данных.
+                              (включая GUID версии модуля и метку времени)
+-refonly                      Создать базовую сборку вместо основных выходных данных
 -instrument:TestCoverage      Создать сборку, инструментированную для сбора
-                               сведений об объеме протестированного кода.
--sourcelink:&lt;файл&gt;            Данные о ссылке на исходные файлы для внедрения в PDB.
+                              сведений об объеме протестированного кода
+-sourcelink:&lt;file&gt;            Данные о ссылке на исходные файлы для внедрения в PDB.
 
-                        - ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ -
--warnaserror[+|-]             Записывать все предупреждения как ошибки.
--warnaserror[+|-]:&lt;предупреждения&gt; Записывать указанные предупреждения как ошибки.
--warn:&lt;n&gt;                     Задать уровень генерации предупреждений (0–4) (краткая форма: -w)
--nowarn:&lt;предупреждения&gt;           Отключить указанные предупреждения.
--ruleset:&lt;файл&gt;               Указать файл набора правил, отключающий определенные
-                               диагностические операции.
--errorlog:&lt;файл&gt;              Указать файл для записи всех диагностических данных
-                               компилятора и анализатора.
+                       - Ошибки и предупреждения -
+-warnaserror[+|-]             Регистрировать все предупреждения как ошибки
+-warnaserror[+|-]:&lt;warn list&gt; Регистрировать указанные предупреждения как ошибки
+-warn:&lt;n&gt;                     Задать порог предупреждений (0–4) (краткая форма: -w)
+-nowarn:&lt;warn list&gt;           Отключить указанные предупреждения
+-ruleset:&lt;file&gt;               Указать файл набора правил, отключающий определенные
+                              диагностические операции.
+-errorlog:&lt;file&gt;              Указать файл для записи всех диагностических данных
+                              компилятора и анализатора.
 -reportanalyzer               Сообщить дополнительные сведения об анализаторе, например
-                               время выполнения.
+                              время выполнения.
 
-                        - ЯЗЫК -
--checked[+|-]                 Создать проверки переполнений.
--unsafe[+|-]                  Допускать "небезопасный" код.
--define:&lt;список символов&gt;         Определить символы условной компиляции (краткая
-                               форма: -d)
--langversion:?         Указать допустимые значения для версии языка
--langversion:&lt;строка&gt;         Указать языковую версию, например
-                               "default" (последняя основная версия) или
-                               "latest" (последняя версия, включая дополнительные),
-                               или конкретные версии, например 6 или 7.1.
--nullable[+|-]                Укажите параметр контекста, допускающий значение NULL enable|disable.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Укажите параметр контекста, допускающий значение NULL enable|disable|safeonly|warnings|safeonlywarnings.
+                       - Язык -
+-checked[+|-]                 Создать проверки переполнений
+-unsafe[+|-]                  Допускать "небезопасный" код
+-define:&lt;symbol list&gt;         Определить символы условной компиляции (краткая
+                              форма: -d)
+-langversion:?                Отобразить разрешенные значения для версии языка
+-langversion:&lt;string&gt;         Указать версию языка, например
+                              default (последний основной номер версии) или
+                              latest (последняя версия, включая дополнительные номера версии),
+                              либо конкретные версии, например "6" или "7.1"
+-nullable[+|-]                Указать параметр допускающего значение NULL контекста enable|disable.
+-nullable:{enable|disable|warnings}
+                              Указать параметр допускающего значение NULL контекста enable|disable|warnings.
 
-                        - БЕЗОПАСНОСТЬ -
+                       - Безопасность -
 -delaysign[+|-]               Использовать отложенную подпись для сборки, применяя только открытую
-                               часть ключа строгого имени
+                              часть ключа строгого имени
 -publicsign[+|-]              Подписать сборку, используя только открытую
-                               часть ключа строгого имени
--keyfile:&lt;файл&gt;               Указать файл ключей строгого имени.
--keycontainer:&lt;строка&gt;        Указать контейнер ключей строгого имени.
--highentropyva[+|-]           Включить ASLR с высокой энтропией.
+                              часть ключа строгого имени
+-keyfile:&lt;file&gt;               Указать файл ключей строгого имени
+-keycontainer:&lt;string&gt;        Указать контейнер ключей строгого имени
+-highentropyva[+|-]           Включить ASLR с высокой энтропией
 
-                        - ПРОЧЕЕ -
- @&lt;файл&gt;                       Считать файл ответов с дополнительными параметрами.
--help                         Отображать это сообщение об использовании (краткая форма: -?)
--nologo                       Запрещать отображение сообщения компилятора об авторских правах.
--noconfig                     Не включать файл CSC.RSP автоматически.
+                       - Прочее -
+@&lt;file&gt;                       Считать файл ответов с дополнительными параметрами
+-help                         Отобразить это сообщение об использовании (краткая форма: -?)
+-nologo                       Запрещать отображение сообщения компилятора об авторских правах
+-noconfig                     Не включать файл CSC.RSP автоматически
 -parallel[+|-]                Параллельная сборка.
 -version                      Отобразить номер версии компилятора и выйти.
 
-                        - ДОПОЛНИТЕЛЬНО -
--baseaddress:&lt;адрес&gt;        Базовый адрес библиотеки, для которой выполняется сборка.
--checksumalgorithm:&lt;алгоритм&gt;      Задать алгоритм для расчета контрольной суммы
-                               исходного файла, хранимой в формате PDB. Поддерживаемые значения:
-                               SHA1 или SHA256 (по умолчанию).
+                       - Дополнительно -
+-baseaddress:&lt;address&gt;        Базовый адрес библиотеки, для которой выполняется сборка
+-checksumalgorithm:&lt;alg&gt;      Задать алгоритм для расчета контрольной суммы
+                              исходного файла, хранимой в формате PDB. Поддерживаемые значения:
+                              SHA1 или SHA256 (по умолчанию).
 -codepage:&lt;n&gt;                 Задать кодовую страницу, используемую при открытии исходных
-                               файлов.
--utf8output                   Выводить сообщения компилятора в кодировке UTF-8.
--main:&lt;тип&gt;                  Указать тип, содержащий точку входа
-                               (все другие возможные точки входа игнорируются) (краткая
-                               форма: -m)
--fullpaths                    Компилятор создает полные пути.
+                              файлов
+-utf8output                   Выводить сообщения компилятора в кодировке UTF-8
+-main:&lt;type&gt;                  Указать тип, содержащий точку входа
+                              (все другие возможные точки входа игнорируются) (краткая
+                              форма: -m)
+-fullpaths                    Компилятор создает полные пути
 -filealign:&lt;n&gt;                Задать выравнивание для разделов выходных
-                               файлов.
--pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Задать сопоставление для выходных данных имен исходного пути по
-                               компилятору.
--pdb:&lt;файл&gt;                   Задать имя файла для отладочной информации (по умолчанию
-                               используется имя выходного файла с расширением PDB)
+                              файлов
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,…
+                              Задать сопоставление для выходных данных имен исходного пути по
+                              компилятору.
+-pdb:&lt;file&gt;                   Задать имя файла для отладочной информации (по умолчанию:
+                              используется имя выходного файла с расширением PDB)
 -errorendlocation             Выводить строку и столбец конечного расположения
-                               каждой ошибки.
+                              каждой ошибки
 -preferreduilang              Указать имя предпочтительного языка вывода.
--nosdkpath                    Отключение поиска пути пакета SDK по умолчанию для сборок стандартных библиотек.
--nostdlib[+|-]                Не обращаться к стандартной библиотеке (mscorlib.dll).
--subsystemversion:&lt;строка&gt;    Задать версию подсистемы этой сборки.
--lib:&lt;список файлов&gt;              Задать дополнительные каталоги для поиска
-                               ссылок.
--errorreport:&lt;строка&gt;         Указать способ обработки внутренних ошибок компилятора:
-                               prompt, send, queue или none. По умолчанию используется
-                               queue.
--appconfig:&lt;файл&gt;             Указать файл конфигурации приложения,
-                               содержащий параметры привязки сборки.
--moduleassemblyname:&lt;строка&gt;  Имя сборки, частью которой будет являться
-                               этот модуль.
--modulename:&lt;строка&gt;          Задать имя исходного модуля.
+-nosdkpath                    Отключить поиск пути пакета SDK по умолчанию для стандартных сборок библиотеки.
+-nostdlib[+|-]                Не обращаться к стандартной библиотеке (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Задать версию подсистемы этой сборки
+-lib:&lt;file list&gt;              Задать дополнительные каталоги для поиска
+                              ссылок
+-errorreport:&lt;string&gt;         Указать способ обработки внутренних ошибок компилятора:
+                              prompt, send, queue или none. По умолчанию используется
+                              queue.
+-appconfig:&lt;file&gt;             Указать файл конфигурации приложения,
+                              содержащий параметры привязки сборки
+-moduleassemblyname:&lt;string&gt;  Имя сборки, частью которой будет являться
+                              этот модуль
+-modulename:&lt;string&gt;          Задать имя исходного модуля
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -816,12 +826,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNestedStackalloc">
         <source>stackalloc in nested expressions</source>
-        <target state="new">stackalloc in nested expressions</target>
+        <target state="translated">stackalloc во вложенных выражениях</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
         <source>notnull generic type constraint</source>
-        <target state="new">notnull generic type constraint</target>
+        <target state="translated">ограничение универсального типа notnull</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -831,12 +841,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
         <source>obsolete on property accessor</source>
-        <target state="new">obsolete on property accessor</target>
+        <target state="translated">устарело для метода доступа к свойству</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
         <source>warning action enable</source>
-        <target state="new">warning action enable</target>
+        <target state="translated">действие warning с enable</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -846,7 +856,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureReadOnlyMembers">
         <source>readonly members</source>
-        <target state="new">readonly members</target>
+        <target state="translated">члены только для чтения</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
@@ -921,7 +931,7 @@
       </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">
         <source>constraints for override and explicit interface implementation methods</source>
-        <target state="new">constraints for override and explicit interface implementation methods</target>
+        <target state="translated">ограничения для методов переопределения и явной реализации интерфейса</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -941,7 +951,7 @@
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
         <source>&lt;!-- Badly formed XML comment ignored for member "{0}" --&gt;</source>
-        <target state="translated">&lt;!-- Проигнорирован некорректный комментарий XML для члена "{0}" --&gt;</target>
+        <target state="translated">&lt;!-- Badly formed XML comment ignored for member "{0}" --&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED2">
@@ -1301,12 +1311,12 @@
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull">
         <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Оператор "as" может создавать значение NULL, если "{0}" является ссылочным типом, не допускающим значение NULL.</target>
+        <target state="translated">Оператор as может создавать значение NULL, если "{0}" является ссылочным типом, не допускающим значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
         <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="translated">Оператор "as" может создавать значение NULL для параметра типа.</target>
+        <target state="translated">Оператор as может создавать значение NULL для параметра типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
@@ -1351,12 +1361,12 @@
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">Возможное значение NULL не может быть передано целевому объекту, помеченному атрибутом [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
         <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <target state="translated">Возможное значение NULL не может быть передано целевому объекту, помеченному атрибутом [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1391,12 +1401,12 @@
       </trans-unit>
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
         <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
-        <target state="new">Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</target>
+        <target state="translated">Вызов члена "{0}", не являющегося доступным только для чтения, из члена readonly приводит к появлению неявной копии "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
         <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
-        <target state="new">Call to non-readonly member from a 'readonly' member results in an implicit copy.</target>
+        <target state="translated">Вызов члена, не являющегося доступным только для чтения, из члена readonly приводит к появлению неявной копии.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -1411,22 +1421,32 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">Аннотацию для ссылочных типов, допускающих значение NULL, следует использовать в коде только в контексте "#nullable".</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">Аннотацию для ссылочных типов, допускающих значение NULL, следует использовать в коде только в контексте "#nullable".</target>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Невозможно преобразовать литерал NULL в ссылочный тип, не допускающий значение NULL.</target>
+        <target state="translated">Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Невозможно преобразовать литерал NULL в ссылочный тип, не допускающий значение NULL.</target>
+        <target state="translated">Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
@@ -1461,22 +1481,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
         <source>Possible null reference assignment to iteration variable</source>
-        <target state="new">Possible null reference assignment to iteration variable</target>
+        <target state="translated">Назначение вероятной пустой ссылки переменной итерации</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable_Title">
         <source>Possible null reference assignment to iteration variable</source>
-        <target state="new">Possible null reference assignment to iteration variable</target>
+        <target state="translated">Назначение вероятной пустой ссылки переменной итерации</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
         <source>Dereference of a possibly null reference.</source>
-        <target state="translated">Разыменование возможной пустой ссылки.</target>
+        <target state="translated">Разыменование вероятной пустой ссылки.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver_Title">
         <source>Dereference of a possibly null reference.</source>
-        <target state="translated">Разыменование возможной пустой ссылки.</target>
+        <target state="translated">Разыменование вероятной пустой ссылки.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">
@@ -1491,22 +1511,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
         <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="translated">Аргумент типа "{0}" невозможно использовать для параметра "{2}" типа "{1}" в "{3}" из-за различий в допустимости значения NULL ссылочных типов.</target>
+        <target state="translated">Аргумент типа "{0}" запрещено использовать для параметра "{2}" типа "{1}" в "{3}" из-за различий в отношении допустимости значений NULL для ссылочных типов.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
         <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="translated">Аргумент типа "{0}" невозможно использовать в качестве вывода типа "{1}" для параметра "{2}" в "{3}" из-за различий в допустимости значения NULL ссылочных типов.</target>
+        <target state="translated">Аргумент типа "{0}" запрещено использовать в качестве выходных данных типа "{1}" для параметра "{2}" в "{3}" из-за различий в отношении допустимости значений NULL для ссылочных типов.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
         <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
-        <target state="translated">Аргумент невозможно использовать в качестве вывода для параметра из-за различий в допустимости значения NULL ссылочных типов.</target>
+        <target state="translated">Аргумент запрещено использовать в качестве выходных данных для параметра из-за различий в отношении допустимости значений NULL для ссылочных типов.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
         <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
-        <target state="translated">Аргумент невозможно использовать для параметра из-за различий в допустимости значения NULL ссылочных типов.</target>
+        <target state="translated">Аргумент запрещено использовать для параметра из-за различий в отношении допустимости значений NULL для ссылочных типов.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -1531,12 +1551,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
         <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <target state="translated">Несогласованные ограничения допустимости значения NULL для параметра типа "{1}" в частичных объявлениях метода "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
         <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
-        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <target state="translated">Несогласованные ограничения допустимости значения NULL для параметра типа в частичных объявлениях метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
@@ -1691,12 +1711,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
-        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
+        <target state="translated">Тип "{2}" не может быть использован как параметр типа "{1}" в универсальном типе или методе "{0}". Допустимость значения NULL для аргумента типа "{2}" не соответствует ограничению "notnull".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
         <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
-        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
+        <target state="translated">Тип не может быть использован как параметр типа в универсальном типе или методе. Допустимость значения NULL для аргумента типа не соответствует ограничению "notnull".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
@@ -1726,12 +1746,12 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
         <source>The switch expression does not handle some null inputs (it is not exhaustive).</source>
-        <target state="translated">Выражение switch не обрабатывает некоторые входные значения NULL (оно не исчерпывающее).</target>
+        <target state="translated">Выражение switch не обрабатывает некоторые входные данные NULL (оно не полное).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
         <source>The switch expression does not handle some null inputs.</source>
-        <target state="translated">Выражение switch не обрабатывает некоторые входные значения NULL.</target>
+        <target state="translated">Выражение switch не обрабатывает некоторые входные данные NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
@@ -1741,12 +1761,12 @@
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
         <source>Thrown value may be null.</source>
-        <target state="new">Thrown value may be null.</target>
+        <target state="translated">Выданное значение может быть равно NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull_Title">
         <source>Thrown value may be null.</source>
-        <target state="new">Thrown value may be null.</target>
+        <target state="translated">Выданное значение может быть равно NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -1771,32 +1791,32 @@
       </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
         <source>Unboxing a possibly null value.</source>
-        <target state="new">Unboxing a possibly null value.</target>
+        <target state="translated">Распаковка-преобразование вероятного значения NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull_Title">
         <source>Unboxing a possibly null value.</source>
-        <target state="new">Unboxing a possibly null value.</target>
+        <target state="translated">Распаковка-преобразование вероятного значения NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage">
         <source>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
-        <target state="new">The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
+        <target state="translated">Атрибут EnumeratorCancellationAttribute, применяемый к параметру "{0}", не будет оказывать никакого влияния. Этот атрибут действует только для параметра типа CancellationToken в методе асинхронного итератора, возвращающем IAsyncEnumerable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title">
         <source>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
-        <target state="new">The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
+        <target state="translated">Атрибут EnumeratorCancellationAttribute не будет оказывать никакого влияния. Этот атрибут действует только для параметра типа CancellationToken в методе асинхронного итератора, возвращающем IAsyncEnumerable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
         <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">Асинхронный итератор "{0}" имеет один или несколько параметров типа "CancellationToken", но ни один из них не снабжен атрибутом "EnumeratorCancellation", поэтому параметр токена отмены из созданного "IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator" не будет использован.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">Элемент асинхронного итератора имеет один или несколько параметров типа "CancellationToken", но ни один из них не снабжен атрибутом "EnumeratorCancellation", поэтому параметр токена отмены из созданного "IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator" не будет использован.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -2126,7 +2146,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceEventInitializer">
         <source>'{0}': instance event in interface cannot have initializer</source>
-        <target state="translated">"{0}": событие экземпляра в интерфейсе не может иметь инициализатор.</target>
+        <target state="translated">'{0}": событие экземпляра в интерфейсе не может иметь инициализатор.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventUsage">
@@ -2866,7 +2886,7 @@
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
         <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
-        <target state="translated">"{0}" не имеет предопределенного размера, поэтому sizeof можно использовать только в небезопасном контексте.</target>
+        <target state="translated">"{0}" не имеет предопределенный размер, поэтому оператор sizeof может использоваться только в небезопасном (unsafe) контексте</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">
@@ -3506,7 +3526,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
         <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</source>
-        <target state="needs-review-translation">Ограничения для переопределения и явные методы реализации интерфейса унаследованы от базового метода, поэтому они не могут быть указаны напрямую.</target>
+        <target state="translated">Ограничения для переопределения и явные методы реализации интерфейса унаследованы от базового метода, поэтому они не могут быть указаны напрямую, кроме ограничения class или struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOverride">
@@ -3710,12 +3730,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainFields">
         <source>Interfaces cannot contain instance fields</source>
-        <target state="translated">Интерфейсы не могут содержать поля экземпляра.</target>
+        <target state="translated">Интерфейсы не могут содержать поля экземпляра</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
         <source>Interfaces cannot contain instance constructors</source>
-        <target state="translated">Интерфейсы не могут содержать конструкторы экземпляра.</target>
+        <target state="translated">Интерфейсы не могут содержать конструкторы экземпляров</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">
@@ -3765,7 +3785,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InterfaceMemberNotFound">
         <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</source>
-        <target state="translated">"{0}" в явном объявлении интерфейса не находится среди элементов интерфейса, которые можно реализовать.</target>
+        <target state="translated">Не удается найти "{0}" в явном объявлении интерфейса среди членов интерфейса, которые могут быть реализованы</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
@@ -3775,7 +3795,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
         <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">"{0}": явное объявление интерфейса возможно только в классе, структуре или интерфейсе.</target>
+        <target state="translated">"{0}": явное объявление интерфейса может содержаться только в классе, структуре или интерфейсе.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -4675,7 +4695,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
         <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
-        <target state="translated">Разделяемый метод должен быть объявлен в разделяемом классе, разделяемой структуре или разделяемом интерфейсе.</target>
+        <target state="translated">Разделяемый метод должен быть объявлен в разделяемом классе, разделяемой структуре или разделяемом интерфейсе</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
@@ -4720,7 +4740,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
+        <target state="translated">Несогласованные ограничения для параметра типа "{1}" в частичных объявлениях метода "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -5404,8 +5424,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoVoidHere">
         <source>Keyword 'void' cannot be used in this context</source>
-        <target state="translated">Использование ключевого слова "void" в этом контексте недопустимо.
-</target>
+        <target state="translated">Использование ключевого слова "void" в этом контексте недопустимо.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerNeedsParam">
@@ -5430,7 +5449,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
         <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">Элемент "{0}", указанный для метода Main, должен быть неуниверсальным классом, структурой или интерфейсом.</target>
+        <target state="translated">'{0}", определенный для метода Main, должен быть неуниверсальным классом, структурой или интерфейсом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -7670,8 +7689,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsDynamicOperation">
         <source>An expression tree may not contain a dynamic operation</source>
-        <target state="translated">Дерево выражения не может содержать динамическую операцию.
-</target>
+        <target state="translated">Дерево выражения не может содержать динамическую операцию.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncExpressionTree">
@@ -8893,8 +8911,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">Длина строковой константы превышает текущий предельный объем памяти. Попробуйте разбить строку на несколько констант.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">Длина строковой константы превышает текущий предельный объем памяти. Попробуйте разбить строку на несколько констант.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9104,7 +9122,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
         <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Ветви ссылочного условного оператора не могут ссылаться на переменные с несовместимыми областями объявления.</target>
+        <target state="translated">Ветви условного оператора ref не могут ссылаться на переменные с несовместимыми областями объявления</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">
@@ -9447,11 +9465,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">Запрещено использовать тип dynamic в шаблоне.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">Невозможно использовать литерал по умолчанию как аргумент для динамически отправляемой операции.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">Указанный режим документации не поддерживается или недопустим: "{0}".</target>
@@ -9579,7 +9592,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
         <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="translated">Первый параметр "{0}" метода расширения "in" должен иметь значение конкретного (неуниверсального) типа.</target>
+        <target state="translated">Первый параметр метода расширения in "{0}" должен быть конкретным (неуниверсальным) типом значения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
@@ -9652,11 +9665,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">Условное выражение не может использоваться напрямую в интерполяции строк, так как интерполяция заканчивается на ":". Заключите условное выражение в скобки.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">Литерал по умолчанию "default" недопустимо использовать в качестве константы оператора case. Используйте другой литерал (например, "0" или "null") по мере необходимости. Если вы хотите создать метку по умолчанию, используйте "default:" без "case".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
         <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
         <target state="translated">Не используйте атрибут "System.Runtime.CompilerServices.FixedBuffer" для свойства</target>
@@ -9699,7 +9707,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
-        <target state="translated">Интерфейсы не могут содержать операторы преобразования, равенства или неравенства.</target>
+        <target state="translated">Интерфейсы не могут содержать операторы преобразования, проверки равенства и неравенства</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -9709,27 +9717,27 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
-        <target state="translated">"{0}" не может реализовать элемент интерфейса "{1}" в типе "{2}", так как целевая среда выполнения не поддерживает реализацию интерфейса по умолчанию.</target>
+        <target state="translated">"{0}" не может реализовать член интерфейса "{1}" в типе "{2}", так как целевая среда выполнения не поддерживает реализацию интерфейса по умолчанию.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">Модификатор "{0}" недопустим для этого элемента в C# {1}. Используйте версию языка "{2}" или более позднюю.</target>
+        <target state="translated">Модификатор "{0}" недопустим для этого элемента в C# {1}. Используйте версию языка "{2}" или более позднюю.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="translated">"{0}" не реализует элемент интерфейса "{1}". "{2}" не может неявным образом реализовать неоткрытый элемент.</target>
+        <target state="translated">"{0}" не реализует член интерфейса "{1}". "{2}" не может неявно реализовать необщедоступный член.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
-        <target state="translated">Элемент интерфейса "{0}" не имеет наиболее характерной реализации. Ни "{1}", ни "{2}" не являются наиболее характерными.</target>
+        <target state="translated">Член интерфейса "{0}" не имеет наиболее конкретной реализации. Ни "{1}", ни "{2}" не являются наиболее конкретными.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">"{0}" не может реализовать элемент интерфейса "{1}" в типе "{2}", так как компонент "{3}" недоступен в C# {4}. Используйте версию языка "{5}" или более позднюю.</target>
+        <target state="translated">"{0}" не может реализовать член интерфейса "{1}" в типе "{2}", так как функция "{3}" недоступна в C# {4}. Используйте версию языка "{5}" или более позднюю.</target>
         <note />
       </trans-unit>
     </body>

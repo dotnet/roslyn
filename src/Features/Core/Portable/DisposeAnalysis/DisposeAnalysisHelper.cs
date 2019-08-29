@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             OperationBlockAnalysisContext context,
             IMethodSymbol containingMethod,
             DiagnosticDescriptor rule,
+            InterproceduralAnalysisKind interproceduralAnalysisKind,
             bool trackInstanceFields,
             out DisposeAnalysisResult disposeAnalysisResult,
             out PointsToAnalysisResult pointsToAnalysisResult,
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                     disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,
+                        interproceduralAnalysisKind,
                         interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
                         defaultDisposeOwnershipTransferAtConstructor: true,
                         defaultDisposeOwnershipTransferAtMethodCall: true);
@@ -132,6 +134,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             OperationBlockStartAnalysisContext context,
             IMethodSymbol containingMethod,
             DiagnosticDescriptor rule,
+            InterproceduralAnalysisKind interproceduralAnalysisKind,
             bool trackInstanceFields,
             out DisposeAnalysisResult disposeAnalysisResult,
             out PointsToAnalysisResult pointsToAnalysisResult,
@@ -147,6 +150,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                     disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,
+                        interproceduralAnalysisKind,
                         interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
                         defaultDisposeOwnershipTransferAtConstructor: true,
                         defaultDisposeOwnershipTransferAtMethodCall: true);

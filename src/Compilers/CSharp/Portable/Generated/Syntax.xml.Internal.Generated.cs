@@ -6102,8 +6102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// </summary>
     public override BlockSyntax Block => this.block;
     /// <summary>
-    /// Inherited from AnonymousFunctionExpressionSyntax, but not used for 
-    /// AnonymousMethodExpressionSyntax.  Thsi will always be null.
+    /// Inherited from AnonymousFunctionExpressionSyntax, but not used for
+    /// AnonymousMethodExpressionSyntax.  This will always be null.
     /// </summary>
     public override ExpressionSyntax ExpressionBody => this.expressionBody;
 
@@ -23809,6 +23809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override ParameterListSyntax ParameterList => this.parameterList;
     public override BlockSyntax Body => this.body;
     public override ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
+    /// <summary>Gets the optional semicolon token.</summary>
     public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)

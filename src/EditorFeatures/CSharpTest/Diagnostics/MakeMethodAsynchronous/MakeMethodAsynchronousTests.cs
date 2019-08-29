@@ -1279,7 +1279,8 @@ class C
         public async Task MethodWithNullableReturn()
         {
             await TestInRegularAndScriptAsync(
-@"using System.Threading.Tasks;
+@"#nullable enable
+using System.Threading.Tasks;
 class C
 {
     string? M()
@@ -1288,7 +1289,8 @@ class C
         return null;
     }
 }",
-@"using System.Threading.Tasks;
+@"#nullable enable
+using System.Threading.Tasks;
 class C
 {
     async Task<string?> MAsync()
@@ -1303,7 +1305,8 @@ class C
         public async Task EnumerableMethodWithNullableType()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"#nullable enable
+using System.Threading.Tasks;
 using System.Collections.Generic;
 class Program
 {
@@ -1315,7 +1318,8 @@ class Program
 }" + IAsyncEnumerable;
 
             var expected =
-@"using System.Threading.Tasks;
+@"#nullable enable
+using System.Threading.Tasks;
 using System.Collections.Generic;
 class Program
 {
@@ -1332,7 +1336,8 @@ class Program
         public async Task EnumeratorMethodWithNullableType()
         {
             var initial =
-@"using System.Threading.Tasks;
+@"#nullable enable
+using System.Threading.Tasks;
 using System.Collections.Generic;
 class Program
 {
@@ -1344,7 +1349,8 @@ class Program
 }" + IAsyncEnumerable;
 
             var expected =
-@"using System.Threading.Tasks;
+@"#nullable enable
+using System.Threading.Tasks;
 using System.Collections.Generic;
 class Program
 {

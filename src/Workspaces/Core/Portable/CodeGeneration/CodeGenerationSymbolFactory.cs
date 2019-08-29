@@ -427,21 +427,23 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name = null,
             ImmutableArray<IParameterSymbol>? parameters = default,
             ImmutableArray<SyntaxNode> statements = default,
-            INamedTypeSymbol containingType = null)
+            INamedTypeSymbol containingType = null,
+            ITypeSymbol returnType = null,
+            Optional<ImmutableArray<AttributeData>> returnTypeAttributes = default)
         {
             return CreateMethodSymbol(
                 containingType,
                 attributes,
                 accessibility ?? method.DeclaredAccessibility,
                 modifiers ?? method.GetSymbolModifiers(),
-                method.GetReturnTypeWithAnnotatedNullability(),
+                returnType ?? method.GetReturnTypeWithAnnotatedNullability(),
                 method.RefKind,
                 explicitInterfaceImplementations,
                 name ?? method.Name,
                 method.TypeParameters,
                 parameters ?? method.Parameters,
                 statements,
-                returnTypeAttributes: method.GetReturnTypeAttributes());
+                returnTypeAttributes: returnTypeAttributes.HasValue ? returnTypeAttributes.Value : method.GetReturnTypeAttributes());
         }
 
         internal static IPropertySymbol CreatePropertySymbol(

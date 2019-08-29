@@ -146,7 +146,7 @@ namespace CSharpSyntaxGenerator
             return typeName.StartsWith("SyntaxList<", StringComparison.Ordinal);
         }
 
-        protected static bool IsAnyNodeList(string typeName)
+        public static bool IsAnyNodeList(string typeName)
         {
             return IsNodeList(typeName) || IsSeparatedNodeList(typeName);
         }
@@ -200,20 +200,17 @@ namespace CSharpSyntaxGenerator
         protected TreeType GetTreeType(string typeName)
             => _typeMap.TryGetValue(typeName, out var node) ? node : null;
 
+        private static bool IsTrue(string val)
+            => val != null && string.Compare(val, "true", true) == 0;
+
         protected static bool IsOptional(Field f)
-        {
-            return f.Optional != null && string.Compare(f.Optional, "true", true) == 0;
-        }
+            => IsTrue(f.Optional);
 
         protected static bool IsOverride(Field f)
-        {
-            return f.Override != null && string.Compare(f.Override, "true", true) == 0;
-        }
+            => IsTrue(f.Override);
 
         protected static bool IsNew(Field f)
-        {
-            return f.New != null && string.Compare(f.New, "true", true) == 0;
-        }
+            => IsTrue(f.New);
 
         protected static bool HasErrors(Node n)
         {

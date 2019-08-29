@@ -3722,8 +3722,7 @@ $@"
         }
 
         [WorkItem(543873, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543873")]
-        [WorkItem(30035, "https://github.com/dotnet/roslyn/issues/30035")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30035"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNestedAnonymousType()
         {
             // verify nested anonymous types are listed in the same order for different properties
@@ -4916,7 +4915,7 @@ class C
         public async Task BindSymbolInOtherFile()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" LanguageVersion=""730"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
@@ -6603,6 +6602,63 @@ class X
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string s"),
                 NullabilityAnalysis(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableNotShownForValueType()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        int a = 0;
+        int b = $$a;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) int a"),
+                NullabilityAnalysis(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableNotShownForConst()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        const string? s = null;
+        string? s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_constant}) string? s = null"),
+                NullabilityAnalysis(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocInlineSummary()
+        {
+            var markup =
+@"
+/// <summary>Summary documentation</summary>
+/// <remarks>Remarks documentation</remarks>
+void M(int x) { }
+
+/// <summary><inheritdoc cref=""M(int)""/></summary>
+void $$M(int x, int y) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x, int y)"),
+                Documentation("Summary documentation"));
         }
     }
 }

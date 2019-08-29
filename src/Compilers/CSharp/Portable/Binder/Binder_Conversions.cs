@@ -132,11 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
-            if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
+            if (conversion.Kind == ConversionKind.DefaultLiteral)
             {
-                var defaultExpression = (BoundDefaultExpression)source;
-                Debug.Assert(defaultExpression.TargetType == null);
-                source = defaultExpression.Update(targetType: null, constantValue, destination);
+                source = new BoundDefaultExpression(source.Syntax, targetType: null, constantValue, type: destination)
+                    .WithSuppression(source.IsSuppressed);
             }
 
             return new BoundConversion(
@@ -975,15 +974,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: Some conversions can produce errors or warnings depending on checked/unchecked.
             // TODO: Fold conversions on enums and strings too.
 
-            if (source.HasAnyErrors)
-            {
-                return null;
-            }
-
             var sourceConstantValue = source.ConstantValue;
             if (sourceConstantValue == null)
             {
-                if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
+                if (conversion.Kind == ConversionKind.DefaultLiteral)
                 {
                     return destination.GetDefaultValue();
                 }
@@ -995,6 +989,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (sourceConstantValue.IsBad)
             {
                 return sourceConstantValue;
+            }
+
+            if (source.HasAnyErrors)
+            {
+                return null;
             }
 
             switch (conversion.Kind)
@@ -1013,8 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return sourceConstantValue;
                     }
 
-                case ConversionKind.DefaultOrNullLiteral:
-                    // 'default' case is handled above, 'null' is handled here
+                case ConversionKind.NullLiteral:
                     return sourceConstantValue;
 
                 case ConversionKind.ImplicitConstant:

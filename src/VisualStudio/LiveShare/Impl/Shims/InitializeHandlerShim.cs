@@ -6,6 +6,10 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
@@ -14,6 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         public InitializeHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
             : base(requestHandlers, Methods.InitializeName)
         {
+        }
+
+        public override async Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        {
+            var initializeResult = await base.HandleAsync(param, requestContext, cancellationToken).ConfigureAwait(false);
+            initializeResult.Capabilities.Experimental = new RoslynExperimentalCapabilities { SyntacticLspProvider = true };
+            return initializeResult;
         }
     }
 

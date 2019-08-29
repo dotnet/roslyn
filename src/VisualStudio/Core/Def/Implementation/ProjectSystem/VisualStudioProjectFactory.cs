@@ -99,6 +99,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     w.OnProjectAdded(projectInfo);
                 }
+
+                _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language);
             });
 
             // We do all these sets after the w.OnProjectAdded, as the setting of these properties is going to try to modify the workspace

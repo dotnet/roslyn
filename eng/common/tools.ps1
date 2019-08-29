@@ -39,6 +39,10 @@
 # installed on the machine instead of downloading one.
 [bool]$useInstalledDotNetCli = if (Test-Path variable:useInstalledDotNetCli) { $useInstalledDotNetCli } else { $true }
 
+# Enable repos to use a particular version of the on-line dotnet-install scripts.
+#    default URL: https://dot.net/v1/dotnet-install.ps1
+[string]$dotnetInstallScriptVersion = if (Test-Path variable:dotnetInstallScriptVersion) { $dotnetInstallScriptVersion } else { "v1" }
+
 # True to use global NuGet cache instead of restoring packages to repository-local directory.
 [bool]$useGlobalNuGetCache = if (Test-Path variable:useGlobalNuGetCache) { $useGlobalNuGetCache } else { !$ci }
 
@@ -159,7 +163,8 @@ function GetDotNetInstallScript([string] $dotnetRoot) {
   $installScript = Join-Path $dotnetRoot "dotnet-install.ps1"
   if (!(Test-Path $installScript)) {
     Create-Directory $dotnetRoot
-    Invoke-WebRequest "https://dot.net/v1/dotnet-install.ps1" -OutFile $installScript
+    $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
+    Invoke-WebRequest "https://dot.net/$dotnetInstallScriptVersion/dotnet-install.ps1" -OutFile $installScript
   }
 
   return $installScript
@@ -278,6 +283,7 @@ function InitializeXCopyMSBuild([string]$packageVersion, [bool]$install) {
 
     Create-Directory $packageDir
     Write-Host "Downloading $packageName $packageVersion"
+    $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
     Invoke-WebRequest "https://dotnet.myget.org/F/roslyn-tools/api/v2/package/$packageName/$packageVersion/" -OutFile $packagePath
     Unzip $packagePath $packageDir
   }
@@ -517,6 +523,9 @@ function MSBuild-Core() {
 
   if ($warnAsError) {
     $cmdArgs += " /warnaserror /p:TreatWarningsAsErrors=true"
+  }
+  else {
+    $cmdArgs += " /p:TreatWarningsAsErrors=false"
   }
 
   foreach ($arg in $args) {
