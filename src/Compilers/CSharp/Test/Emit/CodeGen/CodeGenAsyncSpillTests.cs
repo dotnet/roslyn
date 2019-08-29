@@ -3087,6 +3087,33 @@ class C
             CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
         }
 
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
+        public void SpillCompoundAssignmentToNullableMemberOfLocal_04()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+struct S
+{
+    int? i;
+
+    static async Task M(S s = default)
+    {
+        s = default;
+        Console.WriteLine(s.i += await GetInt());
+    }
+
+    static async Task Main()
+    {
+        M();
+    }
+
+    static Task<int?> GetInt() => Task.FromResult((int?)1);
+}";
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
+        }
+
         [Fact]
         public void SpillSacrificialRead()
         {

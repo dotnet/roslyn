@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundParameter { ParameterSymbol: var symbol }:
                     CaptureVariable(symbol, syntax);
                     break;
-                case BoundFieldAccess { FieldSymbol: { IsStatic: false, ContainingType: var containingType }, ReceiverOpt: { } receiver } when containingType.IsValueType:
+                case BoundFieldAccess { FieldSymbol: { IsStatic: false, ContainingType: { IsValueType: true } }, ReceiverOpt: BoundExpression receiver }:
                     CaptureRefInitializer(receiver, syntax);
                     break;
             }
