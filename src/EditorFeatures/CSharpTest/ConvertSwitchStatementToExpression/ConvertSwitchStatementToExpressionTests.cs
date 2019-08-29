@@ -915,7 +915,7 @@ class Program
 
         [WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestShouldCastNullOnNullableValueType_ReturnStatement()
+        public async Task TestShouldNotCastNullOnNullableValueType_ReturnStatement()
         {
             await TestInCSharp8(
 @"class Program
@@ -938,7 +938,7 @@ class Program
         {
             ""a"" => true,
             ""b"" => false,
-            _ => (bool?)null,
+            _ => null,
         };
     }
 }");
@@ -946,7 +946,7 @@ class Program
 
         [WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestShouldCastNullOnNullableValueType_Assignment()
+        public async Task TestShouldNotCastNullOnNullableValueType_Assignment()
         {
             await TestInCSharp8(
 @"class Program
@@ -970,7 +970,7 @@ class Program
         {
             ""a"" => true,
             ""b"" => false,
-            _ => (bool?)null,
+            _ => null,
         };
     }
 }");

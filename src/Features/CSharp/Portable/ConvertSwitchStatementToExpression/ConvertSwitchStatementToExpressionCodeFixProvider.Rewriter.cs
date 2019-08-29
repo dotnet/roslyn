@@ -128,34 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             public override ExpressionSyntax VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
                 _assignmentTargetOpt ??= node.Left;
-                return CastIfNeeded(node.Right);
-            }
-
-            private ExpressionSyntax CastIfNeeded(ExpressionSyntax node)
-            {
-                if (_sawNullLiteral)
-                {
-                    // If we've seen a null literal, we already casted one of the arms if needed,
-                    // so at this point the final expression will pick the correct type.
-                    return node;
-                }
-
-                if (!node.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, out ExpressionSyntax nullLiteral))
-                {
-                    return node;
-                }
-
-                _sawNullLiteral = true;
-                var targetType = _semanticModel.GetTypeInfo(node).ConvertedType;
-                if (targetType.IsNullable())
-                {
-                    // Only cast if this is a nullable value type. The null literal
-                    // for reference types will be either target-typed or implicitly
-                    // converted to the common type.
-                    return nullLiteral.Cast(targetType);
-                }
-
-                return node;
+                return node.Right;
             }
 
             private ExpressionSyntax RewriteStatements(SyntaxList<StatementSyntax> statements)
@@ -213,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             public override ExpressionSyntax VisitReturnStatement(ReturnStatementSyntax node)
             {
                 Debug.Assert(node.Expression != null);
-                return CastIfNeeded(node.Expression);
+                return node.Expression;
             }
 
             public override ExpressionSyntax VisitThrowStatement(ThrowStatementSyntax node)
