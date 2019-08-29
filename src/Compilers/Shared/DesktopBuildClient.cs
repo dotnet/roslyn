@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// retrieves the name of the pipe for client/server communication on
         /// that instance of the compiler.
         /// </summary>
-        protected override string GetSessionKey(BuildPaths buildPaths)
+        protected override string GetPipeName(BuildPaths buildPaths)
         {
             return BuildServerConnection.GetPipeNameForPathOpt(buildPaths.ClientDirectory);
         }

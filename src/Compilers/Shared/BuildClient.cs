@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// to the console. If the compiler server fails, run the fallback
         /// compiler.
         /// </summary>
-        internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null)
+        internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null, string pipeName = null)
         {
             textWriter = textWriter ?? Console.Out;
 
@@ -69,15 +69,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
             List<string> parsedArgs;
             bool hasShared;
             string keepAliveOpt;
-            string sessionKeyOpt;
             string errorMessageOpt;
-            if (!CommandLineParser.TryParseClientArgs(
+            if (CommandLineParser.TryParseClientArgs(
                     args,
                     out parsedArgs,
                     out hasShared,
                     out keepAliveOpt,
-                    out sessionKeyOpt,
+                    out string commandLinePipeName,
                     out errorMessageOpt))
+            {
+                pipeName = pipeName ?? commandLinePipeName;
+            }
+            else
             {
                 textWriter.WriteLine(errorMessageOpt);
                 return RunCompilationResult.Failed;
@@ -85,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             if (hasShared)
             {
-                sessionKeyOpt = sessionKeyOpt ?? GetSessionKey(buildPaths);
+                pipeName = pipeName ?? GetPipeName(buildPaths);
                 var libDirectory = Environment.GetEnvironmentVariable("LIB");
-                var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, sessionKeyOpt, keepAliveOpt);
+                var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, pipeName, keepAliveOpt);
                 if (serverResult.HasValue)
                 {
                     Debug.Assert(serverResult.Value.RanOnServer);
@@ -219,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string sessionName, string keepAlive, string libDirectory, CancellationToken cancellationToken);
 
-        protected abstract string GetSessionKey(BuildPaths buildPaths);
+        protected abstract string GetPipeName(BuildPaths buildPaths);
 
         protected static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)
         {
