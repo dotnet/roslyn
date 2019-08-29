@@ -12,6 +12,10 @@ namespace Microsoft.VisualStudio.Editor.Implementation
         internal CommandBindingDefinition gotoImplementationCommandBinding;
 
         [Export]
+        [CommandBinding(Guids.RoslynGroupIdString, ID.RoslynCommands.GoToBase, typeof(GoToBaseCommandArgs))]
+        internal CommandBindingDefinition gotoBaseCommandBinding;
+
+        [Export]
         [CommandBinding(Guids.CSharpGroupIdString, ID.CSharpCommands.OrganizeSortUsings, typeof(SortImportsCommandArgs))]
         internal CommandBindingDefinition organizeSortCommandBinding;
 
