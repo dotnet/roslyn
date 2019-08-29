@@ -1827,9 +1827,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
+        Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer, ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
             Dim token = root.FindToken(position)
             Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)
+            typeDeclaration = typeDecl
+
             If typeDecl IsNot Nothing Then
                 Dim start = If(typeDecl.Implements.LastOrDefault()?.Span.End,
                                If(typeDecl.Inherits.LastOrDefault()?.Span.End,
@@ -2047,6 +2049,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return IsOnHeader(position, node, node.ForEachStatement)
+        End Function
+
+        Private Function ISyntaxFactsService_IsExpressionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionStatement
+            Return MyBase.IsExpressionStatement(node)
         End Function
     End Class
 End Namespace
