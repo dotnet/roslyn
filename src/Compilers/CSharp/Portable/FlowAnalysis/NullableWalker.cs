@@ -5342,6 +5342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportNullabilityMismatchWithTargetDelegate(arg.Syntax.Location, delegateType, argType.DelegateInvokeMethod(), invokedAsExtensionMethod: false);
                         }
 
+                        // Delegate creation will throw an exception if the argument is null
                         LearnFromNonNullTest(arg, ref State);
                     }
                     break;
