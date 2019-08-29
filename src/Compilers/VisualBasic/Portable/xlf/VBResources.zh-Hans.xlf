@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">请使用语言版本 {0} 或更高版本，以在行继续符后使用注释。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">多个分析器配置文件不能位于同一目录({0})中。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">行继续符之后的注释</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -1705,7 +1705,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithArrayVsParamArray2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by parameters declared 'ParamArray'.</source>
-        <target state="translated">'“{0}”和“{1}”的差异仅在于声明为“ParamArray”的参数，因此它们无法重载对方。</target>
+        <target state="translated">“{0}”和“{1}”的差异仅在于声明为 "ParamArray" 的参数，因此它们无法重载对方。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInstanceMemberAccess">
@@ -2507,7 +2507,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleOptionalParameterSpecifiers">
         <source>'Optional' and 'ParamArray' cannot be combined.</source>
-        <target state="translated">'"Optional" 不能与 "ParamArray" 组合。</target>
+        <target state="translated">"Optional" 不能与 "ParamArray" 组合。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedProperty1">
@@ -2989,7 +2989,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithArrayVsParamArray2">
         <source>'{0}' cannot override '{1}' because they differ by parameters declared 'ParamArray'.</source>
-        <target state="translated">'“{0}”无法重写“{1}”，因为它们在声明为“ParamArray”的参数上存在差异。</target>
+        <target state="translated">“{0}”无法重写“{1}”，因为它们在声明为 "ParamArray" 的参数上存在差异。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBaseDependencies4">
@@ -3245,7 +3245,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">行继续符 "_" 的前面必须至少有一个空白字符，而且必须是所在行中的最后一个字符。</target>
+        <target state="translated">行继续符 "_" 前面必须至少有一个空格，且其后必须有注释或 "_" 必须是该行的最后一个字符。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -5017,7 +5017,7 @@
       </trans-unit>
       <trans-unit id="ERR_ParamArrayIllegal1">
         <source>'{0}' parameters cannot be declared 'ParamArray'.</source>
-        <target state="translated">'“{0}”参数不能声明为“ParamArray”。</target>
+        <target state="translated">“{0}”参数不能声明为 "ParamArray"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OptionalIllegal1">
@@ -5392,7 +5392,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExtensionMethodParamArrayFirstArg">
         <source>'ParamArray' cannot be applied to the first parameter of an extension method. The first parameter specifies which type to extend.</source>
-        <target state="translated">'“ParamArray”无法应用于扩展方法的第一个参数。第一个参数指定要扩展哪个类型。</target>
+        <target state="translated">"ParamArray" 无法应用于扩展方法的第一个参数。第一个参数指定要扩展哪个类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypeFieldNameInference">
@@ -7810,7 +7810,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceOutWriteOnlyPropertyDisallowed1">
         <source>Type '{0}' cannot be used as a WriteOnly property type because '{0}' is an 'Out' type parameter.</source>
-        <target state="translated">类型“{0}”不能用作 ReadOnly 属性类型，因为“{0}”是“Out”类型参数。</target>
+        <target state="translated">类型“{0}”不能用作 WriteOnly 属性类型，因为“{0}”是“Out”类型参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceTypeDisallowed2">
@@ -9115,7 +9115,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <target state="translated">文件名“{0}”为空、包含无效字符、未使用绝对路径指定驱动器或太长</target>
         <note />
       </trans-unit>
     </body>

@@ -70,7 +70,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.AsyncStreams)]
-        [Fact]
+        [Fact, WorkItem(30362, "https://github.com/dotnet/roslyn/issues/30362")]
         public void IUsingAwaitStatement_SimpleAwaitUsing()
         {
             string source = @"
@@ -89,9 +89,8 @@ class C
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/30362 should show `await`
             string expectedOperationTree = @"
-IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'await using ... }')
+IUsingOperation (IsAsynchronous) (OperationKind.Using, Type: null) (Syntax: 'await using ... }')
   Locals: Local_1: System.IAsyncDisposable c
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'var c = disposable')
@@ -125,7 +124,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'await using ... }')
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
-        [Fact]
+        [Fact, WorkItem(30362, "https://github.com/dotnet/roslyn/issues/30362")]
         public void UsingFlow_SimpleAwaitUsing()
         {
             string source = @"
@@ -145,13 +144,11 @@ class C
 }
 ";
 
-            // https://github.com/dotnet/roslyn/issues/30362 should be `await DisposeAsync()`
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [System.IAsyncDisposable c]
@@ -163,10 +160,8 @@ Block[B0] - Entry
                 ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'c = disposable')
               Right: 
                 IParameterReferenceOperation: disposable (OperationKind.ParameterReference, Type: System.IAsyncDisposable) (Syntax: 'disposable')
-
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
-
     .try {R2, R3}
     {
         Block[B2] - Block
@@ -185,7 +180,6 @@ Block[B0] - Entry
                               Arguments(0)
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
             Next (Regular) Block[B6]
                 Finalizing: {R4}
                 Leaving: {R3} {R2} {R1}
@@ -199,20 +193,16 @@ Block[B0] - Entry
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c = disposable')
                   Operand: 
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'c = disposable')
-
             Next (Regular) Block[B4]
         Block[B4] - Block
             Predecessors: [B3]
             Statements (1)
-                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'c = disposable')
-                  Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'c = disposable')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                        (ExplicitReference)
-                      Operand: 
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'c = disposable')
+                  Expression: 
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'c = disposable')
+                      Instance Receiver: 
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'c = disposable')
-                  Arguments(0)
-
+                      Arguments(0)
             Next (Regular) Block[B5]
         Block[B5] - Block
             Predecessors: [B3] [B4]
@@ -220,7 +210,6 @@ Block[B0] - Entry
             Next (StructuredExceptionHandling) Block[null]
     }
 }
-
 Block[B6] - Exit
     Predecessors: [B2]
     Statements (0)
@@ -3031,7 +3020,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     CaptureIds: [0]
@@ -3042,13 +3030,11 @@ Block[B0] - Entry
               Value: 
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (DefaultOrNullLiteral)
+                    (NullLiteral)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
-
     .try {R2, R3}
     {
         Block[B2] - Block
@@ -3067,7 +3053,6 @@ Block[B0] - Entry
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'null')
                   Operand: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
-
             Next (Regular) Block[B4]
         Block[B4] - Block [UnReachable]
             Predecessors: [B3]
@@ -3076,7 +3061,6 @@ Block[B0] - Entry
                   Instance Receiver: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
                   Arguments(0)
-
             Next (Regular) Block[B5]
         Block[B5] - Block
             Predecessors: [B3] [B4]
@@ -3084,7 +3068,6 @@ Block[B0] - Entry
             Next (StructuredExceptionHandling) Block[null]
     }
 }
-
 Block[B6] - Exit
     Predecessors: [B2]
     Statements (0)

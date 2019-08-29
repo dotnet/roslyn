@@ -2763,5 +2763,287 @@ class Program
   IL_0064:  ret
 }");
         }
+
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessUnconstrainedTField()
+        {
+            var source = @"using System;
+public class C<T>
+{
+    public C(T t) => this.t = t;
+    public C(){}
+
+    private T t;
+    
+    public void Print()
+    {
+        Console.WriteLine(t?.ToString());
+        Console.WriteLine(t);
+    }
+    
+}
+
+public struct S
+{
+    int a;
+    public override string ToString() => a++.ToString();
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new C<S>().Print();
+        new C<S?>().Print();
+        new C<S?>(new S()).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
+    }
+}";
+            var verify = CompileAndVerify(source, expectedOutput: @"0
+1
+
+
+0
+0
+hello
+hello");
+
+            verify.VerifyIL("C<T>.Print()", @"
+{
+  // Code size       75 (0x4b)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""T C<T>.t""
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  initobj    ""T""
+  IL_000e:  ldloc.0
+  IL_000f:  box        ""T""
+  IL_0014:  brtrue.s   IL_002a
+  IL_0016:  ldobj      ""T""
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldloc.0
+  IL_001f:  box        ""T""
+  IL_0024:  brtrue.s   IL_002a
+  IL_0026:  pop
+  IL_0027:  ldnull
+  IL_0028:  br.s       IL_0035
+  IL_002a:  constrained. ""T""
+  IL_0030:  callvirt   ""string object.ToString()""
+  IL_0035:  call       ""void System.Console.WriteLine(string)""
+  IL_003a:  ldarg.0
+  IL_003b:  ldfld      ""T C<T>.t""
+  IL_0040:  box        ""T""
+  IL_0045:  call       ""void System.Console.WriteLine(object)""
+  IL_004a:  ret
+}");
+
+        }
+
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessReadonlyUnconstrainedTField()
+        {
+            var source = @"using System;
+public class C<T> 
+{
+    public C(T t) => this.t = t;
+    public C(){}
+
+    readonly T t;
+    
+    public void Print()
+    {
+        Console.WriteLine(t?.ToString());
+        Console.WriteLine(t);
+    }
+}
+
+public struct S
+{
+    int a;
+    public override string ToString() => a++.ToString();
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new C<S>().Print();
+        new C<S?>().Print();
+        new C<S?>(new S()).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
+    }
+}
+";
+            var verify = CompileAndVerify(source, expectedOutput: @"0
+0
+
+
+0
+0
+hello
+hello");
+
+            verify.VerifyIL("C<T>.Print()", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T C<T>.t""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0015
+  IL_0011:  pop
+  IL_0012:  ldnull
+  IL_0013:  br.s       IL_0020
+  IL_0015:  constrained. ""T""
+  IL_001b:  callvirt   ""string object.ToString()""
+  IL_0020:  call       ""void System.Console.WriteLine(string)""
+  IL_0025:  ldarg.0
+  IL_0026:  ldfld      ""T C<T>.t""
+  IL_002b:  box        ""T""
+  IL_0030:  call       ""void System.Console.WriteLine(object)""
+  IL_0035:  ret
+}");
+
+        }
+
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessUnconstrainedTLocal()
+        {
+            var source = @"using System;
+public class C<T>
+{
+    public C(T t) => this.t = t;
+    public C(){}
+
+    private T t;
+    
+    public void Print() 
+    {
+        var temp = t;
+        Console.WriteLine(temp?.ToString());
+        Console.WriteLine(temp);
+    }
+    
+}
+
+public struct S
+{
+    int a;
+    public override string ToString() => a++.ToString();
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new C<S>().Print();
+        new C<S?>().Print();
+        new C<S?>(new S()).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
+    }
+}";
+            var verify = CompileAndVerify(source, expectedOutput: @"0
+1
+
+
+0
+1
+hello
+hello");
+
+            verify.VerifyIL("C<T>.Print()", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (T V_0) //temp
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T C<T>.t""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  box        ""T""
+  IL_000d:  brtrue.s   IL_0012
+  IL_000f:  ldnull
+  IL_0010:  br.s       IL_001f
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  constrained. ""T""
+  IL_001a:  callvirt   ""string object.ToString()""
+  IL_001f:  call       ""void System.Console.WriteLine(string)""
+  IL_0024:  ldloc.0
+  IL_0025:  box        ""T""
+  IL_002a:  call       ""void System.Console.WriteLine(object)""
+  IL_002f:  ret
+}");
+
+        }
+
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessUnconstrainedTTemp()
+        {
+            var source = @"using System;
+public class C<T>
+{
+    public C(T t) => this.t = t;
+    public C(){}
+
+    T t;
+
+    T M() => t;
+    
+    public void Print() => Console.WriteLine(M()?.ToString());
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new C<int>().Print();
+        new C<int?>().Print();
+        new C<int?>(0).Print();
+        new C<string>(""hello"").Print();
+        new C<string>().Print();
+    }
+}
+";
+            var verify = CompileAndVerify(source, expectedOutput: @"0
+
+0
+hello
+");
+
+            verify.VerifyIL("C<T>.Print()", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T C<T>.M()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0015
+  IL_0011:  pop
+  IL_0012:  ldnull
+  IL_0013:  br.s       IL_0020
+  IL_0015:  constrained. ""T""
+  IL_001b:  callvirt   ""string object.ToString()""
+  IL_0020:  call       ""void System.Console.WriteLine(string)""
+  IL_0025:  ret
+}");
+
+        }
     }
 }

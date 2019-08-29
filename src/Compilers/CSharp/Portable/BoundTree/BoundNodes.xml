@@ -602,9 +602,21 @@
     <Field Name="GetFieldFromHandle" Type="MethodSymbol?"/>
   </Node>
 
+  <!--
+  Default literals can convert to the target type.
+  Does not survive initial lowering.
+  -->
+   <Node Name="BoundDefaultLiteral" Base="BoundExpression">
+    <!-- Type is null. -->
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+  </Node>
+
+  <!--
+  The default expression is `default(T)` expression or `default` literal which has been already converted to a target type.
+  -->
   <Node Name="BoundDefaultExpression" Base="BoundExpression">
-    <!-- Type is null in the case of a default literal, and non-null for default(T). -->
-    <Field Name="Type" Type="TypeSymbol?" Override="true"/>
+    <!-- Converted default expression must have a type. -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="TargetType" Type="BoundTypeExpression?" SkipInVisitor="true"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
   </Node>
@@ -1457,7 +1469,7 @@
     <Field Name="Properties" Type="ImmutableArray&lt;PropertySymbol&gt;" />
   </Node>
 
-  <Node Name="BoundCall" Base="BoundExpression" SkipInNullabilityRewriter="true">
+  <Node Name="BoundCall" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 

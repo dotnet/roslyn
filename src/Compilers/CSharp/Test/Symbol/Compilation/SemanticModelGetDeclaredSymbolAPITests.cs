@@ -1938,7 +1938,7 @@ static class E
 
             // Type not satisfying constraint.
             symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
-            CheckSymbolsUnordered(symbols, "void B.F<B>()");
+            CheckSymbolsUnordered(symbols);
 
             // Same tests as above but with position outside of
             // static class defining extension methods.
@@ -1978,7 +1978,7 @@ static class E
 
             // Type not satisfying constraint.
             symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
-            CheckSymbolsUnordered(symbols, "void B.F<B>()");
+            CheckSymbolsUnordered(symbols);
         }
 
         [Fact]
@@ -5193,6 +5193,32 @@ class C
                 this.Incompletes.Add(node);
                 base.VisitIncompleteMember(node);
             }
+        }
+
+        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
+        [Fact]
+        public void TestLookupStaticMembersLocalFunction()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    static void M()
+    {
+        void Local() {}
+    }
+}
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var cu = tree.GetCompilationUnitRoot();
+            var typeDeclC = (TypeDeclarationSyntax)cu.Members.Single();
+            var methodDeclM = (MethodDeclarationSyntax)typeDeclC.Members.Single();
+
+            var symbols = model.LookupStaticMembers(methodDeclM.Body.SpanStart);
+
+            Assert.Contains(symbols, s => s.Name == "Local");
         }
     }
 }

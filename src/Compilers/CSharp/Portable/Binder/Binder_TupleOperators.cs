@@ -37,13 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (convertedType is null)
             {
+                // Note: issues with default will already have been reported by BindSimpleBinaryOperator (ie. we couldn't find a suitable element-wise operator)
                 if (@operator.InfoKind == TupleBinaryOperatorInfoKind.Multiple && expr is BoundTupleLiteral tuple)
                 {
                     // Although the tuple will remain typeless, we'll give elements converted types as possible
                     var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
                     if (multiple.Operators.Length == 0)
                     {
-                        return BindToNaturalType(expr, diagnostics);
+                        return BindToNaturalType(expr, diagnostics, reportDefaultMissingType: false);
                     }
 
                     ImmutableArray<BoundExpression> arguments = tuple.Arguments;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // This element isn't getting a converted type
-                return BindToNaturalType(expr, diagnostics);
+                return BindToNaturalType(expr, diagnostics, reportDefaultMissingType: false);
             }
 
             // We were able to determine a converted type (for this tuple literal or element), we can just convert to it

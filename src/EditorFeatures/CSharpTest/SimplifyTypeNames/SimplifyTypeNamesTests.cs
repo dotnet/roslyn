@@ -3963,6 +3963,22 @@ class C
 }", new TestParameters(options: PreferImplicitTypeWithSilent));
         }
 
+        [Fact, WorkItem(31849, "https://github.com/dotnet/roslyn/issues/31849")]
+        public async Task NoSuggestionOnNestedNullabilityRequired()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+using System.Threading.Tasks;
+
+class C
+{
+    Task<string?> FooAsync()
+    {
+        return Task.FromResult<[|string?|]>(""something"");
+    }
+}");
+        }
+
         [Theory]
         [InlineData(0)]
         [InlineData(1)]

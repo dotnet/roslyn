@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
                 var typeDeclaration = currentRoot.GetAnnotatedNodes(typeNodeAnnotation).SingleOrDefault();
 
-                if (typeDeclaration == default)
+                if (typeDeclaration == null)
                 {
                     continue;
                 }

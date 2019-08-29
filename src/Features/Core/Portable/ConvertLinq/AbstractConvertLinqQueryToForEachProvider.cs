@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var queryExpression = await FindNodeToRefactorAsync(context).ConfigureAwait(false);
