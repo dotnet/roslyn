@@ -3,13 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using System.Collections.Concurrent;
 
 #if HAS_IOPERATION
-using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 #endif
@@ -408,19 +406,13 @@ namespace Analyzer.Utilities.Extensions
 
 #if HAS_IOPERATION
         /// <summary>
-        /// PERF: Cache from method symbols to their topmost block operations to enable interprocedural flow analysis
-        /// across analyzers and analyzer callbacks to re-use the operations, semanticModel and control flow graph.
-        /// </summary>
-        /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>> s_methodToTopmostOperationBlockCache
-            = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>>();
-
-        /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
         /// </summary>
         public static IBlockOperation GetTopmostOperationBlock(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken = default)
         {
-            var methodToBlockMap = s_methodToTopmostOperationBlockCache.GetOrCreateValue(compilation);
+            // PERF: Cache from method symbols to their topmost block operations to enable interprocedural flow analysis
+            // across analyzers and analyzer callbacks to re-use the operations, semanticModel and control flow graph.
+            var methodToBlockMap = BoundedCompilationCache<ConcurrentDictionary<IMethodSymbol, IBlockOperation>>.GetOrCreateValue(compilation);
             return methodToBlockMap.GetOrAdd(method, ComputeTopmostOperationBlock);
 
             // Local functions.

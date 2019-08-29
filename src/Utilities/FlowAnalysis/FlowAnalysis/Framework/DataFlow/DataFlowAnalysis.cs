@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
@@ -21,9 +20,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         where TAnalysisResult : DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>
         where TBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        private static readonly ConditionalWeakTable<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>> s_resultCache =
-            new ConditionalWeakTable<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>>();
-
         protected DataFlowAnalysis(AbstractAnalysisDomain<TAnalysisData> analysisDomain, DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> operationVisitor)
         {
             AnalysisDomain = analysisDomain;
@@ -46,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return Run(analysisContext);
             }
 
-            var analysisResultsMap = s_resultCache.GetOrCreateValue(analysisContext.ControlFlowGraph.OriginalOperation);
+            var analysisResultsMap = BoundedCache<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>>.GetOrCreateValue(analysisContext.ControlFlowGraph.OriginalOperation);
             return analysisResultsMap.GetOrAdd(analysisContext, _ => Run(analysisContext));
         }
 

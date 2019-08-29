@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -25,8 +24,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </remarks>
     internal class TaintedDataConfig
     {
-        private static readonly ConditionalWeakTable<Compilation, TaintedDataConfig> s_ConfigsByCompilation = new ConditionalWeakTable<Compilation, TaintedDataConfig>();
-
         /// <summary>
         /// <see cref="WellKnownTypeProvider"/> for this instance's <see cref="Compilation"/>.
         /// </summary>
@@ -58,12 +55,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <returns>The TaintedDataConfig.</returns>
         public static TaintedDataConfig GetOrCreate(Compilation compilation)
         {
-            return s_ConfigsByCompilation.GetValue(compilation, CreateValueCallback);
-        }
+            return BoundedCompilationCacheWithFactory<TaintedDataConfig>.GetOrCreateValue(compilation, CreateTaintedDataConfig);
 
-        private static TaintedDataConfig CreateValueCallback(Compilation key)
-        {
-            return new TaintedDataConfig(key);
+            // Local functions.
+            static TaintedDataConfig CreateTaintedDataConfig(Compilation compilation)
+                => new TaintedDataConfig(compilation);
         }
 
         private TaintedDataConfig()

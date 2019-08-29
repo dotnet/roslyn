@@ -18,6 +18,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PooledHashSetExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)BoundedCompilationCacheWithFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BoundedCompilationCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.AssemblyMetricData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.EventMetricData.cs" />
@@ -30,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\MetricsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\SemanticModelProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CommonAccessibilityUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BoundedCacheWithFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DoNotCatchGeneralUnlessRethrown.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\KeyValuePairExtensions.cs" />
@@ -69,6 +72,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FxCopWellKnownDiagnosticTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnusedValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BoundedCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WordParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WordParserOptions.cs" />

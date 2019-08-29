@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
@@ -28,10 +28,6 @@ namespace Analyzer.Utilities
                 "System.IO.TextWriter",
                 "System.Resources.IResourceReader",
             };
-        private static readonly ConditionalWeakTable<Compilation, DisposeAnalysisHelper> s_DisposeHelperCache =
-            new ConditionalWeakTable<Compilation, DisposeAnalysisHelper>();
-        private static readonly ConditionalWeakTable<Compilation, DisposeAnalysisHelper>.CreateValueCallback s_DisposeHelperCacheCallback =
-            new ConditionalWeakTable<Compilation, DisposeAnalysisHelper>.CreateValueCallback(compilation => new DisposeAnalysisHelper(compilation));
 
         private static readonly ImmutableHashSet<OperationKind> s_DisposableCreationKinds = ImmutableHashSet.Create(
             OperationKind.ObjectCreation,
@@ -79,7 +75,7 @@ namespace Analyzer.Utilities
 
         public static bool TryGetOrCreate(Compilation compilation, out DisposeAnalysisHelper disposeHelper)
         {
-            disposeHelper = s_DisposeHelperCache.GetValue(compilation, s_DisposeHelperCacheCallback);
+            disposeHelper = BoundedCompilationCacheWithFactory<DisposeAnalysisHelper>.GetOrCreateValue(compilation, CreateDisposeAnalysisHelper);
             if (disposeHelper.IDisposable == null)
             {
                 disposeHelper = null;
@@ -87,6 +83,10 @@ namespace Analyzer.Utilities
             }
 
             return true;
+
+            // Local functions
+            static DisposeAnalysisHelper CreateDisposeAnalysisHelper(Compilation compilation)
+                => new DisposeAnalysisHelper(compilation);
         }
 
         public bool TryGetOrComputeResult(
