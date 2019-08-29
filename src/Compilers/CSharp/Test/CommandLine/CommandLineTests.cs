@@ -5606,7 +5606,7 @@ class Test { static void Main() {} }").Path;
 
             var tempOut = Temp.CreateFile();
 
-            var output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"" + s_CSharpCompilerExecutable + "\" /nologo /preferreduilang:en /t:library \"" + srcFile + "\" > \"" + tempOut.Path + "\"", expectedRetCode: 1);
+            var output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"" + s_CSharpCompilerExecutable + "\" /nologo /preferreduilang:en /t:library " + srcFile + " > " + tempOut.Path, expectedRetCode: 1);
             Assert.Equal("", output.Trim());
             Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'", tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
 
@@ -5621,7 +5621,7 @@ class Test { static void Main() {} }").Path;
 
             var tempOut = Temp.CreateFile();
 
-            var output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"" + s_CSharpCompilerExecutable + "\" /utf8output /nologo /preferreduilang:en /t:library \"" + srcFile + "\" > \"" + tempOut.Path + "\"", expectedRetCode: 1);
+            var output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"" + s_CSharpCompilerExecutable + "\" /utf8output /nologo /preferreduilang:en /t:library " + srcFile + " > " + tempOut.Path, expectedRetCode: 1);
             Assert.Equal("", output.Trim());
             Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♚'", tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
 
@@ -5842,18 +5842,18 @@ public class CS1698_a {}
             var _ref = folder.CreateFile("ref.dll").WriteAllText("").Path;
             try
             {
-                var output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls \"" + _ref + "\" /inheritance:r /Q");
+                var output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls " + _ref + " /inheritance:r /Q");
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim());
 
-                output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls \"" + _ref + @""" /deny %USERDOMAIN%\%USERNAME%:(r,WDAC) /Q");
+                output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls " + _ref + @" /deny %USERDOMAIN%\%USERNAME%:(r,WDAC) /Q");
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim());
 
-                output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"" + s_CSharpCompilerExecutable + "\" /nologo /preferreduilang:en /r:\"" + _ref + "\" /t:library \"" + source + "\"", expectedRetCode: 1);
+                output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"" + s_CSharpCompilerExecutable + "\" /nologo /preferreduilang:en /r:" + _ref + " /t:library " + source, expectedRetCode: 1);
                 Assert.Equal("error CS0009: Metadata file '" + _ref + "' could not be opened -- Access to the path '" + _ref + "' is denied.", output.Trim());
             }
             finally
             {
-                var output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls \"" + _ref + "\" /reset /Q");
+                var output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls " + _ref + " /reset /Q");
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim());
                 File.Delete(_ref);
             }
