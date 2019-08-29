@@ -1,7 +1,7 @@
 parameters:
-  enableSourceLinkValidation: true
+  enableSourceLinkValidation: false
   enableSigningValidation: true
-  enableSymbolValidation: true
+  enableSymbolValidation: false
   enableNugetValidation: true
   publishInstallersAndChecksums: false
   SDLValidationParameters:
