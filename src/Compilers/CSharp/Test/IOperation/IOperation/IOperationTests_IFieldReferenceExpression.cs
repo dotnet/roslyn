@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Linq;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -664,6 +666,51 @@ Block[B2] - Exit
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(38195, "https://github.com/dotnet/roslyn/issues/38195")]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.NullableReferenceTypes)]
+        public void NullableFieldReference()
+        {
+            var compWithoutNullable = CreateCompilation(@"
+class C<T>
+{
+    private C<T> _field;
+    public static void M(C<T> p)
+    {
+        _ = p._field;
+    }
+}");
+            var compWithNullable = CreateCompilation(@"
+#nullable enable
+class C<T>
+{
+    private C<T>? _field;
+    public static void M(C<T> p)
+    {
+        _ = p._field;
+    }
+}", options: WithNonNullTypesTrue());
+
+
+            testCore(compWithoutNullable);
+            testCore(compWithNullable);
+
+            static void testCore(CSharpCompilation comp)
+            {
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var root = syntaxTree.GetRoot();
+                var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+                var classSym = (INamedTypeSymbol)model.GetDeclaredSymbol(classDecl);
+                var fieldSym = classSym.GetMembers("_field").Single();
+
+                var methodDecl = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+                var methodBlockOperation = model.GetOperation(methodDecl);
+                var fieldReferenceOperation = methodBlockOperation.Descendants().OfType<IFieldReferenceOperation>().Single();
+                Assert.True(fieldSym.Equals(fieldReferenceOperation.Field));
+            }
         }
     }
 }

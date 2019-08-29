@@ -498,6 +498,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitField(this);
         }
 
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        {
+            FieldSymbol other = obj as FieldSymbol;
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return ReferenceEquals(this.OriginalDefinition, other.OriginalDefinition) &&
+                   TypeSymbol.Equals(ContainingType, other.ContainingType, compareKind) &&
+                   TypeSymbol.Equals(Type, other.Type, compareKind);
+        }
+
         #endregion
     }
 }

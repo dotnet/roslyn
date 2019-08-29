@@ -384,44 +384,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return code;
         }
 
-        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
-        {
-            SubstitutedMethodSymbol other = obj as SubstitutedMethodSymbol;
-            if ((object)other == null) return false;
-
-            if ((object)this.OriginalDefinition != (object)other.OriginalDefinition &&
-                this.OriginalDefinition != other.OriginalDefinition)
-            {
-                return false;
-            }
-
-            // This checks if the methods have the same definition and the type parameters on the containing types have been
-            // substituted in the same way.
-            if (!TypeSymbol.Equals(this.ContainingType, other.ContainingType, compareKind)) return false;
-
-            // If both are declarations, then we don't need to check type arguments
-            // If exactly one is a declaration, then they re not equal
-            bool selfIsDeclaration = (object)this == (object)this.ConstructedFrom;
-            bool otherIsDeclaration = (object)other == (object)other.ConstructedFrom;
-            // PERF: VSadov specifically replaced the short-circuited operators in changeset #24717.
-            if (selfIsDeclaration | otherIsDeclaration)
-            {
-                return selfIsDeclaration & otherIsDeclaration;
-            }
-
-            // This checks if the type parameters on the method itself have been substituted in the same way.
-            int arity = this.Arity;
-            for (int i = 0; i < arity; i++)
-            {
-                if (!this.TypeArgumentsWithAnnotations[i].Equals(other.TypeArgumentsWithAnnotations[i], compareKind))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         public override int GetHashCode()
         {
             int code = _hashCode;
