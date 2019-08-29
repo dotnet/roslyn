@@ -133,7 +133,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
             }
 
-            return new TaintedDataConfig(wellKnownTypeProvider,
+            return new TaintedDataConfig(
+                wellKnownTypeProvider,
                 sourceSymbolMapBuilder.ToImmutableDictionary(),
                 sanitizerSymbolMapBuilder.ToImmutableDictionary(),
                 sinkSymbolMapBuilder.ToImmutableDictionary());
