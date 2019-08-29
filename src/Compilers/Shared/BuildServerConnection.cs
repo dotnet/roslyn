@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 keepAlive,
                 libEnvVariable,
                 timeoutOverride: null,
-                tryCreateServerFunc: TryCreateServerCore,
+                createServerFunc: TryCreateServerCore,
                 cancellationToken: cancellationToken);
         }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string keepAlive,
             string libEnvVariable,
             int? timeoutOverride,
-            Func<string, string, bool> tryCreateServerFunc,
+            CreateServerFunc createServerFunc,
             CancellationToken cancellationToken)
         {
             if (pipeName == null)
@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
             Task<NamedPipeClientStream> pipeTask = null;
             IServerMutex clientMutex = null;
-            var holdsMutex = false;
             try
             {
+                var holdsMutex = false;
                 try
                 {
                     var clientMutexName = GetClientMutexName(pipeName);
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 bool wasServerRunning = WasServerMutexOpen(serverMutexName);
                 var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
-                if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
+                if (wasServerRunning || createServerFunc(clientDir, pipeName))
                 {
                     pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
                 }

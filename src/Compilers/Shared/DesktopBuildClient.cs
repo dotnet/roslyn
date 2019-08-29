@@ -8,22 +8,26 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
+    internal delegate bool CreateServerFunc(string clientDir, string pipeName);
+
     internal class DesktopBuildClient : BuildClient
     {
         private readonly RequestLanguage _language;
         private readonly CompileFunc _compileFunc;
         private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
+        private readonly CreateServerFunc _createServerFunc;
 
         /// <summary>
         /// When set it overrides all timeout values in milliseconds when communicating with the server.
         /// </summary>
         internal int? TimeoutOverride { get; set; }
 
-        internal DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
+        internal DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader, CreateServerFunc createServerFunc = null)
         {
             _language = language;
             _compileFunc = compileFunc;
             _analyzerAssemblyLoader = analyzerAssemblyLoader;
+            _createServerFunc = createServerFunc ?? BuildServerConnection.TryCreateServerCore;
         }
 
         internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
@@ -58,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libDirectory,
             CancellationToken cancellationToken)
         {
-            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
+            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, _createServerFunc, cancellationToken);
         }
 
         private static Task<BuildResponse> RunServerCompilationCore(
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string keepAlive,
             string libEnvVariable,
             int? timeoutOverride,
-            Func<string, string, bool> tryCreateServerFunc,
+            CreateServerFunc createServerFunc,
             CancellationToken cancellationToken)
         {
             var alt = new BuildPathsAlt(
@@ -86,17 +90,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 keepAlive,
                 libEnvVariable,
                 timeoutOverride,
-                tryCreateServerFunc,
+                createServerFunc,
                 cancellationToken);
-        }
-
-        /// <summary>
-        /// Create a new instance of the server process, returning true on success
-        /// and false otherwise.
-        /// </summary>
-        protected virtual bool TryCreateServer(string clientDir, string pipeName)
-        {
-            return BuildServerConnection.TryCreateServerCore(clientDir, pipeName);
         }
 
         /// <summary>

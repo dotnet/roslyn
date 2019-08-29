@@ -22,37 +22,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public abstract class DesktopBuildClientTests : TestBase
     {
-        private sealed class TestableDesktopBuildClient : DesktopBuildClient
-        {
-            private readonly Func<string, bool> _createServerFunc;
-            private readonly Func<Task<BuildResponse>> _runServerCompilationFunc;
-
-            public TestableDesktopBuildClient(
-                RequestLanguage language,
-                CompileFunc compileFunc,
-                Func<string, bool> createServerFunc,
-                Func<Task<BuildResponse>> runServerCompilationFunc) : base(language, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
-            {
-                _createServerFunc = createServerFunc;
-                _runServerCompilationFunc = runServerCompilationFunc;
-            }
-
-            protected override bool TryCreateServer(string clientDir, string pipeName)
-            {
-                return _createServerFunc(pipeName);
-            }
-
-            protected override Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string sessionKey, string keepAlive, string libDirectory, CancellationToken cancellationToken)
-            {
-                if (_runServerCompilationFunc != null)
-                {
-                    return _runServerCompilationFunc();
-                }
-
-                return base.RunServerCompilation(arguments, buildPaths, sessionKey, keepAlive, libDirectory, cancellationToken);
-            }
-        }
-
         public sealed class ServerTests : DesktopBuildClientTests
         {
             private readonly string _pipeName = Guid.NewGuid().ToString("N");
@@ -87,16 +56,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 
-            private TestableDesktopBuildClient CreateClient(
+            private DesktopBuildClient CreateClient(
                 RequestLanguage? language = null,
                 CompileFunc compileFunc = null,
-                Func<string, bool> createServerFunc = null,
-                Func<Task<BuildResponse>> runServerCompilationFunc = null)
+                CreateServerFunc createServerFunc = null)
             {
                 language = language ?? RequestLanguage.CSharpCompile;
                 compileFunc = compileFunc ?? delegate { return 0; };
-                createServerFunc = createServerFunc ?? TryCreateServer;
-                return new TestableDesktopBuildClient(language.Value, compileFunc, createServerFunc, runServerCompilationFunc);
+                createServerFunc = createServerFunc ?? ((_, pipeName) => TryCreateServer(pipeName));
+                return new DesktopBuildClient(language.Value, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object, createServerFunc);
+            }
+
+            private ServerData CreateServer(string pipeName, ICompilerServerHost compilerServerHost = null)
+            {
+                var serverData = ServerUtil.CreateServer(pipeName, compilerServerHost).GetAwaiter().GetResult();
+                _serverDataList.Add(serverData);
+                return serverData;
             }
 
             private bool TryCreateServer(string pipeName)
@@ -107,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return false;
                 }
 
-                var serverData = ServerUtil.CreateServer(pipeName).GetAwaiter().GetResult();
-                _serverDataList.Add(serverData);
+                CreateServer(pipeName);
                 return true;
             }
 
@@ -224,39 +198,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.True(ranLocal);
                 Assert.Equal(1, _failedCreatedServerCount);
                 Assert.Equal(0, _serverDataList.Count);
-            }
-
-            [Fact]
-            [WorkItem(7866, "https://github.com/dotnet/roslyn/issues/7866")]
-            public void RunServerCompilationThrows()
-            {
-                bool ranLocal;
-                Func<int> compileFunc = () =>
-                {
-                    ranLocal = true;
-                    return CommonCompiler.Succeeded;
-                };
-
-                TestableDesktopBuildClient client;
-                RunCompilationResult result;
-
-                ranLocal = false;
-                client = CreateClient(
-                    compileFunc: delegate { return compileFunc(); },
-                    runServerCompilationFunc: () => Task.FromException<BuildResponse>(new Exception()));
-                result = client.RunCompilation(new[] { "/shared" }, _buildPaths, pipeName: _pipeName);
-                Assert.Equal(CommonCompiler.Succeeded, result.ExitCode);
-                Assert.False(result.RanOnServer);
-                Assert.True(ranLocal);
-
-                ranLocal = false;
-                client = CreateClient(
-                    compileFunc: delegate { return compileFunc(); },
-                    runServerCompilationFunc: () => { throw new Exception(); });
-                result = client.RunCompilation(new[] { "/shared" }, _buildPaths, pipeName: _pipeName);
-                Assert.Equal(CommonCompiler.Succeeded, result.ExitCode);
-                Assert.False(result.RanOnServer);
-                Assert.True(ranLocal);
             }
         }
 
