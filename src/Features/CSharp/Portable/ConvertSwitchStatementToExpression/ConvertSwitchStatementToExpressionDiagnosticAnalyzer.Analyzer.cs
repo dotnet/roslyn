@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     var declaration = declarator.GetAncestor<StatementSyntax>();
                     if (declaration.Parent == node.Parent && declarator.Initializer is null)
                     {
-                        var beforeSwitch = node.GetPreviousStatement() is {} previousStatement
+                        var beforeSwitch = node.GetPreviousStatement() is StatementSyntax previousStatement
                             ? semanticModel.AnalyzeDataFlow(declaration, previousStatement)
                             : semanticModel.AnalyzeDataFlow(declaration);
                         if (!beforeSwitch.WrittenInside.Contains(symbol))
@@ -65,15 +65,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private (VariableDeclaratorSyntax, ISymbol)? TryGetVariableDeclaratorAndSymbol(SemanticModel semanticModel)
             {
-                if (_assignmentTargetOpt.IsKind(SyntaxKind.IdentifierName) &&
-                    semanticModel.GetSymbolInfo(_assignmentTargetOpt).Symbol is
-                        { Kind: SymbolKind.Local, DeclaringSyntaxReferences: { Length: 1 } syntaxRefs } symbol &&
-                    syntaxRefs[0].GetSyntax() is VariableDeclaratorSyntax declarator)
+                if (!_assignmentTargetOpt.IsKind(SyntaxKind.IdentifierName))
                 {
-                    return (declarator, symbol);
+                    return null;
                 }
 
-                return null;
+                var symbol = semanticModel.GetSymbolInfo(_assignmentTargetOpt).Symbol;
+                if (!(symbol is { Kind: SymbolKind.Local, DeclaringSyntaxReferences: { Length: 1 } syntaxRefs }))
+                {
+                    return null;
+                }
+
+                if (!(syntaxRefs[0].GetSyntax() is VariableDeclaratorSyntax declarator))
+                {
+                    return null;
+                }
+
+                return (declarator, symbol);
             }
 
             private static bool IsDefaultSwitchLabel(SwitchLabelSyntax node)
