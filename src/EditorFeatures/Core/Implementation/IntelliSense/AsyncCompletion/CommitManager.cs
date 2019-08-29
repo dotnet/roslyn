@@ -89,18 +89,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
+                FatalError.ReportWithoutCrash(new InvalidOperationException("the document is null."));
                 return CommitResultUnhandled;
             }
 
             var completionService = document.GetLanguageService<CompletionService>();
             if (completionService == null)
             {
+                FatalError.ReportWithoutCrash(new InvalidOperationException("the completionService is null."));
                 return CommitResultUnhandled;
             }
 
             if (!item.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
             {
                 // Roslyn should not be called if the item committing was not provided by Roslyn.
+                FatalError.ReportWithoutCrash(new InvalidOperationException("the roslynItem is null."));
                 return CommitResultUnhandled;
             }
 
@@ -128,17 +131,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 // Need the trigger snapshot to calculate the span when the commit changes to be applied.
                 // They should always be available from VS. Just to be defensive, if it's not found here, Roslyn should not make a commit.
+                FatalError.ReportWithoutCrash(new InvalidOperationException("the triggerLocation is null."));
                 return CommitResultUnhandled;
             }
 
             if (!session.Properties.TryGetProperty(CompletionSource.CompletionListSpan, out TextSpan completionListSpan))
             {
+                FatalError.ReportWithoutCrash(new InvalidOperationException("the completionListSpan is null."));
                 return CommitResultUnhandled;
             }
 
             var triggerDocument = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (triggerDocument == null)
             {
+                FatalError.ReportWithoutCrash(new InvalidOperationException("the triggerDocument is null."));
                 return CommitResultUnhandled;
             }
 

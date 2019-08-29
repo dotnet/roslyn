@@ -121,6 +121,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (session is EditorAsyncCompletion.IAsyncCompletionSessionOperations sessionOperations)
             {
                 initialTriggerLocation = sessionOperations.InitialTriggerLocation;
+#if DEBUG
+                if (initialTriggerLocation == default)
+                {
+                    FatalError.ReportWithoutCrash(new InvalidOperationException("the trigger location provided is default."));
+                }
+#endif
                 return true;
             }
 
