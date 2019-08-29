@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
@@ -9,11 +8,9 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    using PointsToChecksAndTargets = ImmutableDictionary<IsInvocationTaintedWithPointsToAnalysis, ImmutableHashSet<string>>;
-    using ValueContentChecksAndTargets = ImmutableDictionary<IsInvocationTaintedWithValueContentAnalysis, ImmutableHashSet<string>>;
-
-    public delegate bool IsInvocationTaintedWithPointsToAnalysis(IEnumerable<IArgumentOperation> arguments, IEnumerable<PointsToAbstractValue> argumentPointsTo);
-    public delegate bool IsInvocationTaintedWithValueContentAnalysis(IEnumerable<IArgumentOperation> arguments, IEnumerable<PointsToAbstractValue> argumentPonitsTos, IEnumerable<ValueContentAbstractValue> argumentValueContents);
+    internal delegate bool PointsToCheck(ImmutableArray<PointsToAbstractValue> pointsTos);
+    internal delegate bool ValueContentCheck(ImmutableArray<PointsToAbstractValue> pointsTos, ImmutableArray<ValueContentAbstractValue> valueContents);
+    internal delegate bool MethodMapper(string methodName, ImmutableArray<IArgumentOperation> arguments);
 
     /// <summary>
     /// Info for tainted data sources, which generate tainted data.
@@ -32,8 +29,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string fullTypeName,
             bool isInterface,
             ImmutableHashSet<string> taintedProperties,
-            ImmutableDictionary<string, PointsToChecksAndTargets> taintedMethodsNeedsPointsToAnalysis,
-            ImmutableDictionary<string, ValueContentChecksAndTargets> taintedMethodsNeedsValueContentAnalysis,
+            ImmutableDictionary<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>> taintedMethodsNeedsPointsToAnalysis,
+            ImmutableDictionary<MethodMapper, ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>> taintedMethodsNeedsValueContentAnalysis,
+            ImmutableDictionary<MethodMapper, ImmutableHashSet<(string, string)>> passerMethods,
             bool taintConstantArray)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
@@ -41,6 +39,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedProperties = taintedProperties ?? throw new ArgumentNullException(nameof(taintedProperties));
             TaintedMethodsNeedsPointsToAnalysis = taintedMethodsNeedsPointsToAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsPointsToAnalysis));
             TaintedMethodsNeedsValueContentAnalysis = taintedMethodsNeedsValueContentAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsValueContentAnalysis));
+            PasserMethods = passerMethods ?? throw new ArgumentNullException(nameof(passerMethods));
             TaintConstantArray = taintConstantArray;
         }
 
@@ -62,23 +61,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Methods that generate tainted data and whose arguments don't need extra value content analysis.
         /// </summary>
-        public ImmutableDictionary<string, PointsToChecksAndTargets> TaintedMethodsNeedsPointsToAnalysis { get; }
+        public ImmutableDictionary<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>> TaintedMethodsNeedsPointsToAnalysis { get; }
 
         /// <summary>
         /// Methods that generate tainted data and whose arguments need extra value content analysis and points to analysis.
         /// </summary>
-        public ImmutableDictionary<string, ValueContentChecksAndTargets> TaintedMethodsNeedsValueContentAnalysis { get; }
+        public ImmutableDictionary<MethodMapper, ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>> TaintedMethodsNeedsValueContentAnalysis { get; }
+
+        /// <summary>
+        /// Methods that could taint another argument when one of its argument is tainted.
+        /// </summary>
+        public ImmutableDictionary<MethodMapper, ImmutableHashSet<(string, string)>> PasserMethods { get; }
 
         /// <summary>
         /// Indicates arrays initialized with constant values of this type generates tainted data.
         /// </summary>
         public bool TaintConstantArray { get; }
-
-
-        /// <summary>
-        /// Indicates that this <see cref="SourceInfo"/> uses <see cref="PointsToAbstractValue"/>s.
-        /// </summary>
-        public bool RequiresPointsToAnalysis => this.TaintedMethodsNeedsPointsToAnalysis != null;
 
         /// <summary>
         /// Indicates that this <see cref="SourceInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
@@ -91,8 +89,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 HashUtilities.Combine(this.TaintedProperties,
                 HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis,
                 HashUtilities.Combine(this.TaintedMethodsNeedsValueContentAnalysis,
+                HashUtilities.Combine(this.PasserMethods,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                    StringComparer.Ordinal.GetHashCode(this.FullTypeName))))));
+                    StringComparer.Ordinal.GetHashCode(this.FullTypeName)))))));
         }
 
         public override bool Equals(object obj)
@@ -108,6 +107,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.TaintedProperties == other.TaintedProperties
                 && this.TaintedMethodsNeedsPointsToAnalysis == other.TaintedMethodsNeedsPointsToAnalysis
                 && this.TaintedMethodsNeedsValueContentAnalysis == other.TaintedMethodsNeedsValueContentAnalysis
+                && this.PasserMethods == other.PasserMethods
                 && this.TaintConstantArray == other.TaintConstantArray;
         }
     }

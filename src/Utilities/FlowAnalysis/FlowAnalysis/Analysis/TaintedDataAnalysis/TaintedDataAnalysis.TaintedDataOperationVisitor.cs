@@ -9,8 +9,6 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
@@ -212,7 +210,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 TaintedDataAbstractValue defaultValue)
             {
                 // Always invoke base visit.
-                TaintedDataAbstractValue baseVisit = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
+                TaintedDataAbstractValue result = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
                     method,
                     visitedInstance,
                     visitedArguments,
@@ -227,57 +225,64 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
 
                 PooledHashSet<string> taintedTargets = null;
+                PooledHashSet<(string, string)> taintedParameterPairs = null;
                 try
                 {
                     if (this.IsSanitizingMethod(method))
                     {
-                        return TaintedDataAbstractValue.NotTainted;
+                        result = TaintedDataAbstractValue.NotTainted;
                     }
                     else if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
                     {
-                        if (AnalysisEntityFactory.TryCreate(visitedInstance, out AnalysisEntity analysisEntity))
-                        {
-                            this.CurrentAnalysisData.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.NotTainted);
-                        }
-
-                        return TaintedDataAbstractValue.NotTainted;
+                        result = TaintedDataAbstractValue.NotTainted;
+                        SetTaintedForEntity(visitedInstance, result);
                     }
                     else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
                         method,
                         visitedArguments,
-                        (originalOperation as IInvocationOperation).Arguments.Select(o => GetPointsToAbstractValue(o.Value)),
-                        (originalOperation as IInvocationOperation).Arguments.Select(o => GetValueContentAbstractValue(o.Value)),
+                        (originalOperation as IInvocationOperation).Arguments.Select(o => GetPointsToAbstractValue(o.Value)).ToImmutableArray(),
+                        (originalOperation as IInvocationOperation).Arguments.Select(o => GetValueContentAbstractValue(o.Value)).ToImmutableArray(),
                         out taintedTargets))
                     {
-                        foreach (var taintedTarget in taintedTargets)
+                        foreach (string taintedTarget in taintedTargets)
                         {
-                            if (taintedTarget != "RETURN")
+                            if (taintedTarget != TaintedTargetValue.Return)
                             {
                                 IArgumentOperation argumentOperation = visitedArguments.FirstOrDefault(o => o.Parameter.Name == taintedTarget);
-                                if (argumentOperation != null && AnalysisEntityFactory.TryCreate(argumentOperation, out AnalysisEntity analysisEntity))
-                                {
-                                    IParameterReferenceOperation argumentValue = argumentOperation.Value as IParameterReferenceOperation;
-                                    this.CurrentAnalysisData.SetAbstractValue(analysisEntity, TaintedDataAbstractValue.CreateTainted(argumentValue.Parameter, argumentValue.Syntax, this.OwningSymbol));
-                                }
+                                this.CacheAbstractValue(argumentOperation, TaintedDataAbstractValue.CreateTainted(argumentOperation.Parameter, argumentOperation.Syntax, method));
+                            }
+                            else
+                            {
+                                result = TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                             }
                         }
+                    }
 
-                        if (taintedTargets.Contains("RETURN"))
+                    if (this.DataFlowAnalysisContext.SourceInfos.IsSourcePasserMethod(
+                        method,
+                        visitedArguments,
+                        visitedArguments
+                            .Where(s => this.GetCachedAbstractValue(s).Kind == TaintedDataAbstractValueKind.Tainted)
+                            .Select(s => s.Parameter.Name)
+                            .ToImmutableArray(),
+                        out taintedParameterPairs))
+                    {
+                        foreach ((string source, string end) in taintedParameterPairs)
                         {
-                            return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
-                        }
-                        else
-                        {
-                            return TaintedDataAbstractValue.NotTainted;
+                            SetTaintedForEntity(
+                                visitedArguments.FirstOrDefault(o => o.Parameter.Name == end),
+                                this.GetCachedAbstractValue(
+                                    visitedArguments.FirstOrDefault(o => o.Parameter.Name == source)));
                         }
                     }
                 }
                 finally
                 {
                     taintedTargets?.Free();
+                    taintedParameterPairs?.Free();
                 }
 
-                return baseVisit;
+                return result;
             }
 
             public override TaintedDataAbstractValue VisitInvocation_LocalFunction(IMethodSymbol localFunction, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, TaintedDataAbstractValue defaultValue)
@@ -580,6 +585,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                          && (a.Parameter.RefKind == RefKind.None
                              || a.Parameter.RefKind == RefKind.Ref
                              || a.Parameter.RefKind == RefKind.In));
+            }
+
+            private void SetTaintedForEntity(IOperation operation, TaintedDataAbstractValue value)
+            {
+                if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
+                {
+                    this.CurrentAnalysisData.SetAbstractValue(analysisEntity, value);
+                }
             }
 
             protected override void ApplyInterproceduralAnalysisResultCore(TaintedDataAnalysisData resultData)

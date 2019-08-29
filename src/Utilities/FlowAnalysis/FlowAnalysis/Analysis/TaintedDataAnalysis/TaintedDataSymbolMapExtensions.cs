@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -10,9 +11,6 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    using PointsToChecksAndTargets = ImmutableDictionary<IsInvocationTaintedWithPointsToAnalysis, ImmutableHashSet<string>>;
-    using ValueContentChecksAndTargets = ImmutableDictionary<IsInvocationTaintedWithValueContentAnalysis, ImmutableHashSet<string>>;
-
     internal static class TaintedDataSymbolMapExtensions
     {
         /// <summary>
@@ -21,49 +19,55 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <param name="sourceSymbolMap"></param>
         /// <param name="method"></param>
         /// <param name="arguments"></param>
-        /// <param name="argumentPointsTos"></param>
-        /// <param name="argumentValueContents"></param>
+        /// <param name="pointsTos"></param>
+        /// <param name="valueContents"></param>
         /// <param name="taintedTargets"></param>
         /// <returns></returns>
         public static bool IsSourceMethod(
             this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
             IMethodSymbol method,
             ImmutableArray<IArgumentOperation> arguments,
-            IEnumerable<PointsToAbstractValue> argumentPointsTos,
-            IEnumerable<ValueContentAbstractValue> argumentValueContents,
+            ImmutableArray<PointsToAbstractValue> pointsTos,
+            ImmutableArray<ValueContentAbstractValue> valueContents,
             out PooledHashSet<string> taintedTargets)
         {
             taintedTargets = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
             {
-                if (sourceInfo.TaintedMethodsNeedsPointsToAnalysis.TryGetValue(method.MetadataName, out PointsToChecksAndTargets pointsToChecksAndTargets))
+                foreach (KeyValuePair<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>> methodNeedsPointsToAnalysis in sourceInfo.TaintedMethodsNeedsPointsToAnalysis)
                 {
-                    foreach (KeyValuePair<IsInvocationTaintedWithPointsToAnalysis, ImmutableHashSet<string>> kvp in pointsToChecksAndTargets)
+                    if (methodNeedsPointsToAnalysis.Key(method.Name, arguments))
                     {
-                        if (argumentPointsTos != null && kvp.Key(arguments, argumentPointsTos))
+                        foreach (KeyValuePair<PointsToCheck, ImmutableHashSet<string>> kvp in methodNeedsPointsToAnalysis.Value)
                         {
-                            if (taintedTargets == null)
+                            if (kvp.Key(pointsTos))
                             {
-                                taintedTargets = PooledHashSet<string>.GetInstance();
-                            }
+                                if (taintedTargets == null)
+                                {
+                                    taintedTargets = PooledHashSet<string>.GetInstance();
+                                }
 
-                            taintedTargets.UnionWith(kvp.Value);
+                                taintedTargets.UnionWith(kvp.Value);
+                            }
                         }
                     }
                 }
 
-                if (sourceInfo.TaintedMethodsNeedsValueContentAnalysis.TryGetValue(method.MetadataName, out ValueContentChecksAndTargets valueContentChecksAndTargets))
+                foreach (KeyValuePair<MethodMapper, ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>> methodNeedsValueContentAnalysis in sourceInfo.TaintedMethodsNeedsValueContentAnalysis)
                 {
-                    foreach (KeyValuePair<IsInvocationTaintedWithValueContentAnalysis, ImmutableHashSet<string>> kvp in valueContentChecksAndTargets)
+                    if (methodNeedsValueContentAnalysis.Key(method.Name, arguments))
                     {
-                        if (argumentPointsTos != null && argumentValueContents != null && kvp.Key(arguments, argumentPointsTos, argumentValueContents))
+                        foreach (KeyValuePair<ValueContentCheck, ImmutableHashSet<string>> kvp in methodNeedsValueContentAnalysis.Value)
                         {
-                            if (taintedTargets == null)
+                            if (kvp.Key(pointsTos, valueContents))
                             {
-                                taintedTargets = PooledHashSet<string>.GetInstance();
-                            }
+                                if (taintedTargets == null)
+                                {
+                                    taintedTargets = PooledHashSet<string>.GetInstance();
+                                }
 
-                            taintedTargets.UnionWith(kvp.Value);
+                                taintedTargets.UnionWith(kvp.Value);
+                            }
                         }
                     }
                 }
@@ -111,6 +115,41 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Determines if the method taints other arguments cause some arguments are tainted.
+        /// </summary>
+        /// <param name="sourceSymbolMap"></param>
+        /// <param name="method"></param>
+        /// <param name="taintedParameterNames"></param>
+        /// <param name="taintedParameterPairs">The set of parameter pairs (tainted source parameter name, tainted end parameter name).</param>
+        /// <returns></returns>
+        public static bool IsSourcePasserMethod(
+            this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
+            IMethodSymbol method,
+            ImmutableArray<IArgumentOperation> arguments,
+            ImmutableArray<string> taintedParameterNames,
+            out PooledHashSet<(string, string)> taintedParameterPairs)
+        {
+            taintedParameterPairs = null;
+            foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
+            {
+                foreach (KeyValuePair<MethodMapper, ImmutableHashSet<(string source, string)>> passerMethod in sourceInfo.PasserMethods)
+                {
+                    if (passerMethod.Key(method.Name, arguments))
+                    {
+                        if (taintedParameterPairs == null)
+                        {
+                            taintedParameterPairs = PooledHashSet<(string, string)>.GetInstance();
+                        }
+
+                        taintedParameterPairs.UnionWith(passerMethod.Value.Where(s => taintedParameterNames.Contains(s.source)));
+                    }
+                }
+            }
+
+            return taintedParameterPairs != null;
         }
     }
 }
