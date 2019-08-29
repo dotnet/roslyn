@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using System.Collections.Concurrent;
 
 #if HAS_IOPERATION
+using System.Collections.Concurrent;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 #endif
