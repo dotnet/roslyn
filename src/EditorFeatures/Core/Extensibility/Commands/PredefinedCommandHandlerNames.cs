@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string FormatDocument = "Format Document Command Handler";
 
         /// <summary>
+        /// Command handler name for Go to Base.
+        /// </summary>
+        public const string GoToBase = "Go To Base Command Handler";
+
+        /// <summary>
         /// Command handler name for Go to Definition.
         /// </summary>
         public const string GoToDefinition = "Go To Definition Command Handler";

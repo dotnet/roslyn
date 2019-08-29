@@ -2,6 +2,7 @@
 
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
@@ -16,9 +17,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
         Inherits AbstractEncapsulateFieldCommandHandler
 
         <ImportingConstructor>
-        Public Sub New(undoManager As ITextBufferUndoManagerProvider,
+        Public Sub New(threadingContext As IThreadingContext,
+                       undoManager As ITextBufferUndoManagerProvider,
                        listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(undoManager, listenerProvider)
+            MyBase.New(threadingContext, undoManager, listenerProvider)
         End Sub
     End Class
 End Namespace
