@@ -16,22 +16,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         private sealed class Rewriter : CSharpSyntaxVisitor<ExpressionSyntax>
         {
             private ExpressionSyntax _assignmentTargetOpt;
-            private bool _sawNullLiteral;
 
             private readonly bool _isAllThrowStatements;
-            private readonly SemanticModel _semanticModel;
 
-            private Rewriter(bool isAllThrowStatements, SemanticModel semanticModel)
+            private Rewriter(bool isAllThrowStatements)
             {
                 _isAllThrowStatements = isAllThrowStatements;
-                _semanticModel = semanticModel;
             }
 
             public static StatementSyntax Rewrite(
-                SwitchStatementSyntax switchStatement, SemanticModel semanticModel,
+                SwitchStatementSyntax switchStatement,
                 SyntaxKind nodeToGenerate, bool shouldMoveNextStatementToSwitchExpression, bool generateDeclaration)
             {
-                var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement, semanticModel);
+                var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
 
                 // Rewrite the switch statement as a switch expression.
                 var switchExpression = rewriter.RewriteSwitchStatement(switchStatement,
