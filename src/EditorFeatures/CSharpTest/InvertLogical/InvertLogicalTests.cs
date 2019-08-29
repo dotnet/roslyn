@@ -268,5 +268,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task MissingSelectedSubtree()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(int a, int b, int c)
+    {
+        var x = !(a <= 10 && [|b >= 20 && c != 30|]);
+    }
+}");
+        }
     }
 }
