@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -42,11 +39,16 @@ class C1
         [Fact]
         public void IsAccessibleLocationNotInSource()
         {
-            Assert.Throws(typeof(ArgumentOutOfRangeException), () =>
-                s_testModel.IsAccessible(-1, s_testSymbol));
+            checkException(-1);
+            checkException(s_testModel.SyntaxTree.GetCompilationUnitRoot().FullSpan.End + 1);
 
-            Assert.Throws(typeof(ArgumentOutOfRangeException), () =>
-                s_testModel.IsAccessible(s_testModel.SyntaxTree.GetCompilationUnitRoot().FullSpan.End + 1, s_testSymbol));
+            static void checkException(int position)
+            {
+                var ex = Assert.Throws<ArgumentOutOfRangeException>(() => s_testModel.IsAccessible(position, s_testSymbol));
+                var value = (SyntaxTreeAndPosition)ex.ActualValue;
+                Assert.Same(s_testModel.SyntaxTree, value.SyntaxTree);
+                Assert.Equal(position, value.Position);
+            }
         }
 
         [Fact]

@@ -1202,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return fullStart;
             }
 
-            throw new ArgumentOutOfRangeException(nameof(position), position,
+            throw new ArgumentOutOfRangeException(nameof(position), new SyntaxTreeAndPosition(this.SyntaxTree, position),
                 string.Format(CSharpResources.PositionIsNotWithinSyntax, Root.FullSpan));
         }
 
