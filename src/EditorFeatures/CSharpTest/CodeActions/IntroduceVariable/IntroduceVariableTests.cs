@@ -5698,8 +5698,7 @@ class C
     void M()
     {
         int x =
-            V
-            ;
+            V;
     }
 }");
         }
@@ -5725,8 +5724,7 @@ class C
     void M()
     {
         int x =
-            V
-            ;
+            V;
     }
 }");
         }
@@ -5769,8 +5767,7 @@ class C
     void M()
     {
         int x = /*comment1*/
-            V
-            ;
+            V;
     }
 }"
 );

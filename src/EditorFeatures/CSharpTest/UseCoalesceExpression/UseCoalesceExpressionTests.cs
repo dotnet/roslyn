@@ -492,5 +492,30 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        [WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
+        public async Task TestSemicolonPlacement()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(string s)
+    {
+        _ = [||]s == null
+            ? """"
+            : s;
+    }
+}",
+@"
+class C
+{
+    void M(string s)
+    {
+        _ = s ?? """";
+    }
+}");
+        }
     }
 }

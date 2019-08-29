@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
+using static Microsoft.CodeAnalysis.Formatting.Rules.AdjustSpacesOption;
+
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     // Review: this doesn't have any state. should this be a static class and remove
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private static readonly AdjustSpacesOperation s_defaultOneSpaceIfOnSingleLine = new AdjustSpacesOperation(1, AdjustSpacesOption.DefaultSpacesIfOnSingleLine);
         private static readonly AdjustSpacesOperation s_forceOneSpaceIfOnSingleLine = new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
         private static readonly AdjustSpacesOperation s_forceZeroSpaceIfOnSingleLine = new AdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+        private static readonly AdjustSpacesOperation s_forceZeroSpaces = new AdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
 
         // As the name suggests, the line force operation is performed by force spacing
         private static readonly AdjustSpacesOperation s_forceZeroLineUsingSpaceForce = new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
@@ -133,27 +136,16 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// instruct the engine to try to put the given spaces between two tokens
         /// </summary>
-        public static AdjustSpacesOperation CreateAdjustSpacesOperation(int space, AdjustSpacesOption option)
-        {
-            if (space == 1 && option == AdjustSpacesOption.DefaultSpacesIfOnSingleLine)
+        public static AdjustSpacesOperation CreateAdjustSpacesOperation(int space, AdjustSpacesOption option) =>
+            (space, option) switch
             {
-                return s_defaultOneSpaceIfOnSingleLine;
-            }
-            else if (space == 0 && option == AdjustSpacesOption.ForceSpacesIfOnSingleLine)
-            {
-                return s_forceZeroSpaceIfOnSingleLine;
-            }
-            else if (space == 1 && option == AdjustSpacesOption.ForceSpacesIfOnSingleLine)
-            {
-                return s_forceOneSpaceIfOnSingleLine;
-            }
-            else if (space == 1 && option == AdjustSpacesOption.ForceSpaces)
-            {
-                return s_forceZeroLineUsingSpaceForce;
-            }
-
-            return new AdjustSpacesOperation(space, option);
-        }
+                (1, DefaultSpacesIfOnSingleLine) => s_defaultOneSpaceIfOnSingleLine,
+                (0, ForceSpacesIfOnSingleLine) => s_forceZeroSpaceIfOnSingleLine,
+                (1, ForceSpacesIfOnSingleLine) => s_forceOneSpaceIfOnSingleLine,
+                (0, ForceSpaces) => s_forceZeroSpaces,
+                (1, ForceSpaces) => s_forceZeroLineUsingSpaceForce,
+                _ => new AdjustSpacesOperation(space, option)
+            };
 
         /// <summary>
         /// return SuppressOperation for the node provided by the given formatting rules
