@@ -7,6 +7,8 @@ using EditorAsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.A
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
@@ -122,6 +124,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return true;
             }
 
+#if DEBUG
+            FatalError.ReportWithoutCrash(new InvalidOperationException("sessions didn't provide the trigger location."));
+#endif
             initialTriggerLocation = default;
             return false;
         }
