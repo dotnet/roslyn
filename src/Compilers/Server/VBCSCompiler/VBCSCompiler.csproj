@@ -3,9 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.CompilerServer</RootNamespace>
     <LargeAddressAware>true</LargeAddressAware>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <UseVSHostingProcess>false</UseVSHostingProcess>

@@ -315,7 +315,7 @@ class Hello
                 try
                 {
                     var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-                    var result = DesktopBuildServerController.RunServer(
+                    var result = BuildServerController.CreateAndRunServer(
                         pipeName,
                         Path.GetTempPath(),
                         host.Object,
@@ -365,7 +365,7 @@ class Hello
                     return new TaskCompletionSource<IClientConnection>().Task;
                 });
 
-            var result = DesktopBuildServerController.RunServer(
+            var result = BuildServerController.CreateAndRunServer(
                 pipeName,
                 Path.GetTempPath(),
                 host.Object,

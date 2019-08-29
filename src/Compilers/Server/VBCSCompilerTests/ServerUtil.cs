@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             // The total pipe path must be < 92 characters on Unix, so trim this down to 10 chars
             pipeName = pipeName ?? Guid.NewGuid().ToString().Substring(0, 10);
-            compilerServerHost = compilerServerHost ?? DesktopBuildServerController.CreateCompilerServerHost();
+            compilerServerHost = compilerServerHost ?? BuildServerController.CreateCompilerServerHost();
             tempPath = tempPath ?? Path.GetTempPath();
-            var clientConnectionHost = DesktopBuildServerController.CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
+            var clientConnectionHost = BuildServerController.CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
 
             if (failingServer)
             {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 listener.Listening += (sender, e) => { serverListenSource.TrySetResult(true); };
                 try
                 {
-                    DesktopBuildServerController.RunServer(
+                    BuildServerController.CreateAndRunServer(
                         pipeName,
                         tempPath,
                         clientConnectionHost,
