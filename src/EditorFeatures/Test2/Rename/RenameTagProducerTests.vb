@@ -842,7 +842,7 @@ class Goo
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/38247")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_ReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
