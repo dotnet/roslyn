@@ -84,8 +84,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            // Doc data reloaded is the most reliable way to know when a document has been loaded and may have a text buffer we can get.
-            if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_DocDataReloaded) != 0)
+            // Either RDTA_DocDataReloaded or RDTA_DocumentInitialized will be triggered if there's a lazy load and the document is now available.
+            // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/937712 for a scenario where we do need the RDTA_DocumentInitialized check.
+            // We still check for RDTA_DocDataReloaded because the RDT will mark something as initialized as soon as there is something in the doc data,
+            // but that might still not be associated with an ITextBuffer.
+            if ((grfAttribs & ((uint)__VSRDTATTRIB.RDTA_DocDataReloaded | (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized)) != 0)
             {
                 _foregroundAffinitization.AssertIsForeground();
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBuffer(docCookie, out var buffer))
