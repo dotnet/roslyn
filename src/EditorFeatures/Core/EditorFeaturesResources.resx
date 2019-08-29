@@ -905,4 +905,16 @@ Do you want to proceed?</value>
   <data name="Rename_file_name_doesnt_match" xml:space="preserve">
     <value>Rename _file (type does not match file name)</value>
   </data>
+  <data name="Toggle_Block_Comment" xml:space="preserve">
+    <value>Toggle Block Comment</value>
+  </data>
+  <data name="Toggling_block_comment" xml:space="preserve">
+    <value>Toggling block comment...</value>
+  </data>
+  <data name="Toggle_Line_Comment" xml:space="preserve">
+    <value>Toggle Line Comment</value>
+  </data>
+  <data name="Toggling_line_comment" xml:space="preserve">
+    <value>Toggling line comment...</value>
+  </data>
 </root>

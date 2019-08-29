@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">Используйте версию языка {0} или более позднюю, чтобы использовать комментарии после символа продолжения строки.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">В одном каталоге ("{0}") не может находиться несколько файлов конфигурации анализатора.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">комментарии после продолжения строки</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -2147,7 +2147,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoubleToDateConversion">
         <source>Conversion from 'Double' to 'Date' requires calling the 'Date.FromOADate' method.</source>
-        <target state="translated">Для преобразования из типа Date в Double требуется вызов метода Date.ToOADate.</target>
+        <target state="translated">Для преобразования из типа Date в Double требуется вызов метода Date.FromOADate.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ZeroDivide">
@@ -2422,8 +2422,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedEndModule">
         <source>'Module' statement must end with a matching 'End Module'.</source>
-        <target state="translated">'Оператор "Module" должен заканчиваться соответствующим оператором "End Module".
-</target>
+        <target state="translated">'Оператор "Module" должен заканчиваться соответствующим оператором "End Module".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedEndNamespace">
@@ -3246,7 +3245,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">Символ продолжения строки "_" должен быть последним символом в строке и ему должен предшествовать по крайней мере один пробел в той же строке.</target>
+        <target state="translated">Перед символом продолжения строки "_" должен стоять по меньшей мере один пробел, а после этого символа должен идти комментарий, либо "_" должен быть последним символом в строке.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -9116,7 +9115,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <target state="translated">Имя файла "{0}" пустое, содержит недопустимые символы, имеет имя диска без абсолютного пути или слишком длинное.</target>
         <note />
       </trans-unit>
     </body>

@@ -15,12 +15,36 @@ Each entry should include a short description of the break, followed by either a
     void M()
     {
         void Local() {}
-        
+
         static void StaticLocal()
         {
             Local();
         }
     }
     ```
-    
+
     Such code will produce an error in version 16.4.
+
+3. https://github.com/dotnet/roslyn/issues/35684 In C# `7.1` the resolution of a binary operator with a `default` literal could result in using an object equality and giving the literal a type `object`.
+    For example, given a variable `t` of an unconstrained type `T`, `t == default` would be improperly allowed and emitted as `t == default(object)`.
+    Similarly, for a reference type without a custom `==` operator, `x == default` would be improperly allowed and emitted as `x == default(object)`.
+    In *Visual Studio 2019 version 16.4* these scenarios will now produce an error.
+
+4. In C# `7.1`, `default as TClass` and `using (default)` were allowed. In *Visual Studio 2019 version 16.4* those scenarios will now produce errors.
+
+5. https://github.com/dotnet/roslyn/issues/38240 Visual Studio 2019 version 16.3 incorrectly allowed for a `static` local function to create a delegate using a delegate creation expression whose target requires capturing state. For example:
+
+    ```c#
+    void M()
+    {
+        object local;
+
+        static void F()
+        {
+            _ = new Func<int>(local.GetHashCode);
+        }
+    }
+    ```
+
+    Such code will produce an error in version 16.4.
+    

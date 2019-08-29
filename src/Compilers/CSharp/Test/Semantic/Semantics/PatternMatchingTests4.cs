@@ -29,12 +29,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //             case default:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "default").WithLocation(8, 18),
-                // (8,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
-                //             case default:
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(8, 18));
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 18));
         }
 
         [Fact]

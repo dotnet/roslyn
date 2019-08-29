@@ -18,7 +18,7 @@ jobs:
 - job: Windows_Desktop_Unit_Tests
   pool:
     name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+    queue: BuildPool.Windows.10.Amd64.Open
   strategy:
     maxParallel: 4
     matrix:

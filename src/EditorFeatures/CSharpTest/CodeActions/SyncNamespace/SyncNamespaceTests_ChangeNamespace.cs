@@ -2070,5 +2070,230 @@ Public Class VBClass
 End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
+
+        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_WithMemberAccessReferencesInOtherDocument()
+        {
+            var defaultNamespace = "A";
+            var declaredNamespace = "Foo.Bar.Baz";
+
+            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    enum Enum1 
+    {{
+        A,
+        B,
+        C
+    }}
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
+namespace Foo
+{{
+    class RefClass
+    {{
+        Enum1 M1()
+        {{
+            return {declaredNamespace}.Enum1.A;
+        }}
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    enum Enum1
+    {
+        A,
+        B,
+        C
+    }
+}";
+            var expectedSourceReference =
+@"
+using A.B.C;
+
+namespace Foo
+{
+    class RefClass
+    {
+        Enum1 M1()
+        {
+            return Enum1.A;
+        }
+    }
+}";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInOtherDocument()
+        {
+            var defaultNamespace = "";
+            var declaredNamespace = "Foo.Bar.Baz";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    enum Enum1 
+    {{
+        A,
+        B,
+        C
+    }}
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
+namespace Foo
+{{
+    class RefClass
+    {{
+        Enum1 M1()
+        {{
+            return {declaredNamespace}.Enum1.A;
+        }}
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"enum Enum1
+{
+    A,
+    B,
+    C
+}
+";
+            var expectedSourceReference =
+@"namespace Foo
+{
+    class RefClass
+    {
+        Enum1 M1()
+        {
+            return Enum1.A;
+        }
+    }
+}";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_WithMemberAccessReferencesInVBDocument()
+        {
+            var defaultNamespace = "A.B.C";
+            var declaredNamespace = "A.B.C.D";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    public enum Enum1
+    {{
+        A,
+        B,
+        C
+    }}
+}}</Document>
+    </Project>    
+<Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+Public Class VBClass
+    Sub M()
+        Dim x = A.B.C.D.Enum1.A
+    End Sub
+End Class</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    public enum Enum1
+    {
+        A,
+        B,
+        C
+    }
+}";
+            var expectedSourceReference =
+@"Public Class VBClass
+    Sub M()
+        Dim x = A.B.C.Enum1.A
+    End Sub
+End Class";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInVBDocument()
+        {
+            var defaultNamespace = "";
+            var declaredNamespace = "A.B.C.D";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    public enum Enum1
+    {{
+        A,
+        B,
+        C
+    }}
+}}</Document>
+    </Project>    
+<Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+Public Class VBClass
+    Sub M()
+        Dim x = A.B.C.D.Enum1.A
+    End Sub
+End Class</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"public enum Enum1
+{
+    A,
+    B,
+    C
+}
+";
+            var expectedSourceReference =
+@"Public Class VBClass
+    Sub M()
+        Dim x = Enum1.A
+    End Sub
+End Class";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
     }
 }

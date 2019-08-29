@@ -150,12 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out bool wasExpression)
         {
-            BoundExpression expression = BindRValueWithoutTargetType(patternExpression, diagnostics);
+            BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
-            if (!convertedExpression.HasErrors && constantValueOpt == null)
+            if (!convertedExpression.HasErrors && constantValueOpt == null && !hasErrors)
             {
                 diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                 hasErrors = true;

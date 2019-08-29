@@ -15,9 +15,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TArgumentSyntax> : IRefactoringHelpersService
+    internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TArgumentSyntax, TExpressionStatementSyntax> : IRefactoringHelpersService
         where TExpressionSyntax : SyntaxNode
         where TArgumentSyntax : SyntaxNode
+        where TExpressionStatementSyntax : SyntaxNode
     {
         public async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             Document document, TextSpan selectionRaw,
@@ -120,10 +121,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private static bool IsWantedTypeExpressionLike<TSyntaxNode>() where TSyntaxNode : SyntaxNode
         {
             var wantedType = typeof(TSyntaxNode);
+
             var expressionType = typeof(TExpressionSyntax);
             var argumentType = typeof(TArgumentSyntax);
+            var expressionStatementType = typeof(TExpressionStatementSyntax);
 
-            return IsAEqualOrSubclassOfB(wantedType, expressionType) || IsAEqualOrSubclassOfB(wantedType, argumentType);
+            return IsAEqualOrSubclassOfB(wantedType, expressionType) ||
+                IsAEqualOrSubclassOfB(wantedType, argumentType) ||
+                IsAEqualOrSubclassOfB(wantedType, expressionStatementType);
 
             static bool IsAEqualOrSubclassOfB(Type a, Type b)
             {
@@ -334,10 +339,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                     // -> `b`
                     var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(declaredVariable);
-                    if (initializer != default)
+                    if (initializer != null)
                     {
                         var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
-                        if (value != default)
+                        if (value != null)
                         {
                             yield return value;
                         }
@@ -350,10 +355,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 // -> `b`
                 var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(node);
-                if (initializer != default)
+                if (initializer != null)
                 {
                     var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
-                    if (value != default)
+                    if (value != null)
                     {
                         yield return value;
                     }
