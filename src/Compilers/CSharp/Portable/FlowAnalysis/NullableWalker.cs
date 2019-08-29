@@ -665,9 +665,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetUpdatedSymbol(BoundNode node, Symbol originalSymbol, Symbol updatedSymbol)
         {
-            if (_updatedSymbolMapOpt is object && (object)originalSymbol != updatedSymbol)
+            if (_updatedSymbolMapOpt is object)
             {
-                _updatedSymbolMapOpt[(node, originalSymbol)] = updatedSymbol;
+                var key = (node, originalSymbol);
+                if ((object)originalSymbol != updatedSymbol)
+                {
+                    _updatedSymbolMapOpt[key] = updatedSymbol;
+                }
+                else if (_updatedSymbolMapOpt.TryGetValue(key, out var currentSymbol) && (object)currentSymbol != updatedSymbol)
+                {
+                    // If the symbol is reset, remove the updated symbol so we don't needlessly update the
+                    // bound node later on.
+                    _updatedSymbolMapOpt.Remove(key);
+                }
             }
         }
 

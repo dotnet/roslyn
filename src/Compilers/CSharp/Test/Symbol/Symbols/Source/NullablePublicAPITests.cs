@@ -2319,10 +2319,10 @@ class C<T>
 
             var symInfo = model.GetSymbolInfo(memberAccess[0]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IPropertySymbol)symInfo.Symbol).NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.Annotated, (symInfo.Symbol.ContainingType).TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
             symInfo = model.GetSymbolInfo(memberAccess[1]);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((IPropertySymbol)symInfo.Symbol).NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, (symInfo.Symbol.ContainingType).TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
         }
 
         [Fact]
@@ -2361,14 +2361,14 @@ class C<T>
 
             var symInfo = model.GetSymbolInfo(memberAccess[0]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IFieldSymbol)symInfo.Symbol).NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.Annotated, (symInfo.Symbol.ContainingType).TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
             symInfo = model.GetSymbolInfo(memberAccess[1]);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((IFieldSymbol)symInfo.Symbol).NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, (symInfo.Symbol.ContainingType).TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
         }
 
         [Fact]
-        public void GetSymbolInfo_EventAssignmentSymbols()
+        public void GetSymbolInfo_EventAdditionSymbols()
         {
             var source = @"
 #pragma warning disable CS0067
@@ -2400,10 +2400,10 @@ class C<T>
 
             var symInfo = model.GetSymbolInfo(memberAccess[0]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.Annotated, (symInfo.Symbol.ContainingType).TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
             symInfo = model.GetSymbolInfo(memberAccess[1]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, (symInfo.Symbol.ContainingType).TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
 
             var event1 = model.GetSymbolInfo(memberAccess[2]).Symbol;
             var event2 = model.GetSymbolInfo(memberAccess[3]).Symbol;
@@ -2414,7 +2414,7 @@ class C<T>
         }
 
         [Fact]
-        public void GetSymbolInfo_EventAccessSymbols()
+        public void GetSymbolInfo_EventAssignmentSymbols()
         {
             var source = @"
 #pragma warning disable CS0067
@@ -2445,10 +2445,10 @@ class C<T>
 
             var symInfo = model.GetSymbolInfo(memberAccess[0]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.Annotated, (symInfo.Symbol.ContainingType).TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
             symInfo = model.GetSymbolInfo(memberAccess[1]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, (symInfo.Symbol.ContainingType).TypeArgumentNullableAnnotations[0]);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
         }
     }
 }
