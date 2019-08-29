@@ -2,8 +2,6 @@
 
 using System;
 
-#pragma warning disable CA1000 // Do not declare static members on generic types
-
 namespace Analyzer.Utilities
 {
     /// <summary>
@@ -11,12 +9,12 @@ namespace Analyzer.Utilities
     /// Acts as a good alternative to <see cref="System.Runtime.CompilerServices.ConditionalWeakTable{TKey, TValue}"/>
     /// when the cached value has a cyclic reference to the key preventing early garbage collection of entries.
     /// </summary>
-    internal static class BoundedCacheWithFactory<TKey, TValue>
+    internal class BoundedCacheWithFactory<TKey, TValue>
         where TKey : class
     {
         // Bounded weak reference cache.
         // Size 5 is an arbitrarily chosen bound, which can be tuned in future as required.
-        private static readonly WeakReference<Entry>[] s_weakReferencedEntries
+        private readonly WeakReference<Entry>[] _weakReferencedEntries
             = new[] {
                 new WeakReference<Entry>(null),
                 new WeakReference<Entry>(null),
@@ -25,37 +23,40 @@ namespace Analyzer.Utilities
                 new WeakReference<Entry>(null),
             };
 
-        public static TValue GetOrCreateValue(TKey key, Func<TKey, TValue> valueFactory)
+        public TValue GetOrCreateValue(TKey key, Func<TKey, TValue> valueFactory)
         {
-            var indexToSetTarget = -1;
-            for (var i = 0; i < s_weakReferencedEntries.Length; i++)
+            lock (_weakReferencedEntries)
             {
-                var weakReferencedEntry = s_weakReferencedEntries[i];
-                if (!weakReferencedEntry.TryGetTarget(out var cachedEntry) ||
-                    cachedEntry == null)
+                var indexToSetTarget = -1;
+                for (var i = 0; i < _weakReferencedEntries.Length; i++)
                 {
-                    if (indexToSetTarget == -1)
+                    var weakReferencedEntry = _weakReferencedEntries[i];
+                    if (!weakReferencedEntry.TryGetTarget(out var cachedEntry) ||
+                        cachedEntry == null)
                     {
-                        indexToSetTarget = i;
+                        if (indexToSetTarget == -1)
+                        {
+                            indexToSetTarget = i;
+                        }
+
+                        continue;
                     }
 
-                    continue;
+                    if (Equals(cachedEntry.Key, key))
+                    {
+                        return cachedEntry.Value;
+                    }
                 }
 
-                if (Equals(cachedEntry.Key, key))
+                if (indexToSetTarget == -1)
                 {
-                    return cachedEntry.Value;
+                    indexToSetTarget = 0;
                 }
-            }
 
-            if (indexToSetTarget == -1)
-            {
-                indexToSetTarget = 0;
+                var newEntry = new Entry(key, valueFactory(key));
+                _weakReferencedEntries[indexToSetTarget].SetTarget(newEntry);
+                return newEntry.Value;
             }
-
-            var newEntry = new Entry(key, valueFactory(key));
-            s_weakReferencedEntries[indexToSetTarget].SetTarget(newEntry);
-            return newEntry.Value;
         }
 
         private sealed class Entry

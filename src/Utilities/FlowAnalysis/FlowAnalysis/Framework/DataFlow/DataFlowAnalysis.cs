@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         where TAnalysisResult : DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>
         where TBlockAnalysisResult : AbstractBlockAnalysisResult
     {
+        private static readonly BoundedCache<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>> s_resultCache =
+            new BoundedCache<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>>();
+
         protected DataFlowAnalysis(AbstractAnalysisDomain<TAnalysisData> analysisDomain, DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> operationVisitor)
         {
             AnalysisDomain = analysisDomain;
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return Run(analysisContext);
             }
 
-            var analysisResultsMap = BoundedCache<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>>.GetOrCreateValue(analysisContext.ControlFlowGraph.OriginalOperation);
+            var analysisResultsMap = s_resultCache.GetOrCreateValue(analysisContext.ControlFlowGraph.OriginalOperation);
             return analysisResultsMap.GetOrAdd(analysisContext, _ => Run(analysisContext));
         }
 

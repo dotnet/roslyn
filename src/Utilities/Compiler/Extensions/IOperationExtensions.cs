@@ -409,13 +409,18 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
+        /// <summary>
+        /// PERF: Cache from operation roots to their corresponding <see cref="ControlFlowGraph"/> to enable interprocedural flow analysis
+        /// across analyzers and analyzer callbacks to re-use the control flow graph.
+        /// </summary>
+        /// <remarks>Also see <see cref="IMethodSymbolExtensions.s_methodToTopmostOperationBlockCache"/></remarks>
+        private static readonly BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>> s_operationToCfgCache
+            = new BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>>();
+
         public static bool TryGetEnclosingControlFlowGraph(this IOperation operation, out ControlFlowGraph cfg)
         {
             operation = operation.GetRoot();
-
-            // PERF: Cache from operation roots to their corresponding <see cref="ControlFlowGraph"/> to enable interprocedural flow analysis
-            // across analyzers and analyzer callbacks to re-use the control flow graph.
-            var operationToCfgMap = BoundedCompilationCache<ConcurrentDictionary<IOperation, ControlFlowGraph>>.GetOrCreateValue(operation.SemanticModel.Compilation);
+            var operationToCfgMap = s_operationToCfgCache.GetOrCreateValue(operation.SemanticModel.Compilation);
             cfg = operationToCfgMap.GetOrAdd(operation, CreateControlFlowGraph);
             return cfg != null;
         }

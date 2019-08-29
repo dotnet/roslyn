@@ -18,8 +18,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PooledHashSetExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)BoundedCompilationCacheWithFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)BoundedCompilationCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.AssemblyMetricData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.EventMetricData.cs" />

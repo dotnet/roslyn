@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public class WellKnownTypeProvider
     {
+        private static readonly BoundedCacheWithFactory<Compilation, WellKnownTypeProvider> s_providerCache =
+            new BoundedCacheWithFactory<Compilation, WellKnownTypeProvider>();
+
         private WellKnownTypeProvider(Compilation compilation)
         {
             Compilation = compilation;
@@ -31,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation)
         {
-            return BoundedCompilationCacheWithFactory<WellKnownTypeProvider>.GetOrCreateValue(compilation, CreateWellKnownTypeProvider);
+            return s_providerCache.GetOrCreateValue(compilation, CreateWellKnownTypeProvider);
 
             // Local functions
             static WellKnownTypeProvider CreateWellKnownTypeProvider(Compilation compilation)
