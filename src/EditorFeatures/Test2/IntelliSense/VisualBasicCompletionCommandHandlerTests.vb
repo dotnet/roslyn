@@ -268,8 +268,8 @@ End Class
                               </document>)
                 state.SendTypeChars("Progra.")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(displayText:="Equals", isSoftSelected:=True)
                 Assert.Contains("Program.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Await state.AssertSelectedCompletionItem(displayText:="Equals", isSoftSelected:=True)
             End Using
         End Function
 

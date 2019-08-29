@@ -87,13 +87,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
+                throw new InvalidOperationException("document is null");
+              //  return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
             var service = document.GetLanguageService<CompletionService>();
             if (service == null)
             {
-                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
+                throw new InvalidOperationException("service is null");
+             //   return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
             // The Editor supports the option per textView.
