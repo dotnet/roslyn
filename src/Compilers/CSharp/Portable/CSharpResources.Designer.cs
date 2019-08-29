@@ -5974,6 +5974,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Internal error in the C# compiler..
+        /// </summary>
+        internal static string ERR_InternalError {
+            get {
+                return ResourceManager.GetString("ERR_InternalError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Embedded interop method &apos;{0}&apos; contains a body..
         /// </summary>
         internal static string ERR_InteropMethodWithBody {

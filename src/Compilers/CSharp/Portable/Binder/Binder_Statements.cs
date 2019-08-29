@@ -1967,6 +1967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: LambdaConversionResult.VoidExpressionLambdaMustBeStatementExpression:
 
             Debug.Assert(false, "Missing case in lambda conversion error reporting");
+            diagnostics.Add(ErrorCode.ERR_InternalError, syntax.Location);
         }
 
         protected static void GenerateImplicitConversionError(DiagnosticBag diagnostics, Compilation compilation, SyntaxNode syntax,

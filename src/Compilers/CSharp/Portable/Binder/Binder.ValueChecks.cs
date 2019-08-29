@@ -2857,6 +2857,7 @@ moreArguments:
                     // returning "false" seems safer than throwing.
                     // we will still assert to make sure that all nodes are accounted for.
                     Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
+                    diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
                     return false;
 
                     #region "cannot produce ref-like values"

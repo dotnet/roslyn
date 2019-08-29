@@ -656,10 +656,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindSuppressNullableWarningExpression((PostfixUnaryExpressionSyntax)node, diagnostics);
 
                 default:
-                    // NOTE: We should not throw an exception here, as a syntax tree can reach this
-                    // point with an unexpected SyntaxKind through the SemanticModel in error scenarios
-                    // and we don't want to throw if that occurs.
-                    // See https://github.com/dotnet/roslyn/issues/27060 for such a scenario.
+                    // NOTE: We could probably throw an exception here, but it's conceivable
+                    // that a non-parser syntax tree could reach this point with an unexpected
+                    // SyntaxKind and we don't want to throw if that occurs.
+                    Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
+                    diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
                     return BadExpression(node);
             }
         }
@@ -5086,6 +5087,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
             ImmutableArray<BoundExpression> childNodes = BuildArgumentsForErrorRecovery(analyzedArguments);
+            if (node.Initializer != null)
+                childNodes = childNodes.Add(BindInitializerExpression(node.Initializer, type, node.Type, diagnostics));
+
             BoundExpression result = new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(type), childNodes, type);
             analyzedArguments.Free();
             return result;
