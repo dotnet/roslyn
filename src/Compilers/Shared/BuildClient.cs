@@ -55,6 +55,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 : RuntimeEnvironment.GetRuntimeDirectory();
         }
 
+        public static IAnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader()
+        {
+#if NET472
+            return new DesktopAnalyzerAssemblyLoader();
+#else
+            return new CoreClrAnalyzerAssemblyLoader();
+#endif
+        }
+
         /// <summary>
         /// Run a compilation through the compiler server and print the output
         /// to the console. If the compiler server fails, run the fallback

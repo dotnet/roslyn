@@ -29,12 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
             ExitingTraceListener.Install();
 #endif
 
-#if NET472
-            var loader = new DesktopAnalyzerAssemblyLoader();
-#else
-            var loader = new CoreClrAnalyzerAssemblyLoader();
-#endif
-            return DesktopBuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, loader);
+            return DesktopBuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run);
         }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)

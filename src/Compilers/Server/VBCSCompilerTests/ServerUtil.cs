@@ -164,12 +164,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             RequestLanguage language,
             CompileFunc compileFunc = null,
             TextWriter textWriter = null,
-            IAnalyzerAssemblyLoader analyzerAssemblyLoader = null)
+            int? timeoutOverride = null)
         {
             compileFunc = compileFunc ?? GetCompileFunc(language);
             textWriter = textWriter ?? new StringWriter();
-            analyzerAssemblyLoader = analyzerAssemblyLoader ?? new Mock<IAnalyzerAssemblyLoader>(MockBehavior.Strict).Object;
-            return new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
+            return new DesktopBuildClient(language, compileFunc, timeoutOverride: timeoutOverride);
         }
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)

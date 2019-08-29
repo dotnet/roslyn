@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 language = language ?? RequestLanguage.CSharpCompile;
                 compileFunc = compileFunc ?? delegate { return 0; };
                 createServerFunc = createServerFunc ?? ((_, pipeName) => TryCreateServer(pipeName));
-                return new DesktopBuildClient(language.Value, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object, createServerFunc);
+                return new DesktopBuildClient(language.Value, compileFunc, createServerFunc);
             }
 
             private ServerData CreateServer(string pipeName, ICompilerServerHost compilerServerHost = null)

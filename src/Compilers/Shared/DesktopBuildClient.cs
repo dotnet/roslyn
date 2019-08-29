@@ -14,23 +14,22 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         private readonly RequestLanguage _language;
         private readonly CompileFunc _compileFunc;
-        private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
         private readonly CreateServerFunc _createServerFunc;
+        private readonly int? _timeoutOverride;
 
         /// <summary>
         /// When set it overrides all timeout values in milliseconds when communicating with the server.
         /// </summary>
-        internal int? TimeoutOverride { get; set; }
 
-        internal DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader, CreateServerFunc createServerFunc = null)
+        internal DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, CreateServerFunc createServerFunc = null, int? timeoutOverride = null)
         {
             _language = language;
             _compileFunc = compileFunc;
-            _analyzerAssemblyLoader = analyzerAssemblyLoader;
             _createServerFunc = createServerFunc ?? BuildServerConnection.TryCreateServerCore;
+            _timeoutOverride = timeoutOverride;
         }
 
-        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
+        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc)
         {
             var sdkDir = GetSystemSdkDirectory();
             if (RuntimeHostInfo.IsCoreClrRuntime)
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             }
 
-            var client = new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
+            var client = new DesktopBuildClient(language, compileFunc);
             var clientDir = AppContext.BaseDirectory;
             var workingDir = Directory.GetCurrentDirectory();
             var tempDir = BuildServerConnection.GetTempPath(workingDir);
@@ -51,7 +50,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         protected override int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
-            return _compileFunc(arguments, buildPaths, textWriter, _analyzerAssemblyLoader);
+            var loader = CreateAnalyzerAssemblyLoader();
+            return _compileFunc(arguments, buildPaths, textWriter, loader);
         }
 
         protected override Task<BuildResponse> RunServerCompilation(
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libDirectory,
             CancellationToken cancellationToken)
         {
-            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, _createServerFunc, cancellationToken);
+            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, _timeoutOverride, _createServerFunc, cancellationToken);
         }
 
         private static Task<BuildResponse> RunServerCompilationCore(
