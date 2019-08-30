@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(DirectCast(typeSymbol, NamedTypeSymbol), typeSyntax, diagBag)
                             End If
 
-                            binder.ReportDiagnosticsIfObsolete(diagBag, sym, typeSyntax)
+                            binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, sym, typeSyntax)
 
                             Return sym
                         End If
@@ -512,7 +512,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             If Not reportedAnError Then
-                                binder.ReportDiagnostic(diagBag, typeSyntax, ErrorFactory.ErrorInfo(ERRID.WRN_UndefinedOrEmptyNamespaceOrClass1, diagName))
+                                Binder.ReportDiagnostic(diagBag, typeSyntax, ErrorFactory.ErrorInfo(ERRID.WRN_UndefinedOrEmptyNamespaceOrClass1, diagName))
                                 reportedAnError = True
                             End If
                         End If
@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' LookupTypeOrNamespaceSyntax can't return more than one symbol.
                         Dim result = lookupResult.SingleSymbol
-                        binder.ReportDiagnosticsIfObsolete(diagBag, result, typeSyntax)
+                        binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, result, typeSyntax)
                         Return result
                     End If
                 Finally
@@ -741,9 +741,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Function ErrorTypeFromLookupResult(name As String, result As LookupResult, binder As Binder) As ErrorTypeSymbol
                 If result.Kind = LookupResultKind.Ambiguous AndAlso result.HasSingleSymbol AndAlso TypeOf result.Diagnostic Is AmbiguousSymbolDiagnostic Then
                     ' Special case: set of ambiguous symbols is stored in the diagnostics.
-                    Return binder.GetErrorSymbol(name, result.Diagnostic, DirectCast(result.Diagnostic, AmbiguousSymbolDiagnostic).AmbiguousSymbols, result.Kind)
+                    Return Binder.GetErrorSymbol(name, result.Diagnostic, DirectCast(result.Diagnostic, AmbiguousSymbolDiagnostic).AmbiguousSymbols, result.Kind)
                 End If
-                Return binder.GetErrorSymbol(name, result.Diagnostic, result.Symbols.ToImmutable(), result.Kind)
+                Return Binder.GetErrorSymbol(name, result.Diagnostic, result.Symbols.ToImmutable(), result.Kind)
             End Function
 
             ''' <summary>
@@ -757,7 +757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If sym.IsNamespace Then
                     Dim diagInfo = New BadSymbolDiagnostic(sym, ERRID.ERR_UnrecognizedType)
                     Binder.ReportDiagnostic(diagBag, syntax, diagInfo)
-                    Return binder.GetErrorSymbol(sym.Name, diagInfo, ImmutableArray.Create(Of Symbol)(sym), LookupResultKind.NotATypeOrNamespace)
+                    Return Binder.GetErrorSymbol(sym.Name, diagInfo, ImmutableArray.Create(Of Symbol)(sym), LookupResultKind.NotATypeOrNamespace)
                 Else
                     Return DirectCast(sym, TypeSymbol)
                 End If
@@ -978,7 +978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim leftSymbol As NamespaceOrTypeSymbol = DirectCast(lookupResult.SingleSymbol, NamespaceOrTypeSymbol)
 
-                binder.ReportDiagnosticsIfObsolete(diagBag, leftSymbol, leftNameSyntax)
+                binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, leftSymbol, leftNameSyntax)
 
                 lookupResult.Clear()
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
@@ -1076,7 +1076,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     leftSymbol = DirectCast(leftSymbol, NamedTypeSymbol).OriginalDefinition
                 End If
 
-                binder.ReportDiagnosticsIfObsolete(diagBag, leftSymbol, leftNameSyntax)
+                binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, leftSymbol, leftNameSyntax)
 
                 ' Lookup the generic type.
                 lookupResult.Clear()
