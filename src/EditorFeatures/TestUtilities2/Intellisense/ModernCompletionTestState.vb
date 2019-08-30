@@ -37,6 +37,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 includeFormatCommandHandler,
                 workspaceKind:=workspaceKind)
 
+            Workspace.Options = Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
+            Workspace.Options = Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, False)
+
             CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
             EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
