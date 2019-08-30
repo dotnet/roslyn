@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Visual_Basic_language_server_client">
         <source>Visual Basic Language Server Client</source>
-        <target state="new">Visual Basic Language Server Client</target>
+        <target state="translated">Klient serveru pro jazyk Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">
