@@ -196,6 +196,6 @@
   </Choose>
 
   <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
-    <DefineConstants>$(DefineConstants);DotNetBuildFromSource</DefineConstants>
+    <DefineConstants>DOTNET_BUILD_FROM_SOURCE;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 </Project>

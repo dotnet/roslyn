@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionSize;
 // When building for source-build, there is no sqlite dependency
-#if !DotNetBuildFromSource
+#if !DOTNET_BUILD_FROM_SOURCE
 using Microsoft.CodeAnalysis.SQLite;
 #endif
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-#if !DotNetBuildFromSource
+#if !DOTNET_BUILD_FROM_SOURCE
             var optionService = workspaceServices.GetRequiredService<IOptionService>();
             var database = optionService.GetOption(StorageOptions.Database);
             switch (database)
