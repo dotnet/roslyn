@@ -5222,8 +5222,29 @@ class C
         }
 
         [Fact]
+        public void InvalidParameterWithDefaultValue_Method()
+        {
+            var source =
+@"class Program
+{
+    static void F(int x = 2, = 3) { }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            var symbol1 = model.GetDeclaredSymbol(decls[0]);
+            Assert.Equal("[System.Int32 x = 2]", symbol1.ToTestDisplayString());
+            Assert.Equal(0, ((ParameterSymbol)symbol1).Ordinal);
+            var symbol2 = model.GetDeclaredSymbol(decls[1]);
+            Assert.Equal("[?  = null]", symbol2.ToTestDisplayString());
+            Assert.Equal(1, ((ParameterSymbol)symbol2).Ordinal);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        [Fact]
         [WorkItem(784401, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/784401")]
-        public void LocalFunctionInvalidParameterWithDefaultValue()
+        public void InvalidParameterWithDefaultValue_LocalFunction_01()
         {
             var source =
 @"class Program
@@ -5237,10 +5258,38 @@ class C
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
-            foreach (var decl in decls)
-            {
-                _ = model.GetDeclaredSymbol(decl);
-            }
+            var symbol1 = model.GetDeclaredSymbol(decls[0]);
+            Assert.Equal("System.Int32 x", symbol1.ToTestDisplayString());
+            Assert.Equal(0, ((ParameterSymbol)symbol1).Ordinal);
+            var symbol2 = model.GetDeclaredSymbol(decls[1]);
+            Assert.Equal("[?  = null]", symbol2.ToTestDisplayString());
+            Assert.Equal(1, ((ParameterSymbol)symbol2).Ordinal);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        [Fact]
+        [WorkItem(784401, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/784401")]
+        public void InvalidParameterWithDefaultValue_LocalFunction_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void F(int x = 2, = 3) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            var symbol1 = model.GetDeclaredSymbol(decls[0]);
+            Assert.Equal("[System.Int32 x = 2]", symbol1.ToTestDisplayString());
+            Assert.Equal(0, ((ParameterSymbol)symbol1).Ordinal);
+            var symbol2 = model.GetDeclaredSymbol(decls[1]);
+            Assert.Equal("[?  = null]", symbol2.ToTestDisplayString());
+            Assert.Equal(1, ((ParameterSymbol)symbol2).Ordinal);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
     }
 }
