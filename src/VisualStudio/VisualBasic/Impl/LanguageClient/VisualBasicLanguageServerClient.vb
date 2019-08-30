@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageClient
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(threadingContext As IThreadingContext,
                        workspace As VisualStudioWorkspace,
-                       lazyOptions As IEnumerable(Of Lazy(Of IOptionPersister)),
+                       <ImportMany> lazyOptions As IEnumerable(Of Lazy(Of IOptionPersister)),
                        eventListener As LanguageServerClientEventListener,
                        listenerProvider As IAsynchronousOperationListenerProvider)
             MyBase.New(threadingContext,

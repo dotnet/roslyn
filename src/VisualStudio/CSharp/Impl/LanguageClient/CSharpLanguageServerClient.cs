@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageClient
         public CSharpLanguageServerClient(
             IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
-            IEnumerable<Lazy<IOptionPersister>> lazyOptions,
+            [ImportMany]IEnumerable<Lazy<IOptionPersister>> lazyOptions,
             LanguageServerClientEventListener eventListener,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(
