@@ -2247,6 +2247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
 
+            // TODO2
             NamedTypeSymbol bestInterface = GetInterfaceInferenceBound(target.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), source);
             if ((object)bestInterface == null)
             {
