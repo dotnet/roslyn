@@ -142,29 +142,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return memberContainingDocument;
         }
 
-        private ISymbol GetResolvedSymbol(SymbolKeyResolution resolution, TextSpan span)
-        {
-            if (resolution.CandidateReason == CandidateReason.Ambiguous)
-            {
-                // In order to produce to correct undo stack, completion lets the commit
-                // character enter the buffer. That means we can get ambiguity.
-                // partial class C { partial void goo() }
-                // partial class C { partial goo($$
-                // Committing with the open paren will create a second, ambiguous goo.
-                // We'll try to prefer the symbol whose declaration doesn't intersect our position
-                var nonIntersectingMember = resolution.CandidateSymbols.First(s => s.DeclaringSyntaxReferences.Any(d => !d.Span.IntersectsWith(span)));
-                if (nonIntersectingMember != null)
-                {
-                    return nonIntersectingMember;
-                }
-
-                // The user has ambiguous definitions, just take the first one.
-                return resolution.CandidateSymbols.First();
-            }
-
-            return resolution.Symbol;
-        }
-
         private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot, string insertionText)
         {
             var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNullable();
