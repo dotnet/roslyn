@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             internal Stream Stream;
             internal Func<CancellationToken, Task> CreateMonitorDisconnectTaskFunc;
-            internal Func<BuildRequest, CancellationToken, Task<BuildResponse>> ServeBuildRequestFunc;
-            internal Action<BuildRequest> ValidateBuildRequestFunc;
 
             internal TestableClientConnection(ICompilerServerHost compilerServerHost, Stream stream)
                 : base(compilerServerHost, "identifier", stream)
@@ -34,24 +32,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
             }
 
-            protected override void ValidateBuildRequest(BuildRequest request)
-            {
-                ValidateBuildRequestFunc?.Invoke(request);
-            }
-
             protected override Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
             {
                 return CreateMonitorDisconnectTaskFunc(cancellationToken);
-            }
-
-            protected override Task<BuildResponse> ServeBuildRequest(BuildRequest request, CancellationToken cancellationToken)
-            {
-                if (ServeBuildRequestFunc != null)
-                {
-                    return ServeBuildRequestFunc(request, cancellationToken);
-                }
-
-                return base.ServeBuildRequest(request, cancellationToken);
             }
         }
 
@@ -147,70 +130,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 .Setup(x => x.ReadAsync(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .Returns((byte[] array, int start, int length, CancellationToken ct) => Task.FromResult(realStream.Read(array, start, length)));
 
-            var connection = CreateConnection(stream.Object);
-            connection.ServeBuildRequestFunc = delegate { return Task.FromResult(s_emptyBuildResponse); };
+            var host = new TestableCompilerServerHost(runCompilation: delegate { return s_emptyBuildResponse; });
+            var connection = CreateConnection(stream.Object, host);
             var connectionData = await connection.HandleConnection().ConfigureAwait(true);
             Assert.Equal(CompletionReason.ClientDisconnect, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
-        }
-
-        /// <summary>
-        /// Ensure the Connection correctly handles the case where a client disconnects while in the 
-        /// middle of a build event.
-        /// </summary>
-        [Fact]
-        public async Task ClientDisconnectsDuringBuild()
-        {
-            var memoryStream = new MemoryStream();
-            await s_emptyCSharpBuildRequest.WriteAsync(memoryStream, CancellationToken.None).ConfigureAwait(true);
-            memoryStream.Position = 0;
-
-            // Fake a long running build task here that we can validate later on. 
-            var buildTaskSource = new TaskCompletionSource<BuildResponse>();
-            var buildTaskCancellationToken = default(CancellationToken);
-            var clientConnection = CreateConnection(memoryStream);
-            clientConnection.ServeBuildRequestFunc = (req, ct) =>
-            {
-                buildTaskCancellationToken = ct;
-                return buildTaskSource.Task;
-            };
-
-            var readyTaskSource = new TaskCompletionSource<bool>();
-            var monitorTaskSource = new TaskCompletionSource<bool>();
-            clientConnection.CreateMonitorDisconnectTaskFunc = (ct) =>
-            {
-                readyTaskSource.SetResult(true);
-                return monitorTaskSource.Task;
-            };
-
-            var handleTask = clientConnection.HandleConnection();
-
-            // Wait until the monitor task is actually created and running. 
-            await readyTaskSource.Task.ConfigureAwait(false);
-
-            // Now simulate a disconnect by the client.  
-            monitorTaskSource.SetResult(true);
-
-            var connectionData = await handleTask.ConfigureAwait(true);
-            Assert.Equal(CompletionReason.ClientDisconnect, connectionData.CompletionReason);
-            Assert.Null(connectionData.KeepAlive);
-            Assert.True(buildTaskCancellationToken.IsCancellationRequested);
-        }
-
-        [Fact]
-        public async Task ValidateBuildRequest()
-        {
-            var stream = new TestableStream();
-            await s_emptyCSharpBuildRequest.WriteAsync(stream.ReadStream, CancellationToken.None).ConfigureAwait(true);
-            stream.ReadStream.Position = 0;
-
-            var validated = false;
-            var connection = CreateConnection(stream);
-            connection.ServeBuildRequestFunc = (req, token) => Task.FromResult(s_emptyBuildResponse);
-            connection.ValidateBuildRequestFunc = _ => { validated = true; };
-            await connection.HandleConnection().ConfigureAwait(true);
-
-            Assert.True(validated);
         }
 
         [Fact]
