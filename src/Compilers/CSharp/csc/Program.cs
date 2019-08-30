@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
             ExitingTraceListener.Install();
 #endif
 
-            return DesktopBuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run);
+            return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run);
         }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 
-            private DesktopBuildClient CreateClient(
+            private BuildClient CreateClient(
                 RequestLanguage? language = null,
                 CompileFunc compileFunc = null,
                 CreateServerFunc createServerFunc = null)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 language = language ?? RequestLanguage.CSharpCompile;
                 compileFunc = compileFunc ?? delegate { return 0; };
                 createServerFunc = createServerFunc ?? ((_, pipeName) => TryCreateServer(pipeName));
-                return new DesktopBuildClient(language.Value, compileFunc, createServerFunc);
+                return new BuildClient(language.Value, compileFunc, createServerFunc);
             }
 
             private ServerData CreateServer(string pipeName, ICompilerServerHost compilerServerHost = null)

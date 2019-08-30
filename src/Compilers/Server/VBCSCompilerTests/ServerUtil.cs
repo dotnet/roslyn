@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             return ((ShutdownBuildResponse)response).ServerProcessId;
         }
 
-        internal static DesktopBuildClient CreateBuildClient(
+        internal static BuildClient CreateBuildClient(
             RequestLanguage language,
             CompileFunc compileFunc = null,
             TextWriter textWriter = null,
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             compileFunc = compileFunc ?? GetCompileFunc(language);
             textWriter = textWriter ?? new StringWriter();
-            return new DesktopBuildClient(language, compileFunc, timeoutOverride: timeoutOverride);
+            return new BuildClient(language, compileFunc, timeoutOverride: timeoutOverride);
         }
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)
