@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Inherits TestStateBase
 
         Private Const timeoutMs = 10000
+        Private Const editorTimeoutMs = 20000
         Friend Const RoslynItem = "RoslynItem"
         Private Shared ReadOnly ResponsiveCompletionThreshold As String = NameOf(ResponsiveCompletionThreshold)
         Private Shared ReadOnly ResponsiveCompletionThresholdOption As EditorOptionKey(Of Integer) = New EditorOptionKey(Of Integer)(ResponsiveCompletionThreshold)
@@ -39,7 +40,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 includeFormatCommandHandler,
                 workspaceKind:=workspaceKind)
 
-            TextView.Options.GlobalOptions.SetOptionValue(Of Integer)(ResponsiveCompletionThresholdOption, 20000)
+            ' The current default timeout defined in the Editor may not work on virtual test machines.
+            ' Need to use a safe timeout there.
+            TextView.Options.GlobalOptions.SetOptionValue(Of Integer)(ResponsiveCompletionThresholdOption, editorTimeoutMs)
 
             CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
