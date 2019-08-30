@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis
         private readonly CommonMessageProvider _messageProvider;
         internal readonly bool IsScriptCommandLineParser;
         private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
+        internal const string ErrorLogOptionFormat = "<file>[,version={1|1.0|1.0.0|2|2.1|2.1.0}]";
 
         internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptCommandLineParser)
         {
@@ -117,6 +118,70 @@ namespace Microsoft.CodeAnalysis
 
             name = name.ToLowerInvariant();
             return true;
+        }
+
+        internal ErrorLogOptions ParseErrorLogOptions(
+            string arg,
+            IList<Diagnostic> diagnostics,
+            string baseDirectory,
+            out bool diagnosticAlreadyReported)
+        {
+            diagnosticAlreadyReported = false;
+
+            bool success = true;
+            string path = null;
+            SarifVersion sarifVersion = SarifVersion.Default;
+
+            string[] parts = ParseSeparatedStrings(arg, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).ToArray();
+            if (parts.Length == 0)
+            {
+                success = false;
+            }
+
+            if (parts.Length > 0)
+            {
+                if (!string.IsNullOrEmpty(parts[0]))
+                {
+                    path = ParseGenericPathToFile(parts[0], diagnostics, baseDirectory);
+                    if (path == null)
+                    {
+                        success = false;
+
+                        // ParseGenericPathToFile already reported the failure, so the caller should not
+                        // report its own failure.
+                        diagnosticAlreadyReported = true;
+                    }
+                }
+                else
+                {
+                    success = false;
+                }
+            }
+
+            if (parts.Length > 1)
+            {
+                string[] nameValue = parts[1].Split('=');
+                if (nameValue.Length == 2 && nameValue[0] == "version")
+                {
+                    if (!SarifVersionFacts.TryParse(nameValue[1], out sarifVersion))
+                    {
+                        success = false;
+                    }
+                }
+                else
+                {
+                    success = false;
+                }
+            }
+
+            if (parts.Length > 2)
+            {
+                success = false;
+            }
+
+            return success
+                ? new ErrorLogOptions(path, sarifVersion)
+                : null;
         }
 
         internal static void ParseAndNormalizeFile(

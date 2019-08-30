@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -123,14 +122,10 @@ namespace Microsoft.CodeAnalysis
         public string DocumentationPath { get; internal set; }
 
         /// <summary>
-        /// Absolute path of the error log file or null if not specified.
+        /// Options controlling the generation of a SARIF log file containing compilation or
+        /// analysis diagnostics, or null if no log file is desired.
         /// </summary>
-        public string ErrorLogPath { get; internal set; }
-
-        /// <summary>
-        /// Version of the SARIF format written to the error log, or "1" if not specified.
-        /// </summary>
-        public SarifVersion SarifVersion { get; internal set; }
+        public ErrorLogOptions ErrorLogOptions { get; internal set; }
 
         /// <summary>
         /// An absolute path of the app.config file or null if not specified.

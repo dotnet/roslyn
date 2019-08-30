@@ -2023,15 +2023,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid value &apos;{0}&apos; for /sarifversion. Supported values are 1 and 2. Default is 1..
-        /// </summary>
-        internal static string ERR_BadSarifVersion {
-            get {
-                return ResourceManager.GetString("ERR_BadSarifVersion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int.
         /// </summary>
         internal static string ERR_BadShiftOperatorSignature {
@@ -2100,6 +2091,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadSwitch {
             get {
                 return ResourceManager.GetString("ERR_BadSwitch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Command-line syntax error: &apos;{0}&apos; is not a valid value for the &apos;{1}&apos; option. The value must be of the form &apos;{2}&apos;..
+        /// </summary>
+        internal static string ERR_BadSwitchValue {
+            get {
+                return ResourceManager.GetString("ERR_BadSwitchValue", resourceCulture);
             }
         }
         

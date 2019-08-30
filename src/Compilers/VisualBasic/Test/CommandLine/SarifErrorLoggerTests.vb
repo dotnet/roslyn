@@ -1,8 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
 Imports System.IO
-Imports System.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Xunit
@@ -16,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
 
-        Protected Readonly MustOverride Property VersionSpecificArguments() As String()
+        Protected MustOverride ReadOnly Property ErrorLogQualifier As String
 
         Friend MustOverride Function GetExpectedOutputForNoDiagnostics(
             cmd As CommonCompiler) As String
@@ -48,9 +47,9 @@ End Class
 
             Dim arguments = {
                 "/nologo",
-                $"/errorlog:{errorLogFile}",
+                $"/errorlog:{errorLogFile}{ErrorLogQualifier}",
                 hello
-            }.Concat(VersionSpecificArguments).ToArray()
+            }
 
             Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, arguments)
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
@@ -84,9 +83,9 @@ End Class
             Dim arguments = {
                 "/nologo",
                 "/preferreduilang:en",
-                $"/errorlog:{errorLogFile}",
+                $"/errorlog:{errorLogFile}{ErrorLogQualifier}",
                 sourceFilePath
-            }.Concat(VersionSpecificArguments).ToArray()
+            }
 
             Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, arguments)
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
@@ -125,9 +124,9 @@ End Class
             Dim arguments = {
                 "/nologo",
                 "/preferreduilang:en",
-                 $"/errorlog:{errorLogFile}",
+                 $"/errorlog:{errorLogFile}{ErrorLogQualifier}",
                  sourceFilePath
-            }.Concat(VersionSpecificArguments).ToArray()
+            }
 
             Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, arguments)
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
@@ -166,9 +165,9 @@ End Class
                  "/preferreduilang:en",
                  "/t:library",
                  $"/out:{outputFilePath}",
-                 $"/errorlog:{errorLogFile}",
+                 $"/errorlog:{errorLogFile}{ErrorLogQualifier}",
                  sourceFilePath
-            }.Concat(VersionSpecificArguments).ToArray()
+            }
 
             Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory,
                 arguments,

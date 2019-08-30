@@ -13,11 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
     Public Class SarifV2ErrorLoggerTests
         Inherits SarifErrorLoggerTests
 
-        Protected Readonly Overrides Property VersionSpecificArguments() As String()
+        Protected Overrides ReadOnly Property ErrorLogQualifier As String
             Get
-                Return {
-                    "/sarifversion:2"
-                }
+                Return ";version=2"
             End Get
         End Property
 

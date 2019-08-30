@@ -2,9 +2,9 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../VBResources.resx">
     <body>
-      <trans-unit id="ERR_BadSarifVersion">
-        <source>Invalid value '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</source>
-        <target state="new">Invalid value '{0}' for /sarifversion. Supported values are 1 and 2. Default is 1.</target>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -110,10 +110,10 @@
 -warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
 -ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
                                   diagnostics.
--errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Specify a file to log all compiler and analyzer
                                   diagnostics in SARIF format.
--sarifversion:[1|2]               Specify the version of the SARIF format in the
-                                  error log file.
+                                  sarif_version:{1|1.0|1.0.0|2|2.1|2.1.0} Default is 1.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
 

@@ -599,10 +599,10 @@ namespace Microsoft.CodeAnalysis
 
         public SarifErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
         {
-            Debug.Assert(Arguments.ErrorLogPath != null);
+            Debug.Assert(Arguments.ErrorLogOptions?.Path != null);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var errorLog = OpenFile(Arguments.ErrorLogPath,
+            var errorLog = OpenFile(Arguments.ErrorLogOptions.Path,
                                     diagnostics,
                                     FileMode.Create,
                                     FileAccess.Write,
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis
                 string compilerVersion = GetCompilerVersion();
                 Version assemblyVersion = GetAssemblyVersion();
 
-                if (Arguments.SarifVersion == SarifVersion.Sarif1)
+                if (Arguments.ErrorLogOptions.SarifVersion == SarifVersion.Sarif1)
                 {
                     logger = new SarifV1ErrorLogger(errorLog, toolName, compilerVersion, assemblyVersion, Culture);
                 }
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis
                     CultureInfo.CurrentUICulture = culture;
                 }
 
-                if (Arguments.ErrorLogPath != null)
+                if (Arguments.ErrorLogOptions?.Path != null)
                 {
                     errorLogger = GetErrorLogger(consoleOutput, cancellationToken);
                     if (errorLogger == null)

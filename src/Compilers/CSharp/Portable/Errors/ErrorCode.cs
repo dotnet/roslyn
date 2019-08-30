@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LegacyObjectIdSyntax = 2043,
         ERR_SourceLinkRequiresPdb = 2044,
         ERR_CannotEmbedWithoutPdb = 2045,
-        ERR_BadSarifVersion = 2046,
+        ERR_BadSwitchValue = 2046,
         // unused 2047-2999
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.

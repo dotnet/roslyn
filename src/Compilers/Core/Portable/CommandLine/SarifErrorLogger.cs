@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis
     /// The SarifV2ErrorLogger produces the standardized SARIF v2.1.0. The SarifV1ErrorLogger produces
     /// the non-standardized SARIF v1.0.0. It is retained (and in fact, is retained as the default)
     /// for compatibility with previous versions of the compiler. Customers who want to integrate
-    /// with standardized SARIF tooling should specify /sarifversion:2 on the command line to
-    /// produce SARIF v2.1.0.
+    /// with standardized SARIF tooling should specify /errorlog:logFilePath;version=2 on the command
+    /// line to produce SARIF v2.1.0.
     /// </summary>
     internal abstract class SarifErrorLogger : ErrorLogger, IDisposable
     {

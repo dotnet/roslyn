@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     [Trait(Traits.Feature, Traits.Features.SarifErrorLogging)]
     public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
     {
-        protected override string[] VersionSpecificArguments => new string[0];
+        protected override string ErrorLogQualifier => string.Empty;
 
         internal override string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd)
         {

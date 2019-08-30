@@ -1,9 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public abstract class SarifErrorLoggerTests : CommandLineTestBase
     {
-        protected abstract string[] VersionSpecificArguments { get; }
+        protected abstract string ErrorLogQualifier { get; }
         internal abstract string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd);
         internal abstract string GetExpectedOutputForSimpleCompilerDiagnostics(CommonCompiler cmd, string sourceFile);
         internal abstract string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile);
@@ -35,9 +34,7 @@ class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", hello, $"/errorlog:{errorLogFile}" }
-                .Concat(VersionSpecificArguments)
-                .ToArray();
+            string[] arguments = new[] { "/nologo", hello, $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(arguments);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -68,9 +65,7 @@ public class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" }
-                .Concat(VersionSpecificArguments)
-                .ToArray();
+            string[] arguments = new[] { "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -104,9 +99,7 @@ public class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            string[] arguments = new[] { "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" }
-                .Concat(VersionSpecificArguments)
-                .ToArray();
+            string[] arguments = new[] { "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -139,9 +132,7 @@ public class C
             var errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt");
             var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
 
-            string[] arguments = new[] { "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" }
-                .Concat(VersionSpecificArguments)
-                .ToArray();
+            string[] arguments = new[] { "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
