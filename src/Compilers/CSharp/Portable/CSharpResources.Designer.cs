@@ -1501,15 +1501,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use a default literal as an argument to a dynamically dispatched operation..
-        /// </summary>
-        internal static string ERR_BadDynamicMethodArgDefaultLiteral {
-            get {
-                return ResourceManager.GetString("ERR_BadDynamicMethodArgDefaultLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type..
         /// </summary>
         internal static string ERR_BadDynamicMethodArgLambda {
@@ -3202,7 +3193,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
+        ///   Looks up a localized string similar to Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants..
         /// </summary>
         internal static string ERR_ConstantStringTooLong {
             get {
@@ -3454,15 +3445,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A default literal &apos;default&apos; is not valid as a case constant. Use another literal (e.g. &apos;0&apos; or &apos;null&apos;) as appropriate. If you intended to write the default label, use &apos;default:&apos; without &apos;case&apos;..
-        /// </summary>
-        internal static string ERR_DefaultInSwitch {
-            get {
-                return ResourceManager.GetString("ERR_DefaultInSwitch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a non-abstract member. Consider setting the &apos;Embed Interop Types&apos; property to false..
         /// </summary>
         internal static string ERR_DefaultInterfaceImplementationInNoPIAType {
@@ -3477,6 +3459,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DefaultInterfaceImplementationModifier {
             get {
                 return ResourceManager.GetString("ERR_DefaultInterfaceImplementationModifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no target type for the default literal..
+        /// </summary>
+        internal static string ERR_DefaultLiteralNoTargetType {
+            get {
+                return ResourceManager.GetString("ERR_DefaultLiteralNoTargetType", resourceCulture);
             }
         }
         
@@ -8859,6 +8850,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RbraceExpected {
             get {
                 return ResourceManager.GetString("ERR_RbraceExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the &apos;Embed Interop Types&apos; property to false..
+        /// </summary>
+        internal static string ERR_ReAbstractionInNoPIAType {
+            get {
+                return ResourceManager.GetString("ERR_ReAbstractionInNoPIAType", resourceCulture);
             }
         }
         
@@ -14901,6 +14901,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_MissingNonNullTypesContextForAnnotation_Title {
             get {
                 return ResourceManager.GetString("WRN_MissingNonNullTypesContextForAnnotation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;#nullable&apos; annotations context. Auto-generated code requires an explicit &apos;#nullable&apos; directive in source..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;#nullable&apos; annotations context. Auto-generated code requires an explicit &apos;#nullable&apos; directive in source..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title", resourceCulture);
             }
         }
         

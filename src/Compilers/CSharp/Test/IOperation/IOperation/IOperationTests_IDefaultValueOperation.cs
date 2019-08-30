@@ -69,5 +69,39 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DefaultValueFlow_03()
+        {
+            string source = @"
+class C
+{
+    void M(string s)
+    /*<bind>*/{
+        M2(default);
+    }/*</bind>*/
+
+    static void M2(int x) { }
+    static void M2(string x) { }
+}
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M2(int)' and 'C.M2(string)'
+                //         M2(default);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("C.M2(int)", "C.M2(string)").WithLocation(6, 9)
+            };
+
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'M2(default);')
+    Expression: 
+      IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'M2(default)')
+        Children(1):
+            IDefaultValueOperation (OperationKind.DefaultValue, Type: null) (Syntax: 'default')";
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

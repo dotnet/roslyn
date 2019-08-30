@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Project? GetProject(IAssemblySymbol assemblySymbol, CancellationToken cancellationToken = default)
         {
-            var projectState = _state.GetProjectState(assemblySymbol, cancellationToken);
+            var projectState = _state.GetProjectState(assemblySymbol);
 
             return projectState == null ? null : GetProject(projectState.Id);
         }

@@ -220,8 +220,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns a boolean value if we can determine whether the type is managed
-        /// without looking at its fields and Unset otherwise.
+        /// Returns True or False if we can determine whether the type is managed
+        /// without looking at its fields and Unknown otherwise.
+        /// Also returns whether or not the given type is generic.
         /// </summary>
         private static (ThreeState isManaged, bool hasGenerics) IsManagedTypeHelper(NamedTypeSymbol type)
         {
@@ -260,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break; // Proceed with additional checks.
             }
 
-            bool hasGenerics = type.TupleUnderlyingTypeOrSelf().GetArity() > 0;
+            bool hasGenerics = type.TupleUnderlyingTypeOrSelf() is NamedTypeSymbol { IsGenericType: true };
             switch (type.TypeKind)
             {
                 case TypeKind.Enum:

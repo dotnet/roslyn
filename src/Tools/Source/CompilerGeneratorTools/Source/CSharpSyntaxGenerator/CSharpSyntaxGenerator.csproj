@@ -8,9 +8,16 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpSyntaxGenerator</RootNamespace>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs" Link="Grammar\WellKnownMemberNames.cs" />
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Declarations\DeclarationModifiers.cs" Link="Grammar\DeclarationModifiers.cs" />
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKind.cs" Link="Grammar\SyntaxKind.cs" />
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs" Link="Grammar\SyntaxKindFacts.cs" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\Syntax.xml">
       <Link>Syntax.xml</Link>

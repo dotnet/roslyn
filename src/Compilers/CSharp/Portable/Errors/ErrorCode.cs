@@ -1488,9 +1488,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoRefOutWhenRefOnly = 8308,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
         ERR_BadOpOnNullOrDefault = 8310,
-        ERR_BadDynamicMethodArgDefaultLiteral = 8311,
+        // ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
-        ERR_DefaultInSwitch = 8313,
+        // ERR_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
         ERR_AmbigBinaryOpsOnDefault = 8315,
 
@@ -1704,6 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
         ERR_NullableDirectiveTargetExpected = 8668,
+        WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode = 8669,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 
@@ -1724,7 +1725,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NotNullConstraintMustBeFirst = 8713,
         WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
 
-        ERR_DuplicateNullSuppression = 8715
+        ERR_DuplicateNullSuppression = 8715,
+        ERR_DefaultLiteralNoTargetType = 8716,
+
+        ERR_ReAbstractionInNoPIAType = 8750,
 
         #endregion diagnostics introduced for C# 8.0
 

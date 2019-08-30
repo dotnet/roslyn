@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case { ConstantValue: { } }:
                     return VisitExpression(expr);
-                case BoundConversion { Conversion: { Kind: ConversionKind.DefaultOrNullLiteral } conversion } bc:
+                case BoundConversion { Conversion: { Kind: ConversionKind.DefaultLiteral } }:
                     // This conversion can be performed lazily, but need not be saved.  It is treated as non-side-effecting.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
                 case BoundConversion { Conversion: { Kind: var conversionKind } conversion } bc when conversionMustBePerformedOnOriginalExpression(bc, conversionKind):
