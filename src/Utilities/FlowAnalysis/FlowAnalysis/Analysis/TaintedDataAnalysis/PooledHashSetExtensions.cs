@@ -69,17 +69,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ?? ImmutableHashSet<string>.Empty,
                  taintedMethodsNeedsPointsToAnalysis:
                     taintedMethods
-                        ?.Select(o => new KeyValuePair<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>>(
-                            (methodName, argumets) => methodName == o,
-                            ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>.Empty.Add(
-                                pointsTos => { return true; },
-                                new[] { TaintedTargetValue.Return }.ToImmutableHashSet())))
-                        ?.ToImmutableDictionary()
-                    ?? ImmutableDictionary<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>>.Empty,
+                        ?.Select<string, (MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>(o =>
+                            (
+                                (methodName, argumets) => methodName == o,
+                                ImmutableHashSet<(PointsToCheck, string)>.Empty.Add(
+                                    (
+                                        pointsTos => true,
+                                        TaintedTargetValue.Return
+                                    ))
+                            ))
+                        ?.ToImmutableHashSet()
+                    ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>.Empty,
                 taintedMethodsNeedsValueContentAnalysis:
-                    ImmutableDictionary<MethodMapper, ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>>.Empty,
-                passerMethods:
-                    ImmutableDictionary<MethodMapper, ImmutableHashSet<(string, string)>>.Empty,
+                    ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
+                transferMethods:
+                    ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
                 taintConstantArray: false);
             builder.Add(metadata);
         }
@@ -99,9 +103,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         string fullTypeName,
         bool isInterface,
         string[] taintedProperties,
-        IEnumerable<(MethodMapper methodMapper, (PointsToCheck pointsToCheck, string[] taintedTargets)[] pointsToChecksAndTargets)> taintedMethodsNeedsPointsToAnalysis,
-        IEnumerable<(MethodMapper methodMapper, (ValueContentCheck valueContentCheck, string[] taintedTargets)[] valueContentChecksAndTargets)> taintedMethodsNeedsValueContentAnalysis,
-        IEnumerable<(MethodMapper methodMapper, (string str, string taintedTargets)[] valueContentChecksAndTargets)> passerMethods,
+        IEnumerable<(MethodMatcher methodMatcher, (PointsToCheck pointsToCheck, string taintedTarget)[] pointsToChecksAndTargets)> taintedMethodsNeedsPointsToAnalysis,
+        IEnumerable<(MethodMatcher methodMatcher, (ValueContentCheck valueContentCheck, string taintedTarget)[] valueContentChecksAndTargets)> taintedMethodsNeedsValueContentAnalysis,
+        IEnumerable<(MethodMatcher methodMatcher, (string str, string taintedTargets)[] valueContentChecksAndTargets)> transferMethods,
         bool taintConstantArray = false)
         {
             SourceInfo metadata = new SourceInfo(
@@ -110,34 +114,33 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
                 taintedMethodsNeedsPointsToAnalysis:
-                    taintedMethodsNeedsPointsToAnalysis
-                        ?.Select(o => new KeyValuePair<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>>(
-                            o.methodMapper,
-                            o.pointsToChecksAndTargets
-                                ?.Select(s => new KeyValuePair<PointsToCheck, ImmutableHashSet<string>>(s.pointsToCheck, s.taintedTargets.ToImmutableHashSet()))
-                                ?.ToImmutableDictionary()
-                            ?? ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>.Empty))
-                        ?.ToImmutableDictionary()
-                    ?? ImmutableDictionary<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>>.Empty,
+                    taintedMethodsNeedsPointsToAnalysis?.Select(o =>
+                            (
+                                o.methodMatcher,
+                                o.pointsToChecksAndTargets?.ToImmutableHashSet()
+                                    ?? ImmutableHashSet<(PointsToCheck, string)>.Empty
+                            ))
+                        ?.ToImmutableHashSet()
+                    ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>.Empty,
                 taintedMethodsNeedsValueContentAnalysis:
-                    taintedMethodsNeedsValueContentAnalysis
-                        ?.Select(o => new KeyValuePair<MethodMapper, ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>>(
-                            o.methodMapper,
-                            o.valueContentChecksAndTargets
-                                ?.Select(s => new KeyValuePair<ValueContentCheck, ImmutableHashSet<string>>(s.valueContentCheck, s.taintedTargets.ToImmutableHashSet()))
-                                ?.ToImmutableDictionary()
-                            ?? ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>.Empty))
-                        ?.ToImmutableDictionary()
-                    ?? ImmutableDictionary<MethodMapper, ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>>.Empty,
-                passerMethods:
-                    passerMethods
-                        ?.Select(o => new KeyValuePair<MethodMapper, ImmutableHashSet<(string, string)>>(
-                            o.methodMapper,
-                            o.valueContentChecksAndTargets
-                                ?.ToImmutableHashSet()
-                            ?? ImmutableHashSet<(string, string)>.Empty))
-                        ?.ToImmutableDictionary()
-                    ?? ImmutableDictionary<MethodMapper, ImmutableHashSet<(string, string)>>.Empty,
+                    taintedMethodsNeedsValueContentAnalysis?.Select(o =>
+                            (
+                                o.methodMatcher,
+                                o.valueContentChecksAndTargets?.ToImmutableHashSet()
+                                    ?? ImmutableHashSet<(ValueContentCheck, string)>.Empty
+                            ))
+                        ?.ToImmutableHashSet()
+                    ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
+                transferMethods:
+                    transferMethods
+                        ?.Select(o =>
+                            (
+                                o.methodMatcher,
+                                o.valueContentChecksAndTargets
+                                    ?.ToImmutableHashSet()
+                                ?? ImmutableHashSet<(string, string)>.Empty))
+                        ?.ToImmutableHashSet()
+                    ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
                 taintConstantArray: taintConstantArray);
             builder.Add(metadata);
         }
@@ -150,8 +153,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         string fullTypeName,
         bool isInterface,
         string[] taintedProperties,
-        IEnumerable<(MethodMapper methodMapper, PointsToCheck[] pointsToChecks)> taintedMethodsNeedsPointsToAnalysis,
-        IEnumerable<(MethodMapper methodMapper, ValueContentCheck[] valueContentChecks)> taintedMethodsNeedsValueContentAnalysis,
+        IEnumerable<(MethodMatcher methodMatcher, PointsToCheck[] pointsToChecks)> taintedMethodsNeedsPointsToAnalysis,
+        IEnumerable<(MethodMatcher methodMatcher, ValueContentCheck[] valueContentChecks)> taintedMethodsNeedsValueContentAnalysis,
         bool taintConstantArray = false)
         {
             SourceInfo metadata = new SourceInfo(
@@ -160,27 +163,29 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
                 taintedMethodsNeedsPointsToAnalysis:
-                    taintedMethodsNeedsPointsToAnalysis
-                        ?.Select(o => new KeyValuePair<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>>(
-                            o.methodMapper,
-                            o.pointsToChecks
-                                ?.Select(s => new KeyValuePair<PointsToCheck, ImmutableHashSet<string>>(s, new[] { TaintedTargetValue.Return }.ToImmutableHashSet()))
-                                ?.ToImmutableDictionary()
-                            ?? ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>.Empty))
-                        ?.ToImmutableDictionary()
-                    ?? ImmutableDictionary<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>>.Empty,
+                    taintedMethodsNeedsPointsToAnalysis?.Select(o =>
+                            (
+                                o.methodMatcher,
+                                o.pointsToChecks
+                                    ?.Select(s => (s, TaintedTargetValue.Return))
+                                    ?.ToImmutableHashSet()
+                                ?? ImmutableHashSet<(PointsToCheck, string)>.Empty
+                            ))
+                        ?.ToImmutableHashSet()
+                    ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>.Empty,
                 taintedMethodsNeedsValueContentAnalysis:
-                    taintedMethodsNeedsValueContentAnalysis
-                        ?.Select(o => new KeyValuePair<MethodMapper, ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>>(
-                            o.methodMapper,
-                            o.valueContentChecks
-                                ?.Select(s => new KeyValuePair<ValueContentCheck, ImmutableHashSet<string>>(s, new[] { TaintedTargetValue.Return }.ToImmutableHashSet()))
-                                ?.ToImmutableDictionary()
-                            ?? ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>.Empty))
-                        ?.ToImmutableDictionary()
-                    ?? ImmutableDictionary<MethodMapper, ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>>.Empty,
-                passerMethods:
-                    ImmutableDictionary<MethodMapper, ImmutableHashSet<(string, string)>>.Empty,
+                    taintedMethodsNeedsValueContentAnalysis?.Select(o =>
+                            (
+                                o.methodMatcher,
+                                o.valueContentChecks
+                                    ?.Select(s => (s, TaintedTargetValue.Return))
+                                    ?.ToImmutableHashSet()
+                                ?? ImmutableHashSet<(ValueContentCheck, string)>.Empty
+                            ))
+                        ?.ToImmutableHashSet()
+                    ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
+                transferMethods:
+                    ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
                 taintConstantArray: taintConstantArray);
             builder.Add(metadata);
         }

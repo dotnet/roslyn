@@ -34,40 +34,36 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             taintedTargets = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
             {
-                foreach (KeyValuePair<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>> methodNeedsPointsToAnalysis in sourceInfo.TaintedMethodsNeedsPointsToAnalysis)
+                foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(PointsToCheck pointsToCheck, string)> pointsToTaintedTargets) in sourceInfo.TaintedMethodsNeedsPointsToAnalysis)
                 {
-                    if (methodNeedsPointsToAnalysis.Key(method.Name, arguments))
+                    if (methodMatcher(method.Name, arguments))
                     {
-                        foreach (KeyValuePair<PointsToCheck, ImmutableHashSet<string>> kvp in methodNeedsPointsToAnalysis.Value)
+                        IEnumerable<(PointsToCheck, string target)> positivePointsToTaintedTargets = pointsToTaintedTargets.Where(s => s.pointsToCheck(pointsTos));
+                        if (positivePointsToTaintedTargets != null)
                         {
-                            if (kvp.Key(pointsTos))
+                            if (taintedTargets == null)
                             {
-                                if (taintedTargets == null)
-                                {
-                                    taintedTargets = PooledHashSet<string>.GetInstance();
-                                }
-
-                                taintedTargets.UnionWith(kvp.Value);
+                                taintedTargets = PooledHashSet<string>.GetInstance();
                             }
+
+                            taintedTargets.UnionWith(positivePointsToTaintedTargets.Select(s => s.target));
                         }
                     }
                 }
 
-                foreach (KeyValuePair<MethodMapper, ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>> methodNeedsValueContentAnalysis in sourceInfo.TaintedMethodsNeedsValueContentAnalysis)
+                foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(ValueContentCheck valueContentCheck, string)> valueContentTaintedTargets) in sourceInfo.TaintedMethodsNeedsValueContentAnalysis)
                 {
-                    if (methodNeedsValueContentAnalysis.Key(method.Name, arguments))
+                    if (methodMatcher(method.Name, arguments))
                     {
-                        foreach (KeyValuePair<ValueContentCheck, ImmutableHashSet<string>> kvp in methodNeedsValueContentAnalysis.Value)
+                        IEnumerable<(ValueContentCheck, string target)> positiveValueContentTaintedTargets = valueContentTaintedTargets.Where(s => s.valueContentCheck(pointsTos, valueContents));
+                        if (positiveValueContentTaintedTargets != null)
                         {
-                            if (kvp.Key(pointsTos, valueContents))
+                            if (taintedTargets == null)
                             {
-                                if (taintedTargets == null)
-                                {
-                                    taintedTargets = PooledHashSet<string>.GetInstance();
-                                }
-
-                                taintedTargets.UnionWith(kvp.Value);
+                                taintedTargets = PooledHashSet<string>.GetInstance();
                             }
+
+                            taintedTargets.UnionWith(positiveValueContentTaintedTargets.Select(s => s.target));
                         }
                     }
                 }
@@ -135,16 +131,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             taintedParameterPairs = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
             {
-                foreach (KeyValuePair<MethodMapper, ImmutableHashSet<(string source, string)>> passerMethod in sourceInfo.PasserMethods)
+                foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(string source, string end)> sourceToEnds) passerMethod in sourceInfo.TransferMethods)
                 {
-                    if (passerMethod.Key(method.Name, arguments))
+                    if (passerMethod.methodMatcher(method.Name, arguments))
                     {
                         if (taintedParameterPairs == null)
                         {
                             taintedParameterPairs = PooledHashSet<(string, string)>.GetInstance();
                         }
 
-                        taintedParameterPairs.UnionWith(passerMethod.Value.Where(s => taintedParameterNames.Contains(s.source)));
+                        taintedParameterPairs.UnionWith(passerMethod.sourceToEnds.Where(s => taintedParameterNames.Contains(s.source)));
                     }
                 }
             }

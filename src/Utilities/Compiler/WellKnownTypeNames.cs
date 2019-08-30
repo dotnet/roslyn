@@ -334,6 +334,5 @@ namespace Analyzer.Utilities
         public const string SystemTextEncoding = "System.Text.Encoding";
         public const string SystemSecurityCryptographyAesGcm = "System.Security.Cryptography.AesGcm";
         public const string SystemSecurityCryptographyAesCcm = "System.Security.Cryptography.AesCcm";
-        public const string SystemByteArray = "System.ByteArray";
     }
 }

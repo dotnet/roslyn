@@ -10,7 +10,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     internal delegate bool PointsToCheck(ImmutableArray<PointsToAbstractValue> pointsTos);
     internal delegate bool ValueContentCheck(ImmutableArray<PointsToAbstractValue> pointsTos, ImmutableArray<ValueContentAbstractValue> valueContents);
-    internal delegate bool MethodMapper(string methodName, ImmutableArray<IArgumentOperation> arguments);
+    internal delegate bool MethodMatcher(string methodName, ImmutableArray<IArgumentOperation> arguments);
 
     /// <summary>
     /// Info for tainted data sources, which generate tainted data.
@@ -29,9 +29,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string fullTypeName,
             bool isInterface,
             ImmutableHashSet<string> taintedProperties,
-            ImmutableDictionary<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>> taintedMethodsNeedsPointsToAnalysis,
-            ImmutableDictionary<MethodMapper, ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>> taintedMethodsNeedsValueContentAnalysis,
-            ImmutableDictionary<MethodMapper, ImmutableHashSet<(string, string)>> passerMethods,
+            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)> taintedMethodsNeedsPointsToAnalysis,
+            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)> taintedMethodsNeedsValueContentAnalysis,
+            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)> transferMethods,
             bool taintConstantArray)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
@@ -39,7 +39,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedProperties = taintedProperties ?? throw new ArgumentNullException(nameof(taintedProperties));
             TaintedMethodsNeedsPointsToAnalysis = taintedMethodsNeedsPointsToAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsPointsToAnalysis));
             TaintedMethodsNeedsValueContentAnalysis = taintedMethodsNeedsValueContentAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsValueContentAnalysis));
-            PasserMethods = passerMethods ?? throw new ArgumentNullException(nameof(passerMethods));
+            TransferMethods = transferMethods ?? throw new ArgumentNullException(nameof(transferMethods));
             TaintConstantArray = taintConstantArray;
         }
 
@@ -61,17 +61,35 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Methods that generate tainted data and whose arguments don't need extra value content analysis.
         /// </summary>
-        public ImmutableDictionary<MethodMapper, ImmutableDictionary<PointsToCheck, ImmutableHashSet<string>>> TaintedMethodsNeedsPointsToAnalysis { get; }
+        /// <remarks>
+        /// MethodMatcher determines if the outermost tuple applies, based on the method names and arguments.
+        /// PointsToCheck determines if the inner tuple applies, based on the method invocation's arguments PointsToAbstractvalues.
+        /// TaintedTarget is the tainted target (arguments / return value).
+        ///
+        /// Example:
+        /// (
+        ///   (methodName, argumentOperations) => methodName == "Bar",  // MethodMatcher
+        ///   {
+        ///      (
+        ///         (pointsTos) => true,  // PointsToCheck
+        ///         TaintedTargetValue.Return  // TaintedTarget
+        ///      )
+        ///   }
+        /// )
+        ///
+        /// will treat any invocation of the "Bar" method's return value as tainted.
+        /// </remarks>
+        public ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)> TaintedMethodsNeedsPointsToAnalysis { get; }
 
         /// <summary>
         /// Methods that generate tainted data and whose arguments need extra value content analysis and points to analysis.
         /// </summary>
-        public ImmutableDictionary<MethodMapper, ImmutableDictionary<ValueContentCheck, ImmutableHashSet<string>>> TaintedMethodsNeedsValueContentAnalysis { get; }
+        public ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)> TaintedMethodsNeedsValueContentAnalysis { get; }
 
         /// <summary>
         /// Methods that could taint another argument when one of its argument is tainted.
         /// </summary>
-        public ImmutableDictionary<MethodMapper, ImmutableHashSet<(string, string)>> PasserMethods { get; }
+        public ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)> TransferMethods { get; }
 
         /// <summary>
         /// Indicates arrays initialized with constant values of this type generates tainted data.
@@ -89,7 +107,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 HashUtilities.Combine(this.TaintedProperties,
                 HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis,
                 HashUtilities.Combine(this.TaintedMethodsNeedsValueContentAnalysis,
-                HashUtilities.Combine(this.PasserMethods,
+                HashUtilities.Combine(this.TransferMethods,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
                     StringComparer.Ordinal.GetHashCode(this.FullTypeName)))))));
         }
@@ -107,7 +125,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.TaintedProperties == other.TaintedProperties
                 && this.TaintedMethodsNeedsPointsToAnalysis == other.TaintedMethodsNeedsPointsToAnalysis
                 && this.TaintedMethodsNeedsValueContentAnalysis == other.TaintedMethodsNeedsValueContentAnalysis
-                && this.PasserMethods == other.PasserMethods
+                && this.TransferMethods == other.TransferMethods
                 && this.TaintConstantArray == other.TaintConstantArray;
         }
     }

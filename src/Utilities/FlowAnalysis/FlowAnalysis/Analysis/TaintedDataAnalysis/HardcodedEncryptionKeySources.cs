@@ -26,12 +26,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: false,
                 taintedProperties: null,
                 taintedMethodsNeedsPointsToAnalysis: null,
-                taintedMethodsNeedsValueContentAnalysis: new (MethodMapper, ValueContentCheck[])[]{
+                taintedMethodsNeedsValueContentAnalysis: new (MethodMatcher, ValueContentCheck[])[]{
                     (
                         (methodName, arguments) =>
                             methodName == "FromBase64String",
                         new ValueContentCheck[]{
-                            (argumentPonitsTos, argumentValueContents) => argumentValueContents.All(o => o.IsLiteralState),
+                            (argumentPointsTos, argumentValueContents) => argumentValueContents.All(o => o.IsLiteralState),
                         }
                     ),
                 });
@@ -40,17 +40,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: false,
                 taintedProperties: null,
                 taintedMethodsNeedsPointsToAnalysis: null,
-                taintedMethodsNeedsValueContentAnalysis: new (MethodMapper, (ValueContentCheck, string[])[])[]{
+                taintedMethodsNeedsValueContentAnalysis: new (MethodMatcher, (ValueContentCheck, string)[])[]{
                     (
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
                             arguments.Count() == 5 &&
                             arguments[0].Parameter.Type.SpecialType == SpecialType.System_String,
-                        new (ValueContentCheck, string[])[]{
+                        new (ValueContentCheck, string)[]{
                             (
-                                (argumentPonitsTos, argumentValueContents) =>
+                                (argumentPointsTos, argumentValueContents) =>
                                     argumentValueContents[0].IsLiteralState,
-                                new[] { "chars", }
+                                "chars"
                             ),
                         }
                     ),
@@ -59,16 +59,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             methodName == "GetBytes" &&
                             arguments.Count() == 1 &&
                             arguments[0].Parameter.Type.SpecialType == SpecialType.System_String,
-                        new (ValueContentCheck, string[])[]{
+                        new (ValueContentCheck, string)[]{
                             (
-                                (argumentPonitsTos, argumentValueContents) =>
+                                (argumentPointsTos, argumentValueContents) =>
                                     argumentValueContents[0].IsLiteralState,
-                                new[] { TaintedTargetValue.Return, }
+                                TaintedTargetValue.Return
                             ),
                         }
                     ),
                 },
-                passerMethods: new (MethodMapper, (string, string)[])[]{
+                transferMethods: new (MethodMatcher, (string, string)[])[]{
                     (
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
