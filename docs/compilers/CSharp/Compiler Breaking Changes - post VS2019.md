@@ -49,3 +49,10 @@ Each entry should include a short description of the break, followed by either a
     Such code will produce an error in version 16.4.
 
 6. https://github.com/dotnet/roslyn/issues/37527 The constant folding behavior of the compiler differed depending on your host architecture when converting a floating-point constant to an integral type where that conversion would be a compile-time error if not in an `unchecked` context.  We now yield a zero result for such conversions on all host architectures.
+
+7. https://github.com/dotnet/roslyn/issues/38168 Visual Studio 2019 version 16.3 incorrectly allowed direct implementation of duplicate interfaces differing only by nullability annotations. In *Visual Studio 2019 version 16.4* we will make it an error instead of just a warning.
+For example:
+    ```C#
+    class C : I<object>, I<object?> { }
+    ```
+
