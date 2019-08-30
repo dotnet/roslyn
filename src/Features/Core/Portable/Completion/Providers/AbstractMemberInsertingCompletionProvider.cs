@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var insertionRoot = await PrepareTreeForMemberInsertionAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
             var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
 
-            var destinationSpan = ComputeDestinationSpan(insertionRoot, insertionText);
+            var destinationSpan = ComputeDestinationSpan(insertionRoot);
 
             var finalText = insertionRoot.GetText(text.Encoding)
                 .Replace(destinationSpan, insertionText.Trim());
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return memberContainingDocument;
         }
 
-        private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot, string insertionText)
+        private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot)
         {
             var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNullable();
             var text = insertionRoot.GetText();
