@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.OrganizeImports
 {
-    internal static partial class OrganizeImportsService
+    public static partial class OrganizeImportsService
     {
         public static Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
             => document.GetLanguageService<IOrganizeImportsService>().OrganizeImportsAsync(document, cancellationToken);
