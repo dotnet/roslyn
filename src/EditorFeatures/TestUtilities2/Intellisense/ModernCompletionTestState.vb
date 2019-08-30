@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Inherits TestStateBase
 
         Private Const timeoutMs = 10000
+        Private Const editorTimeoutMs = 20000
         Friend Const RoslynItem = "RoslynItem"
         Friend ReadOnly EditorCompletionCommandHandler As VSCommanding.ICommandHandler
         Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
@@ -36,6 +37,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 extraExportedTypes,
                 includeFormatCommandHandler,
                 workspaceKind:=workspaceKind)
+
+            ' The current default timeout defined in the Editor may not work on slow virtual test machines.
+            ' Need to use a safe timeout there to follow real code paths.
+            TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionThresholdOptionId, editorTimeoutMs)
 
             CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
