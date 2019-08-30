@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    internal struct ServerStats
+    internal readonly struct ServerStats
     {
         internal readonly int Connections;
         internal readonly int CompletedConnections;

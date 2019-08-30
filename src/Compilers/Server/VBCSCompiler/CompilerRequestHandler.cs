@@ -15,7 +15,7 @@ using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal struct RunRequest
+    internal readonly struct RunRequest
     {
         public string Language { get; }
         public string CurrentDirectory { get; }
