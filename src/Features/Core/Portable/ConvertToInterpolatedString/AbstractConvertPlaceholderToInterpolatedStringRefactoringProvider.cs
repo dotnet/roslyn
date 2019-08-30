@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
+            // If selection is empty there can be multiple matching invocations (we can be deep in), need to go through all of them
             var possibleInvocations = await document.GetRelevantNodesAsync<TInvocationExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
             var invocation = possibleInvocations.FirstOrDefault(invocation => IsValidPlaceholderToInterpolatedString(invocation, syntaxFactsService, semanticModel, formatMethods, this, cancellationToken));
 

@@ -3798,12 +3798,17 @@ static class Program
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
+            // The CodePlex bug indicates that this should return a constant value of -1.  However, the specified
+            // value of this is explicitly "undefined", and differs from one host architecture to another.
+            // For determinism we make all undefined unchecked floating to integral conversions yield zero
+            // at compile-time.  That may differ from the result at runtime depending on your runtime architecture.
+            // See https://github.com/dotnet/roslyn/issues/37527
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             var init0 = method.Body.Statements[0].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
             var value0 = model.GetConstantValue(init0);
             var typeInfo0 = model.GetTypeInfo(init0);
             Assert.True(value0.HasValue);
-            Assert.Equal(-1, (short)value0.Value);
+            Assert.Equal(0, (short)value0.Value);
             Assert.True(typeInfo0.Type != null && typeInfo0.Type.SpecialType == SpecialType.System_Int16);
 
             // The CodePlex bug indicates this should return a constant value of 5.  While 'case2' should 
@@ -3823,7 +3828,7 @@ static class Program
             Assert.True(typeInfo2.Type != null && typeInfo2.Type.Equals(type2));
 
             var output = @"
--1
+0
 5
 5";
             CompileAndVerify(compilation: comp, expectedOutput: output);

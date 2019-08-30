@@ -374,6 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // produce a null reference exception.
                 if (!boundExpr.IsLiteralNull())
                 {
+                    boundExpr = BindToNaturalType(boundExpr, diagnostics);
                     var type = boundExpr.Type;
 
                     // If the expression is a lambda, anonymous method, or method group then it will
@@ -386,8 +387,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                         diagnostics.Add(exprSyntax, useSiteDiagnostics);
                     }
-
-                    boundExpr = BindToNaturalType(boundExpr, diagnostics);
                 }
             }
             else
@@ -3069,6 +3068,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckForUnobservedAwaitable(expression, diagnostics);
                     statement = expressionStatement;
                 }
+                else if (IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ReturnInIterator, syntax);
+                    statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
+                }
                 else
                 {
                     expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
@@ -3081,7 +3085,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                statement = new BoundReturnStatement(syntax, refKind, BindToNaturalType(expression, diagnostics)) { WasCompilerGenerated = true };
+                // When binding for purpose of inferring the return type of a lambda, we do not require returned expressions (such as `default` or switch expressions) to have a natural type
+                var inferringLambda = this.ContainingMemberOrLambda is MethodSymbol method && (object)method.ReturnType == LambdaSymbol.ReturnTypeIsBeingInferred;
+                if (!inferringLambda)
+                {
+                    expression = BindToNaturalType(expression, diagnostics);
+                }
+                statement = new BoundReturnStatement(syntax, refKind, expression) { WasCompilerGenerated = true };
             }
 
             // Need to attach the tree for when we generate sequence points.

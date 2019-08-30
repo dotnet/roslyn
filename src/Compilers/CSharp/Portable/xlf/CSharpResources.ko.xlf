@@ -107,6 +107,11 @@
         <target state="translated">'{0}' 형식에는 비추상 멤버가 있으므로 해당 형식을 포함할 수 없습니다. 'Interop 형식 포함' 속성을 false로 설정해보세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">기본 리터럴 'default'가 패턴으로 유효하지 않습니다. 다른 리터럴(예: '0' 또는 'null')을 적절하게 사용하세요. 모두 일치시키려면 무시 패턴 '_'을 사용하세요.</target>
@@ -9460,11 +9465,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">패턴에 'dynamic' 형식을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">기본 리터럴을 동적으로 디스패치된 작업에 대한 인수로 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">제공한 문서 모드가 지원되지 않거나 잘못되었습니다. '{0}'.</target>
@@ -9663,11 +9663,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_ConditionalInInterpolation">
         <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
         <target state="translated">':'은 보간을 끝내므로 조건식을 문자열 보간에 직접 사용할 수 없습니다. 조건식을 괄호를 묶으세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">기본 리터럴 'default'가 case 상수로 유효하지 않습니다. 다른 리터럴(예: '0' 또는 'null')을 적절하게 사용하세요. 기본 레이블을 쓰려는 경우 'case' 없이 'default:'를 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">

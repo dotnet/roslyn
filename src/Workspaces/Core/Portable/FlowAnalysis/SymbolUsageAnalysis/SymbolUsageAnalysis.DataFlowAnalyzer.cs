@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             }
 
             public override BasicBlockAnalysisData GetCurrentAnalysisData(BasicBlock basicBlock)
-                => _analysisData.GetBlockAnalysisData(basicBlock);
+                => _analysisData.GetBlockAnalysisData(basicBlock) ?? GetEmptyAnalysisData();
 
             public override BasicBlockAnalysisData GetEmptyAnalysisData()
                 => _analysisData.CreateBlockAnalysisData();

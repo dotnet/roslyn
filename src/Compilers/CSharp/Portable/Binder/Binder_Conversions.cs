@@ -132,11 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
-            if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
+            if (conversion.Kind == ConversionKind.DefaultLiteral)
             {
-                var defaultExpression = (BoundDefaultExpression)source;
-                Debug.Assert(defaultExpression.TargetType == null);
-                source = defaultExpression.Update(targetType: null, constantValue, destination);
+                source = new BoundDefaultExpression(source.Syntax, targetType: null, constantValue, type: destination)
+                    .WithSuppression(source.IsSuppressed);
             }
 
             return new BoundConversion(
@@ -975,15 +974,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: Some conversions can produce errors or warnings depending on checked/unchecked.
             // TODO: Fold conversions on enums and strings too.
 
-            if (source.HasAnyErrors)
-            {
-                return null;
-            }
-
             var sourceConstantValue = source.ConstantValue;
             if (sourceConstantValue == null)
             {
-                if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
+                if (conversion.Kind == ConversionKind.DefaultLiteral)
                 {
                     return destination.GetDefaultValue();
                 }
@@ -995,6 +989,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (sourceConstantValue.IsBad)
             {
                 return sourceConstantValue;
+            }
+
+            if (source.HasAnyErrors)
+            {
+                return null;
             }
 
             switch (conversion.Kind)
@@ -1013,8 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return sourceConstantValue;
                     }
 
-                case ConversionKind.DefaultOrNullLiteral:
-                    // 'default' case is handled above, 'null' is handled here
+                case ConversionKind.NullLiteral:
                     return sourceConstantValue;
 
                 case ConversionKind.ImplicitConstant:
@@ -1297,14 +1295,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case ConstantValueTypeDiscriminator.Single:
                     case ConstantValueTypeDiscriminator.Double:
-                        // This code used to invoke CheckConstantBounds and return constant zero if the value is not within the target type.
-                        // The C# spec says that in this case the result of the conversion is an unspecified value of the destination type.
-                        // Zero is a perfectly valid unspecified value, so that behavior was formally correct.
-                        // But it did not agree with the behavior of the native C# compiler, that apparently returned a value that
-                        // would resulted from a runtime conversion with normal CLR overflow behavior.
-                        // To avoid breaking programs that might accidentally rely on that unspecified behavior
-                        // we now removed that check and just allow conversion to overflow.
-                        double doubleValue = value.DoubleValue;
+                        // When converting from a floating-point type to an integral type, if the checked conversion would
+                        // throw an overflow exception, then the unchecked conversion is undefined.  So that we have
+                        // identical behavior on every host platform, we yield a result of zero in that case.
+                        double doubleValue = CheckConstantBounds(destinationType, value.DoubleValue) ? value.DoubleValue : 0D;
                         switch (destinationType)
                         {
                             case SpecialType.System_Byte: return (byte)doubleValue;

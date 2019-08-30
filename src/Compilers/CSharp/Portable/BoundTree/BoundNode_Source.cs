@@ -321,6 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             append(" }");
                             break;
                         }
+                    case BoundDefaultLiteral _:
                     case BoundDefaultExpression _:
                         {
                             append("default");
