@@ -1729,9 +1729,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultLiteralNoTargetType = 8716,
 
         ERR_ReAbstractionInNoPIAType = 8750,
-        ERR_InternalError = 8751,
 
         #endregion diagnostics introduced for C# 8.0
+
+        ERR_InternalError = 8751,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

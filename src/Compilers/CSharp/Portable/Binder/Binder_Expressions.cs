@@ -5084,15 +5084,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindBadInterfaceCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, DiagnosticBag diagnostics)
         {
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
-
             BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
-            ImmutableArray<BoundExpression> childNodes = BuildArgumentsForErrorRecovery(analyzedArguments);
-            if (node.Initializer != null)
-                childNodes = childNodes.Add(BindInitializerExpression(node.Initializer, type, node.Type, diagnostics));
-
-            BoundExpression result = new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(type), childNodes, type);
-            analyzedArguments.Free();
-            return result;
+            return MakeBadExpressionForObjectCreation(node, type, analyzedArguments, diagnostics);
         }
 
         private BoundExpression BindComImportCoClassCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol interfaceType, NamedTypeSymbol coClassType, DiagnosticBag diagnostics)
