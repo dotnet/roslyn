@@ -1956,6 +1956,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
 
+            // duplicates with only nullability differences can be merged (to avoid an error in type inference)
+            allInterfaces = ModuloNullabilityDifferences(allInterfaces, VarianceKind.In);
+
             NamedTypeSymbol matchingInterface = GetInterfaceInferenceBound(allInterfaces, target);
             if ((object)matchingInterface == null)
             {
@@ -1963,6 +1966,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             LowerBoundTypeArgumentInference(matchingInterface, target, ref useSiteDiagnostics);
             return true;
+        }
+
+        private static ImmutableArray<NamedTypeSymbol> ModuloNullabilityDifferences(ImmutableArray<NamedTypeSymbol> interfaces, VarianceKind variance)
+        {
+            var dictionary = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(Comparer.Instance);
+
+            foreach (var @interface in interfaces)
+            {
+                if (dictionary.TryGetValue(@interface, out var found))
+                {
+                    dictionary.Remove(@interface);
+                    var merged = (NamedTypeSymbol)found.MergeNullability(@interface, variance);
+                    dictionary.Add(merged, merged);
+                }
+                else
+                {
+                    dictionary.Add(@interface, @interface);
+                }
+            }
+
+            return dictionary.Keys.ToImmutableArray();
+        }
+
+        private class Comparer : IEqualityComparer<NamedTypeSymbol>
+        {
+            public static Comparer Instance = new Comparer();
+            public bool Equals(NamedTypeSymbol x, NamedTypeSymbol y) => x.Equals(y, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
+            public int GetHashCode(NamedTypeSymbol obj) => obj.GetHashCode();
         }
 
         private void LowerBoundTypeArgumentInference(NamedTypeSymbol source, NamedTypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2247,8 +2278,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
 
-            // TODO2
-            NamedTypeSymbol bestInterface = GetInterfaceInferenceBound(target.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), source);
+            ImmutableArray<NamedTypeSymbol> allInterfaces = target.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+
+            // duplicates with only nullability differences can be merged (to avoid an error in type inference)
+            allInterfaces = ModuloNullabilityDifferences(allInterfaces, VarianceKind.Out);
+
+            NamedTypeSymbol bestInterface = GetInterfaceInferenceBound(allInterfaces, source);
             if ((object)bestInterface == null)
             {
                 return false;
@@ -2648,13 +2683,13 @@ OuterBreak:
             NamedTypeSymbol matchingInterface = null;
             foreach (var currentInterface in interfaces)
             {
-                if (TypeSymbol.Equals(currentInterface.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
+                if (TypeSymbol.Equals(currentInterface.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything))
                 {
                     if ((object)matchingInterface == null)
                     {
                         matchingInterface = currentInterface;
                     }
-                    else if (!TypeSymbol.Equals(matchingInterface, currentInterface, TypeCompareKind.ConsiderEverything2))
+                    else if (!TypeSymbol.Equals(matchingInterface, currentInterface, TypeCompareKind.ConsiderEverything))
                     {
                         // Not unique. Bail out.
                         return default;
