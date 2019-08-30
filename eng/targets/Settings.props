@@ -196,6 +196,8 @@
   </Choose>
 
   <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
-    <DefineConstants>DOTNET_BUILD_FROM_SOURCE;$(DefineConstants)</DefineConstants>
+    <!-- https://github.com/dotnet/roslyn/issues/38433 Vbc does not like the extra semicolon -->
+    <DefineConstants Condition="'$(DefineConstants)' != ''">DOTNET_BUILD_FROM_SOURCE;$(DefineConstants)</DefineConstants>
+    <DefineConstants Condition="'$(DefineConstants)' == ''">DOTNET_BUILD_FROM_SOURCE</DefineConstants>
   </PropertyGroup>
 </Project>
