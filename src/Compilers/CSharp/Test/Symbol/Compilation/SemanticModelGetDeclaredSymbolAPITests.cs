@@ -5233,12 +5233,8 @@ class C
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
-            var symbol1 = model.GetDeclaredSymbol(decls[0]);
-            Assert.Equal("[System.Int32 x = 2]", symbol1.ToTestDisplayString());
-            Assert.Equal(0, ((ParameterSymbol)symbol1).Ordinal);
-            var symbol2 = model.GetDeclaredSymbol(decls[1]);
-            Assert.Equal("[?  = null]", symbol2.ToTestDisplayString());
-            Assert.Equal(1, ((ParameterSymbol)symbol2).Ordinal);
+            var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 
@@ -5258,12 +5254,8 @@ class C
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
-            var symbol1 = model.GetDeclaredSymbol(decls[0]);
-            Assert.Equal("System.Int32 x", symbol1.ToTestDisplayString());
-            Assert.Equal(0, ((ParameterSymbol)symbol1).Ordinal);
-            var symbol2 = model.GetDeclaredSymbol(decls[1]);
-            Assert.Equal("[?  = null]", symbol2.ToTestDisplayString());
-            Assert.Equal(1, ((ParameterSymbol)symbol2).Ordinal);
+            var symbol1 = VerifyParameter(model, decls[0], 0, "System.Int32 x", null, null);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 
@@ -5283,13 +5275,38 @@ class C
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
-            var symbol1 = model.GetDeclaredSymbol(decls[0]);
-            Assert.Equal("[System.Int32 x = 2]", symbol1.ToTestDisplayString());
-            Assert.Equal(0, ((ParameterSymbol)symbol1).Ordinal);
-            var symbol2 = model.GetDeclaredSymbol(decls[1]);
-            Assert.Equal("[?  = null]", symbol2.ToTestDisplayString());
-            Assert.Equal(1, ((ParameterSymbol)symbol2).Ordinal);
+            var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        private static ParameterSymbol VerifyParameter(
+            SemanticModel model,
+            ParameterSyntax decl,
+            int expectedOrdinal,
+            string expectedSymbol,
+            string expectedType,
+            object expectedConstant)
+        {
+            var symbol = (ParameterSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(expectedOrdinal, symbol.Ordinal);
+            Assert.Equal(expectedSymbol, symbol.ToTestDisplayString());
+
+            var valueSyntax = decl.Default?.Value;
+            if (valueSyntax == null)
+            {
+                Assert.Null(expectedType);
+                Assert.Null(expectedConstant);
+            }
+            else
+            {
+                var type = model.GetTypeInfo(valueSyntax);
+                Assert.Equal(expectedType, type.Type.ToTestDisplayString());
+                Optional<object> actualConstant = model.GetConstantValue(valueSyntax);
+                Assert.Equal(expectedConstant, actualConstant.Value);
+            }
+
+            return symbol;
         }
     }
 }
