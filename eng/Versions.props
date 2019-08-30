@@ -315,34 +315,4 @@
     -->
     <UsingToolMicrosoftNetCompilers Condition="'$(BootstrapBuildPath)' == ''">true</UsingToolMicrosoftNetCompilers>
   </PropertyGroup>
-  <PropertyGroup>
-    <RestoreSources>
-      $(RestoreSources);
-      https://api.nuget.org/v3/index.json;
-      https://dotnet.myget.org/F/dotnet-coreclr/api/v3/index.json;
-      https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
-      https://dotnet.myget.org/F/dotnet-corefxtestdata/api/v3/index.json;
-      https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json;
-      https://dotnet.myget.org/F/experimental-vs-packages/api/v3/index.json;
-      https://dotnet.myget.org/F/symreader/api/v3/index.json;
-      https://dotnet.myget.org/F/symreader-portable/api/v3/index.json;
-      https://dotnet.myget.org/F/symreader-converter/api/v3/index.json;
-      https://dotnet.myget.org/F/symreader-native/api/v3/index.json;
-      https://dotnet.myget.org/F/metadata-tools/api/v3/index.json;
-      https://dotnet.myget.org/F/interactive-window/api/v3/index.json;
-      https://dotnet.myget.org/F/roslyn-master-nightly/api/v3/index.json;
-      https://dotnet.myget.org/F/roslyn-tools/api/v3/index.json;
-      https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json;
-      https://dotnet.myget.org/F/roslyn/api/v3/index.json;
-      https://dotnet.myget.org/F/sourcelink/api/v3/index.json;
-      https://myget.org/F/vs-devcore/api/v3/index.json;
-      https://myget.org/F/vs-editor/api/v3/index.json;
-      https://myget.org/F/roslyn_concord/api/v3/index.json;
-      https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
-      https://dotnet.myget.org/F/system-commandline/api/v3/index.json;
-      https://dotnetfeed.blob.core.windows.net/dotnet-coreclr/index.json;
-      https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json;
-      https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json;
-    </RestoreSources>
-  </PropertyGroup>
 </Project>
