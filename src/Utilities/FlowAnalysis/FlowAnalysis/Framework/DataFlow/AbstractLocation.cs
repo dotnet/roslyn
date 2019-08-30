@@ -90,6 +90,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public ITypeSymbol LocationTypeOpt { get; }
         public bool IsNull => ReferenceEquals(this, Null);
         public bool IsNoLocation => ReferenceEquals(this, NoLocation);
+
+        /// <summary>
+        /// Indicates this represents the initial unknown but distinct location for an analysis entity.
+        /// </summary>
         public bool IsAnalysisEntityDefaultLocation => AnalysisEntityOpt != null;
 
         protected override void ComputeHashCodeParts(Action<int> addPart)

@@ -60,10 +60,10 @@ namespace Analyzer.Utilities.Extensions
 
                     if (innerOperation.Kind == OperationKind.Throw &&
                         innerOperation is IThrowOperation throwOperation &&
-                        throwOperation.Exception is IObjectCreationOperation createdException)
+                        throwOperation.GetThrownExceptionType() is ITypeSymbol createdExceptionType)
                     {
-                        if (Equals(WellKnownTypes.NotImplementedException(context.Compilation), createdException.Type.OriginalDefinition)
-                            || Equals(WellKnownTypes.NotSupportedException(context.Compilation), createdException.Type.OriginalDefinition))
+                        if (Equals(WellKnownTypes.NotImplementedException(context.Compilation), createdExceptionType.OriginalDefinition)
+                            || Equals(WellKnownTypes.NotSupportedException(context.Compilation), createdExceptionType.OriginalDefinition))
                         {
                             return true;
                         }
