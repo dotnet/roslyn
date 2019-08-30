@@ -1294,8 +1294,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.TypeKind == TypeKind.TypeParameter)
             {
                 var typeParameter = (TypeParameterSymbol)type;
-                GetIEnumerableOfT(typeParameter.EffectiveBaseClass(ref useSiteDiagnostics).AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), isAsync, compilation, ref @implementedIEnumerable, ref foundMultiple);
-                GetIEnumerableOfT(typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), isAsync, compilation, ref @implementedIEnumerable, ref foundMultiple);
+                var allInterfaces = typeParameter.EffectiveBaseClass(ref useSiteDiagnostics).AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics)
+                    .Concat(typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
+                GetIEnumerableOfT(allInterfaces, isAsync, compilation, ref @implementedIEnumerable, ref foundMultiple);
             }
             else
             {
@@ -1305,18 +1306,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return implementedIEnumerable;
         }
 
-        private static void GetIEnumerableOfT(ImmutableArray<NamedTypeSymbol> interfaces, bool isAsync, CSharpCompilation compilation, ref NamedTypeSymbol result, ref bool foundMultiple)
+        private static void GetIEnumerableOfT(IEnumerable<NamedTypeSymbol> interfaces, bool isAsync, CSharpCompilation compilation, ref NamedTypeSymbol result, ref bool foundMultiple)
         {
             if (foundMultiple)
             {
                 return;
             }
+
+            interfaces = MethodTypeInferrer.ModuloNullabilityDifferences(interfaces, VarianceKind.In);
+
             foreach (NamedTypeSymbol @interface in interfaces)
             {
                 if (IsIEnumerableT(@interface.OriginalDefinition, isAsync, compilation))
                 {
                     if ((object)result == null ||
-                        TypeSymbol.Equals(@interface, result, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                        TypeSymbol.Equals(@interface, result, TypeCompareKind.IgnoreTupleNames))
                     {
                         result = @interface;
                     }
