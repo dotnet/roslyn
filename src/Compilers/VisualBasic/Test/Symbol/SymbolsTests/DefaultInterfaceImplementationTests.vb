@@ -16,10 +16,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DefaultInterfaceImplementationTests
         Inherits BasicTestBase
 
-        Private Function GetCSharpCompilation(csSource As String, Optional additionalReferences As MetadataReference() = Nothing, Optional targetFramework As TargetFramework = TargetFramework.NetStandardLatest) As CSharp.CSharpCompilation
+        Private Function GetCSharpCompilation(
+            csSource As String,
+            Optional additionalReferences As MetadataReference() = Nothing,
+            Optional targetFramework As TargetFramework = TargetFramework.NetStandardLatest,
+            Optional compilationOptions As CSharp.CSharpCompilationOptions = Nothing
+        ) As CSharp.CSharpCompilation
             Return CreateCSharpCompilation(csSource,
                                            parseOptions:=CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.CSharp8),
-                                           referencedAssemblies:=TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences))
+                                           referencedAssemblies:=TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences),
+                                           compilationOptions:=compilationOptions)
         End Function
 
         Private Shared ReadOnly Property VerifyOnMonoOrCoreClr As Verification
@@ -11285,6 +11291,92 @@ BC30452: Operator '-' is not defined for types 'C1' and 'I1'.
         x = y - x
             ~~~~~
 </expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")>
+        Public Sub WindowsRuntimeEvent_01()
+
+            Dim csSource =
+"
+public interface I1
+{
+    event System.Action WinRT
+    {
+        add { throw null; }
+        remove { throw null; }
+    }
+}
+
+public interface I2 : I1
+{
+    event System.Action I1.WinRT 
+    { 
+        add { throw null; }
+        remove { throw null; }
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource, compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class C1
+    Implements I1
+
+    Custom Event E1 As System.Action Implements I1.WinRT
+        AddHandler(value As System.Action)
+            Return new System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken()
+        End AddHandler
+        RemoveHandler(value As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+
+Public Class C2
+    Implements I2
+
+    Custom Event E2 As System.Action Implements I1.WinRT
+        AddHandler(value As System.Action)
+            Return new System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken()
+        End AddHandler
+        RemoveHandler(value As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+
+            Dim validator = Sub(m As ModuleSymbol)
+                                Dim c1 = m.GlobalNamespace.GetTypeMember("C1")
+                                Dim c2 = m.GlobalNamespace.GetTypeMember("C2")
+                                Dim i1 = c1.Interfaces.Single()
+                                Dim i2 = i1.ContainingModule.GlobalNamespace.GetTypeMember("I2")
+
+                                Dim i1WinRT = i1.GetMember(Of EventSymbol)("WinRT")
+                                Dim i2WinRT = DirectCast(i2.GetMembers("I1.WinRT").Single(), EventSymbol)
+
+                                Assert.True(i1WinRT.IsWindowsRuntimeEvent)
+                                Assert.True(i2WinRT.IsWindowsRuntimeEvent)
+
+                                Assert.Same(c1.GetMember(Of EventSymbol)("E1"), c1.FindImplementationForInterfaceMember(i1WinRT))
+                                Assert.Same(c2.GetMember(Of EventSymbol)("E2"), c2.FindImplementationForInterfaceMember(i1WinRT))
+                                Assert.Null(i2.FindImplementationForInterfaceMember(i1WinRT))
+                                Assert.Null(i2.FindImplementationForInterfaceMember(i1WinRT.AddMethod))
+                                Assert.Null(i2.FindImplementationForInterfaceMember(i1WinRT.RemoveMethod))
+                                Assert.Same(i1WinRT, i2WinRT.ExplicitInterfaceImplementations.Single())
+                                Assert.Same(i1WinRT.AddMethod, i2WinRT.AddMethod.ExplicitInterfaceImplementations.Single())
+                                Assert.Same(i1WinRT.RemoveMethod, i2WinRT.RemoveMethod.ExplicitInterfaceImplementations.Single())
+                            End Sub
+
+            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
     End Class
