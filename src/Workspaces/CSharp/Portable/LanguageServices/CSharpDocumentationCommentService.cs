@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class CSharpDocumentationCommentService : AbstractDocumentationCommentService<
-        DocumentationCommentTriviaSyntax, 
+        DocumentationCommentTriviaSyntax,
         XmlNodeSyntax,
         XmlAttributeSyntax,
         CrefSyntax,
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         XmlNameAttributeSyntax,
         XmlTextAttributeSyntax>
     {
-        private CSharpDocumentationCommentService() 
+        private CSharpDocumentationCommentService()
             : base(CSharpSyntaxFactsService.Instance)
         {
         }

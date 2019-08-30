@@ -36,7 +36,7 @@ class main1
             var comp = CreateCompilation(text);
 
             var actualSymbols = comp.Assembly.GlobalNamespace.GetMembers();
-            var actual = string.Join(", ", actualSymbols.Select(symbol => symbol.Name).OrderBy(name => name));
+            var actual = string.Join(", ", actualSymbols.Where(s => !s.IsImplicitlyDeclared).Select(symbol => symbol.Name).OrderBy(name => name));
             Assert.Equal("main1, Test1", actual);
         }
 
@@ -348,17 +348,17 @@ class A
                 Assert.Equal("System.Action<dynamic>", e2.Type.ToTestDisplayString());
                 Assert.Equal("System.Action<dynamic>", p.Type.ToTestDisplayString());
 
-                Assert.Equal(1, e1.AddMethod.ParameterTypes.Length);
-                Assert.Equal("System.Action<dynamic>", e1.AddMethod.ParameterTypes[0].ToTestDisplayString());
+                Assert.Equal(1, e1.AddMethod.ParameterTypesWithAnnotations.Length);
+                Assert.Equal("System.Action<dynamic>", e1.AddMethod.ParameterTypesWithAnnotations[0].ToTestDisplayString());
 
-                Assert.Equal(1, e1.RemoveMethod.ParameterTypes.Length);
-                Assert.Equal("System.Action<dynamic>", e1.RemoveMethod.ParameterTypes[0].ToTestDisplayString());
+                Assert.Equal(1, e1.RemoveMethod.ParameterTypesWithAnnotations.Length);
+                Assert.Equal("System.Action<dynamic>", e1.RemoveMethod.ParameterTypesWithAnnotations[0].ToTestDisplayString());
 
-                Assert.Equal(1, e2.AddMethod.ParameterTypes.Length);
-                Assert.Equal("System.Action<dynamic>", e2.AddMethod.ParameterTypes[0].ToTestDisplayString());
+                Assert.Equal(1, e2.AddMethod.ParameterTypesWithAnnotations.Length);
+                Assert.Equal("System.Action<dynamic>", e2.AddMethod.ParameterTypesWithAnnotations[0].ToTestDisplayString());
 
-                Assert.Equal(1, e2.RemoveMethod.ParameterTypes.Length);
-                Assert.Equal("System.Action<dynamic>", e2.RemoveMethod.ParameterTypes[0].ToTestDisplayString());
+                Assert.Equal(1, e2.RemoveMethod.ParameterTypesWithAnnotations.Length);
+                Assert.Equal("System.Action<dynamic>", e2.RemoveMethod.ParameterTypesWithAnnotations[0].ToTestDisplayString());
 
                 Assert.Equal(1, e1.GetAttributes(AttributeDescription.DynamicAttribute).Count());
                 Assert.Equal(1, e2.GetAttributes(AttributeDescription.DynamicAttribute).Count());
@@ -440,7 +440,7 @@ class LambdaConsumer
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            CompileAndVerify(source: source, references: new[] { CSharpRef, libAssemblyRef },
+            CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef },
                                                     expectedOutput: "Print method ran.", sourceSymbolValidator: validator);
         }
 
@@ -486,7 +486,7 @@ class D
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            var compilationVerifier = CompileAndVerify(source: source, references: new[] { CSharpRef, libAssemblyRef }, 
+            var compilationVerifier = CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef },
                                                     expectedOutput: "Print method ran.");
         }
 
@@ -514,7 +514,8 @@ class D
 }";
             var expectedOutput = "Print method ran.";
             var compilationVerifier = CompileAndVerify(source: source,
-                references: new[] { CSharpRef, libCompRef },
+                references: new[] { libCompRef },
+                targetFramework: TargetFramework.StandardAndCSharp,
                 expectedOutput: expectedOutput);
         }
 
@@ -571,8 +572,11 @@ Printed: Alice
 Printed: Bob
 Printed: Charlie
 ";
-            var compilationVerifier = CompileAndVerify(source: source, references: new[] { CSharpRef, libAssemblyRef },
-                                                    expectedOutput: expectedOutput);
+            var compilationVerifier = CompileAndVerify(
+                source: source,
+                targetFramework: TargetFramework.StandardAndCSharp,
+                references: new[] { libAssemblyRef },
+                expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -800,7 +804,7 @@ class D
     }
 }
 ";
-            var compVerifier = CompileAndVerify(source, new[] { CSharpRef, CompileIL(ilSource) }, 
+            var compVerifier = CompileAndVerify(source, new[] { TargetFrameworkUtil.StandardCSharpReference, CompileIL(ilSource) },
                                                 expectedOutput: "Event raised");
 
             var comp = compVerifier.Compilation;
@@ -808,6 +812,39 @@ class D
             var eventSymbol = (PEEventSymbol)classSymbol.GetMember("E");
             Assert.Equal("System.Action<System.Object>", eventSymbol.Type.ToTestDisplayString());
         }
+
+        [Fact]
+        public void StaticEventDoesNotRequireInstanceReceiver()
+        {
+            var source = @"using System;
+class C
+{
+    public static event EventHandler E;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (4,38): warning CS0067: The event 'C.E' is never used
+                //     public static event EventHandler E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 38));
+            var eventSymbol = compilation.GetMember<EventSymbol>("C.E");
+            Assert.False(eventSymbol.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstanceEventRequiresInstanceReceiver()
+        {
+            var source = @"using System;
+class C
+{
+    public event EventHandler E;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (4,31): warning CS0067: The event 'C.E' is never used
+                //     public event EventHandler E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
+            var eventSymbol = compilation.GetMember<EventSymbol>("C.E");
+            Assert.True(eventSymbol.RequiresInstanceReceiver);
+        }
+
         #endregion
 
         #region Error cases
@@ -2132,16 +2169,16 @@ class A
             CreateCompilation("event System.Action System.IFormattable.").VerifyDiagnostics(
                 // (1,40): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "."),
-                // (1,21): error CS0540: '<invalid-global-code>.': containing type does not implement interface 'System.IFormattable'
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(1, 40),
+                // (1,41): error CS1001: Identifier expected
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.IFormattable").WithArguments("<invalid-global-code>.", "System.IFormattable"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 41),
+                // (1,21): error CS0540: '<invalid-global-code>.': containing type does not implement interface 'IFormattable'
+                // event System.Action System.IFormattable.
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.IFormattable").WithArguments("<invalid-global-code>.", "System.IFormattable").WithLocation(1, 21),
                 // (1,41): error CS0539: '<invalid-global-code>.' in explicit interface declaration is not a member of interface
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>."),
-                // (1,41): error CS0065: '<invalid-global-code>.': event property must have both add and remove accessors
-                // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>."));
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -2215,15 +2252,15 @@ class Derived2 : Base
             var event1 = derived1.GetMember<EventSymbol>("E");
             Assert.Equal(baseEventType, event1.Type);
             Assert.Equal(baseEventType, event1.AssociatedField.Type);
-            Assert.Equal(baseEventType, event1.AddMethod.ParameterTypes.Single());
-            Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypes.Single());
+            Assert.Equal(baseEventType, event1.AddMethod.ParameterTypesWithAnnotations.Single().Type);
+            Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypesWithAnnotations.Single().Type);
 
             var derived2 = global.GetMember<NamedTypeSymbol>("Derived2");
             var event2 = derived2.GetMember<EventSymbol>("E");
             Assert.Equal(baseEventType, event2.Type);
             Assert.Null(event2.AssociatedField);
-            Assert.Equal(baseEventType, event2.AddMethod.ParameterTypes.Single());
-            Assert.Equal(baseEventType, event2.RemoveMethod.ParameterTypes.Single());
+            Assert.Equal(baseEventType, event2.AddMethod.ParameterTypesWithAnnotations.Single().Type);
+            Assert.Equal(baseEventType, event2.RemoveMethod.ParameterTypesWithAnnotations.Single().Type);
         }
 
         [Fact]
@@ -2406,13 +2443,13 @@ namespace ConsoleApplication3
             CreateCompilation(source).VerifyDiagnostics(
                 // (14,19): error CS0205: Cannot call an abstract base member: 'BaseWithAbstractEvent.MyEvent'
                 //             add { base.MyEvent += value; } // error
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(14, 19),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent += value").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(14, 19),
                 // (15,22): error CS0205: Cannot call an abstract base member: 'BaseWithAbstractEvent.MyEvent'
                 //             remove { base.MyEvent -= value; } // error
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(15, 22),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent -= value").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(15, 22),
                 // (20,13): error CS0205: Cannot call an abstract base member: 'BaseWithAbstractEvent.MyEvent'
                 //             base.MyEvent += Goo; // error
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(20, 13)
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent += Goo").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(20, 13)
                 );
         }
 

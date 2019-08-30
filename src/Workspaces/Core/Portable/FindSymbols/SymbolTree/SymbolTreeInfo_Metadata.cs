@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -146,16 +147,35 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33131", AllowCaptures = false)]
         public static Checksum GetMetadataChecksum(
             Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             // We can reuse the index for any given reference as long as it hasn't changed.
             // So our checksum is just the checksum for the PEReference itself.
+            // First see if the value is already in the cache, to avoid an allocation if possible.
+            if (ChecksumCache.TryGetValue(reference, out var cached))
+            {
+                return cached;
+            }
+
+            // Break things up to the fast path above and this slow path where we allocate a closure.
+            return GetMetadataChecksumSlow(solution, reference, cancellationToken);
+        }
+
+        private static Checksum GetMetadataChecksumSlow(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
+        {
             return ChecksumCache.GetOrCreate(reference, _ =>
             {
-                var serializer = new Serializer(solution.Workspace);
+                var serializer = solution.Workspace.Services.GetService<ISerializerService>();
                 var checksum = serializer.CreateChecksum(reference, cancellationToken);
-                return checksum;
+
+                // Include serialization format version in our checksum.  That way if the 
+                // version ever changes, all persisted data won't match the current checksum
+                // we expect, and we'll recompute things.
+                return Checksum.Create(
+                    WellKnownSynchronizationKind.SymbolTreeInfo,
+                    new[] { checksum, SerializationFormatChecksum });
             });
         }
 
@@ -174,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference, cancellationToken),
                 keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfFalse(result != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
             return result;
@@ -554,7 +574,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 while (true)
                 {
-                    int dotIndex = blobReader.IndexOf((byte)'.');
+                    var dotIndex = blobReader.IndexOf((byte)'.');
                     unsafe
                     {
                         // Note: we won't get any string sharing as we're just using the 

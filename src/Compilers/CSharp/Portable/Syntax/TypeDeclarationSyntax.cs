@@ -18,6 +18,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return this.TypeParameterList == null ? 0 : this.TypeParameterList.Parameters.Count;
             }
         }
+
+        public new TypeDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+            => (TypeDeclarationSyntax)AddAttributeListsCore(items);
+
+        public new TypeDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+            => (TypeDeclarationSyntax)AddModifiersCore(items);
+
+        public new TypeDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+            => (TypeDeclarationSyntax)WithAttributeListsCore(attributeLists);
+
+        public new TypeDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+            => (TypeDeclarationSyntax)WithModifiersCore(modifiers);
     }
 }
 

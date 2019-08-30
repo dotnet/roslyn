@@ -11,12 +11,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
         Inherits CodeFixProvider
 
         Friend Const BC40003 As String = "BC40003" ' '{0} '{1}' shadows an overloadable member declared in the base class '{2}'.  If you want to overload the base method, this method must be declared 'Overloads'.
+        Friend Const BC40004 As String = "BC40004" ' '{0} '{1}' overloads an overloadable member declared in the base class '{2}'.  If you want to shadow the base method, this method must be declared 'Shadows'.
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(BC40003)
+                Return ImmutableArray.Create(BC40003, BC40004)
             End Get
         End Property
+
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            Return WellKnownFixAllProviders.BatchFixer
+        End Function
 
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
@@ -30,7 +39,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 Return
             End If
 
-            context.RegisterCodeFix(New AddOverloadsKeywordAction(context.Document, token.Parent), context.Diagnostics)
+            If diagnostic.Descriptor.Id = BC40003 Then
+                context.RegisterCodeFix(New AddKeywordAction(context.Document, token.Parent, VBFeaturesResources.Add_Overloads, SyntaxKind.OverloadsKeyword), context.Diagnostics)
+            ElseIf diagnostic.Descriptor.Id = BC40004 Then
+                context.RegisterCodeFix(New AddKeywordAction(context.Document, token.Parent, VBFeaturesResources.Add_Shadows, SyntaxKind.ShadowsKeyword), context.Diagnostics)
+            End If
         End Function
     End Class
 End Namespace

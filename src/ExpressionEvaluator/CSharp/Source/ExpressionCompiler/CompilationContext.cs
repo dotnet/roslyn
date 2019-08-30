@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                         properties = default(ResultProperties);
                                         return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                                     });
-                                var flags = local.IsWritable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
+                                var flags = local.IsWritableVariable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
                                 localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, flags));
                                 methodBuilder.Add(aliasMethod);
                             }
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             localsDictionary.Add(local.Name, (local, localIndex));
                             localIndex++;
                         }
-                        
+
                         foreach (var argumentName in _sourceMethodParametersInOrder)
                         {
                             (LocalSymbol local, int localIndex) localSymbolAndIndex;
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // base type. Instead, we only allow valid C# expressions.
             var expression = IsDeconstruction(syntax)
                 ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, diagnostics, resultIsUsedOverride: true)
-                : binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
+                : binder.BindRValueWithoutTargetType(syntax, diagnostics);
             if (diagnostics.HasAnyErrors())
             {
                 resultProperties = default;
@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 binder = new InContainerBinder(substitutedSourceType, binder);
                 if (substitutedSourceType.Arity > 0)
                 {
-                    binder = new WithTypeArgumentsBinder(substitutedSourceType.TypeArgumentsNoUseSiteDiagnostics, binder);
+                    binder = new WithTypeArgumentsBinder(substitutedSourceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, binder);
                 }
             }
 
@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (substitutedSourceMethod.Arity > 0)
             {
-                binder = new WithTypeArgumentsBinder(substitutedSourceMethod.TypeArguments, binder);
+                binder = new WithTypeArgumentsBinder(substitutedSourceMethod.TypeArgumentsWithAnnotations, binder);
             }
 
             // Method locals and parameters shadow pseudo-variables.
@@ -1305,7 +1305,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var name = local.Name;
                 if ((name != null) && (GeneratedNames.GetKind(name) == GeneratedNameKind.DisplayClassLocalOrField))
                 {
-                    if (displayClassTypes.Add(local.Type))
+                    var localType = local.Type;
+                    if ((object)localType != null && displayClassTypes.Add(localType))
                     {
                         var instance = new DisplayClassInstanceFromLocal((EELocalSymbol)local);
                         displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
@@ -1407,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 Debug.Assert(!field.IsStatic);
 
                 // A hoisted local that is itself a display class instance.
-                if (displayClassTypes.Add(field.Type))
+                if (displayClassTypes.Add(fieldType))
                 {
                     var other = instance.FromField(field);
                     displayClassInstances.Add(other);
@@ -1445,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var field = (FieldSymbol)member;
                 var fieldName = field.Name;
 
-            REPARSE:
+REPARSE:
 
                 DisplayClassVariableKind variableKind;
                 string variableName;
@@ -1649,7 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     {
                         return desiredTypeParameters.Length == 0
                             ? candidateMethod
-                            : candidateMethod.Construct(candidateSubstitutedSourceType.TypeArgumentsNoUseSiteDiagnostics);
+                            : candidateMethod.Construct(candidateSubstitutedSourceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
                     }
                 }
 

@@ -8,6 +8,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageService(typeof(ILinkedFileMergeConflictCommentAdditionService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpLinkedFileMergeConflictCommentAdditionService : AbstractLinkedFileMergeConflictCommentAdditionService
     {
+        [ImportingConstructor]
+        public CSharpLinkedFileMergeConflictCommentAdditionService()
+        {
+        }
+
         internal override string GetConflictCommentText(string header, string beforeString, string afterString)
         {
             if (beforeString == null && afterString == null)

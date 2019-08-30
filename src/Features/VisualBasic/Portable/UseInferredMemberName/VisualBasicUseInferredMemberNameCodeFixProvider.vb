@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
     Friend Class VisualBasicUseInferredMemberNameCodeFixProvider
         Inherits AbstractUseInferredMemberNameCodeFixProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Sub LanguageSpecificRemoveSuggestedNode(editor As SyntaxEditor, node As SyntaxNode)
             Select Case node.Kind
                 Case SyntaxKind.NameColonEquals

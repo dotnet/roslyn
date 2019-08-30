@@ -101,25 +101,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // We want to raise a save event for this document. First let's try to get the docData
                 Marshal.ThrowExceptionForHR(_runningDocumentTable.GetDocumentInfo(docCookie, out var flags, out var readLocks, out var writeLocks, out var moniker, out var hierarchy, out var itemid, out docData));
 
-                var textBuffer = TryGetTextBufferFromDocData(docData);
-
-                // Do a quick check that this is a Roslyn file at all before we go do more expensive things
-                if (textBuffer != null && textBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
+                if (Marshal.GetObjectForIUnknown(docData) is IVsTextBuffer textBufferAdapter)
                 {
-                    var textBufferAdapter = _editorAdaptersFactoryService.GetBufferAdapter(textBuffer);
+                    var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(textBufferAdapter);
 
-                    if (textBufferAdapter != null)
+                    // Do a quick check that this is a Roslyn file at all before we go do more expensive things
+                    if (textBuffer != null && textBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
                     {
-                        // OK, we want to go and raise a save event. Currently, CommandArgs demands that we have a view, so let's try to go and find one.
-                        _textManager.EnumViews(textBufferAdapter, out var enumTextViews);
-                        IVsTextView[] views = new IVsTextView[1];
-                        uint fetched = 0;
-
-                        if (ErrorHandler.Succeeded(enumTextViews.Next(1, views, ref fetched)) && fetched == 1)
+                        if (textBufferAdapter != null)
                         {
-                            var view = _editorAdaptersFactoryService.GetWpfTextView(views[0]);
-                            var commandHandlerService = _commandHandlerServiceFactory.GetService(textBuffer);
-                            commandHandlerService.Execute(textBuffer.ContentType, new SaveCommandArgs(view, textBuffer));
+                            // OK, we want to go and raise a save event. Currently, CommandArgs demands that we have a view, so let's try to go and find one.
+                            _textManager.EnumViews(textBufferAdapter, out var enumTextViews);
+                            var views = new IVsTextView[1];
+                            uint fetched = 0;
+
+                            if (ErrorHandler.Succeeded(enumTextViews.Next(1, views, ref fetched)) && fetched == 1)
+                            {
+                                var view = _editorAdaptersFactoryService.GetWpfTextView(views[0]);
+                                var commandHandlerService = _commandHandlerServiceFactory.GetService(textBuffer);
+                                commandHandlerService.Execute(textBuffer.ContentType, new SaveCommandArgs(view, textBuffer));
+                            }
                         }
                     }
                 }
@@ -130,24 +131,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     Marshal.Release(docData);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Tries to return an ITextBuffer representing the document from the document's DocData.
-        /// </summary>
-        /// <param name="docData">The DocData from the running document table.</param>
-        /// <returns>The ITextBuffer. If one could not be found, this returns null.</returns>
-        private ITextBuffer TryGetTextBufferFromDocData(IntPtr docData)
-        {
-
-            if (Marshal.GetObjectForIUnknown(docData) is IVsTextBuffer shimTextBuffer)
-            {
-                return _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
-            }
-            else
-            {
-                return null;
             }
         }
     }

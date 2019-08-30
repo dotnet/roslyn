@@ -4,87 +4,30 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
-    internal sealed class ForegroundThreadData
-    {
-        internal readonly Thread Thread;
-        internal readonly TaskScheduler TaskScheduler;
-        internal readonly ForegroundThreadDataKind Kind;
-
-        internal ForegroundThreadData(Thread thread, TaskScheduler taskScheduler, ForegroundThreadDataKind kind)
-        {
-            Thread = thread;
-            TaskScheduler = taskScheduler;
-            Kind = kind;
-        }
-
-        /// <summary>
-        /// Creates the default ForegroundThreadData assuming that the current thread is the UI thread.
-        /// </summary>
-        /// <param name="defaultKind">The ForegroundThreadDataKind to fall back to if a UI thread cannot be found</param>
-        /// <returns>default ForegroundThreadData values</returns>
-        internal static ForegroundThreadData CreateDefault(ForegroundThreadDataKind defaultKind)
-        {
-            var kind = ForegroundThreadDataInfo.CreateDefault(defaultKind);
-
-            return new ForegroundThreadData(Thread.CurrentThread, SynchronizationContext.Current == null ? TaskScheduler.Default : new SynchronizationContextTaskScheduler(SynchronizationContext.Current), kind);
-        }
-    }
-
     /// <summary>
     /// Base class that allows some helpers for detecting whether we're on the main WPF foreground thread, or
     /// a background thread.  It also allows scheduling work to the foreground thread at below input priority.
     /// </summary>
     internal class ForegroundThreadAffinitizedObject
     {
-        private static readonly ForegroundThreadData s_fallbackForegroundThreadData;
-        private static ForegroundThreadData s_currentForegroundThreadData;
-        private readonly ForegroundThreadData _foregroundThreadDataWhenCreated;
+        private readonly IThreadingContext _threadingContext;
 
-        internal static ForegroundThreadData CurrentForegroundThreadData
+        internal IThreadingContext ThreadingContext => _threadingContext;
+
+        public ForegroundThreadAffinitizedObject(IThreadingContext threadingContext, bool assertIsForeground = false)
         {
-            get
-            {
-                return s_currentForegroundThreadData ?? s_fallbackForegroundThreadData;
-            }
-
-            set
-            {
-                s_currentForegroundThreadData = value;
-                ForegroundThreadDataInfo.SetCurrentForegroundThreadDataKind(s_currentForegroundThreadData?.Kind);
-            }
-        }
-
-        internal Thread ForegroundThread => _foregroundThreadDataWhenCreated.Thread;
-
-        internal TaskScheduler ForegroundTaskScheduler => _foregroundThreadDataWhenCreated.TaskScheduler;
-
-        internal ForegroundThreadDataKind ForegroundKind => _foregroundThreadDataWhenCreated.Kind;
-
-        // HACK: This is a dangerous way of establishing the 'foreground' thread affinity of an 
-        // AppDomain.  This method should be deleted in favor of forcing derivations of this type
-        // to either explicitly inherit WPF Dispatcher thread or provide an explicit thread 
-        // they believe to be the foreground. 
-        static ForegroundThreadAffinitizedObject()
-        {
-            s_fallbackForegroundThreadData = ForegroundThreadData.CreateDefault(Unknown);
-        }
-
-        public ForegroundThreadAffinitizedObject(bool assertIsForeground = false)
-        {
-            _foregroundThreadDataWhenCreated = CurrentForegroundThreadData;
+            _threadingContext = threadingContext ?? throw new ArgumentNullException(nameof(threadingContext));
 
             // ForegroundThreadAffinitizedObject might not necessarily be created on a foreground thread.
             // AssertIsForeground here only if the object must be created on a foreground thread.
             if (assertIsForeground)
             {
                 // Assert we have some kind of foreground thread
-                Contract.ThrowIfTrue(CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
+                Contract.ThrowIfFalse(threadingContext.HasMainThread);
 
                 AssertIsForeground();
             }
@@ -92,25 +35,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public bool IsForeground()
         {
-            return Thread.CurrentThread == ForegroundThread;
+            return _threadingContext.JoinableTaskContext.IsOnMainThread;
         }
 
         public void AssertIsForeground()
         {
-            var whenCreatedThread = _foregroundThreadDataWhenCreated.Thread;
+            var whenCreatedThread = _threadingContext.JoinableTaskContext.MainThread;
             var currentThread = Thread.CurrentThread;
 
-            // In debug, provide a lot more information so that we can track down unit test flakeyness.
+            // In debug, provide a lot more information so that we can track down unit test flakiness.
             // This is too expensive to do in retail as it creates way too many allocations.
             Debug.Assert(currentThread == whenCreatedThread,
-                "When created kind       : " + _foregroundThreadDataWhenCreated.Kind + "\r\n" +
                 "When created thread id  : " + whenCreatedThread?.ManagedThreadId + "\r\n" +
                 "When created thread name: " + whenCreatedThread?.Name + "\r\n" +
                 "Current thread id       : " + currentThread?.ManagedThreadId + "\r\n" +
                 "Current thread name     : " + currentThread?.Name);
 
             // But, in retail, do the check as well, so that we can catch problems that happen in the wild.
-            Contract.ThrowIfFalse(currentThread == whenCreatedThread);
+            Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
         }
 
         public void AssertIsBackground()
@@ -129,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             // Does nothing.
         }
 
-        public Task InvokeBelowInputPriority(Action action, CancellationToken cancellationToken = default)
+        public Task InvokeBelowInputPriorityAsync(Action action, CancellationToken cancellationToken = default)
         {
             if (IsForeground() && !IsInputPending())
             {
@@ -137,11 +79,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 // and there's no pending user input.
                 action();
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
             else
             {
-                return Task.Factory.SafeStartNew(action, cancellationToken, ForegroundTaskScheduler);
+                return Task.Factory.SafeStartNewFromAsync(
+                    async () =>
+                    {
+                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        action();
+                    },
+                    cancellationToken,
+                    TaskScheduler.Default);
             }
         }
 
@@ -150,9 +101,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// </summary>
         protected bool IsInputPending()
         {
+            // The code below invokes into user32.dll, which is not available in non-Windows.
+            if (PlatformInformation.IsUnix)
+            {
+                return false;
+            }
+
             // The return value of GetQueueStatus is HIWORD:LOWORD.
             // A non-zero value in HIWORD indicates some input message in the queue.
-            uint result = NativeMethods.GetQueueStatus(NativeMethods.QS_INPUT);
+            var result = NativeMethods.GetQueueStatus(NativeMethods.QS_INPUT);
 
             const uint InputMask = NativeMethods.QS_INPUT | (NativeMethods.QS_INPUT << 16);
             return (result & InputMask) != 0;

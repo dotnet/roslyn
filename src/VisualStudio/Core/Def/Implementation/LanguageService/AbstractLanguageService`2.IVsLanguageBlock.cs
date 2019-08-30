@@ -3,6 +3,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -71,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var syntaxRoot = document.GetSyntaxRootSynchronously(cancellationToken);
             var node = syntaxFactsService.GetContainingMemberDeclaration(syntaxRoot, position, useFullSpan: false);
             if (node == null)
@@ -79,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            string description = syntaxFactsService.GetDisplayName(node,
+            var description = syntaxFactsService.GetDisplayName(node,
                 DisplayNameOptions.IncludeMemberKeyword |
                 DisplayNameOptions.IncludeParameters |
                 DisplayNameOptions.IncludeType |

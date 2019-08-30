@@ -18,6 +18,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class SyntaxTree
     {
+        /// <summary>
+        /// Cached value for empty <see cref="DiagnosticOptions"/>.
+        /// </summary>
+        internal protected static readonly ImmutableDictionary<string, ReportDiagnostic> EmptyDiagnosticOptions =
+            ImmutableDictionary.Create<string, ReportDiagnostic>(CaseInsensitiveComparison.Comparer);
+
         private ImmutableArray<byte> _lazyChecksum;
         private SourceHashAlgorithm _lazyHashAlgorithm;
 
@@ -63,6 +69,16 @@ namespace Microsoft.CodeAnalysis
         /// The options used by the parser to produce the syntax tree.
         /// </summary>
         protected abstract ParseOptions OptionsCore { get; }
+
+        /// <summary>
+        /// Option to specify custom behavior for each warning in this tree.
+        /// </summary>
+        /// <returns>
+        /// A map from diagnostic ID to diagnostic reporting level. The diagnostic
+        /// ID string may be case insensitive depending on the language.
+        /// </returns>
+        public virtual ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions
+            => EmptyDiagnosticOptions;
 
         /// <summary>
         /// The length of the text of the syntax tree.
@@ -188,24 +204,24 @@ namespace Microsoft.CodeAnalysis
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
-        /// The values are not affected by line mapping directives (<code>#line</code>).
+        /// The values are not affected by line mapping directives (<c>#line</c>).
         /// </returns>
         public abstract FileLinePositionSpan GetLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Gets the location in terms of path, line and column after applying source line mapping directives 
-        /// (<code>#line</code> in C# or <code>#ExternalSource</code> in VB). 
+        /// (<c>#line</c> in C# or <c>#ExternalSource</c> in VB). 
         /// </summary>
         /// <param name="span">Span within the tree.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         /// 
-        /// If the location path is mapped the resulting path is the path specified in the corresponding <code>#line</code>,
+        /// If the location path is mapped the resulting path is the path specified in the corresponding <c>#line</c>,
         /// otherwise it's <see cref="SyntaxTree.FilePath"/>.
         /// 
-        /// A location path is considered mapped if the first <code>#line</code> directive that precedes it and that 
-        /// either specifies an explicit file path or is <code>#line default</code> exists and specifies an explicit path.
+        /// A location path is considered mapped if the first <c>#line</c> directive that precedes it and that 
+        /// either specifies an explicit file path or is <c>#line default</c> exists and specifies an explicit path.
         /// </returns>
         public abstract FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken));
 
@@ -342,6 +358,19 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new tree whose <see cref="FilePath"/> is the specified node and other properties are copied from the current tree.
         /// </summary>
         public abstract SyntaxTree WithFilePath(string path);
+
+        /// <summary>
+        /// Returns a new tree whose <see cref="DiagnosticOptions" /> are the specifed value and other properties are copied
+        /// from the current tree.
+        /// </summary>
+        /// <param name="options">
+        /// A mapping from diagnostic id to diagnostic reporting level. The diagnostic ID may be case-sensitive depending
+        /// on the language.
+        /// </param>
+        public virtual SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Returns a <see cref="String" /> that represents the entire source text of this <see cref="SyntaxTree"/>.

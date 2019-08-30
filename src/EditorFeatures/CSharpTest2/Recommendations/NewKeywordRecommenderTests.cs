@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -115,6 +115,14 @@ $$");
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34324, "https://github.com/dotnet/roslyn/issues/34324")]
+        public async Task TestAfterNullCoalescingAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"q ??= $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -419,6 +427,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAwaitForeachIn()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"await foreach (var v in $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInFromIn()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -545,6 +560,13 @@ $$");
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"using ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAwaitUsing()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"await using ($$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -1042,6 +1064,13 @@ class C
 {
     void M(C c = $$
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref int x = ref $$"));
         }
     }
 }

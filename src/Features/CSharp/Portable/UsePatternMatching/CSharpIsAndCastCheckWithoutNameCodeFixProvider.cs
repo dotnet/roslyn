@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpIsAndCastCheckWithoutNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public CSharpIsAndCastCheckWithoutNameCodeFixProvider() 
+        [ImportingConstructor]
+        public CSharpIsAndCastCheckWithoutNameCodeFixProvider()
             : base(supportsFixAll: false)
         {
         }
@@ -28,12 +29,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(

@@ -100,6 +100,32 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     ? _nullString
                     : GetValueString(nullableValue, inspectionContext, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName);
             }
+            else if (lmrType.IsIntPtr())
+            {
+                if (IntPtr.Size == 8)
+                {
+                    var intPtr = ((IntPtr)value.HostObjectValue).ToInt64();
+                    return FormatPrimitiveObject(intPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
+                else
+                {
+                    var intPtr = ((IntPtr)value.HostObjectValue).ToInt32();
+                    return FormatPrimitiveObject(intPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
+            }
+            else if (lmrType.IsUIntPtr())
+            {
+                if (UIntPtr.Size == 8)
+                {
+                    var uIntPtr = ((UIntPtr)value.HostObjectValue).ToUInt64();
+                    return FormatPrimitiveObject(uIntPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
+                else
+                {
+                    var uIntPtr = ((UIntPtr)value.HostObjectValue).ToUInt32();
+                    return FormatPrimitiveObject(uIntPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
+            }
             else
             {
                 int cardinality;
@@ -201,14 +227,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return null;
         }
 
-#pragma warning disable RS0010
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
         /// <remarks>
         /// The corresponding native code is in EEUserStringBuilder::ErrTryAppendConstantEnum.
         /// The corresponding roslyn code is in 
         /// <see cref="M:Microsoft.CodeAnalysis.SymbolDisplay.AbstractSymbolDisplayVisitor`1.AddEnumConstantValue(Microsoft.CodeAnalysis.INamedTypeSymbol, System.Object, System.Boolean)"/>.
         /// NOTE: no curlies for enum values.
         /// </remarks>
-#pragma warning restore RS0010
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
         private string GetEnumDisplayString(Type lmrType, DkmClrValue value, ObjectDisplayOptions options, bool includeTypeName, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(lmrType.IsEnum);
@@ -383,10 +409,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             object obj;
             if (value.Type.GetLmrType().IsDateTime())
             {
-                DkmClrValue dateDataValue = value.GetFieldValue(DateTimeUtilities.DateTimeDateDataFieldName, inspectionContext);
+                DkmClrValue dateDataValue = value.GetPropertyValue("Ticks", inspectionContext);
                 Debug.Assert(dateDataValue.HostObjectValue != null);
 
-                obj = DateTimeUtilities.ToDateTime((ulong)dateDataValue.HostObjectValue);
+                obj = new DateTime((long)dateDataValue.HostObjectValue);
             }
             else
             {

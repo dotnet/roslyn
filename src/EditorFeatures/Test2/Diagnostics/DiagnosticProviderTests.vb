@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
     ''' <summary>
     ''' Tests for Error List. Since it is language agnostic there are no C# or VB Specific tests
     ''' </summary>
+    <[UseExportProvider]>
     Public Class DiagnosticProviderTests
         Private Const s_errorElementName As String = "Error"
         Private Const s_projectAttributeName As String = "Project"
@@ -340,9 +341,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 documentId = GetDocumentId(workspace, originalFile)
 
                 If diagnostic.Name.LocalName.Equals(s_errorElementName) Then
-                    result.Add(SourceError(Id, message, workspace, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))
+                    result.Add(SourceError(Id, message, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))
                 Else
-                    result.Add(SourceWarning(Id, message, workspace, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))
+                    result.Add(SourceWarning(Id, message, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))
                 End If
             Next
             Return result
@@ -360,21 +361,21 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                     Select doc.Id).Single()
         End Function
 
-        Private Function SourceError(id As String, message As String, workspace As Workspace, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer,
-                                      mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
-            Return CreateDiagnostic(id, message, DiagnosticSeverity.Error, workspace, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
+        Private Function SourceError(id As String, message As String, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
+            originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
+            Return CreateDiagnostic(id, message, DiagnosticSeverity.Error, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
         End Function
 
-        Private Function SourceWarning(id As String, message As String, workspace As Workspace, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer,
-                                       mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
-            Return CreateDiagnostic(id, message, DiagnosticSeverity.Warning, workspace, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
+        Private Function SourceWarning(id As String, message As String, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
+            originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
+            Return CreateDiagnostic(id, message, DiagnosticSeverity.Warning, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
         End Function
 
-        Private Function CreateDiagnostic(id As String, message As String, severity As DiagnosticSeverity, workspace As Workspace, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer,
-                                       mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
+        Private Function CreateDiagnostic(id As String, message As String, severity As DiagnosticSeverity, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
+            originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
             Return New DiagnosticData(id, "test", message, message, severity, severity, True, 0,
                                       ImmutableArray(Of String).Empty, ImmutableDictionary(Of String, String).Empty,
-                                      workspace, projId, New DiagnosticDataLocation(docId, Nothing,
+                                      projId, New DiagnosticDataLocation(docId, Nothing,
                                         originalFile, originalLine, originalColumn, originalLine, originalColumn,
                                         mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
                                       Nothing, Nothing, Nothing)

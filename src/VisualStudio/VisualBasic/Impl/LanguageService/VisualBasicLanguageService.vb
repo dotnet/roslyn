@@ -72,7 +72,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         Protected Overrides Function CreateContainedLanguage(
             bufferCoordinator As IVsTextBufferCoordinator,
-            project As AbstractProject,
+            project As VisualStudioProject,
             hierarchy As IVsHierarchy,
             itemid As UInteger
         ) As IVsContainedLanguage

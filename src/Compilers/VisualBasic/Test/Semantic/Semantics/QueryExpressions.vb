@@ -176,7 +176,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                               Left: 
                                 IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                               Right: 
@@ -191,7 +191,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '10 > s')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '10 > s')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '10 > s')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: '10 > s')
                           Left: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                           Right: 
@@ -284,7 +284,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble, IsInv
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                     Left: 
                       IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                     Right: 
@@ -343,7 +343,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble, IsInv
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                     Left: 
                       IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                     Right: 
@@ -405,7 +405,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble, IsInv
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                     Left: 
                       IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                     Right: 
@@ -2162,7 +2162,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                                               ReturnedValue: 
-                                                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                                                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                                                   Left: 
                                                     IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                                                   Right: 
@@ -2191,11 +2191,11 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Num1 = -10')
                                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Num1 = -10')
                                       ReturnedValue: 
-                                        IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'Num1 = -10')
+                                        IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'Num1 = -10')
                                           Left: 
                                             IParameterReferenceOperation: Num1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Num1')
                                           Right: 
-                                            IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -10) (Syntax: '-10')
+                                            IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.Unary, Type: System.Int32, Constant: -10) (Syntax: '-10')
                                               Operand: 
                                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2222,13 +2222,13 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Num2 = -10 + Num1()')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Num2 = -10 + Num1()')
                               ReturnedValue: 
-                                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'Num2 = -10 + Num1()')
+                                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'Num2 = -10 + Num1()')
                                   Left: 
                                     IParameterReferenceOperation: Num2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Num2')
                                   Right: 
-                                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '-10 + Num1()')
+                                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '-10 + Num1()')
                                       Left: 
-                                        IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -10) (Syntax: '-10')
+                                        IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.Unary, Type: System.Int32, Constant: -10) (Syntax: '-10')
                                           Operand: 
                                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                                       Right: 
@@ -2264,7 +2264,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Two > 0')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Two > 0')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'Two > 0')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'Two > 0')
                           Left: 
                             IParameterReferenceOperation: Two (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'Two')
                           Right: 
@@ -3664,7 +3664,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 1')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 1')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 1')
+                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 1')
                     Left: 
                       IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                     Right: 
@@ -3712,7 +3712,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 1')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 1')
                 ReturnedValue: 
-                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 1')
+                  IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 1')
                     Left: 
                       IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                     Right: 
@@ -3838,7 +3838,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                           Left: 
                             IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                           Right: 
@@ -3903,7 +3903,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                           Left: 
                             IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                           Right: 
@@ -3974,7 +3974,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                               IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                                   ReturnedValue: 
-                                    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                                    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                                       Left: 
                                         IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                                       Right: 
@@ -3989,7 +3989,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '10 > s')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '10 > s')
                               ReturnedValue: 
-                                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '10 > s')
+                                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: '10 > s')
                                   Left: 
                                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                                   Right: 
@@ -4004,7 +4004,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                               Left: 
                                 IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                               Right: 
@@ -4202,7 +4202,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's + 1')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's + 1')
                               ReturnedValue: 
-                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's + 1')
+                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's + 1')
                                   Left: 
                                     IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                                   Right: 
@@ -5628,12 +5628,24 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                           Initializers(2):
-                              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New Integer() {1}')
                                 Left: 
-                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                                 Right: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 = s1 + 1')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1 + 1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
+                                Right: 
+                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
+                                    Left: 
+                                      IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                                    Right: 
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -5688,12 +5700,24 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           ReturnedValue: 
                             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                               Initializers(2):
-                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New Integer() {1}')
                                     Left: 
-                                      IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                                     Right: 
-                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 = s1 + 1')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1 + 1')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
+                                    Right: 
+                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
+                                        Left: 
+                                          IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                                        Right: 
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
@@ -5706,21 +5730,39 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
                           Initializers(3):
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 + s1')
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 + s1')
-                              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's2 + s1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New Integer() {1}')
                                 Left: 
-                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
                                     Instance Receiver: 
-                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 + s1')
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
                                 Right: 
-                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
                                     Instance Receiver: 
                                       IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 + s1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 =')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 + s1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's3 = s2 + s1')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2 + s1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
+                                Right: 
+                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's2 + s1')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
+                                        Instance Receiver: 
+                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 + s1')
+                                    Right: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
+                                        Instance Receiver: 
+                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 + s1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -5779,12 +5821,24 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                   ReturnedValue: 
                                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                                       Initializers(2):
-                                          IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New Integer() {3}')
                                             Left: 
-                                              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                                Instance Receiver: 
+                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                                             Right: 
-                                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 = s1 + 1')
+                                            Left: 
+                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1 + 1')
+                                                Instance Receiver: 
+                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
+                                            Right: 
+                                              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
+                                                Left: 
+                                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                                                Right: 
+                                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Arguments(1):
@@ -5797,16 +5851,28 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                               ReturnedValue: 
                                 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
                                   Initializers(2):
-                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
-                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's2 + s1')
+                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Let s2 = s1 ... 3 = s2 + s1')
                                         Left: 
-                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
+                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
                                             Instance Receiver: 
-                                              IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 + s1')
+                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
                                         Right: 
-                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
+                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
+                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's3 = s2 + s1')
+                                        Left: 
+                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2 + s1')
                                             Instance Receiver: 
-                                              IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 + s1')
+                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
+                                        Right: 
+                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's2 + s1')
+                                            Left: 
+                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
+                                                Instance Receiver: 
+                                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 + s1')
+                                            Right: 
+                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
+                                                Instance Receiver: 
+                                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 + s1')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Arguments(1):
@@ -5819,26 +5885,38 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           ReturnedValue: 
                             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's4 = s1 + s2 + s3')
                               Initializers(2):
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's4 = s1 + s2 + s3')
-                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + s2 + s3')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Let s4 = s1 ... 2 + s3 + s4')
                                     Left: 
-                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + s2')
-                                        Left: 
-                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
-                                            Instance Receiver: 
-                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3')
-                                                Instance Receiver: 
-                                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3')
-                                        Right: 
-                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
-                                            Instance Receiver: 
-                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3')
-                                                Instance Receiver: 
-                                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3')
-                                    Right: 
-                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's3')
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's4 = s1 + s2 + s3')
                                         Instance Receiver: 
-                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3')
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's4 = s1 + s2 + s3')
+                                    Right: 
+                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's4 = s1 + s2 + s3')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's4 = s1 + s2 + s3')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.s4 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1 + s2 + s3')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's4 = s1 + s2 + s3')
+                                    Right: 
+                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + s2 + s3')
+                                        Left: 
+                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + s2')
+                                            Left: 
+                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
+                                                Instance Receiver: 
+                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3')
+                                                    Instance Receiver: 
+                                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3')
+                                            Right: 
+                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
+                                                Instance Receiver: 
+                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3')
+                                                    Instance Receiver: 
+                                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3')
+                                        Right: 
+                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's3')
+                                            Instance Receiver: 
+                                              IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
@@ -5851,59 +5929,89 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>, IsImplicit) (Syntax: 's5 = s1 + s2 + s3 + s4')
                           Initializers(5):
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                                Instance Receiver: 
-                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                                    Instance Receiver: 
-                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                                        Instance Receiver: 
-                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
-                                Instance Receiver: 
-                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                                    Instance Receiver: 
-                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                                        Instance Receiver: 
-                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
-                                Instance Receiver: 
-                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                                    Instance Receiver: 
-                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.s4 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's4')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New Integer() {3}')
                                 Left: 
-                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + s2 + s3')
-                                    Left: 
-                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + s2')
-                                        Left: 
-                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
-                                            Instance Receiver: 
-                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                                                Instance Receiver: 
-                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                                                    Instance Receiver: 
-                                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                                        Right: 
-                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
-                                            Instance Receiver: 
-                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                                                Instance Receiver: 
-                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                                                    Instance Receiver: 
-                                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-                                    Right: 
-                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's3')
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>, IsImplicit) (Syntax: 's5 = s1 + s2 + s3 + s4')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
                                         Instance Receiver: 
                                           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
                                             Instance Receiver: 
                                               IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 =')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>, IsImplicit) (Syntax: 's5 = s1 + s2 + s3 + s4')
                                 Right: 
-                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.s4 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's4')
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                    Instance Receiver: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                        Instance Receiver: 
+                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                            Instance Receiver: 
+                                              IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's3 =')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>, IsImplicit) (Syntax: 's5 = s1 + s2 + s3 + s4')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
+                                    Instance Receiver: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                        Instance Receiver: 
+                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's4 =')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>.s4 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's4')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>, IsImplicit) (Syntax: 's5 = s1 + s2 + s3 + s4')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.s4 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's4')
                                     Instance Receiver: 
                                       IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's5 = s1 + s2 + s3 + s4')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>.s5 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>, IsImplicit) (Syntax: 's5 = s1 + s2 + s3 + s4')
+                                Right: 
+                                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
+                                    Left: 
+                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + s2 + s3')
+                                        Left: 
+                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + s2')
+                                            Left: 
+                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
+                                                Instance Receiver: 
+                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                                    Instance Receiver: 
+                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                                        Instance Receiver: 
+                                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                            Right: 
+                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
+                                                Instance Receiver: 
+                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                                    Instance Receiver: 
+                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                                        Instance Receiver: 
+                                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                        Right: 
+                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's3')
+                                            Instance Receiver: 
+                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                                Instance Receiver: 
+                                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
+                                    Right: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.s4 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's4')
+                                        Instance Receiver: 
+                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -7428,8 +7536,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
                           Initializers(2):
-                              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                              IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New I ... er() {1, 3}')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
+                                Right: 
+                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
+                                Right: 
+                                  IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -7497,7 +7617,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's1 + 1')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's1 + 1')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
                               Left: 
                                 IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
                               Right: 
@@ -7523,8 +7643,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           ReturnedValue: 
                             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
                               Initializers(2):
-                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                                  IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New Integer() {1}')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
+                                    Right: 
+                                      IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
+                                    Right: 
+                                      IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(4):
@@ -7549,7 +7681,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's3')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's3')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's2 * 2')
+                        IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's2 * 2')
                           Left: 
                             IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's2')
                               Instance Receiver: 
@@ -7577,13 +7709,31 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
                           Initializers(3):
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
-                              IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New Integer() {1}')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
+                                Right: 
+                                  IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -8520,8 +8670,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 ReturnedValue: 
                   IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key t1 As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'Join t1 In  ... 1 Equals t1')
                     Initializers(2):
-                        IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                        IParameterReferenceOperation: t1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 't1')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In q')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key t1 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key t1 As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'Join t1 In  ... 1 Equals t1')
+                          Right: 
+                            IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 't1 In q')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key t1 As System.Int32>.t1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 't1')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key t1 As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'Join t1 In  ... 1 Equals t1')
+                          Right: 
+                            IParameterReferenceOperation: t1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 't1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -8741,8 +8903,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group By s1 Into Group')
                           Initializers(2):
-                              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                              IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group By s1 Into Group')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group By s1 Into Group')
+                                Right: 
+                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'From s1 In  ...  Into Group')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.Group As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group By s1 Into Group')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group By s1 Into Group')
+                                Right: 
+                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group By s1 Into Group')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -8812,11 +8986,23 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>, IsImplicit) (Syntax: 'Group By s1 Into Count()')
                           Initializers(2):
-                              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                              IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group By s1 Into Count()')
-                                Arguments(0)
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>, IsImplicit) (Syntax: 'Group By s1 Into Count()')
+                                Right: 
+                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>.Count As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>, IsImplicit) (Syntax: 'Group By s1 Into Count()')
+                                Right: 
+                                  IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group By s1 Into Count()')
+                                    Arguments(0)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -8899,8 +9085,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
                           Initializers(2):
-                              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                              IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
+                                Right: 
+                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'From s1 In  ...  Into Group')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.Group As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
+                                Right: 
+                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -8963,16 +9161,28 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                           Initializers(2):
-                              IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 Mod 2')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 = s1 Mod 2')
                                 Left: 
-                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1 Mod 2')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                                 Right: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                              IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 Mod 3')
+                                  IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 Mod 2')
+                                    Left: 
+                                      IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                                    Right: 
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 = s1 Mod 3')
                                 Left: 
-                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1 Mod 3')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                                 Right: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                                  IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 Mod 3')
+                                    Left: 
+                                      IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                                    Right: 
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: elementSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 's1')
@@ -8984,11 +9194,23 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                           Initializers(2):
-                              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
-                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: 'CStr(s1)')
-                                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                Operand: 
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s1str As System.String>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                                Right: 
                                   IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 's1str = CStr(s1)')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s1str As System.String>.s1str As System.String (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'CStr(s1)')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                                Right: 
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String) (Syntax: 'CStr(s1)')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand: 
+                                      IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
@@ -9000,33 +9222,63 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                           Initializers(5):
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
-                              IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
-                              IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>).Count() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
-                                Instance Receiver: 
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 =')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 =')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), IsImplicit) (Syntax: 'From s1 In  ... (), Max(s1)')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>.gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                                Right: 
                                   IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
-                                Arguments(0)
-                              IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>).Max(selector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, System.Int32)) As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Max(s1)')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
-                                Arguments(1):
-                                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 's1')
-                                      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, System.Int32), IsImplicit) (Syntax: 's1')
-                                        Target: 
-                                          IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key s1str As System.String>) As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 's1')
-                                            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's1')
-                                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's1')
-                                                ReturnedValue: 
-                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s1str As System.String>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
-                                                    Instance Receiver: 
-                                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, IsImplicit) (Syntax: 's1')
-                                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'c = Count()')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>.c As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                                Right: 
+                                  IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>).Count() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                                    Arguments(0)
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'Max(s1)')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>.Max As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'Max(s1)')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                                Right: 
+                                  IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>).Max(selector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, System.Int32)) As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Max(s1)')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
+                                    Arguments(1):
+                                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 's1')
+                                          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, System.Int32), IsImplicit) (Syntax: 's1')
+                                            Target: 
+                                              IAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key s1str As System.String>) As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 's1')
+                                                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's1')
+                                                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's1')
+                                                    ReturnedValue: 
+                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s1str As System.String>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
+                                                        Instance Receiver: 
+                                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, IsImplicit) (Syntax: 's1')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -9087,7 +9339,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's1 + 1')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's1 + 1')
                               ReturnedValue: 
-                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
                                   Left: 
                                     IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
                                   Right: 
@@ -9114,8 +9366,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           ReturnedValue: 
                             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group By ke ...  Into Group')
                               Initializers(2):
-                                  IParameterReferenceOperation: key (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'key')
-                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group By ke ...  Into Group')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'key =')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.key As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'key')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group By ke ...  Into Group')
+                                    Right: 
+                                      IParameterReferenceOperation: key (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'key')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'From s1 In  ... y Equals s1')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.Group As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group By ke ...  Into Group')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group By ke ...  Into Group')
+                                    Right: 
+                                      IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group By ke ...  Into Group')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(4):
@@ -9164,13 +9428,31 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>, IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
                           Initializers(3):
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.key As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'key')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.Group As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
-                              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'key =')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>.key As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'key')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>, IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.key As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'key')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>.Group As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>, IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.Group As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New I ... er() {1, 2}')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>, IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
+                                Right: 
+                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -9386,8 +9668,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 ReturnedValue: 
                   IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group By s1 Into Group')
                     Initializers(2):
-                        IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                        IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group By s1 Into Group')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Group As ?>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group By s1 Into Group')
+                          Right: 
+                            IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'From s1 In  ...  Into Group')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Group As ?>.Group As ? (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group By s1 Into Group')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group By s1 Into Group')
+                          Right: 
+                            IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group By s1 Into Group')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -9496,7 +9790,7 @@ GroupBy System.Func`2[System.Int32,System.Object]
 ]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub GroupJoin1()
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -9809,8 +10103,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
                           Initializers(2):
-                              IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                              IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group Join  ...  Into Group')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New I ... er() {1, 3}')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
+                                Right: 
+                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'From s1 In  ...  Into Group')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.Group As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group Join  ...  Into Group')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
+                                Right: 
+                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group Join  ...  Into Group')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -9886,7 +10192,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's1 + 1')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's1 + 1')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
                               Left: 
                                 IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
                               Right: 
@@ -9912,8 +10218,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           ReturnedValue: 
                             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
                               Initializers(2):
-                                  IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New Integer() {1}')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
+                                    Right: 
+                                      IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'From s1 In  ... gr2 = Group')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.gr1 As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
+                                    Right: 
+                                      IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(4):
@@ -9938,11 +10256,11 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's3')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's3')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(s1 + 1) * 2')
+                        IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '(s1 + 1) * 2')
                           Left: 
                             IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32) (Syntax: '(s1 + 1)')
                               Operand: 
-                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 's1 + 1')
                                   Left: 
                                     IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 's1')
                                       Instance Receiver: 
@@ -9972,13 +10290,31 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
                           Initializers(3):
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.gr1 As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'gr1')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
-                              IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New Integer() {1}')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'gr1 =')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>.gr1 As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'gr1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.gr1 As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'gr1')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'From s1 In  ... gr2 = Group')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>.gr2 As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
+                                Right: 
+                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -10099,8 +10435,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                           ReturnedValue: 
                                             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s3')
                                               Initializers(2):
-                                                  IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
-                                                  IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
+                                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 In New Integer() {1}')
+                                                    Left: 
+                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                                        Instance Receiver: 
+                                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s3')
+                                                    Right: 
+                                                      IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's3 In New Integer() {1}')
+                                                    Left: 
+                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
+                                                        Instance Receiver: 
+                                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s3')
+                                                    Right: 
+                                                      IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Arguments(4):
@@ -10148,13 +10496,31 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                       ReturnedValue: 
                                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
                                           Initializers(3):
-                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
-                                                Instance Receiver: 
-                                                  IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
-                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
-                                                Instance Receiver: 
-                                                  IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
-                                              IParameterReferenceOperation: s4 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's4')
+                                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's2 In New Integer() {1}')
+                                                Left: 
+                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                                    Instance Receiver: 
+                                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
+                                                Right: 
+                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                                                    Instance Receiver: 
+                                                      IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
+                                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's3 In New Integer() {1}')
+                                                Left: 
+                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
+                                                    Instance Receiver: 
+                                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
+                                                Right: 
+                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
+                                                    Instance Receiver: 
+                                                      IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
+                                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's4 In New Integer() {1}')
+                                                Left: 
+                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>.s4 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's4')
+                                                    Instance Receiver: 
+                                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
+                                                Right: 
+                                                  IParameterReferenceOperation: s4 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's4')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -10190,8 +10556,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                               ReturnedValue: 
                                 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>, IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
                                   Initializers(2):
-                                      IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                                      IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>), IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
+                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In New Integer() {1}')
+                                        Left: 
+                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                            Instance Receiver: 
+                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>, IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
+                                        Right: 
+                                          IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>), IsImplicit) (Syntax: 'From s1 In  ...  s3 = Group')
+                                        Left: 
+                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>.s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>), IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
+                                            Instance Receiver: 
+                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>, IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
+                                        Right: 
+                                          IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>), IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
@@ -11098,9 +11476,9 @@ Module Module1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble(Of <anonymous type: Key s1 As System.Int32, Key Group As ?>), IsInvalid) (Syntax: 'From s1 In  ...  Into Group')
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'From s1 In  ...  Into Group')
   Expression: 
-    IInvalidOperation (OperationKind.Invalid, Type: QueryAble(Of <anonymous type: Key s1 As System.Int32, Key Group As ?>), IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
       Children(5):
           IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
             Children(1):
@@ -11122,8 +11500,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble(Of <an
                 ReturnedValue: 
                   IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s1 As System.Int32, Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
                     Initializers(2):
-                        IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
-                        IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's1 In q')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Group As ?>.s1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
+                          Right: 
+                            IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's1')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'From s1 In  ...  Into Group')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key Group As ?>.Group As ? (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s1 As System.Int32, Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
+                          Right: 
+                            IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -11318,36 +11708,59 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: <anonymous type: Key Count As System.Int32, Key Sum As System.Int32>) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
   Expression: 
-    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key Count As System.Int32, Key Sum As System.Int32>, IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
-      Initializers(2):
-          IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
-            Instance Receiver: 
-              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  IPlaceholderOperation (OperationKind.None, Type: System.Int32(), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
-            Arguments(0)
-          IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Sum(selector As System.Func(Of System.Int32, System.Int32)) As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Sum(y \ 2)')
-            Instance Receiver: 
-              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  IPlaceholderOperation (OperationKind.None, Type: System.Int32(), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'y \ 2')
-                  IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 'y \ 2')
-                    Target: 
-                      IAnonymousFunctionOperation (Symbol: Function (y As System.Int32) As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'y \ 2')
-                        IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'y \ 2')
-                          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'y \ 2')
-                            ReturnedValue: 
-                              IBinaryOperation (BinaryOperatorKind.IntegerDivide, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'y \ 2')
-                                Left: 
-                                  IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
-                                Right: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    IAggregateQueryOperation (OperationKind.None, Type: <anonymous type: Key Count As System.Int32, Key Sum As System.Int32>) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
+      Group: 
+        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer() {3, 4}')
+          Dimension Sizes(1):
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {3, 4}')
+          Initializer: 
+            IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{3, 4}')
+              Element Values(2):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+      Aggregation: 
+        IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key Count As System.Int32, Key Sum As System.Int32>, IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
+          Initializers(2):
+              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                Left: 
+                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key Count As System.Int32, Key Sum As System.Int32>.Count As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                    Instance Receiver: 
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key Count As System.Int32, Key Sum As System.Int32>, IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
+                Right: 
+                  IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                    Instance Receiver: 
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        Operand: 
+                          IPlaceholderOperation (OperationKind.None, Type: System.Int32(), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
+                    Arguments(0)
+              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'Sum(y \ 2)')
+                Left: 
+                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key Count As System.Int32, Key Sum As System.Int32>.Sum As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'Sum(y \ 2)')
+                    Instance Receiver: 
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key Count As System.Int32, Key Sum As System.Int32>, IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
+                Right: 
+                  IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Sum(selector As System.Func(Of System.Int32, System.Int32)) As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Sum(y \ 2)')
+                    Instance Receiver: 
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        Operand: 
+                          IPlaceholderOperation (OperationKind.None, Type: System.Int32(), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'y \ 2')
+                          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 'y \ 2')
+                            Target: 
+                              IAnonymousFunctionOperation (Symbol: Function (y As System.Int32) As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'y \ 2')
+                                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'y \ 2')
+                                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'y \ 2')
+                                    ReturnedValue: 
+                                      IBinaryOperation (BinaryOperatorKind.IntegerDivide, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'y \ 2')
+                                        Left: 
+                                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+                                        Right: 
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -11423,8 +11836,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (S
                               ReturnedValue: 
                                 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New In ... er() {1, 3}')
                                   Initializers(2):
-                                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x In New In ... er() {3, 4}')
+                                        Left: 
+                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                            Instance Receiver: 
+                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New In ... er() {1, 3}')
+                                        Right: 
+                                          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'y In New In ... er() {1, 3}')
+                                        Left: 
+                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                            Instance Receiver: 
+                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New In ... er() {1, 3}')
+                                        Right: 
+                                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Arguments(1):
@@ -11435,7 +11860,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (S
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x > y')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x > y')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x > y')
+                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x > y')
                               Left: 
                                 IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                                   Instance Receiver: 
@@ -11454,7 +11879,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Int32) (S
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x + y')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + y')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
                           Left: 
                             IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                               Instance Receiver: 
@@ -11540,8 +11965,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                               ReturnedValue: 
                                 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New Integer() {2}')
                                   Initializers(2):
-                                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x In New Integer() {1}')
+                                        Left: 
+                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                            Instance Receiver: 
+                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New Integer() {2}')
+                                        Right: 
+                                          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'y In New Integer() {2}')
+                                        Left: 
+                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                            Instance Receiver: 
+                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New Integer() {2}')
+                                        Right: 
+                                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Arguments(2):
@@ -11573,13 +12010,31 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           ReturnedValue: 
                             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
                               Initializers(3):
-                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                                    Instance Receiver: 
-                                      IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
-                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
-                                    Instance Receiver: 
-                                      IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
-                                  IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x In New Integer() {1}')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
+                                    Right: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                        Instance Receiver: 
+                                          IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'y In New Integer() {2}')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
+                                    Right: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                        Instance Receiver: 
+                                          IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
+                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'z In New Integer() {3}')
+                                    Left: 
+                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                                        Instance Receiver: 
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
+                                    Right: 
+                                      IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
@@ -11653,7 +12108,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x + 1')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + 1')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + 1')
+                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + 1')
                               Left: 
                                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                               Right: 
@@ -11734,8 +12189,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                                                           ReturnedValue: 
                                                                                             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New Integer() {2}')
                                                                                               Initializers(2):
-                                                                                                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                                                                                                  IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                                                                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x In New Integer() {1}')
+                                                                                                    Left: 
+                                                                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                                                                        Instance Receiver: 
+                                                                                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New Integer() {2}')
+                                                                                                    Right: 
+                                                                                                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                                                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'y In New Integer() {2}')
+                                                                                                    Left: 
+                                                                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                                                                                        Instance Receiver: 
+                                                                                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New Integer() {2}')
+                                                                                                    Right: 
+                                                                                                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
                                                                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                                       Arguments(2):
@@ -11767,8 +12234,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                                                       ReturnedValue: 
                                                                                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
                                                                                           Initializers(2):
-                                                                                              IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
-                                                                                              IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                                                                                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
+                                                                                                Left: 
+                                                                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.$VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
+                                                                                                    Instance Receiver: 
+                                                                                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
+                                                                                                Right: 
+                                                                                                  IParameterReferenceOperation: $VB$It1 (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
+                                                                                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'z In New Integer() {3}')
+                                                                                                Left: 
+                                                                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                                                                                                    Instance Receiver: 
+                                                                                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
+                                                                                                Right: 
+                                                                                                  IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
                                                                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                                   Arguments(1):
@@ -11840,19 +12319,37 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                   ReturnedValue: 
                                                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'Select x, y, z')
                                                       Initializers(3):
-                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
-                                                            Instance Receiver: 
-                                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.$VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'x')
+                                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                            Left: 
+                                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                                Instance Receiver: 
+                                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'Select x, y, z')
+                                                            Right: 
+                                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
+                                                                Instance Receiver: 
+                                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.$VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'x')
+                                                                    Instance Receiver: 
+                                                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, IsImplicit) (Syntax: 'x')
+                                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                                            Left: 
+                                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                                                Instance Receiver: 
+                                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'Select x, y, z')
+                                                            Right: 
+                                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
+                                                                Instance Receiver: 
+                                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.$VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'x')
+                                                                    Instance Receiver: 
+                                                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, IsImplicit) (Syntax: 'x')
+                                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                                                            Left: 
+                                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                                                                Instance Receiver: 
+                                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'Select x, y, z')
+                                                            Right: 
+                                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'z')
                                                                 Instance Receiver: 
                                                                   IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, IsImplicit) (Syntax: 'x')
-                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
-                                                            Instance Receiver: 
-                                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.$VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'x')
-                                                                Instance Receiver: 
-                                                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, IsImplicit) (Syntax: 'x')
-                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'z')
-                                                            Instance Receiver: 
-                                                              IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, IsImplicit) (Syntax: 'x')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Arguments(1):
@@ -11865,30 +12362,54 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                               ReturnedValue: 
                                                 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>, IsImplicit) (Syntax: 'w = x + y + z')
                                                   Initializers(4):
-                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                                                        Instance Receiver: 
-                                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'x + y + z')
-                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
-                                                        Instance Receiver: 
-                                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'x + y + z')
-                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
-                                                        Instance Receiver: 
-                                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'x + y + z')
-                                                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y + z')
+                                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x')
                                                         Left: 
-                                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
-                                                            Left: 
-                                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
-                                                                Instance Receiver: 
-                                                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'x + y + z')
-                                                            Right: 
-                                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
-                                                                Instance Receiver: 
-                                                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'x + y + z')
+                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                            Instance Receiver: 
+                                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>, IsImplicit) (Syntax: 'w = x + y + z')
                                                         Right: 
-                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'z')
+                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
                                                             Instance Receiver: 
                                                               IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'x + y + z')
+                                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                                        Left: 
+                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                                            Instance Receiver: 
+                                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>, IsImplicit) (Syntax: 'w = x + y + z')
+                                                        Right: 
+                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
+                                                            Instance Receiver: 
+                                                              IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'x + y + z')
+                                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                                                        Left: 
+                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>.z As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                                                            Instance Receiver: 
+                                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>, IsImplicit) (Syntax: 'w = x + y + z')
+                                                        Right: 
+                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                                                            Instance Receiver: 
+                                                              IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'x + y + z')
+                                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'w = x + y + z')
+                                                        Left: 
+                                                          IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>.w As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x + y + z')
+                                                            Instance Receiver: 
+                                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>, IsImplicit) (Syntax: 'w = x + y + z')
+                                                        Right: 
+                                                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y + z')
+                                                            Left: 
+                                                              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
+                                                                Left: 
+                                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
+                                                                    Instance Receiver: 
+                                                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'x + y + z')
+                                                                Right: 
+                                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
+                                                                    Instance Receiver: 
+                                                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'x + y + z')
+                                                            Right: 
+                                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'z')
+                                                                Instance Receiver: 
+                                                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'x + y + z')
                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Arguments(1):
@@ -14580,7 +15101,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                           Left: 
                             IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                           Right: 
@@ -14638,7 +15159,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                         IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                           ReturnedValue: 
-                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                               Left: 
                                 IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                               Right: 
@@ -14653,7 +15174,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '10 > s')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '10 > s')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '10 > s')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: '10 > s')
                           Left: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                           Right: 
@@ -14709,7 +15230,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble) (Synt
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's > 0')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's > 0')
                       ReturnedValue: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's > 0')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's > 0')
                           Left: 
                             IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's')
                           Right: 

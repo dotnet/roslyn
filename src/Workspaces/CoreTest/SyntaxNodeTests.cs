@@ -3,18 +3,17 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public partial class SyntaxNodeTests : TestBase
     {
         [Fact]
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root = tree.GetRoot();
 
             var nodes = root.DescendantNodes().Where(n => n is VariableDeclaratorSyntax || n is ClassDeclarationSyntax).ToList();
-            int computations = 0;
+            var computations = 0;
             var newRoot = await root.ReplaceNodesAsync(nodes, (o, n, c) =>
             {
                 computations++;

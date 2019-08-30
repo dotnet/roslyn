@@ -55,6 +55,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(DisabledWarnings)]; }
         }
 
+        public bool DisableSdkPath
+        {
+            set { _store[nameof(DisableSdkPath)] = value; }
+            get { return _store.GetOrDefault(nameof(DisableSdkPath), false); }
+        }
+
         public string DocumentationFile
         {
             set { _store[nameof(DocumentationFile)] = value; }
@@ -420,6 +426,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/optionstrict:", this.OptionStrictType);
             commandLine.AppendWhenTrue("/nowarn", this._store, "NoWarnings");
             commandLine.AppendSwitchWithSplitting("/nowarn:", this.DisabledWarnings, ",", ';', ',');
+            commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
             commandLine.AppendPlusOrMinusSwitch("/optioninfer", this._store, "OptionInfer");
             commandLine.AppendWhenTrue("/nostdlib", this._store, "NoStandardLib");
             commandLine.AppendWhenTrue("/novbruntimeref", this._store, "NoVBRuntimeReference");
@@ -818,6 +825,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CheckHostObjectSupport(param = nameof(Analyzers), analyzerHostObject.SetAnalyzers(Analyzers));
                     CheckHostObjectSupport(param = nameof(CodeAnalysisRuleSet), analyzerHostObject.SetRuleSet(CodeAnalysisRuleSet));
                     CheckHostObjectSupport(param = nameof(AdditionalFiles), analyzerHostObject.SetAdditionalFiles(AdditionalFiles));
+                }
+
+                // For host objects which support them, set analyzer config files and potential analyzer config files
+                if (vbcHostObject is IAnalyzerConfigFilesHostObject analyzerConfigFilesHostObject)
+                {
+                    CheckHostObjectSupport(param = nameof(AnalyzerConfigFiles), analyzerConfigFilesHostObject.SetAnalyzerConfigFiles(AnalyzerConfigFiles));
+                    CheckHostObjectSupport(param = nameof(PotentialAnalyzerConfigFiles), analyzerConfigFilesHostObject.SetPotentialAnalyzerConfigFiles(PotentialAnalyzerConfigFiles));
                 }
 
                 CheckHostObjectSupport(param = nameof(BaseAddress), vbcHostObject.SetBaseAddress(TargetType, GetBaseAddressInHex()));

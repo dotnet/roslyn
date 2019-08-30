@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis
         /// when the resulting reference becomes unreachable and GC collects it. To decrease memory footprint of the reference and/or manage
         /// the lifetime deterministically use <see cref="AssemblyMetadata.CreateFromStream(Stream, PEStreamOptions)"/> 
         /// to create an <see cref="IDisposable"/> metadata object and 
-        /// <see cref="AssemblyMetadata.GetReference(DocumentationProvider, ImmutableArray{string}, bool, string, string)"/> to get a reference to it.
+        /// <see cref="AssemblyMetadata.GetReference(DocumentationProvider, ImmutableArray{string}, bool, string, string)"/>
         /// to get a reference to it.
         /// </para>
         /// </remarks>
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.CantCreateModuleReferenceToAssembly, nameof(properties));
             }
 
-            string location = CorLightup.Desktop.GetAssemblyLocation(assembly);
+            string location = assembly.Location;
             if (string.IsNullOrEmpty(location))
             {
                 throw new NotSupportedException(CodeAnalysisResources.CantCreateReferenceToAssemblyWithoutLocation);
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool HasMetadata(Assembly assembly)
         {
-            return !assembly.IsDynamic && !string.IsNullOrEmpty(CorLightup.Desktop.GetAssemblyLocation(assembly));
+            return !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location);
         }
     }
 }

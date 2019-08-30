@@ -9,10 +9,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     internal static class CodeModelTaskExtensions
     {
         /// <summary>
-        /// Does a <see cref="Roslyn.Utilities.TaskExtensions.WaitAndGetResult{T}"/> for CodeModel.
+        /// Does a Roslyn.Utilities.TaskExtensions.WaitAndGetResult{T} for CodeModel.
         /// </summary>
         /// <remarks>
-        /// This function is the exact same as <see cref="Roslyn.Utilities.TaskExtensions.WaitAndGetResult{T}"/>, except it opts out
+        /// This function is the exact same as Roslyn.Utilities.TaskExtensions.WaitAndGetResult{T}, except it opts out
         /// of enforcement that it can be called on non-UI threads. CodeModel, since it must implement a highly blocking API,
         /// has no choice but to use WaitAndGetResult in a bunch of places. But that's not a good reason to require the tests
         /// to have thread affinity, since the tests have no specific threading requirements. Thus, it's acceptable for CodeModel

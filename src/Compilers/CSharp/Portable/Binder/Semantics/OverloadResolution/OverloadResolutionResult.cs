@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System;
 
 #if DEBUG
 using System.Text;
@@ -290,7 +289,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // Otherwise, if there is any such method that has a bad argument conversion or out/ref mismatch 
+            // Otherwise, if there is any such method where type inference succeeded but inferred
+            // type arguments that violate the constraints on the method, then the first such method is
+            // the best bad method.
+
+            if (HadConstraintFailure(location, diagnostics))
+            {
+                return;
+            }
+
+            // Since we didn't return...
+            AssertNone(MemberResolutionKind.ConstraintFailure);
+
+            // Otherwise, if there is any such method that has a bad argument conversion or out/ref mismatch
             // then the first such method found is the best bad method.
 
             if (HadBadArguments(diagnostics, binder, name, arguments, symbols, location, binder.Flags, isMethodGroupConversion))
@@ -299,16 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Since we didn't return...
-            AssertNone(MemberResolutionKind.BadArguments);
-
-            // Otherwise, if there is any such method where type inference succeeded but inferred
-            // type arguments that violate the constraints on the method, then the first such method is 
-            // the best bad method.
-
-            if (HadConstraintFailure(location, diagnostics))
-            {
-                return;
-            }
+            AssertNone(MemberResolutionKind.BadArgumentConversion);
 
             // Otherwise, if there is any such method where type inference succeeded but inferred
             // a parameter type that violates its own constraints then the first such method is 
@@ -372,12 +374,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> firstSupported = default(MemberResolutionResult<TMember>);
             MemberResolutionResult<TMember> firstUnsupported = default(MemberResolutionResult<TMember>);
 
-            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[5]; // from highest to lowest priority
-            const int requiredParameterMissingPriority = 0;
-            const int nameUsedForPositionalPriority = 1;
-            const int noCorrespondingNamedParameterPriority = 2;
-            const int noCorrespondingParameterPriority = 3;
-            const int badNonTrailingNamedArgument = 4;
+            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[6]; // from highest to lowest priority
+            const int duplicateNamedArgumentPriority = 0;
+            const int requiredParameterMissingPriority = 1;
+            const int nameUsedForPositionalPriority = 2;
+            const int noCorrespondingNamedParameterPriority = 3;
+            const int noCorrespondingParameterPriority = 4;
+            const int badNonTrailingNamedArgumentPriority = 5;
 
             foreach (MemberResolutionResult<TMember> result in this.ResultsBuilder)
             {
@@ -421,10 +424,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case MemberResolutionKind.BadNonTrailingNamedArgument:
-                        if (supportedInPriorityOrder[badNonTrailingNamedArgument].IsNull ||
-                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[badNonTrailingNamedArgument].Result.BadArgumentsOpt[0])
+                        if (supportedInPriorityOrder[badNonTrailingNamedArgumentPriority].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[badNonTrailingNamedArgumentPriority].Result.BadArgumentsOpt[0])
                         {
-                            supportedInPriorityOrder[badNonTrailingNamedArgument] = result;
+                            supportedInPriorityOrder[badNonTrailingNamedArgumentPriority] = result;
+                        }
+                        break;
+                    case MemberResolutionKind.DuplicateNamedArgument:
+                        {
+                            if (supportedInPriorityOrder[duplicateNamedArgumentPriority].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[duplicateNamedArgumentPriority].Result.BadArgumentsOpt[0])
+                            {
+                                supportedInPriorityOrder[duplicateNamedArgumentPriority] = result;
+                            }
                         }
                         break;
                     default:
@@ -481,6 +493,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // and followed by unnamed arguments.
                         case MemberResolutionKind.BadNonTrailingNamedArgument:
                             ReportBadNonTrailingNamedArgument(firstSupported, diagnostics, arguments, symbols);
+                            return;
+
+                        case MemberResolutionKind.DuplicateNamedArgument:
+                            ReportDuplicateNamedArgument(firstSupported, diagnostics, arguments);
                             return;
                     }
                 }
@@ -595,9 +611,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ErrorCode errorCode =
-                    symbol.IsStatic ? ErrorCode.ERR_ObjectProhibited :
-                    Binder.WasImplicitReceiver(receiverOpt) && binder.InFieldInitializer && !binder.BindingTopLevelScriptCode ? ErrorCode.ERR_FieldInitRefNonstatic :
-                    ErrorCode.ERR_ObjectRequired;
+                    symbol.RequiresInstanceReceiver()
+                    ? Binder.WasImplicitReceiver(receiverOpt) && binder.InFieldInitializer && !binder.BindingTopLevelScriptCode
+                        ? ErrorCode.ERR_FieldInitRefNonstatic
+                        : ErrorCode.ERR_ObjectRequired
+                    : ErrorCode.ERR_ObjectProhibited;
                 // error CS0176: Member 'Program.M(B)' cannot be accessed with an instance reference; qualify it with a type name instead
                 //     -or-
                 // error CS0120: An object reference is required for the non-static field, method, or property 'Program.M(B)'
@@ -740,6 +758,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbols), location);
         }
 
+        private void ReportDuplicateNamedArgument(MemberResolutionResult<TMember> result, DiagnosticBag diagnostics, AnalyzedArguments arguments)
+        {
+            Debug.Assert(result.Result.BadArgumentsOpt.Length == 1);
+            IdentifierNameSyntax name = arguments.Names[result.Result.BadArgumentsOpt[0]];
+            Debug.Assert(name != null);
+
+            // CS: Named argument '{0}' cannot be specified multiple times
+            diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_DuplicateNamedArgument, name.Identifier.Text), name.Location);
+        }
+
         private static void ReportNoCorrespondingNamedParameter(
             MemberResolutionResult<TMember> bad,
             string methodName,
@@ -858,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HadConstructedParameterFailedConstraintCheck(
             ConversionsBase conversions,
-            Compilation compilation,
+            CSharpCompilation compilation,
             DiagnosticBag diagnostics,
             Location location)
         {
@@ -950,8 +978,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // without being violated on the method. Report that the constraint is violated on the 
             // formal parameter type.
 
-            TypeSymbol formalParameterType = method.ParameterTypes[result.Result.BadParameter];
-            formalParameterType.CheckAllConstraints(conversions, location, diagnostics);
+            TypeSymbol formalParameterType = method.GetParameterType(result.Result.BadParameter);
+            formalParameterType.CheckAllConstraints((CSharpCompilation)compilation, conversions, includeNullability: false, location, diagnostics);
 
             return true;
         }
@@ -980,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinderFlags flags,
             bool isMethodGroupConversion)
         {
-            var badArg = GetFirstMemberKind(MemberResolutionKind.BadArguments);
+            var badArg = GetFirstMemberKind(MemberResolutionKind.BadArgumentConversion);
             if (badArg.IsNull)
             {
                 return false;
@@ -1175,8 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (argument.Display is TypeSymbol argType)
                     {
                         SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
-                            argType,
-                            ImmutableArray<CustomModifier>.Empty,
+                            TypeWithAnnotations.Create(argType),
                             ImmutableArray<CustomModifier>.Empty,
                             isParams: false,
                             refKind: refArg);

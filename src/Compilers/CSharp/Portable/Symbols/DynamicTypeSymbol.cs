@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -78,15 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-        {
-            get
-            {
-                return null;
-            }
-        }
+        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => null;
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -107,15 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsManagedType
-        {
-            get
-            {
-                return true;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => ManagedKind.Managed;
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -123,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsReadOnly
+        public sealed override bool IsReadOnly
         {
             get
             {
@@ -199,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (int)Microsoft.CodeAnalysis.SpecialType.System_Object;
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             if ((object)t2 == null)
             {
@@ -218,6 +209,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
+        {
+        }
+
+        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
+        {
+            result = this;
+            return true;
+        }
+
+        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
+        {
+            return this;
+        }
+
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
+        {
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            return this;
         }
 
         #region ISymbol Members

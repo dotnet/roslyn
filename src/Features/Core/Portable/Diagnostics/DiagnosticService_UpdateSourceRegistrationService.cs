@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 _updateSources = _updateSources.Add(source);
+
                 source.DiagnosticsUpdated += OnDiagnosticsUpdated;
+                source.DiagnosticsCleared += OnCleared;
             }
         }
     }

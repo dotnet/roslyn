@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private readonly IWaitContext _waitContext;
         private readonly Microsoft.VisualStudio.Language.Intellisense.Utilities.IWaitContext _platformWaitContext = new UncancellableWaitContext();
 
+        [ImportingConstructor]
         public TestWaitIndicator()
             : this(new UncancellableWaitContext())
         {

@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="New_">
         <source>New</source>
-        <target state="translated">新增</target>
+        <target state="translated">新建</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_Events">
@@ -87,11 +87,6 @@
         <target state="translated">Visual Basic 美化清單</target>
         <note />
       </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;多項類型&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
         <target state="translated">不支援</target>
@@ -105,6 +100,11 @@
       <trans-unit id="Line_commit">
         <source>Line commit</source>
         <target state="translated">行認可</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface">
+        <source>Implement Abstract Class Or Interface</source>
+        <target state="translated">實作抽象類別或介面</target>
         <note />
       </trans-unit>
     </body>

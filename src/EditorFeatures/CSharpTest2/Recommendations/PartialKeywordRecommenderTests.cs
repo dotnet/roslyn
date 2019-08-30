@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -195,9 +196,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInsideInterface()
+        public async Task TestInsideInterface()
         {
-            await VerifyAbsenceAsync(@"interface I {
+            await VerifyKeywordAsync(@"interface I {
    $$");
         }
 
@@ -343,9 +344,9 @@ using Bar;"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedReadOnly()
+        public async Task TestAfterNestedReadOnly()
         {
-            await VerifyAbsenceAsync(@"class C {
+            await VerifyKeywordAsync(@"class C {
     readonly $$");
         }
 

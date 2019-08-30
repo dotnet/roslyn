@@ -11,7 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
     public class CSharpFormattingTestBase : FormattingTestBase
     {
-        protected static readonly Workspace DefaultWorkspace = new AdhocWorkspace();
+        private Workspace _ws;
+
+        protected Workspace DefaultWorkspace
+            => _ws ?? (_ws = new AdhocWorkspace());
 
         protected override SyntaxNode ParseCompilation(string text, ParseOptions parseOptions)
         {

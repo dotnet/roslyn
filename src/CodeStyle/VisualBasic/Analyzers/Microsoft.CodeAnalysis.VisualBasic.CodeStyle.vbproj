@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <RootNamespace></RootNamespace>
+    <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
+    <PackageId>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.NewNameSinceWeReferenceTheAnalyzersAndNuGetCannotFigureItOut</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.vb" Link="Formatting\SyntaxTokenExtensions_SharedWithCodeStyle.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.vb" Link="Formatting\SyntaxTreeExtensions_SharedWithCodeStyle.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTriviaExtensions.vb" Link="Formatting\SyntaxTriviaExtensions.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\DefaultOperationProvider.vb" Link="Formatting\DefaultOperationProvider.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\AggregatedFormattingResult.vb" Link="Formatting\Engine\AggregatedFormattingResult.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\FormattingResult.vb" Link="Formatting\Engine\FormattingResult.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.AbstractLineBreakTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.AbstractLineBreakTrivia.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.Analyzer.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.Analyzer.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.CodeShapeAnalyzer.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.CodeShapeAnalyzer.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.ComplexTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.ComplexTrivia.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.FormattedComplexTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.FormattedComplexTrivia.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.LineContinuationTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.LineContinuationTrivia.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.TriviaRewriter.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.TriviaRewriter.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\TriviaDataFactory.vb" Link="Formatting\Engine\Trivia\TriviaDataFactory.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\Trivia\VisualBasicTriviaFormatter.vb" Link="Formatting\Engine\Trivia\VisualBasicTriviaFormatter.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\VisualBasicFormatEngine.vb" Link="Formatting\Engine\VisualBasicFormatEngine.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Engine\VisualBasicStructuredTriviaFormatEngine.vb" Link="Formatting\Engine\VisualBasicStructuredTriviaFormatEngine.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\FormattingHelpers.vb" Link="Formatting\FormattingHelpers.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\AdjustSpaceFormattingRule.vb" Link="Formatting\Rules\AdjustSpaceFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\AlignTokensFormattingRule.vb" Link="Formatting\Rules\AlignTokensFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\BaseFormattingRule.vb" Link="Formatting\Rules\BaseFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\ElasticTriviaFormattingRule.vb" Link="Formatting\Rules\ElasticTriviaFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\NodeBasedFormattingRule.vb" Link="Formatting\Rules\NodeBasedFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\StructuredTriviaFormattingRule.vb" Link="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\VisualBasicSyntaxFormattingService.vb" Link="Formatting\VisualBasicSyntaxFormattingService.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
+    <Import Include="Microsoft.CodeAnalysis.Shared.Utilities" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.Extensions" />
+    <Import Include="Roslyn.Utilities" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="$(MicrosoftCodeAnalysisVisualBasicFixedVersion)" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="VBCodeStyleResources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>VBCodeStyleResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="VBCodeStyleResources.resx">
+      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.VBCodeStyleResources</CustomToolNamespace>
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>VBCodeStyleResources.Designer.vb</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+</Project>

@@ -22,12 +22,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
                 var handled = await TryFindReferencesInServiceProcessAsync(
-                    symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
+                    symbolAndProjectId, solution, progress,
+                    documents, options, cancellationToken).ConfigureAwait(false);
                 if (handled)
                 {
                     return;
@@ -35,19 +37,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Couldn't effectively search using the OOP process.  Just perform the search in-proc.
                 await FindReferencesInCurrentProcessAsync(
-                    symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
+                    symbolAndProjectId, solution, progress,
+                    documents, options, cancellationToken).ConfigureAwait(false);
             }
         }
 
         internal static Task FindReferencesInCurrentProcessAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution,
             IStreamingFindReferencesProgress progress, IImmutableSet<Document> documents,
-            CancellationToken cancellationToken)
+            FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var finders = ReferenceFinders.DefaultReferenceFinders;
-            progress = progress ?? StreamingFindReferencesProgress.Instance;
+            progress ??= StreamingFindReferencesProgress.Instance;
             var engine = new FindReferencesSearchEngine(
-                solution, documents, finders, progress, cancellationToken);
+                solution, documents, finders, progress, options, cancellationToken);
             return engine.FindReferencesAsync(symbolAndProjectId);
         }
 
@@ -56,6 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // If ProjectId is null then this is a call through our old public API.  We don't have
@@ -68,10 +72,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
 
                 return await solution.TryRunCodeAnalysisRemoteAsync(
-                    RemoteFeatureOptions.SymbolFinderEnabled,
                     serverCallback,
                     nameof(IRemoteSymbolFinder.FindReferencesAsync),
-                    new object[] { SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId), documents?.Select(d => d.Id).ToArray() },
+                    new object[]
+                    {
+                        SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
+                        documents?.Select(d => d.Id).ToArray(),
+                        SerializableFindReferencesSearchOptions.Dehydrate(options),
+                    },
                     cancellationToken).ConfigureAwait(false);
             }
 

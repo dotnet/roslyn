@@ -16,14 +16,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             constantValueOpt As ConstantValue,
             type As TypeSymbol,
             Optional suppressObjectClone As Boolean = False,
-            Optional hasErrors As Boolean = False
+            Optional hasErrors As Boolean = False,
+            Optional defaultArguments As BitVector = Nothing
         )
-            Me.New(syntax, method, methodGroupOpt, receiverOpt, arguments,
+            Me.New(syntax, method, methodGroupOpt, receiverOpt, arguments, defaultArguments,
                    constantValueOpt,
                    isLValue:=method.ReturnsByRef,
                    suppressObjectClone:=suppressObjectClone,
                    type:=type,
                    hasErrors:=hasErrors)
+        End Sub
+
+        Public Sub New(syntax As SyntaxNode,
+                       method As MethodSymbol,
+                       methodGroupOpt As BoundMethodGroup,
+                       receiverOpt As BoundExpression,
+                       arguments As ImmutableArray(Of BoundExpression),
+                       constantValueOpt As ConstantValue,
+                       isLValue As Boolean,
+                       suppressObjectClone As Boolean,
+                       type As TypeSymbol,
+                       Optional hasErrors As Boolean = False)
+            Me.New(syntax, method, methodGroupOpt, receiverOpt, arguments, defaultArguments:=BitVector.Null, constantValueOpt, isLValue, suppressObjectClone, type, hasErrors)
         End Sub
 
         Protected Overrides Function MakeRValueImpl() As BoundExpression
@@ -37,6 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     MethodGroupOpt,
                     ReceiverOpt,
                     Arguments,
+                    DefaultArguments,
                     ConstantValueOpt,
                     isLValue:=False,
                     suppressObjectClone:=SuppressObjectClone,
@@ -73,6 +88,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     argument.AssertRValue()
                 End If
             Next
+
+            ' Null DefaultArguments doesn't indicate that Arguments is non-null, but if DefaultArguments is non-null we must have some arguments.
+            Debug.Assert(DefaultArguments.IsNull OrElse Not Arguments.IsEmpty)
 
             If isLifted.GetValueOrDefault AndAlso Not Method.ReturnType.IsNullableType() Then
                 Debug.Assert(OverloadResolution.CanLiftType(Method.ReturnType) AndAlso

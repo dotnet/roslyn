@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../EditorFeaturesWpfResources.resx">
     <body>
+      <trans-unit id="Configure_or_Suppress_issues">
+        <source>Configure or Suppress issues</source>
+        <target state="new">Configure or Suppress issues</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Downloading_index_failed">
         <source>Downloading index failed</source>
         <target state="translated">Dizin indirilemedi</target>
@@ -15,6 +20,51 @@
       <trans-unit id="Downloading_IntelliSense_index_for_0">
         <source>Downloading IntelliSense index for {0}</source>
         <target state="translated">{0} için IntelliSense dizini indiriliyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="translated">Regex - yorum</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="translated">Regex - karakter sınıfı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="translated">Regex - münavebe</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="translated">Regex - çapa</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="translated">Regex - Niceleyici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="translated">Regex - kendi karakter kaçtı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex - Grouping</source>
+        <target state="translated">Regex - gruplandırma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="translated">Regex - metin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="translated">Regex - diğer kaçış</target>
         <note />
       </trans-unit>
     </body>

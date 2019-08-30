@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -11,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public class DocCommentFormatterTests
     {
-        private CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
-        private VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
+        private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
+        private readonly VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
 
         private void TestFormat(string docCommentXmlFragment, string expected)
         {

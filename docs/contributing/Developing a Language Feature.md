@@ -60,13 +60,13 @@ The intent of this document is to codify the process used by the Language Team t
 Community members who wish to drive a particular feature can request so by commenting on an accepted feature speclet. Even when driven by a community member, a language prototype will occupy a non-trivial amount of time by the Language Team.  Hence we will likely only grant this request to community members who have been actively contributing to the project in smaller areas.
 ## Frequently Asked Questions
 
-- **Can feature branches be rebased?**: This is left to the discretion of the developer working on the feature. Once the feature is merged into a main branch (master, future) then rebasing is no longer allowed.
+- **Can feature branches be rebased?**: This is left to the discretion of the developer working on the feature. Once the feature is merged into a main branch (master, feature) then rebasing is no longer allowed.
 
 - **Why was my language feature PR closed?**: Language features will not be accepted as direct PRs to a main branch. Even simple features are too involved for senior Language Team members to complete in this fashion. Features need to follow the above process in order to be incorporated into the language.
 
 - **Why are features disabled by default?**: Language features spend a considerable amount of time in the same branch as our shipping product which is often master.  The master branch of Roslyn is kept in a ship ready state at all times.  To facilitate this all features which haven't been fully accepted into the language must be disabled.
 
-- **What is the difference between the future and master branches?**: The master branch represents code which will ship in updates to the C# 6 compiler.  The future branch represents C# 7.  
+- **What is the difference between the feature and master branches?**: The master branch represents code which will ship in updates to the current version of the compiler.  The feature branches represents each feature which are still in progress, therefore not merged yet.
 
 - **Why weren't speclets filed for early features?**: Features such as tuples and local functions were done before this process was fully developed.  Their speclets were considered internally and eventually became the `docs/feature/<feature name.md>` file.
 

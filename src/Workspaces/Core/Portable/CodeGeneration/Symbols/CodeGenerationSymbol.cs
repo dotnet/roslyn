@@ -225,5 +225,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             return this.Equals((object)other);
         }
+
+        public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+        {
+            return equalityComparer.Equals(this, other);
+        }
     }
 }

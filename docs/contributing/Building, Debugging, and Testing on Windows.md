@@ -5,36 +5,24 @@
 Using the command line Roslyn can be developed using the following pattern:
 
 1. Clone https://github.com/dotnet/roslyn
-1. Run Restore.cmd 
+1. Run Restore.cmd
 1. Run Build.cmd
 1. Run Test.cmd
 
 ## Recommended version of .NET Framework
 
-The minimal required version of .NET Framework is 4.6, however 4.7.1 is recommended for best developer experience. 
+The minimal required version of .NET Framework is 4.7.2.
 
-The projects in this repository are configured to build with Portable PDBs, which are supported in stack traces starting with .NET Framework 4.7.1. 
-If a stack trace is displayed on .NET Framework older than 4.7.1 (e.g. by xUnit when a test fails) it won't contain source and line information.
+## Developing with Visual Studio 2019
 
-.NET Framework 4.7.1 is included in Windows 10 Fall Creators Update. It can also be installed from the [Microsoft Download Center](https://support.microsoft.com/en-us/help/4033344/the-net-framework-4-7-1-web-installer-for-windows).
-
-## Developing with Visual Studio 2017
-
-1. [Visual Studio 2017 Version 15.6 Preview 4](https://www.visualstudio.com/vs/preview/)
+1. [Visual Studio 2019 16.2](https://visualstudio.microsoft.com/downloads/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "15.6 Preview 4" or greater
-1. [.NET Core SDK 2.2](https://www.microsoft.com/net/download/core) (if you don't see the 2.2 SDK binaries there yet, the current previews are: [Windows x64 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x64.exe), [Windows x86 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x86.exe))
-1. [PowerShell 3.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on Windows 7. The download link is under the "upgrading existing Windows PowerShell" heading.
+    - Ensure Visual Studio is on Version "16.2" or greater
+    - Ensure "Use Previews" is checked in Tools -> Options -> Projects and Solutions -> .NET Core
+1. [.NET Core SDK 3.0 Preview 6](https://dotnet.microsoft.com/download/dotnet-core/3.0) [Windows x64 installer](https://dotnetcli.azureedge.net/dotnet/Sdk/3.0.100-preview6-012264/dotnet-sdk-3.0.100-preview6-012264-win-x64.exe )
+1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
-
-If you already installed Visual Studio and need to add the necessary work loads or move to version 15.5:
-do the following:
-
-- Run the Visual Studio Installer from your start menu. You can just search for "Visual Studio Installer". If you can't find it, it's typically located at "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
-- The Visual Studio installation will be listed under the Installed section
-- Click on the menu icon (three horizontal lines), click Modify 
-- Choose the workloads listed above and click Modify
 
 ## Running Tests
 
@@ -42,13 +30,17 @@ There are a number of options for running the core Roslyn unit tests:
 
 ### Command Line
 
-The Test.cmd script will run our unit test on already built binaries.  It can be passed the -build arguments to force a new build before running tests.  
+The Test.cmd script will run our unit test on already built binaries.  It can be passed the -build arguments to force a new build before running tests.
 
-1. Run the "Developer Command Prompt for VS2015" from your start menu.
+1. Run the "Developer Command Prompt for VS2019" from your start menu.
 2. Navigate to the directory of your Git clone.
-3. Run `msbuild /v:m /m /nodereuse:false BuildAndTest.proj` in the command prompt.
+3. Run `Test.cmd` in the command prompt.
 
-### Test Explorer 
+You can more precisely control how the tests are run by running the eng/build.ps1 script directly with the relevant options. For example passing in the `-test` switch will run the tests on .NET Framework, whilst passing in the `-testCoreClr` switch will run the tests on .NET Core.
+
+The results of the tests can be viewed in the artifacts/TestResults directory.
+
+### Test Explorer
 
 Tests can be run and debugged from the Test Explorer window. For best performance, we recommend the following:
 
@@ -71,34 +63,31 @@ give it a try.
 ## Trying Your Changes in Visual Studio
 
 The Rosyln solution is designed to support easy debugging via F5.  Several of our
-projects produce VSIX which deploy into Visual Studio during build.  The F5 operation 
+projects produce VSIX which deploy into Visual Studio during build.  The F5 operation
 will start a new Visual Studio instance using those VSIX which override our installed
 binaries.  This means trying out a change to the language, IDE or debugger is as
 simple as hitting F5.
 
-The startup project needs to be set to VisualStudioSetup.Next.  This should be
-the default but in same cases will need to be set explicitly.
+The startup project needs to be set to `RoslynDeployment`.  This should be
+the default but in some cases will need to be set explicitly.
 
 Here are what is deployed with each extension, by project that builds it. If
 you're working on a particular area, you probably want to set the appropriate
-project as your startup project to ensure the right things are built and
-deployed.
+project as your startup project to optimize building and deploying only the relevant bits.
 
-- **VisualStudioSetup.Next**: this project can be found inside the VisualStudio
-  folder from the Solution Explorer, and builds Roslyn.VisualStudio.Setup.vsix.
-  In theory, it contains code to light up features for the next version of VS
-  (Dev16), but currently hasn't been updated for that since Dev15/VS2017 shipped.
-  If you're working on fixing an IDE bug, this is the project you want to use.
-- **VisualStudioSetup**: this project can be found inside the VisualStudio folder
+- **Roslyn.VisualStudio.Setup**: this project can be found inside the VisualStudio folder
   from the Solution Explorer, and builds Roslyn.VisualStudio.Setup.vsix. It
   contains the core language services that provide C# and VB editing. It also
   contains the copy of the compiler that is used to drive IntelliSense and
   semantic analysis in Visual Studio. Although this is the copy of the compiler
   that's used to generate squiggles and other information, it's not the
   compiler used to actually produce your final .exe or .dll when you do a
-  build. If you're working on fixing an IDE bug, this is *NOT* the project you want
-  to use right now - use VisualStudioSetup.Next instead.
-- **CompilerExtension**: this project can be found inside the Compilers folder
+  build. If you're working on fixing an IDE bug, this is the project you want
+  to use.
+- **Roslyn.VisualStudio.InteractiveComponents**: this project can be found in the
+  Interactive\Setup folder from the Solution Explorer, and builds
+  Roslyn.VisualStudio.InteractiveComponents.vsix.
+- **Roslyn.Compilers.Extension**: this project can be found inside the Compilers\Packages folder
   from the Solution Explorer, and builds Roslyn.Compilers.Extension.vsix.
   This deploys a copy of the command line compilers that are used to do actual
   builds in the IDE. It only affects builds triggered from the Visual Studio

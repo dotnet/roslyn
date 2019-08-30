@@ -138,8 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!compilation.Options.CryptoPublicKey.IsEmpty)
             {
                 // Private key is not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
-                RSAParameters? privateKey = null;
-                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey, MessageProvider.Instance);
+                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey: null, hasCounterSignature: false, MessageProvider.Instance);
             }
         }
 
@@ -389,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (object)attributeValue == null || (attributeValue.Build != ushort.MaxValue && attributeValue.Revision != ushort.MaxValue) ? null : attributeValue;
             }
         }
-         
+
         public AssemblyHashAlgorithm HashAlgorithm
         {
             get
@@ -503,8 +502,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-                return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
-            }
+            var hasCounterSignature = !string.IsNullOrEmpty(this.SignatureKey);
+            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, hasCounterSignature, MessageProvider.Instance);
+        }
 
         // A collection of assemblies to which we were granted internals access by only checking matches for assembly name
         // and ignoring public key. This just acts as a set. The bool is ignored.
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (_compilation.Options.PublicSign && 
+            if (_compilation.Options.PublicSign &&
                 !_compilation.Options.OutputKind.IsNetModule() &&
                 (object)this.AssemblyKeyContainerAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
             {
@@ -1212,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Duplicate attributes with same attribute type are not allowed.
                 // Check if there is an existing assembly attribute with same attribute type.
-                if (uniqueAttributes == null || !uniqueAttributes.Contains((a) => a.AttributeClass == attributeClass))
+                if (uniqueAttributes == null || !uniqueAttributes.Contains((a) => TypeSymbol.Equals(a.AttributeClass, attributeClass, TypeCompareKind.ConsiderEverything2)))
                 {
                     // Attribute with unique attribute type, not a duplicate.
                     bool success = AddUniqueAssemblyAttribute(attribute, ref uniqueAttributes);
@@ -1909,7 +1909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (conclusion == IVTConclusion.PublicKeyDoesntMatch)
                         bag.Add(ErrorCode.ERR_FriendRefNotEqualToThis, NoLocation.Singleton,
-                                                                      otherAssembly.Identity);
+                                                                      otherAssembly.Identity, this.Identity);
                     else if (conclusion == IVTConclusion.OneSignedOneNot)
                         bag.Add(ErrorCode.ERR_FriendRefSigningMismatch, NoLocation.Singleton,
                                                                       otherAssembly.Identity);
@@ -2189,7 +2189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: !_compilation.IsEmitDeterministic, version: out version))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
-                    bool foundBadWildcard = _compilation.IsEmitDeterministic && verString.Contains('*');
+                    bool foundBadWildcard = _compilation.IsEmitDeterministic && verString?.Contains('*') == true;
                     arguments.Diagnostics.Add(foundBadWildcard ? ErrorCode.ERR_InvalidVersionFormatDeterministic : ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
                 }
 
@@ -2451,7 +2451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // since there will be nothing left in the map/set the second time.
                 bool internalsAreVisible =
                     this.InternalsAreVisible ||
-                    this.DeclaringCompilation.Options.OutputKind.IsNetModule();
+                    this.IsNetModule();
 
                 HashSet<FieldSymbol> handledUnreadFields = null;
 

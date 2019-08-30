@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 {
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         IWpfTextView IInteractiveWindowEditorFactoryService.CreateTextView(IInteractiveWindow window, ITextBuffer buffer, ITextViewRoleSet roles)
         {
-            WpfTestCase.RequireWpfFact($"Creates an IWpfTextView in {nameof(InteractiveWindowEditorsFactoryService)}");
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} in {nameof(InteractiveWindowEditorsFactoryService)}");
 
             var textView = _textEditorFactoryService.CreateTextView(buffer, roles);
             return _textEditorFactoryService.CreateTextViewHost(textView, false).TextView;

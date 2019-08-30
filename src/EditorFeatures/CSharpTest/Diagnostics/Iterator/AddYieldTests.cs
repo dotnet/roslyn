@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator

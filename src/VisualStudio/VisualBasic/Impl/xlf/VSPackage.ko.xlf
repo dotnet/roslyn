@@ -8,18 +8,18 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Microsoft Visual Basic 코드 페이지 편집기</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="needs-review-translation">Microsoft Visual Basic 코드 페이지 편집기</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Microsoft Visual Basic 편집기</target>
+        <source>Visual Basic Editor</source>
+        <target state="needs-review-translation">Microsoft Visual Basic Editor</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off</source>
-        <target state="translated">맺음 구문 자동 삽입;서식 다시 적용 설정 변경;개요 모드 변경;인터페이스 및 MustOverride 멤버 자동 삽입;프로시저 줄 구분선 표시/숨기기;오류 수정 제안 설정/해제;참조 및 키워드의 강조 표시 설정/해제</target>
+        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
+        <target state="translated">맺음 구문 자동 삽입;자동 서식 지정 설정 변경;개요 모드 변경;인터페이스 및 MustOverride 멤버 자동 삽입;프로시저 줄 구분선 표시/숨기기;오류 수정 제안 설정/해제;참조 및 키워드의 강조 표시 설정/해제;Regex;정규식 색 입히기;커서 아래에 관련 구성 요소 강조 표시;잘못된 정규식 보고;regex;정규식</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="107">
         <source>Optimizes the environment so you can focus on building world-class applications. This collection of settings contains customizations to the window layout, command menus and keyboard shortcuts to make common Visual Basic commands more accessible.</source>
-        <target state="translated">국제적인 응용 프로그램을 빌드하는 데 주력할 수 있도록 개발 환경을 최적화합니다. 이 설정 모음에는 창 레이아웃, 명령 메뉴 및 바로 가기 키에 대한 사용자 지정이 포함되므로 일반적으로 사용되는 Visual Basic 명령에 쉽게 액세스할 수 있습니다.</target>
+        <target state="translated">국제적인 애플리케이션을 빌드하는 데 주력할 수 있도록 개발 환경을 최적화합니다. 이 설정 모음에는 창 레이아웃, 명령 메뉴 및 바로 가기 키에 대한 사용자 지정이 포함되므로 일반적으로 사용되는 Visual Basic 명령에 쉽게 액세스할 수 있습니다.</target>
         <note>Profile description in profile Reset All Settings.</note>
       </trans-unit>
       <trans-unit id="108">
@@ -101,6 +101,16 @@
         <source>Visual Basic Tools</source>
         <target state="translated">Visual Basic 도구</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_Visual_Basic_script_file">
+        <source>An empty Visual Basic script file.</source>
+        <target state="translated">비어 있는 Visual Basic 스크립트 파일입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_Script">
+        <source>Visual Basic Script</source>
+        <target state="translated">Visual Basic 스크립트</target>
+        <note />
       </trans-unit>
     </body>
   </file>

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 namespace Roslyn.Utilities
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct EnumField
+    internal readonly struct EnumField
     {
         public static readonly IComparer<EnumField> Comparer = new EnumFieldComparer();
 

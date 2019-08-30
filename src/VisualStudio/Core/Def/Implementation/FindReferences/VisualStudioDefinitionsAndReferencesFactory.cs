@@ -6,12 +6,10 @@ using System.Composition;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -65,19 +63,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
         private string GetSourceLine(string filePath, int lineNumber)
         {
-            using (var invisibleEditor = new InvisibleEditor(
-                _serviceProvider, filePath, projectOpt: null, needsSave: false, needsUndoDisabled: false))
+            using var invisibleEditor = new InvisibleEditor(
+                _serviceProvider, filePath, hierarchyOpt: null, needsSave: false, needsUndoDisabled: false);
+            var vsTextLines = invisibleEditor.VsTextLines;
+            if (vsTextLines != null &&
+                vsTextLines.GetLengthOfLine(lineNumber, out var lineLength) == VSConstants.S_OK &&
+                vsTextLines.GetLineText(lineNumber, 0, lineNumber, lineLength, out var lineText) == VSConstants.S_OK)
             {
-                var vsTextLines = invisibleEditor.VsTextLines;
-                if (vsTextLines != null &&
-                    vsTextLines.GetLengthOfLine(lineNumber, out var lineLength) == VSConstants.S_OK &&
-                    vsTextLines.GetLineText(lineNumber, 0, lineNumber, lineLength, out var lineText) == VSConstants.S_OK)
-                {
-                    return lineText;
-                }
-
-                return ServicesVSResources.Preview_unavailable;
+                return lineText;
             }
+
+            return ServicesVSResources.Preview_unavailable;
         }
 
         private class ExternalDefinitionItem : DefinitionItem
@@ -95,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 IServiceProvider serviceProvider,
                 string filePath,
                 int lineNumber,
-                int charOffset) 
+                int charOffset)
                 : base(tags, displayParts, ImmutableArray<TaggedText>.Empty,
                        originationParts: default,
                        sourceSpans: default,
@@ -120,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 var shellOpenDocument = (IVsUIShellOpenDocument)_serviceProvider.GetService(typeof(SVsUIShellOpenDocument));
                 var textViewGuid = VSConstants.LOGVIEWID.TextView_guid;
                 if (shellOpenDocument.OpenDocumentViaProject(
-                        _filePath, ref textViewGuid, out var oleServiceProvider, 
+                        _filePath, ref textViewGuid, out var oleServiceProvider,
                         out var hierarchy, out var itemid, out var frame) == VSConstants.S_OK)
                 {
                     frame.Show();
@@ -132,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             private bool TryNavigateToPosition()
             {
-                IVsRunningDocumentTable docTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+                var docTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
                 if (docTable.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, _filePath,
                         out var hierarchy, out var itemid, out var bufferPtr, out var cookie) != VSConstants.S_OK)
                 {
@@ -141,8 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
                 try
                 {
-                    var lines = Marshal.GetObjectForIUnknown(bufferPtr) as IVsTextLines;
-                    if (lines == null)
+                    if (!(Marshal.GetObjectForIUnknown(bufferPtr) is IVsTextLines lines))
                     {
                         return false;
                     }
@@ -154,8 +149,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                     }
 
                     return textManager.NavigateToLineAndColumn(
-                        lines, VSConstants.LOGVIEWID.TextView_guid, 
-                        _lineNumber, _charOffset, 
+                        lines, VSConstants.LOGVIEWID.TextView_guid,
+                        _lineNumber, _charOffset,
                         _lineNumber, _charOffset) == VSConstants.S_OK;
                 }
                 finally

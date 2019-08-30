@@ -19,7 +19,7 @@ namespace RunTests
                 mo.Get();
                 return Convert.ToInt32(mo["ParentProcessId"]);
             }
-            catch 
+            catch
             {
                 return null;
             }

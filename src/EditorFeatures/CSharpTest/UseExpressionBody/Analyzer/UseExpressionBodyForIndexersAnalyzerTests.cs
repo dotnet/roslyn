@@ -3,12 +3,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -21,18 +21,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
             OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
         private IDictionary<OptionKey, object> UseBlockBody =>
             OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
         private IDictionary<OptionKey, object> UseBlockBodyExceptAccessor =>
             OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()

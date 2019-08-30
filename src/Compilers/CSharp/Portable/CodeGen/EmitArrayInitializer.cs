@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     // NOTE: default values do not need to be initialized. 
-                    //       .Net arrays are always zero-inited.
+                    //       .NET arrays are always zero-inited.
                     if (!init.IsDefaultValue())
                     {
                         initCount += 1;
@@ -346,6 +346,128 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                          "all or none should be nested");
 
             return inits.Length != 0 && inits[0].Kind == BoundKind.ArrayInitialization;
+        }
+
+        private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, bool inPlace)
+        {
+            ImmutableArray<byte> data = default;
+            int elementCount = -1;
+            TypeSymbol elementType = null;
+
+            if (!_module.SupportsPrivateImplClass)
+            {
+                return false;
+            }
+
+            var ctor = ((MethodSymbol)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor));
+            if (ctor == null)
+            {
+                return false;
+            }
+
+            if (wrappedExpression is BoundArrayCreation ac)
+            {
+                var arrayType = (ArrayTypeSymbol)ac.Type;
+                elementType = arrayType.ElementType.EnumUnderlyingType();
+
+                // NB: we cannot use this approach for element types larger than one byte
+                //     the issue is that metadata stores blobs in little-endian format
+                //     so anything that is larger than one byte will be incorrect on a big-endian machine
+                //     With additional runtime support it might be possible, but not yet.
+                //     See: https://github.com/dotnet/corefx/issues/26948 for more details
+                if (elementType.SpecialType.SizeInBytes() != 1)
+                {
+                    return false;
+                }
+
+                elementCount = TryGetRawDataForArrayInit(ac.InitializerOpt, out data);
+            }
+
+            if (elementCount < 0)
+            {
+                return false;
+            }
+
+            if (!inPlace && !used)
+            {
+                // emitting a value that no one will see
+                return true;
+            }
+
+            if (elementCount == 0)
+            {
+                if (inPlace)
+                {
+                    _builder.EmitOpCode(ILOpCode.Initobj);
+                    EmitSymbolToken(spanType, wrappedExpression.Syntax);
+                }
+                else
+                {
+                    EmitDefaultValue(spanType, used, wrappedExpression.Syntax);
+                }
+            }
+            else
+            {
+                if (IsPeVerifyCompatEnabled())
+                {
+                    return false;
+                }
+
+                _builder.EmitArrayBlockFieldRef(data, elementType, wrappedExpression.Syntax, _diagnostics);
+                _builder.EmitIntConstant(elementCount);
+
+                if (inPlace)
+                {
+                    // consumes target ref, data ptr and size, pushes nothing
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -3);
+                }
+                else
+                {
+                    // consumes data ptr and size, pushes the instance
+                    _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: -1);
+                }
+
+                EmitSymbolToken(ctor.AsMember(spanType), wrappedExpression.Syntax, optArgList: null);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        ///  Returns a byte blob that matches serialized content of single array initializer.    
+        ///  returns -1 if the initializer is null or not an array of literals
+        /// </summary>
+        private int TryGetRawDataForArrayInit(BoundArrayInitialization initializer, out ImmutableArray<byte> data)
+        {
+            data = default;
+
+            if (initializer == null)
+            {
+                return -1;
+            }
+
+            var initializers = initializer.Initializers;
+            if (initializers.Any(init => init.ConstantValue == null))
+            {
+                return -1;
+            }
+
+            var elementCount = initializers.Length;
+            if (elementCount == 0)
+            {
+                data = ImmutableArray<byte>.Empty;
+                return 0;
+            }
+
+            var writer = new BlobBuilder(initializers.Length * 4);
+
+            foreach (var init in initializer.Initializers)
+            {
+                init.ConstantValue.Serialize(writer);
+            }
+
+            data = writer.ToImmutableArray();
+            return elementCount;
         }
     }
 }

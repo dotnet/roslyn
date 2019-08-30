@@ -21,8 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Enable_full_solution_analysis As String =
             ServicesVSResources.Enable_full_solution_analysis
 
-        Public ReadOnly Property Option_Perform_editor_feature_analysis_in_external_process As String =
-            ServicesVSResources.Perform_editor_feature_analysis_in_external_process
+        Public ReadOnly Property Option_use_editorconfig_compatibility_mode As String = ServicesVSResources.Use_editorconfig_compatibility_mode
 
         Public ReadOnly Property Option_DisplayLineSeparators As String
             Get
@@ -200,16 +199,31 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_SeparateImportGroups As String =
             BasicVSResources.Separate_import_directive_groups
 
-        Public ReadOnly Property Option_Suggest_imports_for_types_in_reference_assemblies As String
-            Get
-                Return BasicVSResources.Suggest_imports_for_types_in_reference_assemblies
-            End Get
-        End Property
+        Public ReadOnly Property Option_Suggest_imports_for_types_in_reference_assemblies As String =
+            BasicVSResources.Suggest_imports_for_types_in_reference_assemblies
 
-        Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String
-            Get
-                Return BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
-            End Get
-        End Property
+        Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String =
+            BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
+
+        Public ReadOnly Property Option_Regular_Expressions As String =
+            ServicesVSResources.Regular_Expressions
+
+        Public ReadOnly Property Option_Colorize_regular_expressions As String =
+            ServicesVSResources.Colorize_regular_expressions
+
+        Public ReadOnly Property Option_Report_invalid_regular_expressions As String =
+            ServicesVSResources.Report_invalid_regular_expressions
+
+        Public ReadOnly Property Option_Highlight_related_components_under_cursor As String =
+            ServicesVSResources.Highlight_related_components_under_cursor
+
+        Public ReadOnly Property Option_Show_completion_list As String =
+            ServicesVSResources.Show_completion_list
+
+        Public ReadOnly Property Option_Classifications As String =
+            ServicesVSResources.Classifications
+
+        Public ReadOnly Property Option_Use_enhanced_colors_for_C_and_Basic As String =
+            ServicesVSResources.Use_enhanced_colors_for_C_and_Basic
     End Module
 End Namespace

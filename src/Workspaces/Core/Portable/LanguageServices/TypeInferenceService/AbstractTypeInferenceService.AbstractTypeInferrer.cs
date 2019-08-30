@@ -9,8 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 {
-    internal partial class AbstractTypeInferenceService<TExpressionSyntax> : ITypeInferenceService
-        where TExpressionSyntax : SyntaxNode
+    internal partial class AbstractTypeInferenceService : ITypeInferenceService
     {
         protected abstract class AbstractTypeInferrer
         {
@@ -18,8 +17,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
             protected readonly SemanticModel SemanticModel;
             protected readonly Func<TypeInferenceInfo, bool> IsUsableTypeFunc;
 
-            private readonly HashSet<TExpressionSyntax> _seenExpressionInferType = new HashSet<TExpressionSyntax>();
-            private readonly HashSet<TExpressionSyntax> _seenExpressionGetType = new HashSet<TExpressionSyntax>();
+            private readonly HashSet<SyntaxNode> _seenExpressionInferType = new HashSet<SyntaxNode>();
+            private readonly HashSet<SyntaxNode> _seenExpressionGetType = new HashSet<SyntaxNode>();
 
             private static readonly Func<TypeInferenceInfo, bool> s_isNotNull = t => t.InferredType != null;
 
@@ -31,8 +30,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
             }
 
             protected abstract IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(int position);
-            protected abstract IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(TExpressionSyntax expression);
-            protected abstract IEnumerable<TypeInferenceInfo> GetTypes_DoNotCallDirectly(TExpressionSyntax expression, bool objectAsDefault);
+            protected abstract IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(SyntaxNode expression);
+            protected abstract IEnumerable<TypeInferenceInfo> GetTypes_DoNotCallDirectly(SyntaxNode expression, bool objectAsDefault);
             protected abstract bool IsUnusableType(ITypeSymbol arg);
 
             protected Compilation Compilation => SemanticModel.Compilation;
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                 return Filter(types);
             }
 
-            public ImmutableArray<TypeInferenceInfo> InferTypes(TExpressionSyntax expression, bool filterUnusable = true)
+            public ImmutableArray<TypeInferenceInfo> InferTypes(SyntaxNode expression, bool filterUnusable = true)
             {
                 if (expression != null)
                 {
@@ -57,11 +56,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                 return ImmutableArray<TypeInferenceInfo>.Empty;
             }
 
-            protected IEnumerable<TypeInferenceInfo> GetTypes(TExpressionSyntax expression, bool objectAsDefault = false)
+            protected IEnumerable<TypeInferenceInfo> GetTypes(SyntaxNode expression, bool objectAsDefault = false)
             {
-                if (_seenExpressionGetType.Add(expression))
+                if (expression != null)
                 {
-                    return GetTypes_DoNotCallDirectly(expression, objectAsDefault);
+                    if (_seenExpressionGetType.Add(expression))
+                    {
+                        return GetTypes_DoNotCallDirectly(expression, objectAsDefault);
+                    }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -73,6 +75,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                             .Distinct()
                             .ToImmutableArray();
             }
+
+            protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
+                => CreateResult(Compilation.GetSpecialType(type).WithNullability(nullableAnnotation));
+
+            protected IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
+                => type == null
+                    ? SpecializedCollections.EmptyCollection<TypeInferenceInfo>()
+                    : SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
 
             protected IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
             {

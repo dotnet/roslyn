@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly RefKind _refKind;
-        private readonly TypeSymbol _returnType;
-        private readonly ImmutableArray<CustomModifier> _returnTypeCustomModifiers;
+        private readonly TypeWithAnnotations _returnType;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
 
@@ -34,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
             RefKind refKind,
-            TypeSymbol returnType,
-            ImmutableArray<CustomModifier> returnTypeCustomModifiers,
+            TypeWithAnnotations returnType,
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations)
         {
@@ -43,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeParameters = typeParameters;
             _refKind = refKind;
             _returnType = returnType;
-            _returnTypeCustomModifiers = returnTypeCustomModifiers;
             _refCustomModifiers = refCustomModifiers;
             _parameters = parameters;
             _explicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
@@ -62,13 +59,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters { get { return _typeParameters; } }
 
-        public override bool ReturnsVoid { get { return _returnType.SpecialType == SpecialType.System_Void; } }
+        public override bool ReturnsVoid { get { return _returnType.IsVoidType(); } }
 
         public override RefKind RefKind { get { return _refKind; } }
 
-        public override TypeSymbol ReturnType { get { return _returnType; } }
+        public override TypeWithAnnotations ReturnTypeWithAnnotations { get { return _returnType; } }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers { get { return _returnTypeCustomModifiers; } }
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() { throw ExceptionUtilities.Unreachable; }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments { get { throw ExceptionUtilities.Unreachable; } }
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations { get { throw ExceptionUtilities.Unreachable; } }
 
         public override Symbol AssociatedSymbol { get { throw ExceptionUtilities.Unreachable; } }
 
@@ -149,6 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
         }
+
+        internal override bool IsDeclaredReadOnly => false;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) { throw ExceptionUtilities.Unreachable; }
 

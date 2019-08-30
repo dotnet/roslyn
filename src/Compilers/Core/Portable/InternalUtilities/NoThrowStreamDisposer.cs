@@ -36,7 +36,7 @@ namespace Roslyn.Utilities
                 return _failed.GetValueOrDefault();
             }
         }
-        
+
         public NoThrowStreamDisposer(
             Stream stream,
             string filePath,

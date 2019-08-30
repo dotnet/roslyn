@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
     [ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.CSharp), Shared]
     internal class CSharpCommentSelectionService : AbstractCommentSelectionService
     {
+        [ImportingConstructor]
+        public CSharpCommentSelectionService()
+        {
+        }
+
         public override string SingleLineCommentString => "//";
         public override bool SupportsBlockComment => true;
         public override string BlockCommentStartString => "/*";

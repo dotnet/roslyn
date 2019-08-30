@@ -812,7 +812,7 @@ public class C<T>
             var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
             var method = (MethodSymbol)model.GetSymbolInfo(syntax).Symbol;
-            Assert.Equal(SpecialType.System_Char, method.TypeArguments.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Char, method.TypeArgumentsWithAnnotations.Single().SpecialType);
             Assert.Equal("void C<System.Char>.M<System.Char>(System.Func<System.Char, System.Char> f1, System.Func<System.Int64, System.Char> f2)", method.ToTestDisplayString());
         }
 
@@ -842,7 +842,7 @@ public class C<T>
             var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
             var method = (MethodSymbol)model.GetSymbolInfo(syntax).Symbol;
-            Assert.Equal(SpecialType.System_Char, method.TypeArguments.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Char, method.TypeArgumentsWithAnnotations.Single().SpecialType);
             Assert.Equal("void C<System.Char>.M<System.Char>(System.Func<System.Char, System.Char> f1, System.Func<System.Int64, System.Char> f2, params System.Int32[] a)", method.ToTestDisplayString());
         }
 

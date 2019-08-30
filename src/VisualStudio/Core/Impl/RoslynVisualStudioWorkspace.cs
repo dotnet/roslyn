@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -17,7 +18,9 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
+using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -25,115 +28,37 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        /// <remarks>
+        /// Must be lazily constructed since the <see cref="IStreamingFindUsagesPresenter"/> implementation imports a
+        /// backreference to <see cref="VisualStudioWorkspace"/>.
+        /// </remarks>
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         [ImportingConstructor]
-        private RoslynVisualStudioWorkspace(
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
-            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
-            : base(exportProvider.AsExportProvider())
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
+            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
+            [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
+            : base(exportProvider, asyncServiceProvider, documentOptionsProviderFactories)
         {
-            _streamingPresenters = streamingPresenters;
-
-            foreach (var providerFactory in documentOptionsProviderFactories)
-            {
-                Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(providerFactory.Create(this));
-            }
-        }
-
-        public override EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId)
-        {
-            if (documentId == null)
-            {
-                throw new ArgumentNullException(nameof(documentId));
-            }
-
-            if (DeferredState == null)
-            {
-                // We haven't gotten any projects added yet, so we don't know where this came from
-                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
-            }
-
-            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
-            if (project == null)
-            {
-                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
-            }
-
-            var document = project.GetDocumentOrAdditionalDocument(documentId);
-            if (document == null)
-            {
-                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
-            }
-
-            if (project is IProjectCodeModelProvider provider)
-            {
-                var projectCodeModel = provider.ProjectCodeModel;
-                if (projectCodeModel.CanCreateFileCodeModelThroughProject(document.FilePath))
-                {
-                    return (EnvDTE.FileCodeModel)projectCodeModel.CreateFileCodeModelThroughProject(document.FilePath);
-                }
-            }
-
-            return null;
-        }
-
-        internal override bool RenameFileCodeModelInstance(DocumentId documentId, string newFilePath)
-        {
-            if (documentId == null)
-            {
-                return false;
-            }
-
-            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
-            if (project == null)
-            {
-                return false;
-            }
-
-            var document = project.GetDocumentOrAdditionalDocument(documentId);
-            if (document == null)
-            {
-                return false;
-            }
-
-            var codeModelProvider = project as IProjectCodeModelProvider;
-            if (codeModelProvider == null)
-            {
-                return false;
-            }
-
-            var codeModelCache = codeModelProvider.ProjectCodeModel.GetCodeModelCache();
-            if (codeModelCache == null)
-            {
-                return false;
-            }
-
-            codeModelCache.OnSourceFileRenaming(document.FilePath, newFilePath);
-
-            return true;
+            _streamingPresenter = streamingPresenter;
         }
 
         internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)
-        {
-            var hostDocument = GetHostDocument(documentId);
-            return OpenInvisibleEditor(hostDocument);
-        }
-
-        internal override IInvisibleEditor OpenInvisibleEditor(IVisualStudioHostDocument hostDocument)
         {
             var globalUndoService = this.Services.GetService<IGlobalUndoService>();
             var needsUndoDisabled = false;
 
             // Do not save the file if is open and there is not a global undo transaction.
-            var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !hostDocument.IsOpen;
+            var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !this.IsDocumentOpen(documentId);
             if (needsSave)
             {
-                if (this.CurrentSolution.ContainsDocument(hostDocument.Id))
+                if (this.CurrentSolution.ContainsDocument(documentId))
                 {
                     // Disable undo on generated documents
-                    needsUndoDisabled = this.CurrentSolution.GetDocument(hostDocument.Id).IsGeneratedCode(CancellationToken.None);
+                    needsUndoDisabled = this.CurrentSolution.GetDocument(documentId).IsGeneratedCode(CancellationToken.None);
                 }
                 else
                 {
@@ -142,7 +67,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-            return new InvisibleEditor(DeferredState.ServiceProvider, hostDocument.FilePath, hostDocument.Project, needsSave, needsUndoDisabled);
+            var document = this.CurrentSolution.GetTextDocument(documentId);
+
+            return new InvisibleEditor(ServiceProvider.GlobalProvider, document.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
         }
 
         private static bool TryResolveSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, out ISymbol resolvedSymbol, out Project resolvedProject)
@@ -175,20 +102,15 @@ namespace Microsoft.VisualStudio.LanguageServices
         public override bool TryGoToDefinition(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_streamingPresenters.Any())
-            {
-                return false;
-            }
-
-            if (!TryResolveSymbol(symbol, project, cancellationToken, 
+            if (!TryResolveSymbol(symbol, project, cancellationToken,
                     out var searchSymbol, out var searchProject))
             {
                 return false;
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, 
-                _streamingPresenters, cancellationToken);
+                searchSymbol, searchProject,
+                _streamingPresenter.Value, cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)

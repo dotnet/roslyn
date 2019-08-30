@@ -413,11 +413,14 @@
   <data name="PEImageDoesntContainManagedMetadata" xml:space="preserve">
     <value>PE image doesn't contain managed metadata.</value>
   </data>
-  <data name="ChangesMustBeOrderedAndNotOverlapping" xml:space="preserve">
-    <value>The changes must be ordered and not overlapping.</value>
+  <data name="ChangesMustNotOverlap" xml:space="preserve">
+    <value>The changes must not overlap.</value>
   </data>
   <data name="DiagnosticIdCantBeNullOrWhitespace" xml:space="preserve">
     <value>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</value>
+  </data>
+  <data name="SuppressionIdCantBeNullOrWhitespace" xml:space="preserve">
+    <value>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</value>
   </data>
   <data name="RuleSetHasDuplicateRules" xml:space="preserve">
     <value>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</value>
@@ -443,14 +446,26 @@
   <data name="UnsupportedDiagnosticReported" xml:space="preserve">
     <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
   </data>
+  <data name="UnsupportedSuppressionReported" xml:space="preserve">
+    <value>Reported suppression with ID '{0}' is not supported by the suppressor.</value>
+  </data>
+  <data name="InvalidDiagnosticSuppressionReported" xml:space="preserve">
+    <value>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</value>
+  </data>
+  <data name="NonReportedDiagnosticCannotBeSuppressed" xml:space="preserve">
+    <value>Non-reported diagnostic with ID '{0}' cannot be suppressed.</value>
+  </data>
   <data name="InvalidDiagnosticIdReported" xml:space="preserve">
     <value>Reported diagnostic has an ID '{0}', which is not a valid identifier.</value>
   </data>
-  <data name="CompilerDiagnosticIdReported" xml:space="preserve">
-    <value>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</value>
-  </data>
   <data name="InvalidDiagnosticLocationReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
+  </data>
+  <data name="SupportedDiagnosticsHasNullDescriptor" xml:space="preserve">
+    <value>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</value>
+  </data>
+  <data name="SupportedSuppressionsHasNullDescriptor" xml:space="preserve">
+    <value>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</value>
   </data>
   <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
     <value>The type '{0}' is not understood by the serialization binder.</value>
@@ -570,6 +585,9 @@
   <data name="TupleElementLocationCountMismatch" xml:space="preserve">
     <value>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</value>
   </data>
+  <data name="TupleElementNullableAnnotationCountMismatch" xml:space="preserve">
+    <value>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</value>
+  </data>
   <data name="TuplesNeedAtLeastTwoElements" xml:space="preserve">
     <value>Tuples must have at least two elements.</value>
   </data>
@@ -614,5 +632,41 @@
   </data>
   <data name="ExceptionEnablingMulticoreJit" xml:space="preserve">
     <value>Warning: Could not enable multicore JIT due to exception: {0}.</value>
+  </data>
+  <data name="NotARootOperation" xml:space="preserve">
+    <value>Given operation has a non-null parent.</value>
+  </data>
+  <data name="OperationHasNullSemanticModel" xml:space="preserve">
+    <value>Given operation has a null semantic model.</value>
+  </data>
+  <data name="InvalidOperationBlockForAnalysisContext" xml:space="preserve">
+    <value>Given operation block does not belong to the current analysis context.</value>
+  </data>
+  <data name="IsSymbolAccessibleBadWithin" xml:space="preserve">
+    <value>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</value>
+  </data>
+  <data name="IsSymbolAccessibleWrongAssembly" xml:space="preserve">
+    <value>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</value>
+  </data>
+  <data name="OperationMustNotBeControlFlowGraphPart" xml:space="preserve">
+    <value>The provided operation must not be part of a Control Flow Graph.</value>
+  </data>
+  <data name="A_language_name_cannot_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name cannot be specified for this option.</value>
+  </data>
+  <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name must be specified for this option.</value>
+  </data>
+  <data name="WRN_InvalidSeverityInAnalyzerConfig" xml:space="preserve">
+    <value>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</value>
+  </data>
+  <data name="WRN_InvalidSeverityInAnalyzerConfig_Title" xml:space="preserve">
+    <value>Invalid severity in analyzer config file.</value>
+  </data>
+  <data name="SuppressionDiagnosticDescriptorTitle" xml:space="preserve">
+    <value>Programmatic suppression of an analyzer diagnostic</value>
+  </data>
+  <data name="SuppressionDiagnosticDescriptorMessage" xml:space="preserve">
+    <value>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</value>
   </data>
 </root>

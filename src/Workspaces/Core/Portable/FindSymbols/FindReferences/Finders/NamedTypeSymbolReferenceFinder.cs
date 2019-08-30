@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<INamedTypeSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamedTypeSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
@@ -77,45 +79,48 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 predefinedType == actualType;
         }
 
-        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             INamedTypeSymbol namedType,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var namedTypereferences = await FindReferencesInDocumentWorker(
-                namedType, document, cancellationToken).ConfigureAwait(false);
+            var namedTypeReferences = await FindReferencesInDocumentWorker(
+                namedType, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             // Mark any references that are also Constructor references.  Some callers
             // will want to know about these so they won't display duplicates.
             return await MarkConstructorReferences(
-                namedType, document, namedTypereferences, cancellationToken).ConfigureAwait(false);
+                namedType, document, semanticModel, namedTypeReferences, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<ReferenceLocation>> MarkConstructorReferences(
-            INamedTypeSymbol namedType, Document document, 
-            ImmutableArray<ReferenceLocation> namedTypereferences,
+        private async Task<ImmutableArray<FinderLocation>> MarkConstructorReferences(
+            INamedTypeSymbol namedType, Document document,
+            SemanticModel semanticModel,
+            ImmutableArray<FinderLocation> namedTypeReferences,
             CancellationToken cancellationToken)
         {
-            var constructorReferences = ArrayBuilder<ReferenceLocation>.GetInstance();
+            var constructorReferences = ArrayBuilder<FinderLocation>.GetInstance();
             foreach (var constructor in namedType.Constructors)
             {
                 var references = await ConstructorSymbolReferenceFinder.Instance.FindAllReferencesInDocumentAsync(
-                    constructor, document, cancellationToken).ConfigureAwait(false);
+                    constructor, document, semanticModel, cancellationToken).ConfigureAwait(false);
                 constructorReferences.AddRange(references);
             }
 
-            var result = ArrayBuilder<ReferenceLocation>.GetInstance();
-            foreach (var reference in namedTypereferences)
+            var result = ArrayBuilder<FinderLocation>.GetInstance();
+            foreach (var finderLocation in namedTypeReferences)
             {
-                if (Contains(constructorReferences, reference))
+                if (Contains(constructorReferences, finderLocation))
                 {
-                    var localReference = reference;
-                    localReference.IsDuplicateReferenceLocation = true;
-                    result.Add(localReference);
+                    var location = finderLocation.Location;
+                    location.IsDuplicateReferenceLocation = true;
+                    result.Add(finderLocation);
                 }
                 else
                 {
-                    result.Add(reference);
+                    result.Add(finderLocation);
                 }
             }
 
@@ -123,12 +128,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private bool Contains(
-            ArrayBuilder<ReferenceLocation> constructorReferences,
-            ReferenceLocation reference)
+            ArrayBuilder<FinderLocation> constructorReferences,
+            FinderLocation reference)
         {
             foreach (var constructorRef in constructorReferences)
             {
-                if (reference.Location == constructorRef.Location)
+                if (reference.Location.Location == constructorRef.Location.Location)
                 {
                     return true;
                 }
@@ -137,65 +142,72 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return false;
         }
 
-        private static async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentWorker(
-            INamedTypeSymbol namedType, Document document, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentWorker(
+            INamedTypeSymbol namedType,
+            Document document,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
-            var nonAliasReferences = await FindNonAliasReferencesAsync(namedType, document, cancellationToken).ConfigureAwait(false);
+            var nonAliasReferences = await FindNonAliasReferencesAsync(namedType, document, semanticModel, cancellationToken).ConfigureAwait(false);
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
-            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, namedType, document, symbolsMatch, cancellationToken).ConfigureAwait(false);
+            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false);
             return nonAliasReferences.Concat(aliasReferences);
         }
 
-        internal static async Task<ImmutableArray<ReferenceLocation>> FindNonAliasReferencesAsync(
+        internal static async Task<ImmutableArray<FinderLocation>> FindNonAliasReferencesAsync(
             INamedTypeSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
-            var attributeRefs = await FindAttributeReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
-            var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
+            var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var attributeRefs = await FindAttributeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
             return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs);
         }
 
-        private static Task<ImmutableArray<ReferenceLocation>> FindOrdinaryReferencesAsync(
+        private static Task<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
             INamedTypeSymbol namedType,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
-                namedType.Name, document, symbolsMatch, cancellationToken);
+                namedType.Name, document, semanticModel, symbolsMatch, cancellationToken);
         }
 
-        private static Task<ImmutableArray<ReferenceLocation>> FindPredefinedTypeReferencesAsync(
+        private static Task<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
             INamedTypeSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var predefinedType = symbol.SpecialType.ToPredefinedType();
             if (predefinedType == PredefinedType.None)
             {
-                return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
+                return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            return FindReferencesInDocumentAsync(symbol, document, t =>
+            return FindReferencesInDocumentAsync(document, semanticModel, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
                 (t, m) => (matched: true, reason: CandidateReason.None),
                 cancellationToken);
         }
 
-        private static Task<ImmutableArray<ReferenceLocation>> FindAttributeReferencesAsync(
+        private static Task<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
             INamedTypeSymbol namedType,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return TryGetNameWithoutAttributeSuffix(namedType.Name, syntaxFacts, out var simpleName)
-                ? FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, symbolsMatch, cancellationToken)
-                : SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
+                ? FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, semanticModel, symbolsMatch, cancellationToken)
+                : SpecializedTasks.EmptyImmutableArray<FinderLocation>();
         }
     }
 }

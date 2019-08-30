@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
@@ -55,6 +56,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this, typeArguments.ToImmutableArray(), this.TypeMembers);
         }
 
+        public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
+        {
+            return new CodeGenerationConstructedNamedTypeSymbol(
+                this, typeArguments, this.TypeMembers);
+        }
+
         public abstract int Arity { get; }
         public abstract bool IsGenericType { get; }
         public abstract bool IsUnboundGenericType { get; }
@@ -69,12 +76,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> StaticConstructors { get; }
         public abstract ImmutableArray<IMethodSymbol> Constructors { get; }
         public abstract ImmutableArray<ITypeSymbol> TypeArguments { get; }
+        public abstract ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations { get; }
 
         public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
         {
             if (ordinal < 0 || ordinal >= Arity)
             {
-                throw new System.IndexOutOfRangeException();
+                throw new IndexOutOfRangeException();
             }
 
             return ImmutableArray.Create<CustomModifier>();
@@ -97,5 +105,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool MightContainExtensionMethods => false;
 
         public bool IsComImport => false;
+
+        public bool IsUnmanagedType => throw new NotImplementedException();
+
+        public bool IsRefLikeType => Modifiers.IsRef;
+
     }
 }

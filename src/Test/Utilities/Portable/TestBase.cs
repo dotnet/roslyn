@@ -76,7 +76,7 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference[] LatestVbReferences => s_lazyLatestVbReferences.Value;
 
-        public static readonly AssemblyName RuntimeCorLibName = CoreClrShim.IsRunningOnCoreClr
+        public static readonly AssemblyName RuntimeCorLibName = RuntimeUtilities.IsCoreClrRuntime
             ? new AssemblyName("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
             : new AssemblyName("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
 
@@ -109,7 +109,7 @@ namespace Roslyn.Test.Utilities
                 //Not mentioned in the adapter doc but pointed to from System.Runtime, so we'll put it here.
                 var system = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference(display: "System.dll");
 
-                var mscor = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: "mscorlib");
+                var mscor = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib).GetReference(display: "mscorlib");
 
                 return new MetadataReference[] { winmd, windowsruntime, runtime, objectModel, uixaml, interop, system, mscor };
             },
@@ -123,11 +123,6 @@ namespace Roslyn.Test.Utilities
             () => new MetadataReference[] { MscorlibPP7Ref, SystemRuntimePP7Ref },
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference[] PortableRefsMinimal => s_portableRefsMinimal.Value;
-
-        /// <summary>
-        /// Reference to an assembly that defines Expression Trees.
-        /// </summary>
-        public static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
 
         /// <summary>
         /// Reference to an assembly that defines LINQ operators.
@@ -208,7 +203,7 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibRef_v20 => s_mscorlibRef_v20.Value;
 
-        public static MetadataReference MscorlibRef_v4_0_30316_17626 => TestReferences.NetFx.v4_0_30316_17626.mscorlib;
+        public static MetadataReference MscorlibRef_v4_0_30316_17626 => TestReferences.NetFx.v4_0_30319_17626.mscorlib;
 
         private static readonly Lazy<MetadataReference> s_mscorlibRef_v46 = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_6_1038_0.mscorlib).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
@@ -239,17 +234,29 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MsvbRef_v4_0_30319_17929 => s_msvbRef_v4_0_30319_17929.Value;
 
-        public static MetadataReference CSharpRef => CoreClrShim.IsRunningOnCoreClr ? StandardCSharpRef : DesktopCSharpRef;
+        public static MetadataReference CSharpRef => CSharpDesktopRef;
 
         private static readonly Lazy<MetadataReference> s_desktopCSharpRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.v4.0.30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
-        public static MetadataReference DesktopCSharpRef => s_desktopCSharpRef.Value;
+        public static MetadataReference CSharpDesktopRef => s_desktopCSharpRef.Value;
 
         private static readonly Lazy<MetadataReference> s_stdCSharpRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard10.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.dll (netstandard 1.0 ref)"),
             LazyThreadSafetyMode.PublicationOnly);
-        public static MetadataReference StandardCSharpRef => s_stdCSharpRef.Value;
+        public static MetadataReference CSharpNetStandard10Ref => s_stdCSharpRef.Value;
+
+        private static readonly Lazy<MetadataReference> s_std20Ref = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+
+        public static MetadataReference NetStandard20Ref => s_std20Ref.Value;
+
+        private static readonly Lazy<MetadataReference> s_46NetStandardFacade = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.netstandard).GetReference(display: "net461.netstandard.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+
+        public static MetadataReference Net46StandardFacade => s_46NetStandardFacade.Value;
 
         private static readonly Lazy<MetadataReference> s_systemDynamicRuntimeRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard13.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 1.3 ref)"),
@@ -335,17 +342,13 @@ namespace Roslyn.Test.Utilities
             Func<SyntaxNode, bool> syntaxNodePredicate = null,
             bool argumentOrderDoesNotMatter = false)
         {
-            Debug.Assert(code is ErrorCode || code is ERRID || code is int || code is string);
-
-            return new DiagnosticDescription(
-                code as string ?? (object)(int)code,
-                false,
+            return TestHelpers.Diagnostic(
+                code,
                 squiggledText,
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
-                argumentOrderDoesNotMatter,
-                code.GetType());
+                argumentOrderDoesNotMatter);
         }
 
         internal static DiagnosticDescription Diagnostic(
@@ -356,23 +359,13 @@ namespace Roslyn.Test.Utilities
            Func<SyntaxNode, bool> syntaxNodePredicate = null,
            bool argumentOrderDoesNotMatter = false)
         {
-            return Diagnostic(
+            return TestHelpers.Diagnostic(
                 code,
-                NormalizeDiagnosticString(squiggledText.Value),
+                squiggledText,
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
                 argumentOrderDoesNotMatter);
-        }
-
-        protected static string NormalizeDiagnosticString(string inputString)
-        {
-            if (!inputString.Contains("\r\n") && inputString.Contains("\n"))
-            {
-                return inputString.Replace("\n", "\r\n");
-            }
-
-            return inputString;
         }
 
         #endregion

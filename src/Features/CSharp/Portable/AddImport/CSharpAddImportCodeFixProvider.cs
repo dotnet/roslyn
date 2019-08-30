@@ -112,6 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         /// </summary>
         public const string CS8129 = nameof(CS8129);
 
+        /// <summary>
+        /// Internal symbol inaccessible because public key is wrong
+        /// </summary>
+        public const string CS0281 = nameof(CS0281);
+
         public static ImmutableArray<string> FixableTypeIds =
             ImmutableArray.Create(
                 CS0103,
@@ -137,7 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     CS1929,
                     CS1955,
                     CS0428,
-                    CS7036));
+                    CS7036,
+                    CS0281));
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImport), Shared]
@@ -145,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
     {
         public override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
 
+        [ImportingConstructor]
         public CSharpAddImportCodeFixProvider()
         {
         }

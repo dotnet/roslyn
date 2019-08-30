@@ -1000,7 +1000,8 @@ End Namespace
         Assert.Equal(VarianceKind.None, SyntaxFacts.VarianceKindFromToken(keywordToken))
     End Sub
 
-    <Fact>
+    <ConditionalFact(GetType(DesktopClrOnly))>
+    <WorkItem(10841, "https://github.com/mono/mono/issues/10841")>
     Public Sub AllowsLeadingOrTrailingImplicitLineContinuation()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)
@@ -1098,7 +1099,8 @@ End Namespace
 
     End Sub
 
-    <Fact>
+    <ConditionalFact(GetType(DesktopClrOnly))>
+    <WorkItem(10841, "https://github.com/mono/mono/issues/10841")>
     Public Sub AllowsLeadingOrTrailingImplicitLineContinuationNegativeTests()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)

@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Operations
         // Relational operations.
 
         /// <summary>
-        /// Represents the C# '=' operator and VB 'Is' operator and '=' operator for non-object typed operands.
+        /// Represents the C# '==' operator and VB 'Is' operator and '=' operator for non-object typed operands.
         /// </summary>
         Equals = 0x10,
 

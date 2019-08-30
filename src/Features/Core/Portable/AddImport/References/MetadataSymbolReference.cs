@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             protected override AddImportFixData GetFixData(
-                Document document, ImmutableArray<TextChange> textChanges, string description, 
+                Document document, ImmutableArray<TextChange> textChanges, string description,
                 ImmutableArray<string> tags, CodeActionPriority priority)
             {
                 return AddImportFixData.CreateForMetadataSymbol(
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected override CodeActionPriority GetPriority(Document document)
                 => CodeActionPriority.Low;
 
-            protected override ImmutableArray<string> GetTags(Document document) 
+            protected override ImmutableArray<string> GetTags(Document document)
                 => WellKnownTagArrays.AddReference;
 
             public override bool Equals(object obj)

@@ -38,6 +38,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
     [ExportLanguageService(typeof(IProximityExpressionsService), LanguageNames.CSharp), Shared]
     internal partial class CSharpProximityExpressionsService : IProximityExpressionsService
     {
+        [ImportingConstructor]
+        public CSharpProximityExpressionsService()
+        {
+        }
+
         public async Task<bool> IsValidAsync(
             Document document,
             int position,

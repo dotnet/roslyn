@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = CreateTestWorkspace(markup, languageName, EditorServicesUtil.CreateExportProvider());
+            var workspace = CreateTestWorkspace(markup, languageName, EditorServicesUtil.ExportProvider);
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
             var workspace = TestWorkspace.Create(
                 workspaceXml,
-                exportProvider: EditorServicesUtil.CreateExportProvider());
+                exportProvider: EditorServicesUtil.ExportProvider);
 
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
@@ -98,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             notificationService.NotificationCallback = callback;
 
             var tracker = new RenameTrackingTaggerProvider(
+                Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 _historyRegistry,
                 Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                 Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
@@ -110,14 +112,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             if (languageName == LanguageNames.CSharp)
             {
                 _codeFixProvider = new CSharpRenameTrackingCodeFixProvider(
-                    Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                     _historyRegistry,
                     SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService));
             }
             else if (languageName == LanguageNames.VisualBasic)
             {
                 _codeFixProvider = new VisualBasicRenameTrackingCodeFixProvider(
-                    Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                     _historyRegistry,
                     SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService));
             }
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
         public void SendEscape()
         {
-            _commandHandler.ExecuteCommand(new EscapeKeyCommandArgs(_view, _view.TextBuffer), () => { });
+            _commandHandler.ExecuteCommand(new EscapeKeyCommandArgs(_view, _view.TextBuffer), TestCommandExecutionContext.Create());
         }
 
         public void MoveCaret(int delta)
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
         public async Task<IList<Diagnostic>> GetDocumentDiagnosticsAsync(Document document = null)
         {
-            document = document ?? this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
+            document ??= this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
             var analyzer = new RenameTrackingDiagnosticAnalyzer();
             return (await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(analyzer, document,
                 (await document.GetSyntaxRootAsync()).FullSpan)).ToList();

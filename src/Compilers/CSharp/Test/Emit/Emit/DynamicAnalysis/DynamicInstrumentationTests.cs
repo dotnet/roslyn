@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Roslyn.Test.Utilities;
 using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
@@ -1436,7 +1437,7 @@ public class C
     {
         Student s = new Student();
         s.Name = ""Bozo"";
-        s.GPA = 2.3;
+        s.GPA = s.Name switch { _ => 2.3 }; // switch expression is not instrumented
         Operate(s);
     }
      
@@ -1543,7 +1544,7 @@ public class C
     public void Deconstruct(out int x, out int y) // Method 5
     {
         x = 1;
-        y = 2;
+        y = 1 switch { 1 => 2, 3 => 4, _ => 5 }; // switch expression is not instrumented
     }
 }
 ";

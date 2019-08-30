@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal struct AnonymousTypeDisplayInfo
+    internal readonly struct AnonymousTypeDisplayInfo
     {
         public IDictionary<INamedTypeSymbol, string> AnonymousTypeToName { get; }
         public IList<SymbolDisplayPart> AnonymousTypesParts { get; }
@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IList<SymbolDisplayPart> anonymousTypesParts)
             : this()
         {
-            this.AnonymousTypeToName = anonymousTypeToName;
-            this.AnonymousTypesParts = anonymousTypesParts;
+            AnonymousTypeToName = anonymousTypeToName;
+            AnonymousTypesParts = anonymousTypesParts;
         }
 
         public IList<SymbolDisplayPart> ReplaceAnonymousTypes(IList<SymbolDisplayPart> parts)
         {
-            return ReplaceAnonymousTypes(parts, this.AnonymousTypeToName);
+            return ReplaceAnonymousTypes(parts, AnonymousTypeToName);
         }
 
         public static IList<SymbolDisplayPart> ReplaceAnonymousTypes(
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IDictionary<INamedTypeSymbol, string> anonymousTypeToName)
         {
             var result = parts;
-            for (int i = 0; i < result.Count; i++)
+            for (var i = 0; i < result.Count; i++)
             {
                 var part = result[i];
                 if (part.Symbol is INamedTypeSymbol type && anonymousTypeToName.TryGetValue(type, out var name) && part.ToString() != name)

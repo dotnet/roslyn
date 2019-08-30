@@ -4191,6 +4191,183 @@ Class Program
 End Class")
         End Function
 
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName1() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Enum Goo
+    One
+End Enum",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Enum Goo
+    One
+End Enum")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName2() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Delegate Sub Goo()",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Delegate Sub Goo()")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName3() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+
+End Class
+
+Class Goo
+    
+End Class",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Class Goo
+    
+End Class")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName4() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Structure Goo
+
+End Structure",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Structure Goo
+
+End Structure")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName5() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Interface Goo
+    
+End Interface",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Interface Goo
+    
+End Interface")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName6() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Namespace Goo
+
+End Namespace",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Namespace Goo
+
+End Namespace")
+        End Function
+
         Public Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 

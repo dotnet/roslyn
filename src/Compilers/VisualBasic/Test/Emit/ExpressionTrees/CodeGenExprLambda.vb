@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
 #Region "Literals"
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Literals()
 
             Dim source = <compilation>
@@ -77,35 +77,35 @@ Lambda(
 
 #Region "Unary Operations"
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestUnaryOperator_Unchecked_PlusMinus()
             TestUnaryOperator_AllTypes_PlusMinus(False, result:=ExpTreeTestResources.UncheckedUnaryPlusMinusNot)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestUnaryOperator_Checked_PlusMinusNot()
             TestUnaryOperator_AllTypes_PlusMinus(True, result:=ExpTreeTestResources.CheckedUnaryPlusMinusNot)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub UserDefinedIsTrueIsFalse_Unchecked()
             Dim file = <file name="expr.vb"><%= ExpTreeTestResources.TestUnary_UDO_IsTrueIsFalse %></file>
             TestExpressionTrees(file, ExpTreeTestResources.CheckedAndUncheckedIsTrueIsFalse, checked:=False)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub UserDefinedIsTrueIsFalse_Checked()
             Dim file = <file name="expr.vb"><%= ExpTreeTestResources.TestUnary_UDO_IsTrueIsFalse %></file>
             TestExpressionTrees(file, ExpTreeTestResources.CheckedAndUncheckedIsTrueIsFalse, checked:=True)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub UserDefinedPlusMinusNot_Unchecked()
             Dim file = <file name="expr.vb"><%= ExpTreeTestResources.TestUnary_UDO_PlusMinusNot %></file>
             TestExpressionTrees(file, ExpTreeTestResources.CheckedAndUncheckedUdoUnaryPlusMinusNot1, checked:=False)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub UserDefinedPlusMinusNot_Checked()
             Dim file = <file name="expr.vb"><%= ExpTreeTestResources.TestUnary_UDO_PlusMinusNot %></file>
             TestExpressionTrees(file, ExpTreeTestResources.CheckedAndUncheckedUdoUnaryPlusMinusNot1, checked:=True)
@@ -230,102 +230,102 @@ Lambda(
 
 #Region "Binary Operations"
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Unchecked_Arithmetic()
             TestBinaryOperator_AllTypes_NumericOperations(False, result:=ExpTreeTestResources.UncheckedArithmeticBinaryOperators)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Checked_Arithmetic()
             TestBinaryOperator_AllTypes_NumericOperations(True, result:=ExpTreeTestResources.CheckedArithmeticBinaryOperators)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Unchecked_AndOrXor()
             TestBinaryOperator_AllTypes_AndOrXor(False, result:=ExpTreeTestResources.UncheckedAndOrXor)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Checked_AndOrXor()
             TestBinaryOperator_AllTypes_AndOrXor(True, result:=ExpTreeTestResources.CheckedAndOrXor)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Unchecked_ShortCircuit()
             TestBinaryOperator_AllTypes_ShortCircuit(False, result:=ExpTreeTestResources.UncheckedShortCircuit)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Checked_ShortCircuit()
             TestBinaryOperator_AllTypes_ShortCircuit(True, result:=ExpTreeTestResources.CheckedShortCircuit)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Unchecked_Comparisons()
             TestBinaryOperator_AllTypes_Comparisons(False, result:=ExpTreeTestResources.UncheckedComparisonOperators)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Checked_Comparisons()
             TestBinaryOperator_AllTypes_Comparisons(True, result:=ExpTreeTestResources.CheckedComparisonOperators)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Unchecked_IsIsNot()
             TestBinaryOperator_AllTypes_IsIsNot(False, result:=ExpTreeTestResources.CheckedAndUncheckedIsIsNot)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Checked_IsIsNot()
             TestBinaryOperator_AllTypes_IsIsNot(True, result:=ExpTreeTestResources.CheckedAndUncheckedIsIsNot)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Unchecked_IsIsNot_Nothing()
             TestUnaryOperator_AllTypes_IsIsNot(False, result:=ExpTreeTestResources.CheckedAndUncheckedIsIsNotNothing)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Checked_IsIsNot_Nothing()
             TestUnaryOperator_AllTypes_IsIsNot(True, result:=ExpTreeTestResources.CheckedAndUncheckedIsIsNotNothing)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Unchecked_Concatenate()
             TestBinaryOperator_ConcatenatePlus(False, result:=ExpTreeTestResources.UncheckedConcatenate)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Checked_Concatenate()
             TestBinaryOperator_ConcatenatePlus(True, result:=ExpTreeTestResources.CheckedConcatenate)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestBinaryOperator_Unchecked_Like()
             TestBinaryOperator_Like(False, result:=ExpTreeTestResources.UncheckedLike)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestBinaryOperator_Checked_Like()
             TestBinaryOperator_Like(True, result:=ExpTreeTestResources.CheckedLike)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Unchecked_WithDate()
             TestBinaryOperator_DateAsOperand(False, result:=ExpTreeTestResources.CheckedAndUncheckedWithDate)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Checked_WithDate()
             TestBinaryOperator_DateAsOperand(True, result:=ExpTreeTestResources.CheckedAndUncheckedWithDate)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Unchecked_UserDefinedBinaryOperator()
             TestBinaryOperator_UserDefinedBinaryOperator(False, result:=ExpTreeTestResources.UncheckedUserDefinedBinaryOperators)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TestBinaryOperator_Checked_UserDefinedBinaryOperator()
             TestBinaryOperator_UserDefinedBinaryOperator(True, result:=ExpTreeTestResources.CheckedUserDefinedBinaryOperators)
         End Sub
@@ -604,17 +604,17 @@ Lambda(
 
 #Region "Conversions"
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub NothingLiteralConversions_Unchecked()
             TestConversion_NothingLiteral(False, ExpTreeTestResources.CheckedAndUncheckedNothingConversions)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub NothingLiteralConversions_Checked()
             TestConversion_NothingLiteral(True, ExpTreeTestResources.CheckedAndUncheckedNothingConversions)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub NothingLiteralConversionsDate_CheckedUnchecked()
 
             Dim source = <compilation>
@@ -743,69 +743,69 @@ Lambda(
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeParameterConversions_Unchecked()
             TestConversion_TypeParameters(False, ExpTreeTestResources.CheckedAndUncheckedTypeParameters)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeParameterConversions_Checked()
             TestConversion_TypeParameters(True, ExpTreeTestResources.CheckedAndUncheckedTypeParameters)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeConversions_Unchecked_Std_DirectTrySpecialized()
             TestConversion_TypeMatrix_Standard_DirectTrySpecialized(False, ExpTreeTestResources.UncheckedDirectTrySpecificConversions)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeConversions_Checked_Std_DirectTrySpecialized()
             TestConversion_TypeMatrix_Standard_DirectTrySpecialized(True, ExpTreeTestResources.CheckedDirectTrySpecificConversions)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeConversions_Unchecked_Std_ImplicitAndCType()
             TestConversion_TypeMatrix_Standard_ImplicitAndCType(False, ExpTreeTestResources.UncheckedCTypeAndImplicitConversionsEven, True)
             TestConversion_TypeMatrix_Standard_ImplicitAndCType(False, ExpTreeTestResources.UncheckedCTypeAndImplicitConversionsOdd, False)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeConversions_Checked_Std_ImplicitAndCType()
             TestConversion_TypeMatrix_Standard_ImplicitAndCType(True, ExpTreeTestResources.CheckedCTypeAndImplicitConversionsEven, True)
             TestConversion_TypeMatrix_Standard_ImplicitAndCType(True, ExpTreeTestResources.CheckedCTypeAndImplicitConversionsOdd, False)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeConversions_Unchecked_UserTypes()
             TestConversion_TypeMatrix_UserTypes(False, ExpTreeTestResources.CheckedAndUncheckedUserTypeConversions)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeConversions_Checked_UserTypes()
             TestConversion_TypeMatrix_UserTypes(True, ExpTreeTestResources.CheckedAndUncheckedUserTypeConversions)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeConversions_Unchecked_Narrowing_UserDefinedConversions()
             TestConversion_UserDefinedTypes_Narrowing(False, ExpTreeTestResources.CheckedAndUncheckedNarrowingUDC)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeConversions_Checked_Narrowing_UserDefinedConversions()
             TestConversion_UserDefinedTypes_Narrowing(True, ExpTreeTestResources.CheckedAndUncheckedNarrowingUDC)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeConversions_Unchecked_Widening_UserDefinedConversions()
             TestConversion_UserDefinedTypes_Widening(False, ExpTreeTestResources.CheckedAndUncheckedWideningUDC)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeConversions_Checked_Widening_UserDefinedConversions()
             TestConversion_UserDefinedTypes_Widening(True, ExpTreeTestResources.CheckedAndUncheckedWideningUDC)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExpressionTrees_UDC_NullableAndConversion()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -1849,7 +1849,7 @@ End Structure
                                         Optional latestReferences As Boolean = False,
                                         Optional addXmlReferences As Boolean = False,
                                         Optional diagnostics() As DiagnosticDescription = Nothing)
-            TestExpressionTrees(sourceFile, result.Value.Replace(vbLf, vbCrLf), checked, optimize, latestReferences, addXmlReferences, diagnostics)
+            TestExpressionTrees(sourceFile, TestHelpers.NormalizeNewLines(result), checked, optimize, latestReferences, addXmlReferences, diagnostics)
         End Sub
 
         Private Class ExpressionTreeTest
@@ -1991,7 +1991,8 @@ Public Enum E_Long As Long : Dummy : End Enum
 
 #Region "Lambdas"
 
-        <Fact, WorkItem(530883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530883")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
+        <WorkItem(530883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530883")>
         Public Sub ExpressionTreeParameterWithLambdaArgumentAndTypeInference()
             Dim source = <compilation>
                              <file name="expr.vb"><![CDATA[
@@ -2013,7 +2014,8 @@ End Module
             CompileAndVerify(source, references:={SystemCoreRef}).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(577271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577271")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
+        <WorkItem(577271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577271")>
         Public Sub Bug577271()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict On 
@@ -2040,7 +2042,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
         End Sub
 
         <WorkItem(577272, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577272")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Bug577272()
             Dim file = <file name="expr.vb"><![CDATA[
 Imports System.Linq.Expressions
@@ -2094,7 +2096,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub LambdaConversion1()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -2143,7 +2145,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub LambdaConversion2()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -2186,7 +2188,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub LambdaConversion3()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -2278,7 +2280,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub LambdaConversion4()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -2346,7 +2348,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub LambdaConversion5()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -2451,7 +2453,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub LambdaConversion5_45()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -2551,7 +2553,7 @@ Lambda(
 ]]>, latestReferences:=True)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub LambdaConversion6()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -2708,7 +2710,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub LambdaConversion7()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -2807,7 +2809,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Relaxation01()
             Dim file = <file name="expr.vb"><![CDATA[
 Imports System
@@ -2855,8 +2857,7 @@ c => c.Process()
 ]]>)
         End Sub
 
-
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Relaxation02()
             Dim file = <file name="expr.vb"><![CDATA[
 Imports System
@@ -2905,7 +2906,7 @@ c => Process(ConvertChecked(c))
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Relaxation03()
             Dim file = <file name="expr.vb"><![CDATA[
 Imports System
@@ -2953,7 +2954,7 @@ c => Process()
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Relaxation04()
             Dim file = <file name="expr.vb"><![CDATA[
 Imports System
@@ -3002,7 +3003,7 @@ a0 => Invoke(() => Process())
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Relaxation05()
             Dim file = <file name="expr.vb"><![CDATA[
 
@@ -3051,7 +3052,7 @@ t => Process(tt => Process(null))
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Relaxation05ET()
             Dim file = <file name="expr.vb"><![CDATA[
 
@@ -3100,7 +3101,7 @@ t => Process(tt => Process(null))
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Relaxation06()
             Dim file = <file name="expr.vb"><![CDATA[
 
@@ -3154,7 +3155,7 @@ t => Process(tt => Process(null))
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Relaxation07()
             Dim file = <file name="expr.vb"><![CDATA[
 
@@ -3208,7 +3209,7 @@ t => Process(tt => Process(null))
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Relaxation08()
             Dim file = <file name="expr.vb"><![CDATA[
 Imports System
@@ -3256,7 +3257,7 @@ End Class
 
 #Region "Xml Literals"
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub XmlLiteralsInExprLambda01()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -3314,7 +3315,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.XmlLiteralsInExprLambda01_Result, addXmlReferences:=True)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub XmlLiteralsInExprLambda02()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off
@@ -3381,7 +3382,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.XmlLiteralsInExprLambda02_Result, addXmlReferences:=True)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub XmlLiteralsInExprLambda03()
             Dim file = <file name="expr.vb"><![CDATA[
 imports System
@@ -3435,7 +3436,7 @@ End Module
         End Sub
 
         <WorkItem(545738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545738")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Bug_14377b()
             ' Expression Trees: Xml literals NYI
             Dim file = <file name="a.vb"><![CDATA[
@@ -3497,7 +3498,7 @@ Lambda(
 
 #Region "Miscellaneous"
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests01()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -3661,7 +3662,7 @@ Lambda(
 )]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests02_v40()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -3706,7 +3707,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests02_v45()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -3748,7 +3749,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests03()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -4029,7 +4030,7 @@ Lambda(
 )]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests04()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -4447,7 +4448,7 @@ Lambda(
             Diagnostic(ERRID.WRN_DefAsgUseNullRef, "t1").WithArguments("t1")})
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests05()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -4861,7 +4862,7 @@ Lambda(
 )]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests06()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -4955,7 +4956,8 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests06_IL()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -5138,7 +5140,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests07()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -5214,7 +5216,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests07_Result)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests07_Decimal()
 
             Dim file = <file name="expr.vb"><![CDATA[
@@ -5282,7 +5284,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests08()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -5386,7 +5388,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests08_Result)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests09()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -5453,7 +5455,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests09_Result)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests09_Decimal()
 
             Dim file = <file name="expr.vb"><![CDATA[
@@ -5587,7 +5589,7 @@ Lambda(
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LegacyTests10()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off
@@ -5644,7 +5646,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests10_Result)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTreeLiftedUserDefinedConversionsWithNullableResult()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -5878,7 +5880,7 @@ Lambda(
 )]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTreeMiscellaneous_A()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -5923,7 +5925,7 @@ End Class
             TestExpressionTrees(file, ExpTreeTestResources.CheckedMiscellaneousA)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTreeNothingIsNothing()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -5961,7 +5963,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub CheckedCoalesceWithNullableBoolean()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6001,7 +6003,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.CheckedCoalesceWithNullableBoolean)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTreeWithCollectionInitializer()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6044,7 +6046,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.CheckedCollectionInitializers)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ArrayCreationAndInitialization()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6064,7 +6066,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.CheckedArrayInitializers)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub SimpleObjectCreation()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6155,7 +6157,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ObjectCreationInitializers()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6201,7 +6203,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.CheckedObjectInitializers)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ObjectCreationInitializers_BC36534a()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6244,7 +6246,7 @@ BC36534: Expression cannot be converted into an expression tree.
 </errors>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ObjectCreationInitializers_BC36534b()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6287,7 +6289,7 @@ BC36534: Expression cannot be converted into an expression tree.
 </errors>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub AnonymousObjectCreationExpression()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6358,7 +6360,7 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub CheckedCoalesceWithUserDefinedConversion()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6399,7 +6401,7 @@ End Module
             TestExpressionTrees(file, ExpTreeTestResources.CheckedCoalesceWithUserDefinedConversions)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub CheckedExpressionInCoalesceWitSideEffects()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -6469,7 +6471,8 @@ Lambda(
 ]]>)
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTreeIL()
             CompileAndVerify(
 <compilation>
@@ -6521,7 +6524,7 @@ End Module
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub MissingHelpers()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -6576,7 +6579,7 @@ BC30456: 'AddChecked' is not a member of 'Expression'.
             End Using
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub LocalVariableAccess()
 
             Dim source = <compilation>
@@ -6629,7 +6632,7 @@ Lambda(
 )]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub LocalVariableAccessInGeneric()
 
             Dim source = <compilation>
@@ -6680,7 +6683,8 @@ Lambda(
 )]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub LocalVariableAccessIL()
             Dim c = CompileAndVerify(
 <compilation>
@@ -6736,7 +6740,7 @@ End Module
     ]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub TypeInference()
             Dim source = <compilation>
                              <%= _exprTesting %>
@@ -6770,7 +6774,7 @@ Infer C=System.Int32
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub QueryWhereSelect()
             Dim source = <compilation>
                              <%= _exprTesting %>
@@ -6809,7 +6813,7 @@ End Module
                  expectedOutput:=<![CDATA[Where Select]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub QueryGroupBy()
             Dim source = <compilation>
                              <%= _exprTesting %>
@@ -6859,7 +6863,7 @@ End Module
                  expectedOutput:="GroupBy 1;Select;GroupBy 2;Select;").VerifyDiagnostics()
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub QueryGroupJoin()
             Dim source = <compilation>
                              <%= _exprTesting %>
@@ -6902,7 +6906,7 @@ End Module]]></file>
                  expectedOutput:="GroupJoin;").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub OverloadResolutionDisambiguation1()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -6985,7 +6989,7 @@ End Module
                  expectedOutput:=<![CDATA[A1 B2 C1 D2 E1 F2]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub OverloadResolutionDisambiguation2()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -7027,7 +7031,7 @@ End Module]]></file>
         End Sub
 
         <WorkItem(545757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545757")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug_14402()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -7054,7 +7058,7 @@ End Module
         End Sub
 
         <WorkItem(531513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531513")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Bug_18234()
             Dim file = <file name="a.vb"><![CDATA[
 Option Strict Off 
@@ -7150,7 +7154,7 @@ Lambda(
         End Sub
 
         <WorkItem(545738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545738")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Bug_14377a()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -7172,7 +7176,7 @@ End Module
         End Sub
 
         <WorkItem(547151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547151")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Bug_18156()
             Dim file = <file name="expr.vb"><![CDATA[
 Imports System
@@ -7221,7 +7225,7 @@ End Module
         End Sub
 
         <WorkItem(957927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957927")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Bug957927()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -7252,7 +7256,7 @@ end class
 
 
         <WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub GenericField01()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -7290,7 +7294,7 @@ End Class
                  expectedOutput:="").VerifyDiagnostics()
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExpressionTrees_MyBaseMyClass()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -7621,7 +7625,7 @@ Lambda(
 
 #Region "Errors"
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ArrayCreationAndInitialization_BC36603()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -7644,7 +7648,7 @@ BC36603: Multi-dimensional array cannot be converted to an expression tree.
         End Sub
 
         <WorkItem(531526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531526")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ByRefParamsInExpressionLambdas_BC36538()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -7691,7 +7695,7 @@ BC36538: References to 'ByRef' parameters cannot be converted to an expression t
 </errors>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub AnonymousObjectCreationExpression_BC36548()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -7717,7 +7721,7 @@ BC36548: Cannot convert anonymous type to an expression tree because a property 
 </errors>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub MultiStatementLambda_BC36675a()
             Dim file = <file name="expr.vb"><![CDATA[
 Imports System
@@ -7749,7 +7753,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
 </errors>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub MultiStatementLambda_BC36675b()
             Dim file = <file name="expr.vb"><![CDATA[
 Imports System
@@ -7774,7 +7778,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
         End Sub
 
         <WorkItem(545804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545804")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Bug_14469()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -7808,7 +7812,7 @@ BC36675: Statement lambdas cannot be converted to expression trees.
         End Sub
 
         <WorkItem(531420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531420")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTreeLiftedUserDefinedOperatorsWithNullableResult_Binary_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -7851,7 +7855,7 @@ BC36534: Expression cannot be converted into an expression tree.
         End Sub
 
         <WorkItem(531423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531423")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTreeUserDefinedAndAlsoOrElseWithNullableResult_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -7897,7 +7901,7 @@ BC36534: Expression cannot be converted into an expression tree.
         End Sub
 
         <WorkItem(531424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531424")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTreeUserDefinedUnaryWithNullableResult_BC36534()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -7933,7 +7937,7 @@ BC36534: Expression cannot be converted into an expression tree.
 </errors>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub ExprTree_LateBinding_BC36604()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
@@ -7976,7 +7980,7 @@ BC36604: Late binding operations cannot be converted to an expression tree.
         End Sub
 
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
             Dim compilation = CreateEmptyCompilation(
 <compilation>
@@ -8038,7 +8042,7 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
             Dim compilation = CreateEmptyCompilation(
 <compilation>
@@ -8115,7 +8119,7 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
             Dim compilation = CreateEmptyCompilation(
 <compilation>
@@ -8228,7 +8232,8 @@ BC35000: Requested operation is not available because the runtime library functi
 
 #End Region
 
-        <Fact, WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
+        <WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug808608_01()
 
             Dim source = <compilation>
@@ -8293,7 +8298,8 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
+        <WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug808608_02()
 
             Dim source = <compilation>
@@ -8352,7 +8358,8 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(808651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808651")>
+        <WorkItem(808651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808651")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub Bug808651()
 
             Dim source = <compilation>
@@ -8383,7 +8390,8 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(1190, "https://github.com/dotnet/roslyn/issues/1190")>
+        <WorkItem(1190, "https://github.com/dotnet/roslyn/issues/1190")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub CollectionInitializers()
 
             Dim source = <compilation>
@@ -8437,7 +8445,8 @@ e2 => () => new MyStack`1() {Void Add(Int32)(42)}
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
+        <WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub PropertyAssignment()
 
             Dim source = <compilation>
@@ -8503,7 +8512,8 @@ aa
 
         End Sub
 
-        <Fact, WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
+        <WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub PropertyAssignmentParameterized()
 
             Dim source = <compilation>
@@ -8579,7 +8589,8 @@ aa23
 
         End Sub
 
-        <Fact, WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
+        <WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub PropertyAssignmentCompound()
 
             Dim source = <compilation>
@@ -8643,7 +8654,8 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(6416, "https://github.com/dotnet/roslyn/issues/6416")>
+        <WorkItem(6416, "https://github.com/dotnet/roslyn/issues/6416")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29660")>
         Public Sub CapturedMe001()
 
             Dim source = <compilation>

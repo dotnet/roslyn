@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// "this" parameter is captured if a reference to "this", "base" or an instance field is encountered.
     /// Variables used in finally also need to be captured if there is a yield in the corresponding try block.
     /// </remarks>
-    internal sealed class IteratorAndAsyncCaptureWalker : DataFlowPass
+    internal sealed class IteratorAndAsyncCaptureWalker : DefiniteAssignmentPass
     {
         // In Release builds we hoist only variables (locals and parameters) that are captured. 
         // This set will contain such variables after the bound tree is visited.
@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool _seenYieldInCurrentTry;
 
-        private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, NeverEmptyStructTypeCache emptyStructCache, HashSet<Symbol> initiallyAssignedVariables)
+        private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, HashSet<Symbol> initiallyAssignedVariables)
             : base(compilation,
                   method,
                   node,
-                  emptyStructCache,
+                  EmptyStructTypeCache.CreateNeverEmpty(),
                   trackUnassignments: true,
                   initiallyAssignedVariables: initiallyAssignedVariables)
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static OrderedSet<Symbol> Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
         {
             var initiallyAssignedVariables = UnassignedVariablesWalker.Analyze(compilation, method, node, convertInsufficientExecutionStackExceptionToCancelledByStackGuardException: true);
-            var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, new NeverEmptyStructTypeCache(), initiallyAssignedVariables);
+            var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, initiallyAssignedVariables);
 
             walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
 
@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.CaptureVariable(method.ThisParameter, node.Syntax);
             }
 
-            var variablesToHoist = walker._variablesToHoist;
             var lazyDisallowedCaptures = walker._lazyDisallowedCaptures;
             var allVariables = walker.variableBySlot;
 
@@ -75,19 +74,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var variable = kvp.Key;
                     var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
 
-                    foreach (CSharpSyntaxNode syntax in kvp.Value)
+                    if (variable is SynthesizedLocal local && local.SynthesizedKind == SynthesizedLocalKind.Spill)
                     {
-                        // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                        diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
+                        Debug.Assert(local.TypeWithAnnotations.IsRestrictedType());
+                        diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.TypeWithAnnotations);
+                    }
+                    else
+                    {
+                        foreach (CSharpSyntaxNode syntax in kvp.Value)
+                        {
+                            // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
+                            diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
+                        }
                     }
                 }
             }
 
+            var variablesToHoist = new OrderedSet<Symbol>();
             if (compilation.Options.OptimizationLevel != OptimizationLevel.Release)
             {
-                Debug.Assert(variablesToHoist.Count == 0);
-
-                // In debug build we hoist all locals and parameters:
+                // In debug build we hoist long-lived locals and parameters
                 foreach (var v in allVariables)
                 {
                     var symbol = v.Symbol;
@@ -98,38 +104,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Hoist anything determined to be live across an await or yield
+            variablesToHoist.AddRange(walker._variablesToHoist);
+
             return variablesToHoist;
         }
 
         private static bool HoistInDebugBuild(Symbol symbol)
         {
-            // in Debug build hoist all parameters that can be hoisted:
-            if (symbol.Kind == SymbolKind.Parameter)
+            return (symbol) switch
             {
-                var parameter = (ParameterSymbol)symbol;
-                return !parameter.Type.IsRestrictedType();
-            }
-
-            if (symbol.Kind == SymbolKind.Local)
-            {
-                LocalSymbol local = (LocalSymbol)symbol;
-
-                if (local.IsConst || local.IsPinned)
-                {
-                    return false;
-                }
-
-                // hoist all user-defined locals that can be hoisted:
-                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined)
-                {
-                    return !local.Type.IsRestrictedType();
-                }
-
-                // hoist all synthesized variables that have to survive state machine suspension:
-                return local.SynthesizedKind.MustSurviveStateMachineSuspension();
-            }
-
-            return false;
+                ParameterSymbol parameter =>
+                    // in Debug build hoist all parameters that can be hoisted:
+                    !parameter.Type.IsRestrictedType(),
+                LocalSymbol { IsConst: false, IsPinned: false } local =>
+                    // hoist all user-defined locals and long-lived temps that can be hoisted:
+                    local.SynthesizedKind.MustSurviveStateMachineSuspension() &&
+                    !local.Type.IsRestrictedType(),
+                _ => false
+            };
         }
 
         private void MarkLocalsUnassigned()
@@ -195,20 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
             if (type.IsRestrictedType())
             {
-                // error has already been reported:
-                if (variable is SynthesizedLocal)
-                {
-                    return;
-                }
-
-                if (_lazyDisallowedCaptures == null)
-                {
-                    _lazyDisallowedCaptures = new MultiDictionary<Symbol, SyntaxNode>();
-                }
-
-                _lazyDisallowedCaptures.Add(variable, syntax);
+                (_lazyDisallowedCaptures ??= new MultiDictionary<Symbol, SyntaxNode>()).Add(variable, syntax);
             }
-            else if (compilation.Options.OptimizationLevel == OptimizationLevel.Release)
+            else
             {
                 _variablesToHoist.Add(variable);
             }
@@ -229,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:
-                    symbol = GetNonFieldSymbol(slot);
+                    symbol = GetNonMemberSymbol(slot);
                     goto case SymbolKind.Local;
 
                 case SymbolKind.Local:

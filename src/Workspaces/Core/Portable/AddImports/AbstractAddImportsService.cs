@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,26 +25,28 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation);
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
+        protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
 
-        private bool IsUsing(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) == null;
+        private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;
         private bool HasAliases(SyntaxNode node) => GetUsingsAndAliases(node).Any(IsAlias);
-        private bool HasUsings(SyntaxNode node) => GetUsingsAndAliases(node).Any(IsUsing);
+        private bool HasUsings(SyntaxNode node) => GetUsingsAndAliases(node).Any(IsSimpleUsing);
+        private bool HasStaticUsings(SyntaxNode node) => GetUsingsAndAliases(node).Any(IsStaticUsing);
         private bool HasExterns(SyntaxNode node) => GetExterns(node).Any();
         private bool HasAnyImports(SyntaxNode node) => GetUsingsAndAliases(node).Any() || GetExterns(node).Any();
 
         public bool HasExistingImport(
             Compilation compilation, SyntaxNode root,
-            SyntaxNode contextLocation, SyntaxNode import)
+            SyntaxNode? contextLocation, SyntaxNode import)
         {
             var globalImports = GetGlobalImports(compilation);
             var containers = GetAllContainers(root, contextLocation);
             return HasExistingImport(import, containers, globalImports);
         }
 
-        private static ImmutableArray<SyntaxNode> GetAllContainers(SyntaxNode root, SyntaxNode contextLocation)
+        private static ImmutableArray<SyntaxNode> GetAllContainers(SyntaxNode root, SyntaxNode? contextLocation)
         {
-            contextLocation = contextLocation ?? root;
+            contextLocation ??= root;
 
             var applicableContainer = GetFirstApplicableContainer(contextLocation);
             return applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToImmutableArray();
@@ -75,16 +79,27 @@ namespace Microsoft.CodeAnalysis.AddImports
             return false;
         }
 
-        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import)
+        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import)
         {
-            contextLocation = contextLocation ?? root;
+            contextLocation ??= root;
             GetContainers(root, contextLocation,
-                out var externContainer, out var usingContainer, out var aliasContainer);
+                out var externContainer, out var usingContainer, out var staticUsingContainer, out var aliasContainer);
 
             switch (import)
             {
                 case TExternSyntax e: return externContainer;
-                case TUsingOrAliasSyntax u: return IsAlias(u) ? aliasContainer : usingContainer;
+                case TUsingOrAliasSyntax u:
+                    if (IsAlias(u))
+                    {
+                        return aliasContainer;
+                    }
+
+                    if (IsStaticUsing(u))
+                    {
+                        return staticUsingContainer;
+                    }
+
+                    return usingContainer;
             }
 
             throw new InvalidOperationException();
@@ -93,37 +108,39 @@ namespace Microsoft.CodeAnalysis.AddImports
         public SyntaxNode AddImports(
             Compilation compilation,
             SyntaxNode root,
-            SyntaxNode contextLocation,
+            SyntaxNode? contextLocation,
             IEnumerable<SyntaxNode> newImports,
             bool placeSystemNamespaceFirst)
         {
-            contextLocation = contextLocation ?? root;
+            contextLocation ??= root;
 
             var globalImports = GetGlobalImports(compilation);
             var containers = GetAllContainers(root, contextLocation);
             var filteredImports = newImports.Where(i => !HasExistingImport(i, containers, globalImports)).ToArray();
 
             var externAliases = filteredImports.OfType<TExternSyntax>().ToArray();
-            var usingDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsUsing).ToArray();
+            var usingDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsSimpleUsing).ToArray();
+            var staticUsingDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsStaticUsing).ToArray();
             var aliasDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsAlias).ToArray();
 
             GetContainers(root, contextLocation,
-                out var externContainer, out var usingContainer, out var aliasContainer);
+                out var externContainer, out var usingContainer, out var aliasContainer, out var staticUsingContainer);
 
             var newRoot = Rewrite(
-                externAliases, usingDirectives, aliasDirectives,
-                externContainer, usingContainer, aliasContainer,
+                externAliases, usingDirectives, staticUsingDirectives,
+                aliasDirectives, externContainer, usingContainer,
+                staticUsingContainer, aliasContainer,
                 placeSystemNamespaceFirst, root);
 
             return newRoot;
         }
 
         protected abstract SyntaxNode Rewrite(
-            TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] aliasDirectives, 
-            SyntaxNode externContainer, SyntaxNode usingContainer, SyntaxNode aliasContainer, 
-            bool placeSystemNamespaceFirst, SyntaxNode root);
+            TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] staticUsingDirectives,
+            TUsingOrAliasSyntax[] aliasDirectives, SyntaxNode externContainer, SyntaxNode usingContainer,
+            SyntaxNode staticUsingContainer, SyntaxNode aliasContainer, bool placeSystemNamespaceFirst, SyntaxNode root);
 
-        private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode aliasContainer)
+        private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
         {
             var applicableContainer = GetFirstApplicableContainer(contextLocation);
             var contextSpine = applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToImmutableArray();
@@ -139,6 +156,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             // innermost node with any imports.
             externContainer = contextSpine.FirstOrDefault(HasExterns) ?? fallbackNode;
             usingContainer = contextSpine.FirstOrDefault(HasUsings) ?? fallbackNode;
+            staticUsingContainer = contextSpine.FirstOrDefault(HasStaticUsings) ?? fallbackNode;
             aliasContainer = contextSpine.FirstOrDefault(HasAliases) ?? fallbackNode;
         }
 

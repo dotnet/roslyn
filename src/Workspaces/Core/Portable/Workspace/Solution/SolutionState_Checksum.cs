@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis
                                                             .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
                                                             .Select(s => s.GetChecksumAsync(cancellationToken));
 
-                var serializer = new Serializer(_solutionServices.Workspace);
-                var infoChecksum = serializer.CreateChecksum(SolutionInfo.Attributes, cancellationToken);
+                var serializer = _solutionServices.Workspace.Services.GetService<ISerializerService>();
+                var infoChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
 
                 var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
                 return new SolutionStateChecksums(infoChecksum, new ProjectChecksumCollection(projectChecksums));

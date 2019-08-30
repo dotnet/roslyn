@@ -479,5 +479,53 @@ class Test
                 //     void M(ref readonly int p) => throw null;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "p").WithArguments("Test.p").WithLocation(4, 29));
         }
+
+        [Fact, WorkItem(25264, "https://github.com/dotnet/roslyn/issues/25264")]
+        public void TestNewRefArray()
+        {
+            UsingStatement("new ref[];",
+                // (1,8): error CS1031: Type expected
+                // new ref[];
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(1, 8),
+                // (1,10): error CS1526: A new expression requires (), [], or {} after type
+                // new ref[];
+                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(1, 10)
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.ObjectCreationExpression);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ArrayType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.ArgumentList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
     }
 }

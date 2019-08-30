@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
         <Fact()>
         Public Sub PresentCorLib()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.NetFx.v4_0_21006.mscorlib})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.NetCoreApp30.SystemRuntimeRef})
             Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
             For i As Integer = 1 To SpecialType.Count
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences({MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib)})
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences({MetadataReference.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Runtime)})
             msCorLibRef = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 

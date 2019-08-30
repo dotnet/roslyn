@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CodeAnalysisResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CodeAnalysisResources", typeof(CodeAnalysisResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CodeAnalysisResources", typeof(CodeAnalysisResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -58,6 +57,24 @@ namespace Microsoft.CodeAnalysis {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A language name cannot be specified for this option..
+        /// </summary>
+        internal static string A_language_name_cannot_be_specified_for_this_option {
+            get {
+                return ResourceManager.GetString("A_language_name_cannot_be_specified_for_this_option", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A language name must be specified for this option..
+        /// </summary>
+        internal static string A_language_name_must_be_specified_for_this_option {
+            get {
+                return ResourceManager.GetString("A_language_name_must_be_specified_for_this_option", resourceCulture);
             }
         }
         
@@ -306,11 +323,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The changes must be ordered and not overlapping..
+        ///   Looks up a localized string similar to The changes must not overlap..
         /// </summary>
-        internal static string ChangesMustBeOrderedAndNotOverlapping {
+        internal static string ChangesMustNotOverlap {
             get {
-                return ResourceManager.GetString("ChangesMustBeOrderedAndNotOverlapping", resourceCulture);
+                return ResourceManager.GetString("ChangesMustNotOverlap", resourceCulture);
             }
         }
         
@@ -402,15 +419,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string CompilerAnalyzerThrowsDescription {
             get {
                 return ResourceManager.GetString("CompilerAnalyzerThrowsDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reported diagnostic has an ID &apos;{0}&apos;, which only a compiler should be reporting..
-        /// </summary>
-        internal static string CompilerDiagnosticIdReported {
-            get {
-                return ResourceManager.GetString("CompilerDiagnosticIdReported", resourceCulture);
             }
         }
         
@@ -776,6 +784,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Suppressed diagnostic ID &apos;{0}&apos; does not match suppressable ID &apos;{1}&apos; for the given suppression descriptor..
+        /// </summary>
+        internal static string InvalidDiagnosticSuppressionReported {
+            get {
+                return ResourceManager.GetString("InvalidDiagnosticSuppressionReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid hash..
         /// </summary>
         internal static string InvalidHash {
@@ -799,6 +816,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string InvalidNodeToTrack {
             get {
                 return ResourceManager.GetString("InvalidNodeToTrack", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Given operation block does not belong to the current analysis context..
+        /// </summary>
+        internal static string InvalidOperationBlockForAnalysisContext {
+            get {
+                return ResourceManager.GetString("InvalidOperationBlockForAnalysisContext", resourceCulture);
             }
         }
         
@@ -853,6 +879,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string InvalidTree {
             get {
                 return ResourceManager.GetString("InvalidTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; must be an &apos;INamedTypeSymbol&apos; or an &apos;IAssemblySymbol&apos;..
+        /// </summary>
+        internal static string IsSymbolAccessibleBadWithin {
+            get {
+                return ResourceManager.GetString("IsSymbolAccessibleBadWithin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; must be a symbol from this compilation or some referenced assembly..
+        /// </summary>
+        internal static string IsSymbolAccessibleWrongAssembly {
+            get {
+                return ResourceManager.GetString("IsSymbolAccessibleWrongAssembly", resourceCulture);
             }
         }
         
@@ -1028,11 +1072,47 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Non-reported diagnostic with ID &apos;{0}&apos; cannot be suppressed..
+        /// </summary>
+        internal static string NonReportedDiagnosticCannotBeSuppressed {
+            get {
+                return ResourceManager.GetString("NonReportedDiagnosticCannotBeSuppressed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Given operation has a non-null parent..
+        /// </summary>
+        internal static string NotARootOperation {
+            get {
+                return ResourceManager.GetString("NotARootOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A value in the pathMap is null..
         /// </summary>
         internal static string NullValueInPathMap {
             get {
                 return ResourceManager.GetString("NullValueInPathMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Given operation has a null semantic model..
+        /// </summary>
+        internal static string OperationHasNullSemanticModel {
+            get {
+                return ResourceManager.GetString("OperationHasNullSemanticModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The provided operation must not be part of a Control Flow Graph..
+        /// </summary>
+        internal static string OperationMustNotBeControlFlowGraphPart {
+            get {
+                return ResourceManager.GetString("OperationMustNotBeControlFlowGraphPart", resourceCulture);
             }
         }
         
@@ -1343,6 +1423,51 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; contains a null descriptor in its &apos;SupportedDiagnostics&apos;..
+        /// </summary>
+        internal static string SupportedDiagnosticsHasNullDescriptor {
+            get {
+                return ResourceManager.GetString("SupportedDiagnosticsHasNullDescriptor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; contains a null descriptor in its &apos;SupportedSuppressions&apos;..
+        /// </summary>
+        internal static string SupportedSuppressionsHasNullDescriptor {
+            get {
+                return ResourceManager.GetString("SupportedSuppressionsHasNullDescriptor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Diagnostic &apos;{0}: {1}&apos; was programmatically suppressed by a DiagnosticSuppressor with suppresion ID &apos;{2}&apos; and justification &apos;{3}&apos;.
+        /// </summary>
+        internal static string SuppressionDiagnosticDescriptorMessage {
+            get {
+                return ResourceManager.GetString("SuppressionDiagnosticDescriptorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Programmatic suppression of an analyzer diagnostic.
+        /// </summary>
+        internal static string SuppressionDiagnosticDescriptorTitle {
+            get {
+                return ResourceManager.GetString("SuppressionDiagnosticDescriptorTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space..
+        /// </summary>
+        internal static string SuppressionIdCantBeNullOrWhitespace {
+            get {
+                return ResourceManager.GetString("SuppressionIdCantBeNullOrWhitespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support SourceLink feature: &apos;{0}&apos;.
         /// </summary>
         internal static string SymWriterDoesNotSupportSourceLink {
@@ -1420,6 +1545,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string TupleElementNameEmpty {
             get {
                 return ResourceManager.GetString("TupleElementNameEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple..
+        /// </summary>
+        internal static string TupleElementNullableAnnotationCountMismatch {
+            get {
+                return ResourceManager.GetString("TupleElementNullableAnnotationCountMismatch", resourceCulture);
             }
         }
         
@@ -1523,6 +1657,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reported suppression with ID &apos;{0}&apos; is not supported by the suppressor..
+        /// </summary>
+        internal static string UnsupportedSuppressionReported {
+            get {
+                return ResourceManager.GetString("UnsupportedSuppressionReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value too large to be represented as a 30 bit unsigned integer..
         /// </summary>
         internal static string Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer {
@@ -1537,6 +1680,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string WinRTIdentityCantBeRetargetable {
             get {
                 return ResourceManager.GetString("WinRTIdentityCantBeRetargetable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The diagnostic &apos;{0}&apos; was given an invalid severity &apos;{1}&apos; in the analyzer config file at &apos;{2}&apos;..
+        /// </summary>
+        internal static string WRN_InvalidSeverityInAnalyzerConfig {
+            get {
+                return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid severity in analyzer config file..
+        /// </summary>
+        internal static string WRN_InvalidSeverityInAnalyzerConfig_Title {
+            get {
+                return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig_Title", resourceCulture);
             }
         }
         

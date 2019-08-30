@@ -141,10 +141,6 @@ enum E
 {
     A
 }
-
-struct Generic<T>
-{
-}
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
@@ -158,7 +154,6 @@ struct Generic<T>
                     "I", // interface
                     "T", // type parameter
                     "int[]",
-                    "Generic<int>",
                     "dynamic",
                 };
 

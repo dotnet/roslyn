@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If we have no modifiers then the modifiers array is null; if we have any modifiers
         // then the modifiers array is non-null and not empty.
 
-        private Tuple<ImmutableArray<RefKind>, ImmutableArray<TypeSymbol>, ImmutableArray<string>, bool> AnalyzeAnonymousFunction(
+        private (ImmutableArray<RefKind>, ImmutableArray<TypeWithAnnotations>, ImmutableArray<string>, bool) AnalyzeAnonymousFunction(
             CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var names = default(ImmutableArray<string>);
             var refKinds = default(ImmutableArray<RefKind>);
-            var types = default(ImmutableArray<TypeSymbol>);
+            var types = default(ImmutableArray<TypeWithAnnotations>);
             bool isAsync = false;
 
             var namesBuilder = ArrayBuilder<string>.GetInstance();
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var hasExplicitlyTypedParameterList = true;
                 var allValue = true;
 
-                var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+                var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
 
                 // In the batch compiler case we probably should have given a syntax error if the
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var typeSyntax = p.Type;
-                    TypeSymbol type = null;
+                    TypeWithAnnotations type = default;
                     var refKind = RefKind.None;
 
                     if (typeSyntax == null)
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return Tuple.Create(refKinds, types, names, isAsync);
+            return (refKinds, types, names, isAsync);
         }
 
         private void CheckParenthesizedLambdaParameters(
@@ -216,21 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
-            var results = AnalyzeAnonymousFunction(syntax, diagnostics);
-
-            var refKinds = results.Item1;
-            var types = results.Item2;
-            var names = results.Item3;
-            var isAsync = results.Item4;
-
+            var (refKinds, types, names, isAsync) = AnalyzeAnonymousFunction(syntax, diagnostics);
             if (!types.IsDefault)
             {
                 foreach (var type in types)
                 {
                     // UNDONE: Where do we report improper use of pointer types?
-                    if ((object)type != null && type.IsStatic)
+                    if (type.HasType && type.IsStatic)
                     {
-                        Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, syntax, type);
+                        Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, syntax, type.Type);
                     }
                 }
             }
@@ -239,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!names.IsDefault)
             {
                 var binder = new LocalScopeBinder(this);
+                bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);
                 var pNames = PooledHashSet<string>.GetInstance();
 
                 for (int i = 0; i < lambda.ParameterCount; i++)
@@ -255,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // The parameter name '{0}' is a duplicate
                         diagnostics.Add(ErrorCode.ERR_DuplicateParamName, lambda.ParameterLocation(i), name);
                     }
-                    else
+                    else if (!allowShadowingNames)
                     {
                         binder.ValidateLambdaParameterNameConflictsInScope(lambda.ParameterLocation(i), name, diagnostics);
                     }

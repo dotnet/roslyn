@@ -5,10 +5,12 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -17,12 +19,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpReferenceHighlighting(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpReferenceHighlighting))
+        public CSharpReferenceHighlighting(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpReferenceHighlighting))
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Highlighting()
         {
             var markup = @"
@@ -41,7 +43,7 @@ class {|definition:C|}
             VerifyNone("void");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void WrittenReference()
         {
             var markup = @"
@@ -61,7 +63,7 @@ class C
             VerifyNone("void");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Navigation()
         {
             var text = @"
@@ -75,9 +77,9 @@ class C
 }";
             VisualStudio.Editor.SetText(text);
             VisualStudio.Editor.PlaceCaret("x");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
             VisualStudio.ExecuteCommand("Edit.NextHighlightedReference");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
             VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
         }
 
@@ -85,6 +87,7 @@ class C
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService,
@@ -108,6 +111,7 @@ class C
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService,

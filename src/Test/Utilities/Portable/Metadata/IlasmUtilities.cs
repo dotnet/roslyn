@@ -21,30 +21,36 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static string GetIlasmPath()
         {
-            if (CoreClrShim.AssemblyLoadContext.Type == null)
+            if (ExecutionConditionUtil.IsWindowsDesktop)
             {
+                // The destkop ilasm is still necessary because a number of our tests depend on being able to 
+                // emit PDB files for net modules. That feature is not available on coreclr ilasm.
                 return Path.Combine(
                     Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(object))),
                     "ilasm.exe");
             }
+
+            var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
+            var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
+            string ridName;
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                ridName = "win-x64";
+            }
+            else if (ExecutionConditionUtil.IsMacOS)
+            {
+                ridName = "osx-x64";
+            }
+            else if (ExecutionConditionUtil.IsLinux)
+            {
+                ridName = "linux-x64";
+            }
             else
             {
-                var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
-
-                var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
-                string path = null;
-                while (directory != null && !File.Exists(path = Path.Combine(directory, "Binaries", "Tools", "ILAsm", ilasmExeName)))
-                {
-                    directory = Path.GetDirectoryName(directory);
-                }
-
-                if (directory == null)
-                {
-                    throw new NotSupportedException("Unable to find CoreCLR ilasm tool. Has the Microsoft.NETCore.ILAsm package been published to ./Binaries/Tools?");
-                }
-
-                return path;
+                throw new PlatformNotSupportedException("Runtime platform not supported for testing");
             }
+
+            return Path.Combine(directory, "runtimes", ridName, "native", ilasmExeName);
         }
 
         private static readonly string IlasmPath = GetIlasmPath();
@@ -98,22 +104,13 @@ $@".assembly '{sourceFileName}' {{}}
                     pdbPath = null;
                 }
 
-                var program = IlasmPath;
-                if (MonoHelpers.IsRunningOnMono())
-                {
-                    arguments = string.Format("{0} {1}", IlasmPath, arguments);
-                    arguments = arguments.Replace("\"", "");
-                    arguments = arguments.Replace("=", ":");
-                    program = "mono";
-                }
-
-                var result = ProcessUtilities.Run(program, arguments);
+                var result = ProcessUtilities.Run(IlasmPath, arguments);
 
                 if (result.ContainsErrors)
                 {
                     throw new ArgumentException(
                         "The provided IL cannot be compiled." + Environment.NewLine +
-                        program + " " + arguments + Environment.NewLine +
+                        IlasmPath + " " + arguments + Environment.NewLine +
                         result,
                         nameof(declarations));
                 }

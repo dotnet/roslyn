@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
     internal class CSharpGenerateConstructorService : AbstractGenerateConstructorService<CSharpGenerateConstructorService, ArgumentSyntax, AttributeArgumentSyntax>
     {
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
+
+        [ImportingConstructor]
+        public CSharpGenerateConstructorService()
+        {
+        }
 
         protected override bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             => node is SimpleNameSyntax;
@@ -128,12 +134,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         }
 
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken);
+            SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken)
+            => semanticModel.GenerateParameterNames(arguments, reservedNames, parameterNamingRule, cancellationToken);
 
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken);
+            SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken)
+            => semanticModel.GenerateParameterNames(arguments, reservedNames, parameterNamingRule, cancellationToken);
 
         protected override string GenerateNameForArgument(SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
             => semanticModel.GenerateNameForArgument(argument, cancellationToken);
@@ -163,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
         protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
         {
-            return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
+            return compilation.ClassifyConversion(sourceType.WithoutNullability(), targetType.WithoutNullability()).IsImplicit;
         }
 
         internal override IMethodSymbol GetDelegatingConstructor(
@@ -181,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             {
                 SyntaxToken thisOrBaseKeyword;
                 SyntaxKind newCtorInitializerKind;
-                if (tokenKind != SyntaxKind.BaseKeyword && state.TypeToGenerateIn == namedType)
+                if (tokenKind != SyntaxKind.BaseKeyword && Equals(state.TypeToGenerateIn, namedType))
                 {
                     thisOrBaseKeyword = SyntaxFactory.Token(SyntaxKind.ThisKeyword);
                     newCtorInitializerKind = SyntaxKind.ThisConstructorInitializer;
@@ -220,12 +226,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
                 var typeNameToReplace = (TypeSyntax)oldToken.Parent;
                 TypeSyntax newTypeName;
-                if (namedType != state.TypeToGenerateIn)
+                if (!Equals(namedType, state.TypeToGenerateIn))
                 {
                     while (true)
                     {
-                        var parentType = typeNameToReplace.Parent as TypeSyntax;
-                        if (parentType == null)
+                        if (!(typeNameToReplace.Parent is TypeSyntax parentType))
                         {
                             break;
                         }

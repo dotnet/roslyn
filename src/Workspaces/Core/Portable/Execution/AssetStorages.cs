@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -99,56 +100,55 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
-            using (var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums))
+            using var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums);
+
+            var numberOfChecksumsToSearch = searchingChecksumsLeft.Object.Count;
+            var result = new Dictionary<Checksum, RemotableData>(numberOfChecksumsToSearch);
+
+            // check nil case
+            if (searchingChecksumsLeft.Object.Remove(Checksum.Null))
             {
-                var numberOfChecksumsToSearch = searchingChecksumsLeft.Object.Count;
-                var result = new Dictionary<Checksum, RemotableData>(numberOfChecksumsToSearch);
+                result[Checksum.Null] = RemotableData.Null;
+            }
 
-                // check nil case
-                if (searchingChecksumsLeft.Object.Remove(Checksum.Null))
-                {
-                    result[Checksum.Null] = RemotableData.Null;
-                }
+            // search checksum trees we have
+            var storage = _storages[scopeId];
 
-                // search checksum trees we have
-                var storage = _storages[scopeId];
-
-                storage.AppendRemotableData(searchingChecksumsLeft.Object, result, cancellationToken);
-                if (result.Count == numberOfChecksumsToSearch)
-                {
-                    // no checksum left to find
-                    Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
-                    return result;
-                }
-
-                // search global assets
-                foreach (var kv in _globalAssets)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var asset = kv.Value;
-                    if (searchingChecksumsLeft.Object.Remove(asset.Checksum))
-                    {
-                        result[asset.Checksum] = asset;
-
-                        if (result.Count == numberOfChecksumsToSearch)
-                        {
-                            // no checksum left to find
-                            Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
-                            return result;
-                        }
-                    }
-                }
-
-                // if it reached here, it means things get cancelled. due to involving 2 processes,
-                // current design can make slightly staled requests to running even when things cancelled.
-                // if it is other case, remote host side will throw and close connection which will cause
-                // vs to crash.
-                // this should be changed once I address this design issue
-                cancellationToken.ThrowIfCancellationRequested();
-
+            storage.AppendRemotableData(searchingChecksumsLeft.Object, result, cancellationToken);
+            if (result.Count == numberOfChecksumsToSearch)
+            {
+                // no checksum left to find
+                Debug.Assert(searchingChecksumsLeft.Object.Count == 0);
                 return result;
             }
+
+            // search global assets
+            foreach (var kv in _globalAssets)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var asset = kv.Value;
+                if (searchingChecksumsLeft.Object.Remove(asset.Checksum))
+                {
+                    result[asset.Checksum] = asset;
+
+                    if (result.Count == numberOfChecksumsToSearch)
+                    {
+                        // no checksum left to find
+                        Debug.Assert(searchingChecksumsLeft.Object.Count == 0);
+                        return result;
+                    }
+                }
+            }
+
+            // if it reached here, it means things get cancelled. due to involving 2 processes,
+            // current design can make slightly staled requests to running even when things cancelled.
+            // if it is other case, remote host side will throw and close connection which will cause
+            // vs to crash.
+            // this should be changed once I address this design issue
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return result;
         }
 
         public void RegisterSnapshot(PinnedRemotableDataScope scope, AssetStorages.Storage storage)

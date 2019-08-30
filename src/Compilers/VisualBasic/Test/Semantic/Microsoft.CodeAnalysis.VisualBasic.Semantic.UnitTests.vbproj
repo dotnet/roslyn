@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <RootNamespace></RootNamespace>
+
+    <!--
+      Disable running the tests on .NET Core while we investigate the core dump issue
+      https://github.com/dotnet/roslyn/issues/29660
+    -->
+    <SkipTests Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '$(OS)' != 'Windows_NT'">true</SkipTests>
+
+    <!--
+      Skipped because we appear to be missing things necessary to compile vb.net.
+      See https://github.com/mono/mono/issues/10679 
+    -->
+    <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
+    <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'netcoreapp2.1'" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
+    <Import Include="Roslyn.Utilities" />
+    <Import Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resource.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resource.resx</DependentUpon>
+    </Compile>
+    <Content Include="Semantics\Async_Overload_Change_3.vb.txt" />
+    <Content Include="Semantics\BinaryOperatorsTestBaseline1.txt" />
+    <Content Include="Semantics\BinaryOperatorsTestBaseline2.txt" />
+    <Content Include="Semantics\BinaryOperatorsTestBaseline3.txt" />
+    <Content Include="Semantics\BinaryOperatorsTestBaseline4.txt" />
+    <Content Include="Semantics\BinaryOperatorsTestBaseline5.txt" />
+    <Compile Remove="Binding\T_68086.vb" />
+    <EmbeddedResource Update="Resource.resx">
+      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources</CustomToolNamespace>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource.Designer.vb</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Semantics\Async_Overload_Change_3.vb.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline1.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline2.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline3.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline4.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestBaseline5.txt" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestSource1.vb" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestSource2.vb" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestSource3.vb" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestSource4.vb" />
+    <EmbeddedResource Include="Semantics\BinaryOperatorsTestSource5.vb" />
+    <EmbeddedResource Include="Semantics\LongTypeNameNative.vb.txt" />
+    <EmbeddedResource Include="Semantics\LongTypeName.vb.txt" />
+    <EmbeddedResource Include="Semantics\OverloadResolutionTestSource.vb" />
+    <EmbeddedResource Include="Semantics\PrintResultTestSource.vb" />
+    <EmbeddedResource Include="Binding\T_1247520.cs" />
+    <EmbeddedResource Include="Binding\T_68086.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Semantics\BinaryOperatorsTestSource1.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource2.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource3.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource4.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource5.vb" />
+    <Content Include="Semantics\OverloadResolutionTestSource.vb" />
+    <Content Include="Semantics\PrintResultTestSource.vb" />
+    <Compile Remove="Semantics\BinaryOperatorsTestSource1.vb" />
+    <Compile Remove="Semantics\BinaryOperatorsTestSource2.vb" />
+    <Compile Remove="Semantics\BinaryOperatorsTestSource3.vb" />
+    <Compile Remove="Semantics\BinaryOperatorsTestSource4.vb" />
+    <Compile Remove="Semantics\BinaryOperatorsTestSource5.vb" />
+    <Compile Remove="Semantics\OverloadResolutionTestSource.vb" />
+    <Compile Remove="Semantics\PrintResultTestSource.vb" />
+  </ItemGroup>
+  <Import Project="$(RepositoryEngineeringDir)targets\ILTools.targets" />
+</Project>

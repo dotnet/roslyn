@@ -2,6 +2,7 @@
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
+    <[UseExportProvider]>
     Public Class UsingBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ApplyAfterUsingStatement()

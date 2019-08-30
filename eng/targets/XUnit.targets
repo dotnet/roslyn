@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+
+  <PropertyGroup>
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
+  </PropertyGroup>
+
+  <!-- Add a default test app.config, if the project doesn't already have one-->
+  <Target Name="AddDefaultTestAppConfig">
+    <PropertyGroup>
+      <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
+      <_DefaultAppConfigFile Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(RepositoryEngineeringDir)config\test\Desktop\app.config</_DefaultAppConfigFile>
+      <_DefaultAppConfigFile Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">$(RepositoryEngineeringDir)config\test\Core\app.config</_DefaultAppConfigFile>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(_AlreadyHasAppConfig)' != 'true'">
+      <None Include="$(_DefaultAppConfigFile)">
+        <Link>app.config</Link>
+      </None>
+    </ItemGroup>
+  </Target>
+</Project>

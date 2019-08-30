@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,11 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         [ImportingConstructor]
         public SemanticClassificationViewTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             ISemanticChangeNotificationService semanticChangeNotificationService,
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
         {
             _semanticChangeNotificationService = semanticChangeNotificationService;
             _typeMap = typeMap;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // Note: when the user scrolls, we will try to reclassify as soon as possible.  That way
             // we appear semantically unclassified for a very short amount of time.
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnViewSpanChanged(textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
+                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
                 TaggerEventSources.OnSemanticChanged(subjectBuffer, Delay, _semanticChangeNotificationService),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
         }
@@ -92,31 +92,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             var spanToTag = context.SpansToTag.Single();
 
-            var task1 = ProduceTagsAsync(context, spanToTag, WorkspaceClassificationDelegationService.Instance);
-            var task2 = ProduceTagsAsync(context, spanToTag, EditorClassificationDelegationService.Instance);
-
-            return Task.WhenAll(task1, task2);
-        }
-
-        private Task ProduceTagsAsync<TClassificationService>(
-            TaggerContext<IClassificationTag> context,
-            DocumentSnapshotSpan spanToTag,
-            IClassificationDelegationService<TClassificationService> delegationService)
-            where TClassificationService : class, ILanguageService
-        {
             var document = spanToTag.Document;
 
             // Attempt to get a classification service which will actually produce the results.
             // If we can't (because we have no Document, or because the language doesn't support
             // this service), then bail out immediately.
-            var classificationService = document?.GetLanguageService<TClassificationService>();
+            var classificationService = document?.GetLanguageService<IClassificationService>();
             if (classificationService == null)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
-            return SemanticClassificationUtilities.ProduceTagsAsync(
-                context, spanToTag, delegationService, classificationService, _typeMap);
+            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -19,8 +18,15 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         Name = PredefinedCodeFixProviderNames.UseThrowExpression), Shared]
     internal partial class UseThrowExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseThrowExpressionCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseThrowExpressionDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
@@ -32,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
                 diagnostic);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -57,13 +63,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                     generator.ThrowExpression(throwStatementExpression)));
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(
-                Func<CancellationToken, Task<Document>> createChangedDocument) 
+                Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_throw_expression, createChangedDocument)
             {
             }

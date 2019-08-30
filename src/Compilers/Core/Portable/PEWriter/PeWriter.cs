@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using static Microsoft.CodeAnalysis.SigningUtilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.DiaSymReader;
 
 namespace Microsoft.Cci
 {
@@ -76,7 +77,7 @@ namespace Microsoft.Cci
 
             if (!debugEntryPointHandle.IsNil)
             {
-                nativePdbWriterOpt?.SetEntryPoint((uint)MetadataTokens.GetToken(debugEntryPointHandle));
+                nativePdbWriterOpt?.SetEntryPoint(MetadataTokens.GetToken(debugEntryPointHandle));
             }
 
             if (nativePdbWriterOpt != null)
@@ -139,14 +140,14 @@ namespace Microsoft.Cci
                 sizeOfHeapReserve: properties.SizeOfHeapReserve,
                 sizeOfHeapCommit: properties.SizeOfHeapCommit);
 
-            // TODO: replace SAH1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
+            // TODO: replace SHA1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
             var peIdProvider = isDeterministic ?
                 new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeHash(HashAlgorithmName.SHA1, content))) :
                 null;
-                
+
             // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
             var portablePdbContentHash = default(ImmutableArray<byte>);
-            
+
             BlobBuilder portablePdbToEmbed = null;
             if (mdWriter.EmitPortableDebugMetadata)
             {
@@ -181,7 +182,7 @@ namespace Microsoft.Cci
                         }
                         catch (Exception e) when (!(e is OperationCanceledException))
                         {
-                            throw new PdbWritingException(e);
+                            throw new SymUnmanagedWriterException(e.Message, e);
                         }
                     }
                 }
@@ -221,13 +222,7 @@ namespace Microsoft.Cci
             }
 
             var strongNameProvider = context.Module.CommonCompilation.Options.StrongNameProvider;
-
             var corFlags = properties.CorFlags;
-            if (privateKeyOpt != null)
-            {
-                Debug.Assert(strongNameProvider.Capability == SigningCapability.SignsPeBuilder);
-                corFlags |= CorFlags.StrongNameSigned;
-            }
 
             var peBuilder = new ExtendedPEBuilder(
                 peHeaderBuilder,
@@ -248,10 +243,9 @@ namespace Microsoft.Cci
 
             PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
-            if (privateKeyOpt != null)
+            if (privateKeyOpt != null && corFlags.HasFlag(CorFlags.StrongNameSigned))
             {
-                strongNameProvider.SignPeBuilder(peBuilder, peBlob, privateKeyOpt.Value);
-                FixupChecksum(peBuilder, peBlob);
+                strongNameProvider.SignBuilder(peBuilder, peBlob, privateKeyOpt.Value);
             }
 
             try
@@ -264,30 +258,6 @@ namespace Microsoft.Cci
             }
 
             return true;
-        }
-
-        private static void FixupChecksum(ExtendedPEBuilder peBuilder, BlobBuilder peBlob)
-        {
-            // Checksum fixup, workaround for https://github.com/dotnet/corefx/issues/25829
-            // Tracked by https://github.com/dotnet/roslyn/issues/23762
-            // Since the checksum is calculated before signing in the PEBuilder,
-            // we need to redo the calculation and write in the correct checksum
-            Blob checksumBlob = getChecksumBlob(peBuilder);
-
-            ArraySegment<byte> checksumSegment = checksumBlob.GetBytes();
-            uint oldChecksum = BitConverter.ToUInt32(checksumSegment.Array, checksumSegment.Offset);
-            uint newChecksum = CalculateChecksum(peBlob, checksumBlob);
-            new BlobWriter(checksumBlob).WriteUInt32(newChecksum);
-
-            // If this assert fires, the above bug has been fixed and this workaround should
-            // be removed
-            Debug.Assert(oldChecksum != newChecksum);
-
-            Blob getChecksumBlob(PEBuilder builder)
-                => (Blob)typeof(PEBuilder).GetRuntimeFields()
-                    .Where(f => f.Name == "_lazyChecksum")
-                    .Single()
-                    .GetValue(builder);
         }
 
         private static MethodInfo s_calculateChecksumMethod;

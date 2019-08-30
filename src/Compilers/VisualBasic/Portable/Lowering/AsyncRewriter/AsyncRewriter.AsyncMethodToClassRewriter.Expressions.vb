@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim spillSeq = DirectCast(valueOpt, BoundSpillSequence)
-                Debug.Assert(rewrittenType = spillSeq.Type)
+                Debug.Assert(TypeSymbol.Equals(rewrittenType, spillSeq.Type, TypeCompareKind.ConsiderEverything))
 
                 Return node.Update(
                     node.Locals.Concat(spillSeq.Locals),
@@ -106,6 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      rewritten.MethodGroupOpt,
                                                                      result.ReceiverOpt,
                                                                      result.Arguments,
+                                                                     rewritten.DefaultArguments,
                                                                      rewritten.ConstantValueOpt,
                                                                      isLValue:=rewritten.IsLValue,
                                                                      suppressObjectClone:=rewritten.SuppressObjectClone,
@@ -127,6 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return builder.BuildSequenceAndFree(Me.F,
                                                     rewritten.Update(rewritten.ConstructorOpt,
                                                                      arguments,
+                                                                     rewritten.DefaultArguments,
                                                                      rewritten.InitializerOpt,
                                                                      rewritten.Type))
             End Function

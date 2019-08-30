@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 throw new ArgumentException(FeaturesResources.Variadic_SignatureHelpItem_must_have_at_least_one_parameter);
             }
 
-            this.IsVariadic = isVariadic;
-            this.DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
-            this.PrefixDisplayParts = prefixParts.ToImmutableArrayOrEmpty();
-            this.SeparatorDisplayParts = separatorParts.ToImmutableArrayOrEmpty();
-            this.SuffixDisplayParts = suffixParts.ToImmutableArrayOrEmpty();
-            this.Parameters = parameters.ToImmutableArrayOrEmpty();
-            this.DescriptionParts = descriptionParts.ToImmutableArrayOrEmpty();
+            IsVariadic = isVariadic;
+            DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
+            PrefixDisplayParts = prefixParts.ToImmutableArrayOrEmpty();
+            SeparatorDisplayParts = separatorParts.ToImmutableArrayOrEmpty();
+            SuffixDisplayParts = suffixParts.ToImmutableArrayOrEmpty();
+            Parameters = parameters.ToImmutableArrayOrEmpty();
+            DescriptionParts = descriptionParts.ToImmutableArrayOrEmpty();
         }
 
         // Constructor kept for back compat
@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IEnumerable<SignatureHelpParameter> parameters,
             IEnumerable<SymbolDisplayPart> descriptionParts)
             : this(isVariadic,
-                  documentationFactory != null 
+                  documentationFactory != null
                     ? c => documentationFactory(c).ToTaggedText()
-                    : s_emptyDocumentationFactory, 
+                    : s_emptyDocumentationFactory,
                   prefixParts.ToTaggedText(),
                   separatorParts.ToTaggedText(),
                   suffixParts.ToTaggedText(),
@@ -88,6 +88,15 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 SuffixDisplayParts.Concat(
                 Parameters.SelectMany(p => p.GetAllParts())).Concat(
                 DescriptionParts)));
+        }
+
+        public override string ToString()
+        {
+            var prefix = string.Concat(PrefixDisplayParts);
+            var suffix = string.Concat(SuffixDisplayParts);
+            var parameters = string.Join(string.Concat(SeparatorDisplayParts), Parameters);
+            var description = string.Concat(DescriptionParts);
+            return string.Concat(prefix, parameters, suffix, description);
         }
     }
 }

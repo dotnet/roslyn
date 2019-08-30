@@ -31,8 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
 
         [ImportingConstructor]
-        public VisualStudioPersistentStorageLocationService([Import] SVsServiceProvider serviceProvider)
-            : base(assertIsForeground: false)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioPersistentStorageLocationService(IThreadingContext threadingContext, [Import] SVsServiceProvider serviceProvider)
+            : base(threadingContext, assertIsForeground: false)
         {
             _serviceProvider = serviceProvider;
         }
@@ -70,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 
                 if (!_solutionEventsAdvised)
                 {
-                    solution.AdviseSolutionEvents(new EventSink(this, visualStudioWorkspace), out uint cookie);
+                    solution.AdviseSolutionEvents(new EventSink(this, visualStudioWorkspace), out var cookie);
                     _solutionEventsAdvised = true;
                 }
 
@@ -151,6 +152,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
                 _service.UpdateForVisualStudioWorkspace(_visualStudioWorkspace);
             }
 
+            int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
+            {
+                _service.ProcessChangeToIVsSolutionChange(_visualStudioWorkspace);
+                return VSConstants.S_OK;
+            }
+
             int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
             {
                 return VSConstants.E_NOTIMPL;
@@ -192,11 +199,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             }
 
             int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
-
-            int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
             {
                 return VSConstants.E_NOTIMPL;
             }

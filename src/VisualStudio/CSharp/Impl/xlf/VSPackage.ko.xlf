@@ -33,28 +33,234 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
-        <target state="translated">커서 아래의 기호에 대한 참조 강조;커서 아래의 관련 키워드 강조;개요 모드로 파일 열기;프로시저 줄 구분선 표시;XML 문서 주석 생성;닫힌 파일에 대한 진단 표시;이름 바꾸기 추적 미리 보기 표시;using 정렬 시 'System' 지시문 먼저 배치;사용자 지정 구조체에 ref 또는 out 추가 안 함</target>
+        <source>Show diagnostics for closed files;
+Colorize regular expression; 
+Highlight related components under cursor; 
+Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Using directives;
+Place system directives first when sorting usings;
+Separate using directive groups;
+Suggest usings for types in reference assemblies;
+Suggest usings for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused usings;
+Fade out unreachable code;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ///;
+Insert * at the start of new lines when writing /* */ comments;
+Show preview for rename tracking;
+Split string literals on Enter;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Don't put ref or out on custom struct;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</source>
+        <target state="translated">닫힌 파일에 대한 진단 표시;
+정규식 색 지정; 
+커서 아래의 관련 구성 요소 강조; 
+잘못된 정규식 보고;
+전체 솔루션 분석 사용;
+외부 프로세스에서 편집기 기능 분석 수행;
+디컴파일된 소스에 탐색을 사용하도록 설정;
+Using 지시문;
+using 정렬 시 system 지시문 먼저 배치;
+using 지시문 그룹 구분;
+참조 어셈블리의 형식에 using 제안;
+NuGet 패키지의 형식에 using 제안;
+강조 표시;
+커서 아래의 기호에 대한 참조 강조;
+커서 아래의 관련 키워드 강조;
+개요;
+개요 모드로 파일 열기;
+프로시저 줄 구분 기호 표시;
+선언 수준 구문에 대한 개요 표시;
+코드 수준 구문에 대한 개요 표시;
+주석 및 전처리기 영역에 대한 개요 표시;
+정의로 축소 시 영역 축소;
+페이딩;
+사용하지 않는 using 페이드 아웃;
+접근할 수 없는 코드 페이드 아웃;
+블록 구조 가이드;
+선언 수준 구문에 대한 가이드 표시;
+코드 수준 구문에 대한 가이드 표시;
+편집기 도움말;
+///에 대해 XML 문서 주석 생성;
+/* */ 주석을 작성할 때 새 줄의 시작 부분에 * 삽입;
+이름 바꾸기 추적 미리 보기 표시;
+&lt;Enter&gt; 키를 누르면 문자열 리터럴 분할;
+string.Format 호출에서 잘못된 자리 표시자 보고;
+메서드 추출;
+사용자 지정 구조체에 ref 또는 out 추가 안 함;
+인터페이스 또는 추상 클래스 구현;
+속성, 이벤트 및 메서드 삽입 시;
+동일한 종류의 다른 멤버와 함께;
+끝에 배치;
+속성 생성 시;
+throw되는 속성 선호;
+자동 속성 선호;
+regex;
+정규식;
+향상된 색 사용;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
-        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</source>
-        <target state="translated">세미콜론 입력 시 문 서식 자동 지정;중괄호 입력 시 블록 서식 자동 지정;붙여넣을 때 서식 자동 지정</target>
+        <source>Automatically format when typing;
+Automatically format statement on semicolon ;
+Automatically format block on end brace;
+Automatically format on return;
+Automatically format on paste;</source>
+        <target state="translated">입력할 때 서식 자동 지정;
+세미콜론 입력 시 문 서식 자동 지정;
+닫는 중괄호 입력 시 블록 서식 자동 지정;
+반환할 때 서식 자동 지정;
+붙여넣을 때 서식 자동 지정;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
-        <source>Indent block contents;Indent open and close braces, indent case contents;indent case labels;label indentation</source>
-        <target state="translated">블록 내용 들여쓰기;여는 중괄호 및 닫는 중괄호 들여쓰기case 내용 들여쓰기;case 레이블 들여쓰기;레이블 들여쓰기</target>
+        <source>Indent block contents; 
+indent open and close braces; 
+indent case contents; 
+indent case contents (when block); 
+indent case labels; 
+label indentation; 
+place goto labels in leftmost column; 
+indent labels normally; 
+place goto labels one indent less than current;</source>
+        <target state="translated">블록 내용 들여쓰기; 
+여는 중괄호 및 닫는 중괄호 들여쓰기; 
+case 내용 들여쓰기; 
+case 내용 들여쓰기(블록); 
+case 레이블 들여쓰기; 
+레이블 들여쓰기; 
+맨 왼쪽 열에 goto 레이블 배치; 
+보통 수준으로 레이블 들여쓰기; 
+goto 레이블을 현재 수준보다 한 수준 더 들여쓰기;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
-        <source>New line formatting option for braces;New line formatting options for keywords</source>
-        <target state="translated">중괄호에 대한 줄 바꿈 서식 옵션;키워드에 대한 줄 바꿈 서식 옵션</target>
+        <source>New line formatting option for braces;New line formatting options for keywords;New line options for braces;
+Place open brace on new line for types;
+Place open brace on new line for methods and local functions;
+Place open brace on new line for properties, indexers, and events;
+Place open brace on new line for property, indexer, and event accessors;
+Place open brace on new line for anonymous methods;
+Place open brace on new line for control blocks;
+Place open brace on new line for anonymous types;
+Place open brace on new line for object, collection and array initializers;
+New line options for keywords;
+Place else on new line;
+Place catch on new line;
+Place finally on new line;
+New line options for expression;
+Place members in object initializers on new line;
+Place members in anonymous types on new line;
+Place query expression clauses on new line;</source>
+        <target state="translated">중괄호에 대한 줄 바꿈 서식 옵션;키워드에 대한 줄 바꿈 서식 옵션;중괄호에 대한 줄 바꿈 옵션;
+형식의 여는 중괄호를 새 줄에 배치;
+메서드 및 로컬 함수의 여는 중괄호를 새 줄에 배치;
+속성, 인덱서 및 이벤트의 여는 중괄호를 새 줄에 배치;
+속성, 인덱서 및 이벤트 접근자의 여는 중괄호를 새 줄에 배치;
+무명 메서드의 여는 중괄호를 새 줄에 배치;
+제어 블록의 여는 중괄호를 새 줄에 배치;
+무명 형식의 여는 중괄호를 새 줄에 배치;
+개체, 컬렉션 및 배열 이니셜라이저의 여는 중괄호를 새 줄에 배치;
+키워드에 대한 줄 바꿈 옵션;
+새 줄에 else 배치;
+새 줄에 catch 배치;
+새 줄에 finally 배치;
+식에 대한 줄 바꿈 옵션;
+개체 이니셜라이저의 멤버를 새 줄에 배치;
+무명 형식의 멤버를 새 줄에 배치;
+쿼리 식의 절을 새 줄에 배치;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
-        <source>Set spacing for method declarations;set spacing for method calls;set other spacing options;set spacing for brackets;set spacing for delimiters;set spacing for operators</source>
-        <target state="translated">메서드 선언 간격 설정;메서드 호출 간격 설정;기타 간격 옵션 설정;대괄호 간격 설정;구분 기호 간격 설정;연산자 간격 설정</target>
+        <source>Set spacing for method declarations;
+Insert space between method name and its opening parenthesis;
+Insert space within parameter list parentheses;
+Insert space within empty parameter list parentheses;
+Set spacing for method calls;
+Insert space within argument list parentheses;
+Insert space within empty argument list parentheses;
+Set other spacing options;
+Insert space after keywords in control flow statements;
+Insert space within parentheses of expressions;
+Insert space within parentheses of type casts;
+Insert spaces within parentheses of control flow statements;
+Insert space after cast;
+Ignore spaces in declaration statements;
+Set spacing for brackets;
+Insert space before open square bracket;
+Insert space within empty square brackets;
+Insert spaces within square brackets;
+Set spacing for delimiters;
+Insert space after colon for base or interface in type declaration;
+Insert space after comma;
+Insert space after dot;
+Insert space after semicolon in for statement;
+Insert space before colon for base or interface in type declaration;
+Insert space before comma;
+Insert space before dot;
+Insert space before semicolon in for statement;
+Set spacing for operators;
+Ignore spaces around binary operators;
+Remove spaces before and after binary operators;
+Insert space before and after binary operators;</source>
+        <target state="translated">메서드 선언의 간격 설정;
+메서드 이름과 여는 괄호 사이에 공백 삽입;
+매개 변수 목록 괄호 내에 공백 삽입;
+빈 매개 변수 목록 괄호 내에 공백 삽입;
+메서드 호출의 간격 설정;
+인수 목록 괄호 내부에 공백 삽입;
+빈 인수 목록 괄호 내부에 공백 삽입;
+기타 간격 옵션 설정;
+제어 흐름 문의 키워드 뒤에 공백 삽입;
+식의 괄호 내부에 공백 삽입;
+형식 캐스트의 괄호 내부에 공백 삽입;
+제어 흐름 문의 괄호 내부에 공백 삽입;
+캐스트 뒤에 공백 삽입;
+선언문의 공백 무시;
+대괄호의 간격 설정;
+여는 대괄호 앞에 공백 삽입;
+빈 대괄호 내부에 공백 삽입;
+대괄호 내부에 공백 삽입;
+구분 기호의 간격 설정;
+형식 선언의 기본 또는 인터페이스에 대한 콜론 뒤에 공백 삽입;
+쉼표 뒤에 공백 삽입;
+점 뒤에 공백 삽입;
+for 문의 세미콜론 뒤에 공백 삽입;
+형식 선언의 기본 또는 인터페이스에 대한 콜론 앞에 공백 삽입;
+쉼표 앞에 공백 삽입;
+점 앞에 공백 삽입;
+for 문의 세미콜론 앞에 공백 삽입;
+연산자의 간격 설정;
+이항 연산자 주위의 공백 무시;
+이항 연산자 앞뒤의 공백 제거;
+이항 연산자 앞뒤에 공백 삽입;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -63,8 +269,34 @@
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">완성 목록 설정 변경;가장 최근에 사용한 멤버 미리 선택</target>
+        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
+Show completion list after a character is typed;
+Show completion list after a character is deleted;
+Highlight matching portions of completion list items;
+Show completion item filters;
+Snippets behavior;
+Never include snippets;
+Always include snippets;
+Include snippets when ?-Tab is typed after an identifier;
+Enter key behavior;
+Never add new line on enter;
+Only add new line on enter after end of fully typed word;
+Always add new line on enter;
+Show name suggestions;</source>
+        <target state="translated">완성 목록 설정 변경;가장 최근에 사용한 멤버 미리 선택; 완성 목록;
+문자를 입력하면 완성 목록 표시;
+문자를 삭제하면 완성 목록 표시;
+완성 목록 항목에서 일치하는 부분 강조 표시;
+완성 항목 필터 표시;
+코드 조각 동작;
+코드 조각 포함 안 함;
+코드 조각 항상 포함;
+식별자 뒤에 ?-Tab을 입력하면 코드 조각 포함;
+&lt;Enter&gt; 키 기능;
+&lt;Enter&gt; 키를 누르면 새 줄 추가 안 함;
+단어를 모두 입력한 후 &lt;Enter&gt; 키를 누르면 새 줄 추가;
+&lt;Enter&gt; 키를 누르면 항상 새 줄 추가;
+이름 추천 표시;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -98,13 +330,13 @@
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">CSharp 편집기</target>
+        <source>C# Editor</source>
+        <target state="needs-review-translation">CSharp 편집기</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">CSharp 편집기(인코딩 사용)</target>
+        <source>C# Editor with Encoding</source>
+        <target state="needs-review-translation">CSharp 편집기(인코딩 사용)</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -141,6 +373,16 @@
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">IDE에서 사용되는 C# 구성 요소입니다. 프로젝트 형식 및 설정에 따라 다른 버전의 컴파일러를 사용할 수 있습니다.</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="translated">비어 있는 C# 스크립트 파일입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="translated">Visual C# 스크립트</target>
+        <note />
       </trans-unit>
     </body>
   </file>

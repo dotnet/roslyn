@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
     [ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
     internal class ConstructorDeclarationOrganizer : AbstractSyntaxNodeOrganizer<ConstructorDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public ConstructorDeclarationOrganizer()
+        {
+        }
+
         protected override ConstructorDeclarationSyntax Organize(
             ConstructorDeclarationSyntax syntax,
             CancellationToken cancellationToken)

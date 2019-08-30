@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -96,6 +97,39 @@ class Program
     static IEnumerable<int> M()
     {
         yield return 0;
+    }
+}";
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        public async Task TestChangeToIEnumerableWithListReturningMethodWithNullableArgument()
+        {
+            var initial =
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static IList<string?> [|M|]()
+    {
+        yield return """";
+    }
+}";
+
+            var expected =
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static IEnumerable<string?> M()
+    {
+        yield return """";
     }
 }";
             await TestInRegularAndScriptAsync(initial, expected);

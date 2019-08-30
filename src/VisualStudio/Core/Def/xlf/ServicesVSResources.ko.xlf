@@ -2,9 +2,509 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="A_new_namespace_will_be_created">
+        <source>A new namespace will be created</source>
+        <target state="new">A new namespace will be created</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_current_file">
+        <source>Add to _current file</source>
+        <target state="translated">현재 파일에 추가(_C)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
+        <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
+        <target state="translated">리팩터링을 완료하려면 추가 변경이 필요합니다. 아래 변경 내용을 검토하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="translated">모든 메서드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_colon">
+        <source>Allow:</source>
+        <target state="translated">허용:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_for_clarity">
+        <source>Always for clarity</source>
+        <target state="translated">명확하게 하기 위해 항상</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_0_keymapping_scheme">
+        <source>Apply '{0}' keymapping scheme</source>
+        <target state="translated">'{0}' 키 매핑 구성표 적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
+        <source>Avoid expression statements that implicitly ignore value</source>
+        <target state="translated">암시적으로 값을 무시하는 식 문을 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="translated">사용되지 않는 매개 변수를 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_value_assignments">
+        <source>Avoid unused value assignments</source>
+        <target state="translated">사용되지 않는 값 할당을 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Back">
+        <source>Back</source>
+        <target state="translated">뒤로</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Build_plus_live_analysis_NuGet_package">
+        <source>Build + live analysis (NuGet package)</source>
+        <target state="new">Build + live analysis (NuGet package)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calculating_dependents">
+        <source>Calculating dependents...</source>
+        <target state="translated">종속 항목을 계산하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Classifications">
+        <source>Classifications</source>
+        <target state="translated">분류</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Colorize_regular_expressions">
+        <source>Colorize regular expressions</source>
+        <target state="translated">정규식 색 지정</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">요소가 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
+        <source>Enable nullable reference analysis IDE features</source>
+        <target state="new">Enable nullable reference analysis IDE features</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluating_0_tasks_in_queue">
+        <source>Evaluating ({0} tasks in queue)</source>
+        <target state="new">Evaluating ({0} tasks in queue)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finish">
+        <source>Finish</source>
+        <target state="translated">마침</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_dot_editorconfig_file_from_settings">
+        <source>Generate .editorconfig file from settings</source>
+        <target state="translated">설정에서 .editorconfig 파일 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_components_under_cursor">
+        <source>Highlight related components under cursor</source>
+        <target state="translated">커서 아래의 관련 구성 요소 강조</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_operators">
+        <source>In other operators</source>
+        <target state="translated">기타 연산자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="new">Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_cannot_have_field">
+        <source>Interface cannot have field.</source>
+        <target state="translated">인터페이스에는 필드가 포함될 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keep_all_parentheses_in_colon">
+        <source>Keep all parentheses in:</source>
+        <target state="translated">모든 괄호 유지:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Kind">
+        <source>Kind</source>
+        <target state="translated">종류</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_analysis_VSIX_extension">
+        <source>Live analysis (VSIX extension)</source>
+        <target state="new">Live analysis (VSIX extension)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_abstract">
+        <source>Make '{0}' abstract</source>
+        <target state="translated">'{0}'을(를) 추상으로 지정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_abstract">
+        <source>Make abstract</source>
+        <target state="translated">추상으로 지정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Members">
+        <source>Members</source>
+        <target state="translated">멤버</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier_preferences_colon">
+        <source>Modifier preferences:</source>
+        <target state="translated">한정자 기본 설정:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to Namespace</source>
+        <target state="new">Move to Namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace">
+        <source>Namespace</source>
+        <target state="new">Namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0">
+        <source>Namespace: '{0}'</source>
+        <target state="translated">네임스페이스: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Class">
+        <source>class</source>
+        <target state="new">class</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Delegate">
+        <source>delegate</source>
+        <target state="new">delegate</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Enum">
+        <source>enum</source>
+        <target state="new">enum</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Event">
+        <source>event</source>
+        <target state="new">event</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Field">
+        <source>field</source>
+        <target state="new">field</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Interface">
+        <source>interface</source>
+        <target state="new">interface</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Local">
+        <source>local</source>
+        <target state="new">local</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_LocalFunction">
+        <source>local function</source>
+        <target state="new">local function</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Method">
+        <source>method</source>
+        <target state="new">method</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Namespace">
+        <source>namespace</source>
+        <target state="new">namespace</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Parameter">
+        <source>parameter</source>
+        <target state="new">parameter</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Property">
+        <source>property</source>
+        <target state="new">property</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Struct">
+        <source>struct</source>
+        <target state="new">struct</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_TypeParameter">
+        <source>type parameter</source>
+        <target state="new">type parameter</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Class">
+        <source>Class</source>
+        <target state="new">Class</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Delegate">
+        <source>Delegate</source>
+        <target state="new">Delegate</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Enum">
+        <source>Enum</source>
+        <target state="new">Enum</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Event">
+        <source>Event</source>
+        <target state="new">Event</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Field">
+        <source>Field</source>
+        <target state="new">Field</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Interface">
+        <source>Interface</source>
+        <target state="new">Interface</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Local">
+        <source>Local</source>
+        <target state="new">Local</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Method">
+        <source>Method</source>
+        <target state="new">Method</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Module">
+        <source>Module</source>
+        <target state="new">Module</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Namespace">
+        <source>Namespace</source>
+        <target state="new">Namespace</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Parameter">
+        <source>Parameter</source>
+        <target state="new">Parameter</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Property">
+        <source>Property</source>
+        <target state="new">Property</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Structure">
+        <source>Structure</source>
+        <target state="new">Structure</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_TypeParameter">
+        <source>Type Parameter</source>
+        <target state="new">Type Parameter</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
+      </trans-unit>
+      <trans-unit id="Never_if_unnecessary">
+        <source>Never if unnecessary</source>
+        <target state="translated">필요한 경우 사용 안 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="translated">public이 아닌 메서드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences_colon">
+        <source>Parameter preferences:</source>
+        <target state="translated">매개 변수 기본 설정:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_preferences_colon">
+        <source>Parentheses preferences:</source>
+        <target state="translated">괄호 기본 설정:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paused_0_tasks_in_queue">
+        <source>Paused ({0} tasks in queue)</source>
+        <target state="new">Paused ({0} tasks in queue)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="translated">복합 대입 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_index_operator">
+        <source>Prefer index operator</source>
+        <target state="translated">인덱스 연산자 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_range_operator">
+        <source>Prefer range operator</source>
+        <target state="translated">범위 연산자 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="translated">읽기 전용 필드 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simple_using_statement">
+        <source>Prefer simple 'using' statement</source>
+        <target state="translated">간단한 'using' 문 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_static_local_functions">
+        <source>Prefer static local functions</source>
+        <target state="translated">정적 로컬 함수 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_Members_Up">
+        <source>Pull Members Up</source>
+        <target state="translated">멤버 풀하기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular_Expressions">
+        <source>Regular Expressions</source>
+        <target state="translated">정규식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename {0} to {1}</source>
+        <target state="translated">{0} 이름을 {1}(으)로 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_regular_expressions">
+        <source>Report invalid regular expressions</source>
+        <target state="translated">잘못된 정규식 보고</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_Visual_Studio_default_keymapping">
+        <source>Reset Visual Studio default keymapping</source>
+        <target state="translated">Visual Studio 기본 키 매핑을 다시 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Review_Changes">
+        <source>Review Changes</source>
+        <target state="translated">변경 내용 검토</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_low_priority_background_processes">
+        <source>Running low priority background processes</source>
+        <target state="new">Running low priority background processes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Save_dot_editorconfig_file">
+        <source>Save .editorconfig file</source>
+        <target state="translated">editorconfig 파일 저장</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination">
+        <source>Select destination</source>
+        <target state="translated">대상 선택</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Dependents">
+        <source>Select _Dependents</source>
+        <target state="translated">종속 항목 선택(_D)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Public">
+        <source>Select _Public</source>
+        <target state="translated">공용 선택(_P)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_and_members_to_pull_up">
+        <source>Select destination and members to pull up.</source>
+        <target state="translated">풀할 대상 및 멤버를 선택합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_colon">
+        <source>Select destination:</source>
+        <target state="translated">대상 선택:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_member">
+        <source>Select member</source>
+        <target state="translated">멤버 선택</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_members_colon">
+        <source>Select members:</source>
+        <target state="translated">멤버 선택:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list">
+        <source>Show completion list</source>
+        <target state="translated">완성 목록 표시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_Namespace_colon">
+        <source>Target Namespace:</source>
+        <target state="new">Target Namespace:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_is_an_invalid_namespace">
+        <source>This is an invalid namespace</source>
+        <target state="new">This is an invalid namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
+        <source>Unused value is explicitly assigned to an unused local</source>
+        <target state="translated">사용되지 않는 값이 사용되지 않는 로컬에 명시적으로 할당됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
+        <source>Unused value is explicitly assigned to discard</source>
+        <target state="translated">사용되지 않는 값이 무시 항목에 명시적으로 할당됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_editorconfig_compatibility_mode">
+        <source>Use .editorconfig compatibility mode (requires restart)</source>
+        <target state="new">Use .editorconfig compatibility mode (requires restart)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
+        <source>Use enhanced colors for C# and Basic</source>
+        <target state="translated">C# 및 Basic에 향상된 색 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambdas">
+        <source>Use expression body for lambdas</source>
+        <target state="translated">람다에 식 본문 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="translated">로컬 함수에 식 본문 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_here_is_never_used">
+        <source>Value assigned here is never used</source>
+        <target state="translated">여기에 할당된 값은 사용되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
+        <source>Value returned by invocation is implicitly ignored</source>
+        <target state="translated">호출로 반환된 값은 암시적으로 무시됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
+        <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
+        <target state="translated">'{0}'을(를) 일시 중단하신 것으로 보입니다. 계속 탐색하고 리팩터링하려면 키 매핑을 다시 설정하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
+        <source>This workspace does not support updating Visual Basic compilation options.</source>
+        <target state="translated">이 작업 영역은 Visual Basic 컴파일 옵션 업데이트를 지원하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -127,6 +627,21 @@
         <target state="translated">값이 잘못되었습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_abstract">
+        <source>'{0}' will be changed to abstract.</source>
+        <target state="translated">'{0}'이(가) 추상으로 변경됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_non_static">
+        <source>'{0}' will be changed to non-static.</source>
+        <target state="translated">'{0}'이(가) 비정적으로 변경됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_public">
+        <source>'{0}' will be changed to public.</source>
+        <target state="translated">'{0}'이(가) 공용으로 변경됩니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
         <source>given workspace doesn't support undo</source>
         <target state="translated">지정한 작업 영역에서 실행을 취소할 수 없습니다.</target>
@@ -190,11 +705,6 @@
       <trans-unit id="Could_not_find_location_of_folder_on_disk">
         <source>Could not find location of folder on disk</source>
         <target state="translated">디스크에서 폴더의 위치를 찾을 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">{0}'을(를) 읽는 동안 오류가 발생했습니다. {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Assembly">
@@ -1103,11 +1613,6 @@ Additional information: {1}</source>
         <target state="translated">사양 관리</target>
         <note />
       </trans-unit>
-      <trans-unit id="Manage_styles">
-        <source>Manage styles</source>
-        <target state="translated">스타일 관리</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reorder">
         <source>Reorder</source>
         <target state="translated">다시 정렬</target>
@@ -1318,11 +1823,6 @@ Additional information: {1}</source>
         <target state="translated">옵션</target>
         <note />
       </trans-unit>
-      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
-        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
-        <target state="translated">일반적인 API 디자인, 이름, 성능 및 안정성 문제에 대해 더 많은 수정을 제공하는 실시간 코드 분석 확장의 미리 보기 버전을 사용해 보세요.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Never_show_this_again">
         <source>Never show this again</source>
         <target state="translated">다시 표시 안 함</target>
@@ -1356,11 +1856,6 @@ Additional information: {1}</source>
       <trans-unit id="Enable_full_solution_analysis">
         <source>Enable full solution _analysis</source>
         <target state="translated">전체 솔루션 분석 사용(_A)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">외부 프로세스에서 편집기 기능 분석 수행(_F)(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
@@ -1433,8 +1928,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">파일을 읽는 동안 오류가 발생했습니다.</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="translated">'{0}' 파일을 읽는 동안 오류가 발생했습니다. {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1445,16 +1940,6 @@ Additional information: {1}</source>
       <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
         <source>Can't apply changes -- module '{0}' has been unloaded.</source>
         <target state="translated">변경 내용을 적용할 수 없습니다. '{0}' 모듈이 언로드되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Restore_Visual_Studio_keybindings">
-        <source>Restore Visual Studio keybindings</source>
-        <target state="translated">Visual Studio 키 바인딩 복원</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Keybindings_for_extensions">
-        <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
-        <target state="translated">ReSharper/IntelliJ/Vim/etc에 대해 키 바인딩을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1488,14 +1973,39 @@ I agree to all of the foregoing:</source>
         <target state="translated">디컴파일러 법적 고지 사항</target>
         <note />
       </trans-unit>
-      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
-        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
-        <target state="translated">키보드 바인딩을 바인딩 해제하는 '{0}' 확장을 사용하지 않도록 설정하는 중입니다.</target>
-        <note>0 is an extension name</note>
-      </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
-        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="translated">여기서 구성하는 설정은 사용자의 컴퓨터에만 적용됩니다. 이러한 설정을 사용자의 솔루션에서 사용하도록 구성하려면 .editorconfig 파일을 사용하세요.</target>
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="needs-review-translation">여기서 구성하는 설정은 사용자의 컴퓨터에만 적용됩니다. 이러한 설정을 사용자의 솔루션에서 사용하도록 구성하려면 .editorconfig 파일을 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="translated">클래스 뷰 동기화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">변경 내용을 적용할 수 없음 - 예기치 않은 오류: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">'{0}' 분석 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="translated">명명 스타일 관리</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
+        <source>Prefer conditional expression over 'if' with assignments</source>
+        <target state="translated">할당이 포함된 'if'보다 조건식 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
+        <source>Prefer conditional expression over 'if' with returns</source>
+        <target state="translated">반환이 포함된 'if'보다 조건식 선호</target>
         <note />
       </trans-unit>
     </body>

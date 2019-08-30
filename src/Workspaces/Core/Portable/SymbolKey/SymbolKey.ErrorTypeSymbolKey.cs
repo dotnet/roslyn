@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    visitor.WriteSymbolKeyArray(default(ImmutableArray<ITypeSymbol>));
+                    visitor.WriteSymbolKeyArray(ImmutableArray<ITypeSymbol>.Empty);
                 }
             }
 
@@ -32,42 +30,37 @@ namespace Microsoft.CodeAnalysis
                 var name = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
-                var typeArgumentResolutions = reader.ReadSymbolKeyArray();
 
-                var errorTypes = ResolveErrorTypes(reader, containingSymbolResolution, name, arity);
-
-                if (typeArgumentResolutions.IsDefault)
-                {
-                    return CreateSymbolInfo(errorTypes);
-                }
-
-                var typeArguments = typeArgumentResolutions.Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
-                if (typeArguments.Any(s_typeIsNull))
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>();
+                if (typeArguments.IsDefault)
                 {
                     return default;
                 }
 
-                return CreateSymbolInfo(errorTypes.Select(t => t.Construct(typeArguments)));
+                using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
+
+                var typeArgumentsArray = arity > 0 ? typeArguments.Builder.ToArray() : null;
+                foreach (var container in containingSymbolResolution.OfType<INamespaceOrTypeSymbol>())
+                {
+                    result.AddIfNotNull(Construct(
+                        reader, container, name, arity, typeArgumentsArray));
+                }
+
+                // Always ensure at least one error type was created.
+                if (result.Count == 0)
+                {
+                    result.AddIfNotNull(Construct(
+                        reader, container: null, name, arity, typeArgumentsArray));
+                }
+
+                return CreateResolution(result);
             }
 
-            private static IEnumerable<INamedTypeSymbol> ResolveErrorTypes(
-                SymbolKeyReader reader,
-                SymbolKeyResolution containingSymbolResolution, string name, int arity)
+            private static INamedTypeSymbol Construct(SymbolKeyReader reader, INamespaceOrTypeSymbol container, string name, int arity, ITypeSymbol[] typeArguments)
             {
-                if (containingSymbolResolution.GetAnySymbol() == null)
-                {
-                    yield return reader.Compilation.CreateErrorTypeSymbol(null, name, arity);
-                }
-                else
-                {
-                    foreach (var container in containingSymbolResolution.GetAllSymbols().OfType<INamespaceOrTypeSymbol>())
-                    {
-                        yield return reader.Compilation.CreateErrorTypeSymbol(container, name, arity);
-                    }
-                }
+                var result = reader.Compilation.CreateErrorTypeSymbol(container, name, arity);
+                return typeArguments != null ? result.Construct(typeArguments) : result;
             }
-
         }
     }
 }

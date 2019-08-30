@@ -3002,7 +3002,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x + 1')
                                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + 1')
                                       ReturnedValue: 
-                                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + 1')
+                                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + 1')
                                           Left: 
                                             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'x')
                                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -3021,8 +3021,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                                       ReturnedValue: 
                                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsImplicit) (Syntax: 'Group Join  ... o x = Group')
                                           Initializers(2):
-                                              IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's')
-                                              IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: QueryAble(Of System.Byte), IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's In qi')
+                                                Left: 
+                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>.s As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's')
+                                                    Instance Receiver: 
+                                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                                                Right: 
+                                                  IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's')
+                                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: QueryAble(Of System.Byte), IsInvalid, IsImplicit) (Syntax: 'From s In q ... Into Group')
+                                                Left: 
+                                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>.x As QueryAble(Of System.Byte) (OperationKind.PropertyReference, Type: QueryAble(Of System.Byte), IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                                                    Instance Receiver: 
+                                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsImplicit) (Syntax: 'Group Join  ... o x = Group')
+                                                Right: 
+                                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: QueryAble(Of System.Byte), IsImplicit) (Syntax: 'Group Join  ... o x = Group')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Arguments(4):
@@ -3045,7 +3057,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                                             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'y + 1')
                                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                               Operand: 
-                                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'y + 1')
+                                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'y + 1')
                                                   Left: 
                                                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'y')
                                                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -3077,8 +3089,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                                           ReturnedValue: 
                                             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>, IsImplicit) (Syntax: 'Group Join  ... Into Group')
                                               Initializers(2):
-                                                  IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int16, IsImplicit) (Syntax: 'y')
-                                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: QueryAble(Of System.UInt32), IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int16, IsImplicit) (Syntax: 'y In qs')
+                                                    Left: 
+                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>.y As System.Int16 (OperationKind.PropertyReference, Type: System.Int16, IsImplicit) (Syntax: 'y')
+                                                        Instance Receiver: 
+                                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                                    Right: 
+                                                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int16, IsImplicit) (Syntax: 'y')
+                                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: QueryAble(Of System.UInt32), IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                                                    Left: 
+                                                      IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>.Group As QueryAble(Of System.UInt32) (OperationKind.PropertyReference, Type: QueryAble(Of System.UInt32), IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                                        Instance Receiver: 
+                                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                                    Right: 
+                                                      IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: QueryAble(Of System.UInt32), IsImplicit) (Syntax: 'Group Join  ... Into Group')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -3119,8 +3143,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                                   ReturnedValue: 
                                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
                                       Initializers(2):
-                                          IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
-                                          IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsInvalid, IsImplicit) (Syntax: 'From s In q ... Into Group')
+                                            Left: 
+                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.$VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)> (OperationKind.PropertyReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                                                Instance Receiver: 
+                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                                            Right: 
+                                              IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsInvalid, IsImplicit) (Syntax: 'From s In q ... Into Group')
+                                            Left: 
+                                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>) (OperationKind.PropertyReference, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                                                Instance Receiver: 
+                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsImplicit) (Syntax: 'Group Join  ... o y = Group')
+                                            Right: 
+                                              IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsImplicit) (Syntax: 'Group Join  ... o y = Group')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           ILocalReferenceOperation: ql (OperationKind.LocalReference, Type: QueryAble(Of System.Int64)) (Syntax: 'ql')
@@ -3152,20 +3188,44 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 ReturnedValue: 
                   IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte), Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
                     Initializers(4):
-                        IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>.s As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's')
-                          Instance Receiver: 
-                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.$VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)> (OperationKind.PropertyReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 's In qi')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte), Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), Key Group As ?>.s As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte), Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                          Right: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>.s As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 's')
+                              Instance Receiver: 
+                                IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.$VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)> (OperationKind.PropertyReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                  Instance Receiver: 
+                                    IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: QueryAble(Of System.Byte), IsImplicit) (Syntax: 'x =')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte), Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), Key Group As ?>.x As QueryAble(Of System.Byte) (OperationKind.PropertyReference, Type: QueryAble(Of System.Byte), IsImplicit) (Syntax: 'x')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte), Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                          Right: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>.x As QueryAble(Of System.Byte) (OperationKind.PropertyReference, Type: QueryAble(Of System.Byte), IsImplicit) (Syntax: 'x')
+                              Instance Receiver: 
+                                IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.$VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)> (OperationKind.PropertyReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                  Instance Receiver: 
+                                    IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsImplicit) (Syntax: 'y =')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte), Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), Key Group As ?>.y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>) (OperationKind.PropertyReference, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsImplicit) (Syntax: 'y')
+                              Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte), Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                          Right: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>) (OperationKind.PropertyReference, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsImplicit) (Syntax: 'y')
                               Instance Receiver: 
                                 IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
-                        IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>.x As QueryAble(Of System.Byte) (OperationKind.PropertyReference, Type: QueryAble(Of System.Byte), IsImplicit) (Syntax: 'x')
-                          Instance Receiver: 
-                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.$VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)> (OperationKind.PropertyReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'From s In q ... Into Group')
+                          Left: 
+                            IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte), Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), Key Group As ?>.Group As ? (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
                               Instance Receiver: 
-                                IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
-                        IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>.y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>) (OperationKind.PropertyReference, Type: QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), IsImplicit) (Syntax: 'y')
-                          Instance Receiver: 
-                            IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key $VB$It As <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte)>, Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>)>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
-                        IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key s As System.Int32, Key x As QueryAble(Of System.Byte), Key y As QueryAble(Of <anonymous type: Key y As System.Int16, Key Group As QueryAble(Of System.UInt32)>), Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
+                          Right: 
+                            IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ... Into Group')
 ]]>.Value)
         End Sub
 

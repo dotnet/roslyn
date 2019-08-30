@@ -1,51 +1,53 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
-        ICommandHandler<UndoCommandArgs>, ICommandHandler<RedoCommandArgs>
+        VSCommanding.ICommandHandler<UndoCommandArgs>, VSCommanding.ICommandHandler<RedoCommandArgs>
     {
-        public CommandState GetCommandState(UndoCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(UndoCommandArgs args)
         {
-            return GetCommandState(nextHandler);
+            return GetCommandState();
         }
 
-        public CommandState GetCommandState(RedoCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(RedoCommandArgs args)
         {
-            return GetCommandState(nextHandler);
+            return GetCommandState();
         }
 
-        public void ExecuteCommand(UndoCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(UndoCommandArgs args, CommandExecutionContext context)
         {
             if (_renameService.ActiveSession != null)
             {
-                for (int i = 0; i < args.Count && _renameService.ActiveSession != null; i++)
+                for (var i = 0; i < args.Count && _renameService.ActiveSession != null; i++)
                 {
                     _renameService.ActiveSession.UndoManager.Undo(args.SubjectBuffer);
                 }
+
+                return true;
             }
-            else
-            {
-                nextHandler();
-            }
+
+            return false;
         }
 
-        public void ExecuteCommand(RedoCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(RedoCommandArgs args, CommandExecutionContext context)
         {
             if (_renameService.ActiveSession != null)
             {
-                for (int i = 0; i < args.Count && _renameService.ActiveSession != null; i++)
+                for (var i = 0; i < args.Count && _renameService.ActiveSession != null; i++)
                 {
                     _renameService.ActiveSession.UndoManager.Redo(args.SubjectBuffer);
                 }
+
+                return true;
             }
-            else
-            {
-                nextHandler();
-            }
+
+            return false;
         }
     }
 }

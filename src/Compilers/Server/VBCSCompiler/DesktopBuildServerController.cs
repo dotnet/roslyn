@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
@@ -102,31 +103,29 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // pipename and consuming excess resources. If someone else holds the mutex
             // exit immediately with a non-zero exit code
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
-            bool holdsMutex;
-            using (var serverMutex = new Mutex(initiallyOwned: true,
-                                               name: mutexName,
-                                               createdNew: out holdsMutex))
+            bool createdNew;
+            using (var serverMutex = BuildServerConnection.OpenOrCreateMutex(name: mutexName,
+                                                                             createdNew: out createdNew))
             {
-                if (!holdsMutex)
+                if (!createdNew)
                 {
                     return CommonCompiler.Failed;
                 }
 
-                try
-                {
-                    return base.RunServerCore(pipeName, connectionHost, listener, keepAlive, cancellationToken);
-                }
-                finally
-                {
-                    serverMutex.ReleaseMutex();
-                }
+                return base.RunServerCore(pipeName, connectionHost, listener, keepAlive, cancellationToken);
             }
         }
 
-        internal static new int RunServer(string pipeName, IClientConnectionHost clientConnectionHost = null, IDiagnosticListener listener = null, TimeSpan? keepAlive = null, CancellationToken cancellationToken = default(CancellationToken))
+        internal static new int RunServer(
+            string pipeName,
+            string tempPath,
+            IClientConnectionHost clientConnectionHost = null,
+            IDiagnosticListener listener = null,
+            TimeSpan? keepAlive = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             BuildServerController controller = new DesktopBuildServerController(new NameValueCollection());
-            return controller.RunServer(pipeName, clientConnectionHost, listener, keepAlive, cancellationToken);
+            return controller.RunServer(pipeName, tempPath, clientConnectionHost, listener, keepAlive, cancellationToken);
         }
     }
 }

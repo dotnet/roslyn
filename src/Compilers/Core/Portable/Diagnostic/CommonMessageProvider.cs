@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Globalization;
-using System.IO;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class CommonMessageProvider
     {
+        /// <summary>
+        /// Caches the return values for <see cref="GetIdForErrorCode(int)"/>.
+        /// </summary>
+        private static readonly ConcurrentDictionary<(string prefix, int code), string> s_errorIdCache = new ConcurrentDictionary<(string prefix, int code), string>();
+
         /// <summary>
         /// Given an error code, get the severity (warning or error) of the code.
         /// </summary>
@@ -99,9 +104,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Given an error code (like 1234) return the identifier (CS1234 or BC1234).
         /// </summary>
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/31964",
+            AllowCaptures = false,
+            Constraint = "Frequently called by error list filtering; avoid allocations")]
         public string GetIdForErrorCode(int errorCode)
         {
-            return CodePrefix + errorCode.ToString("0000");
+            return s_errorIdCache.GetOrAdd((CodePrefix, errorCode), key => key.prefix + key.code.ToString("0000"));
         }
 
         /// <summary>
@@ -140,12 +149,13 @@ namespace Microsoft.CodeAnalysis
         // Common error messages 
 
         public abstract int ERR_FailedToCreateTempFile { get; }
+        public abstract int ERR_MultipleAnalyzerConfigsInSameDir { get; }
 
         // command line:
         public abstract int ERR_ExpectedSingleScript { get; }
         public abstract int ERR_OpenResponseFile { get; }
         public abstract int ERR_InvalidPathMap { get; }
-        public abstract int FTL_InputFileNameTooLong { get; }
+        public abstract int FTL_InvalidInputFileName { get; }
         public abstract int ERR_FileNotFound { get; }
         public abstract int ERR_NoSourceFile { get; }
         public abstract int ERR_CantOpenFileWrite { get; }

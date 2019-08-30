@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
                                          .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
             var initializer = SyntaxFactory.InitializerExpression(
-                SyntaxKind.ObjectInitializerExpression,expressions).WithOpenBraceToken(openBrace);
+                SyntaxKind.ObjectInitializerExpression, expressions).WithOpenBraceToken(openBrace);
 
             if (objectCreation.ArgumentList != null &&
                 objectCreation.ArgumentList.Arguments.Count == 0)

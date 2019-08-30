@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -14,10 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         where TTag : ITag
     {
         public AbstractDiagnosticsAdornmentTaggerProvider(
+            IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
+            : base(threadingContext, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
         {
         }
 

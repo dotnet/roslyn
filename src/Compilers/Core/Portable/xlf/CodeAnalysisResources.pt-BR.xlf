@@ -2,6 +2,63 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">Um nome de idioma não pode ser especificado para essa opção.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">Um nome de idioma deve ser especificado para esta opção.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">O analisador '{0}' gerou a seguinte exceção:
+'{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="new">Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">O bloqueio de operação fornecido não pertence ao contexto de análise atual.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="translated">O parâmetro '{0}' deve ser um 'INamedTypeSymbol' ou um 'IAssemblySymbol'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="translated">O parâmetro '{0}' deve ser um símbolo desta compilação ou um assembly referenciado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="new">Non-reported diagnostic with ID '{0}' cannot be suppressed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">A operação especificada tem um pai não nulo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">A operação fornecida tem um modelo não semântico.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="translated">A operação fornecida não deve ser parte de um Gráfico de Fluxo de Controle.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">Tipo de saída sem suporte.</target>
@@ -20,6 +77,36 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Cópia de módulo não pode ser usada para criar metadados do assembly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">O analisador '{0}' contém um descritor nulo em seu 'SupportedDiagnostics'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
+        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="new">Programmatic suppression of an analyzer diagnostic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="new">A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="new">If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -44,7 +131,7 @@
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="translated">delegate</target>
+        <target state="translated">delegar</target>
         <note />
       </trans-unit>
       <trans-unit id="Enum1">
@@ -59,7 +146,7 @@
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="translated">campo</target>
+        <target state="translated">Campo</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
@@ -119,7 +206,7 @@
       </trans-unit>
       <trans-unit id="InMemoryModule">
         <source>&lt;in-memory module&gt;</source>
-        <target state="translated">&lt;in-memory module&gt;</target>
+        <target state="translated">&lt;módulo na memória&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="SizeHasToBePositive">
@@ -152,9 +239,14 @@
         <target state="translated">{0}.GetMetadata() deve retornar uma instância de {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="new">Reported suppression with ID '{0}' is not supported by the suppressor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">Valor muito grande para ser representado como um inteiro sem sinal de 30 bits.</target>
+        <target state="translated">Valor muito grande para ser representado como um inteiro não assinado de 30 bits.</target>
         <note />
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
@@ -427,6 +519,16 @@
         <target state="translated">Nome de cultura inválido: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="translated">O diagnóstico '{0}' recebeu uma gravidade inválida '{1}' no arquivo de configuração do analisador em '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="translated">Gravidade inválida no arquivo de configuração do analisador.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">Identidade de WindowsRuntime não pode ser redirecionável</target>
@@ -467,13 +569,6 @@
         <target state="translated">O analisador '{0}' gerou uma exceção do tipo '{1}' com a mensagem '{2}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">O analisador '{0}' gerou a seguinte exceção:
-'{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>
         <target state="translated">Falha no Driver do Analisador</target>
@@ -496,8 +591,8 @@
         <target state="translated">Imagem PE não contém metadados gerenciados.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesMustBeOrderedAndNotOverlapping">
-        <source>The changes must be ordered and not overlapping.</source>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
         <target state="translated">As alterações devem ser ordenadas e não sobrepostas.</target>
         <note />
       </trans-unit>
@@ -826,11 +921,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">Aviso: não foi possível habilitar o JIT multicore devido à exceção: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CompilerDiagnosticIdReported">
-        <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="translated">O diagnóstico relatado tem uma ID '{0}', na qual somente um compilador deve ser relatado.</target>
         <note />
       </trans-unit>
     </body>

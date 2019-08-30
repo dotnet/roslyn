@@ -523,7 +523,7 @@ class Program
     [Obsolete(""Please do not use this method: "" + nameof(Program.Old), true)]
     static void Old() { }
 }";
-            CompileAndVerify(source, new[] { LinqAssemblyRef }, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 EntryMethodName
 Correct
 Correct");
@@ -547,16 +547,18 @@ class Program
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
+        [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void TestNameofIndexerName()
         {
             var source = @"
+using System.Linq;
 class C
 {
     public static void Main(string[] args)
     {
         var t = typeof(C);
-        foreach (var m in t.GetMethods())
+        foreach (var m in t.GetMethods().Where(m => m.DeclaringType == t).OrderBy(m => m.Name))
         {
             System.Console.WriteLine(m.Name);
         }
@@ -568,13 +570,10 @@ class C
         get { return 0; }
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"Main
-Other
-get__Other
-ToString
-Equals
-GetHashCode
-GetType");
+            CompileAndVerify(source, expectedOutput:
+@"get__Other
+Main
+Other");
         }
 
         [Fact]
@@ -657,7 +656,7 @@ class Program
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "nameof(N)").WithLocation(7, 9)
                 );
@@ -682,7 +681,7 @@ class Program
                     // (7,9): error CS8026: Feature 'nameof operator' is not available in C# 5. Please use language version 6 or greater.
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "nameof(N)").WithArguments("nameof operator", "6").WithLocation(7, 9),
-                    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "nameof(N)").WithLocation(7, 9)
                 );
@@ -843,7 +842,7 @@ public class Program
 }";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (14,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                // (14,22): error CS1061: 'A' does not contain a definition for 'Extension' and no accessible extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(14, 22)
                 );
@@ -997,7 +996,7 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (16,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                // (16,22): error CS1061: 'A' does not contain a definition for 'Extension' and no accessible extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(16, 22)
                 );

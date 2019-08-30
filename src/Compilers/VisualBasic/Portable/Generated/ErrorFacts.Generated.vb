@@ -179,7 +179,7 @@
 
         Public Function IsFatal(code as ERRID) As Boolean
             Select Case code
-                Case ERRID.FTL_InputFileNameTooLong
+                Case ERRID.FTL_InvalidInputFileName
                     Return True
                 Case Else
                     Return False

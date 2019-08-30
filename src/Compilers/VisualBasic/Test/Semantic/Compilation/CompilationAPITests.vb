@@ -17,10 +17,149 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports CS = Microsoft.CodeAnalysis.CSharp
+Imports Roslyn.Test.Utilities.TestHelpers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
         Inherits BasicTestBase
+
+        <Fact>
+        Public Sub PerTreeVsGlobalSuppress()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            comp.AssertNoDiagnostics()
+
+            tree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Warn)))
+            comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            ' Global options override syntax tree options. This is the opposite of C# behavior
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsParseWarnings()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+
+            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=TestOptions.DebugDll)
+            comp.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'x'.
+        Dim x As Integer
+            ~
+                </errors>)
+
+            Dim newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
+            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=TestOptions.DebugDll)
+            comp2.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsVsPragma()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+#Disable Warning BC42024
+        Dim x As Integer
+#Enable Warning BC42024
+    End Sub
+End Class")
+
+            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=TestOptions.DebugDll)
+            comp.AssertNoDiagnostics()
+
+            Dim newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Error)))
+            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=TestOptions.DebugDll)
+            ' Pragma should have precedence over per-tree options
+            comp2.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsVsSpecificOptions()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+
+            Dim options = TestOptions.DebugDll.WithSpecificDiagnosticOptions(
+                CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
+            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            comp.AssertNoDiagnostics()
+
+            Dim newTree = tree.WithDiagnosticOptions(
+                CreateImmutableDictionary(("BC42024", ReportDiagnostic.Error)))
+            Dim comp2 = CreateCompilationWithMscorlib45({newTree}, options:=options)
+            ' Tree options should have precedence over specific diagnostic options
+            comp2.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'x'.
+        Dim x As Integer
+            ~
+                </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub DifferentDiagnosticOptionsForTrees()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class").WithDiagnosticOptions(CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
+            Dim newTree = SyntaxFactory.ParseSyntaxTree("
+Class D
+     Sub M()
+        Dim y As Integer
+    End Sub
+End Class").WithDiagnosticOptions(CreateImmutableDictionary(("BC4024", ReportDiagnostic.Error)))
+
+            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=TestOptions.DebugDll)
+            comp.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'y'.
+        Dim y As Integer
+            ~ 
+                </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TreeOptionsComparerRespected()
+            Dim options = CreateImmutableDictionary(StringOrdinalComparer.Instance, ("bc42024", ReportDiagnostic.Suppress))
+
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class").WithDiagnosticOptions(options)
+
+            Dim newTree = SyntaxFactory.ParseSyntaxTree("
+Class D
+     Sub M()
+        Dim y As Integer
+    End Sub
+End Class").WithDiagnosticOptions(options.WithComparers(CaseInsensitiveComparison.Comparer))
+
+            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=TestOptions.DebugDll)
+            comp.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'x'.
+        Dim x As Integer
+            ~
+                </errors>)
+        End Sub
 
         <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
         <WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")>
@@ -352,7 +491,7 @@ End Namespace
 
             result.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_InvalidDebugInformationFormat).WithArguments("-1"),
-                Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameCannotStartWithWhitespace),
+                Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments("Name cannot start with whitespace."),
                 Diagnostic(ERRID.ERR_InvalidFileAlignment).WithArguments("513"),
                 Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"),
                 Diagnostic(ERRID.ERR_InvalidHashAlgorithmName).WithArguments("invalid hash algorithm name"))
@@ -1354,6 +1493,44 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateArrayType_DefaultArgs()
+            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim elementType = comp.GetSpecialType(SpecialType.System_Object)
+
+            Dim arrayType = comp.CreateArrayTypeSymbol(elementType)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation)
+
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, Nothing))
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, 0))
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, 1, Nothing)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation)
+
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, rank:=Nothing))
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, rank:=0))
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=Nothing)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation)
+        End Sub
+
+        <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateArrayType_ElementNullableAnnotation()
+            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim elementType = comp.GetSpecialType(SpecialType.System_Object)
+
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=Nothing).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.None).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.NotAnnotated).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.Annotated).ElementNullableAnnotation)
+        End Sub
+
+        <Fact()>
         Public Sub CreateAnonymousType_IncorrectLengths()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of ArgumentException)(
@@ -1479,6 +1656,128 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.Equal("<anonymous type: Key m1 As Integer, Key m2 As Boolean>", type.ToDisplayString())
             Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
                 Sub(loc) Assert.Equal(loc, Location.None))
+        End Sub
+
+        <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateAnonymousType_DefaultArgs()
+            Dim comp = DirectCast(CreateCompilation(""), Compilation)
+            Dim memberTypes = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Dim memberNames = ImmutableArray.Create("P", "Q")
+
+            Dim type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing, Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing, Nothing, Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberIsReadOnly:=Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberLocations:=Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateAnonymousType_MemberNullableAnnotations_Empty()
+            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim type = comp.CreateAnonymousTypeSymbol(ImmutableArray(Of ITypeSymbol).Empty, ImmutableArray(Of String).Empty, memberNullableAnnotations:=ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty)
+            Assert.Equal("<empty anonymous type>", type.ToTestDisplayString())
+            AssertEx.Equal(Array.Empty(Of CodeAnalysis.NullableAnnotation)(), GetAnonymousTypeNullableAnnotations(type))
+        End Sub
+
+        <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateAnonymousType_MemberNullableAnnotations()
+            Dim comp = DirectCast(CreateCompilation(""), Compilation)
+            Dim memberTypes = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Dim memberNames = ImmutableArray.Create("P", "Q")
+
+            Dim type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, GetAnonymousTypeNullableAnnotations(type))
+
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated)))
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated))
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, GetAnonymousTypeNullableAnnotations(type))
+        End Sub
+
+        Private Shared Function GetAnonymousTypeNullableAnnotations(type As ITypeSymbol) As ImmutableArray(Of CodeAnalysis.NullableAnnotation)
+            Return type.GetMembers().OfType(Of IPropertySymbol)().SelectAsArray(Function(p) p.NullableAnnotation)
+        End Function
+
+        <Fact()>
+        <WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")>
+        Public Sub ConstructTypeWithNullability()
+            Dim source =
+"Class Pair(Of T, U)
+End Class"
+            Dim comp = DirectCast(CreateCompilation(source), Compilation)
+            Dim genericType = DirectCast(comp.GetMember("Pair"), INamedTypeSymbol)
+            Dim typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of CodeAnalysis.NullableAnnotation)))
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(typeArguments:=Nothing, typeArgumentNullableAnnotations:=Nothing))
+
+            Dim type = genericType.Construct(typeArguments, Nothing)
+            Assert.Equal("Pair(Of System.Object, System.String)", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, type.TypeArgumentNullableAnnotations)
+
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(typeArguments, ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty))
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(ImmutableArray.Create(Of ITypeSymbol)(Nothing, Nothing), Nothing))
+
+            type = genericType.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated))
+            Assert.Equal("Pair(Of System.Object, System.String)", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, type.TypeArgumentNullableAnnotations)
+
+            ' Type arguments from C#.
+            comp = CreateCSharpCompilation("")
+            typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(typeArguments, Nothing))
+        End Sub
+
+        <Fact()>
+        <WorkItem(37310, "https://github.com/dotnet/roslyn/issues/37310")>
+        Public Sub ConstructMethodWithNullability()
+            Dim source =
+"Class Program
+    Shared Sub M(Of T, U)
+    End Sub
+End Class"
+            Dim comp = DirectCast(CreateCompilation(source), Compilation)
+            Dim genericMethod = DirectCast(comp.GetMember("Program.M"), IMethodSymbol)
+            Dim typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of CodeAnalysis.NullableAnnotation)))
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(typeArguments:=Nothing, typeArgumentNullableAnnotations:=Nothing))
+
+            Dim type = genericMethod.Construct(typeArguments, Nothing)
+            Assert.Equal("Sub Program.M(Of System.Object, System.String)()", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, type.TypeArgumentNullableAnnotations)
+
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(typeArguments, ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty))
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(ImmutableArray.Create(Of ITypeSymbol)(Nothing, Nothing), Nothing))
+
+            type = genericMethod.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated))
+            Assert.Equal("Sub Program.M(Of System.Object, System.String)()", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, type.TypeArgumentNullableAnnotations)
+
+            ' Type arguments from C#.
+            comp = CreateCSharpCompilation("")
+            typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(typeArguments, Nothing))
         End Sub
 
         <Fact()>
@@ -1902,13 +2201,14 @@ End Class
             End Function
         End Class
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         Public Sub MetadataConsistencyWhileEvolvingCompilation()
             Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class C : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class D : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim reference = New EvolvingTestReference({md1, md2})
 
-            Dim c1 = CreateCompilationWithMscorlib40({"Public Class Main : Public Shared C As C : End Class"}, {reference, reference}, options:=TestOptions.ReleaseDll)
+            Dim references = TargetFrameworkUtil.Mscorlib40References.AddRange({reference, reference})
+            Dim c1 = CreateEmptyCompilation({"Public Class Main : Public Shared C As C : End Class"}, references:=references, options:=TestOptions.ReleaseDll)
             Dim c2 = c1.WithAssemblyName("c2")
             Dim c3 = c2.AddSyntaxTrees(Parse("Public Class Main2 : Public Shared A As Integer : End Class"))
             Dim c4 = c3.WithOptions(New VisualBasicCompilationOptions(OutputKind.NetModule))
@@ -1977,7 +2277,7 @@ Namespace NS2
     End Namespace
 End Namespace
     </file>
-</compilation>, TestOptions.ReleaseModule)
+</compilation>, options:=TestOptions.ReleaseModule)
 
 
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(

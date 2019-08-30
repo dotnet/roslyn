@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../InteractiveHostResources.resx">
+    <body>
+      <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
+        <source>Attempt to connect to process #{0} failed, retrying ...</source>
+        <target state="translated">#{0} 프로세스에 연결하지 못했습니다. 다시 시도하고 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_resolve_reference_0">
+        <source>Cannot resolve reference '{0}'.</source>
+        <target state="translated">{0}' 참조를 확인할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
+        <source>Failed to create a remote process for interactive code execution.</source>
+        <target state="translated">대화형 코드 실행에 대한 원격 프로세스를 만들지 못했습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_initialize_remote_interactive_process">
+        <source>Failed to initialize remote interactive process.</source>
+        <target state="translated">원격 대화형 프로세스를 초기화하지 못했습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
+        <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
+        <target state="translated">출력에서 '{0}' 프로세스(종료 코드: {1})를 실행하지 못했습니다. </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Hosting_process_exited_with_exit_code_0">
+        <source>Hosting process exited with exit code {0}.</source>
+        <target state="translated">호스팅 프로세스가 종료되었습니다(종료 코드: {0}).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interactive_Host_not_initialized">
+        <source>Interactive Host not initialized.</source>
+        <target state="translated">대화형 호스트가 초기화되지 않았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loading_context_from_0">
+        <source>Loading context from '{0}'.</source>
+        <target state="translated">{0}'에서 컨텍스트를 로드하는 중입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Searched_in_directories_colon">
+        <source>Searched in directories:</source>
+        <target state="translated">디렉터리에서 검색됨:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Searched_in_directory_colon">
+        <source>Searched in directory:</source>
+        <target state="translated">디렉터리에서 검색됨:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specified_file_not_found">
+        <source>Specified file not found.</source>
+        <target state="translated">지정한 파일을 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specified_file_not_found_colon_0">
+        <source>Specified file not found: {0}</source>
+        <target state="translated">지정한 파일을 찾을 수 없음: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Sharphelp_for_more_information">
+        <source>Type "#help" for more information.</source>
+        <target state="translated">자세한 내용을 보려면 "#help"를 입력하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_create_hosting_process">
+        <source>Unable to create hosting process.</source>
+        <target state="translated">호스팅 프로세스를 만들 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="plus_additional_0_1">
+        <source> + additional {0} {1}</source>
+        <target state="translated"> + 추가 {0} {1}</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

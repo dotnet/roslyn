@@ -480,7 +480,7 @@ public abstract class C
         /// The script entry point should complete synchronously.
         /// </summary>
         [WorkItem(4495, "https://github.com/dotnet/roslyn/issues/4495")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ScriptEntryPoint()
         {
             var source =
@@ -539,7 +539,7 @@ public abstract class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void SubmissionEntryPoint()
         {
             var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
@@ -603,6 +603,9 @@ public abstract class C
             var source = "System.Console.WriteLine(1);";
             var compilation = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyEmitDiagnostics(
+                // error CS1061: 'Task<object>' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'Task<object>' could be found (are you missing a using directive or an assembly reference?)
+                //
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("System.Threading.Tasks.Task<object>", "GetAwaiter").WithLocation(1, 1),
                 // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' is not defined or imported
                 // System.Console.WriteLine(1);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1").WithLocation(1, 1),
@@ -618,6 +621,38 @@ public abstract class C
                 // (1,1): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine'
                 // System.Console.WriteLine(1);
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void ExplicitImplementation()
+        {
+            string test = @"
+interface I1
+{
+    void M();
+}
+
+void I1.M() {}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+
+            compilation.VerifyDiagnostics(
+                // (7,6): error CS0540: 'I1.M()': containing type does not implement interface 'I1'
+                // void I1.M() {}
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.M()", "I1").WithLocation(7, 6)
+                );
+
+            var s = CreateSubmission(test);
+
+            s.VerifyDiagnostics(
+                // (7,9): error CS0541: 'M()': explicit interface declaration can only be declared in a class, struct or interface
+                // void I1.M() {}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("M()").WithLocation(7, 9)
+                );
         }
     }
 }

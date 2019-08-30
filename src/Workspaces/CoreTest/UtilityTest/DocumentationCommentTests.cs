@@ -217,7 +217,7 @@ This is random top-level text.
         [Fact, WorkItem(612456, "DevDiv2/DevDiv")]
         public void ReservedXmlNamespaceInName()
         {
-            string fragment = @"<summary><xmlns:boo /></summary>";
+            var fragment = @"<summary><xmlns:boo /></summary>";
 
             var comments = DocumentationComment.FromXmlFragment(fragment);
 
@@ -228,7 +228,7 @@ This is random top-level text.
         [Fact, WorkItem(18901, "https://github.com/dotnet/roslyn/pull/18901")]
         public void TrimEachLine()
         {
-            string multiLineText = @"
+            var multiLineText = @"
 
 
 
@@ -244,15 +244,15 @@ Hello
 
                                            1";
 
-            string fullXml = $@"<summary>{multiLineText}</summary>
+            var fullXml = $@"<summary>{multiLineText}</summary>
                   <returns>{multiLineText}</returns>
                   <example>{multiLineText}</example>
                   <param name=""goo"">{multiLineText}</param>
                   <typeparam name=""T"">{multiLineText}</typeparam>
                   <remarks>{multiLineText}</remarks>";
-                                 
 
-            string expected = @"Hello
+
+            var expected = @"Hello
 World     .
 +
 .......

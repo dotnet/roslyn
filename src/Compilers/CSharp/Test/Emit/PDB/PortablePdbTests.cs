@@ -172,7 +172,7 @@ class C
             {
                 var entries = peReader.ReadDebugDirectory();
 
-                AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
+                AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
 
                 var codeView = entries[0];
                 var checksum = entries[1];
@@ -232,7 +232,7 @@ class C
             {
                 var entries = peReader.ReadDebugDirectory();
 
-                AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
+                AssertEx.Equal(new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb }, entries.Select(e => e.Type));
 
                 var codeView = entries[0];
                 var checksum = entries[1];
@@ -306,7 +306,7 @@ class C
             {
                 var pdbReader = provider.GetMetadataReader();
 
-                var actualBlob = 
+                var actualBlob =
                     (from cdiHandle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
                      let cdi = pdbReader.GetCustomDebugInformation(cdiHandle)
                      where pdbReader.GetGuid(cdi.Kind) == PortableCustomDebugInfoKinds.SourceLink

@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -18,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateConstructorCodeFixProvider());
+
+        private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithSimpleArgument()
@@ -92,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
         new C(1);
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
         [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -2953,6 +2957,7 @@ class D : B
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
         public async Task StripUnderscoresFromParameterNames()
         {
             await TestInRegularAndScriptAsync(
@@ -2983,13 +2988,13 @@ class D
 
 class D
 {
-    private int _i;
-    private string _s;
+    private int i;
+    private string s;
 
     public D(int i, string s)
     {
-        _i = i;
-        _s = s;
+        this.i = i;
+        this.s = s;
     }
 }");
         }
@@ -3417,6 +3422,366 @@ class P {
     }
 
     public C(int x, int y, int z, int e) : this(x, y, z) { }
+}");
+        }
+
+        [WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [InlineData("void")]
+        [InlineData("int")]
+        public async Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
+        {
+            await TestInRegularAndScriptAsync(
+    $@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""false"">
+        <Document><![CDATA[
+class C
+{{
+    void M()
+    {{
+        new [|Class|](Method);
+    }}
+
+    {returnType} Method()
+    {{
+    }}
+}}
+
+internal class Class
+{{
+}}
+]]>
+        </Document>
+    </Project>
+</Workspace>",
+    $@"
+class C
+{{
+    void M()
+    {{
+        new Class(Method);
+    }}
+
+    {returnType} Method()
+    {{
+    }}
+}}
+
+internal class Class
+{{
+    private global::System.Object method;
+
+    public Class(global::System.Object method)
+    {{
+        this.method = method;
+    }}
+}}
+");
+        }
+
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateFieldNoNamingStyle()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        string s = "";
+        new Prog[||]ram(s);
+    }
+}",
+@"
+class Program
+{
+    private string s;
+
+    public Program(string s)
+    {
+        this.s = s;
+    }
+
+    static void Main(string[] args)
+    {
+        string s = "";
+        new Program(s);
+    }
+}");
+        }
+
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateFieldDefaultNamingStyle()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        string S = "";
+        new Prog[||]ram(S);
+    }
+}",
+@"
+class Program
+{
+    private string s;
+
+    public Program(string s)
+    {
+        this.s = s;
+    }
+
+    static void Main(string[] args)
+    {
+        string S = "";
+        new Program(S);
+    }
+}");
+        }
+
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateFieldWithNamingStyle()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        string s = "";
+        new Prog[||]ram(s);
+    }
+}",
+@"
+class Program
+{
+    private string _s;
+
+    public Program(string s)
+    {
+        _s = s;
+    }
+
+    static void Main(string[] args)
+    {
+        string s = "";
+        new Program(s);
+    }
+}", options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
+        }
+
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestFieldWithNamingStyleAlreadyExists()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    private string _s;
+
+    static void Main(string[] args)
+    {
+        string s = """";
+        new Prog[||]ram(s);
+    }
+}",
+@"
+class Program
+{
+    private string _s;
+
+    public Program(string s)
+    {
+        _s = s;
+    }
+
+    static void Main(string[] args)
+    {
+        string s = """";
+        new Program(s);
+    }
+}", options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
+        }
+
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestFieldAndParameterNamingStyles()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        string s = """";
+        new Prog[||]ram(s);
+    }
+}",
+@"
+class Program
+{
+    private string _s;
+
+    public Program(string p_s)
+    {
+        _s = p_s;
+    }
+
+    static void Main(string[] args)
+    {
+        string s = """";
+        new Program(s);
+    }
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
+
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestAttributeArgumentWithNamingRules()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+[AttributeUsage(AttributeTargets.Class)]
+class MyAttribute : Attribute
+{
+}
+ 
+[[|MyAttribute(123)|]]
+class D
+{
+}",
+@"using System;
+
+[AttributeUsage(AttributeTargets.Class)]
+class MyAttribute : Attribute
+{
+    private int _v;
+
+    public MyAttribute(int p_v)
+    {
+        _v = p_v;
+    }
+}
+
+[MyAttribute(123)]
+class D
+{
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
+
+        [WorkItem(33673, "https://github.com/dotnet/roslyn/issues/33673")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [InlineData("_s", "s")]
+        [InlineData("_S", "s")]
+        [InlineData("m_s", "s")]
+        [InlineData("m_S", "s")]
+        [InlineData("s_s", "s")]
+        [InlineData("t_s", "s")]
+        public async Task GenerateConstructor_ArgumentHasCommonPrefix(string argumentName, string fieldName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"
+class Program
+{{
+    static void Main(string[] args)
+    {{
+        string {argumentName} = "";
+        new Prog[||]ram({argumentName});
+    }}
+}}",
+$@"
+class Program
+{{
+    private string {fieldName};
+
+    public Program(string {fieldName})
+    {{
+        this.{fieldName} = {fieldName};
+    }}
+
+    static void Main(string[] args)
+    {{
+        string {argumentName} = "";
+        new Program({argumentName});
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithTopLevelNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    void M()
+    {
+        string? s = null;
+        new [|C|](s);
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    private string? s;
+
+    public C(string? s)
+    {
+        this.s = s;
+    }
+
+    void M()
+    {
+        string? s = null;
+        new C(s);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWitNestedNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<string?> s;
+        new [|C|](s);
+    }
+}",
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class C
+{
+    private IEnumerable<string?> s;
+
+    public C(IEnumerable<string?> s)
+    {
+        this.s = s;
+    }
+
+    void M()
+    {
+        IEnumerable<string?> s;
+        new C(s);
+    }
 }");
         }
     }

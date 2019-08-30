@@ -325,7 +325,7 @@ End Module
     ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Error_ErrorHandler_WithGoto1andMatchingLabel()
             Dim compilationDef =
     <compilation>
@@ -400,7 +400,7 @@ End Module
 
 
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29568")>
         Public Sub Error_ErrorHandler_BothTypesOfErrorHandling()
             Dim compilationDef =
     <compilation>
@@ -453,7 +453,7 @@ End Module
     )
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29568")>
         Public Sub Error_ErrorHandler_InVBCore()
             'Old Style handling not supported in VBCore
             Dim compilationDef =
@@ -873,7 +873,7 @@ End Module
                                           Diagnostic(ERRID.ERR_OnErrorInSyncLock, "On Error GoTo goo"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorHandler_Error_InMethodWithSyncLockBlock()
             'Method has a Error Handler and Error Occurs within SyncLock
             'resume next will occur outside of the SyncLock Block

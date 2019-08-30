@@ -9,5 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
     Friend Class VisualBasicUnnecessaryImportsService
         Inherits AbstractVisualBasicRemoveUnnecessaryImportsService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

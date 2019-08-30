@@ -16,6 +16,7 @@
         <InterfaceGroup Priority="Normal">
           <Filter>
             <LanguageId RequiredValue="DkmLanguageId.VB"/>
+            <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.TimeTravelTraceInterop"/>
             <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.InProcessManagedNativeInterop"/>
             <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.ClrVirtualMachine"/>
           </Filter>

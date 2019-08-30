@@ -20,21 +20,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var op = symbol.GetPredefinedOperator();
             return FindDocumentsAsync(project, documents, op, cancellationToken);
         }
 
-        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var op = symbol.GetPredefinedOperator();
 
-            return FindReferencesInDocumentAsync(symbol, document, t =>
+            return FindReferencesInDocumentAsync(symbol, document, semanticModel, t =>
                 IsPotentialReference(syntaxFacts, op, t),
                 cancellationToken);
         }

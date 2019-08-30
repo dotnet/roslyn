@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -61,6 +61,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CommandHandler_GetCommandState,
         CommandHandler_ExecuteHandlers,
         CommandHandler_FormatCommand,
+        CommandHandler_CompleteStatement,
+        CommandHandler_ToggleBlockComment,
+        CommandHandler_ToggleLineComment,
 
         Workspace_SourceText_GetChangeRanges,
         Workspace_Recoverable_RecoverRootAsync,
@@ -81,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Workspace_TryGetDocumentFromInProgressSolution,
         Workspace_Solution_LinkedFileDiffMergingSession,
         Workspace_Solution_LinkedFileDiffMergingSession_LinkedFileGroup,
+        Workspace_Solution_Info,
 
         EndConstruct_DoStatement,
         EndConstruct_XmlCData,
@@ -147,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TPLTask_TaskStarted,
         TPLTask_TaskCompleted,
 
-        QuickInfo_ModelComputation_ComputeModelInBackground,
+        Get_QuickInfo_Async,
 
         Completion_ModelComputer_DoInBackground,
         Completion_ModelComputation_FilterModelInBackground,
@@ -155,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Completion_SymbolCompletionProvider_GetItemsWorker,
         Completion_KeywordCompletionProvider_GetItemsWorker,
         Completion_SnippetCompletionProvider_GetItemsWorker_CSharp,
+        Completion_TypeImportCompletionProvider_GetCompletionItemsAsync,
 
         SignatureHelp_ModelComputation_ComputeModelInBackground,
         SignatureHelp_ModelComputation_UpdateModelInBackground,
@@ -246,6 +251,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TemporaryStorageServiceFactory_WriteText,
         TemporaryStorageServiceFactory_ReadStream,
         TemporaryStorageServiceFactory_WriteStream,
+
+        PullMembersUpWarning_ChangeTargetToAbstract,
+        PullMembersUpWarning_ChangeOriginToPublic,
+        PullMembersUpWarning_ChangeOriginToNonStatic,
+        PullMembersUpWarning_UserProceedToFinish,
+        PullMembersUpWarning_UserGoBack,
 
         // currently no-one uses these
         SmartTags_RefreshSession,
@@ -396,18 +407,61 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CompilationService_GetCompilationAsync,
         SolutionCreator_AssetDifferences,
         Extension_InfoBar,
-        Experiment_ABTesting,
+        FxCopAnalyzersInstall,
         AssetStorage_ForceGC,
         RemoteHost_Bitness,
         Intellisense_Completion,
         MetadataOnlyImage_EmitFailure,
         LiveTableDataSource_OnDiagnosticsUpdated,
         Experiment_KeybindingsReset,
-        
+        Diagnostics_GeneratePerformaceReport,
+        Diagnostics_BadAnalyzer,
+        CodeAnalysisService_ReportAnalyzerPerformance,
+        PerformanceTrackerService_AddSnapshot,
         AbstractProject_SetIntelliSenseBuild,
         AbstractProject_Created,
         AbstractProject_PushedToWorkspace,
         ExternalErrorDiagnosticUpdateSource_AddError,
         DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync,
+        Completion_ExecuteCommand_TypeChar,
+        RemoteHostService_SynchronizeTextAsync,
+
+        SymbolFinder_Solution_Pattern_FindSourceDeclarationsAsync,
+        SymbolFinder_Project_Pattern_FindSourceDeclarationsAsync,
+        Intellisense_Completion_Commit,
+
+        CodeCleanupInfobar_BarDisplayed,
+        CodeCleanupInfobar_ConfigureNow,
+        CodeCleanupInfobar_NeverShowCodeCleanupInfoBarAgain,
+
+        FormatDocument,
+        CodeCleanup_ApplyCodeFixesAsync,
+        CodeCleanup_RemoveUnusedImports,
+        CodeCleanup_SortImports,
+        CodeCleanup_Format,
+        CodeCleanupABTest_AssignedToOnByDefault,
+        CodeCleanupABTest_AssignedToOffByDefault,
+        Workspace_Events,
+
+        Refactoring_ExtractMethod_UnknownMatrixItem,
+
+        SyntaxTreeIndex_Precalculate,
+        SyntaxTreeIndex_Precalculate_Create,
+        SymbolTreeInfo_Create,
+        SymbolTreeInfo_TryLoadOrCreate,
+        CommandHandler_GoToImplementation,
+        GraphQuery_ImplementedBy,
+        GraphQuery_Implements,
+        GraphQuery_IsCalledBy,
+        GraphQuery_IsUsedBy,
+        GraphQuery_Overrides,
+
+        Intellisense_AsyncCompletion_Data,
+        Intellisense_CompletionProviders_Data,
+        SnapshotService_IsExperimentEnabledAsync,
+        PartialLoad_FullyLoaded,
+        Liveshare_UnknownCodeAction,
+        Liveshare_LexicalClassifications,
+        Liveshare_SyntacticClassifications,
     }
 }

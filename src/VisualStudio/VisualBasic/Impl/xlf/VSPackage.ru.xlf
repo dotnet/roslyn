@@ -8,28 +8,28 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Редактор кодовых страниц Microsoft Visual Basic</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="needs-review-translation">Редактор кодовых страниц Microsoft Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Редактор Microsoft Visual Basic</target>
+        <source>Visual Basic Editor</source>
+        <target state="needs-review-translation">Редактор Microsoft Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off</source>
-        <target state="translated">Автоматическая вставка конечных конструкций; Изменение параметров автоматического форматирования; Изменение режима структуры; Автоматическая вставка интерфейса и членов MustOverride; Отображение или скрытие разделителей строк для процедуры; Включение или выключение предложения об исправлении ошибок; Включение или выключение выделения ссылок и ключевых слов</target>
+        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
+        <target state="translated">Автоматическая вставка конечных конструкций;Изменение параметров автоматического форматирования;Изменение режима структуры;Автоматическая вставка интерфейса и членов MustOverride;Отображение или скрытие разделителей строк для процедуры;Включение или выключение предложения об исправлении ошибок;Включение или выключение выделения ссылок и ключевых слов;Регулярные выражения;Выделение регулярных выражений цветом;Выделение связанных компонентов под курсором;Выделение недопустимых регулярных выражений;регулярное выражение;регулярное выражение;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
         <source>Advanced</source>
-        <target state="translated">Дополнительно</target>
+        <target state="translated">Дополнительный</target>
         <note>"Advanced" node under Tools &gt;Options, Basic editor.</note>
       </trans-unit>
       <trans-unit id="103">
         <source>Basic</source>
-        <target state="translated">Основная</target>
+        <target state="translated">Обычный</target>
         <note>"Basic" node in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="104">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="10161">
         <source>Qualify with Me;Prefer intrinsic types;Style;Code Style</source>
-        <target state="translated">Соответствовать моим требованиям;Предпочитать внутренние типы;Стиль;Стиль кода</target>
+        <target state="translated">Квалифицировать с помощью Me;Предпочитать внутренние типы;Стиль;Стиль кода</target>
         <note>Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="110">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="111">
         <source>General</source>
-        <target state="translated">Общие</target>
+        <target state="translated">Общее</target>
         <note>"General" node under Tools &gt;Options &gt;Basic editor &gt;Code Style.</note>
       </trans-unit>
       <trans-unit id="112">
@@ -101,6 +101,16 @@
         <source>Visual Basic Tools</source>
         <target state="translated">Инструменты Visual Basic</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_Visual_Basic_script_file">
+        <source>An empty Visual Basic script file.</source>
+        <target state="translated">Пустой файл сценария Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_Script">
+        <source>Visual Basic Script</source>
+        <target state="translated">Сценарий Visual Basic</target>
+        <note />
       </trans-unit>
     </body>
   </file>

@@ -12,12 +12,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -28,13 +26,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(
             Workspace workspace, TestParameters parameters);
 
-        protected override async Task<ImmutableArray<CodeAction>> GetCodeActionsWorkerAsync(
+        protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
-            return refactoring == null
+            var actions = refactoring == null
                 ? ImmutableArray<CodeAction>.Empty
-                : refactoring.Actions;
+                : refactoring.CodeActions.Select(n => n.action).AsImmutable();
+            actions = MassageActions(actions);
+            return (actions, actions.IsDefaultOrEmpty ? null : actions[parameters.index]);
         }
 
         protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var documentsWithSelections = workspace.Documents.Where(d => !d.IsLinkFile && d.SelectedSpans.Count == 1);
             Debug.Assert(documentsWithSelections.Count() == 1, "One document must have a single span annotation");
             var span = documentsWithSelections.Single().SelectedSpans.Single();
-            var actions = ArrayBuilder<CodeAction>.GetInstance();
+            var actions = ArrayBuilder<(CodeAction, TextSpan?)>.GetInstance();
             var document = workspace.CurrentSolution.GetDocument(documentsWithSelections.Single().Id);
-            var context = new CodeRefactoringContext(document, span, actions.Add, CancellationToken.None);
+            var context = new CodeRefactoringContext(document, span, (a, t) => actions.Add((a, t)), CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);
 
             var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable()) : null;
@@ -73,14 +73,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return result;
         }
 
-        protected async Task TestActionsOnLinkedFiles(
+        protected async Task TestActionOnLinkedFiles(
             TestWorkspace workspace,
             string expectedText,
-            int index,
-            ImmutableArray<CodeAction> actions,
+            CodeAction action,
             string expectedPreviewContents = null)
         {
-            var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
 
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
             int index = 0,
             CodeActionPriority? priority = null,
-            TestParameters parameters = default(TestParameters))
+            TestParameters parameters = default)
         {
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
             return TestInRegularAndScript1Async(

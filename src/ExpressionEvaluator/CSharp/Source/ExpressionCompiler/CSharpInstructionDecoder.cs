@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var methodArgumentStartIndex = typeParameters.Length - methodArity;
             var typeMap = new TypeMap(
                 ImmutableArray.Create(typeParameters, 0, methodArgumentStartIndex),
-                ImmutableArray.CreateRange(typeArguments, 0, methodArgumentStartIndex, TypeMap.TypeSymbolAsTypeWithModifiers));
+                ImmutableArray.CreateRange(typeArguments, 0, methodArgumentStartIndex, t => TypeWithAnnotations.Create(t)));
             var substitutedType = typeMap.SubstituteNamedType(method.ContainingType);
             method = method.AsMember(substitutedType);
             if (methodArity > 0)
@@ -135,18 +135,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override CSharpCompilation GetCompilation(DkmClrModuleInstance moduleInstance)
         {
             var appDomain = moduleInstance.AppDomain;
+            var moduleVersionId = moduleInstance.Mvid;
             var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
 
-            CSharpCompilation compilation;
-            if (previous.Matches(metadataBlocks))
+            var kind = GetMakeAssemblyReferencesKind();
+            var contextId = MetadataContextId.GetContextId(moduleVersionId, kind);
+            var assemblyContexts = previous.Matches(metadataBlocks) ? previous.AssemblyContexts : ImmutableDictionary<MetadataContextId, CSharpMetadataContext>.Empty;
+            CSharpMetadataContext previousContext;
+            assemblyContexts.TryGetValue(contextId, out previousContext);
+
+            var compilation = previousContext.Compilation;
+            if (compilation == null)
             {
-                compilation = previous.Compilation;
-            }
-            else
-            {
-                compilation = metadataBlocks.ToCompilation();
-                appDomain.SetMetadataContext(new CSharpMetadataContext(metadataBlocks, compilation));
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind);
+                appDomain.SetMetadataContext(
+                    new MetadataContext<CSharpMetadataContext>(
+                        metadataBlocks,
+                        assemblyContexts.SetItem(contextId, new CSharpMetadataContext(compilation))),
+                    report: kind == MakeAssemblyReferencesKind.AllReferences);
             }
 
             return compilation;

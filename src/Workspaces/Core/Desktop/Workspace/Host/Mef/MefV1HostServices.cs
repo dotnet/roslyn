@@ -1,5 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,7 +6,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host.Mef
@@ -17,6 +15,14 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// </summary>
     public class MefV1HostServices : HostServices, IMefHostExportProvider
     {
+        internal delegate MefV1HostServices CreationHook(IEnumerable<Assembly> assemblies);
+
+        /// <summary>
+        /// This delegate allows test code to override the behavior of <see cref="Create(IEnumerable{Assembly})"/>.
+        /// </summary>
+        /// <seealso cref="TestAccessor.HookServiceCreation"/>
+        private static CreationHook s_CreationHook;
+
         // the export provider for the MEF composition
         private readonly ExportProvider _exportProvider;
 
@@ -39,11 +45,16 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return new MefV1HostServices(exportProvider);
         }
 
-        public static MefV1HostServices Create(IEnumerable<System.Reflection.Assembly> assemblies)
+        public static MefV1HostServices Create(IEnumerable<Assembly> assemblies)
         {
             if (assemblies == null)
             {
                 throw new ArgumentNullException(nameof(assemblies));
+            }
+
+            if (s_CreationHook != null)
+            {
+                return s_CreationHook(assemblies);
             }
 
             var catalog = new AggregateCatalog(assemblies.Select(a => new AssemblyCatalog(a)));
@@ -91,17 +102,19 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return (IEnumerable<Lazy<TExtension>>)exports;
         }
 
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
         private struct ExportKey : IEquatable<ExportKey>
         {
             internal readonly string ExtensionTypeName;
             internal readonly string MetadataTypeName;
-            private readonly int _hash;
 
             public ExportKey(string extensionTypeName, string metadataTypeName)
             {
                 this.ExtensionTypeName = extensionTypeName;
                 this.MetadataTypeName = metadataTypeName;
-                _hash = Hash.Combine(metadataTypeName.GetHashCode(), extensionTypeName.GetHashCode());
+                Hash.Combine(metadataTypeName.GetHashCode(), extensionTypeName.GetHashCode());
             }
 
             public bool Equals(ExportKey other)
@@ -111,13 +124,30 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             public override bool Equals(object obj)
-            {
-                return (obj is ExportKey) && this.Equals((ExportKey)obj);
-            }
+                => obj is ExportKey exportKey && this.Equals(exportKey);
 
             public override int GetHashCode()
             {
                 return Hash.Combine(this.MetadataTypeName.GetHashCode(), this.ExtensionTypeName.GetHashCode());
+            }
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly MefV1HostServices _mefV1HostServices;
+
+            public TestAccessor(MefV1HostServices mefV1HostServices)
+            {
+                _mefV1HostServices = mefV1HostServices;
+            }
+
+            /// <summary>
+            /// Injects replacement behavior for the <see cref="Create(IEnumerable{Assembly})"/> method.
+            /// </summary>
+            /// <param name="hook"></param>
+            internal static void HookServiceCreation(CreationHook hook)
+            {
+                s_CreationHook = hook;
             }
         }
     }

@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
     Friend Class VisualBasicEncapsulateFieldService
         Inherits AbstractEncapsulateFieldService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Async Function RewriteFieldNameAndAccessibility(originalFieldName As String,
                                                         makePrivate As Boolean,
                                                         document As Document,

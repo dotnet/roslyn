@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBWinMdExpTests
         Inherits BasicTestBase
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestWinMdExpData_Empty()
             Dim source =
 <compilation>
@@ -29,7 +29,7 @@ Imports System
             AssertEqual(expected, actual)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestWinMdExpData_Basic()
             Dim source =
 <compilation>
@@ -78,7 +78,7 @@ End Module
         End Sub
 
         <WorkItem(693206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/693206")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug693206()
             Dim source =
 <compilation>
@@ -111,7 +111,7 @@ End Namespace
             AssertEqual(expected, actual)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestWinMdExpData_Property_Event()
             Dim source =
 <compilation>
@@ -202,7 +202,7 @@ End Namespace
             Assert.Equal(builder.ToString(), actual)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestWinMdExpData_AnonymousTypes()
             Dim source =
 <compilation>

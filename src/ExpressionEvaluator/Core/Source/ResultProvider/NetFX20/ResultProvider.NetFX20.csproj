@@ -2,17 +2,14 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetNetFX20>true</TargetNetFX20>
-  </PropertyGroup>
-  <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
     <DefineConstants>$(DefineConstants);NETFX20</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net20</TargetFramework>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
@@ -67,8 +64,6 @@
       <Link>Helpers\SystemHelpers.cs</Link>
     </Compile>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Compile Include="..\Portable\Resources.Designer.cs">
       <Link>Resources.Designer.cs</Link>
@@ -85,8 +80,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata" Version="$(MicrosoftVisualStudioDebuggerMetadataVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)" />
     <PackageReference Include="Microsoft.NetFX20" Version="$(MicrosoftNetFX20Version)" />
   </ItemGroup>
   <ItemGroup>

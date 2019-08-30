@@ -2,8 +2,6 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var targetType = (ImplicitNamedTypeSymbol)node.Type;
             Debug.Assert(targetType.TypeKind == TypeKind.Submission);
-            Debug.Assert(!_factory.CurrentMethod.IsStatic);
+            Debug.Assert(!_factory.TopLevelMethod.IsStatic);
 
             Debug.Assert(_previousSubmissionFields != null);
 

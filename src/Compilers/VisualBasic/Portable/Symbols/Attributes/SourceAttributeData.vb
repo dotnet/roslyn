@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 lazySystemType = GetSystemType(targetSymbol)
                             End If
 
-                            foundMatch = parameterType = lazySystemType
+                            foundMatch = TypeSymbol.Equals(parameterType, lazySystemType, TypeCompareKind.ConsiderEverything)
                             k += 1
 
                         Case CByte(SignatureTypeCode.SZArray)

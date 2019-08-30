@@ -28,6 +28,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void RefReturnRefAssignment()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    static readonly int _ro = 42;
+    static int _rw = 42;
+
+    static void Main()
+    {
+        Console.WriteLine(M1(ref _rw));
+        Console.WriteLine(M2(in _ro));
+        Console.WriteLine(M3(in _ro));;
+
+        M1(ref _rw)++;
+
+        Console.WriteLine(M1(ref _rw));
+        Console.WriteLine(M2(in _ro));
+        Console.WriteLine(M3(in _ro));;
+    }
+
+    static ref int M1(ref int rrw) => ref (rrw = ref _rw);
+
+    static ref readonly int M2(in int rro) => ref (rro = ref _ro);
+
+    static ref readonly int M3(in int rro) => ref (rro = ref _rw);
+}", verify: Verification.Fails, expectedOutput: @"42
+42
+42
+43
+42
+43");
+        }
+
+        [Fact]
         public void RefReturnArrayAccess()
         {
             var text = @"
@@ -2362,6 +2398,9 @@ class Program
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
+                // (6,14): error CS8059: Feature 'ref for-loop variables' is not available in C# 6. Please use language version 7.3 or greater.
+                //         for (ref int a = ref d; ;) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("ref for-loop variables", "7.3").WithLocation(6, 14),
                 // (6,14): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         for (ref int a = ref d; ;) { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(6, 14),
@@ -2482,7 +2521,7 @@ public class A<T>
             var comp = CreateCompilation(text, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                 // no diagnostics expected
+                // no diagnostics expected
                 );
         }
 
@@ -2598,7 +2637,7 @@ class E : Exception
         [Fact]
         [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
         public void Lambda_01()
-        { 
+        {
             var source =
 @"public delegate ref T D<T>();
 public class A<T>
@@ -3551,5 +3590,95 @@ class Program
 Program+RefFunc1`2[Derived1,Base]", verify: Verification.Passes);
         }
 
+        [WorkItem(25024, "https://github.com/dotnet/roslyn/issues/25024")]
+        [Fact]
+        public void RefReturnDiscardLifetime()
+        {
+            var text = @"
+    class Program
+    {
+        static bool flag = true;
+
+        public static void Main()
+        {
+            if (flag)
+            {
+                ref var local1 = ref M1(out var _);
+                ref var local2 = ref M1(out var _);
+
+                local1 = 1;
+                local2 = 2;
+                System.Console.Write(local1 + local2);
+            }
+
+            if (flag)
+            {
+                ref var local1 = ref M1(out var _);
+                ref var local2 = ref M1(out var _);
+
+                local1 = 3;
+                local2 = 4;
+                System.Console.Write(local1 + local2);
+            }
+        }
+
+        public static ref int M1(out int arg)
+        {
+            arg = 123;
+            return ref arg;
+        }
+       
+    }
+";
+
+            CompileAndVerifyRef(text, expectedOutput: "37", verify: Verification.Fails).VerifyIL("Program.Main()", @"
+{
+  // Code size       75 (0x4b)
+  .maxstack  3
+  .locals init (int& V_0, //local2
+                int V_1,
+                int V_2,
+                int& V_3, //local2
+                int V_4,
+                int V_5)
+  IL_0000:  ldsfld     ""bool Program.flag""
+  IL_0005:  brfalse.s  IL_0025
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""ref int Program.M1(out int)""
+  IL_000e:  ldloca.s   V_2
+  IL_0010:  call       ""ref int Program.M1(out int)""
+  IL_0015:  stloc.0
+  IL_0016:  dup
+  IL_0017:  ldc.i4.1
+  IL_0018:  stind.i4
+  IL_0019:  ldloc.0
+  IL_001a:  ldc.i4.2
+  IL_001b:  stind.i4
+  IL_001c:  ldind.i4
+  IL_001d:  ldloc.0
+  IL_001e:  ldind.i4
+  IL_001f:  add
+  IL_0020:  call       ""void System.Console.Write(int)""
+  IL_0025:  ldsfld     ""bool Program.flag""
+  IL_002a:  brfalse.s  IL_004a
+  IL_002c:  ldloca.s   V_4
+  IL_002e:  call       ""ref int Program.M1(out int)""
+  IL_0033:  ldloca.s   V_5
+  IL_0035:  call       ""ref int Program.M1(out int)""
+  IL_003a:  stloc.3
+  IL_003b:  dup
+  IL_003c:  ldc.i4.3
+  IL_003d:  stind.i4
+  IL_003e:  ldloc.3
+  IL_003f:  ldc.i4.4
+  IL_0040:  stind.i4
+  IL_0041:  ldind.i4
+  IL_0042:  ldloc.3
+  IL_0043:  ldind.i4
+  IL_0044:  add
+  IL_0045:  call       ""void System.Console.Write(int)""
+  IL_004a:  ret
+}");
+        }
     }
 }

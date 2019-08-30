@@ -55,15 +55,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _runtimeDirectories = GetRuntimeDirectories();
 
             XmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
+            Assumes.Present(XmlMemberIndexService);
+
             SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
+            Assumes.Present(SmartOpenScopeServiceOpt);
 
             FileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
-            _temporaryStorageService = temporaryStorageService;
+            Assumes.Present(FileChangeService);
 
-            Debug.Assert(XmlMemberIndexService != null);
-            Debug.Assert(SmartOpenScopeServiceOpt != null);
-            Debug.Assert(FileChangeService != null);
-            Debug.Assert(temporaryStorageService != null);
+            _temporaryStorageService = temporaryStorageService;
+            Assumes.Present(_temporaryStorageService);
         }
 
         internal IEnumerable<ITemporaryStreamStorage> GetStorages(string fullPath, DateTime snapshotTimestamp)
@@ -83,12 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
         {
-            return new VisualStudioMetadataReference.Snapshot(this, properties, filePath);
-        }
-
-        public VisualStudioMetadataReference CreateMetadataReference(string filePath, MetadataReferenceProperties properties)
-        {
-            return new VisualStudioMetadataReference(this, filePath, properties);
+            return new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
         }
 
         public void ClearCache()
@@ -101,9 +97,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _runtimeDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
         }
 
+        internal static IEnumerable<string> GetReferencePaths()
+        {
+            // TODO:
+            // WORKAROUND: properly enumerate them
+            yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5");
+            yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0");
+        }
+
         private static ImmutableArray<string> GetRuntimeDirectories()
         {
-            return ReferencePathUtilities.GetReferencePaths().Concat(
+            return GetReferencePaths().Concat(
                 new string[]
                 {
                     Environment.GetFolderPath(Environment.SpecialFolder.Windows),
@@ -254,7 +258,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            Contract.Requires(pImage != IntPtr.Zero, "Base address should not be zero if GetFileFlatMapping call succeeded.");
+            Debug.Assert(pImage != IntPtr.Zero, "Base address should not be zero if GetFileFlatMapping call succeeded.");
 
             var metadata = ModuleMetadata.CreateFromImage(pImage, (int)length);
             s_lifetimeMap.Add(metadata, info);
@@ -317,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
 
             string assemblyDir = null;
-            foreach (string moduleName in manifestModule.GetModuleNames())
+            foreach (var moduleName in manifestModule.GetModuleNames())
             {
                 if (moduleBuilder.Count == 0)
                 {

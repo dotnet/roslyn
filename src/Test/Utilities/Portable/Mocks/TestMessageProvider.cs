@@ -49,6 +49,8 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
+        public override int ERR_MultipleAnalyzerConfigsInSameDir => throw new NotImplementedException();
+
         public override int ERR_ExpectedSingleScript
         {
             get { throw new NotImplementedException(); }
@@ -59,7 +61,7 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
-        public override int FTL_InputFileNameTooLong
+        public override int FTL_InvalidInputFileName
         {
             get { throw new NotImplementedException(); }
         }
@@ -393,7 +395,7 @@ namespace Roslyn.Test.Utilities
                 throw new NotImplementedException();
             }
         }
-        
+
         public override int ERR_PeWritingFailure
         {
             get
@@ -401,7 +403,7 @@ namespace Roslyn.Test.Utilities
                 throw new NotImplementedException();
             }
         }
-        
+
         public override int ERR_ModuleEmitFailure
         {
             get

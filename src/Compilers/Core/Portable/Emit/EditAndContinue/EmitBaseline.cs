@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <exception cref="BadImageFormatException">Module metadata is invalid.</exception>
         /// <exception cref="ObjectDisposedException">Module has been disposed.</exception>
         public static EmitBaseline CreateInitialBaseline(
-            ModuleMetadata module, 
+            ModuleMetadata module,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
             bool hasPortableDebugInformation)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 userStringStreamLengthAdded: 0,
                 guidStreamLengthAdded: 0,
                 anonymousTypeMap: null, // Unset for initial metadata
-                synthesizedMembers: ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>.Empty,
+                synthesizedMembers: ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>>.Empty,
                 methodsAddedOrChanged: new Dictionary<int, AddedOrChangedMethodInfo>(),
                 debugInformationProvider: debugInformationProvider,
                 localSignatureProvider: localSignatureProvider,
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, int> TypeToPropertyMap;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImpls;
         private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> _anonymousTypeMap;
-        internal readonly ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> SynthesizedMembers;
+        internal readonly ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> SynthesizedMembers;
 
         private EmitBaseline(
             EmitBaseline initialBaseline,
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> synthesizedMembers,
+            ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> synthesizedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> methodsAddedOrChanged,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> synthesizedMembers,
+            ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> synthesizedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> addedOrChangedMethods,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider)

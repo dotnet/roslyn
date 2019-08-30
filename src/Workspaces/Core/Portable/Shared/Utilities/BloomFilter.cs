@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         public BloomFilter(
-            double falsePositiveProbability, 
+            double falsePositiveProbability,
             ICollection<string> stringValues,
             ICollection<long> longValues)
             : this(stringValues.Count + longValues.Count, falsePositiveProbability, isCaseSensitive: false)
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// This is needed over the normal 'string.GetHashCode()' because we need to be able to generate
         /// 'k' different well distributed hashes for any given string s.  Also, we want to be able to
         /// generate these hashes without allocating any memory.  My ideal solution would be to use an
-        /// MD5 hash.  However, there appears to be no way to do MD5 in .Net where you can:
+        /// MD5 hash.  However, there appears to be no way to do MD5 in .NET where you can:
         /// 
         /// a) feed it individual values instead of a byte[]
         /// 
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private int GetBitArrayIndex(string value, int i)
         {
             var hash = ComputeHash(value, i);
-            hash = hash % _bitArray.Length;
+            hash %= _bitArray.Length;
             return Math.Abs(hash);
         }
 
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private int GetBitArrayIndex(long value, int i)
         {
             var hash = ComputeHash(value, i);
-            hash = hash % _bitArray.Length;
+            hash %= _bitArray.Length;
             return Math.Abs(hash);
         }
 

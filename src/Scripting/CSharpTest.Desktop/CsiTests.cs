@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class CsiTests : TestBase
     {
-        private static readonly string s_compilerVersion = typeof(Csi).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerVersion = CommonCompiler.GetProductVersion(typeof(Csi));
         private string CsiPath => typeof(Csi).GetTypeInfo().Assembly.Location;
 
         /// <summary>
@@ -68,7 +68,7 @@ Environment.Exit(0)
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 (1,7): error CS1504: { string.Format(CSharpResources.ERR_NoSourceFile, "a.csx", CSharpResources.CouldNotFindFile) }
-(1,1): error CS0006: { string.Format(CSharpResources.ERR_NoMetadataFile,"C.dll") }
+(1,1): error CS0006: { string.Format(CSharpResources.ERR_NoMetadataFile, "C.dll") }
 ", result.Errors);
 
             Assert.Equal(0, result.ExitCode);
@@ -86,7 +86,7 @@ Environment.Exit(0)
             var dir = Temp.CreateDirectory();
             dir.CreateFile("C.dll").WriteAllBytes(TestResources.General.C1);
 
-            var result = ProcessUtilities.Run(CsiPath, "/r:C.dll a.csx", workingDirectory: cwd.Path, additionalEnvironmentVars: new[] { KeyValuePair.Create("LIB", dir.Path) });
+            var result = ProcessUtilities.Run(CsiPath, "/r:C.dll a.csx", workingDirectory: cwd.Path, additionalEnvironmentVars: new[] { KeyValuePairUtil.Create("LIB", dir.Path) });
 
             // error CS0006: Metadata file 'C.dll' could not be found
             Assert.True(result.Errors.StartsWith("error CS0006", StringComparison.Ordinal));
@@ -148,7 +148,7 @@ throw new Exception(""Error!"");
             Assert.True(result.ContainsErrors);
             AssertEx.AssertEqualToleratingWhitespaceDifferences("OK", result.Output);
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Error!
+System.Exception: Error!
    + <Initialize>.MoveNext(){string.Format(ScriptingResources.AtFileLine, $"{cwd}{Path.DirectorySeparatorChar}a.csx", "2")}
 ", result.Errors);
         }

@@ -8,8 +8,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -68,7 +70,10 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException("Must specify expected errors.", nameof(expected));
             }
 
-            var unmatched = actual.Select(d => new DiagnosticDescription(d, errorCodeOnly)).ToList();
+            var includeDefaultSeverity = expected.Any() && expected.All(e => e.DefaultSeverity != null);
+            var includeEffectiveSeverity = expected.Any() && expected.All(e => e.EffectiveSeverity != null);
+            var unmatched = actual.Select(d => new DiagnosticDescription(d, errorCodeOnly, includeDefaultSeverity, includeEffectiveSeverity))
+                                  .ToList();
 
             // Try to match each of the 'expected' errors to one of the 'actual' ones.
             // If any of the expected errors don't appear, fail test.
@@ -161,7 +166,9 @@ namespace Microsoft.CodeAnalysis
                 params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            c = c.GetAnalyzerDiagnostics(analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, diagnostics: out var diagnostics);
+            c = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException,
+                logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics,
+                includeCompilerDiagnostics: false, diagnostics: out var diagnostics);
             diagnostics.Verify(expected);
             return c; // note this is a new compilation
         }
@@ -186,18 +193,107 @@ namespace Microsoft.CodeAnalysis
             bool logAnalyzerExceptionAsDiagnostics = true)
             where TCompilation : Compilation
         {
-            c = GetAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, out var diagnostics);
+            c = GetCompilationWithAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException,
+                logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics,
+                includeCompilerDiagnostics: false, out var diagnostics);
             return diagnostics;
         }
 
-        private static TCompilation GetAnalyzerDiagnostics<TCompilation>(
-                this TCompilation c,
-                DiagnosticAnalyzer[] analyzers,
-                AnalyzerOptions options,
-                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
-                bool logAnalyzerExceptionAsDiagnostics,
-                bool reportSuppressedDiagnostics,
-                out ImmutableArray<Diagnostic> diagnostics)
+        public static TCompilation VerifySuppressedDiagnostics<TCompilation>(
+            this TCompilation c,
+            DiagnosticAnalyzer[] analyzers,
+            AnalyzerOptions options = null,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            bool logAnalyzerExceptionAsDiagnostics = true,
+            params DiagnosticDescription[] expected)
+            where TCompilation : Compilation
+        {
+            // Verify suppression is unaffected by toggling /warnaserror.
+            // Only perform this additional verification if the caller hasn't
+            // explicitly overridden specific or general diagnostic options.
+            if (c.Options.GeneralDiagnosticOption == ReportDiagnostic.Default &&
+                c.Options.SpecificDiagnosticOptions.IsEmpty)
+            {
+                _ = c.VerifySuppressedDiagnostics(toggleWarnAsError: true,
+                    analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics,
+                    expected);
+            }
+
+            return c.VerifySuppressedDiagnostics(toggleWarnAsError: false,
+                analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics,
+                expected);
+        }
+
+        private static TCompilation VerifySuppressedDiagnostics<TCompilation>(
+            this TCompilation c,
+            bool toggleWarnAsError,
+            DiagnosticAnalyzer[] analyzers,
+            AnalyzerOptions options,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            bool logAnalyzerExceptionAsDiagnostics,
+            DiagnosticDescription[] expectedDiagnostics)
+            where TCompilation : Compilation
+        {
+            if (toggleWarnAsError)
+            {
+                var toggledOption = c.Options.GeneralDiagnosticOption == ReportDiagnostic.Error ?
+                    ReportDiagnostic.Default :
+                    ReportDiagnostic.Error;
+                c = (TCompilation)c.WithOptions(c.Options.WithGeneralDiagnosticOption(toggledOption));
+
+                var builder = ArrayBuilder<DiagnosticDescription>.GetInstance(expectedDiagnostics.Length);
+                foreach (var expected in expectedDiagnostics)
+                {
+                    // Toggle warnaserror and effective severity if following are true:
+                    //  1. Default severity is not specified or specified as Warning
+                    //  2. Effective severity is not specified or specified as Warning or Error
+                    var defaultSeverityCheck = !expected.DefaultSeverity.HasValue ||
+                        expected.DefaultSeverity.Value == DiagnosticSeverity.Warning;
+                    var effectiveSeverityCheck = !expected.EffectiveSeverity.HasValue ||
+                         expected.EffectiveSeverity.Value == DiagnosticSeverity.Warning ||
+                         expected.EffectiveSeverity.Value == DiagnosticSeverity.Error;
+
+                    DiagnosticDescription newExpected;
+                    if (defaultSeverityCheck && effectiveSeverityCheck)
+                    {
+                        newExpected = expected.WithWarningAsError(!expected.IsWarningAsError);
+
+                        if (expected.EffectiveSeverity.HasValue)
+                        {
+                            var newEffectiveSeverity = expected.EffectiveSeverity.Value == DiagnosticSeverity.Error ?
+                                DiagnosticSeverity.Warning :
+                                DiagnosticSeverity.Error;
+                            newExpected = newExpected.WithEffectiveSeverity(newEffectiveSeverity);
+                        }
+                    }
+                    else
+                    {
+                        newExpected = expected;
+                    }
+
+                    builder.Add(newExpected);
+                }
+
+                expectedDiagnostics = builder.ToArrayAndFree();
+            }
+
+            c = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException,
+                logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics: true,
+                    includeCompilerDiagnostics: true, diagnostics: out var diagnostics);
+            diagnostics = diagnostics.WhereAsArray(d => d.IsSuppressed);
+            diagnostics.Verify(expectedDiagnostics);
+            return c; // note this is a new compilation
+        }
+
+        private static TCompilation GetCompilationWithAnalyzerDiagnostics<TCompilation>(
+            this TCompilation c,
+            DiagnosticAnalyzer[] analyzers,
+            AnalyzerOptions options,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            bool logAnalyzerExceptionAsDiagnostics,
+            bool reportSuppressedDiagnostics,
+            bool includeCompilerDiagnostics,
+            out ImmutableArray<Diagnostic> diagnostics)
             where TCompilation : Compilation
         {
             var analyzersArray = analyzers.ToImmutableArray();
@@ -227,8 +323,13 @@ namespace Microsoft.CodeAnalysis
 
             var analyzerManager = new AnalyzerManager(analyzersArray);
             var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException, null, false, out var newCompilation, CancellationToken.None);
-            var discarded = newCompilation.GetDiagnostics();
-            diagnostics = driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
+
+            var compilerDiagnostics = newCompilation.GetDiagnostics();
+            var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation).Result;
+            var allDiagnostics = includeCompilerDiagnostics ?
+                compilerDiagnostics.AddRange(analyzerDiagnostics) :
+                analyzerDiagnostics;
+            diagnostics = driver.ApplyProgrammaticSuppressions(allDiagnostics, newCompilation).AddRange(exceptionDiagnostics);
 
             if (!reportSuppressedDiagnostics)
             {
@@ -333,7 +434,7 @@ namespace Microsoft.CodeAnalysis
             var expectedToolName = compiler.GetToolName();
             var expectedVersion = compiler.GetAssemblyVersion();
             var expectedSemanticVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
-            var expectedFileVersion = compiler.GetAssemblyFileVersion();
+            var expectedFileVersion = compiler.GetCompilerVersion();
             var expectedLanguage = compiler.GetCultureName();
 
             return string.Format(@"{{
@@ -368,6 +469,12 @@ namespace Microsoft.CodeAnalysis
 
             retVal = e.Severity.ToString() + " " + e.Id + ": " + e.GetMessage(CultureInfo.CurrentCulture);
             return retVal;
+        }
+
+        public static string ToString(this Diagnostic d, IFormatProvider formatProvider)
+        {
+            IFormattable formattable = d;
+            return formattable.ToString(null, formatProvider);
         }
     }
 }

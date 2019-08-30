@@ -3,7 +3,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -207,6 +207,84 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAwaitForEach()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"await foreach ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInAwaitForEach()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"await foreach (var $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefLoop1()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref $$ x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefLoop2()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref v$$ x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForEachRefReadonlyLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"foreach (ref readonly $$ x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefLoop1()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref v$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefReadonlyLoop0()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref readonly $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(37223, "https://github.com/dotnet/roslyn/issues/37223")]
+        public async Task TestInForRefReadonlyLoop1()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"for (ref readonly v$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUsing()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -218,6 +296,20 @@ $$"));
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"using (var $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAwaitUsing()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"await using ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInAwaitUsing()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"await using (var $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -267,6 +359,62 @@ $$"));
         public async Task TestVarPatternInIs()
         {
             await VerifyKeywordAsync(AddInsideMethod("var b = o is $$ "));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterRefInMemberContext()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterRefReadonlyInMemberContext()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    ref readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefInStatementContext()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefReadonlyInStatementContext()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref readonly $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefLocalDeclaration()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref $$ int local;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefReadonlyLocalDeclaration()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref readonly $$ int local;"));
+        }
+
+        // For a local function, we can't add any tests - sometimes the keyword is offered and sometimes it's not,
+        // depending on whether the keyword is partially written or not. This is because a partially written keyword
+        // causes this to be parsed as a local declaration instead. We can't add either test because
+        // VerifyKeywordAsync & VerifyAbsenceAsync check for both cases - with the keyword partially written and without.
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterRefExpression()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"ref int x = ref $$"));
         }
     }
 }

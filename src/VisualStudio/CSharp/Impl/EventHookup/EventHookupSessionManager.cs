@@ -1,34 +1,37 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using System.Windows;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
+    [Export]
     internal sealed partial class EventHookupSessionManager : ForegroundThreadAffinitizedObject
     {
-        private readonly IHACK_EventHookupDismissalOnBufferChangePreventerService _prematureDismissalPreventer;
-        private readonly IQuickInfoBroker _quickInfoBroker;
+        private readonly IToolTipService _toolTipService;
+        private IToolTipPresenter _toolTipPresenter;
 
         internal EventHookupSession CurrentSession { get; set; }
-        internal IQuickInfoSession QuickInfoSession { get; set; }
 
         // For test purposes only!
-        internal FrameworkElement TEST_MostRecentQuickInfoContent { get; set; }
+        internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
 
-        internal EventHookupSessionManager(IHACK_EventHookupDismissalOnBufferChangePreventerService prematureDismissalPreventer, IQuickInfoBroker quickInfoBroker)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public EventHookupSessionManager(IThreadingContext threadingContext, IToolTipService toolTipService)
+            : base(threadingContext)
         {
-            _prematureDismissalPreventer = prematureDismissalPreventer;
-            _quickInfoBroker = quickInfoBroker;
+            _toolTipService = toolTipService;
         }
 
         internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
@@ -37,39 +40,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
 
+            // only generate tooltip if it is not already shown (_toolTipPresenter == null)
             // Ensure the analyzed session matches the current session and that the caret is still
             // in the session's tracking span.
-            if (CurrentSession == analyzedSession &&
-                QuickInfoSession == null &&
+            if (_toolTipPresenter == null &&
+                CurrentSession == analyzedSession &&
                 caretPoint.HasValue &&
                 analyzedSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot).Contains(caretPoint.Value))
             {
-                QuickInfoSession = _quickInfoBroker.CreateQuickInfoSession(analyzedSession.TextView,
-                    analyzedSession.TrackingPoint,
-                    trackMouse: false);
+                // Create a tooltip presenter that stays alive, even when the user types, without tracking the mouse.
+                _toolTipPresenter = this._toolTipService.CreatePresenter(analyzedSession.TextView,
+                    new ToolTipParameters(trackMouse: false, ignoreBufferChange: true));
 
-                // Special indicator that this quick info session was created by event hookup,
-                // which is used when deciding whether and how to display the session
-                QuickInfoSession.Properties.AddProperty(typeof(EventHookupSessionManager), this);
-                QuickInfoSession.Properties.AddProperty(QuickInfoUtilities.EventHookupKey, "EventHookup");
+                // tooltips text is: Program_MyEvents;      (Press TAB to insert)
+                // GetEventNameTask() gets back the event name, only needs to add a semicolon after it.
+                var textRuns = new[]
+                {
+                    new ClassifiedTextRun(ClassificationTypeNames.MethodName, analyzedSession.GetEventNameTask.Result, ClassifiedTextRunStyle.UseClassificationFont),
+                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ";", ClassifiedTextRunStyle.UseClassificationFont),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpEditorResources.Press_TAB_to_insert),
+                };
+                var content = new[] { new ClassifiedTextElement(textRuns) };
 
-                // Watch all text buffer changes & caret moves while this quick info session is 
-                // active
+                _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, content);
+
+                // For test purposes only!
+                TEST_MostRecentToolTipContent = content;
+
+                // Watch all text buffer changes & caret moves while this event hookup session is active
                 analyzedSession.TextView.TextSnapshot.TextBuffer.Changed += TextBuffer_Changed;
                 CurrentSession.Dismissed += () => { analyzedSession.TextView.TextSnapshot.TextBuffer.Changed -= TextBuffer_Changed; };
 
                 analyzedSession.TextView.Caret.PositionChanged += Caret_PositionChanged;
                 CurrentSession.Dismissed += () => { analyzedSession.TextView.Caret.PositionChanged -= Caret_PositionChanged; };
-
-                QuickInfoSession.Start();
-
-                // HACK! Workaround for VS dismissing quick info sessions on buffer changed events. 
-                // This must happen after the QuickInfoSession is started.
-                if (_prematureDismissalPreventer != null)
-                {
-                    _prematureDismissalPreventer.HACK_EnsureQuickInfoSessionNotDismissedPrematurely(analyzedSession.TextView);
-                    QuickInfoSession.Dismissed += (s, e) => { _prematureDismissalPreventer.HACK_OnQuickInfoSessionDismissed(analyzedSession.TextView); };
-                }
             }
         }
 
@@ -93,12 +96,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 CurrentSession = null;
             }
 
-            if (QuickInfoSession != null)
+            if (_toolTipPresenter != null)
             {
-                QuickInfoSession.Dismiss();
-                QuickInfoSession = null;
-                TEST_MostRecentQuickInfoContent = null;
+                _toolTipPresenter.Dismiss();
+                _toolTipPresenter = null;
             }
+
+            // For test purposes only!
+            TEST_MostRecentToolTipContent = null;
         }
 
         /// <summary>
@@ -147,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         internal bool IsTrackingSession()
         {
-            return CurrentSession != null && QuickInfoSession != null;
+            return CurrentSession != null;
         }
     }
 }

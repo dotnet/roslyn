@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     /// <summary>
     /// A service which enables searching for packages matching certain criteria.
-    /// It works against an <see cref="Microsoft.CodeAnalysis.Elfie"/> database to find results.
+    /// It works against a <see cref="Microsoft.CodeAnalysis.Elfie"/> database to find results.
     /// 
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
     internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
     {
-        private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
+        private readonly ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
         public SymbolSearchUpdateEngine(

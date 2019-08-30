@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// Immutable abstract representation of a span of text.  For example, in an error diagnostic that reports a
     /// location, it could come from a parsed string, text from a tool editor buffer, etc.
     /// </summary>
-    public struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
+    public readonly struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
     {
         /// <summary>
         /// Creates a TextSpan instance beginning with the position Start and having the Length

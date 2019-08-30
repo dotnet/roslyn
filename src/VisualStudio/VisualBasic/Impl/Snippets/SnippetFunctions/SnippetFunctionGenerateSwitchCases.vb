@@ -74,7 +74,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
             Dim textChange = New TextChange(New TextSpan(startPosition, endPosition - startPosition), str)
             Dim typeSpanToAnnotate = New TextSpan(startPosition + "Case ".Length, fullyQualifiedTypeName.Length)
 
-            Dim textWithCaseAdded = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange)
+            Dim textWithCaseAdded = document.GetTextSynchronously(cancellationToken).WithChanges(textChange)
             Dim documentWithCaseAdded = document.WithText(textWithCaseAdded)
 
             Dim syntaxRoot = documentWithCaseAdded.GetSyntaxRootSynchronously(cancellationToken)

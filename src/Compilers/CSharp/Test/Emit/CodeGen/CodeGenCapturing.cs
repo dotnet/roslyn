@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30212")]
         public void GenerateAllTest()
         {
             Assert.Equal(new[]
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }, GenerateAllSetCombinations(3, 2));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30212")]
         public void ExpressionGeneratorTest01()
         {
             var ctx = new CaptureContext(1);
@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 return new MethodInfo
                 {
                     LocalFuncs = this.LocalFuncs
-                        .Select(x => x == null 
-                                     ? null 
+                        .Select(x => x == null
+                                     ? null
                                      : (IList<string>)new List<string>(x)).ToList(),
                     CaptureContext = this.CaptureContext.Clone()
                 };
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// a maximum number of local functions, and a maximum scope depth to decide the
         /// limits of the combinations.
         /// </summary>
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(WindowsOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/30212")]
         public void AllCaptureTests()
         {
             var methods = MakeAllMethods().ToList();

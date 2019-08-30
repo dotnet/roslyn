@@ -1,11 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+using Mono.Options;
 
 namespace BuildBoss
 {
@@ -15,7 +12,7 @@ namespace BuildBoss
         {
             try
             {
-                return MainCore(args);
+                return MainCore(args) ? 0 : 1;
             }
             catch (Exception ex)
             {
@@ -25,37 +22,88 @@ namespace BuildBoss
             }
         }
 
-        private static int MainCore(string[] args)
-        { 
-            if (args.Length == 0)
-            { 
-                Usage();
-                return 1;
+        private static bool MainCore(string[] args)
+        {
+            string repositoryDirectory = null;
+            string configuration = "Debug";
+            string primarySolution = null;
+            List<string> solutionFiles;
+
+            var options = new OptionSet
+            {
+                { "r|root=", "The repository root", value => repositoryDirectory = value },
+                { "c|configuration=", "Build configuration", value => configuration = value },
+                { "p|primary=", "Primary solution file name (which contains all projects)", value => primarySolution = value },
+            };
+
+            if (configuration != "Debug" && configuration != "Release")
+            {
+                Console.Error.WriteLine($"Invalid configuration: '{configuration}'");
+                return false;
             }
 
-            var allGood = true;
-            foreach (var arg in args)
+            try
             {
-                if (SharedUtil.IsSolutionFile(arg))
+                solutionFiles = options.Parse(args);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+                options.WriteOptionDescriptions(Console.Error);
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(repositoryDirectory))
+            {
+                repositoryDirectory = FindRepositoryRoot(
+                    (solutionFiles.Count > 0) ? Path.GetDirectoryName(solutionFiles[0]) : AppContext.BaseDirectory);
+
+                if (repositoryDirectory == null)
                 {
-                    allGood &= ProcessSolution(arg);
-                }
-                else if (string.Equals(Path.GetExtension(arg), ".buildlog", StringComparison.OrdinalIgnoreCase))
-                {
-                    allGood &= ProcessStructuredLog(arg);
-                }
-                else
-                {
-                    allGood &= ProcessTargets(arg);
+                    Console.Error.WriteLine("Unable to find repository root");
+                    return false;
                 }
             }
+
+            if (solutionFiles.Count == 0)
+            {
+                solutionFiles = Directory.EnumerateFiles(repositoryDirectory, "*.sln").ToList();
+            }
+
+            return Go(repositoryDirectory, configuration, primarySolution, solutionFiles);
+        }
+
+        private static string FindRepositoryRoot(string startDirectory)
+        {
+            string dir = startDirectory;
+            while (dir != null && !File.Exists(Path.Combine(dir, "global.json")))
+            {
+                dir = Path.GetDirectoryName(dir);
+            }
+
+            return dir;
+        }
+
+        private static bool Go(string repositoryDirectory, string configuration, string primarySolution, List<string> solutionFileNames)
+        {
+            var allGood = true;
+            foreach (var solutionFileName in solutionFileNames)
+            {
+                allGood &= ProcessSolution(Path.Combine(repositoryDirectory, solutionFileName), isPrimarySolution: solutionFileName == primarySolution);
+            }
+
+            var artifactsDirectory = Path.Combine(repositoryDirectory, "artifacts");
+
+            allGood &= ProcessTargets(repositoryDirectory);
+            allGood &= ProcessPackages(repositoryDirectory, artifactsDirectory, configuration);
+            allGood &= ProcessStructuredLog(artifactsDirectory, configuration);
 
             if (!allGood)
             {
                 Console.WriteLine("Failed");
             }
 
-            return allGood ? 0 : 1;
+            return allGood;
         }
 
         private static bool CheckCore(ICheckerUtil util, string title)
@@ -75,27 +123,30 @@ namespace BuildBoss
             }
         }
 
-        private static bool ProcessSolution(string solutionFilePath)
+        private static bool ProcessSolution(string solutionFilePath, bool isPrimarySolution)
         {
-            var util = new SolutionCheckerUtil(solutionFilePath);
+            var util = new SolutionCheckerUtil(solutionFilePath, isPrimarySolution);
             return CheckCore(util, $"Solution {solutionFilePath}");
         }
 
-        private static bool ProcessTargets(string targets)
+        private static bool ProcessTargets(string repositoryDirectory)
         {
-            var checker = new TargetsCheckerUtil(targets);
-            return CheckCore(checker, $"Targets {targets}");
+            var targetsDirectory = Path.Combine(repositoryDirectory, @"eng\targets");
+            var checker = new TargetsCheckerUtil(targetsDirectory);
+            return CheckCore(checker, $"Targets {targetsDirectory}");
         }
 
-        private static bool ProcessStructuredLog(string logFilePath)
+        private static bool ProcessStructuredLog(string artifactsDirectory, string configuration)
         {
+            var logFilePath = Path.Combine(artifactsDirectory, $@"log\{configuration}\Build.binlog");
             var util = new StructuredLoggerCheckerUtil(logFilePath);
             return CheckCore(util, $"Structured log {logFilePath}");
         }
 
-        private static void Usage()
+        private static bool ProcessPackages(string repositoryDirectory, string artifactsDirectory, string configuration)
         {
-            Console.WriteLine($"BuildBoss <solution paths>");
+            var util = new PackageContentsChecker(repositoryDirectory, artifactsDirectory, configuration);
+            return CheckCore(util, $"NuPkg and VSIX files");
         }
     }
 }

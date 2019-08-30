@@ -2212,8 +2212,6 @@ TryResync:
             Else
                 Return node
             End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitXmlCrefAttribute(node As XmlCrefAttributeSyntax) As VisualBasicSyntaxNode
@@ -2231,8 +2229,6 @@ TryResync:
             Else
                 Return node
             End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitXmlAttribute(node As XmlAttributeSyntax) As VisualBasicSyntaxNode
@@ -2250,8 +2246,6 @@ TryResync:
             Else
                 Return node
             End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitXmlBracketedName(node As XmlBracketedNameSyntax) As VisualBasicSyntaxNode
@@ -2278,8 +2272,6 @@ TryResync:
             Else
                 Return node
             End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitXmlName(node As XmlNameSyntax) As VisualBasicSyntaxNode

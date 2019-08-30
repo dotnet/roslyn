@@ -2,10 +2,13 @@
 
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -13,14 +16,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpBuild : AbstractIntegrationTest
     {
-        public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpBuild(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
             VisualStudio.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
             VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project("TestProj"), WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Build)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildProject()
         {
             var editorText = @"using System;
@@ -38,7 +46,7 @@ class Program
             // TODO: Validate build works as expected
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Build)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildWithCommandLine()
         {
             VisualStudio.SolutionExplorer.SaveAll();

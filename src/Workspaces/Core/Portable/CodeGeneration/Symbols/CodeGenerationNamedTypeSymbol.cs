@@ -57,13 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override SymbolKind Kind => SymbolKind.NamedType;
 
-        public override int Arity
-        {
-            get
-            {
-                return this.TypeParameters.Length;
-            }
-        }
+        public override int Arity => this.TypeParameters.Length;
 
         public override bool IsGenericType
         {
@@ -125,6 +119,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 return this.TypeParameters.As<ITypeSymbol>();
+            }
+        }
+
+        public override ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations
+        {
+            get
+            {
+                // TODO: what should this be?
+                return this.TypeParameters.SelectAsArray(t => NullableAnnotation.NotAnnotated);
             }
         }
 

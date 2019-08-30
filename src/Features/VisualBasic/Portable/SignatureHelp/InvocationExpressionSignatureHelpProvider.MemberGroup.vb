@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.Where(Function(m) m.IsStatic)
             End If
 
-            Dim accessibleMembers = memberGroup.Where(Function(m) m.IsAccessibleWithin(within, throughTypeOpt:=throughType)).ToList()
+            Dim accessibleMembers = memberGroup.Where(Function(m) m.IsAccessibleWithin(within, throughType:=throughType)).ToList()
             If accessibleMembers.Count = 0 Then
                 Return SpecializedCollections.EmptyEnumerable(Of SignatureHelpItem)()
             End If

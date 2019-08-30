@@ -11,8 +11,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Partial Friend Class PredefinedCastExpressionSignatureHelpProvider
         Inherits AbstractIntrinsicOperatorSignatureHelpProvider(Of PredefinedCastExpressionSyntax)
 
-        Protected Overrides Function GetIntrinsicOperatorDocumentation(node As PredefinedCastExpressionSyntax, document As Document, cancellationToken As CancellationToken) As IEnumerable(Of AbstractIntrinsicOperatorDocumentation)
-            Return SpecializedCollections.SingletonEnumerable(New PredefinedCastExpressionDocumentation(node.Keyword.Kind, document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)))
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
+        Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As PredefinedCastExpressionSyntax, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
+            Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))(GetIntrinsicOperatorDocumentationImplAsync(node, document, cancellationToken))
+        End Function
+
+        Private Async Function GetIntrinsicOperatorDocumentationImplAsync(node As PredefinedCastExpressionSyntax, document As Document, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
+            Return SpecializedCollections.SingletonEnumerable(New PredefinedCastExpressionDocumentation(node.Keyword.Kind, Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)))
         End Function
 
         Protected Overrides Function IsTriggerToken(token As SyntaxToken) As Boolean

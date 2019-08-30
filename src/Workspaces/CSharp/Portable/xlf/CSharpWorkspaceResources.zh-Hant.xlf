@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CSharpWorkspaceResources.resx">
     <body>
+      <trans-unit id="Code_block_preferences">
+        <source>Code-block preferences</source>
+        <target state="translated">程式碼區塊喜好設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_bodied_members">
+        <source>Expression-bodied members</source>
+        <target state="translated">運算式主體成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_preferences">
+        <source>Indentation preferences</source>
+        <target state="translated">縮排喜好設定</target>
+        <note />
+      </trans-unit>
       <trans-unit id="No_available_location_found_to_add_statements_to">
         <source>No available location found to add statements to.</source>
         <target state="translated">找不到能加入陳述式的可用位置。</target>
@@ -27,6 +42,21 @@
         <target state="translated">節點不在父代的子清單中</target>
         <note />
       </trans-unit>
+      <trans-unit id="Null_checking_preferences">
+        <source>Null-checking preferences</source>
+        <target state="translated">Null 檢查喜好設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pattern_matching_preferences">
+        <source>Pattern matching preferences</source>
+        <target state="translated">模式比對喜好設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Space_preferences">
+        <source>Space preferences</source>
+        <target state="translated">空格喜好設定</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trivia_is_not_associated_with_token">
         <source>Trivia is not associated with token</source>
         <target state="translated">Trivia 與語彙基元無關聯</target>
@@ -45,6 +75,21 @@
       <trans-unit id="Implement_Interface">
         <source>Implement Interface</source>
         <target state="translated">實作介面</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping_preferences">
+        <source>Wrapping preferences</source>
+        <target state="translated">換行喜好設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_directive_preferences">
+        <source>'using' directive preferences</source>
+        <target state="translated">'using' 指示詞的喜好設定</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="var_preferences">
+        <source>var preferences</source>
+        <target state="translated">var 喜好設定</target>
         <note />
       </trans-unit>
     </body>

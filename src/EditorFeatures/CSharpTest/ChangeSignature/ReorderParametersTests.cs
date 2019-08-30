@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,6 +10,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderLocalFunctionParametersAndArguments_OnDeclaration()
+        {
+            var markup = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        Goo(1, 2);
+        void $$Goo(int x, string y)
+        {
+        }
+    }
+}";
+            var permutation = new[] { 1, 0 };
+            var updatedCode = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        Goo(2, 1);
+        void Goo(string y, int x)
+        {
+        }
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderLocalFunctionParametersAndArguments_OnInvocation()
+        {
+            var markup = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        $$Goo(1, null);
+        void Goo(int x, string y)
+        {
+        }
+    }
+}";
+            var permutation = new[] { 1, 0 };
+            var updatedCode = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        Goo(null, 1);
+        void Goo(string y, int x)
+        {
+        }
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ReorderMethodParameters()
         {
@@ -181,7 +246,7 @@ public class C
 
 public static class CExt
 {
-    public static void $$M(this C goo, int x, int y, string a = ""test_a"", string b = ""test_b"", string c = ""test_c"")
+    public static void M(this $$C goo, int x, int y, string a = ""test_a"", string b = ""test_b"", string c = ""test_c"")
     { }
 }";
             var permutation = new[] { 0, 2, 1, 5, 4, 3 };
@@ -200,7 +265,10 @@ public static class CExt
     { }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            // Although the `ParameterConfig` has 0 for the `SelectedIndex`, the UI dialog will make an adjustment
+            // and select parameter `y` instead because the `this` parameter cannot be moved or removed.
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -217,7 +285,7 @@ public class C
 
 public static class CExt
 {
-    public static void $$M(this C goo, int x, int y, string a = ""test_a"", string b = ""test_b"", string c = ""test_c"")
+    public static void M(this C goo, int x$$, int y, string a = ""test_a"", string b = ""test_b"", string c = ""test_c"")
     { }
 }";
             var permutation = new[] { 0, 2, 1, 5, 4, 3 };
@@ -236,7 +304,8 @@ public static class CExt
     { }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -326,7 +395,8 @@ public static class CExt
     { }
 }";
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -366,7 +436,7 @@ class Program
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
-        
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ReorderParamTagsInDocComments_SingleLineDocComments_OnIndividualLines()
         {
@@ -738,7 +808,7 @@ class C
 class C
 {
     /// <summary>
-    /// See <see cref=""M( string,int)""/> and <see cref=""M""/>
+    /// See <see cref=""M(string, int)""/> and <see cref=""M""/>
     /// </summary>
     void M(string y, int x)
     { }

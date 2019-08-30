@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         protected abstract bool TryInitializeExplicitInterfaceState(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken identifierToken, out IPropertySymbol propertySymbol, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeIdentifierNameState(SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression, out bool isInExecutableBlock, out bool isinConditionalAccessExpression);
 
-        protected abstract bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, OptionSet options, SemanticModel semanticModel, CancellationToken cancellationToken,  out SyntaxNode newRoot);
+        protected abstract bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, OptionSet options, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot);
 
         public async Task<ImmutableArray<CodeAction>> GenerateVariableAsync(
             Document document,
@@ -49,29 +50,26 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken);
 
-                // prefer fields over properties (and vice versa) depending on the casing of the member.
-                // lowercase -> fields.  title case -> properties.
-                var name = state.IdentifierToken.ValueText;
-                if (char.IsUpper(name.ToCharArray().FirstOrDefault()))
+                if (canGenerateMember)
                 {
-                    if (canGenerateMember)
+                    // prefer fields over properties (and vice versa) depending on the casing of the member.
+                    // lowercase -> fields.  title case -> properties.
+                    var name = state.IdentifierToken.ValueText;
+                    if (char.IsUpper(name.ToCharArray().FirstOrDefault()))
                     {
                         AddPropertyCodeActions(actions, semanticDocument, state);
                         AddFieldCodeActions(actions, semanticDocument, state);
                     }
-
-                    AddLocalCodeActions(actions, document, state);
-                }
-                else
-                {
-                    if (canGenerateMember)
+                    else
                     {
+
                         AddFieldCodeActions(actions, semanticDocument, state);
                         AddPropertyCodeActions(actions, semanticDocument, state);
                     }
-
-                    AddLocalCodeActions(actions, document, state);
                 }
+
+                AddLocalCodeActions(actions, document, state);
+                AddParameterCodeActions(actions, document, state);
 
                 if (actions.Count > 1)
                 {
@@ -174,6 +172,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             if (state.CanGenerateLocal())
             {
                 result.Add(new GenerateLocalCodeAction((TService)this, document, state));
+            }
+        }
+
+        private void AddParameterCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
+        {
+            if (state.CanGenerateParameter())
+            {
+                result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: false));
+
+                if (AddParameterService.Instance.HasCascadingDeclarations(state.ContainingMethod))
+                    result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: true));
             }
         }
 

@@ -16,6 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
     Friend Class VisualBasicDeclaredSymbolInfoFactoryService
         Inherits AbstractDeclaredSymbolInfoFactoryService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Private Function GetInheritanceNames(stringTable As StringTable, typeBlock As TypeBlockSyntax) As ImmutableArray(Of String)
             Dim builder = ArrayBuilder(Of String).GetInstance()
 

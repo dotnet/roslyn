@@ -4384,7 +4384,7 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void OverriddingRefReadOnlyMembersWillOverwriteTheCorrectSlot()
+        public void OverridingRefReadOnlyMembersWillOverwriteTheCorrectSlot()
         {
             var text = @"
 class BaseClass

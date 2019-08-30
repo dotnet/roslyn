@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // adds token to end of current token array
-        private void AddToken(BlendedNode tokenResult)
+        private void AddToken(in BlendedNode tokenResult)
         {
             Debug.Assert(tokenResult.Token != null);
             if (_tokenCount >= _blendedTokens.Length)
@@ -438,6 +438,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             MoveToNextToken();
             return ct;
         }
+
+        /// <summary>
+        /// Returns and consumes the current token if it has the requested <paramref name="kind"/>.
+        /// Otherwise, returns <see langword="null"/>.
+        /// </summary>
+        protected SyntaxToken TryEatToken(SyntaxKind kind)
+            => this.CurrentToken.Kind == kind ? this.EatToken() : null;
 
         private void MoveToNextToken()
         {
@@ -1053,31 +1060,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             where TNode : GreenNode
         {
             LanguageVersion availableVersion = this.Options.LanguageVersion;
+            LanguageVersion requiredVersion = feature.RequiredVersion();
 
-            if (feature == MessageID.IDS_FeatureModuleAttrLoc)
+            // There are special error codes for some features, so handle those separately.
+            switch (feature)
             {
-                // There's a special error code for this feature, so handle it separately.
-                return availableVersion >= LanguageVersion.CSharp2
-                    ? node
-                    : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
+                case MessageID.IDS_FeatureModuleAttrLoc:
+                    return availableVersion >= LanguageVersion.CSharp2
+                        ? node
+                        : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
+
+                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
+                    return availableVersion >= requiredVersion
+                        ? node
+                        : this.AddError(node, ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable,
+                            new CSharpRequiredLanguageVersion(requiredVersion));
             }
 
-            if (IsFeatureEnabled(feature))
+            var info = feature.GetFeatureAvailabilityDiagnosticInfoOpt(this.Options);
+            if (info != null)
             {
-                return node;
+                if (forceWarning)
+                {
+                    return AddError(node, ErrorCode.WRN_ErrorOverride, info, (int)info.Code);
+                }
+
+                return AddError(node, info.Code, info.Arguments);
             }
 
-            var featureName = feature.Localize();
-            var requiredVersion = feature.RequiredVersion();
-
-            if (forceWarning)
-            {
-                SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName,
-                    new CSharpRequiredLanguageVersion(requiredVersion));
-                return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
-            }
-
-            return this.AddError(node, availableVersion.GetErrorCode(), featureName, new CSharpRequiredLanguageVersion(requiredVersion));
+            return node;
         }
 
         protected bool IsFeatureEnabled(MessageID feature)
@@ -1086,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Whenever parsing in a `while (true)` loop and a bug could prevent the loop from making progress,
+        /// Whenever parsing in a <c>while (true)</c> loop and a bug could prevent the loop from making progress,
         /// this method can prevent the parsing from hanging.
         /// Use as:
         ///     int tokenProgress = -1;

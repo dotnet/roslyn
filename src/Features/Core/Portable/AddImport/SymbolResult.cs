@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private struct SearchResult
+        private readonly struct SearchResult
         {
             public readonly IReadOnlyList<string> NameParts;
 
@@ -39,21 +39,21 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public bool DesiredNameDiffersFromSourceName()
             {
-                return !string.IsNullOrEmpty(this.DesiredName) &&
-                    this.NameNode != null &&
-                    this.NameNode.GetFirstToken().ValueText != this.DesiredName;
+                return !string.IsNullOrEmpty(DesiredName) &&
+                    NameNode != null &&
+                    NameNode.GetFirstToken().ValueText != DesiredName;
             }
 
             public bool DesiredNameDiffersFromSourceNameOnlyByCase()
             {
                 Debug.Assert(DesiredNameDiffersFromSourceName());
                 return StringComparer.OrdinalIgnoreCase.Equals(
-                    this.NameNode.GetFirstToken().ValueText, this.DesiredName);
+                    NameNode.GetFirstToken().ValueText, DesiredName);
             }
 
             public bool DesiredNameMatchesSourceName(Document document)
             {
-                if (!this.DesiredNameDiffersFromSourceName())
+                if (!DesiredNameDiffersFromSourceName())
                 {
                     // Names match in any language.
                     return true;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 // Names differ.  But in a case insensitive language they may match.
                 if (!syntaxFacts.IsCaseSensitive &&
-                    this.DesiredNameDiffersFromSourceNameOnlyByCase())
+                    DesiredNameDiffersFromSourceNameOnlyByCase())
                 {
                     return true;
                 }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
         }
 
-        private struct SymbolResult<T> where T : ISymbol
+        private readonly struct SymbolResult<T> where T : ISymbol
         {
             // The symbol that matched the string being searched for.
             public readonly T Symbol;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public SymbolResult<T2> WithSymbol<T2>(T2 symbol) where T2 : ISymbol
             {
-                return new SymbolResult<T2>(DesiredName, NameNode, symbol, this.Weight);
+                return new SymbolResult<T2>(DesiredName, NameNode, symbol, Weight);
             }
 
             internal SymbolResult<T> WithDesiredName(string desiredName)

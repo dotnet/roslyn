@@ -68,20 +68,20 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IEnumerable<SymbolDisplayPart> suffixDisplayParts = null,
             IEnumerable<SymbolDisplayPart> selectedDisplayParts = null)
         {
-            this.Name = name ?? string.Empty;
-            this.IsOptional = isOptional;
-            this.DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
-            this.DisplayParts = displayParts.ToImmutableArrayOrEmpty();
-            this.PrefixDisplayParts = prefixDisplayParts.ToImmutableArrayOrEmpty();
-            this.SuffixDisplayParts = suffixDisplayParts.ToImmutableArrayOrEmpty();
-            this.SelectedDisplayParts = selectedDisplayParts.ToImmutableArrayOrEmpty();
+            Name = name ?? string.Empty;
+            IsOptional = isOptional;
+            DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
+            DisplayParts = displayParts.ToImmutableArrayOrEmpty();
+            PrefixDisplayParts = prefixDisplayParts.ToImmutableArrayOrEmpty();
+            SuffixDisplayParts = suffixDisplayParts.ToImmutableArrayOrEmpty();
+            SelectedDisplayParts = selectedDisplayParts.ToImmutableArrayOrEmpty();
         }
 
         internal IEnumerable<SymbolDisplayPart> GetAllParts()
         {
-            return this.PrefixDisplayParts.Concat(this.DisplayParts)
-                                          .Concat(this.SuffixDisplayParts)
-                                          .Concat(this.SelectedDisplayParts);
+            return PrefixDisplayParts.Concat(DisplayParts)
+                                          .Concat(SuffixDisplayParts)
+                                          .Concat(SelectedDisplayParts);
         }
 
         public static explicit operator SignatureHelpParameter(SignatureHelpSymbolParameter parameter)
@@ -166,20 +166,28 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IEnumerable<TaggedText> suffixDisplayParts = null,
             IEnumerable<TaggedText> selectedDisplayParts = null)
         {
-            this.Name = name ?? string.Empty;
-            this.IsOptional = isOptional;
-            this.DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
-            this.DisplayParts = displayParts.ToImmutableArrayOrEmpty();
-            this.PrefixDisplayParts = prefixDisplayParts.ToImmutableArrayOrEmpty();
-            this.SuffixDisplayParts = suffixDisplayParts.ToImmutableArrayOrEmpty();
-            this.SelectedDisplayParts = selectedDisplayParts.ToImmutableArrayOrEmpty();
+            Name = name ?? string.Empty;
+            IsOptional = isOptional;
+            DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
+            DisplayParts = displayParts.ToImmutableArrayOrEmpty();
+            PrefixDisplayParts = prefixDisplayParts.ToImmutableArrayOrEmpty();
+            SuffixDisplayParts = suffixDisplayParts.ToImmutableArrayOrEmpty();
+            SelectedDisplayParts = selectedDisplayParts.ToImmutableArrayOrEmpty();
         }
 
         internal IEnumerable<TaggedText> GetAllParts()
         {
-            return this.PrefixDisplayParts.Concat(this.DisplayParts)
-                                          .Concat(this.SuffixDisplayParts)
-                                          .Concat(this.SelectedDisplayParts);
+            return PrefixDisplayParts.Concat(DisplayParts)
+                                          .Concat(SuffixDisplayParts)
+                                          .Concat(SelectedDisplayParts);
+        }
+
+        public override string ToString()
+        {
+            var prefix = string.Concat(PrefixDisplayParts);
+            var display = string.Concat(DisplayParts);
+            var suffix = string.Concat(SuffixDisplayParts);
+            return string.Concat(prefix, display, suffix);
         }
     }
 }

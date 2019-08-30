@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
@@ -411,5 +412,304 @@ class C
     public ReadOnly Property T As String
 end class")
         End Function
+
+        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeFieldWithParameterNameSelected1() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    private s As String
+
+    public sub new([|s|] As String)
+
+    end sub
+end class",
+"
+class C
+    private s As String
+
+    public sub new(s As String)
+        Me.s = s
+    end sub
+end class")
+        End Function
+
+        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeFieldWithParameterNameSelected2() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    private s As String
+
+    public sub new(i as integer, [|s|] As String)
+
+    end sub
+end class",
+"
+class C
+    private s As String
+
+    public sub new(i as integer, s As String)
+        Me.s = s
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeClassProperty_RequiredAccessibilityOmitIfDefault() As Task
+            Await TestInRegularAndScript1Async("
+Class C
+    ReadOnly test As Integer = 5
+
+    Public Sub New(ByVal test As Integer, ByVal [|test2|] As Integer)
+    End Sub
+End Class
+", "
+Class C
+    ReadOnly test As Integer = 5
+
+    Public Sub New(ByVal test As Integer, ByVal test2 As Integer)
+        Me.Test2 = test2
+    End Sub
+
+    ReadOnly Property Test2 As Integer
+End Class
+", index:=0, parameters:=OmitIfDefault_Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeClassProperty_RequiredAccessibilityNever() As Task
+            Await TestInRegularAndScript1Async("
+Class C
+    ReadOnly test As Integer = 5
+
+    Public Sub New(ByVal test As Integer, ByVal [|test2|] As Integer)
+    End Sub
+End Class
+", "
+Class C
+    ReadOnly test As Integer = 5
+
+    Public Sub New(ByVal test As Integer, ByVal test2 As Integer)
+        Me.Test2 = test2
+    End Sub
+
+    ReadOnly Property Test2 As Integer
+End Class
+", index:=0, parameters:=Never_Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeClassProperty_RequiredAccessibilityAlways() As Task
+            Await TestInRegularAndScript1Async("
+Class C
+    ReadOnly test As Integer = 5
+
+    Public Sub New(ByVal test As Integer, ByVal [|test2|] As Integer)
+    End Sub
+End Class
+", "
+Class C
+    ReadOnly test As Integer = 5
+
+    Public Sub New(ByVal test As Integer, ByVal test2 As Integer)
+        Me.Test2 = test2
+    End Sub
+
+    Public ReadOnly Property Test2 As Integer
+End Class
+", index:=0, parameters:=Always_Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeClassField_RequiredAccessibilityOmitIfDefault() As Task
+            Await TestInRegularAndScript1Async("
+Class C
+    ReadOnly test As Integer = 5
+
+    Public Sub New(ByVal test As Integer, ByVal [|test2|] As Integer)
+    End Sub
+End Class
+", "
+Class C
+    ReadOnly test2 As Integer
+    ReadOnly test As Integer = 5
+
+    Public Sub New(ByVal test As Integer, ByVal test2 As Integer)
+        Me.test2 = test2
+    End Sub
+End Class
+", index:=1, parameters:=OmitIfDefault_Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeClassField_RequiredAccessibilityNever() As Task
+            Await TestInRegularAndScript1Async("
+Class C
+    ReadOnly test As Integer = 5
+
+    Public Sub New(ByVal test As Integer, ByVal [|test2|] As Integer)
+    End Sub
+End Class
+", "
+Class C
+    ReadOnly test2 As Integer
+    ReadOnly test As Integer = 5
+
+    Public Sub New(ByVal test As Integer, ByVal test2 As Integer)
+        Me.test2 = test2
+    End Sub
+End Class
+", index:=1, parameters:=Never_Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeClassField_RequiredAccessibilityAlways() As Task
+            Await TestInRegularAndScript1Async("
+Class C
+    ReadOnly test As Integer = 5
+
+    Public Sub New(ByVal test As Integer, ByVal [|test2|] As Integer)
+    End Sub
+End Class
+", "
+Class C
+    ReadOnly test As Integer = 5
+    Private ReadOnly test2 As Integer
+
+    Public Sub New(ByVal test As Integer, ByVal test2 As Integer)
+        Me.test2 = test2
+    End Sub
+End Class
+", index:=1, parameters:=Always_Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeStructProperty_RequiredAccessibilityOmitIfDefault() As Task
+            Await TestInRegularAndScript1Async("
+Structure S
+    Public Sub New(ByVal [|test|] As Integer)
+    End Sub
+End Structure
+", "
+Structure S
+    Public Sub New(ByVal test As Integer)
+        Me.Test = test
+    End Sub
+
+    ReadOnly Property Test As Integer
+End Structure
+", index:=0, parameters:=OmitIfDefault_Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeStructProperty_RequiredAccessibilityNever() As Task
+            Await TestInRegularAndScript1Async("
+Structure S
+    Public Sub New(ByVal [|test|] As Integer)
+    End Sub
+End Structure
+", "
+Structure S
+    Public Sub New(ByVal test As Integer)
+        Me.Test = test
+    End Sub
+
+    ReadOnly Property Test As Integer
+End Structure
+", index:=0, parameters:=Never_Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeStructProperty_RequiredAccessibilityAlways() As Task
+            Await TestInRegularAndScript1Async("
+Structure S
+    Public Sub New(ByVal [|test|] As Integer)
+    End Sub
+End Structure
+", "
+Structure S
+    Public Sub New(ByVal test As Integer)
+        Me.Test = test
+    End Sub
+
+    Public ReadOnly Property Test As Integer
+End Structure
+", index:=0, parameters:=Always_Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeStructField_RequiredAccessibilityOmitIfDefault() As Task
+            Await TestInRegularAndScript1Async("
+Structure S
+    Public Sub New(ByVal [|test|] As Integer)
+    End Sub
+End Structure
+", "
+Structure S
+    Private ReadOnly test As Integer
+
+    Public Sub New(ByVal test As Integer)
+        Me.test = test
+    End Sub
+End Structure
+", index:=1, parameters:=OmitIfDefault_Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeStructField_RequiredAccessibilityNever() As Task
+            Await TestInRegularAndScript1Async("
+Structure S
+    Public Sub New(ByVal [|test|] As Integer)
+    End Sub
+End Structure
+", "
+Structure S
+    Private ReadOnly test As Integer
+
+    Public Sub New(ByVal test As Integer)
+        Me.test = test
+    End Sub
+End Structure
+", index:=1, parameters:=Never_Warning)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestInitializeStructField_RequiredAccessibilityAlways() As Task
+            Await TestInRegularAndScript1Async("
+Structure S
+    Public Sub New(ByVal [|test|] As Integer)
+    End Sub
+End Structure
+", "
+Structure S
+    Private ReadOnly test As Integer
+
+    Public Sub New(ByVal test As Integer)
+        Me.test = test
+    End Sub
+End Structure
+", index:=1, parameters:=Always_Warning)
+        End Function
+
+        Private ReadOnly Property OmitIfDefault_Warning As TestParameters
+            Get
+                Return New TestParameters(options:=[Option](CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning))
+            End Get
+        End Property
+
+        Private ReadOnly Property Never_Warning As TestParameters
+            Get
+                Return New TestParameters(options:=[Option](CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning))
+            End Get
+        End Property
+
+        Private ReadOnly Property Always_Warning As TestParameters
+            Get
+                Return New TestParameters(options:=[Option](CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning))
+            End Get
+        End Property
     End Class
 End Namespace

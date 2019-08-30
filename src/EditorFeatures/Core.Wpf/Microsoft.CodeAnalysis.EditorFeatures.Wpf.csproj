@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for WPF-dependent editor features inside the Visual Studio editor.
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj">
+      <Aliases>InteractiveHost</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
+      <Aliases>global,Scripting</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
+    <ProjectReference Include="..\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.CodingConventions" Version="$(MicrosoftVisualStudioCodingConventionsVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
+    <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="EditorFeaturesWpfResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>EditorFeaturesWpfResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="InlineRename\Dashboard\Dashboard.xaml.cs">
+      <DependentUpon>Dashboard.xaml</DependentUpon>
+    </Compile>
+    <Page Include="InlineRename\Dashboard\Colors.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="InlineRename\Dashboard\Dashboard.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Resource Include="InlineRename\Dashboard\Images\ErrorIcon.png" />
+    <Resource Include="InlineRename\Dashboard\Images\InfoIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="InlineRename\Dashboard\Dashboard.xaml.cs">
+      <DependentUpon>Dashboard.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Interactive\InteractiveEditorFeaturesResources.Designer.cs">
+      <DependentUpon>InteractiveEditorFeaturesResources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="EditorFeaturesWpfResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>EditorFeaturesWpfResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Interactive\InteractiveEditorFeaturesResources.resx">
+      <LastGenOutput>InteractiveEditorFeaturesResources.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

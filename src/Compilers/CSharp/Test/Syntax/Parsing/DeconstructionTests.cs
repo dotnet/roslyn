@@ -2720,12 +2720,9 @@ class C
                                     N(SyntaxKind.IdentifierToken, "e");
                                 }
                                 N(SyntaxKind.IsKeyword);
-                                N(SyntaxKind.DeclarationPattern);
+                                N(SyntaxKind.VarPattern);
                                 {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "var");
-                                    }
+                                    N(SyntaxKind.VarKeyword, "var");
                                     N(SyntaxKind.DiscardDesignation);
                                     {
                                         N(SyntaxKind.UnderscoreToken);
@@ -2848,12 +2845,9 @@ class C
                                 N(SyntaxKind.CasePatternSwitchLabel);
                                 {
                                     N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.DeclarationPattern);
+                                    N(SyntaxKind.VarPattern);
                                     {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "var");
-                                        }
+                                        N(SyntaxKind.VarKeyword, "var");
                                         N(SyntaxKind.DiscardDesignation);
                                         {
                                             N(SyntaxKind.UnderscoreToken);

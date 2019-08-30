@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                 {
                     if (designerAttribute == null)
                     {
-                        compilation = compilation ?? await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                        compilation ??= await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                         designerAttribute = compilation.DesignerCategoryAttributeType();
                         if (designerAttribute == null)
@@ -93,8 +93,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
                     }
 
-                    var definedType = model.GetDeclaredSymbol(typeNode, cancellationToken) as INamedTypeSymbol;
-                    if (definedType == null)
+                    if (!(model.GetDeclaredSymbol(typeNode, cancellationToken) is INamedTypeSymbol definedType))
                     {
                         continue;
                     }

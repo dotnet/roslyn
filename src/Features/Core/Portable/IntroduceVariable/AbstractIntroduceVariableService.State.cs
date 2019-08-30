@@ -2,7 +2,9 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -10,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax>
+    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
     {
         private partial class State
         {
@@ -34,17 +36,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             public State(TService service, SemanticDocument document)
             {
                 _service = service;
-                this.Document = document;
+                Document = document;
             }
 
-            public static State Generate(
+            public async static Task<State> GenerateAsync(
                 TService service,
                 SemanticDocument document,
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
                 var state = new State(service, document);
-                if (!state.TryInitialize(textSpan, cancellationToken))
+                if (!await state.TryInitializeAsync(document, textSpan, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -52,7 +54,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return state;
             }
 
-            private bool TryInitialize(
+            private async Task<bool> TryInitializeAsync(
+                SemanticDocument document,
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
@@ -61,33 +64,36 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                var tree = this.Document.SyntaxTree;
-                var syntaxFacts = this.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-
-                this.Expression = this.GetExpressionUnderSpan(tree, textSpan, cancellationToken);
-                if (this.Expression == null)
+                Expression = await document.Document.TryGetRelevantNodeAsync<TExpressionSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
+                if (Expression == null || CodeRefactoringHelpers.IsNodeUnderselected(Expression, textSpan))
                 {
                     return false;
                 }
 
-                var containingType = this.Expression.AncestorsAndSelf()
-                    .Select(n => this.Document.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
+                var expressionType = Document.SemanticModel.GetTypeInfo(Expression, cancellationToken).Type;
+                if (expressionType is IErrorTypeSymbol)
+                {
+                    return false;
+                }
+
+                var containingType = Expression.AncestorsAndSelf()
+                    .Select(n => Document.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
                     .OfType<INamedTypeSymbol>()
                     .FirstOrDefault();
 
-                containingType = containingType ?? this.Document.SemanticModel.Compilation.ScriptClass;
+                containingType ??= Document.SemanticModel.Compilation.ScriptClass;
 
                 if (containingType == null || containingType.TypeKind == TypeKind.Interface)
                 {
                     return false;
                 }
 
-                if (!CanIntroduceVariable(cancellationToken))
+                if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
                 {
                     return false;
                 }
 
-                this.IsConstant = this.Document.SemanticModel.GetConstantValue(this.Expression, cancellationToken).HasValue;
+                IsConstant = Document.SemanticModel.GetConstantValue(Expression, cancellationToken).HasValue;
 
                 // Note: the ordering of these clauses are important.  They go, generally, from 
                 // innermost to outermost order.  
@@ -95,7 +101,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 {
                     if (CanGenerateInto<TQueryExpressionSyntax>(cancellationToken))
                     {
-                        this.InQueryContext = true;
+                        InQueryContext = true;
                         return true;
                     }
 
@@ -106,14 +112,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 {
                     if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
                     {
-                        this.InConstructorInitializerContext = true;
+                        InConstructorInitializerContext = true;
                         return true;
                     }
 
                     return false;
                 }
 
-                var enclosingBlocks = _service.GetContainingExecutableBlocks(this.Expression);
+                var enclosingBlocks = _service.GetContainingExecutableBlocks(Expression);
                 if (enclosingBlocks.Any())
                 {
                     // If we're inside a block, then don't even try the other options (like field,
@@ -122,7 +128,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     // a local, and not a field.
                     if (IsInBlockContext(cancellationToken))
                     {
-                        this.InBlockContext = true;
+                        InBlockContext = true;
                         return true;
                     }
 
@@ -133,22 +139,22 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                 // If we are inside a block within an Expression bodied member we should generate inside the block, 
                 // instead of rewriting a concise expression bodied member to its equivalent that has a body with a block.
-                if (_service.IsInExpressionBodiedMember(this.Expression))
+                if (_service.IsInExpressionBodiedMember(Expression))
                 {
                     if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
                     {
-                        this.InExpressionBodiedMemberContext = true;
+                        InExpressionBodiedMemberContext = true;
                         return true;
                     }
 
                     return false;
                 }
 
-                if (_service.IsInAutoPropertyInitializer(this.Expression))
+                if (_service.IsInAutoPropertyInitializer(Expression))
                 {
                     if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
                     {
-                        this.InAutoPropertyInitializerContext = true;
+                        InAutoPropertyInitializerContext = true;
                         return true;
                     }
 
@@ -159,17 +165,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 {
                     if (IsInParameterContext(cancellationToken))
                     {
-                        this.InParameterContext = true;
+                        InParameterContext = true;
                         return true;
                     }
                     else if (IsInFieldContext(cancellationToken))
                     {
-                        this.InFieldContext = true;
+                        InFieldContext = true;
                         return true;
                     }
-                    else if (IsInAttributeContext(cancellationToken))
+                    else if (IsInAttributeContext())
                     {
-                        this.InAttributeContext = true;
+                        InAttributeContext = true;
                         return true;
                     }
                 }
@@ -179,65 +185,28 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             public SemanticMap GetSemanticMap(CancellationToken cancellationToken)
             {
-                _semanticMap = _semanticMap ?? this.Document.SemanticModel.GetSemanticMap(this.Expression, cancellationToken);
+                _semanticMap ??= Document.SemanticModel.GetSemanticMap(Expression, cancellationToken);
                 return _semanticMap;
             }
 
-            private TExpressionSyntax GetExpressionUnderSpan(SyntaxTree tree, TextSpan textSpan, CancellationToken cancellationToken)
-            {
-                var root = tree.GetRoot(cancellationToken);
-                if (textSpan.Length == 0)
-                {
-                    return root.FindToken(textSpan.Start).Parent as TExpressionSyntax;
-                }
-
-                var startToken = root.FindToken(textSpan.Start);
-                var stopToken = root.FindToken(textSpan.End);
-
-                if (textSpan.End <= stopToken.SpanStart)
-                {
-                    stopToken = stopToken.GetPreviousToken(includeSkipped: true);
-                }
-
-                if (startToken.RawKind == 0 || stopToken.RawKind == 0)
-                {
-                    return null;
-                }
-
-                var containingExpressions1 = startToken.GetAncestors<TExpressionSyntax>().ToList();
-                var containingExpressions2 = stopToken.GetAncestors<TExpressionSyntax>().ToList();
-
-                var commonExpression = containingExpressions1.FirstOrDefault(containingExpressions2.Contains);
-                if (commonExpression == null)
-                {
-                    return null;
-                }
-
-                if (!(textSpan.Start >= commonExpression.FullSpan.Start &&
-                      textSpan.Start <= commonExpression.SpanStart))
-                {
-                    return null;
-                }
-
-                if (!(textSpan.End >= commonExpression.Span.End &&
-                      textSpan.End <= commonExpression.FullSpan.End))
-                {
-                    return null;
-                }
-
-                return commonExpression;
-            }
-
             private bool CanIntroduceVariable(
+                bool isSpanEmpty,
                 CancellationToken cancellationToken)
             {
-                if (!_service.CanIntroduceVariableFor(this.Expression))
+                if (!_service.CanIntroduceVariableFor(Expression))
                 {
                     return false;
                 }
 
-                if (this.Expression is TTypeSyntax)
+                if (isSpanEmpty && Expression is TNameSyntax)
                 {
+                    // to extract a name, you must have a selection (this avoids making the refactoring too noisy)
+                    return false;
+                }
+
+                if (Expression is TTypeSyntax && !(Expression is TNameSyntax))
+                {
+                    // name syntax can introduce variables, but not other type syntaxes
                     return false;
                 }
 
@@ -249,31 +218,31 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 //
                 // In essence, this says "i can be replaced with an expression as long as I'm not being
                 // written to".
-                var semanticFacts = this.Document.Project.LanguageServices.GetService<ISemanticFactsService>();
-                return semanticFacts.CanReplaceWithRValue(this.Document.SemanticModel, this.Expression, cancellationToken);
+                var semanticFacts = Document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                return semanticFacts.CanReplaceWithRValue(Document.SemanticModel, Expression, cancellationToken);
             }
 
             private bool CanGenerateInto<TSyntax>(CancellationToken cancellationToken)
                 where TSyntax : SyntaxNode
             {
-                if (this.Document.SemanticModel.Compilation.ScriptClass != null)
+                if (Document.SemanticModel.Compilation.ScriptClass != null)
                 {
                     return true;
                 }
 
-                var syntax = this.Expression.GetAncestor<TSyntax>();
+                var syntax = Expression.GetAncestor<TSyntax>();
                 return syntax != null && !syntax.OverlapsHiddenPosition(cancellationToken);
             }
 
             private bool IsInTypeDeclarationOrValidCompilationUnit()
             {
-                if (this.Expression.GetAncestorOrThis<TTypeDeclarationSyntax>() != null)
+                if (Expression.GetAncestorOrThis<TTypeDeclarationSyntax>() != null)
                 {
                     return true;
                 }
 
                 // If we're interactive/script, we can generate into the compilation unit.
-                if (this.Document.Document.SourceCodeKind != SourceCodeKind.Regular)
+                if (Document.Document.SourceCodeKind != SourceCodeKind.Regular)
                 {
                     return true;
                 }

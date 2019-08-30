@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim within = context.SemanticModel.GetEnclosingNamedType(position, cancellationToken)
-            Dim completionListType = GetCompletionListType(inferredType, within, context.SemanticModel.Compilation)
+            Dim completionListType = GetCompletionListType(inferredType, within, context.SemanticModel.Compilation, cancellationToken)
 
             If completionListType Is Nothing Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
@@ -49,8 +49,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
         End Function
 
-        Private Function GetCompletionListType(inferredType As ITypeSymbol, within As INamedTypeSymbol, compilation As Compilation) As ITypeSymbol
-            Dim documentation = inferredType.GetDocumentationComment()
+        Private Function GetCompletionListType(inferredType As ITypeSymbol, within As INamedTypeSymbol, compilation As Compilation, cancellationToken As CancellationToken) As ITypeSymbol
+            Dim documentation = inferredType.GetDocumentationComment(compilation, expandIncludes:=True, expandInheritdoc:=True, cancellationToken:=cancellationToken)
             If documentation.CompletionListCref IsNot Nothing Then
                 Dim crefType = DocumentationCommentId.GetSymbolsForDeclarationId(documentation.CompletionListCref, compilation) _
                                     .OfType(Of INamedTypeSymbol) _
@@ -64,15 +64,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
             Dim displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithKindOptions(SymbolDisplayKindOptions.None)
             Dim text = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, displayFormat)
-            Return (text, text)
+            Return (text, "", text)
         End Function
 
-        Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+        Protected Overrides Function CreateItem(
+                displayText As String, displayTextSuffix As String, insertionText As String,
+                symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
             Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
+                displayTextSuffix:=displayTextSuffix,
                 insertionText:=insertionText,
                 filterText:=GetFilterText(symbols(0), displayText, context),
                 symbols:=symbols,

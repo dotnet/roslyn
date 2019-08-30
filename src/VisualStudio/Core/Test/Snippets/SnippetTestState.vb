@@ -5,87 +5,88 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
-Imports Microsoft.CodeAnalysis.Editor.Commands
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Editor
+Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.BraceCompletion
-Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.TextManager.Interop
+Imports Microsoft.VisualStudio.Utilities
 Imports Moq
 Imports MSXML
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Friend NotInheritable Class SnippetTestState
         Inherits AbstractCommandHandlerTestState
-        Implements IIntelliSenseTestState
 
-        Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
-            MyBase.New(workspaceElement, extraParts:=CreatePartCatalog(extraParts), workspaceKind:=workspaceKind)
+        Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), excludedTypes As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
+            ' Remove the default completion presenters to prevent them from conflicting with the test one
+            ' that we are adding.
+            MyBase.New(workspaceElement,
+                       extraParts:=CreatePartCatalog(extraParts),
+                       workspaceKind:=workspaceKind,
+                       excludedTypes:={GetType(IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession))}.Concat(If(excludedTypes, {})).ToList())
 
             Workspace.Options = Workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)
+
+            Dim featureServiceFactory = GetExportedValue(Of IFeatureServiceFactory)()
+            featureServiceFactory.GlobalFeatureService.Disable(PredefinedEditorFeatureNames.AsyncCompletion, EmptyFeatureController.Instance)
+
+            SessionTestState = Workspace.GetService(Of IIntelliSenseTestState)
 
             Dim mockEditorAdaptersFactoryService = New Mock(Of IVsEditorAdaptersFactoryService)
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
-                DirectCast(New CSharp.Snippets.SnippetCommandHandler(mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object), AbstractSnippetCommandHandler),
-                New VisualBasic.Snippets.SnippetCommandHandler(mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object))
+                DirectCast(New CSharp.Snippets.SnippetCommandHandler(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object), AbstractSnippetCommandHandler),
+                New VisualBasic.Snippets.SnippetCommandHandler(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object))
 
             If languageName = LanguageNames.VisualBasic Then
-                Dim snippetProvider As CompletionProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
+                Dim snippetProvider As CompletionProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), Nothing)
 
                 Dim completionService = DirectCast(Workspace.Services.GetLanguageServices(languageName).GetService(Of CompletionService), CommonCompletionService)
                 completionService.SetTestProviders({snippetProvider})
 
-                Dim asyncCompletionService = New AsyncCompletionService(
-                    GetService(Of IEditorOperationsFactoryService)(),
-                    UndoHistoryRegistry,
-                    GetService(Of IInlineRenameService)(),
-                    GetExportedValue(Of IAsynchronousOperationListenerProvider)(),
-                    New TestCompletionPresenter(Me),
-                    GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
-
-                Dim CompletionCommandHandler = New CompletionCommandHandler(asyncCompletionService)
-
-                Me._completionCommandHandler = CompletionCommandHandler
+                _completionCommandHandler = Workspace.GetService(Of CompletionCommandHandler)
             End If
 
-            SnippetExpansionClient = New MockSnippetExpansionClient(startActiveSession)
+            SnippetExpansionClient = New MockSnippetExpansionClient(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), startActiveSession)
             TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
+        End Sub
+
+        Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
+            Me.New(workspaceElement, languageName, startActiveSession, extraParts, excludedTypes:=Enumerable.Empty(Of Type), workspaceKind)
         End Sub
 
         Public ReadOnly SnippetCommandHandler As AbstractSnippetCommandHandler
         Private ReadOnly _completionCommandHandler As CompletionCommandHandler
         Private _currentCompletionPresenterSession As TestCompletionPresenterSession
+        Private ReadOnly SessionTestState As IIntelliSenseTestState
+
         Public Property SnippetExpansionClient As MockSnippetExpansionClient
 
         Private Shared Function CreatePartCatalog(types As IEnumerable(Of Type)) As ComposableCatalog
-            Return MinimalTestExportProvider.CreateTypeCatalog(types)
+            Return ExportProviderCache.CreateTypeCatalog(types).WithParts(GetType(TestCompletionPresenter), GetType(IntelliSenseTestState))
         End Function
 
-        Public Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
+        Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
             Get
-                Return _currentCompletionPresenterSession
+                Return SessionTestState.CurrentSignatureHelpPresenterSession
             End Get
-            Set(value As TestCompletionPresenterSession)
-                _currentCompletionPresenterSession = value
-            End Set
         End Property
 
-        Public Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession Implements IIntelliSenseTestState.CurrentSignatureHelpPresenterSession
+        Friend ReadOnly Property CurrentCompletionPresenterSession As TestCompletionPresenterSession
             Get
-                Throw New NotImplementedException()
+                Return SessionTestState.CurrentCompletionPresenterSession
             End Get
-            Set(value As TestSignatureHelpPresenterSession)
-                Throw New NotImplementedException()
-            End Set
         End Property
 
         Public Shared Function CreateTestState(markup As String, languageName As String, Optional startActiveSession As Boolean = False, Optional extraParts As IEnumerable(Of Type) = Nothing) As SnippetTestState
@@ -96,7 +97,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                                    </Project>
                                </Workspace>
 
-            Return New SnippetTestState(workspaceXml, languageName, startActiveSession, extraParts)
+            Return New SnippetTestState(workspaceXml, languageName, startActiveSession, extraParts, excludedTypes:=New List(Of Type) From {GetType(CommitConnectionListener)})
         End Function
 
         Public Shared Function CreateSubmissionTestState(markup As String, languageName As String, Optional startActiveSession As Boolean = False, Optional extraParts As IEnumerable(Of Type) = Nothing) As SnippetTestState
@@ -113,29 +114,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         End Function
 
         Friend Overloads Sub SendTabToCompletion()
-            Dim handler = DirectCast(_completionCommandHandler, ICommandHandler(Of TabKeyCommandArgs))
+            Dim handler = DirectCast(_completionCommandHandler, IChainedCommandHandler(Of TabKeyCommandArgs))
 
             SendTab(AddressOf handler.ExecuteCommand, AddressOf SendTab)
         End Sub
 
         Friend Overloads Sub SendTab()
-            SendTab(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("    "))
+            If Not SendTab(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.InsertText("    ")
+            End If
         End Sub
 
         Friend Overloads Sub SendBackTab()
-            SendBackTab(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.Unindent())
+            If Not SendBackTab(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.Unindent()
+            End If
         End Sub
 
         Friend Overloads Sub SendReturn()
-            SendReturn(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertNewLine())
+            If Not SendReturn(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.InsertNewLine()
+            End If
         End Sub
 
         Friend Overloads Sub SendEscape()
-            SendEscape(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("EscapePassedThrough!"))
+            If Not SendEscape(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.InsertText("EscapePassedThrough!")
+            End If
         End Sub
 
         Public Overloads Sub SendTypeChars(typeChars As String)
-            Dim handler = DirectCast(_completionCommandHandler, ICommandHandler(Of TypeCharCommandArgs))
+            Dim handler = DirectCast(_completionCommandHandler, IChainedCommandHandler(Of TypeCharCommandArgs))
             MyBase.SendTypeChars(typeChars, AddressOf handler.ExecuteCommand)
         End Sub
 
@@ -153,8 +162,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             Private _startActiveSession As Boolean
 
-            Public Sub New(startActiveSession As Boolean)
-                MyBase.New(Nothing, Nothing, Nothing, Nothing)
+            Public Sub New(threadingContext As IThreadingContext, startActiveSession As Boolean)
+                MyBase.New(threadingContext, Nothing, Nothing, Nothing, Nothing)
 
                 If startActiveSession Then
                     TryHandleTabReturnValue = True

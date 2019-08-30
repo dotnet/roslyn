@@ -3,7 +3,6 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -18,13 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private NamingStyleOptionPageControl _grid;
         private INotificationService _notificationService;
 
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             _notificationService = workspace.Services.GetService<INotificationService>();
 
-            _grid = new NamingStyleOptionPageControl(serviceProvider, _notificationService, LanguageNames.CSharp);
+            _grid = new NamingStyleOptionPageControl(optionStore, _notificationService, LanguageNames.CSharp);
             return _grid;
         }
 

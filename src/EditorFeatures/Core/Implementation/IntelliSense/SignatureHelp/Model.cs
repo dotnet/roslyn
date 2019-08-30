@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         public TextSpan TextSpan { get; }
         public IList<SignatureHelpItem> Items { get; }
         public SignatureHelpItem SelectedItem { get; }
+
+        /// <summary>UserSelected is true if the SelectedItem is the result of a user selection (up/down arrows).</summary>
+        public bool UserSelected { get; }
         public int ArgumentIndex { get; }
         public int ArgumentCount { get; }
         public string ArgumentName { get; }
@@ -31,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             int argumentIndex,
             int argumentCount,
             string argumentName,
-            int? selectedParameter)
+            int? selectedParameter,
+            bool userSelected)
         {
             Contract.ThrowIfNull(selectedItem);
             Contract.ThrowIfFalse(items.Count != 0, "Must have at least one item.");
@@ -42,24 +46,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             this.Items = items;
             this.Provider = provider;
             this.SelectedItem = selectedItem;
+            this.UserSelected = userSelected;
             this.ArgumentIndex = argumentIndex;
             this.ArgumentCount = argumentCount;
             this.ArgumentName = argumentName;
             this.SelectedParameter = selectedParameter;
         }
 
-        public Model WithSelectedItem(SignatureHelpItem selectedItem)
+        public Model WithSelectedItem(SignatureHelpItem selectedItem, bool userSelected)
         {
-            return selectedItem == this.SelectedItem
+            return selectedItem == this.SelectedItem && userSelected == this.UserSelected
                 ? this
-                : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, selectedItem, ArgumentIndex, ArgumentCount, ArgumentName, SelectedParameter);
+                : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, selectedItem, ArgumentIndex, ArgumentCount, ArgumentName, SelectedParameter, userSelected);
         }
 
         public Model WithSelectedParameter(int? selectedParameter)
         {
             return selectedParameter == this.SelectedParameter
                 ? this
-                : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, SelectedItem, ArgumentIndex, ArgumentCount, ArgumentName, selectedParameter);
+                : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, SelectedItem, ArgumentIndex, ArgumentCount, ArgumentName, selectedParameter, UserSelected);
         }
 
         public SnapshotSpan GetCurrentSpanInSubjectBuffer(ITextSnapshot bufferSnapshot)

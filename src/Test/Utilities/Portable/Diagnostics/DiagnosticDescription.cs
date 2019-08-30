@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -27,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly bool _argumentOrderDoesNotMatter;
         private readonly Type _errorCodeType;
         private readonly bool _ignoreArgumentsWhenComparing;
+        private readonly DiagnosticSeverity? _defaultSeverityOpt;
+        private readonly DiagnosticSeverity? _effectiveSeverityOpt;
 
         // fields for DiagnosticDescriptions constructed via factories
         private readonly Func<SyntaxNode, bool> _syntaxPredicate;
@@ -63,7 +66,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LinePosition? startLocation,
             Func<SyntaxNode, bool> syntaxNodePredicate,
             bool argumentOrderDoesNotMatter,
-            Type errorCodeType = null)
+            Type errorCodeType = null,
+            DiagnosticSeverity? defaultSeverityOpt = null,
+            DiagnosticSeverity? effectiveSeverityOpt = null)
         {
             _code = code;
             _isWarningAsError = isWarningAsError;
@@ -73,6 +78,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _syntaxPredicate = syntaxNodePredicate;
             _argumentOrderDoesNotMatter = argumentOrderDoesNotMatter;
             _errorCodeType = errorCodeType ?? code.GetType();
+            _defaultSeverityOpt = defaultSeverityOpt;
+            _effectiveSeverityOpt = effectiveSeverityOpt;
         }
 
         public DiagnosticDescription(
@@ -82,7 +89,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LinePosition? startLocation,
             Func<SyntaxNode, bool> syntaxNodePredicate,
             bool argumentOrderDoesNotMatter,
-            Type errorCodeType = null)
+            Type errorCodeType = null,
+            DiagnosticSeverity? defaultSeverityOpt = null,
+            DiagnosticSeverity? effectiveSeverityOpt = null)
         {
             _code = code;
             _isWarningAsError = false;
@@ -92,13 +101,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _syntaxPredicate = syntaxNodePredicate;
             _argumentOrderDoesNotMatter = argumentOrderDoesNotMatter;
             _errorCodeType = errorCodeType ?? code.GetType();
+            _defaultSeverityOpt = defaultSeverityOpt;
+            _effectiveSeverityOpt = effectiveSeverityOpt;
         }
 
-        public DiagnosticDescription(Diagnostic d, bool errorCodeOnly)
+        public DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool includeDefaultSeverity = false, bool includeEffectiveSeverity = false)
         {
             _code = d.Code;
             _isWarningAsError = d.IsWarningAsError;
             _location = d.Location;
+            _defaultSeverityOpt = includeDefaultSeverity ? d.DefaultSeverity : (DiagnosticSeverity?)null;
+            _effectiveSeverityOpt = includeEffectiveSeverity ? d.Severity : (DiagnosticSeverity?)null;
 
             DiagnosticWithInfo dinfo = null;
             if (d.Code == 0)
@@ -159,17 +172,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public DiagnosticDescription WithArguments(params string[] arguments)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, false, _errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, false, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt);
         }
 
         public DiagnosticDescription WithArgumentsAnyOrder(params string[] arguments)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, true, _errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, true, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt);
         }
 
         public DiagnosticDescription WithWarningAsError(bool isWarningAsError)
         {
-            return new DiagnosticDescription(_code, isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType);
+            return new DiagnosticDescription(_code, isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt);
+        }
+
+        public DiagnosticDescription WithDefaultSeverity(DiagnosticSeverity defaultSeverity)
+        {
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType, defaultSeverity, _effectiveSeverityOpt);
+        }
+
+        public DiagnosticDescription WithEffectiveSeverity(DiagnosticSeverity effectiveSeverity)
+        {
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType, _defaultSeverityOpt, effectiveSeverity);
         }
 
         /// <summary>
@@ -177,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public DiagnosticDescription WithLocation(int line, int column)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, new LinePosition(line - 1, column - 1), _syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, new LinePosition(line - 1, column - 1), _syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt);
         }
 
         /// <summary>
@@ -186,10 +209,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="syntaxPredicate">The argument to syntaxPredicate will be the nearest SyntaxNode whose Span contains first squiggled character.</param>
         public DiagnosticDescription WhereSyntax(Func<SyntaxNode, bool> syntaxPredicate)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, _startPosition, syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, _startPosition, syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt);
         }
 
         public object Code => _code;
+        public bool HasLocation => _startPosition != null;
+        public bool IsWarningAsError => _isWarningAsError;
+        public DiagnosticSeverity? DefaultSeverity => _defaultSeverityOpt;
+        public DiagnosticSeverity? EffectiveSeverity => _effectiveSeverityOpt;
 
         public override bool Equals(object obj)
         {
@@ -278,6 +305,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
+            if (_defaultSeverityOpt != d._defaultSeverityOpt ||
+                _effectiveSeverityOpt != d._effectiveSeverityOpt)
+            {
+                return false;
+            }
+
             return true;
         }
 
@@ -292,6 +325,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             hashCode = Hash.Combine(_arguments, hashCode);
             if (_startPosition != null)
                 hashCode = Hash.Combine(hashCode, _startPosition.Value.GetHashCode());
+            if (_defaultSeverityOpt != null)
+                hashCode = Hash.Combine(hashCode, _defaultSeverityOpt.Value.GetHashCode());
+            if (_effectiveSeverityOpt != null)
+                hashCode = Hash.Combine(hashCode, _effectiveSeverityOpt.Value.GetHashCode());
             return hashCode;
         }
 
@@ -360,6 +397,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sb.Append(".WithWarningAsError(true)");
             }
 
+            if (_defaultSeverityOpt != null)
+            {
+                sb.Append($".WithDefaultSeverity(DiagnosticSeverity.{_defaultSeverityOpt.Value.ToString()})");
+            }
+
+            if (_effectiveSeverityOpt != null)
+            {
+                sb.Append($".WithEffectiveSeverity(DiagnosticSeverity.{_effectiveSeverityOpt.Value.ToString()})");
+            }
+
             if (_syntaxPredicate != null && _showPredicate)
             {
                 sb.Append(".WhereSyntax(...)");
@@ -375,35 +422,36 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var language = actual.Any() && actual.First().Id.StartsWith("CS", StringComparison.Ordinal) ? CSharp : VisualBasic;
             var includeDiagnosticMessagesAsComments = (language == CSharp);
             int indentDepth = (language == CSharp) ? 4 : 1;
+            var includeDefaultSeverity = expected.Any() && expected.All(d => d.DefaultSeverity != null);
+            var includeEffectiveSeverity = expected.Any() && expected.All(d => d.EffectiveSeverity != null);
 
-            StringBuilder assertText = new StringBuilder();
+            if (IsSortedOrEmpty(expected))
+            {
+                // If this is a new test (empty expectations) or a test that's already sorted,
+                // we sort the actual diagnostics to minimize diff noise as diagnostics change.
+                actual = Sort(actual);
+            }
+
+            var assertText = new StringBuilder();
             assertText.AppendLine();
 
             // write out the error baseline as method calls
             int i;
             assertText.AppendLine("Expected:");
-            var expectedText = new StringBuilder();
-            for (i = 0; i < expected.Length; i++)
+            var expectedText = ArrayBuilder<string>.GetInstance();
+            foreach (var d in expected)
             {
-                var d = expected[i];
-                AppendDiagnosticDescription(expectedText, d, indentDepth);
-
-                if (i < expected.Length - 1)
-                {
-                    expectedText.Append(",");
-                }
-
-                expectedText.AppendLine();
+                expectedText.Add(GetDiagnosticDescription(d, indentDepth));
             }
-            assertText.Append(expectedText);
+            GetCommaSeparatedLines(assertText, expectedText);
 
             // write out the actual results as method calls (copy/paste this to update baseline)
             assertText.AppendLine("Actual:");
-            var actualText = new StringBuilder();
+            var actualText = ArrayBuilder<string>.GetInstance();
             var e = actual.GetEnumerator();
             for (i = 0; e.MoveNext(); i++)
             {
-                var d = e.Current;
+                Diagnostic d = e.Current;
                 string message = d.ToString();
                 if (Regex.Match(message, @"{\d+}").Success)
                 {
@@ -413,7 +461,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (i > 0)
                 {
                     assertText.AppendLine(",");
-                    actualText.AppendLine(",");
                 }
 
                 if (includeDiagnosticMessagesAsComments)
@@ -430,37 +477,106 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                 }
 
-                var description = new DiagnosticDescription(d, errorCodeOnly: false);
+                var description = new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity, includeEffectiveSeverity);
                 var diffDescription = description;
                 var idx = Array.IndexOf(expected, description);
                 if (idx != -1)
                 {
                     diffDescription = expected[idx];
                 }
-                AppendDiagnosticDescription(assertText, description, indentDepth);
-                AppendDiagnosticDescription(actualText, diffDescription, indentDepth);
+                assertText.Append(GetDiagnosticDescription(description, indentDepth));
+                actualText.Add(GetDiagnosticDescription(diffDescription, indentDepth));
             }
             if (i > 0)
             {
                 assertText.AppendLine();
-                actualText.AppendLine();
             }
 
             assertText.AppendLine("Diff:");
-            assertText.Append(DiffUtil.DiffReport(expectedText.ToString(), actualText.ToString()));
+            assertText.Append(DiffUtil.DiffReport(expectedText, actualText, separator: Environment.NewLine));
+
+            actualText.Free();
+            expectedText.Free();
 
             return assertText.ToString();
         }
 
-        private static void AppendDiagnosticDescription(StringBuilder sb, DiagnosticDescription d, int indentDepth)
+        private static IEnumerable<Diagnostic> Sort(IEnumerable<Diagnostic> diagnostics)
         {
-            Indent(sb, indentDepth);
-            sb.Append(d.ToString());
+            return diagnostics.OrderBy(d => d.Location.GetMappedLineSpan().StartLinePosition, LinePositionComparer.Instance);
+        }
+
+        private static bool IsSortedOrEmpty(DiagnosticDescription[] diagnostics)
+        {
+            var comparer = LinePositionComparer.Instance;
+            DiagnosticDescription last = null;
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic._startPosition == null)
+                {
+                    return false;
+                }
+                if (last != null && comparer.Compare(last._startPosition, diagnostic._startPosition) > 0)
+                {
+                    return false;
+                }
+                last = diagnostic;
+            }
+            return true;
+        }
+
+        private static string GetDiagnosticDescription(DiagnosticDescription d, int indentDepth)
+        {
+            return new string(' ', 4 * indentDepth) + d.ToString();
         }
 
         private static void Indent(StringBuilder sb, int count)
         {
             sb.Append(' ', 4 * count);
+        }
+
+        private static void GetCommaSeparatedLines(StringBuilder sb, ArrayBuilder<string> lines)
+        {
+            int n = lines.Count;
+            for (int i = 0; i < n; i++)
+            {
+                sb.Append(lines[i]);
+                if (i < n - 1)
+                {
+                    sb.Append(',');
+                }
+                sb.AppendLine();
+            }
+        }
+
+        private class LinePositionComparer : IComparer<LinePosition?>
+        {
+            internal static LinePositionComparer Instance = new LinePositionComparer();
+
+            public int Compare(LinePosition? x, LinePosition? y)
+            {
+                if (x == null)
+                {
+                    if (y == null)
+                    {
+                        return 0;
+                    }
+                    return -1;
+                }
+
+                if (y == null)
+                {
+                    return 1;
+                }
+
+                int lineDiff = x.Value.Line.CompareTo(y.Value.Line);
+                if (lineDiff != 0)
+                {
+                    return lineDiff;
+                }
+
+                return x.Value.Character.CompareTo(y.Value.Character);
+            }
         }
     }
 }

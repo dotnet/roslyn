@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
     Friend Class TypeBlockOrganizer
         Inherits AbstractSyntaxNodeOrganizer(Of TypeBlockSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function Organize(typeBlock As TypeBlockSyntax,
                                               cancellationToken As CancellationToken) As TypeBlockSyntax
             Dim members = MemberDeclarationsOrganizer.Organize(typeBlock.Members, cancellationToken)

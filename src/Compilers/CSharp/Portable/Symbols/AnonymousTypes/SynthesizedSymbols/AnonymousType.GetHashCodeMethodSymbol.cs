@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return RefKind.None; }
             }
 
-            public override TypeSymbol ReturnType
+            public override TypeWithAnnotations ReturnTypeWithAnnotations
             {
-                get { return this.Manager.System_Int32; }
+                get { return TypeWithAnnotations.Create(this.Manager.System_Int32); }
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters

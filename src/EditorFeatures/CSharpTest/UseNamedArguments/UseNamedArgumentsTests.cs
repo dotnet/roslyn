@@ -3,8 +3,10 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseNamedArguments;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
 {
     public class UseNamedArgumentsTests : AbstractCSharpCodeActionTest
     {
-        private static ParseOptions CSharp72 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
+        private static readonly ParseOptions CSharp72 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpUseNamedArgumentsCodeRefactoringProvider();
@@ -247,6 +249,23 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }");
         }
 
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestAvailableOnSelectionOfArgument1()
+        {
+            await TestWithCSharp7(
+@"class C
+{
+    void M(int arg1, int arg2) 
+        => M([|1 + 2|], 2);
+}",
+@"class C
+{
+    void M(int arg1, int arg2) 
+        => M(arg1: 1 + 2, arg2: 2);
+}");
+        }
+
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestAvailableOnFirstTokenOfArgument1()
@@ -306,7 +325,7 @@ class C
 
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-        public async Task TestNotMissingWhenInsideSingleLineArgument2()
+        public async Task TestNotMissingWhenInsideSingleLineArgument2_CSharp7()
         {
             await TestInRegularAndScript1Async(
 @"class C
@@ -318,7 +337,25 @@ class C
 {
     void M(int arg1, int arg2) 
         => M(arg1: 1 + 2, arg2: 2);
-}");
+}",
+                parameters: new TestParameters(parseOptions: TestOptions.Regular7));
+        }
+
+        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestNotMissingWhenInsideSingleLineArgument2()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int arg1, int arg2)
+        => M(1 [||]+ 2, 2);
+}",
+@"class C
+{
+    void M(int arg1, int arg2)
+        => M(arg1: 1 + 2, 2);
+}", parameters: new TestParameters(parseOptions: TestOptions.Regular7_3));
         }
 
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
@@ -341,6 +378,23 @@ class C
 {
     void M(Action arg1, int arg2) 
         => M(arg1: () => {  }, arg2: 2);
+}");
+        }
+
+        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestNotMissingWhenInsideSingleLineArgument4()
+        {
+            await TestWithCSharp7(
+@"class C
+{
+    void M(int arg1, int arg2) 
+        => M(1 [||]+ 2, 2);
+}",
+@"class C
+{
+    void M(int arg1, int arg2) 
+        => M(arg1: 1 + 2, arg2: 2);
 }");
         }
 

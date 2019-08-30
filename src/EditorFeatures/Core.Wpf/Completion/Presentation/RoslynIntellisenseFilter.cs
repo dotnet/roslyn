@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public IntellisenseFilter2(
             RoslynCompletionSet completionSet, CompletionItemFilter filter)
-            : base(ImageMonikers.GetImageMoniker(filter.Tags), GetToolTip(filter),
+            : base(ImageMonikers.GetFirstImageMoniker(filter.Tags), GetToolTip(filter),
                    filter.AccessKey.ToString(), automationText: filter.Tags[0])
         {
             _completionSet = completionSet;

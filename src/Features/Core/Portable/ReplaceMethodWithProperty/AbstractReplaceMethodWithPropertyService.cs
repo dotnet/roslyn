@@ -1,12 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
-    internal abstract class AbstractReplaceMethodWithPropertyService
+    internal abstract class AbstractReplaceMethodWithPropertyService<TMethodDeclarationSyntax> where TMethodDeclarationSyntax : SyntaxNode
     {
+        public async Task<SyntaxNode> GetMethodDeclarationAsync(CodeRefactoringContext context)
+            => await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
+
         protected static string GetWarning(GetAndSetMethods getAndSetMethods)
         {
             if (OverridesMetadataSymbol(getAndSetMethods.GetMethod) ||

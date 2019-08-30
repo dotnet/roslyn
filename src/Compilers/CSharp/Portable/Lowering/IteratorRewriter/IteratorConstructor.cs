@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-        internal IteratorConstructor(IteratorStateMachine container)
+        internal IteratorConstructor(StateMachineTypeSymbol container)
             : base(container)
         {
             var intType = container.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32);
             _parameters = ImmutableArray.Create<ParameterSymbol>(
-                SynthesizedParameterSymbol.Create(this, intType, 0, RefKind.None, GeneratedNames.MakeStateMachineStateFieldName()));
+                SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(intType), 0, RefKind.None, GeneratedNames.MakeStateMachineStateFieldName()));
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)

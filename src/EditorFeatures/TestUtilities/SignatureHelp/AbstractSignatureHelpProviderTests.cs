@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -19,6 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 {
+    [UseExportProvider]
     public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         public override void Dispose()
         {
-            this.workspaceFixture.CloseTextView();
+            this.workspaceFixture.DisposeAfterTest();
             base.Dispose();
         }
 
@@ -113,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         private static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
-            var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var service = document.GetLanguageService<ISyntaxFactsService>();
             var node = (await document.GetSyntaxRootAsync()).FindToken(position).Parent;
 
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         private void VerifyTriggerCharactersWorker(char[] expectedTriggerCharacters, char[] unexpectedTriggerCharacters, SourceCodeKind sourceCodeKind)
         {
-            ISignatureHelpProvider signatureHelpProvider = CreateSignatureHelpProvider();
+            var signatureHelpProvider = CreateSignatureHelpProvider();
 
             foreach (var expectedTriggerCharacter in expectedTriggerCharacters)
             {
@@ -183,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         {
             Assert.Equal(expectedTestItems.Count(), actualSignatureHelpItems.Items.Count());
 
-            for (int i = 0; i < expectedTestItems.Count(); i++)
+            for (var i = 0; i < expectedTestItems.Count(); i++)
             {
                 CompareSigHelpItemsAndCurrentPosition(
                     actualSignatureHelpItems,
@@ -205,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             int cursorPosition,
             TextSpan applicableSpan)
         {
-            int currentParameterIndex = -1;
+            var currentParameterIndex = -1;
             if (expectedTestItem.CurrentParameterIndex != null)
             {
                 if (expectedTestItem.CurrentParameterIndex.Value >= 0 && expectedTestItem.CurrentParameterIndex.Value < actualSignatureHelpItem.Parameters.Length)
@@ -414,6 +417,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             if (expectedOrderedItemsOrNull != null)
             {
                 CompareAndAssertCollectionsAndCurrentParameter(expectedOrderedItemsOrNull, items, signatureHelpProvider, document, cursorPosition);
+                CompareSelectedIndex(expectedOrderedItemsOrNull, items.SelectedItemIndex);
+            }
+        }
+
+        private void CompareSelectedIndex(IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull, int? selectedItemIndex)
+        {
+            if (expectedOrderedItemsOrNull == null ||
+                !expectedOrderedItemsOrNull.Any(i => i.IsSelected))
+            {
+                return;
+            }
+
+            Assert.True(expectedOrderedItemsOrNull.Count(i => i.IsSelected) == 1, "Only one expected item can be marked with 'IsSelected'");
+            Assert.True(selectedItemIndex != null, "Expected an item to be selected, but no item was actually selected");
+
+            var counter = 0;
+            foreach (var item in expectedOrderedItemsOrNull)
+            {
+                if (item.IsSelected)
+                {
+                    Assert.True(selectedItemIndex == counter,
+                        $"Expected item with index {counter} to be selected, but the actual selected index is {selectedItemIndex}.");
+                }
+                else
+                {
+                    Assert.True(selectedItemIndex != counter,
+                        $"Found unexpected selected item. Actual selected index is {selectedItemIndex}.");
+                }
+
+                counter++;
             }
         }
 

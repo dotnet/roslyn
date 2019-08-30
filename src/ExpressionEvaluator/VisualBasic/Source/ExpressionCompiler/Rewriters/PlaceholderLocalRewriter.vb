@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Public Overrides Function VisitLocal(node As BoundLocal) As BoundNode
             Dim result = RewriteLocal(node, _diagnostics)
-            Debug.Assert(result.Type = node.Type)
+            Debug.Assert(TypeSymbol.Equals(result.Type, node.Type, TypeCompareKind.ConsiderEverything))
             Debug.Assert(result.IsLValue = node.IsLValue)
             Return result
         End Function

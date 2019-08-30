@@ -1,78 +1,69 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
 {
-    internal abstract class RemoveUnnecessaryCastDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
+    internal abstract class RemoveUnnecessaryCastDiagnosticAnalyzerBase<
+        TLanguageKindEnum,
+        TCastExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        where TLanguageKindEnum : struct
+        where TCastExpression : SyntaxNode
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Remove_Unnecessary_Cast), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Cast_is_redundant), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
-
-        private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
-            s_localizableTitle,
-            s_localizableMessage,
-            DiagnosticCategory.Style,
-            DiagnosticSeverity.Hidden,
-            isEnabledByDefault: true,
-            customTags: DiagnosticCustomTags.Unnecessary);
-
-        #region Interface methods
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
-        public bool OpenFileOnly(Workspace workspace) => false;
-
-        public sealed override void Initialize(AnalysisContext context)
+        protected RemoveUnnecessaryCastDiagnosticAnalyzerBase()
+            : base(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
+                   option: null,
+                   new LocalizableResourceString(nameof(FeaturesResources.Remove_Unnecessary_Cast), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(WorkspacesResources.Cast_is_redundant), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.EnableConcurrentExecution();
-
-            context.RegisterSyntaxNodeAction(
-                nodeContext =>
-                    {
-                        if (TryRemoveCastExpression(nodeContext.SemanticModel, nodeContext.Node, out var diagnostic, nodeContext.CancellationToken))
-                        {
-                            nodeContext.ReportDiagnostic(diagnostic);
-                        }
-                    },
-                this.SyntaxKindsOfInterest.ToArray());
         }
 
-        public abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
+        protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
+        protected abstract TextSpan GetFadeSpan(TCastExpression node);
+        protected abstract bool IsUnnecessaryCast(SemanticModel model, TCastExpression node, CancellationToken cancellationToken);
 
-        #endregion
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract bool IsUnnecessaryCast(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract TextSpan GetDiagnosticSpan(SyntaxNode node);
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKindsOfInterest);
 
-        private bool TryRemoveCastExpression(
-            SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, CancellationToken cancellationToken)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+        {
+            var diagnostic = TryRemoveCastExpression(
+                context.SemanticModel,
+                (TCastExpression)context.Node,
+                context.CancellationToken);
+
+            if (diagnostic != null)
+            {
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        private Diagnostic TryRemoveCastExpression(SemanticModel model, TCastExpression node, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            diagnostic = default;
-
             if (!IsUnnecessaryCast(model, node, cancellationToken))
             {
-                return false;
+                return null;
             }
 
             var tree = model.SyntaxTree;
-            var span = GetDiagnosticSpan(node);
-            if (tree.OverlapsHiddenPosition(span, cancellationToken))
+            if (tree.OverlapsHiddenPosition(node.Span, cancellationToken))
             {
-                return false;
+                return null;
             }
 
-            diagnostic = Diagnostic.Create(s_descriptor, tree.GetLocation(span));
-            return true;
+            return Diagnostic.Create(
+                UnnecessaryWithSuggestionDescriptor,
+                node.SyntaxTree.GetLocation(GetFadeSpan(node)),
+                ImmutableArray.Create(node.GetLocation()));
         }
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

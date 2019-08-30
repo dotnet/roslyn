@@ -201,13 +201,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 For i As Integer = 0 To ParameterTypes.Length - 1
-                    If Me.ParameterTypes(i) <> other.ParameterTypes(i) OrElse
+                    If Not TypeSymbol.Equals(Me.ParameterTypes(i), other.ParameterTypes(i), TypeCompareKind.ConsiderEverything) OrElse
                        Me.ParameterIsByRef(i) <> other.ParameterIsByRef(i) Then
                         Return False
                     End If
                 Next
 
-                Return Me.ReturnsByRef = other.ReturnsByRef AndAlso Me.ReturnType = other.ReturnType
+                Return Me.ReturnsByRef = other.ReturnsByRef AndAlso TypeSymbol.Equals(Me.ReturnType, other.ReturnType, TypeCompareKind.ConsiderEverything)
             End Function
         End Class
 

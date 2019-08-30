@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool CheckParent<T>(this SyntaxToken token, Func<T, bool> valueChecker) where T : SyntaxNode
         {
-            var parentNode = token.Parent as T;
-            if (parentNode == null)
+            if (!(token.Parent is T parentNode))
             {
                 return false;
             }
@@ -166,5 +165,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return token.WithTrailingTrivia(token.TrailingTrivia.Concat(trivia));
         }
+
+        public static SyntaxTrivia[] GetTrivia(this IEnumerable<SyntaxToken> tokens)
+            => tokens.SelectMany(token => SyntaxNodeOrTokenExtensions.GetTrivia(token)).ToArray();
     }
 }

@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReportUseSiteDiagnostics(submissionArrayType, diagnostics);
                 return new SubmissionEntryPoint(
                     containingType,
-                    initializerMethod.ReturnType,
+                    initializerMethod.ReturnTypeWithAnnotations,
                     submissionArrayType);
             }
             else
             {
                 var systemVoid = Binder.GetSpecialType(compilation, SpecialType.System_Void, DummySyntax(), diagnostics);
-                return new ScriptEntryPoint(containingType, systemVoid);
+                return new ScriptEntryPoint(containingType, TypeWithAnnotations.Create(systemVoid));
             }
         }
 
@@ -113,19 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return RefKind.None; }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
-        }
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeWithAnnotations>.Empty; }
         }
 
         public override Symbol AssociatedSymbol
@@ -140,8 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return ReturnType.IsVoidType(); }
         }
+
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override MethodKind MethodKind
         {
@@ -212,6 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ImmutableArray<MethodSymbol>.Empty; }
         }
+
+        internal sealed override bool IsDeclaredReadOnly => false;
 
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
@@ -308,12 +311,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
-            /// <summary> The user-defined asynchronous main method. </summary>
+            /// <summary> The syntax for the user-defined asynchronous main method. </summary>
             private readonly CSharpSyntaxNode _userMainReturnTypeSyntax;
 
             private readonly BoundExpression _getAwaiterGetResultCall;
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
+
+            /// <summary> The user-defined asynchronous main method. </summary>
+            internal readonly MethodSymbol UserMain;
 
             internal AsyncForwardEntryPoint(CSharpCompilation compilation, NamedTypeSymbol containingType, MethodSymbol userMain) :
                 base(containingType)
@@ -322,6 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // parameter checks for determining entrypoint validity.
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
+                UserMain = userMain;
                 _userMainReturnTypeSyntax = userMain.ExtractReturnTypeSyntax();
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
@@ -351,15 +358,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 droppedBag.Free();
 
                 Debug.Assert(
-                    ReturnType.SpecialType == SpecialType.System_Void ||
+                    ReturnType.IsVoidType() ||
                     ReturnType.SpecialType == SpecialType.System_Int32);
+            }
+
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            {
+                base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+                AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.SynthesizeDebuggerStepThroughAttribute());
             }
 
             public override string Name => MainName;
 
             public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
 
-            public override TypeSymbol ReturnType => _getAwaiterGetResultCall.Type;
+            public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(_getAwaiterGetResultCall.Type);
 
             internal override BoundBlock CreateBody(DiagnosticBag diagnostics)
             {
@@ -407,13 +421,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class ScriptEntryPoint : SynthesizedEntryPointSymbol
         {
-            private readonly TypeSymbol _returnType;
+            private readonly TypeWithAnnotations _returnType;
 
-            internal ScriptEntryPoint(NamedTypeSymbol containingType, TypeSymbol returnType) :
+            internal ScriptEntryPoint(NamedTypeSymbol containingType, TypeWithAnnotations returnType) :
                 base(containingType)
             {
                 Debug.Assert(containingType.IsScriptClass);
-                Debug.Assert(returnType.SpecialType == SpecialType.System_Void);
+                Debug.Assert(returnType.IsVoidType());
                 _returnType = returnType;
             }
 
@@ -421,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
 
-            public override TypeSymbol ReturnType => _returnType;
+            public override TypeWithAnnotations ReturnTypeWithAnnotations => _returnType;
 
             // private static void <Main>()
             // {
@@ -450,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var scriptLocal = new BoundLocal(
                     syntax,
-                    new SynthesizedLocal(this, _containingType, SynthesizedLocalKind.LoweringTemp),
+                    new SynthesizedLocal(this, TypeWithAnnotations.Create(_containingType), SynthesizedLocalKind.LoweringTemp),
                     null,
                     _containingType)
                 { WasCompilerGenerated = true };
@@ -498,14 +512,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class SubmissionEntryPoint : SynthesizedEntryPointSymbol
         {
             private readonly ImmutableArray<ParameterSymbol> _parameters;
-            private readonly TypeSymbol _returnType;
+            private readonly TypeWithAnnotations _returnType;
 
-            internal SubmissionEntryPoint(NamedTypeSymbol containingType, TypeSymbol returnType, TypeSymbol submissionArrayType) :
+            internal SubmissionEntryPoint(NamedTypeSymbol containingType, TypeWithAnnotations returnType, TypeSymbol submissionArrayType) :
                 base(containingType)
             {
                 Debug.Assert(containingType.IsSubmissionClass);
-                Debug.Assert(returnType.SpecialType != SpecialType.System_Void);
-                _parameters = ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, submissionArrayType, 0, RefKind.None, "submissionArray"));
+                Debug.Assert(!returnType.IsVoidType());
+                _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
+                    TypeWithAnnotations.Create(submissionArrayType), 0, RefKind.None, "submissionArray"));
+
                 _returnType = returnType;
             }
 
@@ -519,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _parameters; }
             }
 
-            public override TypeSymbol ReturnType => _returnType;
+            public override TypeWithAnnotations ReturnTypeWithAnnotations => _returnType;
 
             // private static T <Factory>(object[] submissionArray) 
             // {
@@ -539,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var submissionArrayParameter = new BoundParameter(syntax, _parameters[0]) { WasCompilerGenerated = true };
                 var submissionLocal = new BoundLocal(
                     syntax,
-                    new SynthesizedLocal(this, _containingType, SynthesizedLocalKind.LoweringTemp),
+                    new SynthesizedLocal(this, TypeWithAnnotations.Create(_containingType), SynthesizedLocalKind.LoweringTemp),
                     null,
                     _containingType)
                 { WasCompilerGenerated = true };
@@ -572,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax,
                     submissionLocal,
                     initializer);
-                Debug.Assert(initializeResult.Type == _returnType);
+                Debug.Assert(TypeSymbol.Equals(initializeResult.Type, _returnType.Type, TypeCompareKind.ConsiderEverything2));
                 var returnStatement = new BoundReturnStatement(
                     syntax,
                     RefKind.None,

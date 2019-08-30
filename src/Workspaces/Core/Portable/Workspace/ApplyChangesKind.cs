@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis
         ChangeAdditionalDocument = 13,
         ChangeCompilationOptions = 14,
         ChangeParseOptions = 15,
-        ChangeDocumentInfo = 16
+        ChangeDocumentInfo = 16,
+        AddAnalyzerConfigDocument = 17,
+        RemoveAnalyzerConfigDocument = 18,
+        ChangeAnalyzerConfigDocument = 19
     }
 }

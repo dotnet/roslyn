@@ -20,6 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
+        [ImportingConstructor]
+        public ContainedLanguageRefactorNotifyService()
+        {
+        }
+
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
             return true;
@@ -31,9 +36,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 foreach (var documentId in changedDocumentIDs)
                 {
-                    if (visualStudioWorkspace.GetHostDocument(documentId) is ContainedDocument containedDocument)
+                    var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
+                    if (containedDocument != null)
                     {
-                        var containedLanguageHost = containedDocument.ContainedLanguage.ContainedLanguageHost;
+                        var containedLanguageHost = containedDocument.ContainedLanguageHost;
                         if (containedLanguageHost != null)
                         {
                             var hresult = containedLanguageHost.OnRenamed(

@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -93,6 +92,34 @@ $$"));
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"switch $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"_ = expr $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExpression_InMethodWithArrowBody()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    bool M() => this $$
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterForeachVar()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(@"foreach (var $$)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterTuple()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"_ = (expr, expr) $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

@@ -16,12 +16,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Private _grid As NamingStyleOptionPageControl
         Private _notificationService As INotificationService
 
-        Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider) As AbstractOptionPageControl
+        Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider, optionStore As OptionStore) As AbstractOptionPageControl
             Dim componentModel = DirectCast(serviceProvider.GetService(GetType(SComponentModel)), IComponentModel)
             Dim workspace = componentModel.GetService(Of VisualStudioWorkspace)
             _notificationService = workspace.Services.GetService(Of INotificationService)
 
-            _grid = New NamingStyleOptionPageControl(serviceProvider, _notificationService, LanguageNames.VisualBasic)
+            _grid = New NamingStyleOptionPageControl(optionStore, _notificationService, LanguageNames.VisualBasic)
             Return _grid
         End Function
 

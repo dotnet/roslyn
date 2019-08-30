@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.SQLite;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLitePersistentStorageTests : AbstractPersistentStorageTests
     {
-        internal override IPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, ISolutionSizeTracker solutionSizeTracker, IPersistentStorageFaultInjector faultInjector)
+        internal override IChecksummedPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, ISolutionSizeTracker solutionSizeTracker, IPersistentStorageFaultInjector faultInjector)
             => new SQLitePersistentStorageService(_persistentEnabledOptionService, locationService, solutionSizeTracker, faultInjector);
 
         [Fact]

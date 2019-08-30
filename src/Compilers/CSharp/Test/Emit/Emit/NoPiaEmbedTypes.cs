@@ -1,5 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if !NET472
+#pragma warning disable IDE0055 // Fix formatting
+#endif
+
+#if NET472
+
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -1512,28 +1518,34 @@ class UsePia4
                     var param = (PEParameterSymbol)m20.Parameters[0];
                     Assert.Equal(RefKind.Ref, param.RefKind);
                     Assert.Equal((ParameterAttributes)0, param.Flags);
+                    Assert.Equal(0, param.Ordinal);
 
                     param = (PEParameterSymbol)m20.Parameters[1];
                     Assert.Equal(RefKind.Out, param.RefKind);
                     Assert.Equal(ParameterAttributes.Out, param.Flags);
+                    Assert.Equal(1, param.Ordinal);
 
                     param = (PEParameterSymbol)m20.Parameters[2];
                     Assert.Equal(RefKind.Ref, param.RefKind);
                     Assert.Equal(ParameterAttributes.In, param.Flags);
+                    Assert.Equal(2, param.Ordinal);
 
                     param = (PEParameterSymbol)m20.Parameters[3];
                     Assert.Equal(RefKind.Ref, param.RefKind);
                     Assert.Equal(ParameterAttributes.In | ParameterAttributes.Out, param.Flags);
+                    Assert.Equal(3, param.Ordinal);
 
                     param = (PEParameterSymbol)m20.Parameters[4];
                     Assert.Equal(RefKind.None, param.RefKind);
                     Assert.Equal(ParameterAttributes.Optional, param.Flags);
                     Assert.Null(param.ExplicitDefaultConstantValue);
+                    Assert.Equal(4, param.Ordinal);
 
                     param = (PEParameterSymbol)m20.Parameters[5];
                     Assert.Equal(RefKind.None, param.RefKind);
                     Assert.Equal(ParameterAttributes.Optional | ParameterAttributes.HasDefault, param.Flags);
                     Assert.Equal(34, param.ExplicitDefaultValue);
+                    Assert.Equal(5, param.Ordinal);
 
                     param = m20.ReturnTypeParameter;
                     Assert.Equal((ParameterAttributes)0, param.Flags);
@@ -1990,7 +2002,7 @@ class UsePia
 
             verifier.VerifyIL("UsePia.Test", expected);
 
-            compilation = CreateCompilation(consumer,
+            compilation = CreateEmptyCompilation(consumer,
                                                         new MetadataReference[] { MscorlibRef_v4_0_30316_17626, piaCompilation.EmitToImageReference(embedInteropTypes: true) },
                                                         options: TestOptions.DebugExe);
 
@@ -5176,7 +5188,8 @@ class UsePia5
             CompileAndVerify(compilation4, verify: Verification.Fails);
         }
 
-        [Fact, WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
         public void Bug611578()
         {
             string IEvent_cs = @"
@@ -5843,3 +5856,4 @@ class Program
         }
     }
 }
+#endif

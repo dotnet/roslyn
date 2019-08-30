@@ -118,39 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="Async_Overload_Change_3_vb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/Async_Overload_Change_3.vb.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="BinaryOperatorsTestBaseline1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/BinaryOperatorsTestBaseline1.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="BinaryOperatorsTestBaseline2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/BinaryOperatorsTestBaseline2.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="BinaryOperatorsTestBaseline3" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/BinaryOperatorsTestBaseline3.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="BinaryOperatorsTestBaseline4" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/BinaryOperatorsTestBaseline4.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="BinaryOperatorsTestBaseline5" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/BinaryOperatorsTestBaseline5.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="BinaryOperatorsTestSource1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/BinaryOperatorsTestSource1.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="BinaryOperatorsTestSource2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/BinaryOperatorsTestSource2.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="BinaryOperatorsTestSource3" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/BinaryOperatorsTestSource3.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="BinaryOperatorsTestSource4" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/BinaryOperatorsTestSource4.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="BinaryOperatorsTestSource5" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/BinaryOperatorsTestSource5.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
   <data name="EmitSimpleBaseLine1" xml:space="preserve">
     <value>&lt;Global&gt;
             &lt;type name="&amp;lt;Module&amp;gt;" /&gt;
@@ -180,23 +147,5 @@
               &lt;type name="E" base="D" /&gt;
             &lt;/NS1&gt;
           &lt;/Global&gt;</value>
-  </data>
-  <data name="LongTypeNameNative_vb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/LongTypeNameNative.vb.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="LongTypeName_vb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/LongTypeName.vb.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="OverloadResolutionTestSource" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/OverloadResolutionTestSource.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="PrintResultTestSource" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Semantics/PrintResultTestSource.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="T_1247520" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Binding/T_1247520.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="T_68086" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Binding/T_68086.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
 </root>

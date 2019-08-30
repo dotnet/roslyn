@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -36,6 +37,8 @@ namespace Microsoft.CodeAnalysis
             return new ContentBasedXmlDocumentationProvider(xmlDocCommentBytes);
         }
 
+        private static XmlDocumentationProvider DefaultXmlDocumentationProvider { get; } = new NullXmlDocumentationProvider();
+
         /// <summary>
         /// Creates an <see cref="XmlDocumentationProvider"/> from an XML documentation file.
         /// </summary>
@@ -43,6 +46,11 @@ namespace Microsoft.CodeAnalysis
         /// <returns>An <see cref="XmlDocumentationProvider"/>.</returns>
         public static XmlDocumentationProvider CreateFromFile(string xmlDocCommentFilePath)
         {
+            if (!File.Exists(xmlDocCommentFilePath))
+            {
+                return DefaultXmlDocumentationProvider;
+            }
+
             return new FileBasedXmlDocumentationProvider(xmlDocCommentFilePath);
         }
 
@@ -54,11 +62,9 @@ However, the said XmlResolver property no longer exists in .NET portable framewo
 So we suppress this error until the reporting for CA3053 has been updated to account for .NET portable framework.")]
         private XDocument GetXDocument(CancellationToken cancellationToken)
         {
-            using (var stream = GetSourceStream(cancellationToken))
-            using (var xmlReader = XmlReader.Create(stream, s_xmlSettings))
-            {
-                return XDocument.Load(xmlReader);
-            }
+            using var stream = GetSourceStream(cancellationToken);
+            using var xmlReader = XmlReader.Create(stream, s_xmlSettings);
+            return XDocument.Load(xmlReader);
         }
 
         protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
@@ -71,16 +77,14 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                     {
                         _docComments = new Dictionary<string, string>();
 
-                        XDocument doc = GetXDocument(cancellationToken);
+                        var doc = GetXDocument(cancellationToken);
                         foreach (var e in doc.Descendants("member"))
                         {
                             if (e.Attribute("name") != null)
                             {
-                                using (var reader = e.CreateReader())
-                                {
-                                    reader.MoveToContent();
-                                    _docComments[e.Attribute("name").Value] = reader.ReadInnerXml();
-                                }
+                                using var reader = e.CreateReader();
+                                reader.MoveToContent();
+                                _docComments[e.Attribute("name").Value] = reader.ReadInnerXml();
                             }
                         }
                     }
@@ -134,7 +138,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                     return false;
                 }
 
-                for (int i = 0; i < _xmlDocCommentBytes.Length; i++)
+                for (var i = 0; i < _xmlDocCommentBytes.Length; i++)
                 {
                     if (_xmlDocCommentBytes[i] != other._xmlDocCommentBytes[i])
                     {
@@ -158,7 +162,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             public FileBasedXmlDocumentationProvider(string filePath)
             {
                 Contract.ThrowIfNull(filePath);
-                Contract.Requires(PathUtilities.IsAbsolute(filePath));
+                Debug.Assert(PathUtilities.IsAbsolute(filePath));
 
                 _filePath = filePath;
             }
@@ -177,6 +181,33 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             public override int GetHashCode()
             {
                 return _filePath.GetHashCode();
+            }
+        }
+
+        /// <summary>
+        /// A trivial XmlDocumentationProvider which never returns documentation.
+        /// </summary>
+        private sealed class NullXmlDocumentationProvider : XmlDocumentationProvider
+        {
+            protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
+            {
+                return "";
+            }
+
+            protected override Stream GetSourceStream(CancellationToken cancellationToken)
+            {
+                return new MemoryStream();
+            }
+
+            public override bool Equals(object obj)
+            {
+                // Only one instance is expected to exist, so reference equality is fine.
+                return (object)this == obj;
+            }
+
+            public override int GetHashCode()
+            {
+                return 0;
             }
         }
     }

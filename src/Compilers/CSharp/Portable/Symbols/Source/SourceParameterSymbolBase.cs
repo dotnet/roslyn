@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingSymbol = containingSymbol;
         }
 
-        public sealed override bool Equals(object obj)
+        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var symbol = obj as SourceParameterSymbolBase;
             return (object)symbol != null
                 && symbol.Ordinal == this.Ordinal
-                && Equals(symbol._containingSymbol, _containingSymbol);
+                && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
         }
 
         public sealed override int GetHashCode()
@@ -78,20 +78,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue));
             }
 
-            if (this.Type.ContainsDynamic())
+            var type = this.TypeWithAnnotations;
+
+            if (type.Type.ContainsDynamic())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
-            if (Type.ContainsTupleNames())
+            if (type.Type.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(Type));
+                    compilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
             if (this.RefKind == RefKind.RefReadOnly)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
+
+            if (compilation.ShouldEmitNullableAttributes(this))
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, GetNullableContextValue(), type));
             }
         }
 

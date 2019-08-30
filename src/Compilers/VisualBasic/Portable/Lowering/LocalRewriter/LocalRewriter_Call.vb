@@ -86,6 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                Nothing,
                                receiver,
                                RewriteCallArguments(arguments, method.Parameters, temporaries, copyBack, suppressObjectClone),
+                               node.DefaultArguments,
                                Nothing,
                                isLValue:=node.IsLValue,
                                suppressObjectClone:=True,

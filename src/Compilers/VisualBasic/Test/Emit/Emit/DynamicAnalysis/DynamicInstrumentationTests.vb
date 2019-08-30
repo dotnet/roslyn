@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Test.Utilities.VBInstrumentationChecker
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.DynamicAnalysis.UnitTests
 
@@ -2825,11 +2826,12 @@ True
         End Function
 
         Private Overloads Function CompileAndVerify(source As String, Optional expectedOutput As String = Nothing, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
-            Return CompileAndVerify(source,
+            Return CompileAndVerifyEx(source,
                                     LatestVbReferences,
                                     expectedOutput,
                                     options:=If(options, TestOptions.ReleaseExe).WithDeterministic(True),
-                                    emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
+                                    emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)),
+                                    targetFramework:=TargetFramework.Empty)
         End Function
     End Class
 End Namespace

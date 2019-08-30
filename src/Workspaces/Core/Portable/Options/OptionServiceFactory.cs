@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -34,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
         /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
         /// </summary>
-        // Internal for testing purposes.
         internal class OptionService : IWorkspaceOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
@@ -125,6 +125,11 @@ namespace Microsoft.CodeAnalysis.Options
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {
+                if (documentOptionsProvider == null)
+                {
+                    throw new ArgumentNullException(nameof(documentOptionsProvider));
+                }
+
                 lock (_gate)
                 {
                     _documentOptionsProviders = _documentOptionsProviders.Add(documentOptionsProvider);
@@ -154,30 +159,28 @@ namespace Microsoft.CodeAnalysis.Options
                     }
                 }
 
-                return new DocumentSpecificOptionSet(document, realizedDocumentOptions, optionSet);
+                return new DocumentSpecificOptionSet(realizedDocumentOptions, optionSet);
             }
 
             private class DocumentSpecificOptionSet : OptionSet
             {
-                private readonly Document _document;
                 private readonly OptionSet _underlyingOptions;
                 private readonly List<IDocumentOptions> _documentOptions;
-                private readonly object _gate = new object();
                 private ImmutableDictionary<OptionKey, object> _values;
 
-                public DocumentSpecificOptionSet(Document document, List<IDocumentOptions> documentOptions, OptionSet underlyingOptions)
-                    : this(document, documentOptions, underlyingOptions, ImmutableDictionary<OptionKey, object>.Empty)
+                public DocumentSpecificOptionSet(List<IDocumentOptions> documentOptions, OptionSet underlyingOptions)
+                    : this(documentOptions, underlyingOptions, ImmutableDictionary<OptionKey, object>.Empty)
                 {
                 }
 
-                public DocumentSpecificOptionSet(Document document, List<IDocumentOptions> documentOptions, OptionSet underlyingOptions, ImmutableDictionary<OptionKey, object> values)
+                public DocumentSpecificOptionSet(List<IDocumentOptions> documentOptions, OptionSet underlyingOptions, ImmutableDictionary<OptionKey, object> values)
                 {
-                    _document = document;
                     _documentOptions = documentOptions;
                     _underlyingOptions = underlyingOptions;
                     _values = values;
                 }
 
+                [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
                 public override object GetOption(OptionKey optionKey)
                 {
                     // If we already know the document specific value, we're done
@@ -188,15 +191,10 @@ namespace Microsoft.CodeAnalysis.Options
 
                     foreach (var documentOptionSource in _documentOptions)
                     {
-                        if (documentOptionSource.TryGetDocumentOption(_document, optionKey, _underlyingOptions, out value))
+                        if (documentOptionSource.TryGetDocumentOption(optionKey, out value))
                         {
                             // Cache and return
-                            lock (_gate)
-                            {
-                                _values = _values.Add(optionKey, value);
-                            }
-
-                            return value;
+                            return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
                         }
                     }
 
@@ -206,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
                 {
-                    return new DocumentSpecificOptionSet(_document, _documentOptions, _underlyingOptions, _values.Add(optionAndLanguage, value));
+                    return new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.Add(optionAndLanguage, value));
                 }
 
                 internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)

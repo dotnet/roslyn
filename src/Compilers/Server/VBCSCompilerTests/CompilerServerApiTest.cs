@@ -12,14 +12,16 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerApiTest : TestBase
     {
         private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
-            1,
+            BuildProtocolConstants.ProtocolVersion,
             RequestLanguage.CSharpCompile,
+            BuildProtocolConstants.GetCommitHash(),
             ImmutableArray<BuildRequest.Argument>.Empty);
 
         private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
@@ -93,6 +95,7 @@ class Hello
             return new BuildRequest(
                 BuildProtocolConstants.ProtocolVersion,
                 RequestLanguage.CSharpCompile,
+                BuildProtocolConstants.GetCommitHash(),
                 builder.ToImmutable());
         }
 
@@ -312,7 +315,11 @@ class Hello
                 try
                 {
                     var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-                    var result = DesktopBuildServerController.RunServer(pipeName, host.Object, keepAlive: null);
+                    var result = DesktopBuildServerController.RunServer(
+                        pipeName,
+                        Path.GetTempPath(),
+                        host.Object,
+                        keepAlive: null);
                     Assert.Equal(CommonCompiler.Failed, result);
                 }
                 finally
@@ -337,21 +344,15 @@ class Hello
                     var source = new TaskCompletionSource<bool>();
                     var thread = new Thread(_ =>
                     {
-                        Mutex mutex = null;
                         try
                         {
-                            Assert.True(Mutex.TryOpenExisting(mutexName, out mutex));
-                            Assert.False(mutex.WaitOne(millisecondsTimeout: 0));
+                            Assert.True(BuildServerConnection.WasServerMutexOpen(mutexName));
                             source.SetResult(true);
                         }
                         catch (Exception ex)
                         {
                             source.SetException(ex);
                             throw;
-                        }
-                        finally
-                        {
-                            mutex?.Dispose();
                         }
                     });
 
@@ -364,14 +365,18 @@ class Hello
                     return new TaskCompletionSource<IClientConnection>().Task;
                 });
 
-            var result = DesktopBuildServerController.RunServer(pipeName, host.Object, keepAlive: TimeSpan.FromSeconds(1));
+            var result = DesktopBuildServerController.RunServer(
+                pipeName,
+                Path.GetTempPath(),
+                host.Object,
+                keepAlive: TimeSpan.FromSeconds(1));
             Assert.Equal(CommonCompiler.Succeeded, result);
         }
 
         [Fact]
         public async Task ShutdownRequestDirect()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (var serverData = await ServerUtil.CreateServer())
             {
                 var serverProcessId = await ServerUtil.SendShutdown(serverData.PipeName);
                 Assert.Equal(Process.GetCurrentProcess().Id, serverProcessId);
@@ -390,7 +395,7 @@ class Hello
 
             using (var startedMre = new ManualResetEvent(initialState: false))
             using (var finishedMre = new ManualResetEvent(initialState: false))
-            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            using (var serverData = await ServerUtil.CreateServer(compilerServerHost: host))
             {
                 // Create a compilation that is guaranteed to complete after the shutdown is seen. 
                 host.RunCompilation = (request, cancellationToken) =>
@@ -427,7 +432,7 @@ class Hello
 
             using (var startedMre = new ManualResetEvent(initialState: false))
             using (var finishedMre = new ManualResetEvent(initialState: false))
-            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            using (var serverData = await ServerUtil.CreateServer(compilerServerHost: host))
             {
                 // Create a compilation that is guaranteed to complete after the shutdown is seen. 
                 host.RunCompilation = (request, cancellationToken) =>
@@ -463,7 +468,7 @@ class Hello
         {
             var host = new TestableCompilerServerHost();
 
-            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            using (var serverData = await ServerUtil.CreateServer(compilerServerHost: host))
             using (var mre = new ManualResetEvent(initialState: false))
             {
                 const int requestCount = 5;
@@ -510,6 +515,60 @@ class Hello
                     Assert.True(threw);
                 }
             }
+        }
+
+        [Fact]
+        public async Task IncorrectProtocolReturnsMismatchedVersionResponse()
+        {
+            using (var serverData = await ServerUtil.CreateServer())
+            {
+                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
+                Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
+            }
+        }
+
+        [Fact]
+        public async Task IncorrectServerHashReturnsIncorrectHashResponse()
+        {
+            using (var serverData = await ServerUtil.CreateServer())
+            {
+                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
+                Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
+            }
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(33452, "https://github.com/dotnet/roslyn/issues/33452")]
+        public void QuotePipeName_Desktop()
+        {
+            var serverInfo = BuildServerConnection.GetServerProcessInfo(@"q:\tools", "name with space");
+            Assert.Equal(@"q:\tools\VBCSCompiler.exe", serverInfo.processFilePath);
+            Assert.Equal(@"q:\tools\VBCSCompiler.exe", serverInfo.toolFilePath);
+            Assert.Equal(@"""-pipename:name with space""", serverInfo.commandLineArguments);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(33452, "https://github.com/dotnet/roslyn/issues/33452")]
+        public void QuotePipeName_CoreClr()
+        {
+            var toolDir = ExecutionConditionUtil.IsWindows
+                ? @"q:\tools"
+                : "/tools";
+            var serverInfo = BuildServerConnection.GetServerProcessInfo(toolDir, "name with space");
+            var vbcsFilePath = Path.Combine(toolDir, "VBCSCompiler.dll");
+            Assert.Equal(vbcsFilePath, serverInfo.toolFilePath);
+            Assert.Equal($@"exec ""{vbcsFilePath}"" ""-pipename:name with space""", serverInfo.commandLineArguments);
+        }
+
+        [Theory]
+        [InlineData(@"OLqrNgkgZRf14qL91MdaUn8coiKckUIZCIEkpy0Lt18", "name with space", true, "basename")]
+        [InlineData(@"8VDiJptv892LtWpeN86z76_YI0Yg0BV6j0SOv8CjQVA", @"ha""ha", true, "basename")]
+        [InlineData(@"wKSU9psJMbkw+5+TFKLEf94aeslpEb3dDRpAw+9j4nw", @"jared", true, @"ha""ha")]
+        [InlineData(@"0BDP4_GPWYQh9J_BknwhS9uAZAF_64PK4_VnNsddGZE", @"jared", false, @"ha""ha")]
+        [InlineData(@"XroHfrjD1FTk7PcXcif2hZdmlVH_L0Pg+RUX01d_uQc", @"jared", false, @"ha\ha")]
+        public void GetPipeNameCore(string expectedName, string userName, bool isAdmin, string compilerExeDir)
+        {
+            Assert.Equal(expectedName, BuildServerConnection.GetPipeName(userName, isAdmin, compilerExeDir));
         }
     }
 }

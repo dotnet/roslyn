@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(es.SemicolonToken.IsMissing);
         }
 
-        private void TestPostfixUnaryOperator(SyntaxKind kind)
+        private void TestPostfixUnaryOperator(SyntaxKind kind, ParseOptions options = null)
         {
             var text = "a" + SyntaxFacts.GetText(kind) + ";";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: options);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
@@ -171,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestPostfixUnaryOperator(SyntaxKind.PlusPlusToken);
             TestPostfixUnaryOperator(SyntaxKind.MinusMinusToken);
+            TestPostfixUnaryOperator(SyntaxKind.ExclamationToken, TestOptions.Regular8);
         }
 
         [Fact]
@@ -1660,45 +1661,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "for(ref T a = ref b, c = ref d;;) { }";
             var statement = this.ParseStatement(text);
 
-            Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
-            Assert.Equal(text, statement.ToString());
-            Assert.Equal(0, statement.Errors().Length);
-
-            var fs = (ForStatementSyntax)statement;
-            Assert.NotNull(fs.ForKeyword);
-            Assert.False(fs.ForKeyword.IsMissing);
-            Assert.Equal(SyntaxKind.ForKeyword, fs.ForKeyword.Kind());
-            Assert.NotNull(fs.OpenParenToken);
-
-            Assert.NotNull(fs.Declaration);
-            Assert.NotNull(fs.Declaration.Type);
-            Assert.Equal("ref T", fs.Declaration.Type.ToString());
-            Assert.Equal(2, fs.Declaration.Variables.Count);
-
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
-            Assert.Equal("a", fs.Declaration.Variables[0].Identifier.ToString());
-            var initializer = fs.Declaration.Variables[0].Initializer as EqualsValueClauseSyntax;
-            Assert.NotNull(initializer);
-            Assert.NotNull(initializer.EqualsToken);
-            Assert.Equal(SyntaxKind.RefExpression, initializer.Value.Kind());
-            Assert.Equal("ref b", initializer.Value.ToString());
-
-            Assert.NotNull(fs.Declaration.Variables[1].Identifier);
-            Assert.Equal("c", fs.Declaration.Variables[1].Identifier.ToString());
-            initializer = fs.Declaration.Variables[1].Initializer as EqualsValueClauseSyntax;
-            Assert.NotNull(initializer);
-            Assert.NotNull(initializer.EqualsToken);
-            Assert.Equal(SyntaxKind.RefExpression, initializer.Value.Kind());
-            Assert.Equal("ref d", initializer.Value.ToString());
-
-            Assert.Equal(0, fs.Initializers.Count);
-            Assert.NotNull(fs.FirstSemicolonToken);
-            Assert.Null(fs.Condition);
-            Assert.NotNull(fs.SecondSemicolonToken);
-            Assert.Equal(0, fs.Incrementors.Count);
-            Assert.NotNull(fs.CloseParenToken);
-            Assert.NotNull(fs.Statement);
+            UsingNode(statement);
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "d");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.Block);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
         }
 
         [Fact]
@@ -2037,6 +2055,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestIfElseIf()
+        {
+            var text = "if (a) { } else if (b) { }";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.IfStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var ss = (IfStatementSyntax)statement;
+            Assert.NotNull(ss.IfKeyword);
+            Assert.Equal(SyntaxKind.IfKeyword, ss.IfKeyword.Kind());
+            Assert.NotNull(ss.OpenParenToken);
+            Assert.NotNull(ss.Condition);
+            Assert.Equal("a", ss.Condition.ToString());
+            Assert.NotNull(ss.CloseParenToken);
+            Assert.NotNull(ss.Statement);
+
+            Assert.NotNull(ss.Else);
+            Assert.NotNull(ss.Else.ElseKeyword);
+            Assert.Equal(SyntaxKind.ElseKeyword, ss.Else.ElseKeyword.Kind());
+            Assert.NotNull(ss.Else.Statement);
+
+            var subIf = (IfStatementSyntax)ss.Else.Statement;
+            Assert.NotNull(subIf.IfKeyword);
+            Assert.Equal(SyntaxKind.IfKeyword, subIf.IfKeyword.Kind());
+            Assert.NotNull(subIf.Condition);
+            Assert.Equal("b", subIf.Condition.ToString());
+            Assert.NotNull(subIf.CloseParenToken);
+            Assert.NotNull(subIf.Statement);
+        }
+
+        [Fact]
         public void TestLock()
         {
             var text = "lock (a) { }";
@@ -2068,8 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
             var diags = statement.ErrorsAndWarnings();
-            Assert.Equal(1, diags.Length);
-            Assert.Equal((int)ErrorCode.WRN_EmptySwitch, diags[0].Code);
+            Assert.Equal(0, diags.Length);
 
             var ss = (SwitchStatementSyntax)statement;
             Assert.NotNull(ss.SwitchKeyword);
@@ -2333,6 +2384,65 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestUsingVarWithDeclaration()
+        {
+            var text = "using T a = b;";
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+
+            Assert.NotNull(us.Declaration);
+            Assert.NotNull(us.Declaration.Type);
+            Assert.Equal("T", us.Declaration.Type.ToString());
+            Assert.Equal(1, us.Declaration.Variables.Count);
+            Assert.NotNull(us.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(us.Declaration.Variables[0].ArgumentList);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
+            Assert.NotNull(us.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingVarWithDeclarationTree()
+        {
+            UsingStatement(@"using T a = b;", options: TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName, "T");
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName, "b");
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
         public void TestUsingWithVarDeclaration()
         {
             var text = "using (var a = b) { }";
@@ -2366,6 +2476,301 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(us.CloseParenToken);
             Assert.NotNull(us.Statement);
+        }
+
+        [Fact]
+        public void TestUsingVarWithVarDeclaration()
+        {
+            var text = "using var a = b;";
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+
+            Assert.NotNull(us.Declaration);
+            Assert.NotNull(us.Declaration.Type);
+            Assert.Equal("var", us.Declaration.Type.ToString());
+            Assert.Equal(SyntaxKind.IdentifierName, us.Declaration.Type.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)us.Declaration.Type).Identifier.Kind());
+            Assert.Equal(1, us.Declaration.Variables.Count);
+            Assert.NotNull(us.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(us.Declaration.Variables[0].ArgumentList);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
+        }
+
+        [Fact]
+        [WorkItem(36413, "https://github.com/dotnet/roslyn/issues/36413")]
+        public void TestUsingVarWithInvalidDeclaration()
+        {
+            var text = "using public readonly var a = b;";
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(2, statement.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_BadMemberFlag, statement.Errors()[0].Code);
+            Assert.Equal("public", statement.Errors()[0].Arguments[0]);
+            Assert.Equal((int)ErrorCode.ERR_BadMemberFlag, statement.Errors()[1].Code);
+            Assert.Equal("readonly", statement.Errors()[1].Arguments[0]);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+
+            Assert.NotNull(us.Declaration);
+            Assert.NotNull(us.Declaration.Type);
+            Assert.Equal("var", us.Declaration.Type.ToString());
+            Assert.Equal(SyntaxKind.IdentifierName, us.Declaration.Type.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)us.Declaration.Type).Identifier.Kind());
+            Assert.Equal(2, us.Modifiers.Count);
+            Assert.Equal("public", us.Modifiers[0].ToString());
+            Assert.Equal("readonly", us.Modifiers[1].ToString());
+            Assert.Equal(1, us.Declaration.Variables.Count);
+            Assert.NotNull(us.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(us.Declaration.Variables[0].ArgumentList);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
+        }
+
+        [Fact]
+        public void TestUsingVarWithVarDeclarationTree()
+        {
+            UsingStatement(@"using var a = b;", options: TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName, "var");
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName, "b");
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
+        public void TestAwaitUsingVarWithDeclarationTree()
+        {
+            UsingStatement(@"await using T a = b;", TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.AwaitKeyword);
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName, "T");
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName, "b");
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
+        public void TestAwaitUsingWithVarDeclaration()
+        {
+            var text = "await using var a = b;";
+            var statement = this.ParseStatement(text, 0, TestOptions.Regular8);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.AwaitKeyword);
+            Assert.Equal(SyntaxKind.AwaitKeyword, us.AwaitKeyword.ContextualKind());
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+
+            Assert.NotNull(us.Declaration);
+            Assert.NotNull(us.Declaration.Type);
+            Assert.Equal("var", us.Declaration.Type.ToString());
+            Assert.Equal(SyntaxKind.IdentifierName, us.Declaration.Type.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)us.Declaration.Type).Identifier.Kind());
+            Assert.Equal(1, us.Declaration.Variables.Count);
+            Assert.NotNull(us.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(us.Declaration.Variables[0].ArgumentList);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
+        }
+
+        [Fact]
+        public void TestAwaitUsingVarWithVarDeclarationTree()
+        {
+            UsingStatement(@"await using var a = b;", TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.AwaitKeyword);
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName, "var");
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName, "b");
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact, WorkItem(30565, "https://github.com/dotnet/roslyn/issues/30565")]
+        public void AwaitUsingVarWithVarDecl_Reversed()
+        {
+            UsingTree(@"
+class C
+{
+    async void M()
+    {
+        using await var x = null;
+    }
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.UsingKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NullLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NullKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestAwaitUsingVarWithVarAndNoUsingDeclarationTree()
+        {
+            UsingStatement(@"await var a = b;", TestOptions.Regular8, expectedErrors:
+                // (1,11): error CS1003: Syntax error, ',' expected
+                // await var a = b;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(1, 11)
+            );
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "await");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -2413,6 +2818,87 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestUsingVarWithDeclarationWithMultipleVariables()
+        {
+            var text = "using T a = b, c = d;";
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+
+            Assert.NotNull(us.Declaration);
+            Assert.NotNull(us.Declaration.Type);
+            Assert.Equal("T", us.Declaration.Type.ToString());
+
+            Assert.Equal(2, us.Declaration.Variables.Count);
+
+            Assert.NotNull(us.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(us.Declaration.Variables[0].ArgumentList);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
+
+            Assert.NotNull(us.Declaration.Variables[1].Identifier);
+            Assert.Equal("c", us.Declaration.Variables[1].Identifier.ToString());
+            Assert.Null(us.Declaration.Variables[1].ArgumentList);
+            Assert.NotNull(us.Declaration.Variables[1].Initializer);
+            Assert.NotNull(us.Declaration.Variables[1].Initializer.EqualsToken);
+            Assert.NotNull(us.Declaration.Variables[1].Initializer.Value);
+            Assert.Equal("d", us.Declaration.Variables[1].Initializer.Value.ToString());
+        }
+
+        [Fact]
+        public void TestUsingVarWithDeclarationMultipleVariablesTree()
+        {
+            UsingStatement(@"using T a = b, c = d;", options: TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName, "T");
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName, "b");
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName, "d");
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
         public void TestUsingSpecialCase1()
         {
             var text = "using (f ? x = a : x = b) { }";
@@ -2435,10 +2921,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestUsingVarSpecialCase1()
+        {
+            var text = "using var x = f ? a : b;";
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+            Assert.NotNull(us.Declaration);
+            Assert.Equal("var x = f ? a : b", us.Declaration.ToString());
+        }
+
+        [Fact]
+        public void TestUsingVarSpecialCase1Tree()
+        {
+            UsingStatement(@"using var x = f ? a : b;", options: TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName, "var");
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ConditionalExpression);
+                            {
+                                N(SyntaxKind.IdentifierName, "f");
+                                {
+                                    N(SyntaxKind.IdentifierToken, "f");
+                                }
+                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.IdentifierName, "a");
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                                N(SyntaxKind.ColonToken);
+                                N(SyntaxKind.IdentifierName, "b");
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
         public void TestUsingSpecialCase2()
         {
             var text = "using (f ? x = a) { }";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
@@ -2454,6 +3001,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(us.Expression);
             Assert.NotNull(us.CloseParenToken);
             Assert.NotNull(us.Statement);
+        }
+
+        [Fact]
+        public void TestUsingVarSpecialCase2()
+        {
+            var text = "using f ? x = a;";
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+            Assert.NotNull(us.Declaration);
+            Assert.Equal("f ? x = a", us.Declaration.ToString());
+        }
+
+        [Fact]
+        public void TestUsingVarSpecialCase2Tree()
+        {
+            UsingStatement(@"using f ? x = a;", options: TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName, "f");
+                        {
+                            N(SyntaxKind.IdentifierToken, "f");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    N(SyntaxKind.IdentifierToken, "x");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IdentifierName, "a");
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
         }
 
         [Fact]
@@ -2476,6 +3073,247 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(us.Expression);
             Assert.NotNull(us.CloseParenToken);
             Assert.NotNull(us.Statement);
+        }
+
+        [Fact]
+        public void TestUsingVarSpecialCase3()
+        {
+            var text = "using f ? x, y;";
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+            Assert.NotNull(us.Declaration);
+            Assert.Equal("f ? x, y", us.Declaration.ToString());
+        }
+
+        [Fact]
+        public void TestUsingVarSpecialCase3Tree()
+        {
+            UsingStatement("using f? x, y;", options: TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName, "f");
+                        {
+                            N(SyntaxKind.IdentifierToken, "f");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingVarRefTree()
+        {
+            UsingStatement("using ref int x = ref y;", TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName, "y");
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingVarRefReadonlyTree()
+        {
+            UsingStatement("using ref readonly int x = ref y;", TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName, "y");
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingVarRefVarTree()
+        {
+            UsingStatement("using ref var x = ref y;", TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName, "var");
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName, "y");
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingVarRefVarIsYTree()
+        {
+            UsingStatement("using ref var x = y;", TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName, "var");
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName, "y");
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingVarReadonlyMultipleDeclarations()
+        {
+            UsingStatement("using readonly var x, y = ref z;", TestOptions.Regular8,
+                // (1,7): error CS0106: The modifier 'readonly' is not valid for this item
+                // using readonly var x, y = ref z;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 7));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.ReadOnlyKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName, "var");
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.RefExpression);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName, "z");
+                            {
+                                N(SyntaxKind.IdentifierToken, "z");
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
         }
 
         [Fact]
@@ -2654,7 +3492,7 @@ class C1
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
-            Assert.Equal(false, tree.GetRoot().ContainsDiagnostics);
+            tree.GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -2721,6 +3559,672 @@ System.Console.WriteLine(true)";
                 // { label: public
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10)
                 );
+        }
+
+        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact]
+        public void ParseElseWithoutPrecedingIfStatement()
+        {
+            UsingStatement("else {}",
+                // (1,1): error CS8641: 'else' cannot start a statement.
+                // else {}
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 1),
+                // (1,1): error CS1003: Syntax error, '(' expected
+                // else {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 1),
+                // (1,1): error CS1525: Invalid expression term 'else'
+                // else {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 1),
+                // (1,1): error CS1026: ) expected
+                // else {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 1),
+                // (1,1): error CS1525: Invalid expression term 'else'
+                // else {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 1),
+                // (1,1): error CS1002: ; expected
+                // else {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 1)
+                );
+            N(SyntaxKind.IfStatement);
+            {
+                M(SyntaxKind.IfKeyword);
+                M(SyntaxKind.OpenParenToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.CloseParenToken);
+                M(SyntaxKind.ExpressionStatement);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ElseClause);
+                {
+                    N(SyntaxKind.ElseKeyword);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact]
+        public void ParseElseAndElseWithoutPrecedingIfStatement()
+        {
+            UsingStatement("{ else {} else {} }",
+                // (1,3): error CS8641: 'else' cannot start a statement.
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 3),
+                // (1,3): error CS1003: Syntax error, '(' expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 3),
+                // (1,3): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 3),
+                // (1,3): error CS1026: ) expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 3),
+                // (1,3): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 3),
+                // (1,3): error CS1002: ; expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 3),
+                // (1,11): error CS8641: 'else' cannot start a statement.
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 11),
+                // (1,11): error CS1003: Syntax error, '(' expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 11),
+                // (1,11): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 11),
+                // (1,11): error CS1026: ) expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 11),
+                // (1,11): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 11),
+                // (1,11): error CS1002: ; expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 11)
+                );
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.IfStatement);
+                {
+                    M(SyntaxKind.IfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                    M(SyntaxKind.ExpressionStatement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.IfStatement);
+                {
+                    M(SyntaxKind.IfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                    M(SyntaxKind.ExpressionStatement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact]
+        public void ParseSubsequentElseWithoutPrecedingIfStatement()
+        {
+            UsingStatement("{ if (a) { } else { } else { } }",
+                // (1,23): error CS8641: 'else' cannot start a statement.
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 23),
+                // (1,23): error CS1003: Syntax error, '(' expected
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 23),
+                // (1,23): error CS1525: Invalid expression term 'else'
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 23),
+                // (1,23): error CS1026: ) expected
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 23),
+                // (1,23): error CS1525: Invalid expression term 'else'
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 23),
+                // (1,23): error CS1002: ; expected
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 23)
+                );
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.IfStatement);
+                {
+                    N(SyntaxKind.IfKeyword);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.IfStatement);
+                {
+                    M(SyntaxKind.IfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                    M(SyntaxKind.ExpressionStatement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact]
+        public void ParseElseKeywordPlacedAsIfEmbeddedStatement()
+        {
+            UsingStatement("if (a) else {}",
+                // (1,8): error CS8641: 'else' cannot start a statement.
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 8),
+                // (1,8): error CS1003: Syntax error, '(' expected
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 8),
+                // (1,8): error CS1525: Invalid expression term 'else'
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 8),
+                // (1,8): error CS1026: ) expected
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 8),
+                // (1,8): error CS1525: Invalid expression term 'else'
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 8),
+                // (1,8): error CS1002: ; expected
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 8)
+                );
+            N(SyntaxKind.IfStatement);
+            {
+                N(SyntaxKind.IfKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.IfStatement);
+                {
+                    M(SyntaxKind.IfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                    M(SyntaxKind.ExpressionStatement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitch01()
+        {
+            UsingStatement("switch 1+2 {}",
+                // (1,8): error CS8415: Parentheses are required around the switch governing expression.
+                // switch 1+2 {}
+                Diagnostic(ErrorCode.ERR_SwitchGoverningExpressionRequiresParens, "1+2").WithLocation(1, 8)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                M(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitch02()
+        {
+            UsingStatement("switch (a: 0) {}",
+                // (1,13): error CS8124: Tuple must contain at least two elements.
+                // switch (a: 0) {}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 13)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.TupleExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NameColon);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    M(SyntaxKind.Argument);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitch03()
+        {
+            UsingStatement("switch (a: 0, b: 4) {}");
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.TupleExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NameColon);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NameColon);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "4");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitch04()
+        {
+            UsingStatement("switch (1) + (2) {}",
+                // (1,8): error CS8415: Parentheses are required around the switch governing expression.
+                // switch (1) + (2) {}
+                Diagnostic(ErrorCode.ERR_SwitchGoverningExpressionRequiresParens, "(1) + (2)").WithLocation(1, 8)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                M(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseCreateNullableTuple_01()
+        {
+            UsingStatement("_ = new (int, int)? {};");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ObjectCreationExpression);
+                    {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.ObjectInitializerExpression);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseCreateNullableTuple_02()
+        {
+            UsingStatement("_ = new (int, int) ? (x) : (y);",
+                // (1,1): error CS1073: Unexpected token ':'
+                // _ = new (int, int) ? (x) : (y);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = new (int, int) ? (x) ").WithArguments(":").WithLocation(1, 1),
+                // (1,26): error CS1002: ; expected
+                // _ = new (int, int) ? (x) : (y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 26)
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ObjectCreationExpression);
+                    {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParsePointerToArray()
+        {
+            UsingStatement("int []* p;",
+                // (1,7): error CS1001: Identifier expected
+                // int []* p;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(1, 7),
+                // (1,7): error CS1003: Syntax error, ',' expected
+                // int []* p;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(",", "*").WithLocation(1, 7)
+                );
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseNewNullableWithInitializer()
+        {
+            UsingStatement("_ = new int? {};");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ObjectCreationExpression);
+                    {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.ObjectInitializerExpression);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker

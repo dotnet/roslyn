@@ -1,13 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -25,6 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _variablesDeclared As ImmutableArray(Of ISymbol)
         Private _unassignedVariables As HashSet(Of Symbol)
         Private _dataFlowsIn As ImmutableArray(Of ISymbol)
+        Private _definitelyAssignedOnEntry As ImmutableArray(Of ISymbol)
+        Private _definitelyAssignedOnExit As ImmutableArray(Of ISymbol)
         Private _dataFlowsOut As ImmutableArray(Of ISymbol)
         Private _alwaysAssigned As ImmutableArray(Of ISymbol)
         Private _readInside As ImmutableArray(Of ISymbol)
@@ -49,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 If _variablesDeclared.IsDefault Then
                     Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
-                                    Sort(VariablesDeclaredWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)))
+                                    Normalize(VariablesDeclaredWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)))
                     ImmutableInterlocked.InterlockedCompareExchange(_variablesDeclared, result, Nothing)
                 End If
                 Return _variablesDeclared
@@ -75,12 +72,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If _dataFlowsIn.IsDefault Then
                     Me._succeeded = Not Me._context.Failed
                     Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
-                                    Sort(DataFlowsInWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _succeeded, _invalidRegionDetected)))
+                                    Normalize(DataFlowsInWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _succeeded, _invalidRegionDetected)))
                     ImmutableInterlocked.InterlockedCompareExchange(_dataFlowsIn, result, Nothing)
                 End If
                 Return _dataFlowsIn
             End Get
         End Property
+
+        Public Overrides ReadOnly Property DefinitelyAssignedOnEntry As ImmutableArray(Of ISymbol)
+            Get
+                Return ComputeDefinitelyAssignedValues().onEntry
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property DefinitelyAssignedOnExit As ImmutableArray(Of ISymbol)
+            Get
+                Return ComputeDefinitelyAssignedValues().onExit
+            End Get
+        End Property
+
+        Private Function ComputeDefinitelyAssignedValues() As (onEntry As ImmutableArray(Of ISymbol), onExit As ImmutableArray(Of ISymbol))
+            ' Check for _definitelyAssignedOnExit as that's the last thing we write to. If it's not
+            ' Default, then we'll have written to both variables and can safely read from either of
+            ' them.
+            If _definitelyAssignedOnExit.IsDefault Then
+                Dim entry = ImmutableArray(Of ISymbol).Empty
+                Dim ex = ImmutableArray(Of ISymbol).Empty
+
+                Dim discarded = DataFlowsIn
+                If Not Me._context.Failed Then
+                    Dim tuple = DefinitelyAssignedWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)
+                    entry = Normalize(tuple.entry)
+                    ex = Normalize(tuple.ex)
+                End If
+
+                ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnEntry, entry)
+                ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnExit, ex)
+            End If
+
+            Return (_definitelyAssignedOnEntry, _definitelyAssignedOnExit)
+        End Function
 
         ''' <summary>
         ''' A collection of the local variables for which a value assigned inside the region may be used outside the region.
@@ -90,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim discarded = DataFlowsIn
                 If _dataFlowsOut.IsDefault Then
                     Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
-                                    Sort(DataFlowsOutWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _dataFlowsIn)))
+                                    Normalize(DataFlowsOutWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, UnassignedVariables, _dataFlowsIn)))
                     ImmutableInterlocked.InterlockedCompareExchange(_dataFlowsOut, result, Nothing)
                 End If
                 Return _dataFlowsOut
@@ -104,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 If _alwaysAssigned.IsDefault Then
                     Dim result = If(Me._context.Failed, ImmutableArray(Of ISymbol).Empty,
-                                    Sort(AlwaysAssignedWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)))
+                                    Normalize(AlwaysAssignedWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)))
                     ImmutableInterlocked.InterlockedCompareExchange(_alwaysAssigned, result, Nothing)
                 End If
                 Return _alwaysAssigned
@@ -187,13 +218,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     capturedOutside:=capturedOutside)
             End If
 
-            ImmutableInterlocked.InterlockedCompareExchange(Me._readInside, Sort(readInside), Nothing)
-            ImmutableInterlocked.InterlockedCompareExchange(Me._writtenInside, Sort(writtenInside), Nothing)
-            ImmutableInterlocked.InterlockedCompareExchange(Me._readOutside, Sort(readOutside), Nothing)
-            ImmutableInterlocked.InterlockedCompareExchange(Me._writtenOutside, Sort(writtenOutside), Nothing)
-            ImmutableInterlocked.InterlockedCompareExchange(Me._captured, Sort(captured), Nothing)
-            ImmutableInterlocked.InterlockedCompareExchange(Me._capturedInside, Sort(capturedInside), Nothing)
-            ImmutableInterlocked.InterlockedCompareExchange(Me._capturedOutside, Sort(capturedOutside), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._readInside, Normalize(readInside), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._writtenInside, Normalize(writtenInside), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._readOutside, Normalize(readOutside), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._writtenOutside, Normalize(writtenOutside), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._captured, Normalize(captured), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._capturedInside, Normalize(capturedInside), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._capturedOutside, Normalize(capturedOutside), Nothing)
         End Sub
 
         ''' <summary>
@@ -252,9 +283,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Function Sort(data As IEnumerable(Of Symbol)) As ImmutableArray(Of ISymbol)
+        Friend Function Normalize(data As IEnumerable(Of Symbol)) As ImmutableArray(Of ISymbol)
             Dim builder = ArrayBuilder(Of Symbol).GetInstance()
-            builder.AddRange(data)
+            builder.AddRange(data.Where(Function(s) s.CanBeReferencedByName))
             builder.Sort(LexicalOrderSymbolComparer.Instance)
             Return builder.ToImmutableAndFree().As(Of ISymbol)()
         End Function

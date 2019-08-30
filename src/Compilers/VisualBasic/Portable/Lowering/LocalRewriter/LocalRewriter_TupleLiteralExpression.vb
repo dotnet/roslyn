@@ -93,6 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     currentCreation.ConstructorOpt,
                     methodGroupOpt:=Nothing,
                     arguments:=currentCreation.Arguments,
+                    defaultArguments:=currentCreation.DefaultArguments,
                     initializerOpt:=currentCreation.InitializerOpt,
                     type:=type)
 

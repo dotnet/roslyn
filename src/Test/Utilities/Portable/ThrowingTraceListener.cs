@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     {
         public override void Fail(string message, string detailMessage)
         {
-            throw new DebugAssertFailureException(message + Environment.NewLine + detailMessage);
+            throw new InvalidOperationException(message + Environment.NewLine + detailMessage);
         }
 
         public override void Write(object o)
@@ -54,13 +54,6 @@ namespace Microsoft.CodeAnalysis
 
         public override void WriteLine(string message, string category)
         {
-        }
-
-        public class DebugAssertFailureException : Exception
-        {
-            public DebugAssertFailureException() { }
-            public DebugAssertFailureException(string message) : base(message) { }
-            public DebugAssertFailureException(string message, Exception inner) : base(message, inner) { }
         }
     }
 }

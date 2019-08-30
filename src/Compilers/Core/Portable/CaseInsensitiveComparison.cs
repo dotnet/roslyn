@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                for(int i = 0; i < possibleStart.Length; i++)
+                for (int i = 0; i < possibleStart.Length; i++)
                 {
                     if (!AreEqualLowerUnicode(value[i], possibleStart[i]))
                     {
@@ -223,21 +223,33 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns a StringComparer that compares strings according the VB identifier comparison rules.
+        /// Returns a StringComparer that compares strings according to Unicode rules for case-insensitive
+        /// identifier comparison (lower-case mapping).
         /// </summary>
+        /// <remarks>
+        /// These are also the rules used for VB identifier comparison.
+        /// </remarks>
         private static readonly OneToOneUnicodeComparer s_comparer = new OneToOneUnicodeComparer();
 
         /// <summary>
-        /// Returns a StringComparer that compares strings according the VB identifier comparison rules.
+        /// Returns a StringComparer that compares strings according to Unicode rules for case-insensitive
+        /// identifier comparison (lower-case mapping).
         /// </summary>
+        /// <remarks>
+        /// These are also the rules used for VB identifier comparison.
+        /// </remarks>
         public static StringComparer Comparer => s_comparer;
 
         /// <summary>
-        /// Determines if two VB identifiers are equal according to the VB identifier comparison rules.
+        /// Determines if two strings are equal according to Unicode rules for case-insensitive
+        /// identifier comparison (lower-case mapping).
         /// </summary>
         /// <param name="left">First identifier to compare</param>
         /// <param name="right">Second identifier to compare</param>
         /// <returns>true if the identifiers should be considered the same.</returns>
+        /// <remarks>
+        /// These are also the rules used for VB identifier comparison.
+        /// </remarks>
         public static bool Equals(string left, string right) => s_comparer.Equals(left, right);
 
         /// <summary>
@@ -257,18 +269,25 @@ namespace Microsoft.CodeAnalysis
         public static bool StartsWith(string value, string possibleStart) => OneToOneUnicodeComparer.StartsWith(value, possibleStart);
 
         /// <summary>
-        /// Compares two VB identifiers according to the VB identifier comparison rules.
+        /// Compares two strings according to the Unicode rules for case-insensitive
+        /// identifier comparison (lower-case mapping).
         /// </summary>
         /// <param name="left">First identifier to compare</param>
         /// <param name="right">Second identifier to compare</param>
         /// <returns>-1 if <paramref name="left"/> &lt; <paramref name="right"/>, 1 if <paramref name="left"/> &gt; <paramref name="right"/>, 0 if they are equal.</returns>
+        /// <remarks>
+        /// These are also the rules used for VB identifier comparison.
+        /// </remarks>
         public static int Compare(string left, string right) => s_comparer.Compare(left, right);
 
         /// <summary>
-        /// Gets a case-insensitive hash code for VB identifiers.
+        /// Gets a case-insensitive hash code for Unicode identifiers.
         /// </summary>
         /// <param name="value">identifier to get the hash code for</param>
         /// <returns>The hash code for the given identifier</returns>
+        /// <remarks>
+        /// These are also the rules used for VB identifier comparison.
+        /// </remarks>
         public static int GetHashCode(string value)
         {
             Debug.Assert(value != null);

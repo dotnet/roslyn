@@ -1,9 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
@@ -14,16 +13,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicSymbolDeclarationService
         Implements ISymbolDeclarationService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         ''' <summary>
         ''' Get the declaring syntax node for a Symbol. Unlike the DeclaringSyntaxReferences property,
         ''' this function always returns a block syntax, if there is one.
         ''' </summary>
-        Public Function GetDeclarations(symbol As ISymbol) As IEnumerable(Of SyntaxReference) Implements ISymbolDeclarationService.GetDeclarations
-            If symbol Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of SyntaxReference)()
-            Else
-                Return symbol.DeclaringSyntaxReferences.Select(Function(r) New BlockSyntaxReference(r))
-            End If
+        Public Function GetDeclarations(symbol As ISymbol) As ImmutableArray(Of SyntaxReference) Implements ISymbolDeclarationService.GetDeclarations
+            Return If(symbol Is Nothing,
+                      ImmutableArray(Of SyntaxReference).Empty,
+                      symbol.DeclaringSyntaxReferences.SelectAsArray(Of SyntaxReference)(
+                        Function(r) New BlockSyntaxReference(r)))
         End Function
 
         ''' <summary>
@@ -57,7 +59,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         begin = DirectCast(parent, EventBlockSyntax).EventStatement
 
                     Case SyntaxKind.VariableDeclarator
-                        begin = node
+                        If DirectCast(parent, VariableDeclaratorSyntax).Names.Count = 1 Then
+                            begin = node
+                        End If
                 End Select
             End If
 

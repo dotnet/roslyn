@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         {
             spans.Add(new BlockSpan(
                 isCollapsible: true,
-                textSpan: TextSpan.FromBounds(node.CloseParenToken.Span.End, node.CloseBraceToken.Span.End),
+                textSpan: TextSpan.FromBounds((node.CloseParenToken != default) ? node.CloseParenToken.Span.End : node.Expression.Span.End, node.CloseBraceToken.Span.End),
                 hintSpan: node.Span,
                 type: BlockTypes.Conditional));
         }

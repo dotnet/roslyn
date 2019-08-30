@@ -24,7 +24,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-            
+
             <SolidColorBrush x:Key="ForegroundText" Color="{DynamicResource {x:Static utilities:CodeAnalysisColors.SystemCaptionTextColorKey}}"/>
 
             <Style TargetType="CheckBox">
@@ -58,7 +58,7 @@
             <StackPanel>
 
                 <!-- Heading: Display the old and new identifier names, and an indication if something is wrong (but not the full description, which goes in the Summary section below) -->
-                
+
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -115,11 +115,12 @@
                     VerticalAlignment="Center"
                     HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                     Click="CloseButton_Click"
-                    ToolTip="{Binding ElementName=dashboard, Path=CancelToolTip}"/>
+                    ToolTip="{Binding ElementName=dashboard, Path=CancelToolTip}"
+                    AutomationProperties.Name="{Binding ElementName=dashboard, Path=CancelRename}"/>
                 </Grid>
 
                 <!-- Display the new name if it has been adjusted, or instructional text if it has not. -->
-                
+
                 <TextBlock Text="{Binding NewNameDescription}"
                            MaxWidth="280"
                            TextTrimming="CharacterEllipsis"
@@ -135,21 +136,27 @@
                            Width="Auto"
                            FontStyle="Italic"
                            Visibility="{Binding ShouldShowInstructions, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                
+
                 <!-- Settings -->
 
                 <CheckBox Content="{Binding ElementName=dashboard, Path=RenameOverloads}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameOverloadFlag, Mode=TwoWay}"
                       Name="OverloadsCheckbox" Visibility="{Binding ElementName=dashboard, Path=RenameOverloadsVisibility}" IsEnabled="{Binding ElementName=dashboard, Path=IsRenameOverloadsEditable}" />
                 <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInComments}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInCommentsFlag, Mode=TwoWay}" />
                 <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInStrings}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInStringsFlag, Mode=TwoWay}" />
+                <CheckBox Name="FileRenameCheckbox" 
+                          Content="{Binding Path=FileRenameString}" 
+                          Margin="0" 
+                          IsChecked="{Binding Path=DefaultRenameFileFlag, Mode=TwoWay}" 
+                          IsEnabled="{Binding Path=AllowFileRename, Mode=OneWay}" 
+                          Visibility="{Binding Path=ShowFileRename, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
 
                 <CheckBox Name="PreviewChangesCheckbox" Content="{Binding ElementName=dashboard, Path=PreviewChanges}" Margin="0,8,0,0" IsChecked="{Binding Path=DefaultPreviewChangesFlag, Mode=TwoWay}" />
 
                 <!-- Summary: Includes the number of references to be updated and any conflict information -->
-                
+
                 <TextBlock Text="{Binding Path=SearchText}"
                            Margin="0,12,0,0"/>
-                
+
                 <StackPanel Margin="0,8,0,0">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
@@ -178,7 +185,7 @@
                                 </Style.Triggers>
                             </Style>
                         </Grid.Style>
-                        
+
                         <Rectangle Name="ResolvableConflictBorder" 
                                    Width="{Binding ElementName=ResolvableConflictText, Path=ActualWidth}"
                                    Height="{Binding ElementName=ResolvableConflictText, Path=ActualHeight}"
@@ -233,9 +240,9 @@
 
                 <Button Name="ApplyButton" Click="Apply_Click" IsDefault="True" MinWidth="75" MinHeight="23" Padding="10,1,10,1" Margin="0,8,0,0" HorizontalAlignment="Right"
                     ToolTip="{Binding ElementName=dashboard, Path=ApplyToolTip}"
-                    Style="{DynamicResource {x:Static utilities:CodeAnalysisColors.ButtonStyleKey}}">
-                    <AccessText Text="{Binding ElementName=dashboard, Path=ApplyRename}" />
-                </Button>
+                    Style="{DynamicResource {x:Static utilities:CodeAnalysisColors.ButtonStyleKey}}"
+                    Content="{Binding ElementName=dashboard, Path=ApplyRename}"
+                    AutomationProperties.Name="{Binding ElementName=dashboard, Path=ApplyRename}"/>
             </StackPanel>
         </Border>
 

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A list of <see cref="SyntaxNode"/>.
     /// </summary>
-    public partial struct SyntaxList<TNode> : IReadOnlyList<TNode>, IEquatable<SyntaxList<TNode>>
+    public readonly partial struct SyntaxList<TNode> : IReadOnlyList<TNode>, IEquatable<SyntaxList<TNode>>
         where TNode : SyntaxNode
     {
         private readonly SyntaxNode _node;

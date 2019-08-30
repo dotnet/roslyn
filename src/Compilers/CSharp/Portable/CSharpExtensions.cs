@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToList();
         }
 
-        #region SyntaxNode 
+        #region SyntaxNode
         internal static IList<DirectiveTriviaSyntax> GetDirectives(this SyntaxNode node, Func<DirectiveTriviaSyntax, bool> filter = null)
         {
             return ((CSharpSyntaxNode)node).GetDirectives(filter);
@@ -337,9 +337,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return ((CSharpSyntaxNode)node).GetLastDirective(predicate);
         }
-        #endregion  
+        #endregion
 
-        #region SyntaxTree 
+        #region SyntaxTree
         public static CompilationUnitSyntax GetCompilationUnitRoot(this SyntaxTree tree, CancellationToken cancellationToken = default(CancellationToken))
         {
             return (CompilationUnitSyntax)tree.GetRoot(cancellationToken);
@@ -370,13 +370,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Given the error code and the source location, get the warning state based on pragma warning directives.
-        internal static ReportDiagnostic GetPragmaDirectiveWarningState(this SyntaxTree tree, string id, int position)
+        internal static PragmaWarningState GetPragmaDirectiveWarningState(this SyntaxTree tree, string id, int position)
         {
             return ((CSharpSyntaxTree)tree).GetPragmaDirectiveWarningState(id, position);
         }
         #endregion
 
-        #region Compilation 
+        #region Compilation
         // NOTE(cyrusn): There is a bit of a discoverability problem with this method and the same
         // named method in SyntaxTreeSemanticModel.  Technically, i believe these are the appropriate
         // locations for these methods.  This method has no dependencies on anything but the
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         #endregion
 
-        #region SemanticModel 
+        #region SemanticModel
         /// <summary>
         /// Gets the semantic information for an ordering clause in an orderby query clause.
         /// </summary>
@@ -432,10 +432,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
-        /// 
+        ///
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be
         /// returned instead. To get information about aliases, call GetAliasInfo.
-        /// 
+        ///
         /// If binding the type name C in the expression "new C(...)" the actual constructor bound to
         /// will be returned (or all constructor if overload resolution failed). This occurs as long as C
         /// unambiguously binds to a single type that has a constructor. If C ambiguously binds to multiple
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax 
+        /// Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax
         /// within <see cref="ObjectCreationExpressionSyntax.Initializer"/>.
         /// </summary>
         public static SymbolInfo GetCollectionInitializerSymbolInfo(this SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind the constructor initializer in the context of the specified location and get semantic information
         /// such as type, symbols and diagnostics. This method is used to get semantic information about a constructor
         /// initializer that did not actually appear in the source code.
-        /// 
+        ///
         /// NOTE: This will only work in locations where there is already a constructor initializer.
         /// </summary>
         public static SymbolInfo GetSpeculativeSymbolInfo(this SemanticModel semanticModel, int position, ConstructorInitializerSyntax constructorInitializer)
@@ -694,9 +694,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <exception cref="InvalidCastException">If the <see cref="IConversionOperation"/> was not created from CSharp code.</exception>
         public static Conversion GetConversion(this IConversionOperation conversionExpression)
         {
-            if (conversionExpression is BaseCSharpConversionExpression csharpConversionExpression)
+            if (conversionExpression.Language == LanguageNames.CSharp)
             {
-                return csharpConversionExpression.ConversionInternal;
+                return (Conversion)((BaseConversionOperation)conversionExpression).ConversionConvertible;
             }
             else
             {
@@ -720,9 +720,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(compoundAssignment));
             }
 
-            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignment)
+            if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return csharpCompoundAssignment.InConversionInternal;
+                return (Conversion)((BaseCompoundAssignmentOperation)compoundAssignment).InConversionConvertible;
             }
             else
             {
@@ -746,9 +746,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(compoundAssignment));
             }
 
-            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignemnt)
+            if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return csharpCompoundAssignemnt.OutConversionInternal;
+                return (Conversion)((BaseCompoundAssignmentOperation)compoundAssignment).OutConversionConvertible;
             }
             else
             {
@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze control-flow within a part of a method body. 
+        /// Analyze control-flow within a part of a method body.
         /// </summary>
         public static ControlFlowAnalysis AnalyzeControlFlow(this SemanticModel semanticModel, StatementSyntax firstStatement, StatementSyntax lastStatement)
         {
@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze control-flow within a part of a method body. 
+        /// Analyze control-flow within a part of a method body.
         /// </summary>
         public static ControlFlowAnalysis AnalyzeControlFlow(this SemanticModel semanticModel, StatementSyntax statement)
         {
@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an expression. 
+        /// Analyze data-flow within an expression.
         /// </summary>
         public static DataFlowAnalysis AnalyzeDataFlow(this SemanticModel semanticModel, ExpressionSyntax expression)
         {
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within a part of a method body. 
+        /// Analyze data-flow within a part of a method body.
         /// </summary>
         public static DataFlowAnalysis AnalyzeDataFlow(this SemanticModel semanticModel, StatementSyntax firstStatement, StatementSyntax lastStatement)
         {
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within a part of a method body. 
+        /// Analyze data-flow within a part of a method body.
         /// </summary>
         public static DataFlowAnalysis AnalyzeDataFlow(this SemanticModel semanticModel, StatementSyntax statement)
         {
@@ -1010,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get a SemanticModel object that is associated with a type syntax node that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
-        /// of a type syntax that did not appear in source code. 
+        /// of a type syntax that did not appear in source code.
         /// </summary>
         public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, TypeSyntax type, out SemanticModel speculativeModel, SpeculativeBindingOption bindingOption = SpeculativeBindingOption.BindAsExpression)
         {
@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get a SemanticModel object that is associated with a cref syntax node that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
-        /// of a cref syntax that did not appear in source code. 
+        /// of a cref syntax that did not appear in source code.
         /// </summary>
         public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, CrefSyntax crefSyntax, out SemanticModel speculativeModel)
         {
@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get a SemanticModel object that is associated with a statement that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
-        /// of a statement that did not appear in source code. 
+        /// of a statement that did not appear in source code.
         /// </summary>
         public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, StatementSyntax statement, out SemanticModel speculativeModel)
         {
@@ -1105,8 +1105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
-        /// of a constructor initializer that did not appear in source code. 
-        /// 
+        /// of a constructor initializer that did not appear in source code.
+        ///
         /// NOTE: This will only work in locations where there is already a constructor initializer.
         /// </summary>
         public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get a SemanticModel object that is associated with an attribute that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
-        /// of an attribute that did not appear in source code. 
+        /// of an attribute that did not appear in source code.
         /// </summary>
         public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, AttributeSyntax attribute, out SemanticModel speculativeModel)
         {

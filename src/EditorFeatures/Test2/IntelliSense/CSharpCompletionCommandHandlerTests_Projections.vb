@@ -4,11 +4,19 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_Projections
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSimpleWithJustSubjectBuffer() As System.Threading.Tasks.Task
-            Using state = TestState.CreateCSharpTestState(
+        Public Shared ReadOnly Property AllCompletionImplementations() As IEnumerable(Of Object())
+            Get
+                Return TestStateFactory.GetAllCompletionImplementations()
+            End Get
+        End Property
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSimpleWithJustSubjectBuffer(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 using System;
 
@@ -26,16 +34,16 @@ public override void Execute() {
 }]]></Document>)
 
                 state.SendTypeChars(".Curr")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="CurrentDomain")
                 state.SendTab()
                 Assert.Contains("__o = AppDomain.CurrentDomain", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAfterDot() As System.Threading.Tasks.Task
-            Using state = TestState.CreateCSharpTestState(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAfterDot(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 {|S2:
 class C
@@ -64,17 +72,17 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(".", view, buffer)
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSession(view)
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Console")
+                Await state.AssertSelectedCompletionItem(displayText:="Console", projectionsView:=view)
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestInObjectCreationExpression() As System.Threading.Tasks.Task
-            Using state = TestState.CreateCSharpTestState(
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInObjectCreationExpression(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 {|S2:
 class C
@@ -103,15 +111,16 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(" ", view, buffer)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True, projectionsView:=view)
             End Using
         End Function
 
         <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24846"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestRegionCompletionCommitFormatting() As System.Threading.Tasks.Task
-            Using state = TestState.CreateCSharpTestState(
+        <InlineData(CompletionImplementation.Modern)>
+        <InlineData(CompletionImplementation.Legacy, Skip:="https://github.com/dotnet/roslyn/issues/24846")>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRegionCompletionCommitFormatting(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 {|S2:
 class C
@@ -140,9 +149,7 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer("#reg", view, buffer)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True)
-
+                Await state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True, projectionsView:=view)
             End Using
         End Function
     End Class

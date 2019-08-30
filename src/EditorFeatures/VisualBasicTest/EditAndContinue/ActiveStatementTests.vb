@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class ActiveStatementTests
-        Inherits RudeEditTestBase
+        Inherits EditingTestBase
 
         <Fact>
         Public Sub Update_Inner()
@@ -437,7 +437,7 @@ End Class
 
         <Fact>
         Public Sub Delete_Inner_ElseIf1()
-            Dim src1 = <![CDATA[
+            Dim src1 = "
 Class C 
     Shared Sub Main()
         If c1 Then
@@ -453,9 +453,9 @@ Class C
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
-]]>.Value
+"
 
-            Dim src2 = <![CDATA[
+            Dim src2 = "
 Class C 
     Shared Sub Main()
         If c1 Then
@@ -469,7 +469,7 @@ Class C
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
-]]>.Value
+"
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
@@ -4915,6 +4915,33 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub MethodToIteratorMethod_WithActiveStatement_NoYield()
+            Dim src1 = "
+Imports System
+Imports System.Collections.Generic
+Class C
+    Function F() As IEnumerable(Of Integer)
+        <AS:0>Console.WriteLine(1)</AS:0>
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Collections.Generic
+Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        <AS:0>Console.WriteLine(1)</AS:0>
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Iterator Function F()"))
+        End Sub
+
+        <Fact>
         Public Sub MethodToIteratorMethod_WithActiveStatementInLambda()
             Dim src1 = "
 Imports System
@@ -5233,6 +5260,193 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub LambdaToAsyncLambda_WithActiveStatement_NoAwait()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Dim f = Sub() <AS:0>Console.WriteLine(1)</AS:0>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Dim f = Async Sub() <AS:0>Console.WriteLine(1)</AS:0>
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Sub()"))
+        End Sub
+
+        <Fact>
+        Public Sub LambdaToAsyncLambda_WithActiveStatement_NoAwait_Nested1()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Dim f = Function(a) <AS:0>Function(b) a + b</AS:0>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Dim f = Async Function(a) <AS:0>Function(b) a + b</AS:0>
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            ' Rude edit since the AS is within the outer function.
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function(a)"))
+        End Sub
+
+        <Fact>
+        Public Sub LambdaToAsyncLambda_WithActiveStatement_NoAwait_Nested2()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Dim f = Function(a) <AS:0>Function(b)</AS:0> a + b
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Dim f = Async Function(a) <AS:0>Function(b)</AS:0> a + b
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            ' No rude edit since the AS is within the nested function.
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub LambdaToIteratorLambda_WithActiveStatement_NoYield()
+            Dim src1 = "
+Class C
+    Function G() As IEnumerable(Of Integer)
+        Return Nothing
+    End Function
+ 
+    Sub F()
+        Dim f = Function() <AS:0>G()</AS:0>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Function G() As IEnumerable(Of Integer)
+        Return Nothing
+    End Function
+ 
+    Sub F()
+        Dim f = <AS:0>Iterator Function()</AS:0>
+                  G()
+                End Function
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Iterator Function()"))
+        End Sub
+
+        <Fact>
+        Public Sub AsyncLambdaToLambda_WithoutActiveStatement_NoAwait()
+            Dim src1 = "
+Class C
+    Function G() As Task(Of Integer)
+        Return Nothing
+    End Function
+ 
+    Sub F()
+        Dim f = Async Function() As Task(Of Integer)
+                End Function
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Function G() As Task(Of Integer)
+        Return Nothing
+    End Function
+ 
+    Sub F()
+        Dim f = Function() As Task(Of Integer)
+                  Return G()
+                End Function
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "Function() As Task(Of Integer)", VBFeaturesResources.Lambda))
+        End Sub
+
+        <Fact>
+        Public Sub IteratorLambdaToLambda_WithoutActiveStatement_NoYield()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Function G() As IEnumerable(Of Integer)
+        Return Nothing
+    End Function
+ 
+    Sub F()
+        Dim f = Iterator Function() As IEnumerable(Of Integer)
+                End Function
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Function G() As IEnumerable(Of Integer)
+        Return Nothing
+    End Function
+ 
+    Sub F()
+        Dim f = Function() As IEnumerable(Of Integer)
+                  Return G()
+                End Function
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Function() As IEnumerable(Of Integer)", VBFeaturesResources.Lambda))
+        End Sub
+
+        <Fact>
         Public Sub AsyncMethodEdit_Semantics()
             Dim src1 = "
 Imports System
@@ -5450,6 +5664,7 @@ Class C
         <AS:1>Console.WriteLine(2)</AS:1> 
         <AS:2>Console.WriteLine(3)</AS:2> 
         <AS:3>Console.WriteLine(4)</AS:3> 
+        <AS:4>Console.WriteLine(5)</AS:4> 
     End Sub
 End Class
 "
@@ -5460,25 +5675,28 @@ Class C
         <AS:1>Console.WriteLine(20)</AS:1> 
         <AS:2>Console.WriteLine(30)</AS:2> 
         <AS:3>Console.WriteLine(40)</AS:3> 
+        <AS:4>Console.WriteLine(50)</AS:4> 
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            active.OldSpans(0) = New ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame, active.OldSpans(0).Span)
-            active.OldSpans(1) = New ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted, active.OldSpans(1).Span)
-            active.OldSpans(2) = New ActiveStatementSpan(ActiveStatementFlags.LeafFrame, active.OldSpans(2).Span)
-            active.OldSpans(3) = New ActiveStatementSpan(ActiveStatementFlags.None, active.OldSpans(3).Span)
+            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame)
+            active.OldStatements(1) = active.OldStatements(1).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsNonLeafFrame)
+            active.OldStatements(2) = active.OldStatements(2).WithFlags(ActiveStatementFlags.IsLeafFrame)
+            active.OldStatements(3) = active.OldStatements(3).WithFlags(ActiveStatementFlags.IsNonLeafFrame)
+            active.OldStatements(4) = active.OldStatements(4).WithFlags(ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame)
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementUpdate, "Console.WriteLine(10)"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(20)"),
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40)"))
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(50)"))
         End Sub
 
         <Fact>
-        Public Sub PartiallyExecutedActiveStatement_Delete()
+        Public Sub PartiallyExecutedActiveStatement_Delete1()
             Dim src1 As String = "
 Class C
     Sub F()
@@ -5495,10 +5713,34 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            active.OldSpans(0) = New ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame, active.OldSpans(0).Span)
+            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame)
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "Sub F()"))
+        End Sub
+
+        <Fact>
+        Public Sub PartiallyExecutedActiveStatement_Delete2()
+            Dim src1 As String = "
+Class C
+    Sub F()
+        <AS:0>Console.WriteLine(1)</AS:0> 
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Class C
+    Sub F()
+    <AS:0>End Sub</AS:0> 
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub F()"))
         End Sub
     End Class
 End Namespace

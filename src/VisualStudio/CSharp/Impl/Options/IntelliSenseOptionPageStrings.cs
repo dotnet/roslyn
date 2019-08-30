@@ -60,7 +60,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier =>
             CSharpVSResources.Include_snippets_when_Tab_is_typed_after_an_identifier;
 
-        public static string Option_Show_name_suggestions => 
+        public static string Option_Show_name_suggestions =>
             CSharpVSResources.Show_name_suggestions;
+
+        public static string Option_Show_items_from_unimported_namespaces =>
+            CSharpVSResources.Show_items_from_unimported_namespaces;
     }
 }

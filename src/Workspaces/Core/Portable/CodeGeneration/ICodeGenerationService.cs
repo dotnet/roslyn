@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         TDeclarationNode AddNamespace<TDeclarationNode>(TDeclarationNode destination, INamespaceSymbol @namespace, CodeGenerationOptions options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode;
 
         /// <summary>
-        /// Adds a method into destination.
+        /// Adds members into destination.
         /// </summary>
         TDeclarationNode AddMembers<TDeclarationNode>(TDeclarationNode destination, IEnumerable<ISymbol> members, CodeGenerationOptions options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode;
 
@@ -175,5 +175,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <c>true</c> if destination is a location where other symbols can be added to.
         /// </summary>
         bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Return the most relevant declaration to namespaceOrType,
+        /// it will first search the context node contained within,
+        /// then the declaration in the same file, then non auto-generated file,
+        /// then all the potential location. Return null if no declaration.
+        /// </summary>
+        Task<SyntaxNode> FindMostRelevantNameSpaceOrTypeDeclarationAsync(Solution solution, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationOptions options, CancellationToken cancellationToken);
     }
 }

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
     internal sealed class SmallDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
     {
         private AvlNode _root;
-        private readonly IEqualityComparer<K> _comparer;
+        public readonly IEqualityComparer<K> Comparer;
 
         public static readonly SmallDictionary<K, V> Empty = new SmallDictionary<K, V>(null);
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
 
         public SmallDictionary(IEqualityComparer<K> comparer)
         {
-            _comparer = comparer;
+            Comparer = comparer;
         }
 
         public SmallDictionary(SmallDictionary<K, V> other, IEqualityComparer<K> comparer)
@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis
 
         private bool CompareKeys(K k1, K k2)
         {
-            return _comparer.Equals(k1, k2);
+            return Comparer.Equals(k1, k2);
         }
 
         private int GetHashCode(K k)
         {
-            return _comparer.GetHashCode(k);
+            return Comparer.GetHashCode(k);
         }
 
         public bool TryGetValue(K key, out V value)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
             value = default(V);
             return false;
 
-            hasBucket:
+hasBucket:
             if (CompareKeys(b.Key, key))
             {
                 value = b.Value;
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis
             // nodes on the search path from rotation candidate downwards will change balances because of the node added
             // unbalanced node itself will become balanced or will be rotated
             // either way nodes above unbalanced do not change their balance
-            for (;;)
+            for (; ; )
             {
                 // schedule hk read 
                 var hc = currentNode.HashCode;

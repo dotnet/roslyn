@@ -45,13 +45,14 @@ Class C
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature,
+                                                     expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode, expectedSelectedIndex:=0)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestChangeSignature_Delegates_ExplicitInvokeCalls() As Task
             Dim markup = <Text><![CDATA[
-Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
+Delegate Sub MySub($$x As Integer, y As String, z As Boolean)
 
 Class C
     Sub M()
@@ -71,13 +72,14 @@ Class C
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature,
+                                                     expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode, expectedSelectedIndex:=0)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestChangeSignature_Delegates_BeginInvokeCalls() As Task
             Dim markup = <Text><![CDATA[
-Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
+Delegate Sub MySub(x As Integer$$, y As String, z As Boolean)
 
 Class C
     Sub M()
@@ -97,13 +99,14 @@ Class C
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature,
+                                                     expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode, expectedSelectedIndex:=0)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestChangeSignature_Delegates_SubLambdas() As Task
             Dim markup = <Text><![CDATA[
-Delegate Sub $$MySub(x As Integer, y As String, z As Boolean)
+Delegate Sub MySub(x As Integer, $$y As String, z As Boolean)
 
 Class C
     Sub M()
@@ -137,13 +140,14 @@ Class C
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature,
+                                                     expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode, expectedSelectedIndex:=1)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestChangeSignature_Delegates_FunctionLambdas() As Task
             Dim markup = <Text><![CDATA[
-Delegate Function $$MyFunc(x As Integer, y As String, z As Boolean) As Integer
+Delegate Function MyFunc(x As Integer, y As String, $$z As Boolean) As Integer
 
 Class C
     Sub M()
@@ -181,7 +185,8 @@ Class C
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature,
+                                                     expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode, expectedSelectedIndex:=2)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>

@@ -1,17 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -27,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         [Fact]
         public async Task SpaceAfterAttribute()
         {
-            string code = @"
+            var code = @"
 public class C
 {
     void M(int? p) { }
@@ -44,8 +39,8 @@ public class C
 {
     void M([MyAttr] int? p) { }
 }
-", (await Formatter.FormatAsync(root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr"))),
-    document.Project.Solution.Workspace)).ToFullString());
+", Formatter.Format(root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr"))),
+    document.Project.Solution.Workspace).ToFullString());
 
             // verify change doesn't affect how attributes appear before other kinds of declarations
             var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
@@ -55,8 +50,8 @@ public class C
     [MyAttr]
     void M(int? p) { }
 }
-", (await Formatter.FormatAsync(root.ReplaceNode(method, g.AddAttributes(method, g.Attribute("MyAttr"))),
-    document.Project.Solution.Workspace)).ToFullString());
+", Formatter.Format(root.ReplaceNode(method, g.AddAttributes(method, g.Attribute("MyAttr"))),
+    document.Project.Solution.Workspace).ToFullString());
         }
     }
 }

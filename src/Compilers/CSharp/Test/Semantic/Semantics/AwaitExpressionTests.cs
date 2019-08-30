@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using System.Linq;
 
@@ -52,6 +53,18 @@ public class C {
             Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")]
+        public void DefaultAwaitExpressionInfo()
+        {
+            AwaitExpressionInfo info = default;
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.GetResultMethod);
+            Assert.Null(info.IsCompletedProperty);
+            Assert.False(info.IsDynamic);
+            Assert.Equal(0, info.GetHashCode());
         }
 
         private AwaitExpressionInfo GetAwaitExpressionInfo(string text, out CSharpCompilation compilation, params DiagnosticDescription[] diagnostics)
@@ -177,7 +190,7 @@ class C
             var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
             var decl = compilation.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().AsSingleton();
             var symbolV = (LocalSymbol)semanticModel.GetDeclaredSymbol(decl);
-            Assert.Equal("System.Int32", symbolV.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", symbolV.TypeWithAnnotations.ToTestDisplayString());
         }
     }
 }

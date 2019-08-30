@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
         public RetargetingNamedTypeSymbol(RetargetingModuleSymbol retargetingModule, NamedTypeSymbol underlyingType)
-            : base(underlyingType) 
+            : base(underlyingType)
         {
             Debug.Assert((object)retargetingModule != null);
             Debug.Assert(!(underlyingType is RetargetingNamedTypeSymbol));
@@ -77,33 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get
             {
                 // This is always the instance type, so the type arguments are the same as the type parameters.
-                if (Arity > 0)
-                {
-                    return StaticCast<TypeSymbol>.From(this.TypeParameters);
-                }
-                else
-                {
-                    return ImmutableArray<TypeSymbol>.Empty;
-                }
+                return GetTypeParametersAsTypeArguments();
             }
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
-        {
-            return GetEmptyTypeArgumentCustomModifiers(ordinal);
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -300,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             if (_lazyInterfaces.IsDefault)
             {
@@ -325,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(_underlyingType.GetInterfacesToEmit());
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             if (ReferenceEquals(_lazyDeclaredBaseType, ErrorTypeSymbol.UnknownResultType))
             {
@@ -337,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _lazyDeclaredBaseType;
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             if (_lazyDeclaredInterfaces.IsDefault)
             {

@@ -60,5 +60,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 <ClassDeclaration>Declare _
  |</ClassDeclaration>, "Unicode")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<ClassDeclaration>Declare _ ' Test
+ |</ClassDeclaration>, "Unicode")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuationt() As Task
+            Await VerifyRecommendationsContainAsync(
+<ClassDeclaration>Declare _
+ |</ClassDeclaration>, "Unicode")
+        End Function
     End Class
 End Namespace

@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overloads Function Equals(other As TuplePropertySymbol) As Boolean
             Return other Is Me OrElse
-                (other IsNot Nothing AndAlso Me._containingType = other._containingType AndAlso Me._underlyingProperty = other._underlyingProperty)
+                (other IsNot Nothing AndAlso TypeSymbol.Equals(Me._containingType, other._containingType, TypeCompareKind.ConsiderEverything) AndAlso Me._underlyingProperty = other._underlyingProperty)
         End Function
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)

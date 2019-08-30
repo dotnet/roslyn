@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             switch (trigger.Kind)
             {
-                case CompletionTriggerKind.Insertion:
+                case CompletionTriggerKind.Insertion when position > 0:
                     var insertedCharacterPosition = position - 1;
-                    return this.IsInsertionTrigger(text, insertedCharacterPosition, options);
+                    return IsInsertionTrigger(text, insertedCharacterPosition, options);
 
                 default:
                     return false;
@@ -38,14 +38,14 @@ namespace Microsoft.CodeAnalysis.Completion
             // Get the actual description provided by whatever subclass we are.
             // Then, if we would commit text that could be expanded as a snippet, 
             // put that information in the description so that the user knows.
-            var description = await this.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
+            var description = await GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
             var parts = await TryAddSnippetInvocationPart(document, item, description.TaggedParts, cancellationToken).ConfigureAwait(false);
 
             return description.WithTaggedParts(parts);
         }
 
         private async Task<ImmutableArray<TaggedText>> TryAddSnippetInvocationPart(
-            Document document, CompletionItem item, 
+            Document document, CompletionItem item,
             ImmutableArray<TaggedText> parts, CancellationToken cancellationToken)
         {
             var languageServices = document.Project.LanguageServices;
@@ -98,12 +98,13 @@ namespace Microsoft.CodeAnalysis.Completion
             return Task.FromResult<TextChange?>(null);
         }
 
-        private static CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
+        private static readonly CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
         protected CompletionItem CreateSuggestionModeItem(string displayText, string description)
         {
             return CommonCompletionItem.Create(
                 displayText: displayText ?? string.Empty,
+                displayTextSuffix: "",
                 description: description != null ? description.ToSymbolDisplayParts() : default,
                 rules: s_suggestionItemRules);
         }

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -23,33 +24,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamespaceSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, cancellationToken, GetNamespaceIdentifierName(symbol, project));
+            return FindDocumentsAsync(project, documents, cancellationToken, GetNamespaceIdentifierName(symbol));
         }
 
-        private static string GetNamespaceIdentifierName(INamespaceSymbol symbol, Project project)
+        private static string GetNamespaceIdentifierName(INamespaceSymbol symbol)
         {
             return symbol.IsGlobalNamespace
                 ? symbol.ToDisplayString(s_globalNamespaceFormat)
                 : symbol.Name;
         }
 
-        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             INamespaceSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var identifierName = GetNamespaceIdentifierName(symbol, document.Project);
-            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var identifierName = GetNamespaceIdentifierName(symbol);
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
             var nonAliasReferences = await FindReferencesInTokensAsync(symbol,
                 document,
-                await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(identifierName, cancellationToken).ConfigureAwait(false),
+                semanticModel,
+                await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, identifierName, cancellationToken).ConfigureAwait(false),
                 (SyntaxToken t) => syntaxFactsService.TextMatch(t.ValueText, identifierName),
                 cancellationToken).ConfigureAwait(false);
 
-            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, cancellationToken).ConfigureAwait(false);
+            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
             return nonAliasReferences.Concat(aliasReferences);
         }
     }

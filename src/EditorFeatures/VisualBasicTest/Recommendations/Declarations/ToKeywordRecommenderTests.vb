@@ -69,5 +69,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 <MethodBody>Dim i(0 _
 |</MethodBody>, "To")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>Dim i(0 _ ' Test
+|</MethodBody>, "To")
+        End Function
     End Class
 End Namespace

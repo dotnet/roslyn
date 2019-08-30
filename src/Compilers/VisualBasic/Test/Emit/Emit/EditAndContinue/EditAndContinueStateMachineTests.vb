@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EditAndContinueStateMachineTests
         Inherits EditAndContinueTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AddIteratorMethod()
             Dim source0 =
 <compilation>
@@ -345,10 +345,10 @@ End Class
 }
 ")
 
-                diff1.VerifyPdb({&H0600000EUI},
+                diff1.VerifyPdb({&H600000EUI},
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="18, 50, 69, 51, C7, A5, E4, CF, 63, 8F, 2D, D6, 4D, C0, 2F, 1A, 2F, 4A, 8B, FA, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="18-50-69-51-C7-A5-E4-CF-63-8F-2D-D6-4D-C0-2F-1A-2F-4A-8B-FA"/>
     </files>
     <methods>
         <method token="0x600000e">
@@ -368,7 +368,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AddAsyncMethod()
             Dim source0 =
 <compilation>
@@ -654,10 +654,10 @@ End Class
 }
 ")
 
-                diff1.VerifyPdb({&H06000004UI},
+                diff1.VerifyPdb({&H6000004UI},
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="E8, 25, E4, A7, D1, 61, DE, 6D, 8C, 99, C8, 28, 60, 8E, A4, 2C, 37, CC, 4A, 38, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="E8-25-E4-A7-D1-61-DE-6D-8C-99-C8-28-60-8E-A4-2C-37-CC-4A-38"/>
     </files>
     <methods>
         <method token="0x6000004">
@@ -4698,7 +4698,7 @@ Class C
     End Function
 End Class
 ")
-            Dim compilation0 = CompilationUtils.CreateEmptyCompilation({source0.Tree}, {TestReferences.NetFx.v4_0_30316_17626.mscorlib}, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateEmptyCompilation({source0.Tree}, {TestReferences.NetFx.v4_0_30319_17626.mscorlib}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))

@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../Commands.vsct">
     <body>
+      <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
+        <source>Sort &amp;Usings</source>
+        <target state="new">Sort &amp;Usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidCSharpOrganizeSortUsings|LocCanonicalName">
+        <source>SortUsings</source>
+        <target state="new">SortUsings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|ButtonText">
         <source>Remove &amp;and Sort</source>
         <target state="translated">Ri&amp;muovi e ordina</target>
@@ -144,7 +154,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
         <source>Info</source>
-        <target state="translated">Informazioni</target>
+        <target state="translated">Info</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|CommandName">
@@ -174,7 +184,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">Nessuna</target>
+        <target state="translated">Nessuno</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|CommandName">
@@ -324,17 +334,17 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|ButtonText">
         <source>Set Rule Set Severity</source>
-        <target state="translated">Imposta gravità set di regole</target>
+        <target state="translated">Imposta gravit?? set di regole</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|CommandName">
         <source>Set Rule Set Severity</source>
-        <target state="translated">Imposta gravità set di regole</target>
+        <target state="translated">Imposta gravit?? set di regole</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|LocCanonicalName">
         <source>Set Rule Set Severity</source>
-        <target state="translated">Imposta gravità set di regole</target>
+        <target state="translated">Imposta gravit?? set di regole</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|ButtonText">

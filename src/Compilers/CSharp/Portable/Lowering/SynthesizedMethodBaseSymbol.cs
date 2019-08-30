@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -19,16 +20,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
-        private TypeSymbol _iteratorElementType;
+        private TypeWithAnnotations.Boxed _iteratorElementType;
 
         protected SynthesizedMethodBaseSymbol(NamedTypeSymbol containingType,
                                               MethodSymbol baseMethod,
                                               SyntaxReference syntaxReference,
-                                              SyntaxReference blockSyntaxReference,
                                               Location location,
                                               string name,
                                               DeclarationModifiers declarationModifiers)
-            : base(containingType, syntaxReference, blockSyntaxReference, location)
+            : base(containingType, syntaxReference, location)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)baseMethod != null);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override int ParameterCount
@@ -117,14 +117,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameters = this.BaseMethodParameters;
             foreach (var p in parameters)
             {
-                builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type).Type, ordinal++, p.RefKind, p.Name));
+                builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(p.OriginalDefinition.TypeWithAnnotations), ordinal++, p.RefKind, p.Name));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
             {
                 foreach (var extra in extraSynthed)
                 {
-                    builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(extra).Type, ordinal++, RefKind.Ref));
+                    builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(extra), ordinal++, RefKind.Ref));
                 }
             }
             return builder.ToImmutableAndFree();
@@ -135,10 +135,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.BaseMethod.RefKind; }
         }
 
-        public sealed override TypeSymbol ReturnType
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnType).Type; }
+            get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnTypeWithAnnotations); }
         }
+
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => BaseMethod.ReturnTypeFlowAnalysisAnnotations;
+
+        public sealed  override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => BaseMethod.ReturnNotNullIfParameterNotNull;
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public sealed override bool IsVararg
         {
@@ -160,20 +166,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override TypeSymbol IteratorElementType
+        internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
         {
             get
             {
-                if (_iteratorElementType == null)
+                if (_iteratorElementType is null)
                 {
-                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType).Type;
+                    Interlocked.CompareExchange(ref _iteratorElementType,
+                                                new TypeWithAnnotations.Boxed(TypeMap.SubstituteType(BaseMethod.IteratorElementTypeWithAnnotations.Type)),
+                                                null);
                 }
-                return _iteratorElementType;
+
+                return _iteratorElementType.Value;
             }
             set
             {
-                Debug.Assert(value != null);
-                _iteratorElementType = value;
+                Debug.Assert(!value.IsDefault);
+                Interlocked.Exchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(value));
             }
         }
     }

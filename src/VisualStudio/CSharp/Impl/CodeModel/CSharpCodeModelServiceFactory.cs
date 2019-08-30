@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         [ImportingConstructor]
-        private CSharpCodeModelServiceFactory(
+        public CSharpCodeModelServiceFactory(
             IEditorOptionsFactoryService editorOptionsFactoryService,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)
         {

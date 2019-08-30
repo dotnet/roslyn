@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         // in memory cache entry
-        private struct CacheEntry
+        private readonly struct CacheEntry
         {
             public readonly VersionStamp Version;
             public readonly ImmutableArray<DiagnosticData> Diagnostics;

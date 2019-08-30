@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class ViewSpanChangedEventSource : ITaggerEventSource
         {
-            private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
+            private readonly ForegroundThreadAffinitizedObject _foregroundObject;
 
             private readonly ITextView _textView;
             private readonly TaggerDelay _textChangeDelay;
@@ -27,9 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public event EventHandler UIUpdatesPaused { add { } remove { } }
             public event EventHandler UIUpdatesResumed { add { } remove { } }
 
-            public ViewSpanChangedEventSource(ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
+            public ViewSpanChangedEventSource(IThreadingContext threadingContext, ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
             {
                 Debug.Assert(textView != null);
+                _foregroundObject = new ForegroundThreadAffinitizedObject(threadingContext);
                 _textView = textView;
                 _textChangeDelay = textChangeDelay;
                 _scrollChangeDelay = scrollChangeDelay;

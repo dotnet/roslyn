@@ -5,10 +5,12 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
@@ -17,12 +19,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicReferenceHighlighting(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicReferenceHighlighting))
+        public BasicReferenceHighlighting(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicReferenceHighlighting))
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Highlighting()
         {
             var markup = @"
@@ -45,6 +47,7 @@ End Class";
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService,
@@ -60,6 +63,7 @@ End Class";
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService,

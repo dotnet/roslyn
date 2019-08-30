@@ -44,15 +44,6 @@ class C : CSharpErrors.ClassMethods
                 //     public override UnavailableClass[] ReturnType2() { return null; }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
 
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0115)
-
-                // (4,38): error CS0508: 'C.ReturnType1()': return type must be 'UnavailableClass' to match overridden member 'CSharpErrors.ClassMethods.ReturnType1()'
-                //     public override UnavailableClass ReturnType1() { return null; }
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "ReturnType1").WithArguments("C.ReturnType1()", "CSharpErrors.ClassMethods.ReturnType1()", "UnavailableClass"),
-                // (5,40): error CS0508: 'C.ReturnType2()': return type must be 'UnavailableClass[]' to match overridden member 'CSharpErrors.ClassMethods.ReturnType2()'
-                //     public override UnavailableClass[] ReturnType2() { return null; }
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "ReturnType2").WithArguments("C.ReturnType2()", "CSharpErrors.ClassMethods.ReturnType2()", "UnavailableClass[]"),
-
                 // (4,38): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     public override UnavailableClass ReturnType1() { return null; }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "ReturnType1").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -96,17 +87,7 @@ class C : CSharpErrors.ClassMethods
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
                 // (5,41): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public override void ParameterType2(UnavailableClass[] x) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0115)
-                // NOTE: Cascaded error messages would be the same for non-existent class - not specific to use site errors.
-
-                // (4,26): error CS0115: 'C.ParameterType1(UnavailableClass)': no suitable method found to override
-                //     public override void ParameterType1(UnavailableClass x) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "ParameterType1").WithArguments("C.ParameterType1(UnavailableClass)"),
-                // (5,26): error CS0115: 'C.ParameterType2(UnavailableClass[])': no suitable method found to override
-                //     public override void ParameterType2(UnavailableClass[] x) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "ParameterType2").WithArguments("C.ParameterType2(UnavailableClass[])"));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"));
         }
 
         [Fact]
@@ -309,27 +290,6 @@ class C : CSharpErrors.ClassProperties
                 // (11,21): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public override UnavailableClass[] GetSet2 { get { return null; } set { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0115)
-
-                // (4,38): error CS1715: 'C.Get1': type must be 'UnavailableClass' to match overridden member 'CSharpErrors.ClassProperties.Get1'
-                //     public override UnavailableClass Get1 { get { return null; } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Get1").WithArguments("C.Get1", "CSharpErrors.ClassProperties.Get1", "UnavailableClass"),
-                // (5,40): error CS1715: 'C.Get2': type must be 'UnavailableClass[]' to match overridden member 'CSharpErrors.ClassProperties.Get2'
-                //     public override UnavailableClass[] Get2 { get { return null; } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Get2").WithArguments("C.Get2", "CSharpErrors.ClassProperties.Get2", "UnavailableClass[]"),
-                // (7,38): error CS1715: 'C.Set1': type must be 'UnavailableClass' to match overridden member 'CSharpErrors.ClassProperties.Set1'
-                //     public override UnavailableClass Set1 { set { } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Set1").WithArguments("C.Set1", "CSharpErrors.ClassProperties.Set1", "UnavailableClass"),
-                // (8,40): error CS1715: 'C.Set2': type must be 'UnavailableClass[]' to match overridden member 'CSharpErrors.ClassProperties.Set2'
-                //     public override UnavailableClass[] Set2 { set { } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Set2").WithArguments("C.Set2", "CSharpErrors.ClassProperties.Set2", "UnavailableClass[]"),
-                // (10,38): error CS1715: 'C.GetSet1': type must be 'UnavailableClass' to match overridden member 'CSharpErrors.ClassProperties.GetSet1'
-                //     public override UnavailableClass GetSet1 { get { return null; } set { } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "GetSet1").WithArguments("C.GetSet1", "CSharpErrors.ClassProperties.GetSet1", "UnavailableClass"),
-                // (11,40): error CS1715: 'C.GetSet2': type must be 'UnavailableClass[]' to match overridden member 'CSharpErrors.ClassProperties.GetSet2'
-                //     public override UnavailableClass[] GetSet2 { get { return null; } set { } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "GetSet2").WithArguments("C.GetSet2", "CSharpErrors.ClassProperties.GetSet2", "UnavailableClass[]"),
 
                 // (4,38): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     public override UnavailableClass Get1 { get { return null; } }
@@ -672,18 +632,6 @@ class C : CSharpErrors.ClassEvents
                 //     public override event CSharpErrors.EventDelegate<UnavailableClass[]> Event3;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
 
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS1715, CS0012)
-
-                // (4,47): error CS1715: 'C.Event1': type must be 'UnavailableDelegate' to match overridden member 'CSharpErrors.ClassEvents.Event1'
-                //     public override event UnavailableDelegate Event1;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event1").WithArguments("C.Event1", "CSharpErrors.ClassEvents.Event1", "UnavailableDelegate"),
-                // (5,72): error CS1715: 'C.Event2': type must be 'CSharpErrors.EventDelegate<UnavailableClass>' to match overridden member 'CSharpErrors.ClassEvents.Event2'
-                //     public override event CSharpErrors.EventDelegate<UnavailableClass> Event2;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event2").WithArguments("C.Event2", "CSharpErrors.ClassEvents.Event2", "CSharpErrors.EventDelegate<UnavailableClass>"),
-                // (6,74): error CS1715: 'C.Event3': type must be 'CSharpErrors.EventDelegate<UnavailableClass[]>' to match overridden member 'CSharpErrors.ClassEvents.Event3'
-                //     public override event CSharpErrors.EventDelegate<UnavailableClass[]> Event3;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event3").WithArguments("C.Event3", "CSharpErrors.ClassEvents.Event3", "CSharpErrors.EventDelegate<UnavailableClass[]>"),
-
                 // (4,47): error CS0012: The type 'UnavailableDelegate' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     public override event UnavailableDelegate Event1;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Event1").WithArguments("UnavailableDelegate", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -716,18 +664,6 @@ class C : CSharpErrors.ClassEvents
                 // (6,54): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public override event CSharpErrors.EventDelegate<UnavailableClass[]> Event3;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0066, CS1715, CS0012)
-
-                // (4,47): error CS1715: 'C.Event1': type must be 'UnavailableDelegate' to match overridden member 'CSharpErrors.ClassEvents.Event1'
-                //     public override event UnavailableDelegate Event1;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event1").WithArguments("C.Event1", "CSharpErrors.ClassEvents.Event1", "UnavailableDelegate"),
-                // (5,72): error CS1715: 'C.Event2': type must be 'CSharpErrors.EventDelegate<UnavailableClass>' to match overridden member 'CSharpErrors.ClassEvents.Event2'
-                //     public override event CSharpErrors.EventDelegate<UnavailableClass> Event2;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event2").WithArguments("C.Event2", "CSharpErrors.ClassEvents.Event2", "CSharpErrors.EventDelegate<UnavailableClass>"),
-                // (6,74): error CS1715: 'C.Event3': type must be 'CSharpErrors.EventDelegate<UnavailableClass[]>' to match overridden member 'CSharpErrors.ClassEvents.Event3'
-                //     public override event CSharpErrors.EventDelegate<UnavailableClass[]> Event3;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event3").WithArguments("C.Event3", "CSharpErrors.ClassEvents.Event3", "CSharpErrors.EventDelegate<UnavailableClass[]>"),
 
                 // (4,47): error CS0012: The type 'UnavailableDelegate' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     public override event UnavailableDelegate Event1;
@@ -1313,11 +1249,12 @@ class Program
             case Derived d: break;
         }
     }
-}";
+}
+";
             CreateCompilation(programSource, references: new[] { new CSharpCompilationReference(derivedLib) }).VerifyDiagnostics(
-                // (10,13): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             case Derived d: break;
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "case Derived d:").WithArguments("Base", "BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 13)
+                // (9,18): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             case string s: break;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "string s").WithArguments("Base", "BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 18)
                 );
         }
 
@@ -2264,12 +2201,12 @@ class Test
 
             DiagnosticDescription[] expected =
             {
-                // (9,23): error CS0155: The type caught or thrown must be derived from System.Exception
-                //                 throw e;
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(9, 23),
                 // (9,23): error CS0012: The type 'GeneralException' is defined in an assembly that is not referenced. You must add a reference to assembly 'Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //                 throw e;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "e").WithArguments("GeneralException", "Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 23),
+                // (9,23): error CS0029: Cannot implicitly convert type 'SpecificException' to 'System.Exception'
+                //                 throw e;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("SpecificException", "System.Exception").WithLocation(9, 23),
                 // (11,20): error CS0155: The type caught or thrown must be derived from System.Exception
                 //             catch (SpecificException) 
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "SpecificException").WithLocation(11, 20),

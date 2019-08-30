@@ -44,10 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As INamedTypeSymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As INamedTypeSymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
             Dim displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=_displayTextFormat)
             Dim insertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=_insertionTextFormatWithGenerics)
-            Return (displayText, insertionText)
+            Return (displayText, "", insertionText)
         End Function
 
         Protected Overrides Function GetProperties(symbol As INamedTypeSymbol,

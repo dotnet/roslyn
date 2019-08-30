@@ -76,11 +76,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             SyntaxKind.SubNewStatement,
             SyntaxKind.ConstructorBlock)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Async Function GetInvocationSymbolAsync(
                 document As Document,
                 position As Integer,
                 restrictToDeclarations As Boolean,
-                cancellationToken As CancellationToken) As Task(Of ISymbol)
+                cancellationToken As CancellationToken) As Task(Of (symbol As ISymbol, selectedIndex As Integer))
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.GetRoot(cancellationToken).FindToken(If(position <> tree.Length, position, Math.Max(0, position - 1)))
 
@@ -104,7 +108,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim symbol = TryGetDeclaredSymbol(semanticModel, matchingNode, token, cancellationToken)
             If symbol IsNot Nothing Then
-                Return symbol
+                Dim selectedIndex = TryGetSelectedIndexFromDeclaration(position, matchingNode)
+                Return (symbol, selectedIndex)
             End If
 
             If matchingNode.Kind() = SyntaxKind.ObjectCreationExpression Then
@@ -112,13 +117,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 If token.Parent.AncestorsAndSelf().Any(Function(a) a Is objectCreation.Type) Then
                     Dim typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type).Symbol
                     If typeSymbol IsNot Nothing AndAlso typeSymbol.IsKind(SymbolKind.NamedType) AndAlso DirectCast(typeSymbol, ITypeSymbol).TypeKind = TypeKind.Delegate Then
-                        Return typeSymbol
+                        Return (typeSymbol, 0)
                     End If
                 End If
             End If
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken)
-            Return If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault())
+            Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0)
+        End Function
+
+        Private Function TryGetSelectedIndexFromDeclaration(position As Integer, matchingNode As SyntaxNode) As Integer
+            Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
+            Return If(parameters Is Nothing, 0, GetParameterIndex(parameters.Parameters, position))
         End Function
 
         Private Function GetMatchingNode(node As SyntaxNode, restrictToDeclarations As Boolean) As SyntaxNode
@@ -563,7 +573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                         convertedType = If(Await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution).ConfigureAwait(False), convertedType)
                     End If
 
-                    If convertedType Is symbol.ContainingType Then
+                    If Equals(convertedType, symbol.ContainingType) Then
                         convertedType = semanticModel.GetSymbolInfo(u.Operand).Symbol
                         If convertedType IsNot Nothing Then
                             results.Add(convertedType)
@@ -582,7 +592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                             nodeType = If(Await SymbolFinder.FindSourceDefinitionAsync(nodeType, document.Project.Solution).ConfigureAwait(False), nodeType)
                         End If
 
-                        If nodeType Is symbol.ContainingType Then
+                        If Equals(nodeType, symbol.ContainingType) Then
                             results.Add(semanticModel.GetDeclaredSymbol(cast.Identifier.Parent))
                         End If
                     End If
@@ -593,8 +603,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                            SelectAsArray(Function(s) SymbolAndProjectId.Create(s, document.Project.Id))
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of IFormattingRule)
-            Return New IFormattingRule() {New ChangeSignatureFormattingRule()}.Concat(Formatter.GetDefaultFormattingRules(document))
+        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
+            Return New AbstractFormattingRule() {New ChangeSignatureFormattingRule()}.Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
     End Class
 End Namespace

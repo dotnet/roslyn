@@ -2,13 +2,13 @@
 
 namespace Microsoft.CodeAnalysis
 {
-#pragma warning disable RS0010
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Represents structured trivia that contains skipped tokens. This is implemented by
     /// <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.SkippedTokensTriviaSyntax"/> and
     /// <see cref="T:Microsoft.CodeAnalysis.VisualBasic.Syntax.SkippedTokensTriviaSyntax"/>.
     /// </summary>
-#pragma warning restore RS0010
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
     public interface ISkippedTokensTriviaSyntax
     {
         SyntaxTokenList Tokens { get; }

@@ -21,6 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
 
         Friend Shared ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(BC30451)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return Ids
@@ -63,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
                 Return Nothing
             End If
 
-            ienumerableSymbol = ienumerableSymbol.Construct(method.ReturnType.GetTypeArguments().First())
+            ienumerableSymbol = ienumerableSymbol.ConstructWithNullability(method.ReturnType.GetTypeArguments().First())
 
             If Not method.ReturnType.Equals(ienumerableSymbol) Then
                 Return Nothing

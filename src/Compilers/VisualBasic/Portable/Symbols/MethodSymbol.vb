@@ -101,6 +101,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' Always returns false because the 'readonly members' feature is not available in VB.
+        ''' </summary>
+        Private ReadOnly Property IMethodSymbol_IsReadOnly As Boolean Implements IMethodSymbol.IsReadOnly
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Returns true if this method has no return type; i.e., is a Sub instead of a Function.
         ''' </summary>
         Public MustOverride ReadOnly Property IsSub As Boolean
@@ -241,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' True if the method itself Is excluded from code covarage instrumentation.
+        ''' True if the method itself Is excluded from code coverage instrumentation.
         ''' True for source methods marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         ''' </summary>
         Friend Overridable ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
@@ -329,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public MustOverride ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
 
-#Disable Warning RS0010
+#Disable Warning CA1200 ' Avoid using cref tags with a prefix
         ''' <summary>
         ''' Returns true if this method is not implemented in IL of the assembly it is defined in.
         ''' </summary>
@@ -342,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         '''    <see cref="T:System.Runtime.CompilerServices.MethodCodeType.Runtime"/> flags.
         ''' 4) Synthesized constructors of ComImport types
         ''' </remarks>
-#Enable Warning RS0010
+#Enable Warning CA1200 ' Avoid using cref tags with a prefix
         Public MustOverride ReadOnly Property IsExternalMethod As Boolean
 
         ''' <summary>
@@ -448,6 +457,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns>True if the method can be used as an entry point.</returns>
         Friend ReadOnly Property IsEntryPointCandidate As Boolean
             Get
+                If Me.ContainingType.IsEmbedded Then
+                    Return False
+                End If
+
+                If Me.IsSubmissionConstructor Then
+                    Return False
+                End If
+
+                If Me.IsImplicitlyDeclared Then
+                    Return False
+                End If
+
                 Return String.Equals(Name, WellKnownMemberNames.EntryPointMethodName, StringComparison.OrdinalIgnoreCase)
             End Get
         End Property
@@ -871,6 +892,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_ReceiverNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReceiverNullableAnnotation
+            Get
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
         Private Function IMethodSymbol_GetTypeInferredDuringReduction(reducedFromTypeParameter As ITypeParameterSymbol) As ITypeSymbol Implements IMethodSymbol.GetTypeInferredDuringReduction
             Return Me.GetTypeInferredDuringReduction(reducedFromTypeParameter.EnsureVbSymbolOrNothing(Of TypeParameterSymbol)(NameOf(reducedFromTypeParameter)))
         End Function
@@ -968,9 +995,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_ReturnNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReturnNullableAnnotation
+            Get
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodSymbol_TypeArguments As ImmutableArray(Of ITypeSymbol) Implements IMethodSymbol.TypeArguments
             Get
                 Return StaticCast(Of ITypeSymbol).From(Me.TypeArguments)
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbol_TypeArgumentsNullableAnnotation As ImmutableArray(Of NullableAnnotation) Implements IMethodSymbol.TypeArgumentNullableAnnotations
+            Get
+                Return Me.TypeArguments.SelectAsArray(Function(t) NullableAnnotation.None)
             End Get
         End Property
 
@@ -1020,12 +1059,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ImmutableArrayExtensions.Cast(Of VisualBasicAttributeData, AttributeData)(Me.GetReturnTypeAttributes)
         End Function
 
-        Private Function IMethodSymbol_Construct(ParamArray arguments() As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.Construct
-            For Each arg In arguments
-                arg.EnsureVbSymbolOrNothing(Of TypeSymbol)("typeArguments")
-            Next
+        Private Function IMethodSymbol_Construct(ParamArray typeArguments() As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.Construct
+            Return Construct(ConstructTypeArguments(typeArguments))
+        End Function
 
-            Return Construct(arguments.Cast(Of TypeSymbol).ToArray())
+        Private Function IMethodSymbol_Construct(typeArguments As ImmutableArray(Of ITypeSymbol), typeArgumentNullableAnnotations As ImmutableArray(Of CodeAnalysis.NullableAnnotation)) As IMethodSymbol Implements IMethodSymbol.Construct
+            Return Construct(ConstructTypeArguments(typeArguments, typeArgumentNullableAnnotations))
         End Function
 
         Private ReadOnly Property IMethodSymbol_AssociatedAnonymousDelegate As INamedTypeSymbol Implements IMethodSymbol.AssociatedAnonymousDelegate

@@ -3,6 +3,10 @@
 using System;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#endif
+
 namespace Microsoft.CodeAnalysis.Options
 {
     public struct OptionKey : IEquatable<OptionKey>
@@ -42,10 +46,24 @@ namespace Microsoft.CodeAnalysis.Options
 
             if (Language != null)
             {
-                hash = Hash.Combine(Language.GetHashCode(), hash);
+                hash = unchecked((hash * (int)0xA5555529) + Language.GetHashCode());
             }
 
             return hash;
+        }
+
+        public override string ToString()
+        {
+            if (Option is null)
+            {
+                return "";
+            }
+
+            var languageDisplay = Option.IsPerLanguage
+                ? $"({Language}) "
+                : string.Empty;
+
+            return languageDisplay + Option.ToString();
         }
 
         public static bool operator ==(OptionKey left, OptionKey right)

@@ -231,11 +231,8 @@
   <data name="Could_not_find_location_of_folder_on_disk" xml:space="preserve">
     <value>Could not find location of folder on disk</value>
   </data>
-  <data name="Error_while_reading_0_colon_1" xml:space="preserve">
-    <value>Error while reading '{0}': {1}</value>
-  </data>
   <data name="ErrorReadingFile" xml:space="preserve">
-    <value>Error while reading a file</value>
+    <value>Error while reading file '{0}': {1}</value>
   </data>
   <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
@@ -348,6 +345,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Add_to_existing_file" xml:space="preserve">
     <value>Add to _existing file</value>
   </data>
+  <data name="Add_to_current_file" xml:space="preserve">
+    <value>Add to _current file</value>
+  </data>
   <data name="Change_Signature" xml:space="preserve">
     <value>Change Signature</value>
   </data>
@@ -368,6 +368,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Location_colon" xml:space="preserve">
     <value>Location:</value>
+  </data>
+  <data name="Select_destination" xml:space="preserve">
+    <value>Select destination</value>
   </data>
   <data name="Modifier" xml:space="preserve">
     <value>Modifier</value>
@@ -503,6 +506,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="This_workspace_only_supports_opening_documents_on_the_UI_thread" xml:space="preserve">
     <value>This workspace only supports opening documents on the UI thread.</value>
+  </data>
+  <data name="This_workspace_does_not_support_updating_Visual_Basic_compilation_options" xml:space="preserve">
+    <value>This workspace does not support updating Visual Basic compilation options.</value>
   </data>
   <data name="This_workspace_does_not_support_updating_Visual_Basic_parse_options" xml:space="preserve">
     <value>This workspace does not support updating Visual Basic parse options.</value>
@@ -696,6 +702,12 @@ Additional information: {1}</value>
   <data name="Learn_more" xml:space="preserve">
     <value>Learn more</value>
   </data>
+  <data name="Build_plus_live_analysis_NuGet_package" xml:space="preserve">
+    <value>Build + live analysis (NuGet package)</value>
+  </data>
+  <data name="Live_analysis_VSIX_extension" xml:space="preserve">
+    <value>Live analysis (VSIX extension)</value>
+  </data>
   <data name="Prefer_framework_type" xml:space="preserve">
     <value>Prefer framework type</value>
   </data>
@@ -783,8 +795,8 @@ Additional information: {1}</value>
   <data name="Manage_specifications" xml:space="preserve">
     <value>Manage specifications</value>
   </data>
-  <data name="Manage_styles" xml:space="preserve">
-    <value>Manage styles</value>
+  <data name="Manage_naming_styles" xml:space="preserve">
+    <value>Manage naming styles</value>
   </data>
   <data name="Reorder" xml:space="preserve">
     <value>Reorder</value>
@@ -918,8 +930,8 @@ Additional information: {1}</value>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
   </data>
-  <data name="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues" xml:space="preserve">
-    <value>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</value>
+  <data name="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues" xml:space="preserve">
+    <value>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</value>
   </data>
   <data name="Never_show_this_again" xml:space="preserve">
     <value>Never show this again</value>
@@ -941,9 +953,6 @@ Additional information: {1}</value>
   </data>
   <data name="Enable_full_solution_analysis" xml:space="preserve">
     <value>Enable full solution _analysis</value>
-  </data>
-  <data name="Perform_editor_feature_analysis_in_external_process" xml:space="preserve">
-    <value>Perform editor _feature analysis in external process (experimental)</value>
   </data>
   <data name="Fade_out_unreachable_code" xml:space="preserve">
     <value>Fade out unreachable code</value>
@@ -968,11 +977,29 @@ Additional information: {1}</value>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
     <value>Prefer local function over anonymous function</value>
   </data>
+  <data name="Keep_all_parentheses_in_colon" xml:space="preserve">
+    <value>Keep all parentheses in:</value>
+  </data>
+  <data name="In_other_operators" xml:space="preserve">
+    <value>In other operators</value>
+  </data>
+  <data name="Never_if_unnecessary" xml:space="preserve">
+    <value>Never if unnecessary</value>
+  </data>
+  <data name="Always_for_clarity" xml:space="preserve">
+    <value>Always for clarity</value>
+  </data>
+  <data name="Parentheses_preferences_colon" xml:space="preserve">
+    <value>Parentheses preferences:</value>
+  </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>
   </data>
   <data name="CantApplyChangesModuleHasBeenUnloaded" xml:space="preserve">
     <value>Can't apply changes -- module '{0}' has been unloaded.</value>
+  </data>
+  <data name="CantApplyChangesUnexpectedError" xml:space="preserve">
+    <value>Can't apply changes -- unexpected error: '{0}'</value>
   </data>
   <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
     <value>Prefer deconstructed variable declaration</value>
@@ -986,11 +1013,11 @@ Additional information: {1}</value>
   <data name="Search_found_no_results" xml:space="preserve">
     <value>Search found no results</value>
   </data>
-  <data name="Restore_Visual_Studio_keybindings" xml:space="preserve">
-    <value>Restore Visual Studio keybindings</value>
+  <data name="Sync_Class_View" xml:space="preserve">
+    <value>Sync Class View</value>
   </data>
-  <data name="Use_Keybindings_for_extensions" xml:space="preserve">
-    <value>Use keybindings for ReSharper/IntelliJ/Vim/etc.</value>
+  <data name="Reset_Visual_Studio_default_keymapping" xml:space="preserve">
+    <value>Reset Visual Studio default keymapping</value>
   </data>
   <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
     <value>Enable navigation to decompiled sources (experimental)</value>
@@ -1009,11 +1036,317 @@ I agree to all of the foregoing:</value>
   <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
     <value>Decompiler Legal Notice</value>
   </data>
-  <data name="Disabling_the_extension_0_unbound_your_keyboard_bindings" xml:space="preserve">
-    <value>Disabling the extension '{0}' unbound your keyboard bindings.</value>
-    <comment>0 is an extension name</comment>
+  <data name="Colorize_regular_expressions" xml:space="preserve">
+    <value>Colorize regular expressions</value>
+  </data>
+  <data name="Highlight_related_components_under_cursor" xml:space="preserve">
+    <value>Highlight related components under cursor</value>
+  </data>
+  <data name="Regular_Expressions" xml:space="preserve">
+    <value>Regular Expressions</value>
+  </data>
+  <data name="Report_invalid_regular_expressions" xml:space="preserve">
+    <value>Report invalid regular expressions</value>
   </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
-    <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
+    <value>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</value>
+  </data>
+  <data name="Modifier_preferences_colon" xml:space="preserve">
+    <value>Modifier preferences:</value>
+  </data>
+  <data name="Prefer_readonly_fields" xml:space="preserve">
+    <value>Prefer readonly fields</value>
+  </data>
+  <data name="Analyzing_0" xml:space="preserve">
+    <value>Analyzing '{0}'</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with assignments</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_returns" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with returns</value>
+  </data>
+  <data name="Apply_0_keymapping_scheme" xml:space="preserve">
+    <value>Apply '{0}' keymapping scheme</value>
+  </data>
+  <data name="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor" xml:space="preserve">
+    <value>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</value>
+  </data>
+  <data name="Use_expression_body_for_lambdas" xml:space="preserve">
+    <value>Use expression body for lambdas</value>
+  </data>
+  <data name="Prefer_compound_assignments" xml:space="preserve">
+    <value>Prefer compound assignments</value>
+  </data>
+  <data name="Generate_dot_editorconfig_file_from_settings" xml:space="preserve">
+    <value>Generate .editorconfig file from settings</value>
+  </data>
+  <data name="Save_dot_editorconfig_file" xml:space="preserve">
+    <value>Save .editorconfig file</value>
+  </data>
+  <data name="Kind" xml:space="preserve">
+    <value>Kind</value>
+  </data>
+  <data name="Prefer_index_operator" xml:space="preserve">
+    <value>Prefer index operator</value>
+  </data>
+  <data name="Prefer_range_operator" xml:space="preserve">
+    <value>Prefer range operator</value>
+  </data>
+  <data name="All_methods" xml:space="preserve">
+    <value>All methods</value>
+  </data>
+  <data name="Avoid_expression_statements_that_implicitly_ignore_value" xml:space="preserve">
+    <value>Avoid expression statements that implicitly ignore value</value>
+  </data>
+  <data name="Avoid_unused_parameters" xml:space="preserve">
+    <value>Avoid unused parameters</value>
+  </data>
+  <data name="Avoid_unused_value_assignments" xml:space="preserve">
+    <value>Avoid unused value assignments</value>
+  </data>
+  <data name="Parameter_preferences_colon" xml:space="preserve">
+    <value>Parameter preferences:</value>
+  </data>
+  <data name="Non_public_methods" xml:space="preserve">
+    <value>Non-public methods</value>
+  </data>
+  <data name="Unused_value_is_explicitly_assigned_to_an_unused_local" xml:space="preserve">
+    <value>Unused value is explicitly assigned to an unused local</value>
+  </data>
+  <data name="Unused_value_is_explicitly_assigned_to_discard" xml:space="preserve">
+    <value>Unused value is explicitly assigned to discard</value>
+  </data>
+  <data name="Value_assigned_here_is_never_used" xml:space="preserve">
+    <value>Value assigned here is never used</value>
+  </data>
+  <data name="Value_returned_by_invocation_is_implicitly_ignored" xml:space="preserve">
+    <value>Value returned by invocation is implicitly ignored</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Interface_cannot_have_field" xml:space="preserve">
+    <value>Interface cannot have field.</value>
+  </data>
+  <data name="Make_abstract" xml:space="preserve">
+    <value>Make abstract</value>
+  </data>
+  <data name="Members" xml:space="preserve">
+    <value>Members</value>
+  </data>
+  <data name="Namespace_0" xml:space="preserve">
+    <value>Namespace: '{0}'</value>
+  </data>
+  <data name="Pull_Members_Up" xml:space="preserve">
+    <value>Pull Members Up</value>
+  </data>
+  <data name="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below" xml:space="preserve">
+    <value>Additional changes are needed to complete the refactoring. Review changes below.</value>
+  </data>
+  <data name="Select_Dependents" xml:space="preserve">
+    <value>Select _Dependents</value>
+  </data>
+  <data name="Select_destination_and_members_to_pull_up" xml:space="preserve">
+    <value>Select destination and members to pull up.</value>
+  </data>
+  <data name="Select_members_colon" xml:space="preserve">
+    <value>Select members:</value>
+  </data>
+  <data name="Select_Public" xml:space="preserve">
+    <value>Select _Public</value>
+  </data>
+  <data name="_0_will_be_changed_to_abstract" xml:space="preserve">
+    <value>'{0}' will be changed to abstract.</value>
+  </data>
+  <data name="_0_will_be_changed_to_non_static" xml:space="preserve">
+    <value>'{0}' will be changed to non-static.</value>
+  </data>
+  <data name="_0_will_be_changed_to_public" xml:space="preserve">
+    <value>'{0}' will be changed to public.</value>
+  </data>
+  <data name="Calculating_dependents" xml:space="preserve">
+    <value>Calculating dependents...</value>
+  </data>
+  <data name="Select_destination_colon" xml:space="preserve">
+    <value>Select destination:</value>
+  </data>
+  <data name="Use_expression_body_for_local_functions" xml:space="preserve">
+    <value>Use expression body for local functions</value>
+  </data>
+  <data name="Allow_colon" xml:space="preserve">
+    <value>Allow:</value>
+  </data>
+  <data name="Make_0_abstract" xml:space="preserve">
+    <value>Make '{0}' abstract</value>
+  </data>
+  <data name="Review_Changes" xml:space="preserve">
+    <value>Review Changes</value>
+  </data>
+  <data name="Select_member" xml:space="preserve">
+    <value>Select member</value>
+  </data>
+  <data name="Classifications" xml:space="preserve">
+    <value>Classifications</value>
+  </data>
+  <data name="Prefer_static_local_functions" xml:space="preserve">
+    <value>Prefer static local functions</value>
+  </data>
+  <data name="Prefer_simple_using_statement" xml:space="preserve">
+    <value>Prefer simple 'using' statement</value>
+  </data>
+  <data name="Show_completion_list" xml:space="preserve">
+    <value>Show completion list</value>
+  </data>
+  <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
+    <value>Use enhanced colors for C# and Basic</value>
+  </data>
+  <data name="Enable_nullable_reference_analysis_IDE_features" xml:space="preserve">
+    <value>Enable nullable reference analysis IDE features</value>
+  </data>
+  <data name="Move_to_namespace" xml:space="preserve">
+    <value>Move to Namespace</value>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>Namespace</value>
+  </data>
+  <data name="Target_Namespace_colon" xml:space="preserve">
+    <value>Target Namespace:</value>
+  </data>
+  <data name="This_is_an_invalid_namespace" xml:space="preserve">
+    <value>This is an invalid namespace</value>
+  </data>
+  <data name="A_new_namespace_will_be_created" xml:space="preserve">
+    <value>A new namespace will be created</value>
+  </data>
+  <data name="Rename_0_to_1" xml:space="preserve">
+    <value>Rename {0} to {1}</value>
+  </data>
+  <data name="NamingSpecification_CSharp_Class" xml:space="preserve">
+    <value>class</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Delegate" xml:space="preserve">
+    <value>delegate</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Enum" xml:space="preserve">
+    <value>enum</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Event" xml:space="preserve">
+    <value>event</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Field" xml:space="preserve">
+    <value>field</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Interface" xml:space="preserve">
+    <value>interface</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Local" xml:space="preserve">
+    <value>local</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_LocalFunction" xml:space="preserve">
+    <value>local function</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Method" xml:space="preserve">
+    <value>method</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Namespace" xml:space="preserve">
+    <value>namespace</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Parameter" xml:space="preserve">
+    <value>parameter</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Property" xml:space="preserve">
+    <value>property</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Struct" xml:space="preserve">
+    <value>struct</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_TypeParameter" xml:space="preserve">
+    <value>type parameter</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Class" xml:space="preserve">
+    <value>Class</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Delegate" xml:space="preserve">
+    <value>Delegate</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Enum" xml:space="preserve">
+    <value>Enum</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Event" xml:space="preserve">
+    <value>Event</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Field" xml:space="preserve">
+    <value>Field</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Interface" xml:space="preserve">
+    <value>Interface</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Local" xml:space="preserve">
+    <value>Local</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Method" xml:space="preserve">
+    <value>Method</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Module" xml:space="preserve">
+    <value>Module</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Namespace" xml:space="preserve">
+    <value>Namespace</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Parameter" xml:space="preserve">
+    <value>Parameter</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Property" xml:space="preserve">
+    <value>Property</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Structure" xml:space="preserve">
+    <value>Structure</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_TypeParameter" xml:space="preserve">
+    <value>Type Parameter</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</comment>
+  </data>
+  <data name="Use_editorconfig_compatibility_mode" xml:space="preserve">
+    <value>Use .editorconfig compatibility mode (requires restart)</value>
+  </data>
+  <data name="Running_low_priority_background_processes" xml:space="preserve">
+    <value>Running low priority background processes</value>
+  </data>
+  <data name="Evaluating_0_tasks_in_queue" xml:space="preserve">
+    <value>Evaluating ({0} tasks in queue)</value>
+  </data>
+  <data name="Paused_0_tasks_in_queue" xml:space="preserve">
+    <value>Paused ({0} tasks in queue)</value>
   </data>
 </root>

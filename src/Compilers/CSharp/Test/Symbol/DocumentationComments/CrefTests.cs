@@ -1662,7 +1662,7 @@ class A<T, U>
             Assert.False(actualWinner.IsDefinition);
 
             var actualParameterType = actualWinner.GetParameters().Single().Type;
-            AssertEx.All(actualWinner.ContainingType.TypeArguments(), typeParam => typeParam == actualParameterType); //CONSIDER: Would be different in Dev11.
+            AssertEx.All(actualWinner.ContainingType.TypeArguments(), typeParam => TypeSymbol.Equals(typeParam, actualParameterType, TypeCompareKind.ConsiderEverything2)); //CONSIDER: Would be different in Dev11.
             Assert.Equal(1, ((TypeParameterSymbol)actualParameterType).Ordinal);
 
             Assert.Equal(2, actualCandidates.Length);
@@ -1731,7 +1731,7 @@ class U { }
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedOriginalDefinitionSymbol, actualSymbol.OriginalDefinition);
-            Assert.Equal(TypeKind.TypeParameter, actualSymbol.GetParameterTypes().Single().TypeKind);
+            Assert.Equal(TypeKind.TypeParameter, actualSymbol.GetParameterTypes().Single().Type.TypeKind);
         }
 
         [Fact]
@@ -1757,7 +1757,7 @@ class A<T>
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedOriginalDefinitionSymbol, actualSymbol.OriginalDefinition);
-            Assert.Equal(TypeKind.TypeParameter, actualSymbol.GetParameterTypes().Single().TypeKind);
+            Assert.Equal(TypeKind.TypeParameter, actualSymbol.GetParameterTypes().Single().Type.TypeKind);
         }
 
         [Fact]
@@ -2377,7 +2377,7 @@ class C
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.LogicalNotOperatorName).OfType<MethodSymbol>().
-                Single(method => method.ParameterTypes.Single().SpecialType == SpecialType.System_Int32);
+                Single(method => method.ParameterTypesWithAnnotations.Single().SpecialType == SpecialType.System_Int32);
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
@@ -2562,7 +2562,7 @@ class C
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.DivisionOperatorName).OfType<MethodSymbol>().
-                Single(method => method.ParameterTypes.First().SpecialType == SpecialType.System_Int32);
+                Single(method => method.ParameterTypesWithAnnotations.First().SpecialType == SpecialType.System_Int32);
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
@@ -2770,7 +2770,7 @@ class C
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.ImplicitConversionName).OfType<MethodSymbol>().
-                Single(method => method.ParameterTypes.Single().SpecialType == SpecialType.System_Int32);
+                Single(method => method.ParameterTypesWithAnnotations.Single().SpecialType == SpecialType.System_Int32);
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
@@ -2806,7 +2806,7 @@ class C
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.ImplicitConversionName).OfType<MethodSymbol>().
-                Single(method => method.ParameterTypes.Single().SpecialType == SpecialType.System_Int32 && method.ReturnType.SpecialType == SpecialType.System_Int32);
+                Single(method => method.ParameterTypesWithAnnotations.Single().SpecialType == SpecialType.System_Int32 && method.ReturnType.SpecialType == SpecialType.System_Int32);
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
@@ -4369,17 +4369,17 @@ public partial class D { }
 public partial class E { }
 ";
 
-            var tree1 = Parse(source1, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Latest));
-            var tree2 = Parse(source2, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            var tree1 = Parse(source1, options: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose).WithLanguageVersion(LanguageVersion.Latest));
+            var tree2 = Parse(source2, options: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None).WithLanguageVersion(LanguageVersion.Latest));
 
             // This scenario does not exist in dev11, but the diagnostics seem reasonable.
             CreateCompilation(new[] { tree1, tree2 }).VerifyDiagnostics(
                 // (5,22): warning CS1591: Missing XML comment for publicly visible type or member 'D'
                 // public partial class D { }
-                Diagnostic(ErrorCode.WRN_MissingXMLComment, "D").WithArguments("D"),
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "D").WithArguments("D").WithLocation(5, 22),
                 // (7,22): warning CS1591: Missing XML comment for publicly visible type or member 'E'
                 // public partial class E { }
-                Diagnostic(ErrorCode.WRN_MissingXMLComment, "E").WithArguments("E"));
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "E").WithArguments("E").WithLocation(7, 22));
         }
 
         [Fact]
@@ -5874,7 +5874,7 @@ enum E { }
             compilation.VerifyDiagnostics();
 
             var expectedSymbol = compilation.GetSpecialType(SpecialType.System_String).
-                InstanceConstructors.Single(ctor => ctor.ParameterCount == 1 && ctor.ParameterTypes[0].IsArray());
+                InstanceConstructors.Single(ctor => ctor.ParameterCount == 1 && ctor.GetParameterType(0).IsArray());
 
             var cref = GetCrefSyntaxes(compilation).Single();
 
@@ -6659,6 +6659,54 @@ class Test
 
             var parameterSymbol = ((MethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
             Assert.Equal(RefKind.In, parameterSymbol.RefKind);
+        }
+
+        [Fact]
+        public void Cref_TupleType()
+        {
+            var source = @"
+using System;
+/// <summary>
+/// See <see cref=""ValueTuple{T,T}""/>.
+/// </summary>
+class C
+{
+}
+";
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default);
+            var compilation = CreateCompilation(source, parseOptions: parseOptions, options: options, targetFramework: TargetFramework.StandardAndCSharp);
+            var cMember = compilation.GetMember<NamedTypeSymbol>("C");
+            var xmlDocumentationString = cMember.GetDocumentationCommentXml();
+
+            var xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString);
+            var cref = xml.Descendants("see").Single().Attribute("cref").Value;
+
+            Assert.Equal("T:System.ValueTuple`2", cref);
+        }
+
+        [Fact]
+        public void Cref_TupleTypeField()
+        {
+            var source = @"
+using System;
+/// <summary>
+/// See <see cref=""ValueTuple{Int32,Int32}.Item1""/>.
+/// </summary>
+class C
+{
+}
+";
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default);
+            var compilation = CreateCompilation(source, parseOptions: parseOptions, options: options, targetFramework: TargetFramework.StandardAndCSharp);
+            var cMember = compilation.GetMember<NamedTypeSymbol>("C");
+            var xmlDocumentationString = cMember.GetDocumentationCommentXml();
+
+            var xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString);
+            var cref = xml.Descendants("see").Single().Attribute("cref").Value;
+
+            Assert.Equal("F:System.ValueTuple`2.Item1", cref);
         }
     }
 }

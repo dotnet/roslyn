@@ -67,13 +67,13 @@ namespace Microsoft.CodeAnalysis.Classification
             CancellationToken cancellationToken = default)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
- 
+
             return await GetClassifiedSymbolDisplayPartsAsync(
                 semanticModel, textSpan,
                 document.Project.Solution.Workspace,
                 cancellationToken).ConfigureAwait(false);
         }
- 
+
         internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
             SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
             CancellationToken cancellationToken = default)
@@ -83,20 +83,20 @@ namespace Microsoft.CodeAnalysis.Classification
 
             return ConvertClassificationsToParts(sourceText, textSpan.Start, classifiedSpans);
         }
- 
+
         internal static ImmutableArray<SymbolDisplayPart> ConvertClassificationsToParts(
             SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans)
         {
             var parts = ArrayBuilder<SymbolDisplayPart>.GetInstance();
- 
+
             foreach (var span in classifiedSpans)
             {
                 // If there is space between this span and the last one, then add a space.
-                if (startPosition != span.TextSpan.Start)
+                if (startPosition < span.TextSpan.Start)
                 {
                     parts.AddRange(Space());
                 }
- 
+
                 var kind = GetClassificationKind(span.ClassificationType);
                 if (kind != null)
                 {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     startPosition = span.TextSpan.End;
                 }
             }
- 
+
             return parts.ToImmutableAndFree();
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, new string(' ', count));
         }
- 
+
         private static SymbolDisplayPartKind? GetClassificationKind(string type)
         {
             switch (type)
@@ -151,15 +151,27 @@ namespace Microsoft.CodeAnalysis.Classification
                 case ClassificationTypeNames.VerbatimStringLiteral:
                     return SymbolDisplayPartKind.StringLiteral;
                 case ClassificationTypeNames.FieldName:
-                case ClassificationTypeNames.EnumFieldName:
+                    return SymbolDisplayPartKind.FieldName;
+                case ClassificationTypeNames.EnumMemberName:
+                    return SymbolDisplayPartKind.EnumMemberName;
                 case ClassificationTypeNames.ConstantName:
+                    return SymbolDisplayPartKind.ConstantName;
                 case ClassificationTypeNames.LocalName:
+                    return SymbolDisplayPartKind.LocalName;
                 case ClassificationTypeNames.ParameterName:
+                    return SymbolDisplayPartKind.ParameterName;
                 case ClassificationTypeNames.ExtensionMethodName:
+                    return SymbolDisplayPartKind.ExtensionMethodName;
                 case ClassificationTypeNames.MethodName:
+                    return SymbolDisplayPartKind.MethodName;
                 case ClassificationTypeNames.PropertyName:
+                    return SymbolDisplayPartKind.PropertyName;
+                case ClassificationTypeNames.LabelName:
+                    return SymbolDisplayPartKind.LabelName;
+                case ClassificationTypeNames.NamespaceName:
+                    return SymbolDisplayPartKind.NamespaceName;
                 case ClassificationTypeNames.EventName:
-                    return SymbolDisplayPartKind.Text;      // TODO: Add more SymbolDisplayPartKinds 
+                    return SymbolDisplayPartKind.EventName;
             }
         }
     }

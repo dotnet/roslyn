@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (NamedTypeSymbol @interface in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (@interface.IsInterface && @interface == superInterface)
+                if (@interface.IsInterface && TypeSymbol.Equals(@interface, superInterface, TypeCompareKind.ConsiderEverything2))
                 {
                     return true;
                 }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool CanContainNull(this TypeSymbol type)
         {
             // unbound type parameters might contain null, even though they cannot be *assigned* null.
-            return !type.IsValueType || type.IsNullableType();
+            return !type.IsValueType || type.IsNullableTypeOrTypeParameter();
         }
 
         public static bool CanBeConst(this TypeSymbol typeSymbol)
@@ -39,6 +39,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)typeSymbol != null);
 
             return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst();
+        }
+
+        /// <summary>
+        /// Assuming that nullable annotations are enabled:
+        /// T => true
+        /// T where T : struct => false
+        /// T where T : class => false
+        /// T where T : class? => true
+        /// T where T : IComparable => true
+        /// T where T : IComparable? => true
+        /// </summary>
+        public static bool IsTypeParameterDisallowingAnnotation(this TypeSymbol type)
+        {
+            if (type.TypeKind != TypeKind.TypeParameter)
+            {
+                return false;
+            }
+            var typeParameter = (TypeParameterSymbol)type;
+            // https://github.com/dotnet/roslyn/issues/30056: Test `where T : unmanaged`. See
+            // UninitializedNonNullableFieldTests.TypeParameterConstraints for instance.
+            return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullable == true);
+        }
+
+        /// <summary>
+        /// Assuming that nullable annotations are enabled:
+        /// T => true
+        /// T where T : struct => false
+        /// T where T : class => false
+        /// T where T : class? => true
+        /// T where T : IComparable => false
+        /// T where T : IComparable? => true
+        /// </summary>
+        public static bool IsPossiblyNullableReferenceTypeTypeParameter(this TypeSymbol type)
+        {
+            return type is TypeParameterSymbol { IsValueType: false, IsNotNullable: false };
         }
 
         public static bool IsNonNullableValueType(this TypeSymbol typeArgument)
@@ -51,14 +86,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return !IsNullableTypeOrTypeParameter(typeArgument);
         }
 
+        public static bool IsVoidType(this TypeSymbol type)
+        {
+            return type.SpecialType == SpecialType.System_Void;
+        }
+
         public static bool IsNullableTypeOrTypeParameter(this TypeSymbol type)
         {
+            if (type is null)
+            {
+                return false;
+            }
+
             if (type.TypeKind == TypeKind.TypeParameter)
             {
                 var constraintTypes = ((TypeParameterSymbol)type).ConstraintTypesNoUseSiteDiagnostics;
                 foreach (var constraintType in constraintTypes)
                 {
-                    if (IsNullableTypeOrTypeParameter(constraintType))
+                    if (constraintType.Type.IsNullableTypeOrTypeParameter())
                     {
                         return true;
                     }
@@ -69,19 +114,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsNullableType();
         }
 
+        /// <summary>
+        /// Is this System.Nullable`1 type, or its substitution.
+        ///
+        /// To check whether a type is System.Nullable`1 or is a type parameter constrained to System.Nullable`1
+        /// use <see cref="TypeSymbolExtensions.IsNullableTypeOrTypeParameter" /> instead.
+        /// </summary>
         public static bool IsNullableType(this TypeSymbol type)
         {
-            var original = (TypeSymbol)type.OriginalDefinition;
-            return original.SpecialType == SpecialType.System_Nullable_T;
+            return type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         }
 
         public static TypeSymbol GetNullableUnderlyingType(this TypeSymbol type)
+        {
+            return type.GetNullableUnderlyingTypeWithAnnotations().Type;
+        }
+
+        public static TypeWithAnnotations GetNullableUnderlyingTypeWithAnnotations(this TypeSymbol type)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(IsNullableType(type));
             Debug.Assert(type is NamedTypeSymbol);  //not testing Kind because it may be an ErrorType
 
-            return ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0];
+            return ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
         }
 
         public static TypeSymbol StrippedType(this TypeSymbol type)
@@ -291,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)type == null) return null;
             if (type.IsExpressionTree())
             {
-                type = ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0];
+                type = ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
             }
 
             return type.IsDelegateType() ? (NamedTypeSymbol)type : null;
@@ -302,10 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsExpressionTree(this TypeSymbol _type)
         {
-            // TODO: there must be a better way!
-            var type = _type.OriginalDefinition as NamedTypeSymbol;
-            return
-                (object)type != null &&
+            return _type.OriginalDefinition is NamedTypeSymbol type &&
                 type.Arity == 1 &&
                 type.MangleName &&
                 type.Name == "Expression" &&
@@ -370,11 +422,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return invokeMethod.Parameters;
         }
 
-        public static bool TryGetElementTypesIfTupleOrCompatible(this TypeSymbol type, out ImmutableArray<TypeSymbol> elementTypes)
+        public static bool TryGetElementTypesWithAnnotationsIfTupleOrCompatible(this TypeSymbol type, out ImmutableArray<TypeWithAnnotations> elementTypes)
         {
             if (type.IsTupleType)
             {
-                elementTypes = ((TupleTypeSymbol)type).TupleElementTypes;
+                elementTypes = ((TupleTypeSymbol)type).TupleElementTypesWithAnnotations;
                 return true;
             }
 
@@ -389,11 +441,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!type.IsTupleCompatible(out cardinality))
             {
                 // source not a tuple or compatible
-                elementTypes = default(ImmutableArray<TypeSymbol>);
+                elementTypes = default(ImmutableArray<TypeWithAnnotations>);
                 return false;
             }
 
-            var elementTypesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(cardinality);
+            var elementTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(cardinality);
             TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
 
             Debug.Assert(elementTypesBuilder.Count == cardinality);
@@ -402,11 +454,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-       public static ImmutableArray<TypeSymbol> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
+        public static ImmutableArray<TypeWithAnnotations> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
         {
             if (type.IsTupleType)
             {
-                return ((TupleTypeSymbol)type).TupleElementTypes;
+                return ((TupleTypeSymbol)type).TupleElementTypesWithAnnotations;
             }
 
             // The following codepath should be very uncommon since it would be rare
@@ -418,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // PERF: if allocations here become nuisance, consider caching the results
             //       in the type symbols that can actually be tuple compatible
-            var elementTypesBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+            var elementTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
 
             return elementTypesBuilder.ToImmutableAndFree();
@@ -492,7 +544,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             HashSet<DiagnosticInfo> localUseSiteDiagnostics = useSiteDiagnostics;
-            var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym);
+            var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym,
+                                        canDigThroughNullable: true); // System.Nullable is public
             useSiteDiagnostics = localUseSiteDiagnostics;
             return (object)result == null;
         }
@@ -521,16 +574,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// traversal stops and that type is returned from this method. Otherwise if traversal
         /// completes without the predicate returning true for any type, this method returns null.
         /// </summary>
-        public static TypeSymbol VisitType<T>(this TypeSymbol type, Func<TypeSymbol, T, bool, bool> predicate, T arg)
+        public static TypeSymbol VisitType<T>(
+            this TypeSymbol type,
+            Func<TypeSymbol, T, bool, bool> predicate,
+            T arg,
+            bool canDigThroughNullable = false)
         {
+            return VisitType(
+                typeWithAnnotationsOpt: default,
+                typeOpt: type,
+                typeWithAnnotationsPredicateOpt: null,
+                typePredicateOpt: predicate,
+                arg,
+                canDigThroughNullable);
+        }
+
+        /// <summary>
+        /// Visit the given type and, in the case of compound types, visit all "sub type".
+        /// One of the predicates will be invoked at each type. If the type is a
+        /// TypeWithAnnotations, <paramref name="typeWithAnnotationsPredicateOpt"/>
+        /// will be invoked; otherwise <paramref name="typePredicateOpt"/> will be invoked.
+        /// If the corresponding predicate returns true for any type,
+        /// traversal stops and that type is returned from this method. Otherwise if traversal
+        /// completes without the predicate returning true for any type, this method returns null.
+        /// </summary>
+        /// <param name="useDefaultType">If true, use <see cref="TypeWithAnnotations.DefaultType"/>
+        /// instead of <see cref="TypeWithAnnotations.Type"/> to avoid early resolution of nullable types</param>
+        public static TypeSymbol VisitType<T>(
+            this TypeWithAnnotations typeWithAnnotationsOpt,
+            TypeSymbol typeOpt,
+            Func<TypeWithAnnotations, T, bool, bool> typeWithAnnotationsPredicateOpt,
+            Func<TypeSymbol, T, bool, bool> typePredicateOpt,
+            T arg,
+            bool canDigThroughNullable = false,
+            bool useDefaultType = false)
+        {
+            Debug.Assert(typeWithAnnotationsOpt.HasType == (typeOpt is null));
+            Debug.Assert(canDigThroughNullable == false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
+
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
             // doing the natural recursion.
 
-            TypeSymbol current = type;
-
             while (true)
             {
+                TypeSymbol current = typeOpt ?? (useDefaultType ? typeWithAnnotationsOpt.DefaultType : typeWithAnnotationsOpt.Type);
                 bool isNestedNamedType = false;
 
                 // Visit containing types from outer-most to inner-most.
@@ -546,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = containingType.VisitType(predicate, arg);
+                                var result = VisitType(default, containingType, typeWithAnnotationsPredicateOpt, typePredicateOpt, arg, canDigThroughNullable, useDefaultType);
                                 if ((object)result != null)
                                 {
                                     return result;
@@ -560,10 +648,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if (predicate(current, arg, isNestedNamedType))
+                if (typeWithAnnotationsOpt.HasType && typeWithAnnotationsPredicateOpt != null)
                 {
-                    return current;
+                    if (typeWithAnnotationsPredicateOpt(typeWithAnnotationsOpt, arg, isNestedNamedType))
+                    {
+                        return current;
+                    }
                 }
+                else if (typePredicateOpt != null)
+                {
+                    if (typePredicateOpt(current, arg, isNestedNamedType))
+                    {
+                        return current;
+                    }
+                }
+
+                TypeWithAnnotations next;
 
                 switch (current.TypeKind)
                 {
@@ -584,9 +684,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             current = current.TupleUnderlyingType;
                         }
 
-                        foreach (var nestedType in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
+                        foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                         {
-                            var result = nestedType.VisitType(predicate, arg);
+                            // Let's try to avoid early resolution of nullable types
+                            var result = VisitType(
+                                typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
+                                typeOpt: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
+                                typeWithAnnotationsPredicateOpt,
+                                typePredicateOpt,
+                                arg,
+                                canDigThroughNullable,
+                                useDefaultType);
                             if ((object)result != null)
                             {
                                 return result;
@@ -595,16 +703,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return null;
 
                     case TypeKind.Array:
-                        current = ((ArrayTypeSymbol)current).ElementType;
-                        continue;
+                        next = ((ArrayTypeSymbol)current).ElementTypeWithAnnotations;
+                        break;
 
                     case TypeKind.Pointer:
-                        current = ((PointerTypeSymbol)current).PointedAtType;
-                        continue;
+                        next = ((PointerTypeSymbol)current).PointedAtTypeWithAnnotations;
+                        break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
                 }
+
+                // Let's try to avoid early resolution of nullable types
+                typeWithAnnotationsOpt = canDigThroughNullable ? default : next;
+                typeOpt = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : null;
             }
         }
 
@@ -812,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static readonly Func<TypeSymbol, TypeParameterSymbol, bool, bool> s_containsTypeParameterPredicate =
-            (type, parameter, unused) => type.TypeKind == TypeKind.TypeParameter && ((object)parameter == null || type == parameter);
+            (type, parameter, unused) => type.TypeKind == TypeKind.TypeParameter && ((object)parameter == null || TypeSymbol.Equals(type, parameter, TypeCompareKind.ConsiderEverything2));
 
         public static bool ContainsTypeParameter(this TypeSymbol type, MethodSymbol parameterContainer)
         {
@@ -839,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool ContainsDynamic(this TypeSymbol type)
         {
-            var result = type.VisitType(s_containsDynamicPredicate, null);
+            var result = type.VisitType(s_containsDynamicPredicate, null, canDigThroughNullable: true);
             return (object)result != null;
         }
 
@@ -855,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Return true if the type contains any tuples with element names.
         /// </summary>
         internal static bool ContainsTupleNames(this TypeSymbol type) =>
-            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => !t.TupleElementNames.IsDefault , null) != null;
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => !t.TupleElementNames.IsDefault, null) != null;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
@@ -899,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC:    1) If the type of the switch expression is sbyte, byte, short, ushort, int, uint,
             // SPEC:       long, ulong, bool, char, string, or an enum-type, or if it is the nullable type
             // SPEC:       corresponding to one of these types, then that is the governing type of the switch statement. 
-            // SPEC:    2) Otherwise, exactly one user-defined implicit conversion (Â§6.4) must exist from the
+            // SPEC:    2) Otherwise, exactly one user-defined implicit conversion must exist from the
             // SPEC:       type of the switch expression to one of the following possible governing types:
             // SPEC:       sbyte, byte, short, ushort, int, uint, long, ulong, char, string, or, a nullable type
             // SPEC:       corresponding to one of those types
@@ -938,13 +1050,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-#pragma warning disable RS0010
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
         /// <summary>
         /// Returns true if the type is one of the restricted types, namely: <see cref="T:System.TypedReference"/>, 
         /// <see cref="T:System.ArgIterator"/>, or <see cref="T:System.RuntimeArgumentHandle"/>.
         /// or a ref-like type.
         /// </summary>
-#pragma warning restore RS0010
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
         internal static bool IsRestrictedType(this TypeSymbol type,
                                                 bool ignoreSpanLikeTypes = false)
         {
@@ -958,9 +1070,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
             }
 
-            return ignoreSpanLikeTypes? 
-                        false:
-                        type.IsByRefLikeType;
+            return ignoreSpanLikeTypes ?
+                        false :
+                        type.IsRefLikeType;
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)
@@ -1050,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsVoidPointer(this TypeSymbol type)
         {
-            return type.IsPointerType() && ((PointerTypeSymbol)type).PointedAtType.SpecialType == SpecialType.System_Void;
+            return type is PointerTypeSymbol p && p.PointedAtType.IsVoidType();
         }
 
         /// <summary>
@@ -1068,6 +1180,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static int ComputeHashCode(this NamedTypeSymbol type)
         {
+            Debug.Assert(!type.Equals(type.OriginalDefinition, TypeCompareKind.AllIgnoreOptions) || wasConstructedForAnnotations(type));
+
+            if (wasConstructedForAnnotations(type))
+            {
+                // A type that uses its own type parameters as type arguments was constructed only for the purpose of adding annotations.
+                // In that case we'll use the hash from the definition.
+
+                return type.OriginalDefinition.GetHashCode();
+            }
+
             int code = type.OriginalDefinition.GetHashCode();
             code = Hash.Combine(type.ContainingType, code);
 
@@ -1084,9 +1206,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //  In short - we are not interested in the type parameters of unconstructed types.
             if ((object)type.ConstructedFrom != (object)type)
             {
-                foreach (var arg in type.TypeArgumentsNoUseSiteDiagnostics)
+                foreach (var arg in type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                 {
-                    code = Hash.Combine(arg, code);
+                    code = Hash.Combine(arg.Type, code);
                 }
             }
 
@@ -1097,6 +1219,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 code++;
             }
             return code;
+
+            static bool wasConstructedForAnnotations(NamedTypeSymbol type)
+            {
+                do
+                {
+                    var typeArguments = type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                    var typeParameters = type.OriginalDefinition.TypeParameters;
+
+                    for (int i = 0; i < typeArguments.Length; i++)
+                    {
+                        if (!typeParameters[i].Equals(
+                                 typeArguments[i].Type.OriginalDefinition,
+                                 SymbolEqualityComparer.ConsiderEverything.CompareKind))
+                        {
+                            return false;
+                        }
+                    }
+
+                    type = type.ContainingType;
+                }
+                while (type is object && !type.IsDefinition);
+
+                return true;
+            }
         }
 
         /// <summary>
@@ -1109,6 +1255,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns></returns>
         public static TypeSymbol AsDynamicIfNoPia(this TypeSymbol type, NamedTypeSymbol containingType)
         {
+            return type.TryAsDynamicIfNoPia(containingType, out TypeSymbol result) ? result : type;
+        }
+
+        public static bool TryAsDynamicIfNoPia(this TypeSymbol type, NamedTypeSymbol containingType, out TypeSymbol result)
+        {
             if (type.SpecialType == SpecialType.System_Object)
             {
                 AssemblySymbol assembly = containingType.ContainingAssembly;
@@ -1116,10 +1267,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     assembly.IsLinked &&
                     containingType.IsComImport)
                 {
-                    return DynamicTypeSymbol.Instance;
+                    result = DynamicTypeSymbol.Instance;
+                    return true;
                 }
             }
-            return type;
+            result = null;
+            return false;
         }
 
         /// <summary>
@@ -1314,7 +1467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            if (namedType.SpecialType == SpecialType.System_Void)
+            if (namedType.IsVoidType())
             {
                 return false;
             }
@@ -1335,6 +1488,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             object builderArgument;
             return namedType.IsCustomTaskType(out builderArgument);
+        }
+
+        internal static bool IsIAsyncEnumerableType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+
+            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+        }
+
+        internal static bool IsIAsyncEnumeratorType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+
+            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
         }
 
         /// <summary>
@@ -1415,6 +1590,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        private static bool NormalizeTaskTypesInType(CSharpCompilation compilation, ref TypeWithAnnotations typeWithAnnotations)
+        {
+            var type = typeWithAnnotations.Type;
+            if (NormalizeTaskTypesInType(compilation, ref type))
+            {
+                typeWithAnnotations = TypeWithAnnotations.Create(type, customModifiers: typeWithAnnotations.CustomModifiers);
+                return true;
+            }
+            return false;
+        }
+
         private static bool NormalizeTaskTypesInNamedType(CSharpCompilation compilation, ref NamedTypeSymbol type)
         {
             bool hasChanged = false;
@@ -1422,7 +1608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!type.IsDefinition)
             {
                 Debug.Assert(type.IsGenericType);
-                var typeArgumentsBuilder = ArrayBuilder<TypeWithModifiers>.GetInstance();
+                var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 type.GetAllTypeArguments(typeArgumentsBuilder, ref useSiteDiagnostics);
                 for (int i = 0; i < typeArgumentsBuilder.Count; i++)
@@ -1433,7 +1619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         hasChanged = true;
                         // Preserve custom modifiers but without normalizing those types.
-                        typeArgumentsBuilder[i] = new TypeWithModifiers(typeArgNormalized, typeWithModifier.CustomModifiers);
+                        typeArgumentsBuilder[i] = TypeWithAnnotations.Create(typeArgNormalized, customModifiers: typeWithModifier.CustomModifiers);
                     }
                 }
                 if (hasChanged)
@@ -1463,10 +1649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = arity == 0 ?
                     taskType :
                     taskType.Construct(
-                        ImmutableArray.Create(
-                            new TypeWithModifiers(
-                                type.TypeArgumentsNoUseSiteDiagnostics[0],
-                                type.HasTypeArgumentsCustomModifiers ? type.GetTypeArgumentCustomModifiers(0) : default(ImmutableArray<CustomModifier>))),
+                        ImmutableArray.Create(type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]),
                         unbound: false);
                 hasChanged = true;
             }
@@ -1488,7 +1671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool NormalizeTaskTypesInArray(CSharpCompilation compilation, ref ArrayTypeSymbol arrayType)
         {
-            var elementType = arrayType.ElementType;
+            var elementType = arrayType.ElementTypeWithAnnotations;
             if (!NormalizeTaskTypesInType(compilation, ref elementType))
             {
                 return false;
@@ -1499,38 +1682,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool NormalizeTaskTypesInPointer(CSharpCompilation compilation, ref PointerTypeSymbol pointerType)
         {
-            var pointedAtType = pointerType.PointedAtType;
+            var pointedAtType = pointerType.PointedAtTypeWithAnnotations;
             if (!NormalizeTaskTypesInType(compilation, ref pointedAtType))
             {
                 return false;
             }
             // Preserve custom modifiers but without normalizing those types.
-            pointerType = new PointerTypeSymbol(pointedAtType, pointerType.CustomModifiers);
+            pointerType = new PointerTypeSymbol(pointedAtType);
             return true;
         }
 
         internal static Cci.TypeReferenceWithAttributes GetTypeRefWithAttributes(
-            this TypeSymbol type,
-            CSharpCompilation declaringCompilation,
+            this TypeWithAnnotations type,
+            Emit.PEModuleBuilder moduleBuilder,
+            Symbol declaringSymbol,
             Cci.ITypeReference typeRef)
         {
-            if (type.ContainsTupleNames())
+            var builder = ArrayBuilder<Cci.ICustomAttribute>.GetInstance();
+            var compilation = declaringSymbol.DeclaringCompilation;
+
+            if (compilation != null)
             {
-                var attr = declaringCompilation.SynthesizeTupleNamesAttribute(type);
-                if (attr != null)
+                if (type.Type.ContainsTupleNames())
                 {
-                    return new Cci.TypeReferenceWithAttributes(
-                        typeRef,
-                        ImmutableArray.Create<Cci.ICustomAttribute>(attr));
+                    SynthesizedAttributeData attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
+                    if (attr != null)
+                    {
+                        builder.Add(attr);
+                    }
+                }
+
+                if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
+                {
+                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
+                    if (attr != null)
+                    {
+                        builder.Add(attr);
+                    }
                 }
             }
 
-            return new Cci.TypeReferenceWithAttributes(typeRef);
+
+            return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }
 
-        internal static bool IsWellKnownTypeInAttribute(this ITypeSymbol typeSymbol)
+        internal static bool IsWellKnownTypeInAttribute(this ITypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
+
+        internal static bool IsWellKnownTypeUnmanagedType(this ITypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
+
+        private static bool IsWellKnownInteropServicesTopLevelType(this ITypeSymbol typeSymbol, string name)
         {
-            if (typeSymbol.Name != "InAttribute" || typeSymbol.ContainingType != null)
+            if (typeSymbol.Name != name || typeSymbol.ContainingType != null)
             {
                 return false;
             }
@@ -1556,6 +1758,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var globalNamespace = systemNamespace.ContainingNamespace;
 
             return globalNamespace != null && globalNamespace.IsGlobalNamespace;
+        }
+
+        public static bool IsBadAsyncReturn(this TypeSymbol returnType, CSharpCompilation declaringCompilation)
+        {
+            // Note: we're passing the return type explicitly (rather than using `method.ReturnType`) to avoid cycles
+            return !returnType.IsErrorType() &&
+                !returnType.IsVoidType() &&
+                !returnType.IsNonGenericTaskType(declaringCompilation) &&
+                !returnType.IsGenericTaskType(declaringCompilation) &&
+                !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
+                !returnType.IsIAsyncEnumeratorType(declaringCompilation);
         }
     }
 }

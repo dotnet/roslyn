@@ -22,13 +22,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             private readonly TokenStream _tokenStream;
             private readonly ChainedFormattingRules _formattingRules;
             private readonly SyntaxNode _rootNode;
-            private readonly SyntaxToken _lastToken;
 
             public InitialContextFinder(
                 TokenStream tokenStream,
                 ChainedFormattingRules formattingRules,
-                SyntaxNode rootNode,
-                SyntaxToken lastToken)
+                SyntaxNode rootNode)
             {
                 Contract.ThrowIfNull(tokenStream);
                 Contract.ThrowIfNull(formattingRules);
@@ -37,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _tokenStream = tokenStream;
                 _formattingRules = formattingRules;
                 _rootNode = rootNode;
-                _lastToken = lastToken;
             }
 
             public (List<IndentBlockOperation> indentOperations, List<SuppressOperation> suppressOperations) Do(SyntaxToken startToken, SyntaxToken endToken)
@@ -79,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     node.DescendantNodesAndSelf(n => n != previous && n.Span.IntersectsWith(span) && !span.Contains(n.Span))
                         .Do(n =>
                             {
-                                _formattingRules.AddIndentBlockOperations(list, n, _lastToken);
+                                _formattingRules.AddIndentBlockOperations(list, n);
                                 foreach (var element in list)
                                 {
                                     if (element != null)
@@ -161,12 +158,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                         return true;
                     }
 
-                    if (o.ContainsElasticTrivia(_tokenStream) && !o.Option.IsOn(SuppressOption.IgnoreElastic))
+                    if (!o.TextSpan.Contains(startPosition))
                     {
                         return true;
                     }
 
-                    if (!o.TextSpan.Contains(startPosition))
+                    if (o.ContainsElasticTrivia(_tokenStream) && !o.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
                     {
                         return true;
                     }
@@ -182,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var currentIndentationNode = startNode;
                 while (currentIndentationNode != null)
                 {
-                    _formattingRules.AddSuppressOperations(list, currentIndentationNode, _lastToken);
+                    _formattingRules.AddSuppressOperations(list, currentIndentationNode);
 
                     list.RemoveAll(predicate);
                     if (list.Count > 0)

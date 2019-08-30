@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             IAsynchronousOperationListener listener,
             IGlobalOperationNotificationService globalOperationNotificationService,
             int backOffTimeSpanInMs,
-            CancellationToken shutdownToken) :
-            base(listener, backOffTimeSpanInMs, shutdownToken)
+            CancellationToken shutdownToken)
+            : base(listener, backOffTimeSpanInMs, shutdownToken)
         {
             _globalOperation = null;
-            _globalOperationTask = SpecializedTasks.EmptyTask;
+            _globalOperationTask = Task.CompletedTask;
 
             _globalOperationNotificationService = globalOperationNotificationService;
             _globalOperationNotificationService.Started += OnGlobalOperationStarted;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             _globalOperation = null;
 
             // set to empty task so that we don't need a lock
-            _globalOperationTask = SpecializedTasks.EmptyTask;
+            _globalOperationTask = Task.CompletedTask;
         }
 
         public virtual void Shutdown()

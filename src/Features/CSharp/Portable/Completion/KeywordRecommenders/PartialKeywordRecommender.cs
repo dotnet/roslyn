@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsMemberDeclarationContext(validModifiers: s_validMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+            if (context.IsMemberDeclarationContext(validModifiers: s_validMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 var token = context.LeftToken;
                 var decl = token.GetAncestor<TypeDeclarationSyntax>();
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return context.IsTypeDeclarationContext(
                 validModifiers: SyntaxKindSet.AllTypeModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken);
         }

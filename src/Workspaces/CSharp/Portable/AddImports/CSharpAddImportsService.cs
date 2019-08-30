@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddImports;
@@ -13,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
     internal class CSharpAddImportsService : AbstractAddImportsService<
         CompilationUnitSyntax, NamespaceDeclarationSyntax, UsingDirectiveSyntax, ExternAliasDirectiveSyntax>
     {
+        [ImportingConstructor]
+        public CSharpAddImportsService()
+        {
+        }
+
         // C# doesn't have global imports.
         protected override ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation)
             => ImmutableArray<SyntaxNode>.Empty;
@@ -20,44 +27,45 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
         protected override SyntaxNode GetAlias(UsingDirectiveSyntax usingOrAlias)
             => usingOrAlias.Alias;
 
+        protected override bool IsStaticUsing(UsingDirectiveSyntax usingOrAlias)
+            => usingOrAlias.StaticKeyword != default;
+
         protected override SyntaxNode Rewrite(
-            ExternAliasDirectiveSyntax[] externAliases, 
-            UsingDirectiveSyntax[] usingDirectives, 
-            UsingDirectiveSyntax[] aliasDirectives, 
-            SyntaxNode externContainer, 
-            SyntaxNode usingContainer, 
-            SyntaxNode aliasContainer, 
-            bool placeSystemNamespaceFirst, 
+            ExternAliasDirectiveSyntax[] externAliases,
+            UsingDirectiveSyntax[] usingDirectives,
+            UsingDirectiveSyntax[] staticUsingDirectives,
+            UsingDirectiveSyntax[] aliasDirectives,
+            SyntaxNode externContainer,
+            SyntaxNode usingContainer,
+            SyntaxNode staticUsingContainer,
+            SyntaxNode aliasContainer,
+            bool placeSystemNamespaceFirst,
             SyntaxNode root)
         {
             var rewriter = new Rewriter(
-                externAliases, usingDirectives, aliasDirectives,
-                externContainer, usingContainer, aliasContainer,
-                placeSystemNamespaceFirst);
+                externAliases, usingDirectives, staticUsingDirectives,
+                aliasDirectives, externContainer, usingContainer,
+                staticUsingContainer, aliasContainer, placeSystemNamespaceFirst);
 
             var newRoot = rewriter.Visit(root);
             return newRoot;
         }
 
         protected override SyntaxList<UsingDirectiveSyntax> GetUsingsAndAliases(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case CompilationUnitSyntax c: return c.Usings;
-                case NamespaceDeclarationSyntax n: return n.Usings;
-                default: return default;
-            }
-        }
+                CompilationUnitSyntax c => c.Usings,
+                NamespaceDeclarationSyntax n => n.Usings,
+                _ => default,
+            };
 
         protected override SyntaxList<ExternAliasDirectiveSyntax> GetExterns(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case CompilationUnitSyntax c: return c.Externs;
-                case NamespaceDeclarationSyntax n: return n.Externs;
-                default: return default;
-            }
-        }
+                CompilationUnitSyntax c => c.Externs,
+                NamespaceDeclarationSyntax n => n.Externs,
+                _ => default,
+            };
 
         private class Rewriter : CSharpSyntaxRewriter
         {
@@ -65,26 +73,32 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             private readonly SyntaxNode _externContainer;
             private readonly SyntaxNode _usingContainer;
             private readonly SyntaxNode _aliasContainer;
+            private readonly SyntaxNode _staticUsingContainer;
 
             private readonly UsingDirectiveSyntax[] _aliasDirectives;
             private readonly ExternAliasDirectiveSyntax[] _externAliases;
             private readonly UsingDirectiveSyntax[] _usingDirectives;
+            private readonly UsingDirectiveSyntax[] _staticUsingDirectives;
 
             public Rewriter(
-                ExternAliasDirectiveSyntax[] externAliases, 
-                UsingDirectiveSyntax[] usingDirectives, 
+                ExternAliasDirectiveSyntax[] externAliases,
+                UsingDirectiveSyntax[] usingDirectives,
+                UsingDirectiveSyntax[] staticUsingDirectives,
                 UsingDirectiveSyntax[] aliasDirectives,
                 SyntaxNode externContainer,
                 SyntaxNode usingContainer,
                 SyntaxNode aliasContainer,
+                SyntaxNode staticUsingContainer,
                 bool placeSystemNamespaceFirst)
             {
                 _externAliases = externAliases;
                 _usingDirectives = usingDirectives;
+                _staticUsingDirectives = staticUsingDirectives;
                 _aliasDirectives = aliasDirectives;
                 _externContainer = externContainer;
                 _usingContainer = usingContainer;
                 _aliasContainer = aliasContainer;
+                _staticUsingContainer = staticUsingContainer;
                 _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
             }
 
@@ -101,6 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 if (node == _usingContainer)
                 {
                     rewritten = rewritten.AddUsingDirectives(_usingDirectives, _placeSystemNamespaceFirst);
+                }
+
+                if (node == _staticUsingContainer)
+                {
+                    rewritten = rewritten.AddUsingDirectives(_staticUsingDirectives, _placeSystemNamespaceFirst);
                 }
 
                 if (node == _externContainer)
@@ -124,6 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 if (node == _usingContainer)
                 {
                     rewritten = rewritten.AddUsingDirectives(_usingDirectives, _placeSystemNamespaceFirst);
+                }
+
+                if (node == _staticUsingContainer)
+                {
+                    rewritten = rewritten.AddUsingDirectives(_staticUsingDirectives, _placeSystemNamespaceFirst);
                 }
 
                 if (node == _externContainer)

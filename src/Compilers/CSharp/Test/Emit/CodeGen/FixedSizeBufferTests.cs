@@ -15,6 +15,74 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class FixedSizeBufferTests : EmitMetadataTestBase
     {
         [Fact]
+        [WorkItem(26351, "https://github.com/dotnet/roslyn/pull/26351")]
+        public void NestedStructFixed()
+        {
+            var verifier = CompileAndVerify(@"
+class  X {
+    internal struct CaseRange {
+        public int Lo, Hi;
+        public unsafe fixed int Delta [3];
+
+        public CaseRange (int lo, int hi, int d1, int d2, int d3)
+        {
+            Lo = lo;
+            Hi = hi;
+            unsafe {
+                fixed (int *p = Delta) {
+                    p [0] = d1;
+                    p [1] = d2;
+                    p [2] = d3;
+                }
+            }
+        }
+    }
+
+    static void Main ()
+    {
+        var a = new CaseRange (0, 0, 0, 0, 0);
+    }
+}", options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+            verifier.VerifyIL("X.CaseRange..ctor", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  3
+  .locals init (pinned int& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int X.CaseRange.Lo""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      ""int X.CaseRange.Hi""
+  IL_000e:  ldarg.0
+  IL_000f:  ldflda     ""int* X.CaseRange.Delta""
+  IL_0014:  ldflda     ""int X.CaseRange.<Delta>e__FixedBuffer.FixedElementField""
+  IL_0019:  stloc.0
+  IL_001a:  ldloc.0
+  IL_001b:  conv.u
+  IL_001c:  dup
+  IL_001d:  ldarg.3
+  IL_001e:  stind.i4
+  IL_001f:  dup
+  IL_0020:  ldc.i4.4
+  IL_0021:  add
+  IL_0022:  ldarg.s    V_4
+  IL_0024:  stind.i4
+  IL_0025:  ldc.i4.2
+  IL_0026:  conv.i
+  IL_0027:  ldc.i4.4
+  IL_0028:  mul
+  IL_0029:  add
+  IL_002a:  ldarg.s    V_5
+  IL_002c:  stind.i4
+  IL_002d:  ldc.i4.0
+  IL_002e:  conv.u
+  IL_002f:  stloc.0
+  IL_0030:  ret
+}");
+        }
+
+        [Fact]
         public void SimpleFixedBuffer()
         {
             var text =
@@ -40,38 +108,364 @@ class Program
     }
 }";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
-                .VerifyIL("Program.Main",
-@"{
-  // Code size       58 (0x3a)
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       56 (0x38)
   .maxstack  2
   .locals init (S V_0, //s
-  int* V_1) //p
+                int* V_1) //p
   IL_0000:  ldloca.s   V_0
-  IL_0002:  ldflda     ""int* S.x""" /* Note: IL dumper displays the language view of the symbol's type, not the type in the generated metadata */ + @"
+  IL_0002:  ldflda     ""int* S.x""
   IL_0007:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
   IL_000c:  conv.u
   IL_000d:  stloc.1
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldflda     ""int* S.x""
   IL_0015:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
-  IL_001a:  conv.u
-  IL_001b:  ldc.i4.s   12
-  IL_001d:  stind.i4
-  IL_001e:  ldloc.1
-  IL_001f:  ldc.i4.4
-  IL_0020:  add
-  IL_0021:  ldloc.1
-  IL_0022:  ldind.i4
+  IL_001a:  ldc.i4.s   12
+  IL_001c:  stind.i4
+  IL_001d:  ldloc.1
+  IL_001e:  ldc.i4.4
+  IL_001f:  add
+  IL_0020:  ldloc.1
+  IL_0021:  ldind.i4
+  IL_0022:  stind.i4
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  ldflda     ""int* S.x""
+  IL_002a:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_002f:  ldc.i4.4
+  IL_0030:  add
+  IL_0031:  ldind.i4
+  IL_0032:  call       ""void System.Console.WriteLine(int)""
+  IL_0037:  ret
+}");
+        }
+
+        [Fact]
+        public void SimpleFixedBufferNestedField()
+        {
+            var text =
+@"
+using System;
+unsafe struct S
+{
+    public fixed int x[10];
+}
+
+struct  S1
+{
+    public S field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        S1 c = new S1();
+        c.field.x[0] = 12;
+        ref int i = ref c.field.x[0];
+        Console.WriteLine(i);
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (S1 V_0) //c
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldflda     ""S S1.field""
+  IL_000f:  ldflda     ""int* S.x""
+  IL_0014:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_0019:  ldc.i4.s   12
+  IL_001b:  stind.i4
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldflda     ""S S1.field""
+  IL_0023:  ldflda     ""int* S.x""
+  IL_0028:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_002d:  ldind.i4
+  IL_002e:  call       ""void System.Console.WriteLine(int)""
+  IL_0033:  ret
+}");
+        }
+
+        [Fact]
+        public void SimpleFixedBufferNestedFieldClass()
+        {
+            var text =
+@"
+using System;
+unsafe struct S
+{
+    public fixed int x[10];
+}
+
+class  C1
+{
+    public S field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        C1 c = new C1();
+        c.field.x[0] = 12;
+        ref int i = ref c.field.x[0];
+        Console.WriteLine(i);
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""S C1.field""
+  IL_000b:  ldflda     ""int* S.x""
+  IL_0010:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_0015:  ldc.i4.s   12
+  IL_0017:  stind.i4
+  IL_0018:  ldflda     ""S C1.field""
+  IL_001d:  ldflda     ""int* S.x""
+  IL_0022:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_0027:  ldind.i4
+  IL_0028:  call       ""void System.Console.WriteLine(int)""
+  IL_002d:  ret
+}");
+        }
+
+        [Fact]
+        public void SimpleFixedBufferNestedFieldClassInit()
+        {
+            var text =
+@"
+using System;
+unsafe struct S
+{
+    public fixed int x[10];
+}
+
+class  C1
+{
+    public S field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        C1 c;
+        
+        // test that 'this' is properly lowered
+        (c = new C1() {field = default}).field.x[0] = 12;
+
+        ref int i = ref c.field.x[0];
+        Console.WriteLine(i);
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""S C1.field""
+  IL_000b:  initobj    ""S""
+  IL_0011:  dup
+  IL_0012:  ldflda     ""S C1.field""
+  IL_0017:  ldflda     ""int* S.x""
+  IL_001c:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_0021:  ldc.i4.s   12
   IL_0023:  stind.i4
-  IL_0024:  ldloca.s   V_0
-  IL_0026:  ldflda     ""int* S.x""
-  IL_002b:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
-  IL_0030:  conv.u
-  IL_0031:  ldc.i4.4
-  IL_0032:  add
+  IL_0024:  ldflda     ""S C1.field""
+  IL_0029:  ldflda     ""int* S.x""
+  IL_002e:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
   IL_0033:  ldind.i4
   IL_0034:  call       ""void System.Console.WriteLine(int)""
   IL_0039:  ret
+}");
+        }
+
+        [Fact]
+        public void SimpleFixedBufferOfRefStructErr()
+        {
+            var source =
+@"
+ref struct S1
+{
+    public void Use() { }
+}
+
+unsafe struct S
+{
+    public fixed S1 x[10];
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        S s = new S();
+        S1 s1 = s.x[3];
+        s1.Use();
+    }
+}
+";
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed S1 x[10];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "S1").WithLocation(9, 18)
+                );
+        }
+
+        [Fact]
+        public void SimpleFixedBufferIndexingNoUnsafe()
+        {
+            var source =
+@"
+
+unsafe struct S
+{
+    public fixed int x[10];
+}
+
+class Program
+{
+    static void Main()
+    {
+        S s = new S();
+        // indexing in unmovable context
+        System.Console.WriteLine(s.x[3]);
+
+        S[] a = new[]{new S()};
+        // indexing in movable context
+        System.Console.WriteLine(a[0].x[3]);
+    }
+}
+";
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (14,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         System.Console.WriteLine(s.x[3]);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x").WithLocation(14, 34),
+                // (18,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         System.Console.WriteLine(a[0].x[3]);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a[0].x").WithLocation(18, 34)
+                );
+        }
+
+        [Fact]
+        public void SimpleFixedBufferNestedFieldClassRo()
+        {
+            var source =
+@"
+unsafe struct S
+{
+    public fixed int x[10];
+}
+
+class  S1
+{
+    public readonly S field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        S1 c = new S1();
+        c.field.x[0] = 12;
+        ref readonly int iro = ref c.field.x[0];
+        ref int irw = ref c.field.x[0];
+    }
+}
+";
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (17,9): error CS1648: Members of readonly field 'S1.field' cannot be modified (except in a constructor or a variable initializer)
+                //         c.field.x[0] = 12;
+                Diagnostic(ErrorCode.ERR_AssgReadonly2, "c.field.x[0]").WithArguments("S1.field").WithLocation(17, 9),
+                // (19,27): error CS1649: Members of readonly field 'S1.field' cannot be used as a ref or out value (except in a constructor)
+                //         ref int irw = ref c.field.x[0];
+                Diagnostic(ErrorCode.ERR_RefReadonly2, "c.field.x[0]").WithArguments("S1.field").WithLocation(19, 27)
+                );
+        }
+
+        [Fact]
+        public void SimpleFixedBufferNestedFieldClassRoFixed()
+        {
+            var text =
+@"
+using System;
+unsafe struct S
+{
+    public fixed int x[10];
+}
+
+class S1
+{
+    public readonly S field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        S1 c = new S1();
+        fixed (int* ptr = c.field.x)
+        {
+            ptr[3] = 12;
+        }
+
+        ref readonly int i = ref c.field.x[3];
+        Console.WriteLine(i);
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       62 (0x3e)
+  .maxstack  4
+  .locals init (pinned int& V_0)
+  IL_0000:  newobj     ""S1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""S S1.field""
+  IL_000b:  ldflda     ""int* S.x""
+  IL_0010:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  conv.u
+  IL_0018:  ldc.i4.3
+  IL_0019:  conv.i
+  IL_001a:  ldc.i4.4
+  IL_001b:  mul
+  IL_001c:  add
+  IL_001d:  ldc.i4.s   12
+  IL_001f:  stind.i4
+  IL_0020:  ldc.i4.0
+  IL_0021:  conv.u
+  IL_0022:  stloc.0
+  IL_0023:  ldflda     ""S S1.field""
+  IL_0028:  ldflda     ""int* S.x""
+  IL_002d:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_0032:  ldc.i4.3
+  IL_0033:  conv.i
+  IL_0034:  ldc.i4.4
+  IL_0035:  mul
+  IL_0036:  add
+  IL_0037:  ldind.i4
+  IL_0038:  call       ""void System.Console.WriteLine(int)""
+  IL_003d:  ret
 }");
         }
 
@@ -109,7 +503,7 @@ class Program
   // Code size       47 (0x2f)
   .maxstack  2
   .locals init (int* V_0, //p
-                pinned int*& V_1)
+                pinned int& V_1)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  ldflda     ""S C.s""
   IL_000a:  ldflda     ""int* S.x""
@@ -176,8 +570,8 @@ class Program
 
             var f = (FieldSymbol)comp2.GlobalNamespace.GetTypeMembers("S")[0].GetMembers("x")[0];
             Assert.Equal("x", f.Name);
-            Assert.True(f.IsFixed);
-            Assert.Equal("int*", f.Type.ToString());
+            Assert.True(f.IsFixedSizeBuffer);
+            Assert.Equal("int*", f.TypeWithAnnotations.ToString());
             Assert.Equal(10, f.FixedSize);
         }
 
@@ -206,9 +600,9 @@ class Program
     }
 }";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
-                .VerifyIL("Program.Main",
-@"{
-  // Code size       36 (0x24)
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       34 (0x22)
   .maxstack  3
   .locals init (S V_0) //s
   IL_0000:  ldloca.s   V_0
@@ -216,16 +610,15 @@ class Program
   IL_0003:  dup
   IL_0004:  ldflda     ""int* S.x""
   IL_0009:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
-  IL_000e:  conv.u
-  IL_000f:  ldc.i4.s   12
-  IL_0011:  stind.i4
-  IL_0012:  ldflda     ""int* S.x""
-  IL_0017:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
-  IL_001c:  conv.u
-  IL_001d:  ldind.i4
-  IL_001e:  call       ""void System.Console.WriteLine(int)""
-  IL_0023:  ret
-}");
+  IL_000e:  ldc.i4.s   12
+  IL_0010:  stind.i4
+  IL_0011:  ldflda     ""int* S.x""
+  IL_0016:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_001b:  ldind.i4
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  ret
+}
+");
         }
 
         [Fact]
@@ -358,21 +751,20 @@ class Program
 }
 ";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "133", verify: Verification.Fails)
-                .VerifyIL("Program.Test",
-@"{
-  // Code size       20 (0x14)
+                .VerifyIL("Program.Test", @"
+{
+  // Code size       19 (0x13)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""uint* AssemblyRecord.StartOfTables""
   IL_0006:  ldflda     ""uint AssemblyRecord.<StartOfTables>e__FixedBuffer.FixedElementField""
-  IL_000b:  conv.u
-  IL_000c:  ldc.i4.s   11
-  IL_000e:  conv.i
-  IL_000f:  ldc.i4.4
-  IL_0010:  mul
-  IL_0011:  add
-  IL_0012:  ldind.u4
-  IL_0013:  ret
+  IL_000b:  ldc.i4.s   11
+  IL_000d:  conv.i
+  IL_000e:  ldc.i4.4
+  IL_000f:  mul
+  IL_0010:  add
+  IL_0011:  ldind.u4
+  IL_0012:  ret
 }");
         }
 
@@ -578,7 +970,7 @@ public unsafe struct Test
     " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") + @"public fixed UInt32 Field[ 16 ];
 }
 ";
-                    CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes, 
+                    CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes,
                         symbolValidator: (m) =>
                         {
                             var test = m.GlobalNamespace.GetTypeMember("Test");
@@ -623,6 +1015,124 @@ public unsafe struct Test
                         Assert.Equal(CharSet.Ansi, bufferType.MarshallingCharSet);
                     });
             }
+        }
+
+        [Fact, WorkItem(26688, "https://github.com/dotnet/roslyn/issues/26688")]
+        public void FixedFieldDoesNotRequirePinningWithThis()
+        {
+            CompileAndVerify(@"
+using System;
+unsafe struct Foo
+{
+    public fixed int Bar[2];
+
+    public Foo(int value1, int value2)
+    {
+        this.Bar[0] = value1;
+        this.Bar[1] = value2;
+    }
+
+    public int M1 => this.Bar[0];
+    public int M2 => Bar[1];
+}
+class Program
+{
+    static void Main()
+    {
+        Foo foo = new Foo(1, 2);
+
+        Console.WriteLine(foo.M1);
+        Console.WriteLine(foo.M2);
+    }
+}", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: @"
+1
+2");
+        }
+
+        [Fact, WorkItem(26743, "https://github.com/dotnet/roslyn/issues/26743")]
+        public void FixedFieldDoesNotAllowAddressOfOperator()
+        {
+            CreateCompilation(@"
+unsafe struct Foo
+{
+    private fixed int Bar[2];
+
+    public int* M1 => &this.Bar[0];
+    public int* M2 => &Bar[1];
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     public int* M1 => &this.Bar[0];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&this.Bar[0]").WithLocation(6, 23),
+                // (7,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     public int* M2 => &Bar[1];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&Bar[1]").WithLocation(7, 23));
+        }
+
+        [Fact]
+        public void StaticField()
+        {
+            var verifier = CompileAndVerify(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+unsafe class C
+{
+    static S s_f;
+    public void M()
+    {
+        s_f.Buf[0] = 1;
+    }
+}", options: TestOptions.UnsafeReleaseDll);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldsflda    ""S C.s_f""
+  IL_0005:  ldflda     ""int* S.Buf""
+  IL_000a:  ldflda     ""int S.<Buf>e__FixedBuffer.FixedElementField""
+  IL_000f:  ldc.i4.1
+  IL_0010:  stind.i4
+  IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        public void FixedSizeBufferOffPointerAcess()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+unsafe class C
+{
+    public void M(IntPtr ptr)
+    {
+        S* s = (S*)ptr;
+        int* x = s->Buf;
+        int* y = &s->Buf[0];
+    }
+}", options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  1
+  .locals init (S* V_0) //s
+  IL_0000:  ldarg.1
+  IL_0001:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int* S.Buf""
+  IL_000d:  ldflda     ""int S.<Buf>e__FixedBuffer.FixedElementField""
+  IL_0012:  pop
+  IL_0013:  ldloc.0
+  IL_0014:  ldflda     ""int* S.Buf""
+  IL_0019:  ldflda     ""int S.<Buf>e__FixedBuffer.FixedElementField""
+  IL_001e:  pop
+  IL_001f:  ret
+}");
         }
     }
 }

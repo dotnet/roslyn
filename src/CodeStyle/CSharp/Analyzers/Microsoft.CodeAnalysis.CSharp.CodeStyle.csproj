@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
+    <PackageId>Microsoft.CodeAnalysis.CSharp.CodeStyle.NewNameSinceWeReferenceTheAnalyzersAndNuGetCannotFigureItOut</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpFixedVersion)" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\ContextQuery\SyntaxTokenExtensions_SharedWithCodeStyle.cs" Link="Formatting\ContextQuery\SyntaxTokenExtensions_SharedWithCodeStyle.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\MemberDeclarationSyntaxExtensions_GetAttributes.cs" Link="Formatting\MemberDeclarationSyntaxExtensions_GetAttributes.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxNodeExtensions_SharedWithCodeStyle.cs" Link="Formatting\SyntaxNodeExtensions_SharedWithCodeStyle.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.cs" Link="Formatting\SyntaxTokenExtensions_SharedWithCodeStyle.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Extensions\SyntaxTriviaExtensions.cs" Link="Formatting\SyntaxTriviaExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\CSharpFormattingOptions.cs" Link="Formatting\CSharpFormattingOptions.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\CSharpFormattingOptions.Parsers.cs" Link="Formatting\CSharpFormattingOptions.Parsers.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\CSharpSyntaxFormattingService.cs" Link="Formatting\CSharpSyntaxFormattingService.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\DefaultOperationProvider.cs" Link="Formatting\DefaultOperationProvider.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\AggregatedFormattingResult.cs" Link="Formatting\Engine\AggregatedFormattingResult.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\CSharpFormatEngine.cs" Link="Formatting\Engine\CSharpFormatEngine.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\CSharpStructuredTriviaFormatEngine.cs" Link="Formatting\Engine\CSharpStructuredTriviaFormatEngine.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\FormattingResult.cs" Link="Formatting\Engine\FormattingResult.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\Trivia\CSharpTriviaFormatter.cs" Link="Formatting\Engine\Trivia\CSharpTriviaFormatter.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\Trivia\CSharpTriviaFormatter.DocumentationCommentExteriorCommentRewriter.cs" Link="Formatting\Engine\Trivia\CSharpTriviaFormatter.DocumentationCommentExteriorCommentRewriter.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\Trivia\TriviaDataFactory.Analyzer.cs" Link="Formatting\Engine\Trivia\TriviaDataFactory.Analyzer.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\Trivia\TriviaDataFactory.CodeShapeAnalyzer.cs" Link="Formatting\Engine\Trivia\TriviaDataFactory.CodeShapeAnalyzer.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\Trivia\TriviaDataFactory.ComplexTrivia.cs" Link="Formatting\Engine\Trivia\TriviaDataFactory.ComplexTrivia.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\Trivia\TriviaDataFactory.cs" Link="Formatting\Engine\Trivia\TriviaDataFactory.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\Trivia\TriviaDataFactory.FormattedComplexTrivia.cs" Link="Formatting\Engine\Trivia\TriviaDataFactory.FormattedComplexTrivia.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.cs" Link="Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Engine\Trivia\TriviaRewriter.cs" Link="Formatting\Engine\Trivia\TriviaRewriter.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\FormattingHelpers.cs" Link="Formatting\FormattingHelpers.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\AnchorIndentationFormattingRule.cs" Link="Formatting\Rules\AnchorIndentationFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\BaseFormattingRule.cs" Link="Formatting\Rules\BaseFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\ElasticTriviaFormattingRule.cs" Link="Formatting\Rules\ElasticTriviaFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\EndOfFileTokenFormattingRule.cs" Link="Formatting\Rules\EndOfFileTokenFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\IndentBlockFormattingRule.cs" Link="Formatting\Rules\IndentBlockFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\IndentUserSettingsFormattingRule.cs" Link="Formatting\Rules\IndentUserSettingsFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\NewLineUserSettingFormattingRule.cs" Link="Formatting\Rules\NewLineUserSettingFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\QueryExpressionFormattingRule.cs" Link="Formatting\Rules\QueryExpressionFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\SpacingFormattingRule.cs" Link="Formatting\Rules\SpacingFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\StructuredTriviaFormattingRule.cs" Link="Formatting\Rules\StructuredTriviaFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\SuppressFormattingRule.cs" Link="Formatting\Rules\SuppressFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\SyntaxKindEx.cs" Link="Formatting\Rules\SyntaxKindEx.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\TokenBasedFormattingRule.cs" Link="Formatting\Rules\TokenBasedFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Formatting\Rules\WrappingFormattingRule.cs" Link="Formatting\Rules\WrappingFormattingRule.cs" />
+    <Compile Include="..\..\..\Workspaces\CSharp\Portable\Utilities\FormattingRangeHelper.cs" Link="Formatting\FormattingRangeHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="CSharpCodeStyleResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CSharpCodeStyleResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="CSharpCodeStyleResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>CSharpCodeStyleResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+</Project>

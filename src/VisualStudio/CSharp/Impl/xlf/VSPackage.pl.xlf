@@ -33,28 +33,234 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
-        <target state="translated">Wyróżnij odwołania do symbolu pod kursorem;Wyróżnij pokrewne słowa kluczowe pod kursorem;Przejdź do trybu konspektu po otwarciu plików;Pokaż separatory wierszy procedury;Generuj komentarze dokumentacji XML;Pokaż diagnostykę zamkniętych plików;Pokaż podglad śledzenia zmian nazw;Umieść na początku dyrektywy System podczas sortowania użyć;Nie umieszczaj klauzul ref lub out w niestandardowych strukturach</target>
+        <source>Show diagnostics for closed files;
+Colorize regular expression; 
+Highlight related components under cursor; 
+Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Using directives;
+Place system directives first when sorting usings;
+Separate using directive groups;
+Suggest usings for types in reference assemblies;
+Suggest usings for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused usings;
+Fade out unreachable code;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ///;
+Insert * at the start of new lines when writing /* */ comments;
+Show preview for rename tracking;
+Split string literals on Enter;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Don't put ref or out on custom struct;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</source>
+        <target state="translated">Pokaż dane diagnostyczne dla zamkniętych plików;
+Koloruj wyrażenia regularne; 
+Wyróżnij powiązane składniki pod kursorem; 
+Raportuj nieprawidłowe wyrażenia regularne;
+Włącz pełną analizę rozwiązania;
+Wykonaj analizę funkcji edytora w procesie zewnętrznym;
+Włącz nawigowanie do dekompilowanych źródeł;
+Dyrektywy using;
+Umieść najpierw dyrektywy system podczas sortowania deklaracji using;
+Oddziel grupy dyrektywy using;
+Sugeruj dyrektywy using dla typów w zestawach odwołania;
+Sugeruj dyrektywy using dla typów w pakietach NuGet;
+Wyróżnianie;
+Wyróżnij odwołania do symbolu pod kursorem;
+Wyróżnij pokrewne słowa kluczowe pod kursorem;
+Konspekt;
+Przejdź do trybu konspektu przy otwieraniu plików;
+Pokaż separatory wierszy procedury;
+Pokaż konspekt dla konstrukcji na poziomie deklaracji;
+Pokaż konspekt dla konstrukcji na poziomie kodu;
+Pokaż konspekt dla regionów komentarzy i preprocesora;
+Zwiń regiony podczas zwijania do definicji;
+Zanikanie;
+Zanikanie nieużywanych dyrektyw using;
+Zanikanie nieosiągalnego kodu;
+Prowadnice struktury blokowej;
+Pokaż prowadnice dla konstrukcji na poziomie deklaracji;
+Pokaż prowadnice dla konstrukcji na poziomie kodu;
+Pomoc edytora;
+Generuj komentarze dokumentacji XML dla elementów ///;
+Wstaw znak * na początku nowych wierszy podczas pisania komentarzy (/* */);
+Pokaż podgląd śledzenia zmian nazw;
+Dziel literały ciągów po naciśnięciu klawisza Enter;
+Zgłaszaj nieprawidłowe symbole zastępcze w wywołaniach metody string.Format;
+Wyodrębnianie metody;
+Nie umieszczaj parametrów ref i out w strukturze niestandardowej;
+Implementuj interfejs lub klasę abstrakcyjną;
+W przypadku wstawiania właściwości, zdarzeń i metod umieszczaj je;
+razem z innymi składowymi tego samego rodzaju;
+na końcu;
+Podczas generowania właściwości;
+preferuj właściwości przerzucane;
+preferuj właściwości automatyczne;
+wyrażenie regularne;
+wyrażenie regularne;
+Użyj ulepszonych kolorów;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
-        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</source>
-        <target state="translated">Automatycznie sformatuj instrukcję w pozycji średnika;Automatycznie sformatuj blok w pozycji nawiasu klamrowego;Automatycznie sformatuj przy wklejeniu</target>
+        <source>Automatically format when typing;
+Automatically format statement on semicolon ;
+Automatically format block on end brace;
+Automatically format on return;
+Automatically format on paste;</source>
+        <target state="translated">Formatuj automatycznie podczas pisania;
+Automatycznie sformatuj instrukcję w pozycji średnika ;
+Automatycznie sformatuj blok w pozycji nawiasu klamrowego;
+Formatuj automatycznie po przejściu do nowego wiersza;
+Automatycznie sformatuj przy wklejeniu;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
-        <source>Indent block contents;Indent open and close braces, indent case contents;indent case labels;label indentation</source>
-        <target state="translated">Wcięcie zawartości bloku;Wcięcie otwierających i zamykających nawiasów klamrowych, wcięcie zawartości elementu case;wcięcie etykiet elementu case;wcięcia etykiet</target>
+        <source>Indent block contents; 
+indent open and close braces; 
+indent case contents; 
+indent case contents (when block); 
+indent case labels; 
+label indentation; 
+place goto labels in leftmost column; 
+indent labels normally; 
+place goto labels one indent less than current;</source>
+        <target state="translated">Wcięcie zawartości bloku; 
+wcięcie otwierających i zamykających nawiasów klamrowych; 
+wcięcie zawartości elementu case; 
+wcięcie zawartości elementu case (w przypadku bloku); 
+wcięcie etykiet elementu case; 
+wcięcia etykiet; 
+umieść etykiety instrukcji goto w kolumnie z lewej strony; 
+normalne wcięcie etykiet; 
+umieść etykiety instrukcji goto o jedno wcięcie bliżej niż bieżący element;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
-        <source>New line formatting option for braces;New line formatting options for keywords</source>
-        <target state="translated">Opcja formatowania nowego wiersza dla nawiasów;Opcje formatowania nowego wiersza dla słów kluczowych</target>
+        <source>New line formatting option for braces;New line formatting options for keywords;New line options for braces;
+Place open brace on new line for types;
+Place open brace on new line for methods and local functions;
+Place open brace on new line for properties, indexers, and events;
+Place open brace on new line for property, indexer, and event accessors;
+Place open brace on new line for anonymous methods;
+Place open brace on new line for control blocks;
+Place open brace on new line for anonymous types;
+Place open brace on new line for object, collection and array initializers;
+New line options for keywords;
+Place else on new line;
+Place catch on new line;
+Place finally on new line;
+New line options for expression;
+Place members in object initializers on new line;
+Place members in anonymous types on new line;
+Place query expression clauses on new line;</source>
+        <target state="translated">Opcja formatowania nowego wiersza dla nawiasów;Opcje formatowania nowego wiersza dla słów kluczowych;Opcje nowego wiersza dla nawiasów klamrowych;
+Umieść otwierający nawias klamrowy w nowym wierszu dla typów;
+Umieść otwierający nawias klamrowy w nowym wierszu dla metod i funkcji lokalnych;
+Umieść otwierający nawias klamrowy w nowym wierszu dla właściwości, indeksatorów i zdarzeń;
+Umieść otwierający nawias klamrowy w nowym wierszu dla metod dostępu właściwości, indeksatora i zdarzenia;
+Umieść otwierający nawias klamrowy w nowym wierszu dla metod anonimowych;
+Umieść otwierający nawias klamrowy w nowym wierszu dla bloków sterowania;
+Umieść otwierający nawias klamrowy w nowym wierszu dla typów anonimowych;
+Umieść otwierający nawias klamrowy w nowym wierszu dla inicjatorów obiektów, kolekcji i tablic;
+Opcje nowego wiersza dla słów kluczowych;
+Umieść element else w nowym wierszu;
+Umieść element catch w nowym wierszu;
+Umieść element finally w nowym wierszu;
+Opcje nowego wiersza dla wyrażenia;
+Umieść składowe w inicjatorach obiektów w nowym wierszu;
+Umieść składowe typów anonimowych w nowym wierszu;
+Umieść klauzule wyrażenia zapytania w nowym wierszu;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
-        <source>Set spacing for method declarations;set spacing for method calls;set other spacing options;set spacing for brackets;set spacing for delimiters;set spacing for operators</source>
-        <target state="translated">Ustaw odstępy dla deklaracji metod;ustaw odstępy dla wywołań metod;ustaw inne opcje ostępów;ustaw odstępy dla nawiasów klamrowych;ustaw odstępy dla ograniczników;ustaw odstępy dla operatorów</target>
+        <source>Set spacing for method declarations;
+Insert space between method name and its opening parenthesis;
+Insert space within parameter list parentheses;
+Insert space within empty parameter list parentheses;
+Set spacing for method calls;
+Insert space within argument list parentheses;
+Insert space within empty argument list parentheses;
+Set other spacing options;
+Insert space after keywords in control flow statements;
+Insert space within parentheses of expressions;
+Insert space within parentheses of type casts;
+Insert spaces within parentheses of control flow statements;
+Insert space after cast;
+Ignore spaces in declaration statements;
+Set spacing for brackets;
+Insert space before open square bracket;
+Insert space within empty square brackets;
+Insert spaces within square brackets;
+Set spacing for delimiters;
+Insert space after colon for base or interface in type declaration;
+Insert space after comma;
+Insert space after dot;
+Insert space after semicolon in for statement;
+Insert space before colon for base or interface in type declaration;
+Insert space before comma;
+Insert space before dot;
+Insert space before semicolon in for statement;
+Set spacing for operators;
+Ignore spaces around binary operators;
+Remove spaces before and after binary operators;
+Insert space before and after binary operators;</source>
+        <target state="translated">Ustaw odstępy dla deklaracji metod;
+Wstaw spację między nazwę metody i jej nawias otwierający;
+Wstaw spację wewnątrz nawiasów listy parametrów;
+Wstaw spację wewnątrz nawiasów pustej listy parametrów;
+Ustaw odstępy dla wywołań metod;
+Wstaw spację wewnątrz nawiasów listy argumentów;
+Wstaw spację wewnątrz nawiasów pustej listy argumentów;
+Ustaw inne opcje odstępów;
+Wstaw spację po słowach kluczowych w instrukcjach przepływu sterowania;
+Wstaw spację wewnątrz nawiasów wyrażeń;
+Wstaw spację wewnątrz nawiasów rzutowania typu;
+Wstaw spacje wewnątrz nawiasów instrukcji przepływu sterowania;
+Wstaw spację po rzutowaniu;
+Ignoruj spacje w instrukcjach deklaracji;
+Ustaw odstępy dla nawiasów;
+Wstaw spację przed otwierającym nawiasem kwadratowym;
+Wstaw spację wewnątrz pustych nawiasów kwadratowych;
+Wstaw spacje wewnątrz nawiasów kwadratowych;
+Ustaw odstępy dla ograniczników;
+Wstaw spację po dwukropku dla elementu base lub interface w deklaracji typu;
+Wstaw spację po przecinku;
+Wstaw spację po kropce;
+Wstaw spację po średniku w instrukcji for;
+Wstaw spację przed dwukropkiem dla elementu base lub interface w deklaracji typu;
+Wstaw spację przed przecinkiem;
+Wstaw spację przed kropką;
+Wstaw spację przed średnikiem w instrukcji for;
+Ustaw odstępy dla operatorów;
+Ignoruj spacje dookoła operatorów binarnych;
+Usuń spacje przed operatorami binarnymi i po nich;
+Wstaw spację przed operatorami binarnymi i po nich;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -63,8 +269,34 @@
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Zmień ustawienia listy uzupełniania;Wybierz wstępnie ostatnio używaną składową</target>
+        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
+Show completion list after a character is typed;
+Show completion list after a character is deleted;
+Highlight matching portions of completion list items;
+Show completion item filters;
+Snippets behavior;
+Never include snippets;
+Always include snippets;
+Include snippets when ?-Tab is typed after an identifier;
+Enter key behavior;
+Never add new line on enter;
+Only add new line on enter after end of fully typed word;
+Always add new line on enter;
+Show name suggestions;</source>
+        <target state="translated">Zmień ustawienia listy uzupełniania;Wybierz wstępnie ostatnio używaną składową; Listy uzupełniania;
+Pokaż listę uzupełniania po wpisaniu znaku;
+Pokaż listę uzupełniania po usunięciu znaku;
+Wyróżnij pasujące fragmenty elementów listy uzupełniania;
+Pokaż filtry elementów uzupełniania;
+Zachowanie fragmentów kodu;
+Nigdy nie dołączaj fragmentów kodu;
+Zawsze dołączaj fragmenty kodu;
+Dołącz fragmenty kodu po wpisaniu znaku ? po identyfikatorze i naciśnięciu klawisza Tab;
+Zachowanie klawisza Enter;
+Nigdy nie dodawaj nowego wiersza po naciśnięciu klawisza Enter;
+Dodaj nowy wiersz po naciśnięciu klawisza Enter tylko po zakończeniu pełnego wpisanego wyrazu;
+Zawsze dodawaj nowy wiersz po naciśnięciu klawisza Enter;
+Pokaż sugestie dotyczące nazwy;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -98,13 +330,13 @@
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">Edytor CSharp</target>
+        <source>C# Editor</source>
+        <target state="needs-review-translation">Edytor CSharp</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">Edytor CSharp z kodowaniem</target>
+        <source>C# Editor with Encoding</source>
+        <target state="needs-review-translation">Edytor CSharp z kodowaniem</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -141,6 +373,16 @@
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">Składniki języka C# używane w środowisku IDE. Zależnie od typu projektu i jego ustawień może być używana inna wersja kompilatora.</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="translated">Pusty plik skryptu C#.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="translated">Skrypt Visual C# Script</target>
+        <note />
       </trans-unit>
     </body>
   </file>

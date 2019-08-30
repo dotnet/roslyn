@@ -8,6 +8,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
+    /// <summary>
+    /// when users type, we chain all those changes as incremental parsing requests 
+    /// but doesn't actually realize those changes. it is saved as a pending request. 
+    /// so if nobody asks for final parse tree, those chain can keep grow. 
+    /// we do this since Roslyn is lazy at the core (don't do work if nobody asks for it)
+    /// 
+    /// but certain host such as VS, we have this (BackgroundParser) which preemptively 
+    /// trying to realize such trees for open/active files expecting users will use them soonish.
+    /// </summary>
     internal class BackgroundParser
     {
         private readonly Workspace _workspace;
@@ -26,23 +35,20 @@ namespace Microsoft.CodeAnalysis.Host
 
             var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
             _taskScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
-            _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
+            _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
-            if (workspace is Workspace editorWorkspace)
-            {
-                editorWorkspace.DocumentOpened += this.OnDocumentOpened;
-                editorWorkspace.DocumentClosed += this.OnDocumentClosed;
-            }
+            workspace.DocumentOpened += OnDocumentOpened;
+            workspace.DocumentClosed += OnDocumentClosed;
         }
 
         private void OnDocumentOpened(object sender, DocumentEventArgs args)
         {
-            this.Parse(args.Document);
+            Parse(args.Document);
         }
 
         private void OnDocumentClosed(object sender, DocumentEventArgs args)
         {
-            this.CancelParse(args.Document.Id);
+            CancelParse(args.Document.Id);
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
@@ -52,15 +58,15 @@ namespace Microsoft.CodeAnalysis.Host
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionRemoved:
                 case WorkspaceChangeKind.SolutionAdded:
-                    this.CancelAllParses();
+                    CancelAllParses();
                     break;
 
                 case WorkspaceChangeKind.DocumentRemoved:
-                    this.CancelParse(args.DocumentId);
+                    CancelParse(args.DocumentId);
                     break;
 
                 case WorkspaceChangeKind.DocumentChanged:
-                    this.ParseIfOpen(args.NewSolution.GetDocument(args.DocumentId));
+                    ParseIfOpen(args.NewSolution.GetDocument(args.DocumentId));
                     break;
 
                 case WorkspaceChangeKind.ProjectChanged:
@@ -77,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         foreach (var doc in newProject.Documents)
                         {
-                            this.ParseIfOpen(doc);
+                            ParseIfOpen(doc);
                         }
                     }
 
@@ -89,9 +95,9 @@ namespace Microsoft.CodeAnalysis.Host
         {
             using (_stateLock.DisposableRead())
             {
-                if (!this.IsStarted)
+                if (!IsStarted)
                 {
-                    this.IsStarted = true;
+                    IsStarted = true;
                 }
             }
         }
@@ -100,10 +106,10 @@ namespace Microsoft.CodeAnalysis.Host
         {
             using (_stateLock.DisposableWrite())
             {
-                if (this.IsStarted)
+                if (IsStarted)
                 {
-                    this.CancelAllParses_NoLock();
-                    this.IsStarted = false;
+                    CancelAllParses_NoLock();
+                    IsStarted = false;
                 }
             }
         }
@@ -112,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             using (_stateLock.DisposableWrite())
             {
-                this.CancelAllParses_NoLock();
+                CancelAllParses_NoLock();
             }
         }
 
@@ -149,9 +155,9 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 lock (_parseGate)
                 {
-                    this.CancelParse(document.Id);
+                    CancelParse(document.Id);
 
-                    if (this.IsStarted)
+                    if (IsStarted)
                     {
                         ParseDocumentAsync(document);
                     }
@@ -163,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             if (document != null && document.IsOpen())
             {
-                this.Parse(document);
+                Parse(document);
             }
         }
 
@@ -178,8 +184,16 @@ namespace Microsoft.CodeAnalysis.Host
 
             var cancellationToken = cancellationTokenSource.Token;
 
+            // We end up creating a chain of parsing tasks that each attempt to produce 
+            // the appropriate syntax tree for any given document. Once we start work to create 
+            // the syntax tree for a given document, we don't want to stop. 
+            // Otherwise we can end up in the unfortunate scenario where we keep cancelling work, 
+            // and then having the next task re-do the work we were just in the middle of. 
+            // By not cancelling, we can reuse the useful results of previous tasks when performing later steps in the chain.
+            //
+            // we still cancel whole task if the task didn't start yet. we just don't cancel if task is started but not finished yet.
             var task = _taskScheduler.ScheduleTask(
-                () => document.GetSyntaxTreeAsync(cancellationToken),
+                () => document.GetSyntaxTreeAsync(CancellationToken.None),
                 "BackgroundParser.ParseDocumentAsync",
                 cancellationToken);
 

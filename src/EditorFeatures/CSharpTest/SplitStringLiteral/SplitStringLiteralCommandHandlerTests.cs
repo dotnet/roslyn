@@ -1,46 +1,69 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
+    [UseExportProvider]
     public class SplitStringLiteralCommandHandlerTests
     {
+        /// <summary>
+        /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033
+        /// Most tests will continue to verifyUndo, but select tests will skip it due to
+        /// this known test infrastructure issure. This bug does not represent a product
+        /// failure.
+        /// </summary>
         private void TestWorker(
-            string inputMarkup, string expectedOutputMarkup, Action callback)
+            string inputMarkup,
+            string expectedOutputMarkup,
+            Action callback,
+            bool verifyUndo = true,
+            IndentStyle indentStyle = IndentStyle.Smart)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(inputMarkup))
+            using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
+            workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+
+            var document = workspace.Documents.Single();
+            var view = document.GetTextView();
+
+            var originalSnapshot = view.TextBuffer.CurrentSnapshot;
+            var originalSelection = document.SelectedSpans.Single();
+            view.SetSelection(originalSelection.ToSnapshotSpan(originalSnapshot));
+
+            var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
+            var commandHandler = new SplitStringLiteralCommandHandler(
+                undoHistoryRegistry,
+                workspace.GetService<IEditorOperationsFactoryService>());
+
+            if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
             {
-                var document = workspace.Documents.Single();
-                var view = document.GetTextView();
+                callback();
+            }
 
-                var originalSnapshot = view.TextBuffer.CurrentSnapshot;
-                var originalSelection = document.SelectedSpans.Single();
-                view.SetSelection(originalSelection.ToSnapshotSpan(originalSnapshot));
+            if (expectedOutputMarkup != null)
+            {
+                MarkupTestFile.GetSpans(expectedOutputMarkup,
+                    out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
-                var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
-                var commandHandler = new SplitStringLiteralCommandHandler(
-                    undoHistoryRegistry,
-                    workspace.GetService<IEditorOperationsFactoryService>());
-                commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), callback);
+                Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
+                Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
 
-                if (expectedOutputMarkup != null)
+                if (verifyUndo)
                 {
-                    MarkupTestFile.GetSpans(expectedOutputMarkup,
-                        out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
-
-                    Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
-                    Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
-
                     // Ensure that after undo we go back to where we were to begin with.
                     var history = undoHistoryRegistry.GetHistory(document.TextBuffer);
                     history.Undo(count: 1);
@@ -52,14 +75,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             }
         }
 
-        private void TestHandled(string inputMarkup, string expectedOutputMarkup)
+        /// <summary>
+        /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033
+        /// Most tests will continue to verifyUndo, but select tests will skip it due to
+        /// this known test infrastructure issure. This bug does not represent a product
+        /// failure.
+        /// </summary>
+        private void TestHandled(
+            string inputMarkup, string expectedOutputMarkup,
+            bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart)
         {
             TestWorker(
                 inputMarkup, expectedOutputMarkup,
                 callback: () =>
                 {
                     Assert.True(false, "Should not reach here.");
-                });
+                },
+                verifyUndo, indentStyle);
         }
 
         private void TestNotHandled(string inputMarkup)
@@ -234,6 +266,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestInEmptyString()
         {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
             TestHandled(
 @"class C
 {
@@ -249,7 +283,58 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         var v = """" +
             ""[||]"";
     }
-}");
+}",
+            verifyUndo: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInEmptyString_BlockIndent()
+        {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""[||]"";
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = """" +
+        ""[||]"";
+    }
+}",
+            verifyUndo: false,
+            IndentStyle.Block);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInEmptyString_NoneIndent()
+        {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""[||]"";
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = """" +
+""[||]"";
+    }
+}",
+            verifyUndo: false,
+            IndentStyle.None);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
@@ -271,6 +356,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             $""[||]"";
     }
 }");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInEmptyInterpolatedString_BlockIndent()
+        {
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = $""[||]"";
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = $"""" +
+        $""[||]"";
+    }
+}", indentStyle: IndentStyle.Block);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInEmptyInterpolatedString_NoneIndent()
+        {
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = $""[||]"";
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = $"""" +
+$""[||]"";
+    }
+}", indentStyle: IndentStyle.None);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
@@ -400,6 +527,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestBeforeEndQuote1()
         {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
             TestHandled(
 @"class Program
 {
@@ -427,13 +556,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             ""string2"" +
             ""string3"";
     }
-}");
+}",
+            verifyUndo: false);
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestBeforeEndQuote2()
         {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
             TestHandled(
 @"class Program
 {
@@ -461,13 +593,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             ""string2"" +
             ""string3"";
     }
-}");
+}",
+            verifyUndo: false);
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestBeforeEndQuote3()
         {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
             TestHandled(
 @"class Program
 {
@@ -495,13 +630,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             ""string2"" +
             ""string3"";
     }
-}");
+}",
+            verifyUndo: false);
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestBeforeEndQuote4()
         {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
             TestHandled(
 @"class Program
 {
@@ -529,13 +667,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             ""string2"" +
             ""string3"";
     }
-}");
+}",
+            verifyUndo: false);
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestBeforeEndQuote5()
         {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
             TestHandled(
 @"class Program
 {
@@ -563,13 +704,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             ""[||]"" +
             ""string3"";
     }
-}");
+}",
+            verifyUndo: false);
         }
 
         [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestBeforeEndQuote6()
         {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
             TestHandled(
 @"class Program
 {
@@ -597,7 +741,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             ""string3"" +
             ""[||]"";
     }
-}");
+}",
+            verifyUndo: false);
         }
     }
 }

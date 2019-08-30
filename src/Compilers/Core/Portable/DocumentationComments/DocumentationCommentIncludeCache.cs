@@ -57,7 +57,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                 using (XmlReader reader = XmlReader.Create(stream, s_xmlSettings))
                 {
                     var document = XDocument.Load(reader, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
-                    return KeyValuePair.Create(resolvedPath, document);
+                    return KeyValuePairUtil.Create(resolvedPath, document);
                 }
             }
         }

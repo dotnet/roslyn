@@ -1632,7 +1632,7 @@ System.Boolean
 ]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub Regress14477()
             Dim compilationDef =
 <compilation name="Regress14477">

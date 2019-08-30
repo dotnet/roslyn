@@ -29,7 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private readonly IVsUIShell _uiShell;
 
         [ImportingConstructor]
-        public PreviewPaneService(SVsServiceProvider serviceProvider)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public PreviewPaneService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _uiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell;
         }
@@ -113,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             }
 
             var helpLinkToolTipText = string.Empty;
-            Uri helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
+            var helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
 
             Guid optionPageGuid = default;
             if (diagnostic.Properties.TryGetValue("OptionName", out var optionName))

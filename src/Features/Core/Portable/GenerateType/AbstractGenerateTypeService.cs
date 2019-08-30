@@ -137,13 +137,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
             return result.ToImmutableAndFree();
         }
 
-        private bool CanGenerateIntoContainingNamespace(SemanticDocument document, SyntaxNode node, State state, CancellationToken cancellationToken)
+        private bool CanGenerateIntoContainingNamespace(SemanticDocument semanticDocument, SyntaxNode node, State state, CancellationToken cancellationToken)
         {
-            var containingNamespace = document.SemanticModel.GetEnclosingNamespace(node.SpanStart, cancellationToken);
+            var containingNamespace = semanticDocument.SemanticModel.GetEnclosingNamespace(node.SpanStart, cancellationToken);
 
             // Only allow if the containing namespace is one that can be generated
             // into.  
-            var declarationService = document.Project.LanguageServices.GetService<ISymbolDeclarationService>();
+            var declarationService = semanticDocument.Document.GetLanguageService<ISymbolDeclarationService>();
             var decl = declarationService.GetDeclarations(containingNamespace)
                                          .Where(r => r.SyntaxTree == node.SyntaxTree)
                                          .Select(r => r.GetSyntax(cancellationToken))
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             return
                 decl != null &&
-                document.Project.LanguageServices.GetService<ICodeGenerationService>().CanAddTo(decl, document.Project.Solution, cancellationToken);
+                semanticDocument.Document.GetLanguageService<ICodeGenerationService>().CanAddTo(decl, semanticDocument.Project.Solution, cancellationToken);
         }
 
         private bool IsGeneratingIntoContainingNamespace(
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 : s => state.TypeToGenerateInOpt.GetAllTypeParameters().All(t => t.Name != s);
 
             var uniqueNames = NameGenerator.EnsureUniqueness(names, isFixed, canUse: canUse);
-            for (int i = 0; i < uniqueNames.Count; i++)
+            for (var i = 0; i < uniqueNames.Count; i++)
             {
                 if (typeParameters[i] == null || typeParameters[i].Name != uniqueNames[i])
                 {

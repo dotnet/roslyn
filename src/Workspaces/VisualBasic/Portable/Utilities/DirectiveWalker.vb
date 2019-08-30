@@ -99,9 +99,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
             ' #If should be the first one in sorted order
             Dim ifDirective = condDirectives.First()
-            Contract.Assert(ifDirective.Kind = SyntaxKind.IfDirectiveTrivia OrElse
-                            ifDirective.Kind = SyntaxKind.ElseIfDirectiveTrivia OrElse
-                            ifDirective.Kind = SyntaxKind.ElseDirectiveTrivia)
+            Debug.Assert(ifDirective.Kind = SyntaxKind.IfDirectiveTrivia OrElse
+                         ifDirective.Kind = SyntaxKind.ElseIfDirectiveTrivia OrElse
+                         ifDirective.Kind = SyntaxKind.ElseDirectiveTrivia)
 
             If directiveOpt IsNot Nothing Then
                 _startEndMap.Add(directiveOpt, ifDirective)

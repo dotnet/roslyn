@@ -559,7 +559,7 @@ class Test
         [Fact]
         public void IsByRefLikeAttributesInNoPia()
         {
-            var comAssembly = CreateCompilation(@"
+            var comAssembly = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""test.dll"")]
@@ -596,10 +596,10 @@ class User
 
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var compilation_CompilationReference = CreateCompilation(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
+            var compilation_CompilationReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_CompilationReference, symbolValidator: symbolValidator);
 
-            var compilation_BinaryReference = CreateCompilation(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
+            var compilation_BinaryReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_BinaryReference, symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
@@ -657,7 +657,7 @@ class Test
             void validate(ModuleSymbol module)
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                Assert.True(type.IsByRefLikeType);
+                Assert.True(type.IsRefLikeType);
 
                 var assemblyName = module.ContainingAssembly.Name;
 
@@ -741,7 +741,7 @@ class Test
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                Assert.True(type.IsByRefLikeType);
+                Assert.True(type.IsRefLikeType);
 
                 var attribute = type.GetAttributes().Single();
                 Assert.Equal("Windows.Foundation.Metadata.DeprecatedAttribute", attribute.AttributeClass.ToDisplayString());
@@ -788,7 +788,7 @@ class Test
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                Assert.True(type.IsByRefLikeType);
+                Assert.True(type.IsRefLikeType);
 
                 var attributes = type.GetAttributes();
 
@@ -991,7 +991,7 @@ namespace System
         private static void AssertReferencedIsByRefLike(TypeSymbol type, bool hasObsolete = true)
         {
             var peType = (PENamedTypeSymbol)type;
-            Assert.True(peType.IsByRefLikeType);
+            Assert.True(peType.IsRefLikeType);
 
             // there is no [Obsolete] or [IsByRef] attribute returned
             Assert.Empty(peType.GetAttributes());

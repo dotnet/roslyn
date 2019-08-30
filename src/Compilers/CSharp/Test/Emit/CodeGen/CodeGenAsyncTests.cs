@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -598,7 +597,6 @@ class TestCase
         if ((int)(object)y == 1)
             count++;
     }
-
 }
 
 class Driver
@@ -783,7 +781,6 @@ class TestCase
             Driver.CompleteSignal.Set();
         }
     }
-
 }
 
 class Driver
@@ -2259,7 +2256,6 @@ class Test
 ");
         }
 
-
         [Fact]
         public void AsyncStateMachineIL_Class_TaskT()
         {
@@ -2407,8 +2403,7 @@ class Test
   IL_00c6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00cb:  nop
   IL_00cc:  ret
-}
-", sequencePoints: "Test+<F>d__0.MoveNext");
+}", sequencePoints: "Test+<F>d__0.MoveNext");
 
             c.VerifyIL("Test.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine", @"
 {
@@ -3216,9 +3211,9 @@ public {(isStruct ? "struct" : "class")} {builderTypeName}{ofT}
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {{ }}
 }}
 ";
-    }
+        }
 
-    [Fact]
+        [Fact]
         public void PresentAsyncTasklikeBuilderMethod()
         {
             var source = @"
@@ -3433,7 +3428,6 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 );
         }
 
-
         [Fact]
         public void AsyncTasklikeBadAttributeArgument2()
         {
@@ -3519,7 +3513,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var libB = @"public class B { }";
             var cB = CreateCompilationWithMscorlib45(libB);
             var rB = cB.EmitToImageReference();
-                
+
             // Tasklike
             var libT = @"
 using System.Runtime.CompilerServices;
@@ -3547,7 +3541,6 @@ class Program {
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(1)").WithLocation(6, 17)
                 );
         }
-
 
         [Fact]
         public void AsyncTasklikeCreateMethod()
@@ -3648,7 +3641,6 @@ namespace System.Runtime.CompilerServices {{ class AsyncMethodBuilderAttribute :
                 );
         }
 
-
         [Fact]
         public void AsyncTasklikeBuilderAccessibility()
         {
@@ -3687,7 +3679,6 @@ namespace System.Runtime.CompilerServices {{ class AsyncMethodBuilderAttribute :
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(3)").WithLocation(67, 19)
                 );
         }
-
 
         [Fact]
         public void AsyncTasklikeLambdaOverloads()
@@ -4474,8 +4465,7 @@ class Program
     IL_000d:  leave.s    IL_000f
   }
   IL_000f:  ret
-}
-");
+}");
         }
 
         [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]
@@ -4804,7 +4794,6 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await task; }").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(62, 37));
         }
 
-
         [Fact, WorkItem(16531, "https://github.com/dotnet/roslyn/issues/16531")]
         public void ArityMismatch()
         {
@@ -4847,7 +4836,7 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await Task.Delay(1000); return string.Empty; }").WithLocation(8, 53)
                 );
         }
-        
+
         [Fact, WorkItem(16493, "https://github.com/dotnet/roslyn/issues/16493")]
         public void AsyncMethodBuilderReturnsDifferentTypeThanTasklikeType()
         {
@@ -5094,7 +5083,7 @@ public class C {
 
             compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
-        }            
+        }
 
         [Fact, WorkItem(13759, "https://github.com/dotnet/roslyn/issues/13759")]
         public void Unnecessary_Lifted_01()
@@ -5379,6 +5368,155 @@ namespace Test
   IL_00a9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00ae:  ret
 }");
+        }
+
+        [Fact, WorkItem(25991, "https://github.com/dotnet/roslyn/issues/25991")]
+        public void CompilerCrash01()
+        {
+            var source =
+@"namespace Issue25991
+{
+    using System;
+    using System.Threading.Tasks;
+
+    public class CrashClass
+    {
+        public static void Main()
+        {
+            Console.WriteLine(""Passed"");
+        }
+        public async Task CompletedTask()
+        {
+        }
+        public async Task OnCrash()
+        {
+            var switchObject = new object();
+            switch (switchObject)
+            {
+                case InvalidCastException _:
+                    switch (switchObject)
+                    {
+                        case NullReferenceException exception:
+                            await CompletedTask();
+                            var myexception = exception;
+                            break;
+                    }
+                    break;
+                case InvalidOperationException _:
+                    switch (switchObject)
+                    {
+                        case NullReferenceException exception:
+                            await CompletedTask();
+                            var myexception = exception;
+                            break;
+                    }
+                    break;
+            }
+        }
+    }
+}
+";
+            var expected = @"Passed";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
+
+        [Fact, WorkItem(25991, "https://github.com/dotnet/roslyn/issues/25991")]
+        public void CompilerCrash02()
+        {
+            var source =
+@"namespace Issue25991
+{
+    using System;
+    using System.Threading.Tasks;
+
+    public class CrashClass
+    {
+        public static void Main()
+        {
+            Console.WriteLine(""Passed"");
+        }
+        public async Task CompletedTask()
+        {
+        }
+        public async Task OnCrash()
+        {
+            var switchObject = new object();
+            switch (switchObject)
+            {
+                case InvalidCastException x1:
+                    switch (switchObject)
+                    {
+                        case NullReferenceException exception:
+                            await CompletedTask();
+                            var myexception1 = x1;
+                            var myexception = exception;
+                            break;
+                    }
+                    break;
+                case InvalidOperationException x1:
+                    switch (switchObject)
+                    {
+                        case NullReferenceException exception:
+                            await CompletedTask();
+                            var myexception1 = x1;
+                            var myexception = exception;
+                            var x2 = switchObject;
+                            break;
+                    }
+                    break;
+            }
+        }
+    }
+}
+";
+            var expected = @"Passed";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
+
+        [Fact, WorkItem(19905, "https://github.com/dotnet/roslyn/issues/19905")]
+        public void FinallyEnteredFromExceptionalControlFlow()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+class TestCase
+{
+    public async Task Run()
+    {
+        try
+        {
+            var tmp = await (new { task = Task.Run<string>(async () => { await Task.Delay(1); return """"; }) }).task;
+            throw new Exception(tmp);
+        }
+        finally
+        {
+            Console.Write(0);
+        }
+    }
+}
+
+class Driver
+{
+    static void Main()
+    {
+        var t = new TestCase();
+        try
+        {
+            t.Run().Wait();
+        }
+        catch (Exception)
+        {
+            Console.Write(1);
+        }
+    }
+}";
+            var expectedOutput = @"01";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

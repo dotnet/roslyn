@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -13,9 +14,9 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.DiaSymReader
+Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -28,6 +29,335 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         ''' <summary>
         ''' MakeAssemblyReferences should drop unreferenced assemblies.
         ''' </summary>
+        <Fact>
+        Public Sub UnreferencedAssemblies()
+            Const sourceA1 =
+"Public Class A1
+    Private Shared Sub M()
+    End Sub
+End Class"
+            Const sourceA2 =
+"Public Class A2
+    Private Shared Sub M()
+    End Sub
+End Class"
+            Const sourceB1 =
+"Public Class B1
+    Inherits A1
+    Private Shared Sub M()
+    End Sub
+End Class"
+            Const sourceB2 =
+"Public Class B2
+    Inherits A1
+    Private Shared Sub M()
+    End Sub
+End Class"
+            Const sourceC =
+"Class C1
+    Inherits B2
+    Private Shared Sub M()
+    End Sub
+End Class
+Class C2
+    Inherits A2
+End Class"
+            Dim moduleMscorlib = (Identity:=MscorlibRef.GetAssemblyIdentity(), [Module]:=MscorlibRef.ToModuleInstance())
+            Dim moduleIntrinsic = (Identity:=ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.GetAssemblyIdentity(), [Module]:=ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance())
+            Dim moduleA1 = Compile("A1", sourceA1)
+            Dim moduleA2 = Compile("A2", sourceA2)
+            Dim moduleB1 = Compile("B1", sourceB1, moduleA1.Reference)
+            Dim moduleB2 = Compile("B2", sourceB2, moduleA1.Reference)
+            Dim moduleC = Compile("C", sourceC, moduleA1.Reference, moduleA2.Reference, moduleB2.Reference)
+
+            Using runtime = CreateRuntimeInstance({moduleMscorlib.Module, moduleA1.Module, moduleA2.Module, moduleB1.Module, moduleB2.Module, moduleC.Module})
+
+                Dim stateB2 = GetContextState(runtime, "B2.M")
+
+                ' B2.M with missing A1.
+                Dim context = CreateMethodContext(
+                    New AppDomain(),
+                    ImmutableArray.Create(moduleMscorlib.Module, moduleA2.Module, moduleB1.Module, moduleB2.Module, moduleC.Module).SelectAsArray(Function(m) m.MetadataBlock),
+                    stateB2)
+                Dim resultProperties As ResultProperties = Nothing
+                Dim errorMessage As String = Nothing
+                Dim testData = New CompilationTestData()
+                Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
+                context.CompileExpression(
+                    "New B2()",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    resultProperties,
+                    errorMessage,
+                    missingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData)
+                Assert.Equal("error BC30652: Reference required to assembly 'A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A1'. Add one to your project.", errorMessage)
+                AssertEx.Equal({moduleA1.Identity}, missingAssemblyIdentities)
+                VerifyResolutionRequests(context, (moduleA1.Identity, Nothing, 1))
+
+                ' B2.M with all assemblies.
+                context = CreateMethodContext(
+                    New AppDomain(),
+                    ImmutableArray.Create(moduleMscorlib.Module, moduleA1.Module, moduleA2.Module, moduleB1.Module, moduleB2.Module, moduleC.Module).SelectAsArray(Function(m) m.MetadataBlock),
+                    stateB2)
+                testData = New CompilationTestData()
+                context.CompileExpression("New B2()", errorMessage, testData)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""Sub B2..ctor()""
+  IL_0005:  ret
+}")
+                VerifyResolutionRequests(context, (moduleA1.Identity, moduleA1.Identity, 1))
+
+                ' B2.M with all assemblies in reverse order.
+                context = CreateMethodContext(
+                    New AppDomain(),
+                    ImmutableArray.Create(moduleC.Module, moduleB2.Module, moduleB1.Module, moduleA2.Module, moduleA1.Module, moduleMscorlib.Module, moduleIntrinsic.Module).SelectAsArray(Function(m) m.MetadataBlock),
+                    stateB2)
+                testData = New CompilationTestData()
+                context.CompileExpression("New B2()", errorMessage, testData)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""Sub B2..ctor()""
+  IL_0005:  ret
+}")
+                VerifyResolutionRequests(context, (moduleA1.Identity, moduleA1.Identity, 1))
+
+                ' A1.M with all assemblies.
+                Dim stateA1 = GetContextState(runtime, "A1.M")
+                context = CreateMethodContext(
+                    New AppDomain(),
+                    ImmutableArray.Create(moduleMscorlib.Module, moduleA1.Module, moduleA2.Module, moduleB1.Module, moduleB2.Module, moduleC.Module).SelectAsArray(Function(m) m.MetadataBlock),
+                    stateA1)
+                testData = New CompilationTestData()
+                context.CompileExpression("New A1()", errorMessage, testData)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""Sub A1..ctor()""
+  IL_0005:  ret
+}")
+                VerifyResolutionRequests(context)
+
+                ' B1.M with all assemblies.
+                Dim stateB1 = GetContextState(runtime, "B1.M")
+                context = CreateMethodContext(
+                    New AppDomain(),
+                    ImmutableArray.Create(moduleMscorlib.Module, moduleA1.Module, moduleA2.Module, moduleB1.Module, moduleB2.Module, moduleC.Module).SelectAsArray(Function(m) m.MetadataBlock),
+                    stateB1)
+                testData = New CompilationTestData()
+                context.CompileExpression("New B1()", errorMessage, testData)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""Sub B1..ctor()""
+  IL_0005:  ret
+}")
+                VerifyResolutionRequests(context, (moduleA1.Identity, moduleA1.Identity, 1))
+
+                ' C1.M with all assemblies.
+                Dim stateC = GetContextState(runtime, "C1.M")
+                context = CreateMethodContext(
+                    New AppDomain(),
+                    ImmutableArray.Create(moduleMscorlib.Module, moduleA1.Module, moduleA2.Module, moduleB1.Module, moduleB2.Module, moduleC.Module).SelectAsArray(Function(m) m.MetadataBlock),
+                    stateC)
+                testData = New CompilationTestData()
+                context.CompileExpression("New C1()", errorMessage, testData)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""Sub C1..ctor()""
+  IL_0005:  ret
+}")
+                VerifyResolutionRequests(context, (moduleB2.Identity, moduleB2.Identity, 1), (moduleA1.Identity, moduleA1.Identity, 1), (moduleA2.Identity, moduleA2.Identity, 1))
+
+                ' Other EvaluationContext.CreateMethodContext overload.
+                ' A1.M with all assemblies.
+                Dim allBlocks = ImmutableArray.Create(moduleMscorlib.Module, moduleA1.Module, moduleA2.Module, moduleB1.Module, moduleB2.Module, moduleC.Module).SelectAsArray(Function(m) m.MetadataBlock)
+                context = EvaluationContext.CreateMethodContext(
+                    New VisualBasicMetadataContext(),
+                    allBlocks,
+                    MakeDummyLazyAssemblyReaders(),
+                    stateA1.SymReader,
+                    stateA1.ModuleVersionId,
+                    stateA1.MethodToken,
+                    methodVersion:=1,
+                    stateA1.ILOffset,
+                    stateA1.LocalSignatureToken)
+                testData = New CompilationTestData()
+                context.CompileExpression("New B1()", errorMessage, testData)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""Sub B1..ctor()""
+  IL_0005:  ret
+}")
+
+                ' Other EvaluationContext.CreateMethodContext overload.
+                ' A1.M with all assemblies, offset outside of IL.
+                context = EvaluationContext.CreateMethodContext(
+                    New VisualBasicMetadataContext(),
+                    allBlocks,
+                    MakeDummyLazyAssemblyReaders(),
+                    stateA1.SymReader,
+                    stateA1.ModuleVersionId,
+                    stateA1.MethodToken,
+                    methodVersion:=1,
+                    UInteger.MaxValue,
+                    stateA1.LocalSignatureToken)
+                testData = New CompilationTestData()
+                context.CompileExpression("New C1()", errorMessage, testData)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""Sub C1..ctor()""
+  IL_0005:  ret
+}")
+
+            End Using
+        End Sub
+
+        ''' <summary>
+        ''' Reuse compilation across evaluations unless current assembly changes.
+        ''' </summary>
+        <Fact>
+        Public Sub ReuseCompilation()
+            Const sourceA1 =
+"Public Class A1
+    Private Shared Sub M()
+    End Sub
+End Class"
+            Const sourceA2 =
+"Public Class A2
+    Private Shared Sub M()
+    End Sub
+End Class
+Public Class A3
+    Private Shared Sub M()
+    End Sub
+End Class"
+            Const sourceB1 =
+"Public Class B1
+    Inherits A1
+    Private Shared Sub M()
+    End Sub
+End Class
+Public Class B2
+    Private Shared Sub M()
+    End Sub
+End Class"
+            Dim moduleMscorlib = (Identity:=MscorlibRef.GetAssemblyIdentity(), [Module]:=MscorlibRef.ToModuleInstance())
+            Dim moduleIntrinsic = (Identity:=ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.GetAssemblyIdentity(), [Module]:=ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance())
+            Dim moduleA1 = Compile("A1", sourceA1)
+            Dim moduleA2 = Compile("A2", sourceA2)
+            Dim moduleB1 = Compile("B1", sourceB1, moduleA1.Reference)
+
+            Using runtime = CreateRuntimeInstance({moduleMscorlib.Module, moduleA1.Module, moduleA2.Module, moduleB1.Module})
+
+                Dim blocks = runtime.Modules.SelectAsArray(Function(m) m.MetadataBlock)
+                Dim stateA1 = GetContextState(runtime, "A1.M")
+                Dim stateA2 = GetContextState(runtime, "A2.M")
+                Dim stateA3 = GetContextState(runtime, "A3.M")
+                Dim stateB1 = GetContextState(runtime, "B1.M")
+                Dim stateB2 = GetContextState(runtime, "B2.M")
+
+                Dim mvidA1 = stateA1.ModuleVersionId
+                Dim mvidA2 = stateA2.ModuleVersionId
+                Dim mvidB1 = stateB1.ModuleVersionId
+
+                Dim context As EvaluationContext
+                Dim previous As MetadataContext(Of VisualBasicMetadataContext)
+
+                ' B1 -> B2 -> A1 -> A2 -> A3
+                ' B1.M:
+                Dim appDomain = New AppDomain()
+                previous = appDomain.GetMetadataContext()
+                context = CreateMethodContext(appDomain, blocks, stateB1)
+                VerifyResolutionRequests(context, (moduleA1.Identity, moduleA1.Identity, 1))
+                VerifyAppDomainMetadataContext(appDomain, mvidB1)
+                ' B2.M:
+                previous = appDomain.GetMetadataContext()
+                context = CreateMethodContext(appDomain, blocks, stateB2)
+                Assert.NotSame(context, GetMetadataContext(previous, mvidB1).EvaluationContext)
+                Assert.Same(context.Compilation, GetMetadataContext(previous, mvidB1).Compilation)
+                VerifyResolutionRequests(context, (moduleA1.Identity, moduleA1.Identity, 1))
+                VerifyAppDomainMetadataContext(appDomain, mvidB1)
+                ' A1.M:
+                previous = appDomain.GetMetadataContext()
+                context = CreateMethodContext(appDomain, blocks, stateA1)
+                Assert.NotSame(context, GetMetadataContext(previous, mvidB1).EvaluationContext)
+                Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidB1).Compilation)
+                VerifyResolutionRequests(context)
+                VerifyAppDomainMetadataContext(appDomain, mvidB1, mvidA1)
+                ' A2.M:
+                previous = appDomain.GetMetadataContext()
+                context = CreateMethodContext(appDomain, blocks, stateA2)
+                Assert.NotSame(context, GetMetadataContext(previous, mvidA1).EvaluationContext)
+                Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidA1).Compilation)
+                VerifyResolutionRequests(context)
+                VerifyAppDomainMetadataContext(appDomain, mvidB1, mvidA1, mvidA2)
+                ' A3.M:
+                previous = appDomain.GetMetadataContext()
+                context = CreateMethodContext(appDomain, blocks, stateA3)
+                Assert.NotSame(context, GetMetadataContext(previous, mvidA2).EvaluationContext)
+                Assert.Same(context.Compilation, GetMetadataContext(previous, mvidA2).Compilation)
+                VerifyResolutionRequests(context)
+                VerifyAppDomainMetadataContext(appDomain, mvidB1, mvidA1, mvidA2)
+
+                ' A1 -> A2 -> A3 -> B1 -> B2
+                ' A1.M:
+                appDomain = New AppDomain()
+                previous = appDomain.GetMetadataContext()
+                context = CreateMethodContext(appDomain, blocks, stateA1)
+                VerifyResolutionRequests(context)
+                VerifyAppDomainMetadataContext(appDomain, mvidA1)
+                ' A2.M:
+                previous = appDomain.GetMetadataContext()
+                context = CreateMethodContext(appDomain, blocks, stateA2)
+                Assert.NotSame(context, GetMetadataContext(previous, mvidA1).EvaluationContext)
+                Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidA1).Compilation)
+                VerifyResolutionRequests(context)
+                VerifyAppDomainMetadataContext(appDomain, mvidA1, mvidA2)
+                ' A3.M:
+                previous = appDomain.GetMetadataContext()
+                context = CreateMethodContext(appDomain, blocks, stateA3)
+                Assert.NotSame(context, GetMetadataContext(previous, mvidA2).EvaluationContext)
+                Assert.Same(context.Compilation, GetMetadataContext(previous, mvidA2).Compilation)
+                VerifyResolutionRequests(context)
+                VerifyAppDomainMetadataContext(appDomain, mvidA1, mvidA2)
+                ' B1.M:
+                previous = appDomain.GetMetadataContext()
+                context = CreateMethodContext(appDomain, blocks, stateB1)
+                Assert.NotSame(context, GetMetadataContext(previous, mvidA2).EvaluationContext)
+                Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidA2).Compilation)
+                VerifyResolutionRequests(context, (moduleA1.Identity, moduleA1.Identity, 1))
+                VerifyAppDomainMetadataContext(appDomain, mvidA1, mvidA2, mvidB1)
+                ' B2.M:
+                previous = appDomain.GetMetadataContext()
+                context = CreateMethodContext(appDomain, blocks, stateB2)
+                Assert.NotSame(context, GetMetadataContext(previous, mvidB1).EvaluationContext)
+                Assert.Same(context.Compilation, GetMetadataContext(previous, mvidB1).Compilation)
+                VerifyResolutionRequests(context, (moduleA1.Identity, moduleA1.Identity, 1))
+                VerifyAppDomainMetadataContext(appDomain, mvidA1, mvidA2, mvidB1)
+
+            End Using
+        End Sub
+
+        Private Shared Sub VerifyAppDomainMetadataContext(appDomain As AppDomain, ParamArray moduleVersionIds As Guid())
+            ExpressionCompilerTestHelpers.VerifyAppDomainMetadataContext(appDomain.GetMetadataContext(), moduleVersionIds)
+        End Sub
+
         <WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")>
         <Fact>
         Public Sub AssemblyDuplicateReferences()
@@ -101,11 +431,13 @@ End Class"
                     GetContextState(runtime, "C.M", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
                     ' Compile expression with type context.
-                    Dim context = EvaluationContext.CreateTypeContext(
-                        Nothing,
+                    Dim appDomain = New AppDomain()
+                    Dim context = CreateTypeContext(
+                        appDomain,
                         typeBlocks,
                         moduleVersionId,
-                        typeToken)
+                        typeToken,
+                        MakeAssemblyReferencesKind.AllAssemblies)
 
                     ' If VB supported extern aliases, the following would be true:
                     ' Assert.Equal(identityAS2, context.Compilation.GlobalNamespace.GetMembers("A").OfType(Of INamedTypeSymbol)().Single().ContainingAssembly.Identity)
@@ -120,9 +452,13 @@ End Class"
                     Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
 
                     ' Compile expression with method context.
-                    Dim previous = New VisualBasicMetadataContext(typeBlocks, context)
-                    context = EvaluationContext.CreateMethodContext(
-                        previous,
+                    appDomain.SetMetadataContext(
+                        SetMetadataContext(
+                            New MetadataContext(Of VisualBasicMetadataContext)(typeBlocks, ImmutableDictionary(Of MetadataContextId, VisualBasicMetadataContext).Empty),
+                            New VisualBasicMetadataContext(context.Compilation)))
+                    Dim previous = appDomain.GetMetadataContext()
+                    context = CreateMethodContext(
+                        appDomain,
                         methodBlocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -130,13 +466,28 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
-                        localSignatureToken:=localSignatureToken)
-                    Assert.Equal(previous.Compilation, context.Compilation) ' re-use type context compilation
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
+                    Assert.NotSame(GetMetadataContext(previous).EvaluationContext, context)
+                    Assert.Same(GetMetadataContext(previous).Compilation, context.Compilation) ' re-use type context compilation
                     ' Ideally, B should be resolved to BS1.
                     context.CompileExpression("New B()", errorMessage)
                     Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
 
                 End Sub)
+        End Sub
+
+        Private Shared Function Compile(assemblyName As String, source As String, ParamArray references As MetadataReference()) As (Identity As AssemblyIdentity, [Module] As ModuleInstance, Reference As MetadataReference)
+            Dim comp = CreateCompilationWithMscorlib40(source, references, options:=TestOptions.DebugDll, assemblyName:=assemblyName)
+            comp.AssertNoDiagnostics()
+            Dim [module] = comp.ToModuleInstance()
+            Return (comp.Assembly.Identity, [module], [module].GetReference())
+        End Function
+
+        Private Shared Sub VerifyResolutionRequests(context As EvaluationContext, ParamArray expectedResults As (AssemblyIdentity, AssemblyIdentity, Integer)())
+            ExpressionCompilerTestHelpers.VerifyResolutionRequests(
+                DirectCast(context.Compilation.Options.MetadataReferenceResolver, EEMetadataReferenceResolver),
+                expectedResults)
         End Sub
 
         <Fact>
@@ -335,8 +686,8 @@ End Class"
                     Dim localSignatureToken = 0
                     GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
-                    Dim context = EvaluationContext.CreateMethodContext(
-                        Nothing,
+                    Dim context = CreateMethodContext(
+                        New AppDomain(),
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -344,7 +695,8 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
-                        localSignatureToken:=localSignatureToken)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
                     Dim errorMessage As String = Nothing
                     context.CompileExpression("F()", errorMessage)
                     Assert.Equal(errorMessage, "error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")
@@ -603,8 +955,8 @@ End Class"
                 _objectType = New NamespaceTypeDefinitionNoBase(objectType)
             End Sub
 
-            Friend Overrides Iterator Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of INamespaceTypeDefinition)
-                For Each t In MyBase.GetTopLevelTypesCore(context)
+            Public Overrides Iterator Function GetTopLevelSourceTypeDefinitions(context As EmitContext) As IEnumerable(Of INamespaceTypeDefinition)
+                For Each t In MyBase.GetTopLevelSourceTypeDefinitions(context)
                     Yield If(t Is _objectType.UnderlyingType, _objectType, t)
                 Next
             End Function

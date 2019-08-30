@@ -2,6 +2,63 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">Bu seçenek için bir dil adı belirtilemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">Bu seçenek için bir dil adı belirtilmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">{0}' çözümleyicisi şu özel durumu oluşturdu:
+'{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="new">Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">Belirtilen işlem bloğu geçerli analiz bağlamına ait değil.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="translated">'{0}' parametresi 'INamedTypeSymbol' veya 'IAssemblySymbol' olması gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="translated">'{0}' parametresi bu derleme veya bazı başvurulan derleme bir sembol olması gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="new">Non-reported diagnostic with ID '{0}' cannot be suppressed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">Belirtilen işlemin null olmayan bir üst öğesi var.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">Belirtilen işlemin null bir anlam modeli var.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="translated">Sağlanan işlem denetimi akış grafiği bir parçası olmalıdır.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">Çıkış türü desteklenmiyor.</target>
@@ -20,6 +77,36 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Derleme meta verileri oluşturmak için modül kopyası kullanılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">Çözümleyicisi '{0}', 'SupportedDiagnostics' boş bir tanımlayıcısı içerir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
+        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="new">Programmatic suppression of an analyzer diagnostic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="new">A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="new">If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -114,12 +201,12 @@
       </trans-unit>
       <trans-unit id="InMemoryAssembly">
         <source>&lt;in-memory assembly&gt;</source>
-        <target state="translated">&lt;in-memory assembly&gt;</target>
+        <target state="translated">&lt; bellek içi derleme &gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="InMemoryModule">
         <source>&lt;in-memory module&gt;</source>
-        <target state="translated">&lt;in-memory module&gt;</target>
+        <target state="translated">&lt; bellek modülü &gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="SizeHasToBePositive">
@@ -150,6 +237,11 @@
       <trans-unit id="GetMetadataMustReturnInstance">
         <source>{0}.GetMetadata() must return an instance of {1}.</source>
         <target state="translated">{0}.GetMetadata() bir {1} örneği döndürmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="new">Reported suppression with ID '{0}' is not supported by the suppressor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
@@ -427,6 +519,16 @@
         <target state="translated">Geçersiz kültür adı: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="translated">'{0}' tanılamasına '{2}' konumundaki çözümleyici yapılandırma dosyasında geçersiz bir önem derecesi ('{1}') verildi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="translated">Çözümleyici yapılandırma dosyasında geçersiz önem derecesi.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">WindowsRuntime kimliği yeniden hedeflendirilebilir olamaz</target>
@@ -467,13 +569,6 @@
         <target state="translated">{0}' çözümleyicisi '{2}' iletisiyle '{1}' türünde bir özel durum oluşturdu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">{0}' çözümleyicisi şu özel durumu oluşturdu:
-'{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>
         <target state="translated">Çözümleyici Sürücüsü Hatası</target>
@@ -496,8 +591,8 @@
         <target state="translated">PE görüntüsü yönetilen meta verileri içermiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesMustBeOrderedAndNotOverlapping">
-        <source>The changes must be ordered and not overlapping.</source>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
         <target state="translated">Değişiklikler sıralanmalı ve çakışmamalıdır.</target>
         <note />
       </trans-unit>
@@ -826,11 +921,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">Uyarı: Çok çekirdekli JIT, özel durum nedeniyle etkinleştirilemedi: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CompilerDiagnosticIdReported">
-        <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="translated">Bildirilen tanılama, yalnızca derleyicinin bildirim gönderebildiği '{0}' kimliğine sahip.</target>
         <note />
       </trans-unit>
     </body>

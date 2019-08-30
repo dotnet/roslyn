@@ -136,12 +136,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' NOTE: If we are in context of a lambda to be converted to an expression tree we need to use PropertyAccess.
                     getCallOrPropertyAccess = New BoundPropertyAccess(syntax,
                                                                       propertyDef,
-                                                                      Nothing,
+                                                                      propertyGroupOpt:=Nothing,
                                                                       PropertyAccessKind.Get,
                                                                       isWriteable:=False,
                                                                       isLValue:=False,
                                                                       receiverOpt:=anonymousTypeInstance,
                                                                       arguments:=ImmutableArray(Of BoundExpression).Empty,
+                                                                      defaultArguments:=BitVector.Null,
                                                                       type:=propertyDef.Type)
                 Else
                     Dim getter = propertyDef.GetMethod

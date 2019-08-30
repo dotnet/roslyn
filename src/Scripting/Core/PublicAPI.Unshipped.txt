@@ -1,1 +1,8 @@
-
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.AllowUnsafe.get -> bool
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.CheckOverflow.get -> bool
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.OptimizationLevel.get -> Microsoft.CodeAnalysis.OptimizationLevel
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.WarningLevel.get -> int
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithAllowUnsafe(bool allowUnsafe) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithCheckOverflow(bool checkOverflow) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithOptimizationLevel(Microsoft.CodeAnalysis.OptimizationLevel optimizationLevel) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithWarningLevel(int warningLevel) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions

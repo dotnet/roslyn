@@ -10,11 +10,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     [Export(typeof(ITableControlEventProcessorProvider))]
     [DataSourceType(StandardTableDataSources.ErrorTableDataSource)]
-    [DataSource(MiscellaneousDiagnosticListTable.IdentifierString)]
+    [DataSource(MiscellaneousDiagnosticListTableWorkspaceEventListener.IdentifierString)]
     [Name(Name)]
     [Order(Before = "default")]
-    internal class MiscDiagnosticTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<DiagnosticData>
+    internal sealed class MiscDiagnosticTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<DiagnosticTableItem>
     {
         internal const string Name = "Misc C#/VB Diagnostic Table Event Processor";
+
+        [ImportingConstructor]
+        public MiscDiagnosticTableControlEventProcessorProvider()
+        {
+        }
     }
 }

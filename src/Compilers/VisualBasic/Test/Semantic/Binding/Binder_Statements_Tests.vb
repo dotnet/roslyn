@@ -3677,7 +3677,7 @@ BC42104: Variable 'x' is used before it has been assigned a value. A null refere
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub StopAndEnd_3()
             Dim source =
 <compilation>
@@ -4852,7 +4852,7 @@ goo
 >7
 goo
 >8
-<8]]>.Value.Replace(vbLf, vbCrLf))
+<8]]>.Value.Replace(vbLf, Environment.NewLine))
         End Sub
 
     End Class

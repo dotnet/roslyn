@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         private IWpfTextView _createdView;
 
         public ViewHostingControl(
-            Func<ITextBuffer, IWpfTextView> createView, 
+            Func<ITextBuffer, IWpfTextView> createView,
             Func<ITextBuffer> createBuffer)
         {
             _createView = createView;

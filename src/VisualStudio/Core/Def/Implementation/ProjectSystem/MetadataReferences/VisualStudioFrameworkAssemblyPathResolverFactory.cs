@@ -2,7 +2,6 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Versioning;
@@ -17,19 +16,21 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudiorFrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
+    internal sealed class VisualStudioFrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
-        public VisualStudiorFrameworkAssemblyPathResolverFactory(SVsServiceProvider serviceProvider)
+        public VisualStudioFrameworkAssemblyPathResolverFactory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
         {
+            _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new Service(workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
+            return new Service(_threadingContext, workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
         }
 
         private sealed class Service : ForegroundThreadAffinitizedObject, IFrameworkAssemblyPathResolver
@@ -37,8 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly VisualStudioWorkspace _workspace;
             private readonly IServiceProvider _serviceProvider;
 
-            public Service(VisualStudioWorkspace workspace, IServiceProvider serviceProvider)
-                : base(assertIsForeground: false)
+            public Service(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IServiceProvider serviceProvider)
+                : base(threadingContext, assertIsForeground: false)
             {
                 _workspace = workspace;
                 _serviceProvider = serviceProvider;
@@ -116,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return null;
                 }
 
-                IVsHierarchy hierarchy = _workspace.GetHierarchy(projectId);
+                var hierarchy = _workspace.GetHierarchy(projectId);
                 if (hierarchy == null ||
                     !hierarchy.TryGetProperty((__VSHPROPID)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out string targetMoniker) ||
                     targetMoniker == null)

@@ -5,9 +5,7 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeGeneration
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
-#Disable Warning RS1016 ' Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     Partial Friend Class GenerateEventCodeFixProvider
-#Enable Warning RS1016
         Private Class GenerateEventCodeAction
             Inherits CodeAction
 

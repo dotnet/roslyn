@@ -62,12 +62,12 @@ expectedOutput:="123")
         End Sub
 
         <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         Public Sub Bug679765()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.T_68086 %>
+        <%= SemanticResourceUtil.T_68086 %>
     </file>
 </compilation>, references:={MsvbRef})
         End Sub
@@ -75,7 +75,7 @@ expectedOutput:="123")
         <WorkItem(707924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707924")>
         <Fact()>
         Public Sub Bug707924a()
-            Dim source = My.Resources.Resource.T_1247520
+            Dim source = SemanticResourceUtil.T_1247520
             Dim result = VisualBasicSyntaxTree.ParseText(source).ToString()
             Assert.Equal(source, result)
         End Sub

@@ -4,9 +4,10 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Text;
@@ -19,34 +20,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private readonly IEditAndContinueService _encService;
         private readonly IVsEditorAdaptersFactoryService _adapters;
         private readonly Workspace _workspace;
-        private readonly AbstractProject _vsProject;
 
         private bool _isDisposed;
 
         internal static readonly TraceLog log = new TraceLog(2048, "VsReadOnlyDocumentTracker");
 
-        public VsReadOnlyDocumentTracker(IEditAndContinueService encService, IVsEditorAdaptersFactoryService adapters, AbstractProject vsProject)
-            : base(assertIsForeground: true)
+        public VsReadOnlyDocumentTracker(IThreadingContext threadingContext, IEditAndContinueService encService, IVsEditorAdaptersFactoryService adapters)
+            : base(threadingContext, assertIsForeground: true)
         {
             Debug.Assert(encService.DebuggingSession != null);
 
             _encService = encService;
             _adapters = adapters;
             _workspace = encService.DebuggingSession.InitialSolution.Workspace;
-            _vsProject = vsProject;
 
             _workspace.DocumentOpened += OnDocumentOpened;
             UpdateWorkspaceDocuments();
         }
 
-        public Workspace Workspace
-        {
-            get { return _workspace; }
-        }
-
         private void OnDocumentOpened(object sender, DocumentEventArgs e)
         {
-            InvokeBelowInputPriority(() =>
+            InvokeBelowInputPriorityAsync(() =>
             {
                 if (!_isDisposed)
                 {
@@ -60,9 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             foreach (var documentId in _workspace.GetOpenDocumentIds())
             {
                 var document = _workspace.CurrentSolution.GetDocument(documentId);
-                Debug.Assert(document != null);
-
-                SetReadOnly(document);
+                if (document != null)
+                {
+                    SetReadOnly(document);
+                }
             }
         }
 
@@ -86,10 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private void SetReadOnly(Document document)
         {
             // Only set documents read-only if they're part of a project that supports Enc.
-            var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            var project = workspace?.DeferredState?.ProjectTracker?.GetProject(document.Project.Id);
 
-            if (project?.EditAndContinueImplOpt != null)
+            if (document.Project.Solution.Workspace is VisualStudioWorkspace workspace && VsENCRebuildableProjectImpl.TryGetRebuildableProject(document.Project.Id) != null)
             {
                 SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Id, out var sessionReason, out var projectReason) && AllowsReadOnly(document.Id));
             }
@@ -101,9 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             // However, ASP.NET doesn’t want its views (aspx, cshtml, or vbhtml) to be read-only, so they can be editable
             // while the code is running and get refreshed next time the web page is hit.
 
-            // Note that Razor-like views are modelled as a ContainedDocument but normal code including code-behind are modelled as a StandardTextDocument.
-            var visualStudioWorkspace = _vsProject.Workspace as VisualStudioWorkspaceImpl;
-            var containedDocument = visualStudioWorkspace?.GetHostDocument(documentId) as ContainedDocument;
+            // Note that Razor-like views are modelled as a ContainedDocument
+            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
             return containedDocument == null;
         }
 

@@ -2,18 +2,17 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Windows
 Imports System.Windows.Controls
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Common
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -23,6 +22,7 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
+    <[UseExportProvider]>
     Public Class DiagnosticTableDataSourceTests
         <Fact>
         Public Sub TestCreation()
@@ -30,13 +30,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestDiagnosticService()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
 
                 Assert.Equal(manager.Identifier, StandardTables.ErrorsTable)
                 Assert.Equal(1, manager.Sources.Count())
 
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 AssertEx.SetEqual(table.Columns, manager.GetColumnsForSources(SpecializedCollections.SingletonEnumerable(source)))
 
                 Assert.Equal(ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source, source.DisplayName)
@@ -60,14 +60,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestInitialEntries()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
-                Dim provider = New TestDiagnosticService(CreateItem(workspace, documentId))
+                Dim provider = New TestDiagnosticService(CreateItem(documentId))
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -82,15 +82,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestDiagnosticService()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
 
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
 
-                provider.Items = New DiagnosticData() {CreateItem(workspace, documentId)}
+                provider.Items = New DiagnosticData() {CreateItem(documentId)}
                 provider.RaiseDiagnosticsUpdated(workspace)
                 Assert.Equal(1, sink.Entries.Count)
 
@@ -105,15 +105,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(workspace, documentId)
+                Dim item = CreateItem(documentId)
                 Dim provider = New TestDiagnosticService(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -146,21 +146,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(workspace, documentId)
+                Dim item = CreateItem(documentId)
                 Dim provider = New TestDiagnosticService(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                 Dim subscription = sinkAndSubscription.Value
 
-                Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of DiagnosticData))
+                Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of DiagnosticTableItem))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 factory.OnRefreshed()
@@ -194,15 +194,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(workspace, documentId)
+                Dim item = CreateItem(documentId)
                 Dim provider = New TestDiagnosticService(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -224,17 +224,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(workspace, documentId, DiagnosticSeverity.Error)
-                Dim item2 = CreateItem(workspace, documentId, DiagnosticSeverity.Hidden)
+                Dim item = CreateItem(documentId, DiagnosticSeverity.Error)
+                Dim item2 = CreateItem(documentId, DiagnosticSeverity.Hidden)
                 Dim provider = New TestDiagnosticService(item, item2)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -251,16 +251,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim projectId = workspace.CurrentSolution.Projects.First().Id
 
-                Dim item = CreateItem(workspace, projectId, Nothing, DiagnosticSeverity.Error)
+                Dim item = CreateItem(projectId, Nothing, DiagnosticSeverity.Error)
                 Dim provider = New TestDiagnosticService(item)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -279,27 +279,27 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Dim documentId = workspace1.CurrentSolution.Projects.First().DocumentIds.First()
                     Dim projectId = documentId.ProjectId
 
-                    Dim item1 = CreateItem(workspace1, projectId, documentId, DiagnosticSeverity.Error)
+                    Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error)
                     Dim provider = New TestDiagnosticService(item1)
 
                     Dim tableManagerProvider = New TestTableManagerProvider()
 
-                    Dim table = New VisualStudioDiagnosticListTable(workspace1, provider, tableManagerProvider)
+                    Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace1, provider, tableManagerProvider)
                     provider.RaiseDiagnosticsUpdated(workspace1)
 
                     Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                    Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                    Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                     Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                     Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                     Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
                     Assert.Equal(1, snapshot.Count)
 
-                    Dim item2 = CreateItem(workspace2, projectId, documentId, DiagnosticSeverity.Error)
+                    Dim item2 = CreateItem(projectId, documentId, DiagnosticSeverity.Error)
                     provider.RaiseDiagnosticsUpdated(workspace2, item2)
                     Assert.Equal(1, sink.Entries.Count)
 
-                    Dim item3 = CreateItem(workspace1, projectId, Nothing, DiagnosticSeverity.Error)
+                    Dim item3 = CreateItem(projectId, Nothing, DiagnosticSeverity.Error)
                     provider.RaiseDiagnosticsUpdated(workspace1, item3)
 
                     Assert.Equal(2, sink.Entries.Count)
@@ -313,16 +313,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error)
+                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error)
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -350,16 +350,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error, "http://link")
+                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error, "http://link")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -382,16 +382,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error)
+                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error)
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -414,16 +414,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
+                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error, "http://link/")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -443,16 +443,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
+                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error, "http://link/")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -472,16 +472,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error)
+                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error)
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -518,16 +518,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
+                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error, "http://link/")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -547,16 +547,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(workspace, Nothing, Nothing, DiagnosticSeverity.Error, "http://link/")
+                Dim item1 = CreateItem(Nothing, Nothing, DiagnosticSeverity.Error, "http://link/")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -577,16 +577,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
-                Dim item1 = CreateItem(workspace, projectId, Nothing, DiagnosticSeverity.Error, "http://link/")
+                Dim item1 = CreateItem(projectId, Nothing, DiagnosticSeverity.Error, "http://link/")
                 Dim provider = New TestDiagnosticService(item1)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -616,16 +616,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Using workspace = TestWorkspace.Create(markup)
 
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
-                Dim service = New DiagnosticService(listenerProvider)
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
+                Dim service = New DiagnosticService(listenerProvider, Array.Empty(Of Lazy(Of IEventListener, EventListenerMetadata))())
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
-                Dim table = New VisualStudioDiagnosticListTable(workspace, service, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, service, tableManagerProvider)
 
                 Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
                 RunCompilerAnalyzer(workspace, service, listener)
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateWaitTask()
+                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateExpeditedWaitTask()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
@@ -664,67 +664,92 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Using workspace = TestWorkspace.Create(markup)
 
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
-                Dim service = New DiagnosticService(listenerProvider)
+                Dim service = New DiagnosticService(listenerProvider, Array.Empty(Of Lazy(Of IEventListener, EventListenerMetadata))())
                 Dim analyzerService = New MyDiagnosticAnalyzerService(ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty, service, listener)
 
-                Dim registration = New MockDiagnosticUpdateSourceRegistrationService()
-                Dim updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, registration, listener)
+                Dim updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, listener)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
-                Dim table = New VisualStudioDiagnosticListTable(workspace, service, updateSource, tableManagerProvider)
+                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, updateSource, tableManagerProvider)
 
                 Dim document1 = workspace.CurrentSolution.Projects.First(Function(p) p.Name = "Proj1").Documents.First()
                 Dim document2 = workspace.CurrentSolution.Projects.First(Function(p) p.Name = "Proj2").Documents.First()
 
-                Dim diagnostic1 = CreateItem(workspace, document1.Id)
-                Dim diagnostic2 = CreateItem(workspace, document2.Id)
+                Dim diagnostic1 = CreateItem(document1.Id)
+                Dim diagnostic2 = CreateItem(document2.Id)
 
-                updateSource.AddNewErrors(document1.Project.Id,
-                                          New DiagnosticData(diagnostic1.Id, diagnostic1.Category, diagnostic1.Message, diagnostic1.ENUMessageForBingSearch,
-                                                             diagnostic1.Severity, diagnostic1.IsEnabledByDefault, diagnostic1.WarningLevel,
-                                                             diagnostic1.Workspace, diagnostic1.ProjectId,
-                                                             New DiagnosticDataLocation(
-                                                                Nothing,
-                                                                diagnostic1.DataLocation.SourceSpan,
-                                                                diagnostic1.DataLocation.OriginalFilePath,
-                                                                diagnostic1.DataLocation.OriginalStartLine,
-                                                                diagnostic1.DataLocation.OriginalStartColumn,
-                                                                diagnostic1.DataLocation.OriginalEndLine,
-                                                                diagnostic1.DataLocation.OriginalEndColumn,
-                                                                diagnostic1.DataLocation.MappedFilePath,
-                                                                diagnostic1.DataLocation.MappedStartLine,
-                                                                diagnostic1.DataLocation.MappedStartColumn,
-                                                                diagnostic1.DataLocation.MappedEndLine,
-                                                                diagnostic1.DataLocation.MappedEndColumn),
-                                                             diagnostic1.AdditionalLocations, diagnostic1.Title, diagnostic1.Description, diagnostic1.HelpLink,
-                                                             diagnostic1.IsSuppressed, diagnostic1.CustomTags, diagnostic1.Properties))
+                updateSource.AddNewErrors(
+                    document1.Project.Id,
+                    New DiagnosticData(
+                        diagnostic1.Id,
+                        diagnostic1.Category,
+                        diagnostic1.Message,
+                        diagnostic1.ENUMessageForBingSearch,
+                        diagnostic1.Severity,
+                        diagnostic1.DefaultSeverity,
+                        diagnostic1.IsEnabledByDefault,
+                        diagnostic1.WarningLevel,
+                        diagnostic1.CustomTags,
+                        diagnostic1.Properties,
+                        diagnostic1.ProjectId,
+                        New DiagnosticDataLocation(
+                            Nothing,
+                            diagnostic1.DataLocation.SourceSpan,
+                            diagnostic1.DataLocation.OriginalFilePath,
+                            diagnostic1.DataLocation.OriginalStartLine,
+                            diagnostic1.DataLocation.OriginalStartColumn,
+                            diagnostic1.DataLocation.OriginalEndLine,
+                            diagnostic1.DataLocation.OriginalEndColumn,
+                            diagnostic1.DataLocation.MappedFilePath,
+                            diagnostic1.DataLocation.MappedStartLine,
+                            diagnostic1.DataLocation.MappedStartColumn,
+                            diagnostic1.DataLocation.MappedEndLine,
+                            diagnostic1.DataLocation.MappedEndColumn),
+                        diagnostic1.AdditionalLocations,
+                        diagnostic1.Title,
+                        diagnostic1.Description,
+                        diagnostic1.HelpLink,
+                        diagnostic1.IsSuppressed))
 
-                updateSource.AddNewErrors(document2.Project.Id,
-                                          New DiagnosticData(diagnostic2.Id, diagnostic2.Category, diagnostic2.Message, diagnostic2.ENUMessageForBingSearch,
-                                                             diagnostic2.Severity, diagnostic2.IsEnabledByDefault, diagnostic2.WarningLevel,
-                                                             diagnostic2.Workspace, diagnostic2.ProjectId,
-                                                             New DiagnosticDataLocation(
-                                                                Nothing,
-                                                                diagnostic2.DataLocation.SourceSpan,
-                                                                diagnostic2.DataLocation.OriginalFilePath,
-                                                                diagnostic2.DataLocation.OriginalStartLine,
-                                                                diagnostic2.DataLocation.OriginalStartColumn,
-                                                                diagnostic2.DataLocation.OriginalEndLine,
-                                                                diagnostic2.DataLocation.OriginalEndColumn,
-                                                                diagnostic2.DataLocation.MappedFilePath,
-                                                                diagnostic2.DataLocation.MappedStartLine,
-                                                                diagnostic2.DataLocation.MappedStartColumn,
-                                                                diagnostic2.DataLocation.MappedEndLine,
-                                                                diagnostic2.DataLocation.MappedEndColumn),
-                                                             diagnostic2.AdditionalLocations, diagnostic2.Title, diagnostic2.Description, diagnostic2.HelpLink,
-                                                             diagnostic2.IsSuppressed, diagnostic2.CustomTags, diagnostic2.Properties))
+                updateSource.AddNewErrors(
+                    document2.Project.Id,
+                    New DiagnosticData(
+                        diagnostic2.Id,
+                        diagnostic2.Category,
+                        diagnostic2.Message,
+                        diagnostic2.ENUMessageForBingSearch,
+                        diagnostic2.Severity,
+                        diagnostic2.Severity,
+                        diagnostic2.IsEnabledByDefault,
+                        diagnostic2.WarningLevel,
+                        diagnostic2.CustomTags,
+                        diagnostic2.Properties,
+                        diagnostic2.ProjectId,
+                        New DiagnosticDataLocation(
+                            Nothing,
+                            diagnostic2.DataLocation.SourceSpan,
+                            diagnostic2.DataLocation.OriginalFilePath,
+                            diagnostic2.DataLocation.OriginalStartLine,
+                            diagnostic2.DataLocation.OriginalStartColumn,
+                            diagnostic2.DataLocation.OriginalEndLine,
+                            diagnostic2.DataLocation.OriginalEndColumn,
+                            diagnostic2.DataLocation.MappedFilePath,
+                            diagnostic2.DataLocation.MappedStartLine,
+                            diagnostic2.DataLocation.MappedStartColumn,
+                            diagnostic2.DataLocation.MappedEndLine,
+                            diagnostic2.DataLocation.MappedEndColumn),
+                        diagnostic2.AdditionalLocations,
+                        diagnostic2.Title,
+                        diagnostic2.Description,
+                        diagnostic2.HelpLink,
+                        diagnostic2.IsSuppressed))
 
-                updateSource.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+                updateSource.OnSolutionBuildCompleted()
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateWaitTask()
+                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateExpeditedWaitTask()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
@@ -755,14 +780,27 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
         End Sub
 
-        Private Function CreateItem(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error) As DiagnosticData
-            Return CreateItem(workspace, documentId.ProjectId, documentId, severity)
+        Private Function CreateItem(documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error) As DiagnosticData
+            Return CreateItem(documentId.ProjectId, documentId, severity)
         End Function
 
-        Private Function CreateItem(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
-            Return New DiagnosticData("test", "test", "test", "test format", severity, True, 0,
-                                      workspace, projectId, If(documentId Is Nothing, Nothing, New DiagnosticDataLocation(documentId, TextSpan.FromBounds(0, 10), "test", 20, 20, 20, 20)),
-                                      title:="Title", description:="Description", helpLink:=link)
+        Private Function CreateItem(projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
+            Return New DiagnosticData(
+                id:="test",
+                category:="test",
+                message:="test",
+                enuMessageForBingSearch:="test format",
+                severity:=severity,
+                defaultSeverity:=severity,
+                isEnabledByDefault:=True,
+                warningLevel:=0,
+                customTags:=ImmutableArray(Of String).Empty,
+                properties:=ImmutableDictionary(Of String, String).Empty,
+                projectId,
+                location:=If(documentId Is Nothing, Nothing, New DiagnosticDataLocation(documentId, TextSpan.FromBounds(0, 10), "test", 20, 20, 20, 20)),
+                title:="Title",
+                description:="Description",
+                helpLink:=link)
         End Function
 
         Private Class MyDiagnosticAnalyzerService
@@ -790,7 +828,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
 
-            Public Function GetDiagnostics(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, reportSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As IEnumerable(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
+            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, reportSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As IEnumerable(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
                 Assert.NotNull(workspace)
 
                 Dim diagnostics As IEnumerable(Of DiagnosticData)
@@ -810,7 +848,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnostics
             End Function
 
-            Public Function GetDiagnosticsArgs(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, cancellationToken As CancellationToken) As IEnumerable(Of UpdatedEventArgs) Implements IDiagnosticService.GetDiagnosticsUpdatedEventArgs
+            Public Function GetDiagnosticsArgs(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, cancellationToken As CancellationToken) As IEnumerable(Of UpdatedEventArgs) Implements IDiagnosticService.GetDiagnosticsUpdatedEventArgs
                 Assert.NotNull(workspace)
 
                 Dim diagnosticsArgs As IEnumerable(Of UpdatedEventArgs)
@@ -821,7 +859,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                                                 Function(t)
                                                     Return New UpdatedEventArgs(
                                                         New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
-                                                        t.Workspace, t.ProjectId, t.DocumentId)
+                                                        workspace, t.ProjectId, t.DocumentId)
                                                 End Function).ToImmutableArrayOrEmpty()
                 ElseIf projectId IsNot Nothing Then
                     diagnosticsArgs = Items.Where(Function(t) t.ProjectId Is projectId) _
@@ -829,21 +867,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                                                 Function(t)
                                                     Return New UpdatedEventArgs(
                                                         New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
-                                                        t.Workspace, t.ProjectId, t.DocumentId)
+                                                        workspace, t.ProjectId, t.DocumentId)
                                                 End Function).ToImmutableArrayOrEmpty()
                 Else
                     diagnosticsArgs = Items.Select(
                                                 Function(t)
                                                     Return New UpdatedEventArgs(
                                                         New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
-                                                        t.Workspace, t.ProjectId, t.DocumentId)
+                                                        workspace, t.ProjectId, t.DocumentId)
                                                 End Function).ToImmutableArrayOrEmpty()
                 End If
 
                 Return diagnosticsArgs
             End Function
 
-            Public Sub RaiseDiagnosticsUpdated(workspace As Microsoft.CodeAnalysis.Workspace, ParamArray items As DiagnosticData())
+            Public Sub RaiseDiagnosticsUpdated(workspace As Workspace, ParamArray items As DiagnosticData())
                 Dim item = items(0)
 
                 Dim id = If(CObj(item.DocumentId), item.ProjectId)
@@ -851,15 +889,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         New ErrorId(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, items.ToImmutableArray()))
             End Sub
 
-            Public Sub RaiseDiagnosticsUpdated(workspace As Microsoft.CodeAnalysis.Workspace)
-                Dim documentMap = Items.Where(Function(t) t.DocumentId IsNot Nothing).Where(Function(t) t.Workspace Is workspace).ToLookup(Function(t) t.DocumentId)
+            Public Sub RaiseDiagnosticsUpdated(workspace As Workspace)
+                Dim documentMap = Items.Where(Function(t) t.DocumentId IsNot Nothing).ToLookup(Function(t) t.DocumentId)
 
                 For Each group In documentMap
                     RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty()))
                 Next
 
-                Dim projectMap = Items.Where(Function(t) t.DocumentId Is Nothing).Where(Function(t) t.Workspace Is workspace).ToLookup(Function(t) t.ProjectId)
+                Dim projectMap = Items.Where(Function(t) t.DocumentId Is Nothing).ToLookup(Function(t) t.ProjectId)
 
                 For Each group In projectMap
                     RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsCreated(

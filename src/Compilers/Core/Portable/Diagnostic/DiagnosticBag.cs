@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns true if the bag has any diagnostics with Severity=Error. Does not consider warnings or informationals.
+        /// Returns true if the bag has any diagnostics with DefaultSeverity=Error. Does not consider warnings or informationals
+        /// or warnings promoted to error via /warnaserror.
         /// </summary>
         /// <remarks>
         /// Resolves any lazy diagnostics in the bag.
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (Diagnostic diagnostic in Bag)
             {
-                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                if (diagnostic.DefaultSeverity == DiagnosticSeverity.Error)
                 {
                     return true;
                 }
@@ -78,7 +79,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns true if the bag has any non-lazy diagnostics with Severity=Error.
+        /// Returns true if the bag has any non-lazy diagnostics with DefaultSeverity=Error. Does not consider warnings or informationals
+        /// or warnings promoted to error via /warnaserror.
         /// </summary>
         /// <remarks>
         /// Does not resolve any lazy diagnostics in the bag.
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (Diagnostic diagnostic in Bag)
             {
-                if ((diagnostic as DiagnosticWithInfo)?.HasLazyInfo != true && diagnostic.Severity == DiagnosticSeverity.Error)
+                if ((diagnostic as DiagnosticWithInfo)?.HasLazyInfo != true && diagnostic.DefaultSeverity == DiagnosticSeverity.Error)
                 {
                     return true;
                 }

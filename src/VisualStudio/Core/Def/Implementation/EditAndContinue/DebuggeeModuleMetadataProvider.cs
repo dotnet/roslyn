@@ -2,12 +2,16 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
@@ -19,11 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         /// </summary>
         private sealed class DebuggerService : IDkmCustomMessageForwardReceiver
         {
-            /// <summary>
-            /// Component id as specified in ManagedEditAndContinueService.vsdconfigxml.
-            /// </summary>
-            public static readonly Guid ComponentId = new Guid("A96BBE03-0408-41E3-8613-6086FD494B43");
-
             /// <summary>
             /// Message source id as specified in ManagedEditAndContinueService.vsdconfigxml.
             /// </summary>
@@ -55,11 +54,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
         }
 
-        private readonly DebuggeeModuleMetadataCache _baselineMetadata;
+        private readonly DebuggeeModuleInfoCache _baselineMetadata;
 
+        [ImportingConstructor]
         public DebuggeeModuleMetadataProvider()
         {
-            _baselineMetadata = new DebuggeeModuleMetadataCache();
+            _baselineMetadata = new DebuggeeModuleInfoCache();
         }
 
         private void OnModuleInstanceUnload(Guid mvid)
@@ -68,14 +68,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         /// <summary>
         /// Finds a module of given MVID in one of the processes being debugged and returns its baseline metadata.
         /// Shall only be called while in debug mode.
+        /// Shall only be called on MTA thread.
         /// </summary>
-        public ModuleMetadata TryGetBaselineMetadata(Guid mvid)
+        public DebuggeeModuleInfo TryGetBaselineModuleInfo(Guid mvid)
         {
+            Contract.ThrowIfFalse(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
+
             return _baselineMetadata.GetOrAdd(mvid, m =>
             {
-                DkmComponentManager.InitializeThread(DebuggerService.ComponentId);
-
-                try
+                using (DebuggerComponent.ManagedEditAndContinueService())
                 {
                     var clrModuleInstance = FindClrModuleInstance(m);
                     if (clrModuleInstance == null)
@@ -83,8 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         return default;
                     }
 
-                    var metadata = GetBaselineModuleMetadata(clrModuleInstance);
-                    if (metadata == null)
+                    if (!TryGetBaselineModuleInfo(clrModuleInstance, out var metadata, out var symReader))
                     {
                         return default;
                     }
@@ -98,17 +98,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         Parameter1: this,
                         Parameter2: clrModuleInstance).SendLower();
 
-                    return metadata;
-                }
-                finally
-                {
-                    DkmComponentManager.UninitializeThread(DebuggerService.ComponentId);
+                    return new DebuggeeModuleInfo(metadata, symReader);
                 }
             });
         }
 
-        private static ModuleMetadata GetBaselineModuleMetadata(DkmClrModuleInstance module)
+        private static bool TryGetBaselineModuleInfo(DkmClrModuleInstance module, out ModuleMetadata metadata, out ISymUnmanagedReader5 symReader)
         {
+            Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
+
             IntPtr metadataPtr;
             uint metadataSize;
             try
@@ -117,10 +115,21 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
             catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
             {
-                return null;
+                metadata = null;
+                symReader = null;
+                return false;
             }
 
-            return ModuleMetadata.CreateFromMetadata(metadataPtr, (int)metadataSize);
+            symReader = module.GetSymUnmanagedReader() as ISymUnmanagedReader5;
+            if (symReader == null)
+            {
+                metadata = null;
+                symReader = null;
+                return false;
+            }
+
+            metadata = ModuleMetadata.CreateFromMetadata(metadataPtr, (int)metadataSize);
+            return true;
         }
 
         private static DkmClrModuleInstance FindClrModuleInstance(Guid mvid)

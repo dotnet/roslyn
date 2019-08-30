@@ -9,9 +9,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     [Guid(Guids.RoslynOptionPageInternalSolutionCrawlerIdString)]
     internal class InternalSolutionCrawlerPage : AbstractOptionPage
     {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            return new InternalOptionsControl(nameof(InternalSolutionCrawlerOptions), serviceProvider);
+            return new InternalOptionsControl(nameof(InternalSolutionCrawlerOptions), optionStore);
         }
     }
 }

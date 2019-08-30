@@ -2,9 +2,99 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CSharpVSResources.resx">
     <body>
+      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
+        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
+        <target state="translated">모든 C# 서식 규칙 적용(들여쓰기, 줄 바꿈, 간격 조정)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Coding_Conventions">
+        <source>C# Coding Conventions</source>
+        <target state="translated">C# 코딩 규칙</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Formatting_Rules">
+        <source>C# Formatting Rules</source>
+        <target state="translated">C# 서식 설정 규칙</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="translated">폐기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document_settings">
+        <source>Format Document Settings (Experiment) </source>
+        <target state="translated">문서 서식 설정(실험)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">일반</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">이벤트 구독 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
+        <target state="translated">관계 연산자:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inside_namespace">
+        <source>Inside namespace</source>
+        <target state="translated">namespace 내부</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">외부 namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
+        <source>Perform additional code cleanup during formatting</source>
+        <target state="translated">서식을 지정하는 동안 추가 코드 정리 수행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">참조 같음 검사에 대해 'is null' 선호</target>
+        <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_switch_expression">
+        <source>Prefer switch expression</source>
+        <target state="translated">switch 식 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preferred_using_directive_placement">
+        <source>Preferred 'using' directive placement</source>
+        <target state="translated">선호하는 'using' 지시문 배치</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">불필요한 Using 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="translated">가져오지 않은 네임스페이스의 항목 표시(실험적)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="translated">Using 정렬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
+        <source>Suggest usings for types in .NET Framework assemblies</source>
+        <target state="translated">.NET Framework 어셈블리의 형식에 using 제안</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -14,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="translated">코드 조각 삽입</target>
+        <target state="translated">조각 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
@@ -322,6 +412,11 @@
         <target state="translated">키워드에 대한 줄 바꿈 옵션</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">사용하지 않는 로컬</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
         <target state="translated">지역 변수를 생성할 때 'var'을 사용합니다.</target>
@@ -394,7 +489,7 @@
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="translated">보통</target>
+        <target state="translated">일반</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
@@ -457,11 +552,6 @@
         <target state="translated">속성, 인덱서 및 이벤트의 여는 중괄호를 새 줄에 배치합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_reference_assemblies">
-        <source>Suggest usings for types in _reference assemblies</source>
-        <target state="translated">참조 어셈블리의 형식에 대한 using 제안(_R)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">NuGet 패키지의 형식에 대한 using 제안(_N)</target>
@@ -480,6 +570,11 @@
       <trans-unit id="Elsewhere">
         <source>Elsewhere</source>
         <target state="translated">다른 곳</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="translated">여러 줄일 때</target>
         <note />
       </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
@@ -527,6 +622,11 @@
         <target state="translated">'this.' 기본 설정:</target>
         <note />
       </trans-unit>
+      <trans-unit id="using_preferences_colon">
+        <source>'using' preferences:</source>
+        <target state="translated">'using' 기본 설정:</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="var_preferences_colon">
         <source>'var' preferences:</source>
         <target state="translated">'var' 기본 설정:</target>
@@ -544,7 +644,7 @@
       </trans-unit>
       <trans-unit id="Split_string_literals_on_enter">
         <source>Split string literals on _enter</source>
-        <target state="translated">&amp;lt;Enter&amp;gt; 키를 누르면 문자열 리터럴 분할(_E)</target>
+        <target state="translated">&lt;Enter&gt; 키를 누르면 문자열 리터럴 분할(_E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_matching_portions_of_completion_list_items">
@@ -559,22 +659,22 @@
       </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
         <source>Enter key behavior:</source>
-        <target state="translated">&amp;lt;Enter&amp;gt; 키 기능:</target>
+        <target state="translated">&lt;Enter&gt; 키 기능:</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="translated">단어를 모두 입력한 후 &amp;lt;Enter&amp;gt; 키를 누르면 새 줄 추가(_O)</target>
+        <target state="translated">단어를 모두 입력한 후 &lt;Enter&gt; 키를 누르면 새 줄 추가(_O)</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>_Always add new line on enter</source>
-        <target state="translated">&amp;lt;Enter&amp;gt; 키를 누르면 항상 새 줄 추가(_A)</target>
+        <target state="translated">&lt;Enter&gt; 키를 누르면 항상 새 줄 추가(_A)</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
         <source>_Never add new line on enter</source>
-        <target state="translated">&amp;lt;Enter&amp;gt; 키를 누르면 새 줄 추가 안 함(_N)</target>
+        <target state="translated">&lt;Enter&gt; 키를 누르면 새 줄 추가 안 함(_N)</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">
@@ -649,7 +749,7 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="translated">사용 안 함</target>
+        <target state="translated">안 함 </target>
         <note />
       </trans-unit>
       <trans-unit id="When_on_single_line">
@@ -672,14 +772,9 @@
         <target state="translated">사용하지 않는 using 페이드 아웃</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_over_ReferenceEquals">
-        <source>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</source>
-        <target state="translated">object.ReferenceEquals(..., null)'보다 'is null' 선호</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'string.Format' calls</source>
-        <target state="translated">string.Format' 호출에서 잘못된 자리 표시자 보고</target>
+        <target state="translated">String.Format' 호출에서 잘못된 자리 표시자 보고</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_using_directive_groups">
@@ -690,6 +785,16 @@
       <trans-unit id="Show_name_suggestions">
         <source>Show name s_uggestions</source>
         <target state="translated">이름 제안 표시(_U)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
+        <target state="translated">산술 연산자:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators:  &amp;&amp;   ||   ??</source>
+        <target state="translated">기타 이항 연산자:  &amp;&amp;   ||   ??</target>
         <note />
       </trans-unit>
     </body>

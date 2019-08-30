@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: Odkazované sestavení {0} se nenašlo. Pokud je toto sestavení vytvořené jiným projektem, je třeba daný projekt sestavit před sestavením tohoto projektu.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">Soubor {0} se nepovedlo přečíst: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">Sdílená kompilace se nepovedla, použije se znovu nástroj: {0}</target>
@@ -118,6 +123,26 @@
         <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
         <target state="translated">MSB3402: Při vytváření souboru PDB {0} došlo k chybě. {1}</target>
         <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">{0} obsahuje duplicitní položky {1} s konfliktními metadaty {2}: {3} a {4}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">Cesty {0} musí končit lomítkem nebo zpětným lomítkem: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">Položky {0} musí zahrnovat nejméně jednu položku nejvyšší úrovně (nevnořenou), pokud {1} má hodnotu true.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">Hodnota {0} nebyla v položkách {1} nalezena nebo odpovídající položka není zdrojový kořen nejvyšší úrovně: {2}</target>
+        <note />
       </trans-unit>
     </body>
   </file>

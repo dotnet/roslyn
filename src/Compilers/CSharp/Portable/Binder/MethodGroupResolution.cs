@@ -21,21 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly LookupResultKind ResultKind;
 
         public MethodGroupResolution(MethodGroup methodGroup, ImmutableArray<Diagnostic> diagnostics)
-            : this(methodGroup, null, null, null, methodGroup.ResultKind, diagnostics)
-        {
-        }
-
-        public MethodGroupResolution(
-            MethodGroup methodGroup,
-            OverloadResolutionResult<MethodSymbol> overloadResolutionResult,
-            AnalyzedArguments analyzedArguments,
-            ImmutableArray<Diagnostic> diagnostics)
-            : this(methodGroup, null, overloadResolutionResult, analyzedArguments, methodGroup.ResultKind, diagnostics)
+            : this(methodGroup, otherSymbol: null, overloadResolutionResult: null, analyzedArguments: null, methodGroup.ResultKind, diagnostics)
         {
         }
 
         public MethodGroupResolution(Symbol otherSymbol, LookupResultKind resultKind, ImmutableArray<Diagnostic> diagnostics)
-            : this(null, otherSymbol, null, null, resultKind, diagnostics)
+            : this(methodGroup: null, otherSymbol, overloadResolutionResult: null, analyzedArguments: null, resultKind, diagnostics)
         {
         }
 
@@ -88,28 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsLocalFunctionInvocation =>
-            MethodGroup.Methods.Count == 1 && // Local functions cannot be overloaded
+            MethodGroup?.Methods.Count == 1 && // Local functions cannot be overloaded
             MethodGroup.Methods[0].MethodKind == MethodKind.LocalFunction;
 
         public void Free()
         {
-            if (this.MethodGroup != null)
-            {
-                if (this.MethodGroup.IsExtensionMethodGroup)
-                {
-                    // Arguments are only owned by this instance if the arguments are for
-                    // extension methods. Otherwise, the caller supplied the arguments.
-                    if (this.AnalyzedArguments != null)
-                    {
-                        this.AnalyzedArguments.Free();
-                    }
-                }
-                this.MethodGroup.Free();
-            }
-            if (this.OverloadResolutionResult != null)
-            {
-                this.OverloadResolutionResult.Free();
-            }
+            this.AnalyzedArguments?.Free();
+            this.MethodGroup?.Free();
+            this.OverloadResolutionResult?.Free();
         }
     }
 }

@@ -2,14 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.Symbols;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using static Microsoft.CodeAnalysis.CodeGen.CompilationTestData;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -43,17 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private sealed class BasicTestBase : CommonTestBase
         {
-            protected override CompilationOptions CompilationOptionsReleaseDll
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            protected override Compilation GetCompilationForEmit(IEnumerable<string> source, IEnumerable<MetadataReference> additionalRefs, CompilationOptions options, ParseOptions parseOptions)
-            {
-                throw new NotImplementedException();
-            }
-
-            internal override string VisualizeRealIL(IModuleSymbol peModule, CodeAnalysis.CodeGen.CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
+            internal override string VisualizeRealIL(IModuleSymbol peModule, MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
             {
                 throw new NotImplementedException();
             }

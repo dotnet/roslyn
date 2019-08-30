@@ -1,18 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     public static class QuickInfoToStringConverter
     {
-        public static string GetStringFromBulkContent(BulkObservableCollection<object> content)
+        public static string GetStringFromBulkContent(IEnumerable<object> content)
         {
-            return string.Join(Environment.NewLine, content.Select(item => GetStringFromItem(item) ?? string.Empty));
+            return string.Join(Environment.NewLine, content.Select(GetStringFromItem));
         }
 
         private static string GetStringFromItem(object item)
@@ -27,6 +28,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     return GetStringFromTextBlock(textBlock);
                 case ITextBuffer textBuffer:
                     return textBuffer.CurrentSnapshot.GetText();
+                case ContainerElement containerElement:
+                    string separator;
+                    switch (containerElement.Style)
+                    {
+                        case ContainerElementStyle.Wrapped:
+                            separator = "";
+                            break;
+
+                        case ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding:
+                            separator = Environment.NewLine + Environment.NewLine;
+                            break;
+
+                        case ContainerElementStyle.Stacked:
+                        default:
+                            separator = Environment.NewLine;
+                            break;
+                    }
+
+                    return string.Join(separator, containerElement.Elements.Select(GetStringFromItem));
+                case ClassifiedTextElement classifiedTextElement:
+                    return string.Join("", classifiedTextElement.Runs.Select(GetStringFromItem));
+                case ClassifiedTextRun classifiedTextRun:
+                    return classifiedTextRun.Text;
+                case ImageElement imageElement:
+                    return "";
             }
 
             return null;

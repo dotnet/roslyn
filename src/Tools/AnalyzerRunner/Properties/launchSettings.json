@@ -1,0 +1,48 @@
+{
+  "profiles": {
+    "IDE Analyzers": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /concurrent /stats"
+    },
+    "CSharpEditorFeatures Analyzers": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir)Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll $(SolutionDir)Roslyn.sln /concurrent /stats"
+    },
+    "CSharpFeatures Analyzers": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir)Microsoft.CodeAnalysis.CSharp.Features.dll $(SolutionDir)Roslyn.sln /concurrent /stats"
+    },
+    "BasicEditorFeatures Analyzers": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir)Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll $(SolutionDir)Roslyn.sln /concurrent /stats"
+    },
+    "BasicFeatures Analyzers": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir)Microsoft.CodeAnalysis.VisualBasic.Features.dll $(SolutionDir)Roslyn.sln /concurrent /stats"
+    },
+    "Microsoft.CodeQuality.CSharp.Analyzers Analyzers": {
+      "commandName": "Project",
+      "commandLineArgs": "$(SolutionDir)..\\roslyn-analyzers\\artifacts\\Release\\bin\\Microsoft.CodeAnalysis.FxCopAnalyzers.Package\\netstandard1.3 $(SolutionDir)..\\Orchard\\src\\Orchard.sln /concurrent /iter:4 /stats"
+    },
+    "Profile CSharpSimplifyTypeNamesDiagnosticAnalyzer": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir)Microsoft.CodeAnalysis.CSharp.Features.dll $(SolutionDir)..\\Orchard\\src\\Orchard.sln /stats /a CSharpSimplifyTypeNamesDiagnosticAnalyzer /editperf:ContentQueryExtensions /edititer:300"
+    },
+    "Profile FormattingDiagnosticAnalyzer": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /stats /a FormattingDiagnosticAnalyzer"
+    },
+    "IIncrementalAnalyzer SyntaxTreeInfoIncrementalAnalyzerProvider": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /stats /ia SyntaxTreeInfoIncrementalAnalyzerProvider /persist /profileroot $(SolutionDir)artifacts\\profileRoot"
+    },
+    "IIncrementalAnalyzer SymbolTreeInfoIncrementalAnalyzerProvider": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /stats /ia SymbolTreeInfoIncrementalAnalyzerProvider /persist /profileroot $(SolutionDir)artifacts\\profileRoot"
+    },
+    "IIncrementalAnalyzer DiagnosticAnalyzerService": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /stats /ia Diagnostic /persist /profileroot $(SolutionDir)artifacts\\profileRoot"
+    }
+  }
+}

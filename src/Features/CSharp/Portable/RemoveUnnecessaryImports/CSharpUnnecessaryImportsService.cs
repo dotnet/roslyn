@@ -9,5 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
     [ExportLanguageService(typeof(IUnnecessaryImportsService), LanguageNames.CSharp), Shared]
     internal partial class CSharpUnnecessaryImportsService : AbstractCSharpRemoveUnnecessaryImportsService
     {
+        [ImportingConstructor]
+        public CSharpUnnecessaryImportsService()
+        {
+        }
     }
 }

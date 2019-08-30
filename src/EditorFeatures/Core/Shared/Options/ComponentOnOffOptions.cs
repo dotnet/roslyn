@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     [ExportOptionProvider, Shared]
     internal class EditorComponentOnOffOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public EditorComponentOnOffOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             EditorComponentOnOffOptions.Adornment,
             EditorComponentOnOffOptions.Tagger,

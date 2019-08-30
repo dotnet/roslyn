@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            If t1 = t2 Then
+            If TypeSymbol.Equals(t1, t2, TypeCompareKind.ConsiderEverything) Then
                 Return True
             End If
 
@@ -117,13 +117,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If Not nt1.IsGenericType Then
-                        Return Not nt2.IsGenericType AndAlso nt1 = nt2
+                        Return Not nt2.IsGenericType AndAlso TypeSymbol.Equals(nt1, nt2, TypeCompareKind.ConsiderEverything)
                     ElseIf Not nt2.IsGenericType Then
                         Return False
                     End If
 
                     Dim arity As Integer = nt1.Arity
-                    If nt2.Arity <> arity OrElse nt2.OriginalDefinition <> nt1.OriginalDefinition Then
+                    If nt2.Arity <> arity OrElse Not TypeSymbol.Equals(nt2.OriginalDefinition, nt1.OriginalDefinition, TypeCompareKind.ConsiderEverything) Then
                         Return False
                     End If
 
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Return False
                 Case SymbolKind.TypeParameter
-                    Return type = typeParam
+                    Return TypeSymbol.Equals(type, typeParam, TypeCompareKind.ConsiderEverything)
                 Case Else
                     Return False
             End Select

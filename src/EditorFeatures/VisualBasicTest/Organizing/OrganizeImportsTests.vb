@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -9,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.OrganizeImports
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
+    <[UseExportProvider]>
     Public Class OrganizeImportsTests
         Private Async Function CheckAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,
@@ -191,6 +191,36 @@ end namespace</content>
 
             Dim final =
 <content>' Copyright (c) Microsoft Corporation.  All rights reserved.
+
+''' I like namespace A
+Imports A
+Imports B
+
+namespace A
+end namespace
+namespace B
+end namespace</content>
+
+            Await CheckAsync(initial, final)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")>
+        Public Async Function TestDoNotTouchCommentsAtBeginningOfFile4() As Task
+            Dim initial =
+<content>''' Copyright (c) Microsoft Corporation.  All rights reserved.
+
+Imports B
+ ''' I like namespace A
+Imports A
+
+namespace A
+end namespace
+namespace B
+end namespace</content>
+
+            Dim final =
+<content>''' Copyright (c) Microsoft Corporation.  All rights reserved.
 
 ''' I like namespace A
 Imports A

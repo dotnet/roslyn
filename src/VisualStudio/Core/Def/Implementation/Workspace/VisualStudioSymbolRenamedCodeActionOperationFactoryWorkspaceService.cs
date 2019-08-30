@@ -31,9 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             return new RenameSymbolOperation(
                 _refactorNotifyServices,
-                symbol ?? throw new ArgumentNullException(nameof(symbol)), 
-                newName ?? throw new ArgumentNullException(nameof(newName)), 
-                startingSolution ?? throw new ArgumentNullException(nameof(startingSolution)), 
+                symbol ?? throw new ArgumentNullException(nameof(symbol)),
+                newName ?? throw new ArgumentNullException(nameof(newName)),
+                startingSolution ?? throw new ArgumentNullException(nameof(startingSolution)),
                 updatedSolution ?? throw new ArgumentNullException(nameof(updatedSolution)));
         }
 
@@ -46,8 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly Solution _updatedSolution;
 
             public RenameSymbolOperation(
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices, 
-                ISymbol symbol, 
+                IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+                ISymbol symbol,
                 string newName,
                 Solution startingSolution,
                 Solution updatedSolution)

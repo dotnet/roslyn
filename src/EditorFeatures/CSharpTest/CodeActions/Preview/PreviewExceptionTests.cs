@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,28 +22,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         [WpfFact]
         public async Task TestExceptionInComputePreview()
         {
-            using (var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters()))
-            {
-                await GetPreview(workspace, new ErrorCases.ExceptionInCodeAction());
-            }
+            using var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters());
+            await GetPreview(workspace, new ErrorCases.ExceptionInCodeAction());
         }
 
         [WpfFact]
         public void TestExceptionInDisplayText()
         {
-            using (var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters()))
-            {
-                DisplayText(workspace, new ErrorCases.ExceptionInCodeAction());
-            }
+            using var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters());
+            DisplayText(workspace, new ErrorCases.ExceptionInCodeAction());
         }
 
         [WpfFact]
         public async Task TestExceptionInActionSets()
         {
-            using (var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters()))
-            {
-                await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
-            }
+            using var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters());
+            await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
         }
 
         private async Task GetPreview(TestWorkspace workspace, CodeRefactoringProvider provider)
@@ -50,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             var codeActions = new List<CodeAction>();
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
             var suggestedAction = new CodeRefactoringSuggestedAction(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
                 workspace, textBuffer, provider, codeActions.First());
             await suggestedAction.GetPreviewAsync(CancellationToken.None);
@@ -62,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             var codeActions = new List<CodeAction>();
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
             var suggestedAction = new CodeRefactoringSuggestedAction(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
                 workspace, textBuffer, provider, codeActions.First());
             var text = suggestedAction.DisplayText;
@@ -74,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             var codeActions = new List<CodeAction>();
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
             var suggestedAction = new CodeRefactoringSuggestedAction(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
                 workspace, textBuffer, provider, codeActions.First());
             var actionSets = await suggestedAction.GetActionSetsAsync(CancellationToken.None);

@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -48,19 +50,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static TextDocument GetTextDocument(this Solution solution, DocumentId documentId)
         {
-            return solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId);
+            return solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId) ?? solution.GetAnalyzerConfigDocument(documentId);
+        }
+
+        public static TextDocumentKind GetDocumentKind(this Solution solution, DocumentId documentId)
+        {
+            return solution.GetTextDocument(documentId).Kind;
         }
 
         public static Solution WithTextDocumentText(this Solution solution, DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveIdentity)
         {
-            var document = solution.GetTextDocument(documentId);
-            if (document is Document)
+            var documentKind = solution.GetDocumentKind(documentId);
+            switch (documentKind)
             {
-                return solution.WithDocumentText(documentId, text, mode);
-            }
-            else
-            {
-                return solution.WithAdditionalDocumentText(documentId, text, mode);
+                case TextDocumentKind.Document:
+                    return solution.WithDocumentText(documentId, text, mode);
+
+                case TextDocumentKind.AnalyzerConfigDocument:
+                    return solution.WithAnalyzerConfigDocumentText(documentId, text, mode);
+
+                case TextDocumentKind.AdditionalDocument:
+                    return solution.WithAdditionalDocumentText(documentId, text, mode);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(documentKind);
             }
         }
 

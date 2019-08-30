@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// An analysis that computes the set of variables that may be used
     /// before being assigned anywhere within a method.
     /// </summary>
-    internal class UnassignedVariablesWalker : DataFlowPass
+    internal class UnassignedVariablesWalker : DefiniteAssignmentPass
     {
         private UnassignedVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node)
-            : base(compilation, member, node, new NeverEmptyStructTypeCache())
+            : base(compilation, member, node, EmptyStructTypeCache.CreateNeverEmpty())
         {
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly HashSet<Symbol> _result = new HashSet<Symbol>();
 
-        private new HashSet<Symbol> Analyze(ref bool badRegion)
+        private HashSet<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
             return _result;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                _result.Add(GetNonFieldSymbol(slot));
+                _result.Add(GetNonMemberSymbol(slot));
                 base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
             }
         }

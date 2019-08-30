@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -22,6 +25,11 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string CSharpOrganizeIconIdString = "9420a4b2-b48b-449d-a4c0-335d6e864b82";
         public const string CSharpLibraryIdString = "58F1BAD0-2288-45b9-AC3A-D56398F7781D";
         public const string CSharpReplPackageIdString = "c5edd1ee-c43b-4360-9ce4-6b993ca12897";
+
+        /// <summary>
+        /// A <see cref="UIContext"/> that is set if there is a C# project in the <see cref="VisualStudioWorkspace"/>.
+        /// </summary>
+        public static readonly Guid CSharpProjectExistsInWorkspaceUIContext = new Guid("CA719A03-D55C-48F9-85DE-D934346E7F70");
 
         public const string CSharpProjectRootIdString = "C7FEDB89-B36D-4a62-93F4-DC7A95999921";
 
@@ -68,6 +76,11 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string VisualBasicLibraryIdString = "414AC972-9829-4b6a-A8D7-A08152FEB8AA";
         public const string VisualBasicOptionPageCodeStyleIdString = "10C168E1-3470-448A-A1AC-73D6BC070750";
 
+        /// <summary>
+        /// A <see cref="UIContext"/> that is set if there is a Visual Basic project in the <see cref="VisualStudioWorkspace"/>.
+        /// </summary>
+        public static readonly Guid VisualBasicProjectExistsInWorkspaceUIContext = new Guid("EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275");
+
         public static readonly Guid VisualBasicPackageId = new Guid(VisualBasicPackageIdString);
         public static readonly Guid VisualBasicCompilerServiceId = new Guid(VisualBasicCompilerServiceIdString);
         public static readonly Guid VisualBasicLanguageServiceId = new Guid(VisualBasicLanguageServiceIdString);
@@ -85,13 +98,16 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string VisualBasicOptionPageNamingStyleIdString = "BCA454E0-95E4-4877-B4CB-B1D642B7BAFA";
         public const string VisualBasicOptionPageIntelliSenseIdString = "04460A3B-1B5F-4402-BC6D-89A4F6F0A8D7";
 
+        public const string FSharpPackageIdString = "871D2A70-12A2-4e42-9440-425DD92A4116";
+
+        public static readonly Guid FSharpPackageId = new Guid(FSharpPackageIdString);
+
         // from vscommon\inc\textmgruuids.h
         public const string TextManagerPackageString = "F5E7E720-1401-11D1-883B-0000F87579D2";
 
         // Roslyn guids
         public const string RoslynPackageIdString = "6cf2e545-6109-4730-8883-cf43d7aec3e1";
         public const string RoslynCommandSetIdString = "9ed8fbd1-02d6-4223-a99c-a938f97e6dbe";
-        public const string RoslynLibraryIdString = "82fab260-0c56-4f02-b186-508358588fee";
         public const string RoslynGroupIdString = "b61e1a20-8c13-49a9-a727-a0ec091647dd";
 
         public const string RoslynOptionPageFeatureManagerComponentsIdString = "6F738951-348C-4816-9BA4-F60D92D3E98E";
@@ -100,11 +116,11 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string RoslynOptionPagePerformanceLoggersIdString = "236AC96F-A60D-4BD6-A480-D315151EDC2B";
         public const string RoslynOptionPageInternalDiagnosticsIdString = "48993C4C-C619-42AD-B1C8-79378AD8BEF2";
         public const string RoslynOptionPageInternalSolutionCrawlerIdString = "9702D3BD-F06C-4A6A-974B-7D0C2BC89A72";
+        public const string RoslynOptionPageExperimentationIdString = "D5AA7ED7-85E2-42A0-9BF6-22AEF1C1ED8C";
 
         public static readonly Guid RoslynPackageId = new Guid(RoslynPackageIdString);
         public static readonly Guid RoslynCommandSetId = new Guid(RoslynCommandSetIdString);
         public static readonly Guid RoslynGroupId = new Guid(RoslynGroupIdString);
-        public static readonly Guid RoslynLibraryId = new Guid(RoslynLibraryIdString);
 
         // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
         // Interactive guids

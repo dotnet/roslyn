@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             return _installerService.TryInstallPackage(
-                workspace, _document.Id, _source, _packageName, 
+                workspace, _document.Id, _source, _packageName,
                 _versionOpt, _includePrerelease, cancellationToken);
         }
     }

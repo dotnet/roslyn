@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             Contract.ThrowIfNull(line);
 
-            for (int i = 0; i < line.Length; i++)
+            for (var i = 0; i < line.Length; i++)
             {
                 if (!char.IsWhiteSpace(line[i]))
                 {
@@ -47,13 +48,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static int ConvertTabToSpace(this string textSnippet, int tabSize, int initialColumn, int endPosition)
         {
-            Contract.Requires(tabSize > 0);
-            Contract.Requires(endPosition >= 0 && endPosition <= textSnippet.Length);
+            Debug.Assert(tabSize > 0);
+            Debug.Assert(endPosition >= 0 && endPosition <= textSnippet.Length);
 
-            int column = initialColumn;
+            var column = initialColumn;
 
             // now this will calculate indentation regardless of actual content on the buffer except TAB
-            for (int i = 0; i < endPosition; i++)
+            for (var i = 0; i < endPosition; i++)
             {
                 if (textSnippet[i] == '\t')
                 {
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return -1;
             }
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (predicate(text[i]))
                 {
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool ContainsLineBreak(this string text)
         {
-            foreach (char ch in text)
+            foreach (var ch in text)
             {
                 if (ch == '\n' || ch == '\r')
                 {
@@ -123,8 +124,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static int GetNumberOfLineBreaks(this string text)
         {
-            int lineBreaks = 0;
-            for (int i = 0; i < text.Length; i++)
+            var lineBreaks = 0;
+            for (var i = 0; i < text.Length; i++)
             {
                 if (text[i] == '\n')
                 {
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool ContainsTab(this string text)
         {
             // PERF: Tried replacing this with "text.IndexOf('\t')>=0", but that was actually slightly slower
-            foreach (char ch in text)
+            foreach (var ch in text)
             {
                 if (ch == '\t')
                 {
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var currentColumn = 0;
 
-            for (int i = 0; i < line.Length; i++)
+            for (var i = 0; i < line.Length; i++)
             {
                 if (currentColumn >= column)
                 {
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             builder.Add(alias);
 
             var caseSensitive = builder.KeyComparer == StringComparer.Ordinal;
-            Contract.Requires(builder.KeyComparer == StringComparer.Ordinal || builder.KeyComparer == StringComparer.OrdinalIgnoreCase);
+            Debug.Assert(builder.KeyComparer == StringComparer.Ordinal || builder.KeyComparer == StringComparer.OrdinalIgnoreCase);
             if (alias.TryGetWithoutAttributeSuffix(caseSensitive, out var aliasWithoutAttribute))
             {
                 builder.Add(aliasWithoutAttribute);

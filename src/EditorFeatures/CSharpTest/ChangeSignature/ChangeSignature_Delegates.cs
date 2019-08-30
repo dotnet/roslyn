@@ -4,9 +4,9 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
         public async Task ChangeSignature_Delegates_ImplicitInvokeCalls()
         {
             var markup = @"
-delegate void $$MyDelegate(int x, string y, bool z);
+delegate void MyDelegate($$int x, string y, bool z);
 
 class C
 {
@@ -49,14 +49,15 @@ class C
         d1(true, ""Two"");
     }
 }";
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
+                expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_ExplicitInvokeCalls()
         {
             var markup = @"
-delegate void $$MyDelegate(int x, string y, bool z);
+delegate void MyDelegate(int x, string $$y, bool z);
 
 class C
 {
@@ -78,14 +79,15 @@ class C
         d1.Invoke(true, ""Two"");
     }
 }";
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
+                expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_BeginInvokeCalls()
         {
             var markup = @"
-delegate void $$MyDelegate(int x, string y, bool z);
+delegate void MyDelegate(int x, string y, bool z$$);
 
 class C
 {
@@ -107,7 +109,8 @@ class C
         d1.BeginInvoke(true, ""Two"", null, null);
     }
 }";
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
+                expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -535,7 +538,7 @@ class C
 /// <summary>
 /// This is <see cref=""MyDelegate""/>, which has these methods:
 ///     <see cref=""MyDelegate.MyDelegate(object, IntPtr)""/>
-///     <see cref=""MyDelegate.Invoke( bool, string)""/>
+///     <see cref=""MyDelegate.Invoke(bool, string)""/>
 ///     <see cref=""MyDelegate.EndInvoke(IAsyncResult)""/>
 ///     <see cref=""MyDelegate.BeginInvoke(int, string, bool, AsyncCallback, object)""/>
 /// </summary>
@@ -740,7 +743,8 @@ class Test
         var dele = new CD<int>.D(() => { });
     }
 }";
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
+                expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]

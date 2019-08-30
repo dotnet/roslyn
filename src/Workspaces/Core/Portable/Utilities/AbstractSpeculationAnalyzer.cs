@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             if (_lazySpeculativeSemanticModel == null)
             {
-                SyntaxNode nodeToSpeculate = this.SemanticRootOfReplacedExpression;
+                var nodeToSpeculate = this.SemanticRootOfReplacedExpression;
                 _lazySpeculativeSemanticModel = CreateSpeculativeSemanticModel(this.SemanticRootOfOriginalExpression, nodeToSpeculate, _semanticModel);
                 ValidateSpeculativeSemanticModel(_lazySpeculativeSemanticModel, nodeToSpeculate);
             }
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
             }
 
-            if (symbol.Equals(newSymbol))
+            if (symbol.Equals(newSymbol, SymbolEqualityComparer.IncludeNullability))
             {
                 return true;
             }
@@ -471,12 +471,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
 
-            if (IsInvocableExpression(currentOriginalNode))
+            if (ExpressionMightReferenceMember(currentOriginalNode))
             {
                 // If replacing the node will result in a change in overload resolution, we won't remove it.
                 var originalExpression = (TExpressionSyntax)currentOriginalNode;
                 var newExpression = (TExpressionSyntax)currentReplacedNode;
-                if (ReplacementBreaksInvocableExpression(originalExpression, newExpression))
+                if (ReplacementBreaksExpression(originalExpression, newExpression))
+                {
+                    return true;
+                }
+
+                if (ReplacementBreaksSystemObjectMethodResolution(currentOriginalNode, currentReplacedNode, previousOriginalNode, previousReplacedNode))
                 {
                     return true;
                 }
@@ -519,6 +524,43 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Determine if removing the cast could cause the semantics of System.Object method call to change.
+        /// E.g. Dim b = CStr(1).GetType() is necessary, but the GetType method symbol info resolves to the same with or without the cast.
+        /// </summary>
+        private bool ReplacementBreaksSystemObjectMethodResolution(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode)
+        {
+            if (previousOriginalNode != null && previousReplacedNode != null)
+            {
+                var originalExpressionSymbol = this.OriginalSemanticModel.GetSymbolInfo(currentOriginalNode).Symbol;
+                var replacedExpressionSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(currentReplacedNode).Symbol;
+
+                if (IsSymbolSystemObjectInstanceMethod(originalExpressionSymbol) && IsSymbolSystemObjectInstanceMethod(replacedExpressionSymbol))
+                {
+                    var previousOriginalType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode).Type;
+                    var previousReplacedType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode).Type;
+                    if (previousReplacedType != null && previousOriginalType != null)
+                    {
+                        return !previousReplacedType.InheritsFromOrEquals(previousOriginalType);
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines if the symbol is a non-overridable, non static method on System.Object (e.g. GetType)
+        /// </summary>
+        private static bool IsSymbolSystemObjectInstanceMethod(ISymbol symbol)
+        {
+            return symbol != null
+                && symbol.IsKind(SymbolKind.Method)
+                && symbol.ContainingType.SpecialType == SpecialType.System_Object
+                && !symbol.IsOverridable()
+                && !symbol.IsStaticType();
         }
 
         private bool ReplacementBreaksAttribute(TAttributeSyntax attribute, TAttributeSyntax newAttribute)
@@ -643,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return symbol != null && !SymbolsAreCompatible(symbol, newSymbol);
         }
 
-        protected abstract bool IsInvocableExpression(SyntaxNode node);
+        protected abstract bool ExpressionMightReferenceMember(SyntaxNode node);
 
         private static bool IsDelegateInvoke(ISymbol symbol)
         {
@@ -658,7 +700,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 symbol.ContainingType.IsAnonymousType();
         }
 
-        private bool ReplacementBreaksInvocableExpression(TExpressionSyntax expression, TExpressionSyntax newExpression)
+        private bool ReplacementBreaksExpression(TExpressionSyntax expression, TExpressionSyntax newExpression)
         {
             var originalSymbolInfo = _semanticModel.GetSymbolInfo(expression);
             if (_failOnOverloadResolutionFailuresInOriginalCode && originalSymbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
@@ -754,8 +796,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private bool IsCompatibleInterfaceMemberImplementation(
             ISymbol symbol,
             ISymbol newSymbol,
-            TExpressionSyntax originalInvocationExpression,
-            TExpressionSyntax newInvocationExpression,
+            TExpressionSyntax originalExpression,
+            TExpressionSyntax newExpression,
             SemanticModel speculativeSemanticModel)
         {
             // If this is an interface member, we have to be careful. In general,
@@ -777,14 +819,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             //       of (for example, if it's returned to us by an invocation,
             //       object-creation, element-access or member-access expression.
 
-            INamedTypeSymbol newSymbolContainingType = newSymbol.ContainingType;
+            var newSymbolContainingType = newSymbol.ContainingType;
             if (newSymbolContainingType == null)
             {
                 return false;
             }
 
-            var newReceiver = GetReceiver(newInvocationExpression);
-            ITypeSymbol newReceiverType = newReceiver != null ?
+            var newReceiver = GetReceiver(newExpression);
+            var newReceiverType = newReceiver != null ?
                 speculativeSemanticModel.GetTypeInfo(newReceiver).ConvertedType :
                 newSymbolContainingType;
 
@@ -823,7 +865,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            return SymbolsHaveCompatibleParameterLists(symbol, implementationMember, originalInvocationExpression);
+            return SymbolsHaveCompatibleParameterLists(symbol, implementationMember, originalExpression);
         }
 
         private static bool IsEffectivelySealedClass(ITypeSymbol type)
@@ -852,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // A private class with no nested or sibling classes is effectively sealed.
                 if (namedType.DeclaredAccessibility == Accessibility.Private &&
                     namedType.ContainingType != null &&
-                    !namedType.ContainingType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class && namedType != nestedType))
+                    !namedType.ContainingType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class && !Equals(namedType, nestedType)))
                 {
                     return true;
                 }
@@ -901,7 +943,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (originalSymbol.IsKind(SymbolKind.Method) || originalSymbol.IsIndexer())
             {
                 var specifiedArguments = GetArguments(originalInvocation);
-                if (specifiedArguments != null)
+                if (!specifiedArguments.IsDefault)
                 {
                     var symbolParameters = originalSymbol.GetParameters();
                     var newSymbolParameters = newSymbol.GetParameters();
@@ -950,7 +992,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var specifiedParameters1 = new List<IParameterSymbol>();
             var specifiedParameters2 = new List<IParameterSymbol>();
 
-            for (int i = 0; i < specifiedArguments.Length; i++)
+            for (var i = 0; i < specifiedArguments.Length; i++)
             {
                 var argument = specifiedArguments[i];
 
@@ -995,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // Now we walk the unspecified parameters to ensure that they have the same default
             // values.
 
-            for (int i = 0; i < signature1Parameters.Length; i++)
+            for (var i = 0; i < signature1Parameters.Length; i++)
             {
                 var parameter1 = signature1Parameters[i];
                 if (specifiedParameters1.Contains(parameter1))
@@ -1017,8 +1059,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                     if (object.Equals(parameter1.ExplicitDefaultValue, 0.0))
                     {
-                        bool isParam1DefaultValueNegativeZero = double.IsNegativeInfinity(1.0 / (double)parameter1.ExplicitDefaultValue);
-                        bool isParam2DefaultValueNegativeZero = double.IsNegativeInfinity(1.0 / (double)parameter2.ExplicitDefaultValue);
+                        var isParam1DefaultValueNegativeZero = double.IsNegativeInfinity(1.0 / (double)parameter1.ExplicitDefaultValue);
+                        var isParam2DefaultValueNegativeZero = double.IsNegativeInfinity(1.0 / (double)parameter2.ExplicitDefaultValue);
                         if (isParam1DefaultValueNegativeZero != isParam2DefaultValueNegativeZero)
                         {
                             return false;

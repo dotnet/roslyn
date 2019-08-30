@@ -3,12 +3,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         protected override bool IncludeSuppressedDiagnostics => true;
         protected override bool IncludeUnsuppressedDiagnostics => false;
         protected override int CodeActionIndex => 0;
-        private string FixAllActionEquivalenceKey => FeaturesResources.Remove_Suppression + UserDiagnosticAnalyzer.Decsciptor.Id;
 
         protected class UserDiagnosticAnalyzer : DiagnosticAnalyzer
         {
@@ -54,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
         public class CSharpDiagnosticWithLocationRemoveSuppressionTests : CSharpRemoveSuppressionTests
         {
-            internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             {
-                return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 
@@ -369,7 +368,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -465,7 +464,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -565,7 +564,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             #endregion
@@ -690,7 +689,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -810,7 +809,7 @@ class Class2
 
 
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -939,15 +938,15 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
         }
 
         public class CSharpDiagnosticWithoutLocationRemoveSuppressionTests : CSharpRemoveSuppressionTests
         {
-            internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             {
-                return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                     new UserDiagnosticAnalyzer(reportDiagnosticsWithoutLocation: true), new CSharpSuppressionCodeFixProvider());
             }
 
@@ -1066,7 +1065,7 @@ class Class2
 
 
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
         }
 

@@ -5,21 +5,23 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 {
-    internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax>
+    internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax, TPropertySyntax>
         : IReplacePropertyWithMethodsService
         where TIdentifierNameSyntax : TExpressionSyntax
         where TExpressionSyntax : SyntaxNode
         where TCrefSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
+        where TPropertySyntax : SyntaxNode
     {
-        public abstract SyntaxNode GetPropertyDeclaration(SyntaxToken token);
         public abstract SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
         public abstract Task<IList<SyntaxNode>> GetReplacementMembersAsync(Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
 
@@ -27,6 +29,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         protected abstract TCrefSyntax CreateCrefSyntax(TCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode parameterType);
 
         protected abstract TExpressionSyntax UnwrapCompoundAssignment(SyntaxNode compoundAssignment, TExpressionSyntax readExpression);
+        public async Task<SyntaxNode> GetPropertyDeclarationAsync(CodeRefactoringContext context)
+            => await context.TryGetRelevantNodeAsync<TPropertySyntax>().ConfigureAwait(false);
 
         protected static SyntaxNode GetFieldReference(SyntaxGenerator generator, IFieldSymbol propertyBackingField)
         {
@@ -55,17 +59,17 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var referenceReplacer = new ReferenceReplacer(
-                this, semanticModel, syntaxFacts, semanticFacts, editor, 
-                (TIdentifierNameSyntax)identifierName, property, propertyBackingField, 
+                this, semanticModel, syntaxFacts, semanticFacts, editor,
+                (TIdentifierNameSyntax)identifierName, property, propertyBackingField,
                 desiredGetMethodName, desiredSetMethodName, cancellationToken);
             referenceReplacer.Do();
         }
 
         private delegate TExpressionSyntax GetWriteValue(ReferenceReplacer replacer, SyntaxNode parent);
 
-        private struct ReferenceReplacer
+        private readonly struct ReferenceReplacer
         {
-            private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax> _service;
+            private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax, TPropertySyntax> _service;
             private readonly SemanticModel _semanticModel;
             private readonly ISyntaxFactsService _syntaxFacts;
             private readonly ISemanticFactsService _semanticFacts;
@@ -81,11 +85,11 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private readonly CancellationToken _cancellationToken;
 
             public ReferenceReplacer(
-                AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax> service,
+                AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax, TPropertySyntax> service,
                 SemanticModel semanticModel,
                 ISyntaxFactsService syntaxFacts,
                 ISemanticFactsService semanticFacts,
-                SyntaxEditor editor, 
+                SyntaxEditor editor,
                 TIdentifierNameSyntax identifierName,
                 IPropertySymbol property, IFieldSymbol propertyBackingField,
                 string desiredGetMethodName,
@@ -141,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     return (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent);
                 };
 
-            private static readonly GetWriteValue getWriteValueForIncrementOrDecrement = 
+            private static readonly GetWriteValue getWriteValueForIncrementOrDecrement =
                 (replacer, parent) =>
                 {
                     // We're being read from and written to (i.e. Prop++), we need to replace with a
@@ -157,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     return (TExpressionSyntax)writeValue;
                 };
 
-            private static GetWriteValue getWriteValueForCompoundAssignment = 
+            private static readonly GetWriteValue getWriteValueForCompoundAssignment =
                 (replacer, parent) =>
                 {
                     // We're being read from and written to from a compound assignment 
@@ -171,7 +175,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         parent, readExpression);
                 };
 
-            private static Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> replaceParentCallback =
+            private static readonly Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> replaceParentCallback =
                 (parent, generator, args) =>
                 {
                     var replacer = args.Replacer;
@@ -279,7 +283,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 // Call this overload so we can see this node after already replacing any 
                 // references in the writing side of it.
                 _editor.ReplaceNode(
-                    _expression.Parent, 
+                    _expression.Parent,
                     replaceParentCallback,
                     new ReplaceParentArgs(this, getWriteValue, keepTrivia, conflictMessage));
             }
@@ -390,7 +394,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private SyntaxNode GetSetInvocationExpression(
                 TExpressionSyntax writeValue, bool keepTrivia, string conflictMessage)
             {
-                return GetInvocationExpression(_desiredSetMethodName, 
+                return GetInvocationExpression(_desiredSetMethodName,
                     argument: Generator.Argument(writeValue),
                     keepTrivia: keepTrivia,
                     conflictMessage: conflictMessage);
@@ -418,7 +422,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 return token;
             }
 
-            private struct ReplaceParentArgs
+            private readonly struct ReplaceParentArgs
             {
                 public readonly ReferenceReplacer Replacer;
                 public readonly GetWriteValue GetWriteValue;

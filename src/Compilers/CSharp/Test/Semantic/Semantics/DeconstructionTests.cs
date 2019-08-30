@@ -596,7 +596,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                 Left: 
                   IFieldReferenceOperation: D1 C.Deconstruct (OperationKind.FieldReference, Type: D1, IsInvalid) (Syntax: 'Deconstruct')
                     Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Deconstruct')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Deconstruct')
                 Right: 
                   IDelegateCreationOperation (OperationKind.DelegateCreation, Type: D1, IsInvalid, IsImplicit) (Syntax: 'DeconstructMethod')
                     Target: 
@@ -655,11 +655,11 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                     Children(1):
                         IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Deconstruct')
                           Children(1):
-                              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
                 Right: 
                   IOperation:  (OperationKind.None, Type: null) (Syntax: 'DeconstructMethod')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'DeconstructMethod')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'DeconstructMethod')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0102: The type 'C' already contains a definition for 'Deconstruct'
@@ -852,7 +852,7 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (a) => a;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9)
                 );
@@ -876,7 +876,7 @@ IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.Anonymous
   IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         /*<bind>*/(a, b) => { }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(6, 19)
             };
@@ -1368,12 +1368,9 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0121: The call is ambiguous between the following methods or properties: 'Base.Deconstruct(out int, out int)' and 'Base.Deconstruct(out long, out long)'
+                // file.cs(12,28): error CS0121: The call is ambiguous between the following methods or properties: 'Base.Deconstruct(out int, out int)' and 'Base.Deconstruct(out long, out long)'
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Base.Deconstruct(out int, out int)", "Base.Deconstruct(out long, out long)").WithLocation(12, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(12, 28)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Base.Deconstruct(out int, out int)", "Base.Deconstruct(out long, out long)").WithLocation(12, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3458,7 +3455,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... in M()) { }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... in M()) { }')
   Locals: Local_1: System.Int32 x1
     Local_2: System.Int32 x2
   LoopControlVariable: 
@@ -3505,7 +3502,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... nt x1)) { }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... nt x1)) { }')
   Locals: Local_1: System.Int32 x1
     Local_2: System.Int32 x2
   LoopControlVariable: 
@@ -4188,12 +4185,12 @@ class Program
 
             var x1 = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("x1", x1.Name);
-            Assert.Equal("System.Int32", ((LocalSymbol)x1).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((LocalSymbol)x1).TypeWithAnnotations.ToTestDisplayString());
             Assert.Same(x1, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x1").Single()).Symbol);
 
             var x2 = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("x2", x2.Name);
-            Assert.Equal("System.Int32", ((LocalSymbol)x2).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((LocalSymbol)x2).TypeWithAnnotations.ToTestDisplayString());
             Assert.Same(x2, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x2").Single()).Symbol);
         }
 
@@ -4221,7 +4218,7 @@ class C
                 // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 28),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (a,b), var c, int d)").WithLocation(6, 9),
                 // (6,28): error CS0165: Use of unassigned local variable 'd'
@@ -4361,7 +4358,7 @@ class C
                 // (2,20): error CS8185: A declaration is not allowed in this context.
                 // (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 20),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (a,b), var c, int d)").WithLocation(2, 1)
                 );
@@ -4489,7 +4486,7 @@ class C
                 // (6,29): error CS8185: A declaration is not allowed in this context.
                 //         (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 29),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (_, _), var _, int _)").WithLocation(6, 9)
                 );
@@ -4613,7 +4610,7 @@ class C
                 // (2,21): error CS8185: A declaration is not allowed in this context.
                 // (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 21),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (_, _), var _, int _)").WithLocation(2, 1)
                 );
@@ -5162,7 +5159,7 @@ class C
                 // (6,30): error CS8185: A declaration is not allowed in this context.
                 //         ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 30),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (a,b), var c), int d)").WithLocation(6, 9),
                 // (6,30): error CS0165: Use of unassigned local variable 'd'
@@ -5316,7 +5313,7 @@ class C
                 // (2,22): error CS8185: A declaration is not allowed in this context.
                 // ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 22),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (a,b), var c), int d)").WithLocation(2, 1)
                 );
@@ -5457,7 +5454,7 @@ class C
                 // (6,31): error CS8185: A declaration is not allowed in this context.
                 //         ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 31),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (_, _), var _), int _)").WithLocation(6, 9)
                 );
@@ -5594,7 +5591,7 @@ class C
                 // (2,23): error CS8185: A declaration is not allowed in this context.
                 // ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 23),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (_, _), var _), int _)").WithLocation(2, 1)
                 );
@@ -5631,7 +5628,7 @@ class C
                 // (6,26): error CS8185: A declaration is not allowed in this context.
                 //         (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 26),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((a,b), c), int d)").WithLocation(6, 9),
                 // (6,26): error CS0165: Use of unassigned local variable 'd'
@@ -5750,7 +5747,7 @@ class C
                 // (2,18): error CS8185: A declaration is not allowed in this context.
                 // (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 18),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((a,b), c), int d)").WithLocation(2, 1)
                 );
@@ -5857,7 +5854,7 @@ class C
                 // (6,27): error CS8185: A declaration is not allowed in this context.
                 //         (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 27),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((_, _), _), int _)").WithLocation(6, 9)
                 );
@@ -5957,7 +5954,7 @@ class C
                 // (2,19): error CS8185: A declaration is not allowed in this context.
                 // (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 19),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((_, _), _), int _)").WithLocation(2, 1)
                 );
@@ -6030,10 +6027,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 17),
                 // (5,31): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (int x, void y) = (1, Main());
-                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 31),
-                // (5,17): error CS0029: Cannot implicitly convert type 'void' to 'void'
-                //         (int x, void y) = (1, Main());
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "void y").WithArguments("void", "void").WithLocation(5, 17)
+                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 31)
                 );
             var main = comp.GetMember<MethodSymbol>("C.Main");
             var tree = comp.SyntaxTrees[0];
@@ -6116,10 +6110,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 17),
                 // (5,31): error CS0029: Cannot implicitly convert type 'int' to 'void'
                 //         (int x, void y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "void").WithLocation(5, 31),
-                // (5,17): error CS0029: Cannot implicitly convert type 'void' to 'void'
-                //         (int x, void y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "void y").WithArguments("void", "void").WithLocation(5, 17)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "void").WithLocation(5, 31)
                 );
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -6204,8 +6195,8 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(_, _)')
         NaturalType: (System.Int32, System.Int32)
         Elements(2):
-            IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
-            IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
+            IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+            IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(0, 0)')
       NaturalType: (System.Int32, System.Int32)
@@ -6239,7 +6230,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       NaturalType: (System.Int32 x, System.Int32)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
-          IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
+          IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(0, 0)')
       NaturalType: (System.Int32, System.Int32)
@@ -6271,7 +6262,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'var _')
+IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: 'var _')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

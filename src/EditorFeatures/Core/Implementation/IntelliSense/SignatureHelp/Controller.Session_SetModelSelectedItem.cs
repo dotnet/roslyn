@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 var selectedItem = selector(model);
                 Contract.ThrowIfFalse(model.Items.Contains(selectedItem));
 
-                return model.WithSelectedItem(selectedItem);
+                return model.WithSelectedItem(selectedItem, userSelected: true);
             }
         }
     }

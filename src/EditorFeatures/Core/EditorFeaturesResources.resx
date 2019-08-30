@@ -624,14 +624,14 @@
   <data name="Automatic_Formatting" xml:space="preserve">
     <value>Automatic Formatting</value>
   </data>
-  <data name="Extract_method_failed_with_following_reasons_colon" xml:space="preserve">
-    <value>Extract method failed with following reasons :</value>
+  <data name="Extract_method_encountered_the_following_issues" xml:space="preserve">
+    <value>Extract method encountered the following issues:</value>
   </data>
-  <data name="Do_you_still_want_to_proceed_it_will_generate_broken_code" xml:space="preserve">
-    <value>Do you still want to proceed? it will generate broken code.</value>
+  <data name="Do_you_still_want_to_proceed_This_may_produce_broken_code" xml:space="preserve">
+    <value>Do you still want to proceed? This may produce broken code.</value>
   </data>
   <data name="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed" xml:space="preserve">
-    <value>We can fix the error by not making struct "out/ref" parameter(s). 
+    <value>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</value>
   </data>
   <data name="Change_Signature_colon" xml:space="preserve">
@@ -754,9 +754,9 @@ Do you want to proceed?</value>
   <data name="_0_declarations" xml:space="preserve">
     <value>'{0}' declarations</value>
   </data>
-  <data name="An_inline_rename_session_is_active" xml:space="preserve">
-    <value>An inline rename session is active</value>
-    <comment>For screenreaders</comment>
+  <data name="An_inline_rename_session_is_active_for_identifier_0" xml:space="preserve">
+    <value>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</value>
+    <comment>For screenreaders. {0} is the identifier being renamed.</comment>
   </data>
   <data name="Inline_Rename_Conflict" xml:space="preserve">
     <value>Inline Rename Conflict</value>
@@ -766,5 +766,155 @@ Do you want to proceed?</value>
   </data>
   <data name="Inline_Rename_Field_Text" xml:space="preserve">
     <value>Inline Rename Field Text</value>
+  </data>
+  <data name="Block_Comment_Editing" xml:space="preserve">
+    <value>Block Comment Editing</value>
+  </data>
+  <data name="Comment_Uncomment_Selection" xml:space="preserve">
+    <value>Comment/Uncomment Selection</value>
+  </data>
+  <data name="Code_Completion" xml:space="preserve">
+    <value>Code Completion</value>
+  </data>
+  <data name="Execute_In_Interactive" xml:space="preserve">
+    <value>Execute In Interactive</value>
+  </data>
+  <data name="Extract_Interface" xml:space="preserve">
+    <value>Extract Interface</value>
+  </data>
+  <data name="Go_To_Adjacent_Member" xml:space="preserve">
+    <value>Go To Adjacent Member</value>
+  </data>
+  <data name="Interactive" xml:space="preserve">
+    <value>Interactive</value>
+  </data>
+  <data name="Paste_in_Interactive" xml:space="preserve">
+    <value>Paste in Interactive</value>
+  </data>
+  <data name="Navigate_To_Highlight_Reference" xml:space="preserve">
+    <value>Navigate To Highlighted Reference</value>
+  </data>
+  <data name="Outlining" xml:space="preserve">
+    <value>Outlining</value>
+  </data>
+  <data name="Rename_Tracking_Cancellation" xml:space="preserve">
+    <value>Rename Tracking Cancellation</value>
+  </data>
+  <data name="Signature_Help" xml:space="preserve">
+    <value>Signature Help</value>
+  </data>
+  <data name="Smart_Token_Formatter" xml:space="preserve">
+    <value>Smart Token Formatter</value>
+  </data>
+  <data name="Code_cleanup_is_not_configured" xml:space="preserve">
+    <value>Code cleanup is not configured</value>
+  </data>
+  <data name="Format_document_performed_additional_cleanup" xml:space="preserve">
+    <value>Format Document performed additional cleanup</value>
+  </data>
+  <data name="Configure_it_now" xml:space="preserve">
+    <value>Configure it now</value>
+  </data>
+  <data name="Do_not_show_this_message_again" xml:space="preserve">
+    <value>Do not show this message again</value>
+  </data>
+  <data name="Applying_changes" xml:space="preserve">
+    <value>Applying changes</value>
+  </data>
+  <data name="String_Escape_Character" xml:space="preserve">
+    <value>String - Escape Character</value>
+  </data>
+  <data name="Change_configuration" xml:space="preserve">
+    <value>Change configuration</value>
+  </data>
+  <data name="Paste_Tracking" xml:space="preserve">
+    <value>Paste Tracking</value>
+  </data>
+  <data name="Filter_image_element" xml:space="preserve">
+    <value>Filter</value>
+    <comment>Caption/tooltip for "Filter" image element displayed in completion popup.</comment>
+  </data>
+  <data name="Warning_image_element" xml:space="preserve">
+    <value>Warning</value>
+    <comment>Caption/tooltip for "Warning" image element displayed in completion popup.</comment>
+  </data>
+  <data name="Invalid_assembly_name" xml:space="preserve">
+    <value>Invalid assembly name</value>
+  </data>
+  <data name="Invalid_characters_in_assembly_name" xml:space="preserve">
+    <value>Invalid characters in assembly name</value>
+  </data>
+  <data name="User_Members_Constants" xml:space="preserve">
+    <value>User Members - Constants</value>
+  </data>
+  <data name="User_Members_Enum_Members" xml:space="preserve">
+    <value>User Members - Enum Members</value>
+  </data>
+  <data name="User_Members_Events" xml:space="preserve">
+    <value>User Members - Events</value>
+  </data>
+  <data name="User_Members_Extension_Methods" xml:space="preserve">
+    <value>User Members - Extension Methods</value>
+  </data>
+  <data name="User_Members_Fields" xml:space="preserve">
+    <value>User Members - Fields</value>
+  </data>
+  <data name="User_Members_Locals" xml:space="preserve">
+    <value>User Members - Locals</value>
+  </data>
+  <data name="User_Members_Methods" xml:space="preserve">
+    <value>User Members - Methods</value>
+  </data>
+  <data name="User_Members_Namespaces" xml:space="preserve">
+    <value>User Members - Namespaces</value>
+  </data>
+  <data name="User_Members_Parameters" xml:space="preserve">
+    <value>User Members - Parameters</value>
+  </data>
+  <data name="User_Members_Properties" xml:space="preserve">
+    <value>User Members - Properties</value>
+  </data>
+  <data name="User_Members_Labels" xml:space="preserve">
+    <value>User Members - Labels</value>
+  </data>
+  <data name="Keyword_Control" xml:space="preserve">
+    <value>Keyword - Control</value>
+  </data>
+  <data name="Symbol_Static" xml:space="preserve">
+    <value>Symbol - Static</value>
+  </data>
+  <data name="Operator_Overloaded" xml:space="preserve">
+    <value>Operator - Overloaded</value>
+  </data>
+  <data name="Waiting_for_background_work_to_finish" xml:space="preserve">
+    <value>Waiting for background work to finish...</value>
+  </data>
+  <data name="The_symbol_has_no_base" xml:space="preserve">
+    <value>The symbol has no base.</value>
+  </data>
+  <data name="_0_bases" xml:space="preserve">
+    <value>'{0}' bases</value>
+  </data>
+  <data name="Rename_file" xml:space="preserve">
+    <value>Rename _file</value>
+  </data>
+  <data name="Rename_file_partial_type" xml:space="preserve">
+    <value>Rename _file (not allowed on partial types)</value>
+    <comment>Disabled text status for file rename</comment>
+  </data>
+  <data name="Rename_file_name_doesnt_match" xml:space="preserve">
+    <value>Rename _file (type does not match file name)</value>
+  </data>
+  <data name="Toggle_Block_Comment" xml:space="preserve">
+    <value>Toggle Block Comment</value>
+  </data>
+  <data name="Toggling_block_comment" xml:space="preserve">
+    <value>Toggling block comment...</value>
+  </data>
+  <data name="Toggle_Line_Comment" xml:space="preserve">
+    <value>Toggle Line Comment</value>
+  </data>
+  <data name="Toggling_line_comment" xml:space="preserve">
+    <value>Toggling line comment...</value>
   </data>
 </root>

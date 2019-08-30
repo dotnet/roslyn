@@ -3985,6 +3985,1506 @@ unsafe class C
 
         #endregion Fixed statement tests
 
+        #region Custom fixed statement tests
+
+        [Fact]
+        public void SimpleCaseOfCustomFixed()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+class Fixable
+{
+    public ref int GetPinnableReference()
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+static class FixableExt
+{
+    public static ref int GetPinnableReference(this Fixable self)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (pinned int& V_0)
+  IL_0000:  newobj     ""Fixable..ctor()""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_000d
+  IL_0008:  pop
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  br.s       IL_0015
+  IL_000d:  call       ""ref int Fixable.GetPinnableReference()""
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  conv.u
+  IL_0015:  ldc.i4.4
+  IL_0016:  add
+  IL_0017:  ldind.i4
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  ldc.i4.0
+  IL_001e:  conv.u
+  IL_001f:  stloc.0
+  IL_0020:  ret
+}
+");
+        }
+
+        [Fact]
+        public void SimpleCaseOfCustomFixedExt()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+class Fixable
+{
+    public ref int GetPinnableReference<T>() => throw null;
+}
+
+static class FixableExt
+{
+    public static ref int GetPinnableReference<T>(this T self)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (pinned int& V_0)
+  IL_0000:  newobj     ""Fixable..ctor()""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_000d
+  IL_0008:  pop
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  br.s       IL_0015
+  IL_000d:  call       ""ref int FixableExt.GetPinnableReference<Fixable>(Fixable)""
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  conv.u
+  IL_0015:  ldc.i4.4
+  IL_0016:  add
+  IL_0017:  ldind.i4
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  ldc.i4.0
+  IL_001e:  conv.u
+  IL_001f:  stloc.0
+  IL_0020:  ret
+}
+");
+        }
+
+
+        [Fact]
+        public void SimpleCaseOfCustomFixed_oldVersion()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+
+    class Fixable
+    {
+        public ref int GetPinnableReference()
+        {
+            return ref (new int[]{1,2,3})[0];
+        }
+    }
+
+}
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular7_2);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS8320: Feature 'extensible fixed statement' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         fixed (int* p = new Fixable())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "new Fixable()").WithArguments("extensible fixed statement", "7.3").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void SimpleCaseOfCustomFixedNull()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = (Fixable)null)
+        {
+            System.Console.WriteLine((int)p);
+        }
+    }
+
+    class Fixable
+    {
+        public ref int GetPinnableReference()
+        {
+            return ref (new int[]{1,2,3})[0];
+        }
+    }
+
+}";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"0", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (pinned int& V_0)
+  IL_0000:  ldnull
+  IL_0001:  brtrue.s   IL_0007
+  IL_0003:  ldc.i4.0
+  IL_0004:  conv.u
+  IL_0005:  br.s       IL_0010
+  IL_0007:  ldnull
+  IL_0008:  call       ""ref int C.Fixable.GetPinnableReference()""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  conv.u
+  IL_0010:  conv.i4
+  IL_0011:  call       ""void System.Console.WriteLine(int)""
+  IL_0016:  ldc.i4.0
+  IL_0017:  conv.u
+  IL_0018:  stloc.0
+  IL_0019:  ret
+}
+");
+        }
+
+        [Fact]
+        public void SimpleCaseOfCustomFixedStruct()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+
+    struct Fixable
+    {
+        public ref int GetPinnableReference()
+        {
+            return ref (new int[]{1,2,3})[0];
+        }
+    }
+
+}";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (pinned int& V_0,
+                C.Fixable V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""C.Fixable""
+  IL_0009:  call       ""ref int C.Fixable.GetPinnableReference()""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  conv.u
+  IL_0011:  ldc.i4.4
+  IL_0012:  add
+  IL_0013:  ldind.i4
+  IL_0014:  call       ""void System.Console.WriteLine(int)""
+  IL_0019:  ldc.i4.0
+  IL_001a:  conv.u
+  IL_001b:  stloc.0
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedStructNullable()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        Fixable? f = new Fixable();
+
+        fixed (int* p = f)
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public ref int GetPinnableReference()
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+public static class FixableExt
+{
+    public static ref int GetPinnableReference(this Fixable? f)
+    {
+        return ref f.Value.GetPinnableReference();
+    }
+}
+
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (Fixable V_0,
+                pinned int& V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Fixable""
+  IL_0008:  ldloc.0
+  IL_0009:  newobj     ""Fixable?..ctor(Fixable)""
+  IL_000e:  call       ""ref int FixableExt.GetPinnableReference(Fixable?)""
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  conv.u
+  IL_0016:  ldc.i4.4
+  IL_0017:  add
+  IL_0018:  ldind.i4
+  IL_0019:  call       ""void System.Console.WriteLine(int)""
+  IL_001e:  ldc.i4.0
+  IL_001f:  conv.u
+  IL_0020:  stloc.1
+  IL_0021:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedStructNullableErr()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        Fixable? f = new Fixable();
+
+        fixed (int* p = f)
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public ref int GetPinnableReference()
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (8,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = f)
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "f").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedErrAmbiguous()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+
+        var f = new Fixable(1);
+        fixed (int* p = f)
+        {
+            System.Console.Write(p[2]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref readonly int GetPinnableReference(in this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+public static class FixableExt1
+{
+    public static ref readonly int GetPinnableReference(in this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS0121: The call is ambiguous between the following methods or properties: 'FixableExt.GetPinnableReference(in Fixable)' and 'FixableExt1.GetPinnableReference(in Fixable)'
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new Fixable(1)").WithArguments("FixableExt.GetPinnableReference(in Fixable)", "FixableExt1.GetPinnableReference(in Fixable)").WithLocation(6, 25),
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
+                // (12,25): error CS0121: The call is ambiguous between the following methods or properties: 'FixableExt.GetPinnableReference(in Fixable)' and 'FixableExt1.GetPinnableReference(in Fixable)'
+                //         fixed (int* p = f)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "f").WithArguments("FixableExt.GetPinnableReference(in Fixable)", "FixableExt1.GetPinnableReference(in Fixable)").WithLocation(12, 25),
+                // (12,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = f)
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "f").WithLocation(12, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedErrDynamic()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = (dynamic)(new Fixable(1)))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref readonly int GetPinnableReference(in this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = (dynamic)(new Fixable(1)))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(dynamic)(new Fixable(1))").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedErrBad()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = (HocusPocus)(new Fixable(1)))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref readonly int GetPinnableReference(in this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,26): error CS0246: The type or namespace name 'HocusPocus' could not be found (are you missing a using directive or an assembly reference?)
+                //         fixed (int* p = (HocusPocus)(new Fixable(1)))
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "HocusPocus").WithArguments("HocusPocus").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void SimpleCaseOfCustomFixedGeneric()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        Test(42);
+        Test((object)null);
+    }
+
+    public static void Test<T>(T arg)
+    {
+        fixed (int* p = arg)
+        {
+            System.Console.Write(p == null? 0: p[1]);
+        }
+    }
+}
+
+static class FixAllExt
+{
+    public static ref int GetPinnableReference<T>(this T dummy)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"20", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Test<T>(T)", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (int* V_0, //p
+                pinned int& V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000c
+  IL_0008:  ldc.i4.0
+  IL_0009:  conv.u
+  IL_000a:  br.s       IL_001b
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  ldobj      ""T""
+  IL_0013:  call       ""ref int FixAllExt.GetPinnableReference<T>(T)""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  conv.u
+  IL_001b:  stloc.0
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  conv.u
+  IL_001f:  beq.s      IL_0027
+  IL_0021:  ldloc.0
+  IL_0022:  ldc.i4.4
+  IL_0023:  add
+  IL_0024:  ldind.i4
+  IL_0025:  br.s       IL_0028
+  IL_0027:  ldc.i4.0
+  IL_0028:  call       ""void System.Console.Write(int)""
+  IL_002d:  ldc.i4.0
+  IL_002e:  conv.u
+  IL_002f:  stloc.1
+  IL_0030:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedStructSideeffects()
+        {
+            var text = @"
+    unsafe class C
+    {
+        public static void Main()
+        {
+            var b = new FixableStruct();
+            Test(ref b);
+            System.Console.WriteLine(b.x);
+        }
+
+        public static void Test(ref FixableStruct arg)
+        {
+            fixed (int* p = arg)
+            {
+                System.Console.Write(p[1]);
+            }
+        }
+    }
+
+    struct FixableStruct
+    {
+        public int x;
+
+        public ref int GetPinnableReference()
+        {
+            x = 456;
+            return ref (new int[] { 4, 5, 6 })[0];
+        }
+    }
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"5456");
+
+            compVerifier.VerifyIL("C.Test(ref FixableStruct)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (pinned int& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref int FixableStruct.GetPinnableReference()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  conv.u
+  IL_0009:  ldc.i4.4
+  IL_000a:  add
+  IL_000b:  ldind.i4
+  IL_000c:  call       ""void System.Console.Write(int)""
+  IL_0011:  ldc.i4.0
+  IL_0012:  conv.u
+  IL_0013:  stloc.0
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedClassSideeffects()
+        {
+            var text = @"
+    using System;
+    unsafe class C
+    {
+        public static void Main()
+        {
+            var b = new FixableClass();
+            Test(ref b);
+            System.Console.WriteLine(b.x);
+        }
+
+        public static void Test(ref FixableClass arg)
+        {
+            fixed (int* p = arg)
+            {
+                System.Console.Write(p[1]);
+            }
+        }
+    }
+
+    class FixableClass
+    {
+        public int x;
+
+        [Obsolete]
+        public ref int GetPinnableReference()
+        {
+            x = 456;
+            return ref (new int[] { 4, 5, 6 })[0];
+        }
+    }
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"5456");
+
+            compVerifier.VerifyDiagnostics(
+                // (14,29): warning CS0612: 'FixableClass.GetPinnableReference()' is obsolete
+                //             fixed (int* p = arg)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "arg").WithArguments("FixableClass.GetPinnableReference()").WithLocation(14, 29)
+                );
+
+            // note that defensive copy is created
+            compVerifier.VerifyIL("C.Test(ref FixableClass)", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (pinned int& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  dup
+  IL_0003:  brtrue.s   IL_000a
+  IL_0005:  pop
+  IL_0006:  ldc.i4.0
+  IL_0007:  conv.u
+  IL_0008:  br.s       IL_0012
+  IL_000a:  call       ""ref int FixableClass.GetPinnableReference()""
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.0
+  IL_0011:  conv.u
+  IL_0012:  ldc.i4.4
+  IL_0013:  add
+  IL_0014:  ldind.i4
+  IL_0015:  call       ""void System.Console.Write(int)""
+  IL_001a:  ldc.i4.0
+  IL_001b:  conv.u
+  IL_001c:  stloc.0
+  IL_001d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedGenericSideeffects()
+        {
+            var text = @"
+    unsafe class C
+    {
+        public static void Main()
+        {
+            var a = new FixableClass();
+            Test(ref a);
+            System.Console.WriteLine(a.x);
+            var b = new FixableStruct();
+            Test(ref b);
+            System.Console.WriteLine(b.x);
+        }
+
+        public static void Test<T>(ref T arg) where T: IFixable
+        {
+            fixed (int* p = arg)
+            {
+                System.Console.Write(p[1]);
+            }
+        }
+    }
+
+    interface IFixable
+    {
+        ref int GetPinnableReference();
+    }
+
+    class FixableClass : IFixable
+    {
+
+        public int x;
+
+        public ref int GetPinnableReference()
+        {
+            x = 123;
+            return ref (new int[] { 1, 2, 3 })[0];
+        }
+    }
+
+    struct FixableStruct : IFixable
+    {
+        public int x;
+
+        public ref int GetPinnableReference()
+        {
+            x = 456;
+            return ref (new int[] { 4, 5, 6 })[0];
+        }
+    }
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"2123
+5456");
+
+            compVerifier.VerifyIL("C.Test<T>(ref T)", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  2
+  .locals init (pinned int& V_0,
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_1
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.1
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0026
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldloc.1
+  IL_001a:  box        ""T""
+  IL_001f:  brtrue.s   IL_0026
+  IL_0021:  pop
+  IL_0022:  ldc.i4.0
+  IL_0023:  conv.u
+  IL_0024:  br.s       IL_0034
+  IL_0026:  constrained. ""T""
+  IL_002c:  callvirt   ""ref int IFixable.GetPinnableReference()""
+  IL_0031:  stloc.0
+  IL_0032:  ldloc.0
+  IL_0033:  conv.u
+  IL_0034:  ldc.i4.4
+  IL_0035:  add
+  IL_0036:  ldind.i4
+  IL_0037:  call       ""void System.Console.Write(int)""
+  IL_003c:  ldc.i4.0
+  IL_003d:  conv.u
+  IL_003e:  stloc.0
+  IL_003f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedGenericRefExtension()
+        {
+            var text = @"
+    unsafe class C
+    {
+        public static void Main()
+        {
+            var b = new FixableStruct();
+            Test(ref b);
+            System.Console.WriteLine(b.x);
+        }
+
+        public static void Test<T>(ref T arg) where T: struct, IFixable
+        {
+            fixed (int* p = arg)
+            {
+                System.Console.Write(p[1]);
+            }
+        }
+    }
+
+    public interface IFixable
+    {
+        ref int GetPinnableReferenceImpl();
+    }
+
+    public struct FixableStruct : IFixable
+    {
+        public int x;
+
+        public ref int GetPinnableReferenceImpl()
+        {
+            x = 456;
+            return ref (new int[] { 4, 5, 6 })[0];
+        }
+    }
+
+    public static class FixableExt
+    {
+        public static ref int GetPinnableReference<T>(ref this T f) where T: struct, IFixable
+        {
+            return ref f.GetPinnableReferenceImpl();
+        }
+    }
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"5456");
+
+            compVerifier.VerifyIL("C.Test<T>(ref T)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (pinned int& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref int FixableExt.GetPinnableReference<T>(ref T)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  conv.u
+  IL_0009:  ldc.i4.4
+  IL_000a:  add
+  IL_000b:  ldind.i4
+  IL_000c:  call       ""void System.Console.Write(int)""
+  IL_0011:  ldc.i4.0
+  IL_0012:  conv.u
+  IL_0013:  stloc.0
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedStructInExtension()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+
+        var f = new Fixable(1);
+        fixed (int* p = f)
+        {
+            System.Console.Write(p[2]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref readonly int GetPinnableReference(in this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"23", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  3
+  .locals init (Fixable V_0, //f
+                pinned int& V_1,
+                Fixable V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  newobj     ""Fixable..ctor(int)""
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""ref readonly int FixableExt.GetPinnableReference(in Fixable)""
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  conv.u
+  IL_0011:  ldc.i4.4
+  IL_0012:  add
+  IL_0013:  ldind.i4
+  IL_0014:  call       ""void System.Console.Write(int)""
+  IL_0019:  ldc.i4.0
+  IL_001a:  conv.u
+  IL_001b:  stloc.1
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldc.i4.1
+  IL_001f:  call       ""Fixable..ctor(int)""
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""ref readonly int FixableExt.GetPinnableReference(in Fixable)""
+  IL_002b:  stloc.1
+  IL_002c:  ldloc.1
+  IL_002d:  conv.u
+  IL_002e:  ldc.i4.2
+  IL_002f:  conv.i
+  IL_0030:  ldc.i4.4
+  IL_0031:  mul
+  IL_0032:  add
+  IL_0033:  ldind.i4
+  IL_0034:  call       ""void System.Console.Write(int)""
+  IL_0039:  ldc.i4.0
+  IL_003a:  conv.u
+  IL_003b:  stloc.1
+  IL_003c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedStructRefExtension()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        var f = new Fixable(1);
+        fixed (int* p = f)
+        {
+            System.Console.Write(p[2]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref int GetPinnableReference(ref this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"3", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (Fixable V_0, //f
+                pinned int& V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       ""Fixable..ctor(int)""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""ref int FixableExt.GetPinnableReference(ref Fixable)""
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  conv.u
+  IL_0012:  ldc.i4.2
+  IL_0013:  conv.i
+  IL_0014:  ldc.i4.4
+  IL_0015:  mul
+  IL_0016:  add
+  IL_0017:  ldind.i4
+  IL_0018:  call       ""void System.Console.Write(int)""
+  IL_001d:  ldc.i4.0
+  IL_001e:  conv.u
+  IL_001f:  stloc.1
+  IL_0020:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedStructRefExtensionErr()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref int GetPinnableReference(ref this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS1510: A ref or out value must be an assignable variable
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Fixable(1)").WithLocation(6, 25),
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr01()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    private static ref int GetPinnableReference(this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS8385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr01_oldVersion()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    private static ref int GetPinnableReference(this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular7_2);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr02()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public static ref int GetPinnableReference()
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
+                // (6,25): error CS0176: Member 'Fixable.GetPinnableReference()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "new Fixable(1)").WithArguments("Fixable.GetPinnableReference()").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr03()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public ref int GetPinnableReference => ref (new int[]{1,2,3})[0];
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS1955: Non-invocable member 'Fixable.GetPinnableReference' cannot be used like a method.
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "new Fixable(1)").WithArguments("Fixable.GetPinnableReference").WithLocation(6, 25),
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr04()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public ref int GetPinnableReference<T>() => ref (new int[]{1,2,3})[0];
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS0411: The type arguments for method 'Fixable.GetPinnableReference<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new Fixable(1)").WithArguments("Fixable.GetPinnableReference<T>()").WithLocation(6, 25),
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr05_Obsolete()
+        {
+            var text = @"
+using System;
+
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    [Obsolete(""hi"", true)]
+    public ref int GetPinnableReference() => ref (new int[]{1,2,3})[0];
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (8,25): error CS0619: 'Fixable.GetPinnableReference()' is obsolete: 'hi'
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Fixable(1)").WithArguments("Fixable.GetPinnableReference()", "hi").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr06_UseSite()
+        {
+            var missing_cs = "public struct Missing { }";
+            var missing = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
+
+            var lib_cs = @"
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public ref Missing GetPinnableReference() => throw null;
+}
+";
+
+            var lib = CreateCompilationWithMscorlib45(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);
+
+            var source =
+@"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (void* p = new Fixable(1))
+        {
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { lib.EmitToImageReference() }, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,26): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         fixed (void* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "new Fixable(1)").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 26),
+                // (6,26): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (void* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr07_Optional()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public ref int GetPinnableReference(int x = 0) => ref (new int[]{1,2,3})[0];
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): warning CS0280: 'Fixable' does not implement the 'fixed' pattern. 'Fixable.GetPinnableReference(int)' has the wrong signature.
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "new Fixable(1)").WithArguments("Fixable", "fixed", "Fixable.GetPinnableReference(int)").WithLocation(6, 25),
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void FixStringMissingAllHelpers()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (char* p = string.Empty)
+        {
+        }
+    }
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.get_OffsetToStringData'
+                //         fixed (char* p = string.Empty)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "string.Empty").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "get_OffsetToStringData").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void FixStringArrayExtensionHelpersIgnored()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (char* p = ""A"")
+        {
+            *p = default;
+        }
+
+        fixed (char* p = new char[1])
+        {
+            *p = default;
+        }
+    }
+}
+
+public static class FixableExt
+{
+    public static ref char GetPinnableReference(this string self) => throw null;
+    public static ref char GetPinnableReference(this char[] self) => throw null;
+}
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"");
+
+            compVerifier.VerifyIL("C.Main()", @"
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (char* V_0, //p
+                pinned string V_1,
+                char* V_2, //p
+                pinned char[] V_3)
+  IL_0000:  ldstr      ""A""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  conv.u
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  brfalse.s  IL_0014
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0012:  add
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.0
+  IL_0015:  ldc.i4.0
+  IL_0016:  stind.i2
+  IL_0017:  ldnull
+  IL_0018:  stloc.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  newarr     ""char""
+  IL_001f:  dup
+  IL_0020:  stloc.3
+  IL_0021:  brfalse.s  IL_0028
+  IL_0023:  ldloc.3
+  IL_0024:  ldlen
+  IL_0025:  conv.i4
+  IL_0026:  brtrue.s   IL_002d
+  IL_0028:  ldc.i4.0
+  IL_0029:  conv.u
+  IL_002a:  stloc.2
+  IL_002b:  br.s       IL_0036
+  IL_002d:  ldloc.3
+  IL_002e:  ldc.i4.0
+  IL_002f:  ldelema    ""char""
+  IL_0034:  conv.u
+  IL_0035:  stloc.2
+  IL_0036:  ldloc.2
+  IL_0037:  ldc.i4.0
+  IL_0038:  stind.i2
+  IL_0039:  ldnull
+  IL_003a:  stloc.3
+  IL_003b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedDelegateErr()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public delegate ref int ReturnsRef();
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public ReturnsRef GetPinnableReference => null;
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable())
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable()").WithLocation(6, 25)
+                );
+        }
+
+        #endregion Custom fixed statement tests
+
         #region Pointer conversion tests
 
         [Fact]
@@ -4770,7 +6270,7 @@ unsafe class C
             CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayConversion()
         {
             var template = @"
@@ -4812,7 +6312,7 @@ unsafe class C
             CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayConversionRuntimeError()
         {
             var text = @"
@@ -4839,7 +6339,7 @@ unsafe class C
             CompileAndVerifyException<NotSupportedException>(text, "Type is not supported.", allowUnsafe: true, verify: Verification.Fails);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayEnumerableConversion()
         {
             var template = @"
@@ -4881,7 +6381,7 @@ unsafe class C
             CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayEnumerableConversionRuntimeError()
         {
             var text = @"
@@ -5075,7 +6575,7 @@ unsafe class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayForeachEnumerable()
         {
             var text = @"
@@ -6083,13 +7583,13 @@ unsafe struct S
   // Code size       74 (0x4a)
   .maxstack  3
   .locals init (S V_0, //s
-  S* V_1,
-  int V_2)
+                S* V_1,
+                int V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  dup
-  IL_000b:  call       ""S* S.P.get""
+  IL_000b:  call       ""readonly S* S.P.get""
   IL_0010:  stloc.1
   IL_0011:  ldloc.1
   IL_0012:  sizeof     ""S""
@@ -6108,7 +7608,7 @@ unsafe struct S
   IL_0036:  ldloc.1
   IL_0037:  call       ""void S.this[int].set""
   IL_003c:  ldloca.s   V_0
-  IL_003e:  call       ""S* S.P.get""
+  IL_003e:  call       ""readonly S* S.P.get""
   IL_0043:  conv.i4
   IL_0044:  call       ""void System.Console.Write(int)""
   IL_0049:  ret
@@ -6264,7 +7764,7 @@ unsafe struct S
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  dup
-  IL_000b:  call       ""S* S.P.get""
+  IL_000b:  call       ""readonly S* S.P.get""
   IL_0010:  ldc.i4.3
   IL_0011:  conv.i
   IL_0012:  sizeof     ""S""
@@ -6287,7 +7787,7 @@ unsafe struct S
   IL_003a:  sub
   IL_003b:  call       ""void S.this[int].set""
   IL_0040:  ldloca.s   V_0
-  IL_0042:  call       ""S* S.P.get""
+  IL_0042:  call       ""readonly S* S.P.get""
   IL_0047:  conv.i4
   IL_0048:  call       ""void System.Console.Write(int)""
   IL_004d:  ret
@@ -8847,7 +10347,7 @@ unsafe public struct FixedStruct
 {
   // Code size       20 (0x14)
   .maxstack  1
-  .locals init (pinned char*& V_0)
+  .locals init (pinned char& V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""char* FixedStruct.c""
   IL_0006:  ldflda     ""char FixedStruct.<c>e__FixedBuffer.FixedElementField""
@@ -8894,13 +10394,13 @@ unsafe public struct FixedStruct
             }
         }
     }";
-            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput:"ABC", verify: Verification.Fails).VerifyDiagnostics();
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "ABC", verify: Verification.Fails).VerifyDiagnostics();
 
             comp.VerifyIL("FixedStruct.ToString", @"
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  .locals init (pinned char*& V_0)
+  .locals init (pinned char& V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""char* FixedStruct.c""
   IL_0006:  ldflda     ""char FixedStruct.<c>e__FixedBuffer.FixedElementField""

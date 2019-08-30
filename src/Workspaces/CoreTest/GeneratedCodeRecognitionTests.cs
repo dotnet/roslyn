@@ -2,10 +2,12 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public class GeneratedCodeRecognitionTests
     {
         [Fact]
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static Project CreateProject(string language = LanguageNames.CSharp)
+        private static Project CreateProject()
         {
             var projectName = "TestProject";
             var projectId = ProjectId.CreateNewId(projectName);

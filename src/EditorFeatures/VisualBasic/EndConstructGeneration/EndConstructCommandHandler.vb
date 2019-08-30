@@ -4,27 +4,39 @@ Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
-    <ExportCommandHandler(PredefinedCommandHandlerNames.EndConstruct, ContentTypeNames.VisualBasicContentType)>
+    <Export(GetType(VSCommanding.ICommandHandler))>
+    <ContentType(ContentTypeNames.VisualBasicContentType)>
+    <Name(PredefinedCommandHandlerNames.EndConstruct)>
     <Order(After:=PredefinedCommandHandlerNames.Completion)>
+    <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
     <Order(After:=PredefinedCommandHandlerNames.AutomaticLineEnder)>
     Friend Class EndConstructCommandHandler
-        Implements ICommandHandler(Of ReturnKeyCommandArgs)
-        Implements ICommandHandler(Of TypeCharCommandArgs)
-        Implements ICommandHandler(Of AutomaticLineEnderCommandArgs)
+        Implements IChainedCommandHandler(Of ReturnKeyCommandArgs)
+        Implements IChainedCommandHandler(Of TypeCharCommandArgs)
+        Implements IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
 
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
         Private ReadOnly _undoHistoryRegistry As ITextUndoHistoryRegistry
+
+        Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
+            Get
+                Return VBEditorResources.End_Construct
+            End Get
+        End Property
 
         <ImportingConstructor()>
         Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService,
@@ -34,19 +46,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Me._undoHistoryRegistry = undoHistoryRegistry
         End Sub
 
-        Public Function GetCommandState_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of ReturnKeyCommandArgs).GetCommandState
+        Public Function GetCommandState_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
-        Public Sub ExecuteCommand_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Action) Implements ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
+        Public Sub ExecuteCommand_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
             ExecuteEndConstructOnReturn(args.TextView, args.SubjectBuffer, nextHandler)
         End Sub
 
-        Public Function GetCommandState_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of TypeCharCommandArgs).GetCommandState
+        Public Function GetCommandState_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of TypeCharCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
-        Public Sub ExecuteCommand_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Action) Implements ICommandHandler(Of TypeCharCommandArgs).ExecuteCommand
+        Public Sub ExecuteCommand_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of TypeCharCommandArgs).ExecuteCommand
             nextHandler()
 
             If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.EndConstruct) Then
@@ -64,11 +76,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             endConstructService.TryDo(args.TextView, args.SubjectBuffer, args.TypedChar, CancellationToken.None)
         End Sub
 
-        Public Function GetCommandState_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of AutomaticLineEnderCommandArgs).GetCommandState
-            Return CommandState.Available
+        Public Function GetCommandState_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of AutomaticLineEnderCommandArgs).GetCommandState
+            Return VSCommanding.CommandState.Available
         End Function
 
-        Public Sub ExecuteCommand_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Action) Implements ICommandHandler(Of AutomaticLineEnderCommandArgs).ExecuteCommand
+        Public Sub ExecuteCommand_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of AutomaticLineEnderCommandArgs).ExecuteCommand
             ExecuteEndConstructOnReturn(args.TextView, args.SubjectBuffer, Sub()
                                                                                Dim operations = Me._editorOperationsFactoryService.GetEditorOperations(args.TextView)
                                                                                If operations Is Nothing Then

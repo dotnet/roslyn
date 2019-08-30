@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Common diagnostic rules for all non-shipping projects" Description="Enables/disable rules specific to all non-shipping projects." ToolsVersion="14.0">
+  <Include Path=".\Shipping.ruleset" Action="Default" />
+
+  <Rules AnalyzerId="Microsoft.CodeQuality.Analyzers" RuleNamespace="Microsoft.CodeQuality.Analyzers">
+    <!-- For tests, the ConfigureAwait(true) is good enough. Either they are already running on a thread pool
+         thread where ConfigureAwait(false) does nothing, or we're running the workload from an STA thread
+         where we want to marshal the continuations back to it. -->
+    <Rule Id="CA2007" Action="None" />
+
+    <!-- Avoid zero length allocations - suppress for non-shipping/test projects (originally RS0007) -->
+    <Rule Id="CA1825" Action="None" />
+
+    <!-- Do not use Enumerable methods on indexable collections (originally RS0014) - suppressed because we have lot of violations in non-shipping/test projects.
+         We can fix all violations once we have a code fix with fix all, and then remove this suppression.
+    -->
+    <Rule Id="CA1826" Action="None" />
+
+    <!-- Mark constant field as 'const' instead of static readonly - not useful for tests -->
+    <Rule Id="CA1802" Action="None" />
+
+    <!-- Properties should not return arrays - not useful for tests -->
+    <Rule Id="CA1819" Action="None" />
+  </Rules>
+
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.Analyzers" RuleNamespace="Microsoft.CodeAnalysis.Analyzers">
+    <Rule Id="RS1001" Action="None" />
+
+    <!-- CodeFix providers should override GetFixAllProvider - suppress for non-shipping/test projects -->
+    <Rule Id="RS1016" Action="None" />
+
+    <!-- DiagnosticId must be unique across analyzers - suppress for non-shipping/test projects -->
+    <Rule Id="RS1019" Action="None" />
+
+    <!-- Configure generated code analysis - suppress for non-shipping/test projects -->
+    <Rule Id="RS1025" Action="None" />
+
+    <!-- Enable concurrent execution - suppress for non-shipping/test projects -->
+    <Rule Id="RS1026" Action="None" />
+
+    <!-- Do not use generic CodeAction.Create to create CodeAction - not useful for tests -->
+    <Rule Id="RS0005" Action="None" />
+  </Rules>
+
+  <Rules AnalyzerId="Microsoft.CodeQuality.Analyzers.Exp" RuleNamespace="Microsoft.CodeQuality.Analyzers.Exp">
+    <!-- Dispose rules turned off for non-shipping projects due to large number of violation count -->
+    <!-- https://github.com/dotnet/roslyn/issues/25129 tracks fixing/suppressing these violations and removing the below entries -->
+    <Rule Id="CA2000" Action="None" />
+    <Rule Id="CA2213" Action="None" />
+    <Rule Id="CA1063" Action="None" />
+  </Rules>
+</RuleSet>

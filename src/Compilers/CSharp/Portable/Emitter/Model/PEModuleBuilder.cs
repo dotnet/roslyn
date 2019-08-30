@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -26,9 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private readonly NoPia.EmbeddedTypesManager _embeddedTypesManagerOpt;
         public override NoPia.EmbeddedTypesManager EmbeddedTypesManagerOpt
-        {
-            get { return _embeddedTypesManagerOpt; }
-        }
+            => _embeddedTypesManagerOpt;
 
         // Gives the name of this module (may not reflect the name of the underlying symbol).
         // See Assembly.MetadataName.
@@ -41,33 +40,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
-        private bool _needsGeneratedIsReadOnlyAttribute_Value;
-
+        private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
 
         /// <summary>
-        /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
-        /// The value is set during lowering the symbols that need that attribute, and is frozen on first trial to get it.
+        /// Returns a value indicating which embedded attributes should be generated during emit phase.
+        /// The value is set during binding the symbols that need those attributes, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
-        internal bool NeedsGeneratedIsReadOnlyAttribute
+        internal EmbeddableAttributes GetNeedsGeneratedAttributes()
         {
-            get
-            {
-                _needsGeneratedAttributes_IsFrozen = true;
-                return Compilation.NeedsGeneratedIsReadOnlyAttribute || _needsGeneratedIsReadOnlyAttribute_Value;
-            }
+            _needsGeneratedAttributes_IsFrozen = true;
+            return GetNeedsGeneratedAttributesInternal();
         }
 
-        /// <summary>
-        /// Returns a value indicating whether this builder has a symbol that needs IsByRefLikeAttribute to be generated during emit phase.
-        /// </summary>
-        internal bool NeedsGeneratedIsByRefLikeAttribute
+        private EmbeddableAttributes GetNeedsGeneratedAttributesInternal()
         {
-            get
-            {
-                return Compilation.NeedsGeneratedIsByRefLikeAttribute;
-            }
+            return (EmbeddableAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes();
+        }
+
+        private void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
+        {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+            ThreadSafeFlagOperations.Set(ref _needsGeneratedAttributes, (int)attributes);
         }
 
         internal PEModuleBuilder(
@@ -358,6 +353,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual bool IgnoreAccessibility => false;
 
         /// <summary>
+        /// True if this module is an ENC update.
+        /// </summary>
+        internal virtual bool IsEncDelta => false;
+
+        /// <summary>
         /// Override the dynamic operation context type for all dynamic calls in the module.
         /// </summary>
         internal virtual NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return 0;
         }
 
-        internal virtual bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
+        internal virtual bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index)
         {
             Debug.Assert(Compilation == template.DeclaringCompilation);
 
@@ -389,36 +389,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return false;
         }
 
-        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes(EmitContext context)
+        public sealed override IEnumerable<Cci.INamespaceTypeDefinition> GetAnonymousTypeDefinitions(EmitContext context)
         {
             if (context.MetadataOnly)
             {
-                return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
+                return SpecializedCollections.EmptyEnumerable<Cci.INamespaceTypeDefinition>();
             }
 
-            return StaticCast<Cci.INamespaceTypeDefinition>.From(Compilation.AnonymousTypeManager.GetAllCreatedTemplates());
+            return Compilation.AnonymousTypeManager.GetAllCreatedTemplates();
         }
 
-        /// <summary>
-        /// True if this module is an ENC update.
-        /// </summary>
-        internal virtual bool IsEncDelta
+        public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
         {
-            get { return false; }
-        }
-
-        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
-        {
-            foreach (var type in GetAdditionalTopLevelTypes(context.Diagnostics))
-            {
-                yield return type;
-            }
-
-            foreach (var type in GetEmbeddedTypes(context.Diagnostics))
-            {
-                yield return type;
-            }
-
             var namespacesToProcess = new Stack<NamespaceSymbol>();
             namespacesToProcess.Push(SourceModule.GlobalNamespace);
 
@@ -427,28 +409,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var ns = namespacesToProcess.Pop();
                 foreach (var member in ns.GetMembers())
                 {
-                    var memberNamespace = member as NamespaceSymbol;
-                    if ((object)memberNamespace != null)
+                    if (member.Kind == SymbolKind.Namespace)
                     {
-                        namespacesToProcess.Push(memberNamespace);
+                        namespacesToProcess.Push((NamespaceSymbol)member);
                     }
                     else
                     {
-                        var type = (NamedTypeSymbol)member;
-                        yield return type;
+                        yield return (NamedTypeSymbol)member;
                     }
                 }
             }
-        }
-
-        internal virtual ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
-        {
-            return ImmutableArray<NamedTypeSymbol>.Empty;
-        }
-
-        internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
-        {
-            return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         private static void GetExportedTypes(NamespaceOrTypeSymbol symbol, int parentIndex, ArrayBuilder<Cci.ExportedType> builder)
@@ -1150,6 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             BoundArgListOperator optArgList = null,
             bool needDeclaration = false)
         {
+            Debug.Assert(!methodSymbol.IsDefaultValueTypeConstructor());
             Debug.Assert(optArgList == null || (methodSymbol.IsVararg && !needDeclaration));
 
             Cci.IMethodReference unexpandedMethodRef = Translate(methodSymbol, syntaxNodeOpt, diagnostics, needDeclaration);
@@ -1440,6 +1411,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeIsReadOnlyAttribute();
         }
 
+        internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeIsUnmanagedAttribute();
+        }
+
         internal SynthesizedAttributeData SynthesizeIsByRefLikeAttribute(Symbol symbol)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1451,10 +1433,114 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeIsByRefLikeAttribute();
         }
 
+        /// <summary>
+        /// Given a type <paramref name="type"/>, which is either a nullable reference type OR 
+        /// is a constructed type with a nullable reference type present in its type argument tree,
+        /// returns a synthesized NullableAttribute with encoded nullable transforms array.
+        /// </summary>
+        internal SynthesizedAttributeData SynthesizeNullableAttributeIfNecessary(Symbol symbol, byte? nullableContextValue, TypeWithAnnotations type)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            var flagsBuilder = ArrayBuilder<byte>.GetInstance();
+            type.AddNullableTransforms(flagsBuilder);
+
+            SynthesizedAttributeData attribute;
+            if (!flagsBuilder.Any())
+            {
+                attribute = null;
+            }
+            else
+            {
+                Debug.Assert(flagsBuilder.All(f => f <= 2));
+                byte? commonValue = MostCommonNullableValueBuilder.GetCommonValue(flagsBuilder);
+                if (commonValue != null)
+                {
+                    attribute = SynthesizeNullableAttributeIfNecessary(nullableContextValue, commonValue.GetValueOrDefault());
+                }
+                else
+                {
+                    NamedTypeSymbol byteType = Compilation.GetSpecialType(SpecialType.System_Byte);
+                    var byteArrayType = ArrayTypeSymbol.CreateSZArray(byteType.ContainingAssembly, TypeWithAnnotations.Create(byteType));
+                    var value = flagsBuilder.SelectAsArray((flag, byteType) => new TypedConstant(byteType, TypedConstantKind.Primitive, flag), byteType);
+                    attribute = SynthesizeNullableAttribute(
+                        WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
+                        ImmutableArray.Create(new TypedConstant(byteArrayType, value)));
+                }
+            }
+
+            flagsBuilder.Free();
+            return attribute;
+        }
+
+        internal SynthesizedAttributeData SynthesizeNullableAttributeIfNecessary(byte? nullableContextValue, byte nullableValue)
+        {
+            if (nullableValue == nullableContextValue ||
+                (nullableContextValue == null && nullableValue == 0))
+            {
+                return null;
+            }
+
+            NamedTypeSymbol byteType = Compilation.GetSpecialType(SpecialType.System_Byte);
+            return SynthesizeNullableAttribute(
+                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
+                ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive, nullableValue)));
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
+        }
+
+        internal SynthesizedAttributeData SynthesizeNullableContextAttribute(Symbol symbol, byte value)
+        {
+            var module = Compilation.SourceModule;
+            if ((object)module != symbol && (object)module != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return SynthesizeNullableContextAttribute(
+                ImmutableArray.Create(new TypedConstant(Compilation.GetSpecialType(SpecialType.System_Byte), TypedConstantKind.Primitive, value)));
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeNullableContextAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor, arguments, isOptionalUse: true);
+        }
+
+        internal bool ShouldEmitNullablePublicOnlyAttribute()
+        {
+            // No need to look at this.GetNeedsGeneratedAttributes() since those bits are
+            // only set for members generated by the rewriter which are not public.
+            return Compilation.GetUsesNullableAttributes() && Compilation.EmitNullablePublicOnly;
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeNullablePublicOnlyAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor, arguments);
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);
         }
 
         protected virtual SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
@@ -1463,20 +1549,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
         }
 
-        internal void EnsureIsReadOnlyAttributeExists()
+        private void EnsureEmbeddableAttributeExists(EmbeddableAttributes attribute)
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
 
-            if (_needsGeneratedIsReadOnlyAttribute_Value || Compilation.NeedsGeneratedIsReadOnlyAttribute)
+            if ((GetNeedsGeneratedAttributesInternal() & attribute) != 0)
             {
                 return;
             }
 
             // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, diagnosticsOpt: null, locationOpt: null))
             {
-                _needsGeneratedIsReadOnlyAttribute_Value = true;
+                SetNeedsGeneratedAttributes(attribute);
             }
+        }
+
+        internal void EnsureIsReadOnlyAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute);
+        }
+
+        internal void EnsureIsUnmanagedAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsUnmanagedAttribute);
+        }
+
+        internal void EnsureNullableAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute);
         }
     }
 }

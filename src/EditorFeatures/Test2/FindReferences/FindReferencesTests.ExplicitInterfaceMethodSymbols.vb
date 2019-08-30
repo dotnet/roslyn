@@ -6,8 +6,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
 
         <WorkItem(538972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestExplicitMethod1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestExplicitMethod1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -24,12 +24,12 @@ class C : I
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(538972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestExplicitMethod2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestExplicitMethod2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -46,11 +46,137 @@ class C : I
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestExplicitMethodAndInheritance() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestExplicitMethod3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I
+{
+    void {|Definition:G$$oo|}() {}
+}
+ 
+class C : I
+{
+    void I.{|Definition:Goo|}() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestExplicitMethod4(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I
+{
+    void {|Definition:Goo|}() {}
+}
+ 
+class C : I
+{
+    void I.{|Definition:G$$oo|}() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestExplicitMethod5(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I
+{
+    void {|Definition:G$$oo|}();
+}
+ 
+interface C : I
+{
+    void I.{|Definition:Goo|}() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestExplicitMethod6(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I
+{
+    void {|Definition:Goo|}();
+}
+ 
+interface C : I
+{
+    void I.{|Definition:G$$oo|}() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestExplicitMethod7(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I
+{
+    void {|Definition:G$$oo|}() {}
+}
+ 
+interface C : I
+{
+    void I.{|Definition:Goo|}() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestExplicitMethod8(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I
+{
+    void {|Definition:Goo|}() {}
+}
+ 
+interface C : I
+{
+    void I.{|Definition:G$$oo|}() { }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestExplicitMethodAndInheritance(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -72,7 +198,7 @@ class B : C, A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
     End Class
 End Namespace

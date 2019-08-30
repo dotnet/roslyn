@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.ParseOptions == null ? SourceCodeKind.Regular : this.ParseOptions.Kind;
+                return this.ParseOptions == null ? this.Attributes.SourceCodeKind : this.ParseOptions.Kind;
             }
         }
 
         public bool IsGenerated
         {
-            get { return this.info.IsGenerated; }
+            get { return this.Attributes.IsGenerated; }
         }
     }
 }

@@ -229,7 +229,7 @@ class C
             ModuleSymbol peModule = null;
             CompileAndVerifyWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
-                references: s_attributeRefs, 
+                references: s_attributeRefs,
                 verify: Verification.Passes,
                 sourceSymbolValidator: m => sourceModule = m,
                 symbolValidator: m => peModule = m);
@@ -269,7 +269,10 @@ class C
                 case SymbolKind.Method:
                     var methodSymbol = (MethodSymbol)symbol;
                     typeSymbols.Add(methodSymbol.ReturnType);
-                    typeSymbols.AddRange(methodSymbol.ParameterTypes);
+                    foreach (var parameterType in methodSymbol.ParameterTypesWithAnnotations)
+                    {
+                        typeSymbols.Add(parameterType.Type);
+                    }
                     break;
                 case SymbolKind.NamedType:
                     var namedType = (NamedTypeSymbol)symbol;
@@ -465,7 +468,7 @@ class C
                     {
                         false, false, false, true,
                         false, true, false, false,
-                        true, true 
+                        true, true
                     });
 
                 // public static Base1<(int, ValueTuple<int, ValueTuple>)> Field6;
@@ -477,11 +480,11 @@ class C
                 var firstTuple = field6Type.TypeArguments().Single();
                 Assert.True(firstTuple.IsTupleType);
                 Assert.True(firstTuple.TupleElementNames.IsDefault);
-                Assert.Equal(2, firstTuple.TupleElementTypes.Length);
-                var secondTuple = firstTuple.TupleElementTypes[1];
+                Assert.Equal(2, firstTuple.TupleElementTypesWithAnnotations.Length);
+                var secondTuple = firstTuple.TupleElementTypesWithAnnotations[1].Type;
                 Assert.True(secondTuple.IsTupleType);
                 Assert.True(secondTuple.TupleElementNames.IsDefault);
-                Assert.Equal(2, secondTuple.TupleElementTypes.Length);
+                Assert.Equal(2, secondTuple.TupleElementTypesWithAnnotations.Length);
 
                 // public static ValueTuple Field7;
                 var field7 = _derivedClass.GetMember<FieldSymbol>("Field7");
@@ -614,7 +617,7 @@ class C
                 {
                     var tupleAttr = synthesizedTupleElementNamesAttr.Single();
                     Assert.Equal("System.Runtime.CompilerServices.TupleElementNamesAttribute", tupleAttr.AttributeClass.ToTestDisplayString());
-                    Assert.Equal("System.String[]", tupleAttr.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+                    Assert.Equal("System.String[]", tupleAttr.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
 
                     if (expectedElementNames == null)
                     {
@@ -906,7 +909,7 @@ public interface I3<T>
             {
                 foreach (var t in m.GlobalNamespace.GetTypeMembers())
                 {
-                    switch(t.Name)
+                    switch (t.Name)
                     {
                         case "I1":
                         case "<Module>":

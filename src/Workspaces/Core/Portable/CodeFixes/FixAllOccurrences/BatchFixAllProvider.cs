@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
                     // a buggy extension that throws can't bring down the host?
-                    return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
+                    return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
                 }));
             }
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
             // a buggy extension that throws can't bring down the host?
-            return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
+            return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
         }
 
         public virtual async Task<CodeAction> TryGetMergedFixAsync(
@@ -256,11 +256,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // For each changed document, also keep track of the associated code action that
             // produced it.
             var getChangedDocumentsTasks = new List<Task>();
-            foreach (var diagnosticAndCodeAction in diagnosticsAndCodeActions)
+            foreach (var (diagnostic, action) in diagnosticsAndCodeActions)
             {
                 getChangedDocumentsTasks.Add(GetChangedDocumentsAsync(
                     oldSolution, documentIdToChangedDocuments,
-                    diagnosticAndCodeAction.action, cancellationToken));
+                    action, cancellationToken));
             }
 
             await Task.WhenAll(getChangedDocumentsTasks).ConfigureAwait(false);

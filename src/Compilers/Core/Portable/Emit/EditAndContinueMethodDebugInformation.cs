@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Emit
     /// <summary>
     /// Debugging information associated with the specified method that is emitted by the compiler to support Edit and Continue.
     /// </summary>
-    public struct EditAndContinueMethodDebugInformation
+    public readonly struct EditAndContinueMethodDebugInformation
     {
         internal readonly int MethodOrdinal;
         internal readonly ImmutableArray<LocalSlotDebugInfo> LocalSlots;
@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             Debug.Assert(methodOrdinal >= -1);
 
-            this.MethodOrdinal = methodOrdinal;
-            this.LocalSlots = localSlots;
-            this.Lambdas = lambdas;
-            this.Closures = closures;
+            MethodOrdinal = methodOrdinal;
+            LocalSlots = localSlots;
+            Lambdas = lambdas;
+            Closures = closures;
         }
 
         /// <summary>
@@ -39,11 +39,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <exception cref="InvalidDataException">Invalid data.</exception>
         public static EditAndContinueMethodDebugInformation Create(ImmutableArray<byte> compressedSlotMap, ImmutableArray<byte> compressedLambdaMap)
         {
-            int methodOrdinal;
-            ImmutableArray<ClosureDebugInfo> closures;
-            ImmutableArray<LambdaDebugInfo> lambdas;
-
-            UncompressLambdaMap(compressedLambdaMap, out methodOrdinal, out closures, out lambdas);
+            UncompressLambdaMap(compressedLambdaMap, out var methodOrdinal, out var closures, out var lambdas);
             return new EditAndContinueMethodDebugInformation(methodOrdinal, UncompressSlotMap(compressedSlotMap), closures, lambdas);
         }
 
@@ -73,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             if (compressedSlotMap.IsDefaultOrEmpty)
             {
-                return default(ImmutableArray<LocalSlotDebugInfo>);
+                return default;
             }
 
             var mapBuilder = ArrayBuilder<LocalSlotDebugInfo>.GetInstance();
@@ -99,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         if (b == 0)
                         {
                             // short-lived temp, no info
-                            mapBuilder.Add(new LocalSlotDebugInfo(SynthesizedLocalKind.LoweringTemp, default(LocalDebugId)));
+                            mapBuilder.Add(new LocalSlotDebugInfo(SynthesizedLocalKind.LoweringTemp, default));
                             continue;
                         }
 
@@ -125,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal void SerializeLocalSlots(BlobBuilder writer)
         {
             int syntaxOffsetBaseline = -1;
-            foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
+            foreach (LocalSlotDebugInfo localSlot in LocalSlots)
             {
                 if (localSlot.Id.SyntaxOffset < syntaxOffsetBaseline)
                 {
@@ -139,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 writer.WriteCompressedInteger(-syntaxOffsetBaseline);
             }
 
-            foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
+            foreach (LocalSlotDebugInfo localSlot in LocalSlots)
             {
                 SynthesizedLocalKind kind = localSlot.SynthesizedKind;
                 Debug.Assert(kind <= SynthesizedLocalKind.MaxValidValueForLocalVariableSerializedToDebugInformation);
@@ -181,8 +177,8 @@ namespace Microsoft.CodeAnalysis.Emit
             out ImmutableArray<LambdaDebugInfo> lambdas)
         {
             methodOrdinal = DebugId.UndefinedOrdinal;
-            closures = default(ImmutableArray<ClosureDebugInfo>);
-            lambdas = default(ImmutableArray<LambdaDebugInfo>);
+            closures = default;
+            lambdas = default;
 
             if (compressedLambdaMap.IsDefaultOrEmpty)
             {
@@ -240,11 +236,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal void SerializeLambdaMap(BlobBuilder writer)
         {
-            Debug.Assert(this.MethodOrdinal >= -1);
-            writer.WriteCompressedInteger(this.MethodOrdinal + 1);
+            Debug.Assert(MethodOrdinal >= -1);
+            writer.WriteCompressedInteger(MethodOrdinal + 1);
 
             int syntaxOffsetBaseline = -1;
-            foreach (ClosureDebugInfo info in this.Closures)
+            foreach (ClosureDebugInfo info in Closures)
             {
                 if (info.SyntaxOffset < syntaxOffsetBaseline)
                 {
@@ -252,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            foreach (LambdaDebugInfo info in this.Lambdas)
+            foreach (LambdaDebugInfo info in Lambdas)
             {
                 if (info.SyntaxOffset < syntaxOffsetBaseline)
                 {
@@ -261,14 +257,14 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             writer.WriteCompressedInteger(-syntaxOffsetBaseline);
-            writer.WriteCompressedInteger(this.Closures.Length);
+            writer.WriteCompressedInteger(Closures.Length);
 
-            foreach (ClosureDebugInfo info in this.Closures)
+            foreach (ClosureDebugInfo info in Closures)
             {
                 writer.WriteCompressedInteger(info.SyntaxOffset - syntaxOffsetBaseline);
             }
 
-            foreach (LambdaDebugInfo info in this.Lambdas)
+            foreach (LambdaDebugInfo info in Lambdas)
             {
                 Debug.Assert(info.ClosureOrdinal >= LambdaDebugInfo.MinClosureOrdinal);
                 Debug.Assert(info.LambdaId.Generation == 0);

@@ -2,14 +2,44 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../VBFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_Await">
+        <source>Add Await</source>
+        <target state="translated">Agregar await</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add Await and 'ConfigureAwait(false)'</source>
+        <target state="translated">Agregar await y "ConfigureAwait(false)"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="translated">Agregar &lt;obsoleto&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_Imports">
+        <source>Add missing Imports</source>
+        <target state="translated">Agregar instancias de Import que faltan</target>
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_Shadows">
+        <source>Add 'Shadows'</source>
+        <target state="translated">Agregar "Shadows"</target>
+        <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="If_statement_can_be_simplified">
+        <source>'If' statement can be simplified</source>
+        <target state="translated">La instrucción "if" se puede simplificar</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
-        <target state="translated">Inserte '{0}'.</target>
+        <target state="translated">Inserte "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Delete_the_0_statement1">
         <source>Delete the '{0}' statement.</source>
-        <target state="translated">Elimine la instrucción '{0}'.</target>
+        <target state="translated">Elimine la instrucción "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_event_0_in_1">
@@ -19,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Insert_the_missing_End_Property_statement">
         <source>Insert the missing 'End Property' statement.</source>
-        <target state="translated">Inserte la instrucción 'End Property' que falta.</target>
+        <target state="translated">Inserte la instrucción "End Property" que falta.</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_the_missing_0">
         <source>Insert the missing '{0}'.</source>
-        <target state="translated">Inserte el '{0}' que falta.</target>
+        <target state="translated">Inserte el "{0}" que falta.</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -37,24 +67,39 @@
         <target state="translated">Conflicto(s) detectado(s).</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_If_statement">
-        <source>Invert If statement</source>
-        <target state="translated">Instrucción Invert If</target>
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="translated">Introducir instrucción "Using"</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="translated">Hacer "{0}" heredable</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
-        <target state="translated">Mueva la instrucción '{0}' a la línea {1}.</target>
+        <target state="translated">Mueva la instrucción "{0}" a la línea {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Delete_the_0_statement2">
         <source>Delete the '{0}' statement.</source>
-        <target state="translated">Elimine la instrucción '{0}'.</target>
+        <target state="translated">Elimine la instrucción "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="translated">&lt;Varios tipos&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">Quitar instrucciones Import innecesarias</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">Orde&amp;nar instrucciones Import</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -64,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
         <source>Note: Space completion is disabled to avoid potential interference. To insert a name from the list, use tab.</source>
-        <target state="translated">Nota: la inclusión de espacios está deshabilitada para evitar posibles interferencias. Para insertar un nombre de la lista, utilice el carácter de tabulación.</target>
+        <target state="translated">Nota: La inclusión de espacios está deshabilitada para evitar posibles interferencias. Para insertar un nombre de la lista, utilice el carácter de tabulación.</target>
         <note />
       </trans-unit>
       <trans-unit id="new_field">
@@ -74,7 +119,7 @@
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_parameter_If_no_preceding_keyword_is_used_ByVal_will_be_assumed_and_the_argument_will_be_passed_by_value">
         <source>Type a name here to declare a parameter. If no preceding keyword is used; 'ByVal' will be assumed and the argument will be passed by value.</source>
-        <target state="translated">Escriba aquí un nombre para declarar un parámetro. Si no se incluye delante ninguna palabra clave, se asumirá 'ByVal' y el argumento se pasará por valor.</target>
+        <target state="translated">Escriba aquí un nombre para declarar un parámetro. Si no se incluye delante ninguna palabra clave, se asumirá "ByVal" y el argumento se pasará por valor.</target>
         <note />
       </trans-unit>
       <trans-unit id="parameter_name">
@@ -84,12 +129,12 @@
       </trans-unit>
       <trans-unit id="Type_a_new_name_for_the_column_followed_by_Otherwise_the_original_column_name_with_be_used">
         <source>Type a new name for the column, followed by '='. Otherwise, the original column name with be used.</source>
-        <target state="translated">Escriba un nuevo nombre para la columna seguido de '='. En caso contrario, se utilizará el nombre de columna original.</target>
+        <target state="translated">Escriba un nuevo nombre para la columna seguido de "=". En caso contrario, se utilizará el nombre de columna original.</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Use_tab_for_automatic_completion_space_completion_is_disabled_to_avoid_interfering_with_a_new_name">
         <source>Note: Use tab for automatic completion; space completion is disabled to avoid interfering with a new name.</source>
-        <target state="translated">Nota: use el carácter de tabulación para el autocompletado; la inclusión de espacios está deshabilitada para evitar interferencias con un nuevo nombre.</target>
+        <target state="translated">Nota: Use el carácter de tabulación para el autocompletado; la inclusión de espacios está deshabilitada para evitar interferencias con un nuevo nombre.</target>
         <note />
       </trans-unit>
       <trans-unit id="result_alias">
@@ -104,7 +149,7 @@
       </trans-unit>
       <trans-unit id="Note_colon_Space_and_completion_are_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
         <source>Note: Space and '=' completion are disabled to avoid potential interference. To insert a name from the list, use tab.</source>
-        <target state="translated">Nota: la inclusión de espacios y '=' está deshabilitada para evitar posibles interferencias. Para insertar un nombre de la lista, utilice el carácter de tabulación.</target>
+        <target state="translated">Nota: La inclusión de espacios y "=" está deshabilitada para evitar posibles interferencias. Para insertar un nombre de la lista, utilice el carácter de tabulación.</target>
         <note />
       </trans-unit>
       <trans-unit id="new_resource">
@@ -162,29 +207,19 @@
         <target state="translated">Corregir tipo devuelto de función incorrecto</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Quitar conversión innecesaria</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">Cast es redundante</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
-        <target state="translated">Simplificar nombre '{0}'</target>
+        <target state="translated">Simplificar nombre "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_member_access_0">
         <source>Simplify member access '{0}'</source>
-        <target state="translated">Simplificar acceso a miembros '{0}'</target>
+        <target state="translated">Simplificar acceso a miembros "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
-        <target state="translated">Quitar calificación 'Me'</target>
+        <target state="translated">Quitar calificación "Me"</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
@@ -316,7 +351,7 @@
         <source>Creates a delegate procedure instance that references the specified procedure.
 AddressOf &lt;procedureName&gt;</source>
         <target state="translated">Crea una instancia del procedimiento delegado que hace referencia al procedimiento especificado.
-AddressOf &lt;nombreDeProcedimiento&gt;</target>
+AddressOf &lt;procedureName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Indicates_that_an_external_procedure_has_another_name_in_its_DLL">
@@ -390,12 +425,12 @@ AddressOf &lt;nombreDeProcedimiento&gt;</target>
       </trans-unit>
       <trans-unit id="Use_In_for_a_type_that_will_only_be_used_for_ByVal_arguments_to_functions">
         <source>Use 'In' for a type that will only be used for ByVal arguments to functions.</source>
-        <target state="translated">Use 'In' para un tipo que se usará solo para argumentos ByVal para funciones.</target>
+        <target state="translated">Use "In" para un tipo que se usará solo para argumentos ByVal para funciones.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Out_for_a_type_that_will_only_be_used_as_a_return_from_functions">
         <source>Use 'Out' for a type that will only be used as a return from functions.</source>
-        <target state="translated">Use 'Out' para un tipo que se usará solo como dato devuelto por funciones.</target>
+        <target state="translated">Use "Out" para un tipo que se usará solo como dato devuelto por funciones.</target>
         <note />
       </trans-unit>
       <trans-unit id="Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type_object_structure_class_or_interface_CType_Object_As_Expression_Object_As_Type_As_Type">
@@ -867,7 +902,7 @@ Iterator Function(&lt;listaDeParámetros&gt;) As IEnumerable(Of &lt;T&gt;)</targ
         <source>Determines the run-time type of an object reference variable and compares it to a data type. Returns True or False depending, on whether the two types are compatible.
 &lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</source>
         <target state="translated">Determina el tipo en tiempo de ejecución de una variable de referencia de objetos y lo compara con un tipo de datos. Devuelve True o False dependiendo de si los dos tipos son compatibles.
-&lt;resultado&gt; = TypeOf &lt;expresiónDeObjeto&gt; Is &lt;nombreDeTipo&gt;</target>
+&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_Specifies_that_Visual_Basic_should_marshal_all_strings_to_Unicode_values_in_a_call_into_an_external_procedure_and_should_look_up_the_procedure_without_modifying_its_name">
@@ -1140,12 +1175,12 @@ Option Explicit {On | Off}</target>
       </trans-unit>
       <trans-unit id="Use_Group_to_specify_that_a_group_named_0_should_be_created">
         <source>Use 'Group' to specify that a group named '{0}' should be created.</source>
-        <target state="translated">Use 'Group' para especificar que se debería crear un grupo denominado '{0}'.</target>
+        <target state="translated">Use "Group" para especificar que se debería crear un grupo denominado "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Group_to_specify_that_a_group_named_Group_should_be_created">
         <source>Use 'Group' to specify that a group named 'Group' should be created.</source>
-        <target state="translated">Use 'Group' para especificar que se debería crear un grupo denominado 'Group'.</target>
+        <target state="translated">Use "Group" para especificar que se debería crear un grupo denominado "Group".</target>
         <note />
       </trans-unit>
       <trans-unit id="Conditionally_compiles_selected_blocks_of_code_depending_on_the_value_of_an_expression">
@@ -1330,7 +1365,7 @@ Option Strict {On | Off}</target>
         <source>Ensures that multiple threads do not execute the statement block at the same time.
 SyncLock &lt;object&gt;...End Synclock</source>
         <target state="translated">Garantiza que varios subprocesos no ejecuten el bloque de instrucciones al mismo tiempo.
-SyncLock &lt;objeto&gt;...End Synclock</target>
+SyncLock &lt;object&gt;...End Synclock</target>
         <note />
       </trans-unit>
       <trans-unit id="Includes_elements_up_to_a_specified_position_in_the_collection">
@@ -1396,14 +1431,14 @@ Using &lt;recurso1&gt;[, &lt;recurso2&gt;]...End Using</target>
         <source>Specifies the declaration of property initializations in an object initializer.
 New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</source>
         <target state="translated">Especifica la declaración de inicialización de propiedades en un inicializador de objetos.
-New &lt;nombreDeTipo&gt; With {[.&lt;propiedad&gt; = &lt;expresión&gt;][,...]}</target>
+New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</target>
         <note />
       </trans-unit>
       <trans-unit id="Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_object_End_With">
         <source>Runs a series of statements that refer to a single object or structure.
 With &lt;object&gt;...End With</source>
         <target state="translated">Ejecuta una serie de instrucciones que hacen referencia a un único objeto o estructura.
-With &lt;objeto&gt;...End With</target>
+With &lt;object&gt;...End With</target>
         <note />
       </trans-unit>
       <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">
@@ -1444,7 +1479,7 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="Insert_Await">
         <source>Insert 'Await'.</source>
-        <target state="translated">Inserte 'Await'.</target>
+        <target state="translated">Inserte "Await".</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_an_Async_Function">
@@ -1464,7 +1499,7 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="Replace_Return_with_Yield">
         <source>Replace 'Return' with 'Yield</source>
-        <target state="translated">Reemplazar 'Return' por 'Yield</target>
+        <target state="translated">Reemplazar "Return" por "Yield</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
@@ -1479,12 +1514,12 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_narrowing_conversion_in_0">
         <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">Generar conversión de restricción en '{0}'</target>
+        <target state="translated">Generar conversión de restricción en "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">Generar conversión de ampliación en '{0}'</target>
+        <target state="translated">Generar conversión de ampliación en "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
@@ -1564,12 +1599,12 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="For_Each_statement">
         <source>For Each statement</source>
-        <target state="translated">Para cada instrucción</target>
+        <target state="translated">instrucción For Each</target>
         <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="For_Each_block">
         <source>For Each block</source>
-        <target state="translated">Para cada bloque</target>
+        <target state="translated">bloque For Each</target>
         <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="On_Error_statement">
@@ -1659,7 +1694,7 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">Condición de combinación</target>
+        <target state="translated">condición Join</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">
@@ -1694,7 +1729,7 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="Too_many_arguments_to_0">
         <source>Too many arguments to '{0}'.</source>
-        <target state="translated">Demasiados argumentos para '{0}'.</target>
+        <target state="translated">Demasiados argumentos para "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_0_is_not_defined">
@@ -1703,9 +1738,9 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Overloads">
-        <source>Add Overloads</source>
-        <target state="translated">Agregar sobrecargas</target>
-        <note />
+        <source>Add 'Overloads'</source>
+        <target state="translated">Agregar "Overloads"</target>
+        <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
         <source>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</source>
@@ -1802,11 +1837,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
         <target state="translated">Agregar "Me."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_If_to_Select_Case">
-        <source>Convert 'If' to 'Select Case'</source>
-        <target state="translated">Convertir "If" en "Select Case"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">
         <source>Use 'Is Nothing' check</source>
         <target state="translated">Usar comprobación "Is Nothing"</target>
@@ -1815,6 +1845,26 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       <trans-unit id="Use_IsNot_Nothing_check">
         <source>Use 'IsNot Nothing' check</source>
         <target state="translated">Usar comprobación "IsNot Nothing"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_Select_Case">
+        <source>Convert to 'Select Case'</source>
+        <target state="translated">Convertir a "Select Case"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For_Each">
+        <source>Convert to 'For Each'</source>
+        <target state="translated">Convertir a "For Each"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For">
+        <source>Convert  to 'For'</source>
+        <target state="translated">Convertir a "For"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="translated">Invertir If</target>
         <note />
       </trans-unit>
     </body>

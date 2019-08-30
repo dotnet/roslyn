@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -22,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private MustInherit Class AnonymousTypeOrDelegateTemplateSymbol
             Inherits InstanceTypeSymbol
+            Implements IAnonymousTypeTemplateSymbolInternal
 
             Public ReadOnly Manager As AnonymousTypeManager
 
@@ -73,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End Sub
 
-            Friend MustOverride Function GetAnonymousTypeKey() As AnonymousTypeKey
+            Friend MustOverride Function GetAnonymousTypeKey() As AnonymousTypeKey Implements IAnonymousTypeTemplateSymbolInternal.GetAnonymousTypeKey
 
             Public Overrides ReadOnly Property Name As String
                 Get
@@ -209,11 +211,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+            Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
                 Return MakeAcyclicBaseType(diagnostics)
             End Function
 
-            Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+            Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
                 Return MakeAcyclicInterfaces(diagnostics)
             End Function
 

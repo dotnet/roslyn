@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                     startIndex = 2;
                 }
 
-                for (int i = startIndex; i < baseNodes.Length; i++)
+                for (var i = startIndex; i < baseNodes.Length; i++)
                 {
                     if (isCanonical && baseNodes[i].ListType == _LIB_LISTTYPE.LLT_HIERARCHY)
                     {

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     public class OptionalArgumentsTests : CSharpTestBase
     {
         [WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestDuplicateConstantAttributesMetadata()
         {
             var ilSource =
@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     }
     static void Report(object o)
     {
-        System.Console.WriteLine(""{0}: {1}"", o.GetType(), o);
+        var value = o is System.DateTime ? ((System.DateTime)o).ToString(""MM'/'dd'/'yyyy HH':'mm':'ss"") : o;
+        System.Console.WriteLine(""{0}: {1}"", o.GetType(), value);
     }
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, TargetFramework.Mscorlib45, options: TestOptions.DebugExe);
@@ -176,7 +177,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
 3");
             var comp2b = CreateCompilation(
                 source2,
-                references: new[] { SystemRef, MetadataReference.CreateFromStream(comp1.EmitToStream()) },
+                references: new[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 options: TestOptions.DebugExe);
             comp2b.VerifyDiagnostics();
             CompileAndVerify(comp2b, expectedOutput:

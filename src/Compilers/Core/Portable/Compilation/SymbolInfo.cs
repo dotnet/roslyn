@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         /// still be that case that we have one or more "best guesses" as to what symbol was
         /// intended. These best guesses are available via the CandidateSymbols property.
         /// </summary>
-        public ISymbol Symbol { get; }
+        public ISymbol? Symbol { get; }
 
         /// <summary>
         /// If the expression did not successfully resolve to a symbol, but there were one or more
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        internal SymbolInfo(ISymbol symbol, ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
+        internal SymbolInfo(ISymbol? symbol, ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
             : this()
         {
             this.Symbol = symbol;
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis
 
 #if DEBUG
             const NamespaceKind NamespaceKindNamespaceGroup = (NamespaceKind)0;
-            Debug.Assert((object)symbol == null || symbol.Kind != SymbolKind.Namespace || ((INamespaceSymbol)symbol).NamespaceKind != NamespaceKindNamespaceGroup);
+            Debug.Assert(symbol is null || symbol.Kind != SymbolKind.Namespace || ((INamespaceSymbol)symbol).NamespaceKind != NamespaceKindNamespaceGroup);
             foreach (var item in _candidateSymbols)
             {
                 Debug.Assert(item.Kind != SymbolKind.Namespace || ((INamespaceSymbol)item).NamespaceKind != NamespaceKindNamespaceGroup);
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis
             this.CandidateReason = candidateReason;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is SymbolInfo && Equals((SymbolInfo)obj);
         }

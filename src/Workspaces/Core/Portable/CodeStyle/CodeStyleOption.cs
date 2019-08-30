@@ -3,21 +3,24 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal interface ICodeStyleOption
     {
         XElement ToXElement();
+        object Value { get; }
+        NotificationOption Notification { get; }
+        ICodeStyleOption WithValue(object value);
     }
 
     /// <summary>
     /// Represents a code style option and an associated notification option.  Supports
-    /// being instantiated with T as a <see cref="bool"/> or an <code>enum type</code>.
+    /// being instantiated with T as a <see cref="bool"/> or an <c>enum type</c>.
     /// 
     /// CodeStyleOption also has some basic support for migration a <see cref="bool"/> option
-    /// forward to an <code>enum type</code> option.  Specifically, if a previously serialized
+    /// forward to an <c>enum type</c> option.  Specifically, if a previously serialized
     /// bool-CodeStyleOption is then deserialized into an enum-CodeStyleOption then 'false' 
     /// values will be migrated to have the 0-value of the enum, and 'true' values will be
     /// migrated to have the 1-value of the enum.
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
-        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.None);
+        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.Silent);
 
         private const int SerializationVersion = 1;
 
@@ -40,6 +43,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public T Value { get; set; }
 
+        object ICodeStyleOption.Value => this.Value;
+        ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption<T>((T)value, Notification);
+
         private int EnumValueAsInt32 => (int)(object)Value;
 
         public NotificationOption Notification { get; set; }
@@ -49,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
                 new XAttribute("Type", GetTypeNameForSerialization()),
                 new XAttribute(nameof(Value), GetValueForSerialization()),
-                new XAttribute(nameof(DiagnosticSeverity), Notification.Value));
+                new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
         private object GetValueForSerialization()
         {
@@ -115,45 +121,28 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var value = parser(valueAttribute.Value);
             var severity = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), severityAttribute.Value);
 
-            NotificationOption notificationOption;
-            switch (severity)
+            return new CodeStyleOption<T>(value, severity switch
             {
-                case DiagnosticSeverity.Hidden:
-                    notificationOption = NotificationOption.None;
-                    break;
-                case DiagnosticSeverity.Info:
-                    notificationOption = NotificationOption.Suggestion;
-                    break;
-                case DiagnosticSeverity.Warning:
-                    notificationOption = NotificationOption.Warning;
-                    break;
-                case DiagnosticSeverity.Error:
-                    notificationOption = NotificationOption.Error;
-                    break;
-                default:
-                    throw new ArgumentException(nameof(element));
-            }
-
-            return new CodeStyleOption<T>(value, notificationOption);
+                DiagnosticSeverity.Hidden => NotificationOption.Silent,
+                DiagnosticSeverity.Info => NotificationOption.Suggestion,
+                DiagnosticSeverity.Warning => NotificationOption.Warning,
+                DiagnosticSeverity.Error => NotificationOption.Error,
+                _ => throw new ArgumentException(nameof(element)),
+            });
         }
 
         private static Func<string, T> GetParser(string type)
-        {
-            switch (type)
+            => type switch
             {
-                case nameof(Boolean):
+                nameof(Boolean) =>
                     // Try to map a boolean value.  Either map it to true/false if we're a 
                     // CodeStyleOption<bool> or map it to the 0 or 1 value for an enum if we're
                     // a CodeStyleOption<SomeEnumType>.
-                    return v => Convert(bool.Parse(v));
-                case nameof(Int32):
-                    return v => Convert(int.Parse(v));
-                case nameof(String):
-                    return v => (T)(object)v;
-                default:
-                    throw new ArgumentException(nameof(type));
-            }
-        }
+                    (Func<string, T>)(v => Convert(bool.Parse(v))),
+                nameof(Int32) => v => Convert(int.Parse(v)),
+                nameof(String) => v => (T)(object)v,
+                _ => throw new ArgumentException(nameof(type)),
+            };
 
         private static T Convert(bool b)
         {
@@ -188,6 +177,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                Equals(option);
 
         public override int GetHashCode()
-            => Hash.Combine(Value.GetHashCode(), Notification.GetHashCode());
+            => unchecked((Notification.GetHashCode() * (int)0xA5555529) + Value.GetHashCode());
     }
 }

@@ -51,9 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Workspace workspace,
             CancellationToken cancellationToken)
         {
-            var syntaxTree = semanticModel.SyntaxTree;
-            var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
-            var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
+            var token = await GetTokenAtPositionAsync(semanticModel, position, workspace, cancellationToken).ConfigureAwait(false);
 
             if (token != default &&
                 token.Span.IntersectsWith(position))
@@ -62,6 +60,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return TokenSemanticInfo.Empty;
+        }
+
+        private static Task<SyntaxToken> GetTokenAtPositionAsync(
+            SemanticModel semanticModel,
+            int position,
+            Workspace workspace,
+            CancellationToken cancellationToken)
+        {
+            var syntaxTree = semanticModel.SyntaxTree;
+            var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
+
+            return syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
         }
 
         public static async Task<ISymbol> FindSymbolAtPositionAsync(
@@ -212,7 +222,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var key = symbol.GetSymbolKey();
 
             // We may be talking about different compilations.  So do not try to resolve locations.
-            return key.Resolve(compilation, resolveLocations: false, cancellationToken: cancellationToken).GetAllSymbols().OfType<TSymbol>();
+            var result = new HashSet<TSymbol>();
+            var resolution = key.Resolve(compilation, resolveLocations: false, cancellationToken: cancellationToken);
+            foreach (var current in resolution.OfType<TSymbol>())
+            {
+                result.Add(current);
+            }
+
+            return result;
         }
     }
 }

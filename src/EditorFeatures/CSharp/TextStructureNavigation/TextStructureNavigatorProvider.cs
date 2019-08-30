@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
     internal class TextStructureNavigatorProvider : AbstractTextStructureNavigatorProvider
     {
         [ImportingConstructor]
-        internal TextStructureNavigatorProvider(
+        public TextStructureNavigatorProvider(
             ITextStructureNavigatorSelectorService selectorService,
             IContentTypeRegistryService contentTypeService,
             IWaitIndicator waitIndicator)

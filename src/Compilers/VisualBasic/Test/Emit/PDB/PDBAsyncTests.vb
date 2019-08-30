@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
         Inherits BasicTestBase
 
         <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SimpleAsyncMethod()
             Dim source =
 <compilation>
@@ -129,7 +129,7 @@ End Class
             v.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
@@ -169,7 +169,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestAsync()
             Dim source =
 <compilation>
@@ -211,7 +212,7 @@ End Module
             compilation.VerifyPdb("Module1.F",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="F" parameterNames="a">
@@ -225,7 +226,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_1_F.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_F" name="MoveNext">
@@ -266,7 +267,7 @@ End Module
             compilation.VerifyPdb("Module1.Test",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Test">
@@ -280,7 +281,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_2_Test.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_2_Test" name="MoveNext">
@@ -343,7 +344,7 @@ End Module
             compilation.VerifyPdb("Module1.S",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="S">
@@ -357,7 +358,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_3_S.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_3_S" name="MoveNext">
@@ -395,7 +396,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -427,7 +429,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
@@ -476,7 +478,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
@@ -508,7 +510,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
@@ -546,7 +548,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -576,7 +579,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
@@ -625,7 +628,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
@@ -655,7 +658,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
@@ -697,7 +700,7 @@ End Class
         End Sub
 
         <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AsyncReturnVariable()
             Dim source =
 <compilation>
@@ -720,7 +723,7 @@ End Class
             c.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
@@ -754,7 +757,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AsyncAndClosure()
             Dim source =
 <compilation>
@@ -897,7 +900,7 @@ End Module
 ", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PartialKickoffMethod()
             Dim src = "
 Public Partial Class C
@@ -913,7 +916,7 @@ End Class
             v.VerifyPdb("C.M", "
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""VB"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -960,7 +963,7 @@ MethodDebugInformation (index: 0x31, size: 20):
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CatchInAsyncStateMachine()
             Dim src = "
 Imports System
@@ -977,12 +980,12 @@ Class C
         End Try
     End Function
 End Class"
-            Dim v = CompileAndVerify(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim v = CompileAndVerifyEx(src, references:=LatestVbReferences, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.Empty)
 
             v.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="test" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="test" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_M" name="MoveNext">

@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             ImportsStatementSyntax,
             ImportsStatementSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetGlobalImports(compilation As Compilation) As ImmutableArray(Of SyntaxNode)
             Dim generator = VisualBasicSyntaxGenerator.Instance
             Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
@@ -36,6 +40,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                                                FirstOrDefault()?.Alias
         End Function
 
+        Protected Overrides Function IsStaticUsing(usingOrAlias As ImportsStatementSyntax) As Boolean
+            ' Visual Basic doesn't support static imports
+            Return False
+        End Function
+
         Protected Overrides Function GetExterns(node As SyntaxNode) As SyntaxList(Of ImportsStatementSyntax)
             Return Nothing
         End Function
@@ -51,9 +60,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
         Protected Overrides Function Rewrite(
                 externAliases() As ImportsStatementSyntax,
                 usingDirectives() As ImportsStatementSyntax,
+                staticUsingDirectives() As ImportsStatementSyntax,
                 aliasDirectives() As ImportsStatementSyntax,
                 externContainer As SyntaxNode,
                 usingContainer As SyntaxNode,
+                staticUsingContainer As SyntaxNode,
                 aliasContainer As SyntaxNode,
                 placeSystemNamespaceFirst As Boolean,
                 root As SyntaxNode) As SyntaxNode

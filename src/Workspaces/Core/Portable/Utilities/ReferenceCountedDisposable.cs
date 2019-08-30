@@ -49,7 +49,7 @@ namespace Roslyn.Utilities
     /// even in concurrent execution.</para>
     /// </remarks>
     /// <typeparam name="T">The type of disposable object.</typeparam>
-    internal sealed class ReferenceCountedDisposable<T> : IDisposable
+    internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposable<T>, IDisposable
         where T : class, IDisposable
     {
         /// <summary>
@@ -126,6 +126,11 @@ namespace Roslyn.Utilities
         public ReferenceCountedDisposable<T> TryAddReference()
         {
             return TryAddReferenceImpl(_instance, _boxedReferenceCount);
+        }
+
+        IReferenceCountedDisposable<T> IReferenceCountedDisposable<T>.TryAddReference()
+        {
+            return TryAddReference();
         }
 
         /// <summary>

@@ -2,9 +2,1229 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
+        <source>Adding analyzer config documents is not supported.</source>
+        <target state="translated">Çözümleyici yapılandırma belgelerinin eklenmesi desteklenmiyor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">Belirtilen yapılandırma dosyası okunurken bir hata oluştu: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_files">
+        <source>C# files</source>
+        <target state="translated">C# dosyalarını</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
+        <source>Changing analyzer config documents is not supported.</source>
+        <target state="translated">Çözümleyici yapılandırma belgelerinin değiştirilmesi desteklenmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_document_0_is_not_supported">
+        <source>Changing document '{0}' is not supported.</source>
+        <target state="translated">Değişen belge '{0}' desteklenmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Core_EditorConfig_Options">
+        <source>Core EditorConfig Options</source>
+        <target state="translated">Çekirdek EditorConfig seçenekleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DateTimeKind_must_be_Utc">
+        <source>DateTimeKind must be Utc</source>
+        <target state="translated">DateTimeKind Utc olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_level_preferences">
+        <source>Expression-level preferences</source>
+        <target state="translated">İfade düzey tercihleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field_preferences">
+        <source>Field preferences</source>
+        <target state="translated">Alan tercihleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="translated">Girinti ve aralığı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
+        <source>Language keywords vs BCL types preferences</source>
+        <target state="translated">Dil anahtar kelimeler vs BCL türleri tercihleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier_preferences">
+        <source>Modifier preferences</source>
+        <target state="translated">Değiştirici tercihleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_rules">
+        <source>Naming rules</source>
+        <target state="translated">Adlandırma kuralları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_styles">
+        <source>Naming styles</source>
+        <target state="translated">Adlandırma stilleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Yeni satır tercihleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organize_usings">
+        <source>Organize usings</source>
+        <target state="translated">Kullanımları Düzenle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_preferences">
+        <source>Parentheses preferences</source>
+        <target state="translated">Parantez tercihleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
+        <source>Prefix '{0}' does not match expected prefix '{1}'</source>
+        <target state="translated">'{0}' öneki 'beklenen {1}' öneki eşleşmiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefix_0_is_not_expected">
+        <source>Prefix '{0}' is not expected</source>
+        <target state="translated">'{0}' öneki beklenmez</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">Sadece Yeniden Düzenlenme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_control_characters_long">
+        <source>All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</source>
+        <target state="translated">Tüm denetim karakterleri. Buna Cc, Cf, Cs, Co ve Cn kategorileri dahildir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_control_characters_short">
+        <source>all control characters</source>
+        <target state="translated">tüm denetim karakterleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_diacritic_marks_long">
+        <source>All diacritic marks. This includes the Mn, Mc, and Me categories.</source>
+        <target state="translated">Tüm aksan işaretleri. Buna Mn, Mc ve Me kategorileri dahildir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_diacritic_marks_short">
+        <source>all diacritic marks</source>
+        <target state="translated">tüm aksan işaretleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_letter_characters_long">
+        <source>All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</source>
+        <target state="translated">Tüm harf karakterleri. Buna Lu, Ll, Lt, Lm ve Lo karakterleri dahildir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_letter_characters_short">
+        <source>all letter characters</source>
+        <target state="translated">tüm harf karakterleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_numbers_long">
+        <source>All numbers. This includes the Nd, Nl, and No categories.</source>
+        <target state="translated">Tüm sayılar. Bunlara Nd, Nl ve No kategorileri dahildir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_numbers_short">
+        <source>all numbers</source>
+        <target state="translated">tüm sayılar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_punctuation_characters_long">
+        <source>All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</source>
+        <target state="translated">Tüm noktalama karakterleri. Buna Pc, Pd, Ps, Pe, Pi, Pf ve Po kategorileri dahildir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_punctuation_characters_short">
+        <source>all punctuation characters</source>
+        <target state="translated">tüm noktalama karakterleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_separator_characters_long">
+        <source>All separator characters. This includes the Zs, Zl, and Zp categories.</source>
+        <target state="translated">Tüm ayıraç karakterleri. Buna Zs, Zl ve Zp kategorileri dahildir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_separator_characters_short">
+        <source>all separator characters</source>
+        <target state="translated">tüm ayıraç karakterleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_symbols_long">
+        <source>All symbols. This includes the Sm, Sc, Sk, and So categories.</source>
+        <target state="translated">Tüm semboller. Buna Sm, Sc, Sk ve So kategorileri dahildir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_all_symbols_short">
+        <source>all symbols</source>
+        <target state="translated">tüm semboller</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_alternation_long">
+        <source>You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.</source>
+        <target state="translated">Dikey çubuk (|) karakterini, | karakterinin her deseni ayırdığı bir dizi desenin herhangi biriyle eşleştirmek için kullanabilirsiniz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_alternation_short">
+        <source>alternation</source>
+        <target state="translated">değişim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_any_character_group_long">
+        <source>The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</source>
+        <target state="translated">Nokta karakteri (.) \n (yeni satır karakteri, \u000A) dışında herhangi bir karakterle eşleşir.  Normal ifade deseni RegexOptions.Singleline seçeneği tarafından değiştirilirse veya desenin . karakteri sınıfını içeren kısmı 's' seçeneği tarafından değiştirilirse, . herhangi bir karakterle eşleşir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_any_character_group_short">
+        <source>any character</source>
+        <target state="translated">herhangi bir karakter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_backspace_character_long">
+        <source>Matches a backspace character, \u0008</source>
+        <target state="translated">Bir geri al karakteriyle (\u0008) eşleşir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_backspace_character_short">
+        <source>backspace character</source>
+        <target state="translated">geri al karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_balancing_group_long">
+        <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+    
+'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+
+The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
+        <target state="translated">Bir dengeleme grubu tanımı, geçerli grupta, önceden tanımlanmış grup ile geçerli grup arasındaki aralıkta, önceden tanımlanmış bir grubun ve depoların tanımını siler.
+    
+'name1' geçerli grup (isteğe bağlı), 'name2' önceden tanımlanmış bir grup ve 'subexpression' ise herhangi bir geçerli normal ifade desenidir. Dengeleme grubu tanımı name2'nin tanımını siler ve name2 ile name1 arasındaki aralığı name1'e depolar. Bir name2 grubu tanımlanmamışsa, eşleşme geri iz sürer. name2'nin son tanımını silmek, name2'nin önceki tanımını ortaya çıkardığından, bu yapı name2 grubu için yakalama yığınını, parantez veya açma ve kapama ayracı gibi iç içe yapıları izlemek için bir sayaç olarak kullanmanıza olanak sağlar.
+
+Dengeleme grubu tanımı 'name2' öğesini bir yığın olarak kullanır. Her iç içe yapının başlangıç karakteri, gruba ve grubun Group.Captures koleksiyonuna yerleştirilir. Kapanış karakteri eşleştiğinde, karşılık gelen açma karakteri gruptan kaldırılır ve Captures koleksiyonunda bir öğe azalır. İç içe tüm yapıların açılış ve kapanış karakterleri eşleştirildikten sonra, 'name1' boş olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_balancing_group_short">
+        <source>balancing group</source>
+        <target state="translated">dengeleme grubu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_base_group">
+        <source>base-group</source>
+        <target state="translated">temel grup</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_bell_character_long">
+        <source>Matches a bell (alarm) character, \u0007</source>
+        <target state="translated">Bir zil (alarm) karakteriyle (\u0007) eşleşir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_bell_character_short">
+        <source>bell character</source>
+        <target state="translated">zil karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_carriage_return_character_long">
+        <source>Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</source>
+        <target state="translated">Bir satır başı karakteriyle (\u000D) eşleşir.  \r karakterinin yeni satır karakteriyle (\n) eşdeğer olmadığını unutmayın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_carriage_return_character_short">
+        <source>carriage-return character</source>
+        <target state="translated">satır başı karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_character_class_subtraction_long">
+        <source>Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+
+'base_group' is a positive or negative character group or range. The 'excluded_group' component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</source>
+        <target state="translated">Karakter sınıfı çıkarma işlemi, bir karakter sınıfındaki karakterlerin başka bir karakter sınıfından dışlanması sonucu oluşan bir karakter kümesi oluşturur.
+
+'base_group' pozitif veya negatif bir karakter grubu veya aralığıdır. 'excluded_group' bileşeni başka bir pozitif veya negatif karakter grubu veya başka bir karakter sınıfı çıkarma ifadesidir (başka bir deyişle karakter sınıfı çıkarma ifadelerini iç içe yerleştirebilirsiniz).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_character_class_subtraction_short">
+        <source>character class subtraction</source>
+        <target state="translated">karakter sınıfı çıkarma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_character_group">
+        <source>character-group</source>
+        <target state="translated">karakter grubu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_comment">
+        <source>comment</source>
+        <target state="translated">açıklama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_conditional_expression_match_long">
+        <source>This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
+
+'expression' is the initial pattern to match, 'yes' is the pattern to match if expression is matched, and 'no' is the optional pattern to match if expression is not matched.</source>
+        <target state="translated">Bu dil öğesi, başlangıç deseniyle eşleşip eşleşemediğine bağlı olarak iki desenden biriyle eşleşmeye çalışır.
+
+'expression': eşleşecek ilk desen, 'yes': ifade eşleştiğinde eşleşecek olan desen ve 'no': ifade eşleşmediğinde eşleşecek olan isteğe bağlı desendir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_conditional_expression_match_short">
+        <source>conditional expression match</source>
+        <target state="translated">koşullu ifade eşleşmesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_conditional_group_match_long">
+        <source>This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
+
+'name' is the name (or number) of a capturing group, 'yes' is the expression to match if 'name' (or 'number') has a match, and 'no' is the optional expression to match if it does not.</source>
+        <target state="translated">Bu dil öğesi, belirtilen bir yakalama grubuyla eşleşip eşleşmediğine bağlı olarak iki desenden biriyle eşleşmeye çalışır.
+
+'name': bir yakalama grubunun adı (veya sayısı), 'yes': 'name' (veya 'number') bir eşleşme içeriyorsa eşleşecek olan ifade ve 'no': 'name' bir eşleşme içermiyorsa eşleşecek olan isteğe bağlı ifadedir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_conditional_group_match_short">
+        <source>conditional group match</source>
+        <target state="translated">koşullu grup eşleşmesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_contiguous_matches_long">
+        <source>The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</source>
+        <target state="translated">\G yer işareti, bir eşleşmenin önceki eşleşmenin sona erdiği noktada oluşması gerektiğini belirtir. Bu yer işaretini Regex.Matches veya Match.NextMatch yöntemiyle kullandığınızda, tüm eşleşmelerin bitişik olması sağlanır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_contiguous_matches_short">
+        <source>contiguous matches</source>
+        <target state="translated">bitişik eşleşmeler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_control_character_long">
+        <source>Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</source>
+        <target state="translated">ASCII denetim karakteriyle eşleşir (burada X, denetim karakterinin harfidir). Örneğin, \cC: CTRL-C.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_control_character_short">
+        <source>control character</source>
+        <target state="translated">denetim karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_decimal_digit_character_long">
+        <source>\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
+
+If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</source>
+        <target state="translated">\d herhangi bir ondalık sayıyla eşleşir. Bu karakter, diğer birkaç karakter kümesinin ondalık sayılarının yanı sıra standart 0-9 ondalık sayılarının dahil olduğu \p{Nd} normal ifade deseniyle eşdeğerdir.
+
+ECMAScript uyumlu davranış belirtilmişse, \d [0-9] ile eşdeğerdir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_decimal_digit_character_short">
+        <source>decimal-digit character</source>
+        <target state="translated">ondalık sayı karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_end_of_line_comment_long">
+        <source>A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</source>
+        <target state="translated">Bir sayı işareti (#) normal ifade deseninin sonunda kaçışsız # karakterden başlayan ve satırın sonuna kadar devam eden x-mode açıklamasını işaretler. Bu yapıyı kullanmak için, Regex nesnesinin örneği oluşturulurken ya da statik bir Regex yöntemi çağrılırken (satır içi seçenekler aracılığıyla) x seçeneğini etkinleştirmeniz veya seçenek parametresine RegexOptions.IgnorePatternWhitespace değerini sağlamanız gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_end_of_line_comment_short">
+        <source>end-of-line comment</source>
+        <target state="translated">satır sonu açıklaması</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_end_of_string_only_long">
+        <source>The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</source>
+        <target state="translated">\z yer işareti, giriş dizesinin sonunda bir eşleşmenin oluşması gerektiğini belirtir. $ dil öğesi gibi \z, RegexOptions.Multiline seçeneğini yoksayar. \Z dil öğesinin aksine \z, dizenin sonundaki bir \n karakteriyle eşleşmez. Bu nedenle, yalnızca giriş dizesinin son satırıyla eşleşebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_end_of_string_only_short">
+        <source>end of string only</source>
+        <target state="translated">yalnızca dize sonu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_end_of_string_or_before_ending_newline_long">
+        <source>The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
+
+The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</source>
+        <target state="translated">\Z yer işareti, giriş dizesinin sonunda veya giriş dizesinin sonundaki \n karakterinden önce bir eşleşmenin oluşması gerektiğini belirtir. Bu karakter $ yer işareti ile aynıdır, ancak \Z, RegexOptions.Multiline seçeneğini yoksayar. Bu nedenle çok satırlı bir dizede yalnızca son satırın sonu veya \n karakterinden önceki son satır ile eşleşir.
+
+\Z yer işareti \n ile eşleşir, ancak \r\n (CR/LF karakter bileşimi) ile eşleşmez. CR/LF ile eşleştirmek Için, normal ifade desenine \r?\Z karakterini ekleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_end_of_string_or_before_ending_newline_short">
+        <source>end of string or before ending newline</source>
+        <target state="translated">dize sonu veya yeni satırı sonlandırmadan önce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_end_of_string_or_line_long">
+        <source>The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
+
+The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</source>
+        <target state="translated">$ yer işareti, önceki desenin giriş dizesinin sonunda veya giriş dizesinin sonundaki \n karakterinden önce gerçekleşmesi gerektiğini belirtir. $ yer işaretini RegexOptions.Multiline seçeneğiyle birlikte kullanırsanız, eşleşme bir satırın sonunda da olabilir.
+
+$ yer işareti \n ile eşleşir, ancak \r\n (satır başı ve yeni satır karakterlerinin bileşimi veya CR/LF) ile eşleşmez. CR/LF karakter bileşimiyle eşleştirmek Için, normal ifade desenine \r?$ ekleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_end_of_string_or_line_short">
+        <source>end of string or line</source>
+        <target state="translated">dize veya satır sonu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_escape_character_long">
+        <source>Matches an escape character, \u001B</source>
+        <target state="translated">Bir kaçış karakteriyle (\u001B) eşleşir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_escape_character_short">
+        <source>escape character</source>
+        <target state="translated">kaçış karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_excluded_group">
+        <source>excluded-group</source>
+        <target state="translated">hariç tutulan grup</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_expression">
+        <source>expression</source>
+        <target state="translated">ifade</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_form_feed_character_long">
+        <source>Matches a form-feed character, \u000C</source>
+        <target state="translated">Bir sonraki sayfaya geçme karakteriyle (\u000C) eşleşir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_form_feed_character_short">
+        <source>form-feed character</source>
+        <target state="translated">sonraki sayfaya geçme karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_group_options_long">
+        <source>This grouping construct applies or disables the specified options within a subexpression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+
+    i	Use case-insensitive matching.
+    m	Use multiline mode, where ^ and $ match the beginning and end of each line
+	(instead of the beginning and end of the input string).
+    s	Use single-line mode, where the period (.) matches every character
+	(instead of every character except \n).
+    n	Do not capture unnamed groups. The only valid captures are explicitly
+	named or numbered groups of the form (?&lt;name&gt; subexpression).
+    x	Exclude unescaped white space from the pattern, and enable comments
+	after a number sign (#).</source>
+        <target state="translated">Bu gruplandırma yapısı, bir alt ifade içinde belirtilen seçenekleri uygular veya devre dışı bırakır. Etkinleştirilecek seçenekler soru işaretinden sonra ve devre dışı bırakılacak seçenekler eksi işaretinden sonra belirtilir. İzin verilen seçenekler şunlardır:
+
+    i	Büyük/küçük harfe duyarsız eşleşme kullan.
+    m	 ^ ve $ işaretlerinin her satırın başı ve sonuyla eşleştiği çok satırlı modu kullan
+	(giriş dizesinin başı ve sonu yerine).
+    s	Noktanın (.) her karakter ile eşleştiği tek satırlı modu kullan
+	(\n dışında her karakter yerine).
+    n	Adsız grupları yakalama. Yalnızca şu yakalamalar geçerlidir:
+	formun açıkça adlandırılmış veya numaralandırılmış grupları (?&lt;ad&gt; alt ifadesi).
+    x	Kaçışsız boşluğu desenden çıkar ve bir sayı işaretinden (#) sonra
+	açıklamaları etkinleştir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_group_options_short">
+        <source>group options</source>
+        <target state="translated">grup seçenekleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_hexadecimal_escape_long">
+        <source>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</source>
+        <target state="translated">## karakterinin iki basamaklı onaltılık karakter kodu olduğu bir ASCII karakteriyle eşleşir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_hexadecimal_escape_short">
+        <source>hexidecimal escape</source>
+        <target state="translated">onaltılık kaçış</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_inline_comment_long">
+        <source>The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</source>
+        <target state="translated">(?# comment) yapısı, bir normal ifadeye satır içi açıklama eklemenizi sağlar. Açıklama Regex.ToString yöntemi tarafından döndürülen dizeye dahil edilmiş olsa da, normal ifade altyapısı açıklamanın herhangi bir bölümünü desen eşleşmesinde kullanmaz. Açıklama ilk kapatma parantezinde sonlanır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_inline_comment_short">
+        <source>inline comment</source>
+        <target state="translated">satır içi açıklama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_inline_options_long">
+        <source>Enables or disables specific pattern matching options for the remainder of a regular expression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+
+    i	Use case-insensitive matching.
+    m	Use multiline mode, where ^ and $ match the beginning and end of each line
+	(instead of the beginning and end of the input string).
+    s	Use single-line mode, where the period (.) matches every character
+	(instead of every character except \n).
+    n	Do not capture unnamed groups. The only valid captures are explicitly named
+	or numbered groups of the form (?&lt;name&gt; subexpression).
+    x	Exclude unescaped white space from the pattern, and enable comments
+	after a number sign (#).</source>
+        <target state="translated">Normal bir ifadenin kalanı için belirli desen eşleştirme seçeneklerini etkinleştirir veya devre dışı bırakır. Etkinleştirilecek seçenekler soru işaretinden sonra ve devre dışı bırakılacak seçenekler eksi işaretinden sonra belirtilir. İzin verilen seçenekler şunlardır:
+
+    i	Büyük/küçük harfe duyarsız eşleşme kullan.
+    m	^ ve $ karakterlerinin her satırın başı ve sonuyla eşleştiği çok satırlı modu kullan
+	(giriş dizesinin başı ve sonu yerine).
+    s	Noktanın (.) her karakter ile eşleştiği tek satırlı modu kullan
+	(\n dışında her karakter yerine).
+    n	Adsız grupları yakalama. Yalnızca şu yakalamalar geçerlidir:
+	formun açıkça adlandırılmış veya numaralandırılmış grupları (?&lt;name&gt; alt ifadesi).
+    x	Kaçışsız boşluğu desenden çıkar ve sayı işaretinden (#) sonra
+	açıklamaları etkinleştir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_inline_options_short">
+        <source>inline options</source>
+        <target state="translated">satır içi seçenekler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_letter_lowercase">
+        <source>letter, lowercase</source>
+        <target state="translated">harf, küçük harf</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_letter_modifier">
+        <source>letter, modifier</source>
+        <target state="translated">harf, değiştirici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_letter_other">
+        <source>letter, other</source>
+        <target state="translated">harf, diğer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_letter_titlecase">
+        <source>letter, titlecase</source>
+        <target state="translated">harf, ilk harfler büyük</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_letter_uppercase">
+        <source>letter, uppercase</source>
+        <target state="translated">harf, büyük harf</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_mark_enclosing">
+        <source>mark, enclosing</source>
+        <target state="translated">işaret, kapsayan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_mark_nonspacing">
+        <source>mark, nonspacing</source>
+        <target state="translated">işaret, aralıksız</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_mark_spacing_combining">
+        <source>mark, spacing combining</source>
+        <target state="translated">işaretler, aralık birleştirme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_at_least_n_times_lazy_long">
+        <source>The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</source>
+        <target state="translated">{n,}? niceleyicisi önceki öğeyle en az n kez eşleşir (burada n herhangi bir tamsayıdır), ancak bunu mümkün olduğunca az sayıda yapar. Bu, hızlı niceleyicinin gecikmeli karşılığıdır {n,}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_at_least_n_times_lazy_short">
+        <source>match at least 'n' times (lazy)</source>
+        <target state="translated">en az 'n' kez eşle (gecikmeli)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_at_least_n_times_long">
+        <source>The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</source>
+        <target state="translated">{n,} niceleyicisi önceki öğeyle en az n kez eşleşir (burada n herhangi bir tamsayıdır). {n,}, gecikmeli karşılığı {n,}? olan hızlı bir niceleyicidir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_at_least_n_times_short">
+        <source>match at least 'n' times</source>
+        <target state="translated">en az 'n' kez eşleş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_between_m_and_n_times_lazy_long">
+        <source>The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</source>
+        <target state="translated">{n,m}? niceleyicisi, bir önceki öğeyle en az n ve en çok m kez eşleşir (burada n ve m tamsayıdır), ancak bunu olabildiğince az sayıda yapar. Bu, {n,m} hızlı niceleyicisinin gecikmeli karşılığıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_between_m_and_n_times_lazy_short">
+        <source>match at least 'n' times (lazy)</source>
+        <target state="translated">en az 'n' kez eşle (gecikmeli)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_between_m_and_n_times_long">
+        <source>The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</source>
+        <target state="translated">{n,m} niceleyicisi, bir önceki öğeyle en az n ve en çok m kez eşleşir (burada n ve m tamsayıdır). {n,m}, gecikmeli karşılığı {n,m}? olan bir hızlı niceleyicidir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_between_m_and_n_times_short">
+        <source>match between 'm' and 'n' times</source>
+        <target state="translated">en az 'n' ve en çok 'm' kez eşleş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_exactly_n_times_lazy_long">
+        <source>The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</source>
+        <target state="translated">{n}? niceleyicisi, önceki öğe ile tam olarak n kez eşleşir (burada n herhangi bir tamsayıdır). Bu, {n}+ hızlı niceleyicisinin gecikmeli karşılığıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_exactly_n_times_lazy_short">
+        <source>match exactly 'n' times (lazy)</source>
+        <target state="translated">tam olarak 'n' kez eşleş (gecikmeli)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_exactly_n_times_long">
+        <source>The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</source>
+        <target state="translated">{n} niceleyicisi, önceki öğe ile tam olarak n kez eşleşir (burada n herhangi bir tamsayıdır). {n}, gecikmeli karşılığı {n}? olan bir hızlı niceleyicidir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_exactly_n_times_short">
+        <source>match exactly 'n' times</source>
+        <target state="translated">tam olarak 'n' kez eşleş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_one_or_more_times_lazy_long">
+        <source>The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</source>
+        <target state="translated">+? niceleyicisi bir önceki öğeyle en az bir kez eşleşir, ancak bunu mümkün olduğunca az sayıda yapar. Bu, + hızlı niceleyicisinin gecikmeli karşılığıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_one_or_more_times_lazy_short">
+        <source>match one or more times (lazy)</source>
+        <target state="translated">bir veya daha çok kez eşleş (en düşük kapsamlı)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_one_or_more_times_long">
+        <source>The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</source>
+        <target state="translated">+ niceleyicisi bir önceki öğeyle en az bir kez eşleşir. {1,} niceleyicisi ile eşdeğerdir. +, gecikmeli karşılığı +? olan bir hızlı niceleyicidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_one_or_more_times_short">
+        <source>match one or more times</source>
+        <target state="translated">en az bir kez eşleş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_zero_or_more_times_lazy_long">
+        <source>The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</source>
+        <target state="translated">*? niceleyicisi bir önceki öğeyle sıfır veya daha çok kez eşleşir, ancak bunu mümkün olduğunca az sayıda yapar. Bu, * en yüksek kapsamlı niceleyicisinin en düşük kapsamlı karşılığıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_zero_or_more_times_lazy_short">
+        <source>match zero or more times (lazy)</source>
+        <target state="translated">en az sıfır kez eşleş (gecikmeli)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_zero_or_more_times_long">
+        <source>The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</source>
+        <target state="translated">* niceleyicisi bir önceki öğeyle en az sıfır kez eşleşir. {0,} niceleyicisi ile eşdeğerdir. *, gecikmeli karşılığı *? olan bir hızlı niceleyicidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_zero_or_more_times_short">
+        <source>match zero or more times</source>
+        <target state="translated">en az sıfır kez eşleş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_zero_or_one_time_lazy_long">
+        <source>The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</source>
+        <target state="translated">?? niceleyicisi bir önceki öğeyle sıfır veya bir kez eşleşir, ancak bunu mümkün olduğunca az sayıda yapar. Bu, ? hızlı niceleyicisinin gecikmeli karşılığıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_zero_or_one_time_lazy_short">
+        <source>match zero or one time (lazy)</source>
+        <target state="translated">sıfır veya bir kez eşleş (gecikmeli)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_zero_or_one_time_long">
+        <source>The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</source>
+        <target state="translated">? niceleyicisi bir önceki öğeyle sıfır veya bir kez eşleşir. {0,1} niceleyicisi ile eşdeğerdir. ?, gecikmeli karşılığı ?? olan bir hızlı niceleyicidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_match_zero_or_one_time_short">
+        <source>match zero or one time</source>
+        <target state="translated">sıfır veya bir kez eşleş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_matched_subexpression_long">
+        <source>This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</source>
+        <target state="translated">Bu gruplandırma yapısı, 'subexpression' öğesinin herhangi bir geçerli normal ifade deseni olduğu eşleşen bir 'subexpression' yakalar. Parantez kullanan yakalamalar, normal ifadedeki açma parantezlerinin sırasına göre soldan sağa birden başlayarak otomatik numaralandırılır. Sıfır olarak numaralandırılan yakalama, normal ifade deseninin tamamı tarafından eşleşen metindir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_matched_subexpression_short">
+        <source>matched subexpression</source>
+        <target state="translated">eşleşen alt ifade</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_name">
+        <source>name</source>
+        <target state="translated">ad</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_name1">
+        <source>name1</source>
+        <target state="translated">name1</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_name2">
+        <source>name2</source>
+        <target state="translated">name2</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_name_or_number">
+        <source>name-or-number</source>
+        <target state="translated">ad veya sayı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_named_backreference_long">
+        <source>A named or numbered backreference.
+
+'name' is the name of a capturing group defined in the regular expression pattern.</source>
+        <target state="translated">Adlandırılmış veya numaralandırılmış bir geri başvuru.
+
+'name', normal ifade deseninde tanımlanan yakalama grubunun adıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_named_backreference_short">
+        <source>named backreference</source>
+        <target state="translated">adlandırılmış geri başvuru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_named_matched_subexpression_long">
+        <source>Captures a matched subexpression and lets you access it by name or by number.
+
+'name' is a valid group name, and 'subexpression' is any valid regular expression pattern. 'name' must not contain any punctuation characters and cannot begin with a number.
+
+If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing groups.</source>
+        <target state="translated">Eşleşen bir alt ifadeyi yakalar ve bu alt ifadeye ada veya numaraya göre erişmenizi sağlar.
+
+'name' geçerli bir grup adı ve 'subexpression' herhangi bir geçerli normal ifade desenidir. 'name', hiçbir noktalama karakteri içermemelidir ve bir sayı ile başlayamaz.
+
+Normal ifade deseni eşleştirme yönteminin RegexOptions parametresi RegexOptions.ExplicitCapture bayrağını içeriyorsa veya n seçeneği bu alt ifadeye uygulanıyorsa, bir alt ifadeyi yakalamanın tek yolu yakalama gruplarını açıkça adlandırmaktır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_named_matched_subexpression_short">
+        <source>named matched subexpression</source>
+        <target state="translated">adlandırılmış eşleşen alt ifade</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_negative_character_group_long">
+        <source>A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
+
+Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</source>
+        <target state="translated">Negatif bir karakter grubu, bir eşleştirme oluşması için giriş dizesinde görünmemesi gereken bir karakter listesi belirtir. Karakter listesi tek tek belirtilir.
+
+İki veya daha fazla karakter aralığı art arda eklenebilir. Örneğin, "0" ile "9" arasındaki ondalık basamakların aralığını, "a" ile "f" arasında küçük harflerin aralığını ve "A" ile "F" arasında büyük harflerin aralığını belirtmek için [0-9a-fA-F] kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_negative_character_group_short">
+        <source>negative character group</source>
+        <target state="translated">negatif karakter grubu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_negative_character_range_long">
+        <source>A negative character range specifies a list of characters that must not appear in an input string for a match to occur. 'firstCharacter' is the character that begins the range, and 'lastCharacter' is the character that ends the range.
+
+Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</source>
+        <target state="translated">Negatif bir karakter aralığı, bir eşleştirme oluşması için giriş dizesinde görünmemesi gereken bir karakter listesi belirtir. 'firstCharacter' aralığı başlatan karakter ve 'lastCharacter' ise aralığı sonlandıran karakterdir.
+
+İki veya daha fazla karakter aralığı art arda eklenebilir. Örneğin, "0" ile "9" arasındaki ondalık sayıların aralığını, "a" ile "f" arasında küçük harflerin aralığını ve "A" ile "F" arasındaki büyük harflerin aralığını belirtmek için [0-9a-fA-F] kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_negative_character_range_short">
+        <source>negative character range</source>
+        <target state="translated">negatif karakter aralığı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_negative_unicode_category_long">
+        <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
+        <target state="translated">\P{ name } normal ifade yapısı, Unicode genel kategorisine veya adın kategori kısaltması ya da adlandırılmış blok adı olduğu adlandırılmış bloğa ait olmayan herhangi bir karakterle eşleşir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_negative_unicode_category_short">
+        <source>negative unicode category</source>
+        <target state="translated">negatif Unicode kategorisi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_new_line_character_long">
+        <source>Matches a new-line character, \u000A</source>
+        <target state="translated">Yeni satır karakteriyle \u000A eşleşir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_new_line_character_short">
+        <source>new-line character</source>
+        <target state="translated">yeni satır karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_no">
+        <source>no</source>
+        <target state="translated">hayır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_non_digit_character_long">
+        <source>\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
+
+If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</source>
+        <target state="translated">\D rakam olmayan herhangi bir karakter ile eşleşir. \P{Nd} normal ifade deseniyle eşdeğerdir.
+
+ECMAScript uyumlu davranış belirtilmişse \D, [^0-9] ile eşdeğerdir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_non_digit_character_short">
+        <source>non-digit character</source>
+        <target state="translated">rakam olmayan karakter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_non_white_space_character_long">
+        <source>\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
+
+If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</source>
+        <target state="translated">\S boşluk olmayan herhangi bir karakter ile eşleşir. [^\f\n\r\t\v\x85\p{Z}] normal ifade deseniyle eşdeğerdir veya boşluk karakterleriyle eşleşen \s ile eşdeğer olan normal ifade deseninin tersidir.
+
+ECMAScript uyumlu davranış belirtilmişse \S, [^ \f\n\r\t\v] ile eşdeğerdir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_non_white_space_character_short">
+        <source>non-white-space character</source>
+        <target state="translated">boşluk olmayan karakter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_non_word_boundary_long">
+        <source>The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</source>
+        <target state="translated">\B yer işareti, eşleşmenin bir sözcük sınırında oluşmaması gerektiğini belirtir. Bu işaret, \b yer işaretinin tersidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_non_word_boundary_short">
+        <source>non-word boundary</source>
+        <target state="translated">sözcük olmayan sınır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_non_word_character_long">
+        <source>\W matches any non-word character. It matches any character except for those in the following Unicode categories:
+
+    Ll	Letter, Lowercase
+    Lu	Letter, Uppercase
+    Lt	Letter, Titlecase
+    Lo	Letter, Other
+    Lm	Letter, Modifier
+    Mn	Mark, Nonspacing
+    Nd	Number, Decimal Digit
+    Pc	Punctuation, Connector
+
+If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</source>
+        <target state="translated">\W sözcük olmayan herhangi bir karakterle eşleşir. Aşağıdaki Unicode kategorilerinde bulunanlar dışındaki herhangi bir karakterle eşleşir:
+
+    Ll	Harf, Küçük Harf
+    Lu	Harf, Büyük Harf
+    Lt	Harf, İlk Harfler Büyük
+    Lo	Harf, Diğer
+    Lm	Harf, Değiştirici
+    Mn	İşaret, Aralıksız
+    Nd	Numara, Ondalık Sayı
+    Pc	Noktalama, Bağlayıcı
+
+ECMAScript uyumlu davranış belirtilmişse \W, [^a-zA-Z_0-9] ile eşdeğerdir</target>
+        <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized. </note>
+      </trans-unit>
+      <trans-unit id="Regex_non_word_character_short">
+        <source>non-word character</source>
+        <target state="translated">sözcük olmayan karakter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_nonbacktracking_subexpression_long">
+        <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+
+This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
+        <target state="translated">Bu yapı geri izlemeyi devre dışı bırakır. Normal ifade altyapısı, giriş dizesindeki mümkün olduğunca çok sayıda karakterle eşleşecektir. Başka bir eşleşme mümkün olmadığında, diğer desen eşleşmelerini denemek için geri izleme işlemi yapmaz. (Yani alt ifade yalnızca alt ifade tarafından eşleşen dizelerle eşleşir; alt ifadeyi ve kendisini izleyen alt ifadeleri temel alan bir dizeyle eşleştirmeyi denemez.)
+
+Bu seçenek, geri izlemenin başarısız olacağını biliyorsanız önerilir. Normal ifade altyapısının gereksiz arama gerçekleştirmesini önlemek performansı artırır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_nonbacktracking_subexpression_short">
+        <source>nonbacktracking subexpression</source>
+        <target state="translated">geri izleme yapmayan alt ifade</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_noncapturing_group_long">
+        <source>This construct does not capture the substring that is matched by a subexpression:
+
+The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
+
+If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</source>
+        <target state="translated">Bu yapı bir alt ifade tarafından eşleştirilen alt dizeyi yakalamaz:
+
+Yakalama yapmayan grup yapısı genellikle bir gruba niceleyici uygulandığında kullanılır, ancak grup tarafından yakalanan alt dizelerle ilgilenilmez.
+
+Bir normal ifade iç içe gruplama yapıları içeriyorsa, dıştaki yakalama yapmayan grup yapısı içteki iç içe geçmiş grup yapılarına uygulanmaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_noncapturing_group_short">
+        <source>noncapturing group</source>
+        <target state="translated">yakalama yapmayan grup</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_number_decimal_digit">
+        <source>number, decimal digit</source>
+        <target state="translated">sayı, ondalık sayı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_number_letter">
+        <source>number, letter</source>
+        <target state="translated">sayı, harf</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_number_other">
+        <source>number, other</source>
+        <target state="translated">sayı, diğer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_numbered_backreference_long">
+        <source>A numbered backreference, where 'number' is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
+
+There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</source>
+        <target state="translated">'number' öğesinin normal ifadede yakalama grubunun sıralı konumu olduğu numaralandırılmış bir geri başvuru. Örneğin, \4 dördüncü yakalama grubunun içerikleriyle eşleşir.
+
+Sekizlik kaçış kodları (\16 gibi) ile aynı gösterimi kullanan \number geri başvuruları arasında bir belirsizlik vardır. Belirsizlik bir sorun oluşturuyorsa, belirsiz olmayan ve sekizlik karakter kodlarıyla karıştırılamayacak olan \k&lt;name&gt; gösterimini kullanabilirsiniz. Benzer şekilde, \xdd gibi onaltılık kodlar da belirsiz değildir ve geri başvurularla karıştırılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_numbered_backreference_short">
+        <source>numbered backreference</source>
+        <target state="translated">numaralandırılmış geri başvuru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_other_control">
+        <source>other, control</source>
+        <target state="translated">diğer, denetim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_other_format">
+        <source>other, format</source>
+        <target state="translated">diğer, biçim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_other_not_assigned">
+        <source>other, not assigned</source>
+        <target state="translated">diğer, atanmamış</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_other_private_use">
+        <source>other, private use</source>
+        <target state="translated">diğer, özel kullanım</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_other_surrogate">
+        <source>other, surrogate</source>
+        <target state="translated">diğer, vekil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_positive_character_group_long">
+        <source>A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur.</source>
+        <target state="translated">Pozitif bir karakter grubu, herhangi biri bir eşleşme olması için giriş dizesinde görünebilir bir karakter listesini belirtir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_positive_character_group_short">
+        <source>positive character group</source>
+        <target state="translated">pozitif karakter grubu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_positive_character_range_long">
+        <source>A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  'firstCharacter' is the character that begins the range and 'lastCharacter' is the character that ends the range. </source>
+        <target state="translated">Pozitif bir karakter aralığı, herhangi bir eşleşme olması için giriş dizesinde görünebilir bir karakter aralığı belirtir.  'firstCharacter', aralığı başlatan karakter ve 'lastCharacter', aralığı sonlandıran karakterdir. </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_positive_character_range_short">
+        <source>positive character range</source>
+        <target state="translated">pozitif karakter aralığı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_punctuation_close">
+        <source>punctuation, close</source>
+        <target state="translated">noktalama, kapat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_punctuation_connector">
+        <source>punctuation, connector</source>
+        <target state="translated">noktalama, bağlayıcı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_punctuation_dash">
+        <source>punctuation, dash</source>
+        <target state="translated">noktalama, tire</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_punctuation_final_quote">
+        <source>punctuation, final quote</source>
+        <target state="translated">noktalama, son alıntı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_punctuation_initial_quote">
+        <source>punctuation, initial quote</source>
+        <target state="translated">noktalama, ilk alıntı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_punctuation_open">
+        <source>punctuation, open</source>
+        <target state="translated">noktalama, açık</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_punctuation_other">
+        <source>punctuation, other</source>
+        <target state="translated">noktalama, diğer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_separator_line">
+        <source>separator, line</source>
+        <target state="translated">ayıraç, satır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_separator_paragraph">
+        <source>separator, paragraph</source>
+        <target state="translated">ayıraç, paragraf</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_separator_space">
+        <source>separator, space</source>
+        <target state="translated">ayıraç, boşluk</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_start_of_string_only_long">
+        <source>The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</source>
+        <target state="translated">\A yer işareti, giriş dizesinin başlangıcında bir eşleşmenin oluşması gerektiğini belirtir. ^ yer işaretiyle aynıdır, ancak \A RegexOptions.Multiline seçeneğini yoksayar. Bu nedenle, çok satırlı bir giriş dizesinde yalnızca ilk satırın başlangıcı ile eşleşebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_start_of_string_only_short">
+        <source>start of string only</source>
+        <target state="translated">yalnızca dize başlangıcı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_start_of_string_or_line_long">
+        <source>The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</source>
+        <target state="translated">^ yer işareti, aşağıdaki desenin dizenin ilk karakter konumunda başlaması gerektiğini belirtir. ^ işaretini RegexOptions.Multiline seçeneğiyle kullanırsanız, eşleşme her satırın başlangıcında oluşmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_start_of_string_or_line_short">
+        <source>start of string or line</source>
+        <target state="translated">dize veya satır başlangıcı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_subexpression">
+        <source>subexpression</source>
+        <target state="translated">alt ifade</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_symbol_currency">
+        <source>symbol, currency</source>
+        <target state="translated">sembol, para birimi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_symbol_math">
+        <source>symbol, math</source>
+        <target state="translated">sembol, matematik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_symbol_modifier">
+        <source>symbol, modifier</source>
+        <target state="translated">sembol, değiştirici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_symbol_other">
+        <source>symbol, other</source>
+        <target state="translated">sembol, diğer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_tab_character_long">
+        <source>Matches a tab character, \u0009</source>
+        <target state="translated">Bir sekme karakteriyle (\u0009) eşleşir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_tab_character_short">
+        <source>tab character</source>
+        <target state="translated">sekme karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_unicode_category_long">
+        <source>The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
+        <target state="translated">\p{ name } normal ifade yapısı, bir Unicode genel kategorisine veya adın kategori kısaltması veya adlandırılmış blok adı olduğu adlandırılmış bloğa ait olan herhangi bir karakterle eşleşir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_unicode_category_short">
+        <source>unicode category</source>
+        <target state="translated">Unicode kategorisi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_unicode_escape_long">
+        <source>Matches a UTF-16 code unit whose value is #### hexadecimal.</source>
+        <target state="translated">#### onaltılık değeri olan bir UTF-16 kod birimiyle eşleşir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_unicode_escape_short">
+        <source>unicode escape</source>
+        <target state="translated">Unicode kaçışı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_unicode_general_category_0">
+        <source>Unicode General Category: {0}</source>
+        <target state="translated">Unicode Genel Kategorisi: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_vertical_tab_character_long">
+        <source>Matches a vertical-tab character, \u000B</source>
+        <target state="translated">Dikey sekme karakteriyle (\u000B) eşleşir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_vertical_tab_character_short">
+        <source>vertical-tab character</source>
+        <target state="translated">dikey sekme karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_white_space_character_long">
+        <source>\s matches any white-space character. It is equivalent to the following escape sequences and Unicode categories:
+
+    \f	The form feed character, \u000C
+    \n	The newline character, \u000A
+    \r	The carriage return character, \u000D
+    \t	The tab character, \u0009
+    \v	The vertical tab character, \u000B
+    \x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
+    \p{Z}	Matches any separator character
+
+If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</source>
+        <target state="translated">\s herhangi bir boşluk karakteriyle eşleşir. Aşağıdaki kaçış dizileri ve Unicode kategorileriyle eşdeğerdir:
+
+    \f	Sonraki sayfaya geçme karakteri: \u000C
+    \n	Yeni satır karakteri: \u000A
+    \r	Satır başı karakteri: \u000D
+    \t	Sekme karakteri: \u0009
+    \v	Dikey sekme karakteri: \u000B
+    \x85	Üç nokta veya SONRAKİ SATIR (NEL) karakteri (...): \u0085
+    \p{Z}	Herhangi bir ayıraç karakteriyle eşleşir
+
+ECMAScript uyumlu davranış belirtilmişse, \s değeri [ \f\n\r\t\v] ile eşdeğerdir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_white_space_character_short">
+        <source>white-space character</source>
+        <target state="translated">boşluk karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_word_boundary_long">
+        <source>The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
+
+The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</source>
+        <target state="translated">\b yer işareti, eşleşmenin bir sözcük karakteri (\w dil öğesi) ile sözcük olmayan bir karakter (\W dil öğesi) arasındaki bir sınırda oluşması gerektiğini belirtir. Sözcük karakterleri, alfasayısal karakterlerden ve alt çizgilerden oluşur; sözcük olmayan karakter, alfasayısal veya alt çizgi olmayan herhangi bir karakterdir. Ayrıca dizenin başlangıcında veya sonunda bulunan bir sözcük sınırında da eşleşme gerçekleşebilir.
+
+\b yer işareti, sıklıkla bir alt ifadenin yalnızca sözcüğün başı veya sonu yerine tüm sözcükle eşleştiğinden emin olmak için kullanılır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_word_boundary_short">
+        <source>word boundary</source>
+        <target state="translated">sözcük sınırı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_word_character_long">
+        <source>\w matches any word character. A word character is a member of any of the following Unicode categories:
+
+    Ll	Letter, Lowercase
+    Lu	Letter, Uppercase
+    Lt	Letter, Titlecase
+    Lo	Letter, Other
+    Lm	Letter, Modifier
+    Mn	Mark, Nonspacing
+    Nd	Number, Decimal Digit
+    Pc	Punctuation, Connector
+
+If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</source>
+        <target state="translated">\w herhangi bir sözcük karakteriyle eşleşir. Bir sözcük karakteri şu Unicode kategorilerden herhangi birinin üyesidir:
+
+    Ll	Harf, Küçük Harf
+    Lu	Harf, Büyük Harf
+    Lt	Harf, İlk Harfler Büyük
+    Lo	Harf, Diğer
+    Lm	Harf, Değiştirici
+    Mn	İşaret, Aralıksız
+    Nd	Numara, Ondalık Sayı
+    Pc	Noktalama, Bağlayıcı
+
+ECMAScript uyumlu davranış belirtilmişse, \w [a-zA-Z_0-9] ile eşdeğerdir</target>
+        <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Regex_word_character_short">
+        <source>word character</source>
+        <target state="translated">sözcük karakteri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_yes">
+        <source>yes</source>
+        <target state="translated">evet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
+        <source>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
+
+A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
+        <target state="translated">Eşleşmenin başarılı olması için giriş dizesinin alt ifadedeki normal ifade deseniyle eşleşmemesi gerektiği sıfır genişlikli bir negatif ileri yönlü onaylama. Eşleşen dize, eşleşme sonucuna dahil değildir.
+
+Sıfır genişlikli bir negatif ileri yönlü onaylama genellikle normal ifadenin başında veya sonunda kullanılır. Normal bir ifadenin başında olduğunda, normal ifadenin başının eşleştirilecek benzer ancak daha genel bir desen tanımlaması durumunda, eşleştirilmemesi gereken belirli bir desen tanımlayabilir. Bu durumda, genellikle geri izlemeyi sınırlandırmak için kullanılır. Normal bir ifadenin sonunda olduğunda, bir eşleşmenin sonunda oluşamayacak bir alt ifade tanımlayabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
+        <source>zero-width negative lookahead assertion</source>
+        <target state="translated">sıfır genişlikli negatif ileri yönlü onaylama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_long">
+        <source>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
+
+Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</source>
+        <target state="translated">Bir eşleşmenin başarılı olması için geçerli konumun solundaki giriş dizesinde 'subexpression' gerçekleşmemesi gereken sıfır genişlikli bir negatif geri yönlü onaylama. 'subexpression' ile eşleşmeyen herhangi bir alt dize, eşleşme sonucuna dahil değildir.
+
+Sıfır genişlikli negatif geri yönlü onaylamalar genellikle normal ifadelerin başlangıcında kullanılır. Tanımladıkları desen, kendisini izleyen dizede bir eşleşmenin önüne geçer. Ayrıca, yakalanan bir gruptaki son karakter veya karakterler, grubun normal ifade deseniyle eşleşen karakterlerden biri veya daha fazlası olmaması gerektiğinde, geri izlemeyi sınırlandırmak için de kullanılır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_short">
+        <source>zero-width negative lookbehind assertion</source>
+        <target state="translated">sıfır genişlikli negatif geri yönlü onaylama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_zero_width_positive_lookahead_assertion_long">
+        <source>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+
+Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</source>
+        <target state="translated">Bir eşleşmenin başarılı olması için giriş dizesinin 'subexpression' içindeki normal ifade deseniyle eşleşmesi gerektiği sıfır genişlikli bir pozitif ileri yönlü onaylama. Eşleşen alt dize, eşleşme sonucuna dahil değildir. Sıfır genişlikli bir pozitif ileri yönlü onaylama geri izleme yapmaz.
+
+Sıfır genişlikli bir pozitif ileri yönlü onaylama genellikle normal ifade deseninin sonunda bulunur. Bir eşleşmenin gerçekleşmesi için bir dizenin sonunda bulunması, ancak eşleştirmeye dahil edilmemesi gereken bir alt dizeyi tanımlar. Aşırı geri izleme yapılmasını önlemek için de yararlıdır. Yakalanan belirli bir grubun, bu yakalanmış grup için tanımlanan desenin bir alt kümesiyle eşleşen metinle başladığından emin olmak için sıfır genişlikli bir pozitif ileri yönlü onaylama işlemi kullanabilirsiniz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_zero_width_positive_lookahead_assertion_short">
+        <source>zero-width positive lookahead assertion</source>
+        <target state="translated">sıfır genişlikli pozitif ileri yönlü onaylama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_long">
+        <source>A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
+
+Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</source>
+        <target state="translated">Bir eşleşmenin başarılı olması için geçerli konumun solundaki giriş dizesinde 'subexpression' oluşması gereken sıfır genişlikli bir pozitif geri yönlü onaylama işlemi. 'subexpression' eşleşme sonucuna dahil değildir. Sıfır genişlikli bir pozitif geri yönlü onaylama işlemi geri izleme yapmaz.
+
+Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadelerin başında kullanılır. Tanımladıkları desen eşleşme sonucunun bir parçası olmasa da, bir eşleşme ön koşuludur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
+        <source>zero-width positive lookbehind assertion</source>
+        <target state="translated">sıfır genişlikli pozitif geri yönlü onaylama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
+        <source>Remove the line below if you want to inherit .editorconfig settings from higher directories</source>
+        <target state="translated">.Editorconfig ayarları daha yüksek dizinlerden devralmak isterseniz aşağıdaki satırı Kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
+        <source>Removing analyzer config documents is not supported.</source>
+        <target state="translated">Çözümleyici yapılandırma belgelerinin kaldırılması desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -80,6 +1300,56 @@
       <trans-unit id="Adding_projects_is_not_supported">
         <source>Adding projects is not supported.</source>
         <target state="translated">Projelerin eklenmesi desteklenmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_specifications">
+        <source>Symbol specifications</source>
+        <target state="translated">Sembol belirtimleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">
+        <source>Base Type</source>
+        <target state="translated">Temel Tür</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Construct">
+        <source>Construct</source>
+        <target state="translated">Oluştur</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Declare">
+        <source>Declare</source>
+        <target state="translated">Bildir</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Import">
+        <source>Import</source>
+        <target state="translated">İçeri aktar</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
+        <source>Qualify</source>
+        <target state="translated">Nitelikli hale getir</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
+        <source>Type Argument</source>
+        <target state="translated">Tür Bağımsız Değişkeni</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
+        <source>Type Constraint</source>
+        <target state="translated">Tür Kısıtlaması</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Name">
+        <source>Name</source>
+        <target state="translated">Ad</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="Visual_Basic_files">
+        <source>Visual Basic files</source>
+        <target state="translated">Visual Basic dosyaları</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
@@ -649,27 +1919,27 @@
       </trans-unit>
       <trans-unit id="Class">
         <source>Class</source>
-        <target state="translated">Sınıf</target>
+        <target state="new">Class</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Delegate">
         <source>Delegate</source>
-        <target state="translated">Temsilci</target>
+        <target state="new">Delegate</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Enum">
         <source>Enum</source>
-        <target state="translated">Sabit listesi</target>
+        <target state="new">Enum</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Event">
         <source>Event</source>
-        <target state="translated">Olay</target>
+        <target state="new">Event</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Interface">
         <source>Interface</source>
-        <target state="translated">Arabirim</target>
+        <target state="new">Interface</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Non_Field_Members">
@@ -694,7 +1964,7 @@
       </trans-unit>
       <trans-unit id="Property">
         <source>Property</source>
-        <target state="translated">Özellik</target>
+        <target state="new">Property</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Public_or_Protected_Field">
@@ -714,7 +1984,7 @@
       </trans-unit>
       <trans-unit id="Struct">
         <source>Struct</source>
-        <target state="translated">Yapı</target>
+        <target state="new">Struct</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Types">
@@ -724,7 +1994,7 @@
       </trans-unit>
       <trans-unit id="Method">
         <source>Method</source>
-        <target state="translated">Metot</target>
+        <target state="translated">yöntem</target>
         <note>{locked:method} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Missing_prefix_colon_0">
@@ -739,7 +2009,7 @@
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="translated">Hiçbiri</target>
+        <target state="translated">yok</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_suffix_colon_0">
@@ -797,9 +2067,199 @@
         <target state="translated">Belge özelliklerinin değiştirilmesi desteklenmiyor</target>
         <note />
       </trans-unit>
+      <trans-unit id="Alternation_conditions_cannot_be_comments">
+        <source>Alternation conditions cannot be comments</source>
+        <target state="translated">Değişim koşulları yorum olamaz</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a|(?#b)</note>
+      </trans-unit>
+      <trans-unit id="Alternation_conditions_do_not_capture_and_cannot_be_named">
+        <source>Alternation conditions do not capture and cannot be named</source>
+        <target state="translated">Değişim koşulları yakalamak değil ve adlandırılamaz</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="A_subtraction_must_be_the_last_element_in_a_character_class">
+        <source>A subtraction must be the last element in a character class</source>
+        <target state="translated">Bir çıkarma bir karakter sınıfı içinde son öğe olması gerekir</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
+      </trans-unit>
+      <trans-unit id="Cannot_include_class_0_in_character_range">
+        <source>Cannot include class \{0} in character range</source>
+        <target state="translated">Sınıf \{0} içeremez karakter aralığı</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</note>
+      </trans-unit>
+      <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
+        <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
+        <target state="translated">Yakalama grup numaraları Int32.MaxValue eşit veya daha az olmalıdır</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
+      </trans-unit>
+      <trans-unit id="Capture_number_cannot_be_zero">
+        <source>Capture number cannot be zero</source>
+        <target state="translated">Yakalama numarası sıfır olamaz</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Illegal_backslash_at_end_of_pattern">
+        <source>Illegal \ at end of pattern</source>
+        <target state="translated">Yasadışı \ model sonunda</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \</note>
+      </trans-unit>
+      <trans-unit id="Illegal_x_y_with_x_less_than_y">
+        <source>Illegal {x,y} with x &gt; y</source>
+        <target state="translated">Yasadışı {x, y} x &gt; y</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{1,0}</note>
+      </trans-unit>
+      <trans-unit id="Incomplete_character_escape">
+        <source>Incomplete \p{X} character escape</source>
+        <target state="translated">Tamamlanmamış \p{X} karakter kaçış</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{ Cc }</note>
+      </trans-unit>
+      <trans-unit id="Insufficient_hexadecimal_digits">
+        <source>Insufficient hexadecimal digits</source>
+        <target state="translated">Yetersiz onaltılık basamak</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
+      </trans-unit>
+      <trans-unit id="Invalid_group_name_Group_names_must_begin_with_a_word_character">
+        <source>Invalid group name: Group names must begin with a word character</source>
+        <target state="translated">Geçersiz grup adı: grup adları bir sözcük karakteri ile başlamalıdır</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Malformed">
+        <source>malformed</source>
+        <target state="translated">Hatalı biçimlendirilmiş</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
+      </trans-unit>
+      <trans-unit id="Malformed_character_escape">
+        <source>Malformed \p{X} character escape</source>
+        <target state="translated">Hatalı biçimlendirilmiş \p{X} karakter kaçış</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p {Cc}</note>
+      </trans-unit>
+      <trans-unit id="Malformed_named_back_reference">
+        <source>Malformed \k&lt;...&gt; named back reference</source>
+        <target state="translated">Hatalı biçimlendirilmiş \k &lt;&gt;... arka başvuru adı</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k'</note>
+      </trans-unit>
+      <trans-unit id="Missing_control_character">
+        <source>Missing control character</source>
+        <target state="translated">Eksik denetim karakteri</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
+      </trans-unit>
+      <trans-unit id="Nested_quantifier_0">
+        <source>Nested quantifier {0}</source>
+        <target state="translated">İç içe geçmiş niceleyici {0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
+      </trans-unit>
+      <trans-unit id="Not_enough_close_parens">
+        <source>Not enough )'s</source>
+        <target state="translated">Değil yeterli)'ın</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
+      </trans-unit>
+      <trans-unit id="Quantifier_x_y_following_nothing">
+        <source>Quantifier {x,y} following nothing</source>
+        <target state="translated">Niceleyici {x, y} hiçbir şeyi takip etmiyor</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Reference_to_undefined_group">
+        <source>reference to undefined group</source>
+        <target state="translated">tanımsız grubuna başvuru</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</note>
+      </trans-unit>
+      <trans-unit id="Reference_to_undefined_group_name_0">
+        <source>Reference to undefined group name {0}</source>
+        <target state="translated">{0} tanımsız grup adı referansı</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
+      </trans-unit>
+      <trans-unit id="Reference_to_undefined_group_number_0">
+        <source>Reference to undefined group number {0}</source>
+        <target state="translated">Tanımlanmamış grup numarası {0} referansı</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
+      </trans-unit>
+      <trans-unit id="Too_many_bars_in_conditional_grouping">
+        <source>Too many | in (?()|)</source>
+        <target state="translated">Çok fazla | içinde (?) (|)</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0)a|b|)</note>
+      </trans-unit>
+      <trans-unit id="Too_many_close_parens">
+        <source>Too many )'s</source>
+        <target state="translated">Çok fazla)'s</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
+      </trans-unit>
+      <trans-unit id="Unknown_property">
+        <source>Unknown property</source>
+        <target state="translated">Bilinmeyen Özellik</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{}</note>
+      </trans-unit>
+      <trans-unit id="Unknown_property_0">
+        <source>Unknown property '{0}'</source>
+        <target state="translated">'Bilinmeyen {0}' özelliği</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{xxx}. Here, {0} will be the name of the unknown property ('xxx')</note>
+      </trans-unit>
+      <trans-unit id="Unrecognized_control_character">
+        <source>Unrecognized control character</source>
+        <target state="translated">Tanınmayan denetim karakteri</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [\c]</note>
+      </trans-unit>
+      <trans-unit id="Unrecognized_escape_sequence_0">
+        <source>Unrecognized escape sequence \{0}</source>
+        <target state="translated">Tanınmayan çıkış sırası \{0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \m. Here, {0} will be the unrecognized character ('m')</note>
+      </trans-unit>
+      <trans-unit id="Unrecognized_grouping_construct">
+        <source>Unrecognized grouping construct</source>
+        <target state="translated">Tanınmayan gruplama yapısı</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;</note>
+      </trans-unit>
+      <trans-unit id="Unterminated_character_class_set">
+        <source>Unterminated [] set</source>
+        <target state="translated">Sonlandırılmamış [] kümesi</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [</note>
+      </trans-unit>
+      <trans-unit id="Unterminated_regex_comment">
+        <source>Unterminated (?#...) comment</source>
+        <target state="translated">Sonlandırılmamış (?... #) yorum</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?#</note>
+      </trans-unit>
+      <trans-unit id="dot_NET_Coding_Conventions">
+        <source>.NET Coding Conventions</source>
+        <target state="translated">.NET kodlama kuralları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="this_dot_and_Me_dot_preferences">
+        <source>this. and Me. preferences</source>
+        <target state="translated">Bu. ve bana tercihleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="x_y_range_in_reverse_order">
+        <source>[x-y] range in reverse order</source>
+        <target state="translated">[x-y] aralığı ters sırada</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [b-a]</note>
+      </trans-unit>
       <trans-unit id="Variables_captured_colon">
         <source>Variables captured:</source>
-        <target state="new">Variables captured:</target>
+        <target state="translated">Toplanan değişkenler:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_issue_0">
+        <source>Regex issue: {0}</source>
+        <target state="translated">Regex sorunu: {0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Read">
+        <source>Read</source>
+        <target state="translated">Oku</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Reference">
+        <source>Reference</source>
+        <target state="translated">Başvuru</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Write">
+        <source>Write</source>
+        <target state="translated">Yaz</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="Parameter_preferences">
+        <source>Parameter preferences</source>
+        <target state="translated">Parametre tercihleri</target>
         <note />
       </trans-unit>
     </body>

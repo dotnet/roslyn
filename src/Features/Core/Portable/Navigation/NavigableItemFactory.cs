@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Navigation
 
         public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
             Solution solution,
-            ISymbol symbol, 
+            ISymbol symbol,
             ImmutableArray<TaggedText>? displayTaggedParts,
             CancellationToken cancellationToken)
         {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         }
 
         public static IEnumerable<INavigableItem> GetPreferredNavigableItems(
-            Solution solution, 
+            Solution solution,
             IEnumerable<INavigableItem> navigableItems,
             CancellationToken cancellationToken)
         {

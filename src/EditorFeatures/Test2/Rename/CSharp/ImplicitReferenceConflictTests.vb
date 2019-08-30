@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
+    <[UseExportProvider]>
     Public Class ImplicitReferenceConflictTests
 
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
@@ -94,6 +95,31 @@ class C
                     </Workspace>, renameTo:="Deconstruct2")
 
                 result.AssertLabeledSpansAre("deconstructconflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameGetAwaiterCausesConflict()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+public class C
+{
+    public TaskAwaiter<bool> [|Get$$Awaiter|]() => Task.FromResult(true).GetAwaiter();
+
+    static async void M(C c)
+    {
+        {|awaitconflict:await|} c;
+    }
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>, renameTo:="GetAwaiter2")
+
+                result.AssertLabeledSpansAre("awaitconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 

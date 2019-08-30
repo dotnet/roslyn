@@ -6,6 +6,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions
@@ -23,10 +24,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Inherits CommonCompletionProvider
         Implements ICustomCommitCompletionProvider
 
+        Private ReadOnly _threadingContext As IThreadingContext
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
 
         <ImportingConstructor>
-        Public Sub New(editorAdaptersFactoryService As IVsEditorAdaptersFactoryService)
+        Public Sub New(threadingContext As IThreadingContext, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService)
+            _threadingContext = threadingContext
             Me._editorAdaptersFactoryService = editorAdaptersFactoryService
         End Sub
 
@@ -76,6 +79,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Return snippets.Select(Function(s) CommonCompletionItem.Create(
                                        s.Shortcut,
+                                       displayTextSuffix:="",
                                        description:=s.Description.ToSymbolDisplayParts(),
                                        glyph:=Glyph.Snippet,
                                        rules:=If(isTupleContext, s_tupleRules, s_rules)))
@@ -91,7 +95,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                           subjectBuffer As ITextBuffer,
                           triggerSnapshot As ITextSnapshot,
                           commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
-            Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(textView, subjectBuffer, _editorAdaptersFactoryService)
+            Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(_threadingContext, textView, subjectBuffer, _editorAdaptersFactoryService)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)

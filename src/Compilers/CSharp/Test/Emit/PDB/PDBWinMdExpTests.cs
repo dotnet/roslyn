@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBWinMdExpTests : CSharpTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestWinMdExpData_Empty()
         {
             #region "Source"
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             AssertXml.Equal(expected, actual);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestWinMdExpData_Basic()
         {
             var text = @"using System;
@@ -112,7 +112,7 @@ namespace X
         }
 
         [WorkItem(693206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/693206")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Bug693206()
         {
             #region "Source"
@@ -158,7 +158,7 @@ namespace X
             AssertXml.Equal(expected, actual);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestWinMdExpData_Property_Event()
         {
             #region "Source"
@@ -239,7 +239,7 @@ namespace X
             AssertXml.Equal(expected, actual);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestWinMdExpData_AnonymousTypes()
         {
             #region "Source"

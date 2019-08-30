@@ -2,95 +2,71 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
+    <TargetFramework>net472</TargetFramework>
+
+    <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-    <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <TargetVsixContainerName>ExpressionEvaluatorPackage.vsix</TargetVsixContainerName>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <RoslynProjectType>Vsix</RoslynProjectType>
-    <IsProductComponent>true</IsProductComponent>
-    <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
+    <ExtensionInstallationRoot>$(CommonExtensionInstallationRoot)</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\ExpressionEvaluators</ExtensionInstallationFolder>
+
+    <!-- VS Insertion -->
+    <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\VisualStudio\Setup\VisualStudioSetup.csproj">
+    <ProjectReference Include="..\..\VisualStudio\Setup\Roslyn.VisualStudio.Setup.csproj">
       <Name>VisualStudioSetup</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Source\ExpressionCompiler\ExpressionCompiler.csproj">
+    <ProjectReference Include="..\Core\Source\ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionCompiler.csproj">
       <Name>ExpressionCompiler</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Source\FunctionResolver\FunctionResolver.csproj">
+    <ProjectReference Include="..\Core\Source\FunctionResolver\Microsoft.CodeAnalysis.FunctionResolver.csproj">
       <Name>FunctionResolver</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
+      <AdditionalProperties>TargetFramework=netstandard1.3</AdditionalProperties>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Source\ResultProvider\Portable\ResultProvider.Portable.csproj">
+    <ProjectReference Include="..\Core\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.ResultProvider.csproj">
       <Name>ResultProvider.Portable</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\CSharp\Source\ExpressionCompiler\CSharpExpressionCompiler.csproj">
+    <ProjectReference Include="..\CSharp\Source\ExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionCompiler.csproj">
       <Name>CSharpExpressionCompiler</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\CSharp\Source\ResultProvider\Portable\CSharpResultProvider.Portable.csproj">
+    <ProjectReference Include="..\CSharp\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.CSharp.ResultProvider.csproj">
       <Name>CSharpResultProvider.Portable</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\Source\ExpressionCompiler\BasicExpressionCompiler.vbproj">
+    <ProjectReference Include="..\VisualBasic\Source\ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler.vbproj">
       <Name>BasicExpressionCompiler</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\Source\ResultProvider\Portable\BasicResultProvider.Portable.vbproj">
+    <ProjectReference Include="..\VisualBasic\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.VisualBasic.ResultProvider.vbproj">
       <Name>BasicResultProvider.Portable</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>
@@ -100,8 +76,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <!-- Work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/725508 by referencing Microsoft.VisualStudio.Text.Data -->
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\VisualStudio\Setup\ProvideRoslynBindingRedirection.cs">

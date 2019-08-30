@@ -60,13 +60,13 @@
       <trans-unit id="CopyRefAssembly_BadSource3">
         <source>Failed to check the content hash of the source ref assembly '{0}': {1}
 {2}</source>
-        <target state="translated">{0}' hedef başvuru bütünleştirilmiş kodunun içerik karması denetlenemedi: {1}
+        <target state="translated">Kaynak ürün kodu derleme '{0}' içerik karma denetlemek başarısız oldu: {1}
 {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="CopyRefAssembly_BadDestination1">
         <source>Failed to check the content hash of the destination ref assembly '{0}'. It will be overwritten.</source>
-        <target state="translated">{0}' hedef başvuru bütünleştirilmiş kodunun içerik karması denetlenemedi. Üzerine yazılacak.</target>
+        <target state="translated">Hedef ürün kodu derleme '{0}' içerik karma denetlemek başarısız oldu. O-ecek var overwritten.</target>
         <note />
       </trans-unit>
       <trans-unit id="General_ToolFileNotFound">
@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: Başvurulan "{0}" derlemesi bulunamadı. Bu derleme başka bir projeniz tarafından üretildiyse, lütfen bunu oluşturmadan önce ilgili projeyi oluşturduğunuzdan emin olun.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">"{0}" dosyası okunamadı: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">Paylaşılan derleme başarısız oldu; önceki araca dönülüyor: {0}</target>
@@ -118,6 +123,26 @@
         <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
         <target state="translated">MSB3402: "{0}" pdb dosyası oluşturulurken hata oluştu. {1}</target>
         <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">{0}, çakışan '{2}' meta verileriyle birlikte yinelenen '{1}' öğelerini içeriyor: '{3}' ve '{4}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">{0} yolunun sonunda eğik çizgi veya ters eğik çizgi olması gerekir: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">{1} true olduğunda {0} öğe en az bir üst düzey (iç içe geçmemiş) öğe içermelidir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">{0} değeri, {1} öğede bulunamadı veya karşılık gelen öğe, üst düzey kaynak kökü değil: '{2}'</target>
+        <note />
       </trans-unit>
     </body>
   </file>

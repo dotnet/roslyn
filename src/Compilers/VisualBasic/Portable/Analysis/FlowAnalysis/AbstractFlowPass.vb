@@ -691,6 +691,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        <DebuggerStepThrough>
         Private Shadows Function VisitWithStackGuard(node As BoundNode) As BoundNode
             Dim expression = TryCast(node, BoundExpression)
 
@@ -701,6 +702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MyBase.Visit(node)
         End Function
 
+        <DebuggerStepThrough>
         Protected Overrides Function VisitExpressionWithoutStackGuard(node As BoundExpression) As BoundExpression
             Return DirectCast(MyBase.Visit(node), BoundExpression)
         End Function
@@ -1869,10 +1871,10 @@ lUnsplitAndFinish:
 
         Public Overrides Function VisitRelationalCaseClause(node As BoundRelationalCaseClause) As BoundNode
             ' Exactly one of the operand or condition must be non-null
-            Debug.Assert(node.OperandOpt IsNot Nothing Xor node.ConditionOpt IsNot Nothing)
+            Debug.Assert(node.ValueOpt IsNot Nothing Xor node.ConditionOpt IsNot Nothing)
 
-            If node.OperandOpt IsNot Nothing Then
-                VisitRvalue(node.OperandOpt)
+            If node.ValueOpt IsNot Nothing Then
+                VisitRvalue(node.ValueOpt)
             Else
                 VisitRvalue(node.ConditionOpt)
             End If

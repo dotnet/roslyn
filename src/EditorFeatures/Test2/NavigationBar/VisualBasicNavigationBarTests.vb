@@ -4,6 +4,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
+    <[UseExportProvider]>
     Partial Public Class VisualBasicNavigationBarTests
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545000")>
         Public Async Function TestEventsInInterfaces() As Task
@@ -749,7 +750,8 @@ End Class
                 </Result>)
         End Function
 
-        <WpfFact>
+        <ConditionalWpfFact(GetType(IsEnglishLocal))>
+        <WorkItem(25763, "https://github.com/dotnet/roslyn/issues/25763")>
         <WorkItem(18792, "https://github.com/dotnet/roslyn/issues/18792")>
         <Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Async Function TestGenerateEventHandlerWithDuplicate() As Task
@@ -1099,6 +1101,43 @@ End Class
                     Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Get_P", Glyph.MethodPublic, bolded:=True),
                     Item("P", Glyph.PropertyPublic, bolded:=True)}))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(37621, "https://github.com/dotnet/roslyn/issues/37621")>
+        Public Async Function TestGenerateEventWithAttributedDelegateType() As Task
+            Await AssertGeneratedResultIsAsync(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <ProjectReference>LibraryWithInaccessibleAttribute</ProjectReference>
+                        <Document>
+Class C
+    Inherits BaseType
+End Class
+                        </Document>
+                    </Project>
+                    <Project Language="Visual Basic" Name="LibraryWithInaccessibleAttribute" CommonReferences="true">
+                        <Document><![CDATA[[
+Friend Class AttributeType
+    Inherits Attribute
+End Class
+
+Delegate Sub DelegateType(<AttributeType> parameterWithInaccessibleAttribute As Object)
+
+Public Class BaseType
+    Public Event E As DelegateType
+End Class
+                    ]]></Document></Project>
+                </Workspace>,
+                 String.Format(VBEditorResources._0_Events, "C"), "E",
+                <Result>
+Class C
+    Inherits BaseType
+
+    Private Sub C_E(parameterWithInaccessibleAttribute As Object) Handles Me.E
+
+    End Sub
+End Class
+                </Result>)
         End Function
 
     End Class

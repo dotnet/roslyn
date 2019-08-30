@@ -405,6 +405,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Figure out if the target runtime supports default interface implementation.
+        /// </summary>
+        internal bool RuntimeSupportsDefaultInterfaceImplementation
+        {
+            get => !(GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) is null);
+        }
+
+        /// <summary>
         /// Return an array of assemblies involved in canonical type resolution of
         /// NoPia local types defined within this assembly. In other words, all 
         /// references used by previous compilation referencing this assembly.
@@ -612,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int rank = typeInfo.GetArrayRank();
 
-                return ArrayTypeSymbol.CreateCSharpArray(this, symbol, ImmutableArray<CustomModifier>.Empty, rank);
+                return ArrayTypeSymbol.CreateCSharpArray(this, TypeWithAnnotations.Create(symbol), rank);
             }
             else if (typeInfo.IsPointer)
             {
@@ -622,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return new PointerTypeSymbol(symbol);
+                return new PointerTypeSymbol(TypeWithAnnotations.Create(symbol));
             }
             else if (typeInfo.DeclaringType != null)
             {
@@ -712,18 +720,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return symbol;
             }
 
-            var typeArgumentSymbols = new TypeWithModifiers[symbol.TypeArgumentsNoUseSiteDiagnostics.Length];
-            for (int i = 0; i < typeArgumentSymbols.Length; i++)
+            var length = symbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length;
+            var typeArgumentSymbols = ArrayBuilder<TypeWithAnnotations>.GetInstance(length);
+            for (int i = 0; i < length; i++)
             {
                 var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++], includeReferences);
                 if ((object)argSymbol == null)
                 {
                     return null;
                 }
-                typeArgumentSymbols[i] = new TypeWithModifiers(argSymbol);
+                typeArgumentSymbols.Add(TypeWithAnnotations.Create(argSymbol));
             }
 
-            return symbol.ConstructIfGeneric(typeArgumentSymbols.AsImmutableOrNull());
+            return symbol.ConstructIfGeneric(typeArgumentSymbols.ToImmutableAndFree());
         }
 
         internal NamedTypeSymbol GetTopLevelTypeByMetadataName(
@@ -789,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                Debug.Assert(candidate != result);
+                Debug.Assert(!TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything2));
 
                 if ((object)result != null)
                 {
@@ -886,127 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CorLibrary.GetDeclaredSpecialTypeMember(member);
         }
 
-        protected enum IVTConclusion
-        {
-            // This indicates that friend access should be granted.
-
-            Match,
-
-            // This indicates that friend access should be granted for the purposes of error recovery,
-            // but the program is wrong.
-            //
-            // That's because this indicates that a strong-named assembly has referred to a weak-named assembly 
-            // which has extended friend access to the strong-named assembly. This will ultimately 
-            // result in an error because strong-named assemblies may not refer to weak-named assemblies. 
-            // In Roslyn we give a new error, CS7029, before emit time. In the dev10 compiler we error at 
-            // emit time.
-
-            OneSignedOneNot,
-
-            // This indicates that friend access should not be granted because the other assembly grants
-            // friend access to a strong-named assembly, and either this assembly is weak-named, or
-            // it is strong-named and the names don't match.
-
-            PublicKeyDoesntMatch,
-
-            // This indicates that friend access should not be granted because the other assembly 
-            // does not name this assembly as a friend in any way whatsoever.
-
-            NoRelationshipClaimed
-        }
-
         internal abstract ImmutableArray<byte> PublicKey { get; }
-
-        protected IVTConclusion PerformIVTCheck(ImmutableArray<byte> key, AssemblyIdentity otherIdentity)
-        {
-            // This gets a bit complicated. Let's break it down.
-            //
-            // First off, let's assume that the "other" assembly is Smith.DLL, that the "this"
-            // assembly is "Jones.DLL", and that Smith has named Jones as a friend. Whether we 
-            // allow Jones to see internals of Smith depends on these four factors:
-            //
-            // q1) Is Smith strong-named?
-            // q2) Did Smith name Jones as a friend via a strong name?
-            // q3) Is Jones strong-named?
-            // q4) Does Smith give a strong-name for Jones that matches our strong name?
-            //
-            // Before we dive into the details, we should mention two additional facts:
-            //
-            // * If the answer to q1 is "yes", and Smith was compiled by the C# compiler, then q2 must be "yes" also.
-            //   Strong-named Smith must only be friends with strong-named Jones. See the blog article
-            //   http://blogs.msdn.com/b/ericlippert/archive/2009/06/04/alas-smith-and-jones.aspx
-            //   for an explanation of why this feature is desirable.
-            //
-            //   Now, just because the compiler enforces this rule does not mean that we will never run into
-            //   a scenario where Smith is strong-named and names Jones via a weak name. Not all assemblies
-            //   were compiled with the C# compiler. We still need to deal sensibly with this situation.
-            //   We do so by ignoring the problem; if strong-named Smith extends friendship to weak-named
-            //   Jones then we're done; any assembly named Jones is a friend of Smith.
-            //
-            //   Incidentally, the compiler produces error CS1726, ERR_FriendAssemblySNReq, when compiling 
-            //   a strong-named Smith that names a weak-named Jones as its friend.
-            //
-            // * If the answer to q1 is "no" and the answer to q3 is "yes" then we are in a situation where
-            //   strong-named Jones is referencing weak-named Smith, which is illegal. In the dev10 compiler
-            //   we do not give an error about this until emit time. In Roslyn we have a new error, CS7029,
-            //   which we give before emit time when we detect that weak-named Smith has given friend access
-            //   to strong-named Jones, which then references Smith. However, we still want to give friend
-            //   access to Jones for the purposes of semantic analysis.
-            //
-            // TODO: Roslyn does not yet give an error in other circumstances whereby a strong-named assembly
-            // TODO: references a weak-named assembly.
-            //
-            // Let's make a chart that illustrates all the possible answers to these four questions, and
-            // what the resulting accessibility should be:
-            //
-            // case q1  q2  q3  q4  Result                 Explanation
-            // 1    YES YES YES YES SUCCESS          Smith has named this strong-named Jones as a friend.
-            // 2    YES YES YES NO  NO MATCH         Smith has named a different strong-named Jones as a friend.
-            // 3    YES YES NO  NO  NO MATCH         Smith has named a strong-named Jones as a friend, but this Jones is weak-named.
-            // 4    YES NO  YES NO  SUCCESS          Smith has improperly (*) named any Jones as its friend. But we honor its offer of friendship.
-            // 5    YES NO  NO  NO  SUCCESS          Smith has improperly (*) named any Jones as its friend. But we honor its offer of friendship.
-            // 6    NO  YES YES YES SUCCESS, BAD REF Smith has named this strong-named Jones as a friend, but Jones should not be referring to a weak-named Smith.
-            // 7    NO  YES YES NO  NO MATCH         Smith has named a different strong-named Jones as a friend.
-            // 8    NO  YES NO  NO  NO MATCH         Smith has named a strong-named Jones as a friend, but this Jones is weak-named.
-            // 9    NO  NO  YES NO  SUCCESS, BAD REF Smith has named any Jones as a friend, but Jones should not be referring to a weak-named Smith.
-            // 10   NO  NO  NO  NO  SUCCESS          Smith has named any Jones as its friend.
-            //                                     
-            // (*) Smith was not built with C#, which would have prevented this.
-            //
-            // This method never returns NoRelationshipClaimed because if control got here, then we know that
-            // Smith named Jones as a friend somehow.
-            //
-            // All that said, we also have an easy out here. Suppose Smith names Jones as a friend, and Jones is 
-            // being compiled as a module, not as an assembly. You can only strong-name an assembly. So if this module
-            // is named Jones, and Smith is extending friend access to Jones, then we are going to optimistically 
-            // assume that Jones is going to be compiled into an assembly with a matching strong name, if necessary.
-
-            CSharpCompilation compilation = this.DeclaringCompilation;
-            if (compilation != null && compilation.Options.OutputKind.IsNetModule())
-            {
-                return IVTConclusion.Match;
-            }
-
-            bool q1 = otherIdentity.IsStrongName;
-            bool q2 = !key.IsDefaultOrEmpty;
-            bool q3 = !this.PublicKey.IsDefaultOrEmpty;
-            bool q4 = (q2 & q3) && ByteSequenceComparer.Equals(key, this.PublicKey);
-
-            // Cases 2, 3, 7 and 8:
-            if (q2 && !q4)
-            {
-                return IVTConclusion.PublicKeyDoesntMatch;
-            }
-
-            // Cases 6 and 9:
-            if (!q1 && q3)
-            {
-                return IVTConclusion.OneSignedOneNot;
-            }
-
-            // Cases 1, 4, 5 and 10:
-            return IVTConclusion.Match;
-        }
 
         #region IAssemblySymbol Members
 
@@ -1029,7 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
         /// 
-        /// Otherwise, this returns <code>null</code>.
+        /// Otherwise, this returns <see langword="null"/>.
         /// </summary>
         public abstract AssemblyMetadata GetMetadata();
 
@@ -1045,16 +934,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var assembly = assemblyWantingAccess as AssemblySymbol;
-            if (assembly == null)
+            var myKeys = GetInternalsVisibleToPublicKeys(assemblyWantingAccess.Name);
+
+            // We have an easy out here. Suppose the assembly wanting access is 
+            // being compiled as a module. You can only strong-name an assembly. So we are going to optimistically 
+            // assume that it is going to be compiled into an assembly with a matching strong name, if necessary.
+            if (myKeys.Any() && assemblyWantingAccess.IsNetModule())
             {
-                return false;
+                return true;
             }
 
-            var myKeys = GetInternalsVisibleToPublicKeys(assembly.Identity.Name);
             foreach (var key in myKeys)
             {
-                IVTConclusion conclusion = assembly.PerformIVTCheck(key, this.Identity);
+                IVTConclusion conclusion = this.Identity.PerformIVTCheck(assemblyWantingAccess.Identity.PublicKey, key);
                 Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);
                 if (conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot)
                 {

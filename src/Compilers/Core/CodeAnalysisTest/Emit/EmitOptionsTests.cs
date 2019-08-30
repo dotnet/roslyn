@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -55,7 +56,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestProperty((old, value) => old.WithPdbChecksumAlgorithm(value), opt => opt.PdbChecksumAlgorithm, new HashAlgorithmName());
             TestProperty((old, value) => old.WithPdbChecksumAlgorithm(value), opt => opt.PdbChecksumAlgorithm, HashAlgorithmName.SHA384);
             TestProperty((old, value) => old.WithOutputNameOverride(value), opt => opt.OutputNameOverride, @"x.dll");
-            TestProperty((old, value) => old.WithDebugInformationFormat(value), opt => opt.DebugInformationFormat, (DebugInformationFormat)2);
+            TestProperty((old, value) => old.WithDebugInformationFormat(value), opt => opt.DebugInformationFormat,
+                PathUtilities.IsUnixLikePlatform ? DebugInformationFormat.Pdb : DebugInformationFormat.PortablePdb);
             TestProperty((old, value) => old.WithTolerateErrors(value), opt => opt.TolerateErrors, true);
             TestProperty((old, value) => old.WithIncludePrivateMembers(value), opt => opt.IncludePrivateMembers, false);
             TestProperty((old, value) => old.WithInstrumentationKinds(value), opt => opt.InstrumentationKinds, ImmutableArray.Create(InstrumentationKind.TestCoverage));

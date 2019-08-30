@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestInteropAttributes01()
         {
-            var source = CreateCompilation(@"
+            var source = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -151,7 +151,7 @@ class C
         [Fact]
         public void TestInteropAttributes02()
         {
-            var source = CreateCompilation(@"
+            var source = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -273,7 +273,7 @@ class C
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestPseudoAttributes1()
         {
             #region "Source"
@@ -431,7 +431,7 @@ class C
             #endregion
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(text, references: new[] { SystemRef }, sourceSymbolValidator: attributeValidator);
+            CompileAndVerifyWithMscorlib46(text, references: new[] { TestBase.SystemRef_v46 }, sourceSymbolValidator: attributeValidator);
         }
 
         [Fact]
@@ -756,7 +756,6 @@ public class CCC
 
             CompileAndVerify(
                 text,
-                references: new[] { SystemRef },
                 expectedOutput: @"
 (Byte)0, (Byte)128, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
 (Byte)0, (Byte)0, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
@@ -782,7 +781,7 @@ public class C
     }
 }
 ";
-            CreateCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,59): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(decimal)"));
         }
@@ -821,7 +820,7 @@ public class C
                 Assert.Equal(0, ps[0].GetAttributes().Length);
             };
 
-            CompileAndVerify(source, references: new[] { SystemRef }, symbolValidator: verifier);
+            CompileAndVerify(source, symbolValidator: verifier);
         }
 
         [Fact]
@@ -836,7 +835,7 @@ public class C
     {
     }
 }
-", new[] { SystemRef });
+");
 
             Action<ModuleSymbol> verifier = module =>
             {
@@ -866,7 +865,7 @@ public class C
     {
     }
 }
-", new[] { SystemRef });
+");
 
             Action<ModuleSymbol> verifier = module =>
             {
@@ -906,7 +905,7 @@ public class C
         return i;
     }
 }
-", new[] { SystemRef });
+");
 
             var c2 = CreateCompilation(@"
 public class D 
@@ -1031,7 +1030,7 @@ public class C
         set {  }
 }
 }";
-            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -1086,7 +1085,7 @@ public delegate void D([Optional, DefaultParameterValue(1)]ref int a, int b = 2,
 ";
             // Dev11: doesn't allow DPV(null) on int[], we do.
 
-            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -1197,7 +1196,7 @@ public interface ISomeInterface
 }
 ";
             // Dev10 reports CS1909, we don't
-            CompileAndVerify(text, references: new[] { SystemRef });
+            CompileAndVerify(text);
         }
 
         [Fact, WorkItem(544934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544934")]
@@ -1217,7 +1216,7 @@ class C
         Goo();
     }
 }";
-            CompileAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"5");
+            CompileAndVerify(source, expectedOutput: @"5");
         }
 
         [Fact]
@@ -1232,7 +1231,7 @@ public class X
     public int InTheMiddle(int a, [Optional, DefaultParameterValue((short)1)]int b, int c){
         return 2;
     } 
-}", new[] { SystemRef });
+}");
 
             CompileAndVerify(compilation);
         }
@@ -1339,7 +1338,7 @@ partial class C
                 partialValidator(sourceMethod);
             };
 
-            CompileAndVerify(source, references: new[] { SystemRef }, sourceSymbolValidator: sourceValidator);
+            CompileAndVerify(source, sourceSymbolValidator: sourceValidator);
         }
 
         [WorkItem(544303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544303")]
@@ -1381,7 +1380,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (15,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional(isOpt: false)][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(15, 17),
@@ -1412,7 +1411,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (16,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute"),
@@ -1443,7 +1442,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (16,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional(new Goo())][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(16, 17),
@@ -1557,7 +1556,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, references: new[] { MscorlibRef, SystemRef }, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
         }
 
         [Fact, WorkItem(546624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546624")]
@@ -1738,7 +1737,7 @@ class C
 }
 ";
 
-            CreateCompilation(source, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (63,65): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     public MyPermission5Attribute(SecurityAction action, object x = SecurityAction.Demand) : base(SecurityAction.Demand)
                 Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object"),
@@ -1796,7 +1795,7 @@ class Program
         Goo();
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'Enum'
                 //         Goo();
@@ -1859,7 +1858,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"100200300400");
+            CompileAndVerify(source, expectedOutput: @"100200300400");
         }
 
         [WorkItem(544516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544516")]
@@ -1897,7 +1896,7 @@ public class MyClass
 No DecimalConstantAttribute");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void DecimalConstant_Indexers()
         {
             string source = @"
@@ -1932,7 +1931,7 @@ public class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void DecimalConstant_Delegates()
         {
             string source = @"
@@ -4828,7 +4827,7 @@ public class Unbound : Constructed<> { }
             Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNestedS);
             Assert.True(((INamedTypeSymbol)substitutedNestedS).IsSerializable);
 
-            var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType();
+            var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType().Type;
             Assert.IsType<TupleTypeSymbol>(valueTupleS);
             Assert.True(((INamedTypeSymbol)valueTupleS).IsSerializable);
 
@@ -4860,7 +4859,7 @@ public class Unbound : Constructed<> { }
             Assert.IsType<SubstitutedNestedErrorTypeSymbol>(nestedSubstitutedError);
             Assert.False(((INamedTypeSymbol)nestedSubstitutedError).IsSerializable);
 
-            var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsNoUseSiteDiagnostics[0];
+            var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
             Assert.IsType<UnboundArgumentErrorTypeSymbol>(unbound);
             Assert.False(((INamedTypeSymbol)unbound).IsSerializable);
 
@@ -4952,7 +4951,7 @@ namespace System
     }
 }";
             var syntaxTree = Parse(source, filename: "test.cs");
-            var compilation = CreateCompilation(syntaxTree);
+            var compilation = CreateCompilationWithMscorlib40(syntaxTree);
 
             var comp = compilation.VerifyDiagnostics(
                 // test.cs(4,6): warning CS0436: The type 'AttributeUsageAttribute' in 'test.cs' conflicts with the imported type 'AttributeUsageAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'test.cs'.
@@ -5171,7 +5170,7 @@ public class Test
 ";
             #endregion
 
-            CompileAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"System.Reflection.Missing")
+            CompileAndVerify(source, expectedOutput: @"System.Reflection.Missing")
                 .VerifyIL("Test.Main", @"{
   // Code size       16 (0x10)
   .maxstack  2
@@ -5239,7 +5238,7 @@ public class InvalidClass5 { }
 public interface InvalidTarget {}
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (26,17): error CS0591: Invalid value for argument to 'ClassInterface' attribute
                 // [ClassInterface((ClassInterfaceType)(-1))]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(ClassInterfaceType)(-1)").WithArguments("ClassInterface"),
@@ -5318,7 +5317,7 @@ public interface InvalidInterface5 {}
 [InterfaceType(ComInterfaceType.InterfaceIsDual)]
 public class InvalidTarget {}
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (34,16): error CS0591: Invalid value for argument to 'InterfaceType' attribute
                 // [InterfaceType((ComInterfaceType)(-1))]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(ComInterfaceType)(-1)").WithArguments("InterfaceType"),
@@ -5351,7 +5350,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(0, int.MaxValue)]
 ";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5366,7 +5365,7 @@ public class C
     public const short S = short.MaxValue;
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5377,7 +5376,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(-1, int.MinValue)]
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (4,36): error CS0591: Invalid value for argument to 'TypeLibVersionAttribute' attribute
                 // [assembly: TypeLibVersionAttribute(-1, int.MinValue)]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("TypeLibVersionAttribute"),
@@ -5394,7 +5393,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(""str"", 0)]
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (4,36): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 // [assembly: TypeLibVersionAttribute("str", 0)]
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""str""").WithArguments("1", "string", "int"));
@@ -5697,7 +5696,7 @@ class SelfReferenceInBase1 : IGoo<SelfReferenceInBase> {}
         }
 
         [Fact]
-        public void TestObsoleteAttributeOnMembers()
+        public void TestObsoleteAttributeOnMembersAndAccessors()
         {
             var source = @"
 using System;
@@ -5717,6 +5716,16 @@ public class Test
         var f = t.field1;
         var p1 = t.Property1;
         var p2 = t.Property2;
+        
+        var p3 = t.Prop2;
+        t.Prop2 = p3;
+
+        var p4 = t.Prop3;
+        t.Prop3 = p4;
+
+        var p5 = t.Prop4;
+        t.Prop4 = p5;
+        
         t.event1();
         t.event1 += () => { };
 
@@ -5769,11 +5778,18 @@ public class Test
     public int Prop2
     {
         [Obsolete] get { return 10; }
+        set {}
     }
 
     public int Prop3
     {
         get { return 10; }
+        [Obsolete] set { }
+    }
+
+    public int Prop4
+    {
+        [Obsolete] get { return 10; }
         [Obsolete] set { }
     }
 
@@ -5812,78 +5828,84 @@ public static class TestExtension
 }
 ";
             CreateCompilationWithMscorlib40(source, new[] { ExtensionAssemblyRef }).VerifyDiagnostics(
-                // (65,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //         [Obsolete] get { return 10; }
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
-                // (71,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //         [Obsolete] set { }
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
-                // (76,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                // (98,10): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //         [Obsolete] add {}
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
-                // (77,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(98, 10),
+                // (99,10): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //         [Obsolete("Don't use remove accessor")] remove {}
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(99, 10),
                 // (8,9): warning CS0612: 'Test.ObsoleteMethod1()' is obsolete
                 //         ObsoleteMethod1();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteMethod1()").WithArguments("Test.ObsoleteMethod1()"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteMethod1()").WithArguments("Test.ObsoleteMethod1()").WithLocation(8, 9),
                 // (9,9): warning CS0618: 'Test.ObsoleteMethod2()' is obsolete: 'Do not call this method'
                 //         ObsoleteMethod2();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "ObsoleteMethod2()").WithArguments("Test.ObsoleteMethod2()", "Do not call this method"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "ObsoleteMethod2()").WithArguments("Test.ObsoleteMethod2()", "Do not call this method").WithLocation(9, 9),
                 // (10,9): error CS0619: 'Test.ObsoleteMethod3()' is obsolete: ''
                 //         ObsoleteMethod3();
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "ObsoleteMethod3()").WithArguments("Test.ObsoleteMethod3()", ""),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "ObsoleteMethod3()").WithArguments("Test.ObsoleteMethod3()", "").WithLocation(10, 9),
                 // (11,9): warning CS0612: 'Test.ObsoleteMethod5()' is obsolete
                 //         ObsoleteMethod5();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteMethod5()").WithArguments("Test.ObsoleteMethod5()"),
-                // (14,9): warning CS0618: 'Test.ObsoleteMethod4()' is obsolete: 'Do not call this method'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteMethod5()").WithArguments("Test.ObsoleteMethod5()").WithLocation(11, 9),
+                // (15,9): warning CS0618: 'Test.ObsoleteMethod4()' is obsolete: 'Do not call this method'
                 //         t.ObsoleteMethod4();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4()").WithArguments("Test.ObsoleteMethod4()", "Do not call this method"),
-                // (15,17): warning CS0618: 'Test.field1' is obsolete: 'Do not use this field'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4()").WithArguments("Test.ObsoleteMethod4()", "Do not call this method").WithLocation(15, 9),
+                // (16,17): warning CS0618: 'Test.field1' is obsolete: 'Do not use this field'
                 //         var f = t.field1;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.field1").WithArguments("Test.field1", "Do not use this field"),
-                // (16,18): warning CS0618: 'Test.Property1' is obsolete: 'Do not use this property'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.field1").WithArguments("Test.field1", "Do not use this field").WithLocation(16, 17),
+                // (17,18): warning CS0618: 'Test.Property1' is obsolete: 'Do not use this property'
                 //         var p1 = t.Property1;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.Property1").WithArguments("Test.Property1", "Do not use this property"),
-                // (17,18): warning CS0618: 'Test.Property2' is obsolete: 'Do not use this property'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.Property1").WithArguments("Test.Property1", "Do not use this property").WithLocation(17, 18),
+                // (18,18): warning CS0618: 'Test.Property2' is obsolete: 'Do not use this property'
                 //         var p2 = t.Property2;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.Property2").WithArguments("Test.Property2", "Do not use this property"),
-                // (19,9): warning CS0618: 'Test.event1' is obsolete: 'Do not use this event'
-                //         t.event1 += () => { };
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.event1").WithArguments("Test.event1", "Do not use this event"),
-                // (21,9): warning CS0618: 'TestExtension.ObsoleteExtensionMethod1(Test)' is obsolete: 'Do not call this extension method'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.Property2").WithArguments("Test.Property2", "Do not use this property").WithLocation(18, 18),
+                // (20,18): warning CS0612: 'Test.Prop2.get' is obsolete
+                //         var p3 = t.Prop2;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t.Prop2").WithArguments("Test.Prop2.get").WithLocation(20, 18),
+                // (24,9): warning CS0612: 'Test.Prop3.set' is obsolete
+                //         t.Prop3 = p4;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t.Prop3").WithArguments("Test.Prop3.set").WithLocation(24, 9),
+                // (26,18): warning CS0612: 'Test.Prop4.get' is obsolete
+                //         var p5 = t.Prop4;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t.Prop4").WithArguments("Test.Prop4.get").WithLocation(26, 18),
+                // (27,9): warning CS0612: 'Test.Prop4.set' is obsolete
+                //         t.Prop4 = p5;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t.Prop4").WithArguments("Test.Prop4.set").WithLocation(27, 9),
+                // (32,9): warning CS0618: 'TestExtension.ObsoleteExtensionMethod1(Test)' is obsolete: 'Do not call this extension method'
                 //         t.ObsoleteExtensionMethod1();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteExtensionMethod1()").WithArguments("TestExtension.ObsoleteExtensionMethod1(Test)", "Do not call this extension method"),
-                // (23,28): warning CS0618: 'Test.ObsoleteMethod4(int)' is obsolete: 'Do not call this method'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteExtensionMethod1()").WithArguments("TestExtension.ObsoleteExtensionMethod1(Test)", "Do not call this extension method").WithLocation(32, 9),
+                // (34,28): warning CS0618: 'Test.ObsoleteMethod4(int)' is obsolete: 'Do not call this method'
                 //         Action<int> func = t.ObsoleteMethod4;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4").WithArguments("Test.ObsoleteMethod4(int)", "Do not call this method"),
-                // (25,24): warning CS0618: 'Test.ObsoleteMethod4()' is obsolete: 'Do not call this method'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4").WithArguments("Test.ObsoleteMethod4(int)", "Do not call this method").WithLocation(34, 28),
+                // (36,24): warning CS0618: 'Test.ObsoleteMethod4()' is obsolete: 'Do not call this method'
                 //         Action func1 = t.ObsoleteMethod4;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4").WithArguments("Test.ObsoleteMethod4()", "Do not call this method"),
-                // (29,30): warning CS0618: 'Test.Property1' is obsolete: 'Do not use this property'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4").WithArguments("Test.ObsoleteMethod4()", "Do not call this method").WithLocation(36, 24),
+                // (38,30): warning CS0618: 'Test.Property1' is obsolete: 'Do not use this property'
                 //         Test t1 = new Test { Property1 = 10, Property2 =20};
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Property1").WithArguments("Test.Property1", "Do not use this property"),
-                // (29,46): warning CS0618: 'Test.Property2' is obsolete: 'Do not use this property'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Property1").WithArguments("Test.Property1", "Do not use this property").WithLocation(38, 30),
+                // (38,46): warning CS0618: 'Test.Property2' is obsolete: 'Do not use this property'
                 //         Test t1 = new Test { Property1 = 10, Property2 =20};
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Property2").WithArguments("Test.Property2", "Do not use this property"),
-                // (28,18): warning CS0612: 'Test.this[int]' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Property2").WithArguments("Test.Property2", "Do not use this property").WithLocation(38, 46),
+                // (39,18): warning CS0612: 'Test.this[int]' is obsolete
                 //         var i1 = t1[10];
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t1[10]").WithArguments("Test.this[int]"),
-                // (30,9): warning CS0612: 'GenericTest<int>.ObsoleteMethod1<U>()' is obsolete
-                //         gt.ObsoleteMethod1<U>();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "gt.ObsoleteMethod1<double>()").WithArguments("GenericTest<int>.ObsoleteMethod1<U>()"),
-                // (31,18): warning CS0618: 'GenericTest<int>.field1' is obsolete: 'Do not use this field'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t1[10]").WithArguments("Test.this[int]").WithLocation(39, 18),
+                // (42,9): warning CS0612: 'GenericTest<int>.ObsoleteMethod1<U>()' is obsolete
+                //         gt.ObsoleteMethod1<double>();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "gt.ObsoleteMethod1<double>()").WithArguments("GenericTest<int>.ObsoleteMethod1<U>()").WithLocation(42, 9),
+                // (43,18): warning CS0618: 'GenericTest<int>.field1' is obsolete: 'Do not use this field'
                 //         var gf = gt.field1;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.field1").WithArguments("GenericTest<int>.field1", "Do not use this field"),
-                // (32,19): warning CS0618: 'GenericTest<int>.Property1' is obsolete: 'Do not use this property'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.field1").WithArguments("GenericTest<int>.field1", "Do not use this field").WithLocation(43, 18),
+                // (44,19): warning CS0618: 'GenericTest<int>.Property1' is obsolete: 'Do not use this property'
                 //         var gp1 = gt.Property1;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.Property1").WithArguments("GenericTest<int>.Property1", "Do not use this property"),
-                // (33,9): warning CS0618: 'GenericTest<int>.event1' is obsolete: 'Do not use this event'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.Property1").WithArguments("GenericTest<int>.Property1", "Do not use this property").WithLocation(44, 19),
+                // (30,9): warning CS0618: 'Test.event1' is obsolete: 'Do not use this event'
+                //         t.event1 += () => { };
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.event1").WithArguments("Test.event1", "Do not use this event").WithLocation(30, 9),
+                // (45,9): warning CS0618: 'GenericTest<int>.event1' is obsolete: 'Do not use this event'
                 //         gt.event1 += (i) => { };
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.event1").WithArguments("GenericTest<int>.event1", "Do not use this event"),
-                // (104,28): warning CS0067: The event 'GenericTest<T>.event1' is never used
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.event1").WithArguments("GenericTest<int>.event1", "Do not use this event").WithLocation(45, 9),
+                // (121,28): warning CS0067: The event 'GenericTest<T>.event1' is never used
                 //     public event Action<T> event1;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "event1").WithArguments("GenericTest<T>.event1"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "event1").WithArguments("GenericTest<T>.event1").WithLocation(121, 28));
         }
 
         [Fact]
@@ -5987,6 +6009,10 @@ public class TestClass
     [Obsolete(""Do not use Prop1"", false)]
     public int Prop1 { get; set; }
 
+    public int Prop2 { [Obsolete(""Do not use Prop2.Get"")] get; set; }
+
+    public int Prop3 { get; [Obsolete(""Do not use Prop3.Get"", true)] set; }
+
     [Obsolete(""Do not use field1"", true)]
     public TestClass field1;
 
@@ -6012,37 +6038,47 @@ public class Test
         c = c.field1;
         c.event1();
         c.event1 += () => {};
+        c.Prop2 = 42;
+        i = c.Prop2;
+        c.Prop3 = 42;
+        i = c.Prop3;
     }
 }
 ";
             CreateCompilation(source, new[] { peReference }).VerifyDiagnostics(
-                // (4,29): warning CS0612: 'TestClass1' is obsolete
-                //     public static void goo1(TestClass1 c) {}
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "TestClass1").WithArguments("TestClass1"),
                 // (5,29): warning CS0618: 'TestClass2' is obsolete: 'TestClass2 is obsolete'
                 //     public static void goo2(TestClass2 c) {}
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestClass2").WithArguments("TestClass2", "TestClass2 is obsolete"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestClass2").WithArguments("TestClass2", "TestClass2 is obsolete").WithLocation(5, 29),
                 // (6,29): error CS0619: 'TestClass3' is obsolete: 'Do not use TestClass3'
                 //     public static void goo3(TestClass3 c) {}
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "TestClass3").WithArguments("TestClass3", "Do not use TestClass3"),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "TestClass3").WithArguments("TestClass3", "Do not use TestClass3").WithLocation(6, 29),
                 // (7,29): warning CS0618: 'TestClass4' is obsolete: 'TestClass4 is obsolete'
                 //     public static void goo4(TestClass4 c) {}
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestClass4").WithArguments("TestClass4", "TestClass4 is obsolete"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestClass4").WithArguments("TestClass4", "TestClass4 is obsolete").WithLocation(7, 29),
+                // (4,29): warning CS0612: 'TestClass1' is obsolete
+                //     public static void goo1(TestClass1 c) {}
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "TestClass1").WithArguments("TestClass1").WithLocation(4, 29),
                 // (12,9): warning CS0618: 'TestClass.TestMethod()' is obsolete: 'Do not use TestMethod'
                 //         c.TestMethod();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c.TestMethod()").WithArguments("TestClass.TestMethod()", "Do not use TestMethod"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c.TestMethod()").WithArguments("TestClass.TestMethod()", "Do not use TestMethod").WithLocation(12, 9),
                 // (13,17): warning CS0618: 'TestClass.Prop1' is obsolete: 'Do not use Prop1'
                 //         var i = c.Prop1;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c.Prop1").WithArguments("TestClass.Prop1", "Do not use Prop1"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c.Prop1").WithArguments("TestClass.Prop1", "Do not use Prop1").WithLocation(13, 17),
                 // (14,13): error CS0619: 'TestClass.field1' is obsolete: 'Do not use field1'
                 //         c = c.field1;
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.field1").WithArguments("TestClass.field1", "Do not use field1"),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.field1").WithArguments("TestClass.field1", "Do not use field1").WithLocation(14, 13),
                 // (15,9): error CS0619: 'TestClass.event1' is obsolete: 'Do not use event'
                 //         c.event1();
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.event1").WithArguments("TestClass.event1", "Do not use event"),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.event1").WithArguments("TestClass.event1", "Do not use event").WithLocation(15, 9),
                 // (16,9): error CS0619: 'TestClass.event1' is obsolete: 'Do not use event'
                 //         c.event1 += () => {};
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.event1").WithArguments("TestClass.event1", "Do not use event"));
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.event1").WithArguments("TestClass.event1", "Do not use event").WithLocation(16, 9),
+                // (18,13): warning CS0618: 'TestClass.Prop2.get' is obsolete: 'Do not use Prop2.Get'
+                //         i = c.Prop2;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c.Prop2").WithArguments("TestClass.Prop2.get", "Do not use Prop2.Get").WithLocation(18, 13),
+                // (19,9): error CS0619: 'TestClass.Prop3.set' is obsolete: 'Do not use Prop3.Get'
+                //         c.Prop3 = 42;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.Prop3").WithArguments("TestClass.Prop3.set", "Do not use Prop3.Get").WithLocation(19, 9));
         }
 
         [Fact]
@@ -6105,20 +6141,145 @@ class D6 : D5
     [Obsolete]
     public override void goo() {}
 }
+
+class E1
+{
+    public virtual int Goo {get; set;}
+}
+class E2 : E1
+{
+    public override int Goo { [Obsolete] get; set;}
+}
+class E3 : E1
+{
+    public new int Goo { [Obsolete] get; set;}
+}
+class E4 : E1
+{
+    public override int Goo {get; set;}
+}
+class E5 : E4
+{
+    public override int Goo { [Obsolete] get; set;}
+}
+class E6 : E5
+{
+    public override int Goo {get; set;}
+}
+
+class F1
+{
+    public virtual int Goo { [Obsolete] get; set;}
+}
+class F2 : F1
+{
+    public override int Goo {get; set;}
+}
+class F3 : F1
+{
+    public new int Goo {get; set;}
+}
+class F4 : F1
+{
+    public override int Goo { [Obsolete] get; set;}
+}
+class F5 : F4
+{
+    public override int Goo {get; set;}
+}
+class F6 : F5
+{
+    public override int Goo { [Obsolete] get; set;}
+}
 ";
             CreateCompilation(source).VerifyDiagnostics(
                 // (10,26): warning CS0809: Obsolete member 'C2.goo()' overrides non-obsolete member 'C1.goo()'
                 //     public override void goo() {}
-                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "goo").WithArguments("C2.goo()", "C1.goo()"),
-                // (24,26): warning CS0809: Obsolete member 'C5.goo()' overrides non-obsolete member 'C1.goo()'
-                //     public override void goo() {}
-                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "goo").WithArguments("C5.goo()", "C1.goo()"),
-                // (38,26): warning CS0672: Member 'D2.goo()' overrides obsolete member 'D1.goo()'. Add the Obsolete attribute to 'D2.goo()'.
-                //     public override void goo() {}
-                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "goo").WithArguments("D2.goo()", "D1.goo()"),
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "goo").WithArguments("C2.goo()", "C1.goo()").WithLocation(10, 26),
+                // (90,30): warning CS0672: Member 'F2.Goo.get' overrides obsolete member 'F1.Goo.get'. Add the Obsolete attribute to 'F2.Goo.get'.
+                //     public override int Goo {get; set;}
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "get").WithArguments("F2.Goo.get", "F1.Goo.get").WithLocation(90, 30),
+                // (77,42): warning CS0809: Obsolete member 'E5.Goo.get' overrides non-obsolete member 'E1.Goo.get'
+                //     public override int Goo { [Obsolete] get; set;}
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("E5.Goo.get", "E1.Goo.get").WithLocation(77, 42),
                 // (51,26): warning CS0672: Member 'D5.goo()' overrides obsolete member 'D1.goo()'. Add the Obsolete attribute to 'D5.goo()'.
                 //     public override void goo() {}
-                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "goo").WithArguments("D5.goo()", "D1.goo()"));
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "goo").WithArguments("D5.goo()", "D1.goo()").WithLocation(51, 26),
+                // (38,26): warning CS0672: Member 'D2.goo()' overrides obsolete member 'D1.goo()'. Add the Obsolete attribute to 'D2.goo()'.
+                //     public override void goo() {}
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "goo").WithArguments("D2.goo()", "D1.goo()").WithLocation(38, 26),
+                // (24,26): warning CS0809: Obsolete member 'C5.goo()' overrides non-obsolete member 'C1.goo()'
+                //     public override void goo() {}
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "goo").WithArguments("C5.goo()", "C1.goo()").WithLocation(24, 26),
+                // (102,30): warning CS0672: Member 'F5.Goo.get' overrides obsolete member 'F1.Goo.get'. Add the Obsolete attribute to 'F5.Goo.get'.
+                //     public override int Goo {get; set;}
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "get").WithArguments("F5.Goo.get", "F1.Goo.get").WithLocation(102, 30),
+                // (65,42): warning CS0809: Obsolete member 'E2.Goo.get' overrides non-obsolete member 'E1.Goo.get'
+                //     public override int Goo { [Obsolete] get; set;}
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("E2.Goo.get", "E1.Goo.get").WithLocation(65, 42));
+        }
+
+        [Fact]
+        public void TestConsumptionOfObsoleteAttributeOnOverriddenAccessors()
+        {
+            var source = @"
+using System;
+
+class Base
+{
+    public virtual int Boo { [Obsolete] get; set;}
+    public virtual int Goo { get; set; }
+    public virtual int Hoo { [Obsolete(""Base.Hoo is Obsolete"", true)] get; set; }
+    public virtual int Joo { [Obsolete(""Base.Joo is Obsolete"", false)] get; set; }
+    [Obsolete(""Base.Koo is Obsolete"")] public virtual int Koo {  get; set; }
+}
+class Derived : Base
+{
+    public override int Boo { get; set; }
+    public override int Goo { [Obsolete] get; set; }
+    public override int Hoo { [Obsolete(""Derived.Hoo is Obsolete"", false)] get; set; }
+    public override int Joo { [Obsolete(""Derived.Joo is Obsolete"", true)] get; set; }
+    public override int Koo { [Obsolete(""Derived.Koo is Obsolete"")] get; set; }
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var derived = new Derived();
+		_ = derived.Boo;
+        _ = derived.Goo;
+        _ = derived.Hoo;
+        _ = derived.Joo;
+        _ = derived.Koo;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (14,31): warning CS0672: Member 'Derived.Boo.get' overrides obsolete member 'Base.Boo.get'. Add the Obsolete attribute to 'Derived.Boo.get'.
+                //     public override int Boo { get; set; }
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "get").WithArguments("Derived.Boo.get", "Base.Boo.get").WithLocation(14, 31),
+                // (15,42): warning CS0809: Obsolete member 'Derived.Goo.get' overrides non-obsolete member 'Base.Goo.get'
+                //     public override int Goo { [Obsolete] get; set; }
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("Derived.Goo.get", "Base.Goo.get").WithLocation(15, 42),
+                // (18,25): warning CS0672: Member 'Derived.Koo' overrides obsolete member 'Base.Koo'. Add the Obsolete attribute to 'Derived.Koo'.
+                //     public override int Koo { [Obsolete("Derived.Koo is Obsolete")] get; set; }
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "Koo").WithArguments("Derived.Koo", "Base.Koo").WithLocation(18, 25),
+                // (18,69): warning CS0809: Obsolete member 'Derived.Koo.get' overrides non-obsolete member 'Base.Koo.get'
+                //     public override int Koo { [Obsolete("Derived.Koo is Obsolete")] get; set; }
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("Derived.Koo.get", "Base.Koo.get").WithLocation(18, 69),
+                // (26,7): warning CS0612: 'Base.Boo.get' is obsolete
+                // 		_ = derived.Boo;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "derived.Boo").WithArguments("Base.Boo.get").WithLocation(26, 7),
+                // (28,13): error CS0619: 'Base.Hoo.get' is obsolete: 'Base.Hoo is Obsolete'
+                //         _ = derived.Hoo;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "derived.Hoo").WithArguments("Base.Hoo.get", "Base.Hoo is Obsolete").WithLocation(28, 13),
+                // (29,13): warning CS0618: 'Base.Joo.get' is obsolete: 'Base.Joo is Obsolete'
+                //         _ = derived.Joo;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "derived.Joo").WithArguments("Base.Joo.get", "Base.Joo is Obsolete").WithLocation(29, 13),
+                // (30,13): warning CS0618: 'Base.Koo' is obsolete: 'Base.Koo is Obsolete'
+                //         _ = derived.Koo;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "derived.Koo").WithArguments("Base.Koo", "Base.Koo is Obsolete").WithLocation(30, 13));
         }
 
         [Fact]
@@ -6313,7 +6474,11 @@ public class Test
     event Action<SomeType> someEvent;
 
     [Obsolete]
-    public static SomeType someProp { get; set; }
+    public static SomeType someProp { get => new SomeType(); set {} }
+
+    public static string someProp2 { [Obsolete] get => new SomeType().ToString(); }
+
+    public static SomeType someProp3 { [Obsolete] get => new SomeType(); }
 
     [Obsolete]
     SomeType this[int x] { get { SomeType y = new SomeType(); return y; } }
@@ -6337,9 +6502,12 @@ public class Base<T> {}
 public class Derived : Base<Base<int>> {}
 ";
             CreateCompilation(source).VerifyDiagnostics(
+                // (27,19): warning CS0612: 'SomeType' is obsolete
+                //     public static SomeType someProp3 { [Obsolete] get => new SomeType(); }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "SomeType").WithArguments("SomeType").WithLocation(27, 19),
                 // (20,28): warning CS0067: The event 'Test.someEvent' is never used
                 //     event Action<SomeType> someEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "someEvent").WithArguments("Test.someEvent"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "someEvent").WithArguments("Test.someEvent").WithLocation(20, 28));
         }
 
         [Fact]
@@ -6466,6 +6634,24 @@ public class Att : Attribute
         get { return 1; }
         set { }
     }
+    [Obsolete(""Property"", true)]
+    public int Prop2
+    {
+        get; set;
+    }
+    public int Prop3
+    {
+        get; [Obsolete(""setter"", true)]set;
+    }
+    [Obsolete(""Property"", true)]
+    public int Prop4
+    {
+        get; [Obsolete(""setter"", true)]set;
+    }
+    public int Prop5
+    {
+        [Obsolete(""setter"", true)]get; set;
+    }
     [Obsolete(""Field"", true)]
     public int Field;
 }
@@ -6473,6 +6659,10 @@ public class Att : Attribute
 [Att]
 [Att(Field = 1)]
 [Att(Prop = 1)]
+[Att(Prop2 = 1)]
+[Att(Prop3 = 1)]
+[Att(Prop4 = 1)]
+[Att(Prop5 = 1)]
 public class Test
 {
     [Att()]
@@ -6480,24 +6670,172 @@ public class Test
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (20,6): error CS0619: 'Att.Field' is obsolete: 'Field'
-                // [Att(Field = 1)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Field = 1").WithArguments("Att.Field", "Field"),
-                // (20,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
-                // [Att(Field = 1)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Field = 1)").WithArguments("Att.Att()", "Constructor"),
-                // (21,6): error CS0619: 'Att.Prop' is obsolete: 'Property'
-                // [Att(Prop = 1)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop = 1").WithArguments("Att.Prop", "Property"),
-                // (21,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
-                // [Att(Prop = 1)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop = 1)").WithArguments("Att.Att()", "Constructor"),
-                // (24,6): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
-                //     [Att()]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att()").WithArguments("Att.Att()", "Constructor"),
-                // (19,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // (37,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
                 // [Att]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att").WithArguments("Att.Att()", "Constructor"));
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att").WithArguments("Att.Att()", "Constructor").WithLocation(37, 2),
+                // (38,6): error CS0619: 'Att.Field' is obsolete: 'Field'
+                // [Att(Field = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Field = 1").WithArguments("Att.Field", "Field").WithLocation(38, 6),
+                // (38,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Field = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Field = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(38, 2),
+                // (39,6): error CS0619: 'Att.Prop' is obsolete: 'Property'
+                // [Att(Prop = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop = 1").WithArguments("Att.Prop", "Property").WithLocation(39, 6),
+                // (39,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Prop = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(39, 2),
+                // (40,6): error CS0619: 'Att.Prop2' is obsolete: 'Property'
+                // [Att(Prop2 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop2 = 1").WithArguments("Att.Prop2", "Property").WithLocation(40, 6),
+                // (40,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Prop2 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop2 = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(40, 2),
+                // (41,6): error CS0619: 'Att.Prop3.set' is obsolete: 'setter'
+                // [Att(Prop3 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop3 = 1").WithArguments("Att.Prop3.set", "setter").WithLocation(41, 6),
+                // (41,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Prop3 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop3 = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(41, 2),
+                // (42,6): error CS0619: 'Att.Prop4' is obsolete: 'Property'
+                // [Att(Prop4 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop4 = 1").WithArguments("Att.Prop4", "Property").WithLocation(42, 6),
+                // (42,6): error CS0619: 'Att.Prop4.set' is obsolete: 'setter'
+                // [Att(Prop4 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop4 = 1").WithArguments("Att.Prop4.set", "setter").WithLocation(42, 6),
+                // (42,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Prop4 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop4 = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(42, 2),
+                // (43,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Prop5 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop5 = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(43, 2),
+                // (46,6): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                //     [Att()]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att()").WithArguments("Att.Att()", "Constructor").WithLocation(46, 6));
+        }
+
+        [Fact]
+        public void TestOverridenObsoleteSetterOnAttributes()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class BaseAtt : Attribute
+{
+    public virtual int Prop
+    {
+        get { return 1; }
+        [Obsolete(""setter"", true)] set { }
+    }
+
+    public virtual int Prop1
+    {
+        get { return 1; }
+        [Obsolete(""setter"", true)] set { }
+    }
+
+    public virtual int Prop2
+    {
+        get { return 1; }
+        [Obsolete(""base setter"", true)] set { }
+    }
+
+    public virtual int Prop3
+    {
+        get { return 1; }
+        set { }
+    }
+}
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class DerivedAtt : BaseAtt
+{
+    public override int Prop
+    {
+        get { return 1; }
+    }
+
+    public override int Prop1
+    {
+        get { return 1; }
+        set { }
+    }
+
+    public override int Prop2
+    {
+        get { return 1; }
+        [Obsolete(""derived setter"", true)] set { }
+    }
+
+    public override int Prop3
+    {
+        get { return 1; }
+        [Obsolete(""setter"", true)] set { }
+    }
+}
+
+[DerivedAtt(Prop = 1)]
+[DerivedAtt(Prop1 = 1)]
+[DerivedAtt(Prop2 = 1)]
+[DerivedAtt(Prop3 = 1)]
+public class Test
+{
+    public static void Main() { }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (43,9): warning CS0672: Member 'DerivedAtt.Prop1.set' overrides obsolete member 'BaseAtt.Prop1.set'. Add the Obsolete attribute to 'DerivedAtt.Prop1.set'.
+                //         set { }
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "set").WithArguments("DerivedAtt.Prop1.set", "BaseAtt.Prop1.set").WithLocation(43, 9),
+                // (55,36): warning CS0809: Obsolete member 'DerivedAtt.Prop3.set' overrides non-obsolete member 'BaseAtt.Prop3.set'
+                //         [Obsolete("setter", true)] set { }
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "set").WithArguments("DerivedAtt.Prop3.set", "BaseAtt.Prop3.set").WithLocation(55, 36),
+                // (59,13): error CS0619: 'BaseAtt.Prop.set' is obsolete: 'setter'
+                // [DerivedAtt(Prop = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop = 1").WithArguments("BaseAtt.Prop.set", "setter").WithLocation(59, 13),
+                // (60,13): error CS0619: 'BaseAtt.Prop1.set' is obsolete: 'setter'
+                // [DerivedAtt(Prop1 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop1 = 1").WithArguments("BaseAtt.Prop1.set", "setter").WithLocation(60, 13),
+                // (61,13): error CS0619: 'BaseAtt.Prop2.set' is obsolete: 'base setter'
+                // [DerivedAtt(Prop2 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop2 = 1").WithArguments("BaseAtt.Prop2.set", "base setter").WithLocation(61, 13));
+        }
+
+        [Fact]
+        public void TestObsoleteAttributeOnIndexerAccessors()
+        {
+            var source = @"
+using System;
+
+class C1
+{
+    public int this[int index] { [Obsolete] get => 1; set {} }
+}
+
+class C2
+{
+    public int this[int index] { get => 1; [Obsolete] set {} }
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c1 = new C1();
+        c1[0] = c1[0];
+        var c2 = new C2();
+        c2[0] = c2[0];
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (19,17): warning CS0612: 'C1.this[int].get' is obsolete
+                //         c1[0] = c1[0];
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c1[0]").WithArguments("C1.this[int].get").WithLocation(19, 17),
+                // (21,9): warning CS0612: 'C2.this[int].set' is obsolete
+                //         c2[0] = c2[0];
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c2[0]").WithArguments("C2.this[int].set").WithLocation(21, 9));
         }
 
         [Fact]
@@ -6790,15 +7128,9 @@ class D
 }";
             var comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
-                // (9,17): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
-                //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(9, 17),
                 // (7,33): warning CS0612: 'A' is obsolete
                 //     object P { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(7, 33),
-                // (9,82): warning CS0612: 'C' is obsolete
-                //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C").WithLocation(9, 82));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(7, 33));
         }
 
         [Fact]
@@ -6847,15 +7179,12 @@ class D
 }";
             var comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
-                // (21,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
-                //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter"),
                 // (11,24): warning CS0612: 'A' is obsolete
                 //         remove { M(new A()); }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A"),
-                // (21,73): warning CS0612: 'C' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(11, 24),
+                // (21,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
                 //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C").WithLocation(21, 73));
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(21, 10));
         }
 
         [Fact]
@@ -6910,7 +7239,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "X").WithArguments("N.A", "Do not use").WithLocation(15, 16));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/28328")]
         [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_OnBase()
         {
@@ -7936,7 +8265,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemRef });
+            var comp = CreateCompilation(source);
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -7992,27 +8321,45 @@ class Class5
         Class2 x2 = null;
         Class3 x3 = null;
         Class4 x4 = null;
+        Class6 x6 = new Class6();
 
         object x5;
         x5=x1;
         x5 = x2;
         x5 = x3;
         x5 = x4;
+        x5 = x6.P1;
+        x6.P1 = 1;
+        x5 = x6.P2;
+        x6.P2 = 1;
+        x6.E1 += null;
+        x6.E1 -= null;
     }
 }
 
 class Class6
 {
-    int P1
+    public int P1
     {
         [Deprecated(""P1.get is deprecated."", DeprecationType.Remove, 1)]
         get
         {
             return 1;
         }
+        set {}
     }
 
-    event System.Action E1
+    public int P2
+    {
+        get
+        {
+            return 1;
+        }
+        [Deprecated(""P1.get is deprecated."", DeprecationType.Remove, 1)]
+        set {}
+    }
+
+    public event System.Action E1
     {
         [Deprecated(""E1.add is deprecated."", DeprecationType.Remove, 1)]
         add
@@ -8027,12 +8374,6 @@ class Class6
             var compilation2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
 
             var expected = new[] {
-                // (25,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //         [Deprecated("P1.get is deprecated.", DeprecationType.Remove, 1)]
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(25, 10),
-                // (34,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //         [Deprecated("E1.add is deprecated.", DeprecationType.Remove, 1)]
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(34, 10),
                 // (8,9): warning CS0618: 'Class1' is obsolete: 'Class1 is deprecated.'
                 //         Class1 x1 = null;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Class1").WithArguments("Class1", "Class1 is deprecated.").WithLocation(8, 9),
@@ -8044,7 +8385,16 @@ class Class6
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Class3").WithArguments("Class3", "Class3 is deprecated.").WithLocation(10, 9),
                 // (11,9): error CS0619: 'Class4' is obsolete: 'Class4 is deprecated.'
                 //         Class4 x4 = null;
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Class4").WithArguments("Class4", "Class4 is deprecated.").WithLocation(11, 9)
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Class4").WithArguments("Class4", "Class4 is deprecated.").WithLocation(11, 9),
+                // (19,14): error CS0619: 'Class6.P1.get' is obsolete: 'P1.get is deprecated.'
+                //         x5 = x6.P1;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x6.P1").WithArguments("Class6.P1.get", "P1.get is deprecated.").WithLocation(19, 14),
+                // (22,9): error CS0619: 'Class6.P2.set' is obsolete: 'P1.get is deprecated.'
+                //         x6.P2 = 1;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x6.P2").WithArguments("Class6.P2.set", "P1.get is deprecated.").WithLocation(22, 9),
+                // (52,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //         [Deprecated("E1.add is deprecated.", DeprecationType.Remove, 1)]
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(52, 10)
                                  };
 
             compilation2.VerifyDiagnostics(expected);
@@ -10379,6 +10729,232 @@ class Test
                 // (5,14): warning CS0612: 'BothObsoleteParent.BothObsoleteChild' is obsolete
                 // using static BothObsoleteParent.BothObsoleteChild;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "BothObsoleteParent.BothObsoleteChild").WithArguments("BothObsoleteParent.BothObsoleteChild").WithLocation(5, 14));
+        }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_DefaultConstructor_DynamicAttribute()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public struct DynamicAttribute
+    {
+        public DynamicAttribute(bool[] transformFlags)
+        {
+        }
+    }
+}
+class T
+{
+    void M(dynamic x) {}
+}";
+
+            CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // error CS0616: 'System.Runtime.CompilerServices.DynamicAttribute' is not an attribute class
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_NonDefaultConstructor_DynamicAttribute_Array()
+        {
+            var compilation = CreateCompilationWithCSharp(@"
+using System;
+namespace System.Runtime.CompilerServices
+{
+    public struct DynamicAttribute
+    {
+        public DynamicAttribute(bool[] transformFlags)
+        {
+        }
+    }
+}
+public class Program
+{
+    public static void Test(dynamic[] x)
+    {
+        Console.WriteLine(x.Length);
+        foreach (var y in x)
+        {
+            Console.WriteLine(y);
+        }
+    }
+    public static void Main()
+    {
+        Test(new dynamic[] { ""first"", ""second"" });
+    }
+}", options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                compilation,
+                expectedOutput: @"
+2
+first
+second",
+                symbolValidator: module =>
+                {
+                    var attribute = module.ContainingAssembly.GetTypeByMetadataName("Program").GetMethod("Test").Parameters.Single().GetAttributes().Single();
+
+                    Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute", attribute.AttributeClass.ToTestDisplayString());
+                    Assert.True(attribute.AttributeClass.IsStructType());
+                    Assert.Equal(module.ContainingAssembly, attribute.AttributeClass.ContainingAssembly);
+                    Assert.Equal("transformFlags", attribute.AttributeConstructor.Parameters.Single().Name);
+                });
+        }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+    }
+}
+class Test
+{
+    void M(in int x)
+    {
+    }
+}";
+
+            CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestObsoleteOnPropertyAccessorUsedInNameofAndXmlDocComment()
+        {
+            var code = @"
+using System;
+/// <summary>
+/// <see cref=""Prop""/>
+/// </summary>
+class C
+{
+    const string str = nameof(Prop);
+    
+    public int Prop { [Obsolete] get; [Obsolete] set; }
+}
+";
+
+            CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TestObsoleteOnPropertyAndAccessors()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M() => Prop = Prop;
+
+    [Obsolete]
+    public int Prop { [Obsolete] get; [Obsolete] set; }
+}
+";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (5,24): warning CS0612: 'C.Prop' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop").WithLocation(5, 24),
+                // (5,24): warning CS0612: 'C.Prop.set' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop.set").WithLocation(5, 24),
+                // (5,31): warning CS0612: 'C.Prop' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop").WithLocation(5, 31),
+                // (5,31): warning CS0612: 'C.Prop.get' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop.get").WithLocation(5, 31));
+        }
+
+        [Fact]
+        public void TestObsoleteOnPropertyAccessorCSharp7()
+        {
+            var code = @"
+using System;
+class C
+{
+    public int Prop { [Obsolete] get; set; }
+}
+";
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (4,24): error CS8652: The feature 'obsolete on property accessor' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public int Prop { [Obsolete] get; set; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Obsolete").WithArguments("obsolete on property accessor", "8.0").WithLocation(5, 24));
+        }
+
+        [Fact]
+        public void TestDeprecatedOnPropertyAccessorCSharp7()
+        {
+            var code = @"
+using Windows.Foundation.Metadata;
+class C
+{
+    public int Prop { [Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)] get; set; }
+}
+";
+
+            CreateEmptyCompilation(code, references: WinRtRefs, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (5,24): error CS8652: The feature 'obsolete on property accessor' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public int Prop { [Deprecated("don't use this", DeprecationType.Remove, 50331648u)] get; set; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)").WithArguments("obsolete on property accessor", "8.0").WithLocation(5, 24));
+        }
+
+        [Fact]
+        public void TestObsoleteOnEventAccessorCSharp7()
+        {
+            var code = @"
+using System;
+class C
+{
+        public event System.Action E
+    {
+        [Obsolete]
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (7,10): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //         [Obsolete]
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(7, 10));
+        }
+
+        [Fact]
+        public void TestDeprecatedOnEventAccessorCSharp7()
+        {
+            var code = @"
+using Windows.Foundation.Metadata;
+class C
+{
+    public event System.Action E
+    {
+        [Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)]
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+}
+";
+
+            CreateEmptyCompilation(code, references: WinRtRefs, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (7,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //         [Deprecated("don't use this", DeprecationType.Remove, 50331648u)]
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(7, 10));
         }
     }
 }

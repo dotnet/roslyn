@@ -121,7 +121,7 @@ namespace Microsoft.Cci
             if (!debugInfo.LocalSlots.IsDefaultOrEmpty)
             {
                 encoder.AddRecord(
-                    CustomDebugInfoKind.EditAndContinueLocalSlotMap, 
+                    CustomDebugInfoKind.EditAndContinueLocalSlotMap,
                     debugInfo,
                     (info, builder) => info.SerializeLocalSlots(builder));
             }
@@ -134,7 +134,7 @@ namespace Microsoft.Cci
                     (info, builder) => info.SerializeLambdaMap(builder));
             }
         }
-        
+
         private static ArrayBuilder<T> GetLocalInfoToSerialize<T>(
             IMethodBody methodBody,
             Func<ILocalDefinition, bool> filter,

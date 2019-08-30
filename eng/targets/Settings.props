@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+  <PropertyGroup>
+    <Copyright>$(CopyrightMicrosoft)</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+
+    <PackageIconUrl>https://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
+    <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
+    <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
+
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+
+    <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
+    <LanguageServicesExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
+    
+    <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+    <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
+
+    <RoslynPortableTargetFrameworks>net472;netcoreapp2.1</RoslynPortableTargetFrameworks>
+    <RoslynEnforceCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true'">true</RoslynEnforceCodeStyle>
+    <UseSharedCompilation>true</UseSharedCompilation>
+
+    <Features>strict, IOperation</Features>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateFullPaths>true</GenerateFullPaths>
+    <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
+
+    <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
+    <CodeAnalysisTargets>NON_EXISTENT_FILE</CodeAnalysisTargets>
+
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
+    <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring($([System.Convert]::ToInt32(0)), $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
+    <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
+    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+    <MinimumMSBuildVersion>15.7.0</MinimumMSBuildVersion>
+
+    <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
+         that any builds of portable projects end up in a sub folder of $(OutputPath). Search for this flag in
+         Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
+    <WindowsAppContainer>false</WindowsAppContainer>
+
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+  </PropertyGroup>
+
+  <!-- 
+    Disable Source Link and Xliff in WPF temp projects to avoid generating non-deterministic file names to obj dir.
+    The project name is non-deterministic and is included in the Source Link json file name and xlf directory names.
+    It's also not necessary to generate these assets.
+  -->
+  <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true'">
+    <EnableSourceLink>false</EnableSourceLink>
+    <DeterministicSourcePaths>false</DeterministicSourcePaths>
+    <EnableXlfLocalization>false</EnableXlfLocalization>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
+    <!--
+      Choose default target frameworks to use for testing on Mono and Core.
+      These may be overriden by projects that need to be skipped.
+    -->
+    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Mono'">net46;net472</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp2.1</TestTargetFrameworks>
+
+    <XUnitDesktopSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitDesktopSettingsFile>
+    <XUnitCoreSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitCoreSettingsFile>
+  </PropertyGroup>
+
+  <!-- Keys used by InternalsVisibleTo attributes. -->
+  <PropertyGroup>
+    <MoqPublicKey>0024000004800000940000000602000000240000525341310004000001000100c547cac37abd99c8db225ef2f6c8a3602f3b3606cc9891605d02baa56104f4cfc0734aa39b93bf7852f7d9266654753cc297e7d2edfe0bac1cdcf9f717241550e0a7b191195b7667bb4f64bcb8e2121380fd1d9d46ad2d92d2d15605093924cceaf74c4861eff62abf69b9291ed0a340e113be11e6a7d3113e92484cf7045cc7</MoqPublicKey>
+    <VisualStudioKey>002400000480000094000000060200000024000052534131000400000100010007d1fa57c4aed9f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921eb23be79ad9d5dcc1dd9ad236132102900b723cf980957fc4e177108fc607774f29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93c1ab99285d622caa652c1dfad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293</VisualStudioKey>
+    <MonoDevelopKey>002400000c800000940000000602000000240000525341310004000001000100e1290d741888d13312c0cd1f72bb843236573c80158a286f11bb98de5ee8acc3142c9c97b472684e521ae45125d7414558f2e70ac56504f3e8fe80830da2cdb1cda8504e8d196150d05a214609234694ec0ebf4b37fc7537e09d877c3e65000f7467fa3adb6e62c82b10ada1af4a83651556c7d949959817fed97480839dd39b</MonoDevelopKey>
+    <RazorKey>0024000004800000940000000602000000240000525341310004000001000100f33a29044fa9d740c9b3213a93e57c84b472c84e0b8a0e1ae48e67a9f8f6de9d5f7f3d52ac23e48ac51801f1dc950abe901da34d2a9e3baadb141a17c77ef3c565dd5ee5054b91cf63bb3c6ab83f72ab3aafe93d0fc3c2348b764fafb0b1c0733de51459aeab46580384bf9d74c4e28164b7cde247f891ba07891c9d872ad2bb</RazorKey>
+    <CompletionTestsKey>0024000004800000940000000602000000240000525341310004000001000100b5fc90e7027f67871e773a8fde8938c81dd402ba65b9201d60593e96c492651e889cc13f1415ebb53fac1131ae0bd333c5ee6021672d9718ea31a8aebd0da0072f25d87dba6fc90ffd598ed4da35e44c398c454307e8e33b8426143daec9f596836f97c8f74750e5975c64e2189f45def46b2a2b1247adc3652bf5c308055da9</CompletionTestsKey>
+    <FSharpKey>$(VisualStudioKey)</FSharpKey>
+    <TypeScriptKey>$(VisualStudioKey)</TypeScriptKey>
+    <RemoteLanguageServiceKey>$(VisualStudioKey)</RemoteLanguageServiceKey>
+    <VisualStudioDebuggerKey>$(VisualStudioKey)</VisualStudioDebuggerKey>
+    <XamarinKey>002400000480000094000000060200000024000052534131000400000100010079159977d2d03a8e6bea7a2e74e8d1afcc93e8851974952bb480a12c9134474d04062447c37e0e68c080536fcf3c3fbe2ff9c979ce998475e506e8ce82dd5b0f350dc10e93bf2eeecf874b24770c5081dbea7447fddafa277b22de47d6ffea449674a4f9fccf84d15069089380284dbdd35f46cdff12a1bd78e4ef0065d016df</XamarinKey>
+    <UnitTestingKey>$(VisualStudioKey)</UnitTestingKey>
+  </PropertyGroup>
+
+  <!-- 
+       Enable hard links for the build. This is not done by default due to fears about 
+       inadvertently corrupting the NuGet cache (hard links in the output directory will
+       point into the cache). The build itself will not due this but a developer directly
+       modifying this directory could cause it to happen.
+
+       Developers who do not modify the output directory directly can enable this safely 
+
+       Related discussion in https://github.com/dotnet/roslyn/issues/30005
+  -->
+  <PropertyGroup Condition="'$(ROSLYNUSEHARDLINKS)' != ''">
+    <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
+    <CreateHardLinksForCopyAdditionalFilesIfPossible>true</CreateHardLinksForCopyAdditionalFilesIfPossible> 
+    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
+    <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
+  </PropertyGroup>
+
+  <!-- Windows specific settings -->
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <DeployExtension Condition="'$(VisualStudioVersion)' != '15.0' and '$(VisualStudioVersion)' != '16.0'">false</DeployExtension>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DevEnvDir)' == ''">
+    <DevEnvDir>$([System.Environment]::ExpandEnvironmentVariables("%VS$(VisualStudioReferenceMajorVersion)0COMNTOOLS%"))</DevEnvDir>
+    <DevEnvDir>$(DevEnvDir)\..\IDE</DevEnvDir>
+    <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
+  </PropertyGroup>
+
+  <!-- 
+    Bootstrapping compilers
+  -->
+  <Import Project="Bootstrap.props" Condition="'$(BootstrapBuildPath)' != ''" />
+
+  <!--
+    Analyzers
+  -->
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
+    <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="$(MicrosoftCodeQualityAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NetCore.Analyzers" Version="$(MicrosoftNetCoreAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Language-specific analyzer packages -->
+  <Choose>
+    <When Condition="'$(Language)' == 'VB' and '$(RoslynEnforceCodeStyle)' == 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(MicrosoftCodeAnalysisVisualBasicCodeStyleVersion)" PrivateAssets="all" />
+      </ItemGroup>
+    </When>
+
+    <When Condition="'$(Language)' == 'C#' and '$(RoslynEnforceCodeStyle)' == 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(MicrosoftCodeAnalysisCSharpCodeStyleVersion)" PrivateAssets="all" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <PropertyGroup>
+    <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0055</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <!--
+    Language specific settings
+  -->
+  <Choose>
+    <!-- VB specific settings -->
+    <When Condition="'$(Language)' == 'VB'">
+      <PropertyGroup>
+        <LangVersion>15.5</LangVersion>
+        <NoWarn>$(NoWarn);40057</NoWarn>
+      </PropertyGroup>
+      <ItemGroup>
+        <Import Include="Microsoft.VisualBasic" />
+        <Import Include="System" />
+        <Import Include="System.Collections" />
+        <Import Include="System.Collections.Generic" />
+        <Import Include="System.Diagnostics" />
+      </ItemGroup>
+      <ItemGroup Condition="'$(TargetFramework)' != 'net20'">
+        <Import Include="System.Linq" />
+      </ItemGroup>
+      <PropertyGroup>
+        <DefineConstants Condition="'$(InitialDefineConstants)' != ''">$(InitialDefineConstants)</DefineConstants>
+      </PropertyGroup>
+    </When>
+
+    <!-- C# specific settings -->
+    <When Condition="'$(Language)' == 'C#'">
+      <PropertyGroup>
+        <LangVersion>8.0</LangVersion>
+        <WarningLevel>4</WarningLevel>
+        <ErrorReport>prompt</ErrorReport>
+
+        <!-- Suppress the following warnings by default for C# projects
+                1573: Suppressed in order to allow documentation for some but not all parameters.
+                      A warning will still be reported if the documentation defines/references a
+                      parameter which does not exist.
+                1591: So far we've chosen to implicitly implement interfaces and as a consequence
+                      the methods are public.  We don't want to duplicate documentation for them
+                      and hence suppress this warning until we get closer to release and a more
+                      thorough documentation story
+        -->
+        <NoWarn>$(NoWarn);1573;1591;1701</NoWarn>
+      </PropertyGroup>
+      <PropertyGroup>
+        <DefineConstants Condition="'$(InitialDefineConstants)' != ''">$(DefineConstants);$(InitialDefineConstants)</DefineConstants>
+      </PropertyGroup>
+    </When>
+  </Choose>
+</Project>

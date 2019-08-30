@@ -2,6 +2,36 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../VBFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_Await">
+        <source>Add Await</source>
+        <target state="translated">Ajouter Await</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add Await and 'ConfigureAwait(false)'</source>
+        <target state="translated">Ajouter Await et 'ConfigureAwait(false)'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="translated">Ajouter &lt;Obsolete&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_Imports">
+        <source>Add missing Imports</source>
+        <target state="translated">Ajouter les Import manquants</target>
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_Shadows">
+        <source>Add 'Shadows'</source>
+        <target state="translated">Ajouter 'Shadows'</target>
+        <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="If_statement_can_be_simplified">
+        <source>'If' statement can be simplified</source>
+        <target state="translated">L'instruction 'If' peut être simplifiée</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">Insérer '{0}'.</target>
@@ -37,9 +67,14 @@
         <target state="translated">Conflit(s) détecté(s).</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_If_statement">
-        <source>Invert If statement</source>
-        <target state="translated">Inverser l'instruction If</target>
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="translated">Introduire l'instruction 'Using'</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="translated">Rendre '{0}' héritable</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -52,9 +87,19 @@
         <target state="translated">Supprimez l'instruction '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="translated">&lt;Plusieurs types&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">Supprimer les importations superflues</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">&amp;Trier les import</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -160,16 +205,6 @@
       <trans-unit id="Fix_Incorrect_Function_Return_Type">
         <source>Fix Incorrect Function Return Type</source>
         <target state="translated">Corriger le type de retour de fonction incorrect</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Supprimer le cast inutile</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">Cast redondant</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
@@ -1703,9 +1738,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Overloads">
-        <source>Add Overloads</source>
-        <target state="translated">Ajouter des surcharges</target>
-        <note />
+        <source>Add 'Overloads'</source>
+        <target state="translated">Ajouter 'Overloads'</target>
+        <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
         <source>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</source>
@@ -1802,11 +1837,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Ajouter 'Me.'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_If_to_Select_Case">
-        <source>Convert 'If' to 'Select Case'</source>
-        <target state="translated">Convertir 'If' en 'Select Case'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">
         <source>Use 'Is Nothing' check</source>
         <target state="translated">Utiliser la vérification 'Is Nothing'</target>
@@ -1815,6 +1845,26 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Use_IsNot_Nothing_check">
         <source>Use 'IsNot Nothing' check</source>
         <target state="translated">Utiliser la vérification 'IsNot Nothing'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_Select_Case">
+        <source>Convert to 'Select Case'</source>
+        <target state="translated">Convertir en 'Select Case'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For_Each">
+        <source>Convert to 'For Each'</source>
+        <target state="translated">Convertir en 'For Each'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For">
+        <source>Convert  to 'For'</source>
+        <target state="translated">Convertir en 'For'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="translated">Inverser If</target>
         <note />
       </trans-unit>
     </body>

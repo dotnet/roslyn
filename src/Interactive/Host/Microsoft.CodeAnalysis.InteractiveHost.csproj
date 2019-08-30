@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.Interactive</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") interactive host implementation.
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
+      <Aliases>global,Scripting</Aliases>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="InteractiveHost32" />
+    <InternalsVisibleTo Include="InteractiveHost64" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" />
+    <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Workspaces\Core\Portable\Utilities\Contract.cs" Link="Utilities\Contract.cs" />
+    <Compile Include="..\..\Workspaces\Core\Portable\Utilities\NullableHelpers\NullableAttributes.cs" Link="Utilities\NullableAttributes.cs" />
+    <Compile Include="..\..\Workspaces\Core\Portable\Utilities\TaskExtensions.cs" Link="Utilities\TaskExtensions.cs" />
+    <Compile Include="..\..\Workspaces\Core\Portable\Utilities\AsyncLazy`1.cs" Link="Utilities\AsyncLazy`1.cs" />
+    <Compile Include="..\..\Workspaces\Core\Portable\Utilities\NonReentrantLock.cs" Link="Utilities\NonReentrantLock.cs" />
+    <Compile Include="..\..\Workspaces\Core\Portable\Utilities\ValuesSources\ValueSource.cs" Link="Utilities\ValueSource.cs" />
+    <Compile Include="..\..\Workspaces\Core\Portable\Utilities\ValuesSources\ConstantValueSource.cs" Link="Utilities\ConstantValueSource.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Link="Utilities\PerformanceSensitiveAttribute.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs" Link="Utilities\SemaphoreSlimExtensions.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="Utilities\ExceptionUtilities.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs" Link="Utilities\FailFast.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs" Link="Utilities\FatalError.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs" Link="Utilities\FileNameUtilities.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" Link="Utilities\PlatformInformation.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="Utilities\Hash.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs" Link="Utilities\FileUtilities.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="Utilities\PathUtilities.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="Utilities\PathKind.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="InteractiveHostResources.Designer.cs">
+      <DependentUpon>InteractiveHostResources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="InteractiveHostResources.resx">
+      <SubType>Designer</SubType>
+      <LastGenOutput>InteractiveHostResources.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

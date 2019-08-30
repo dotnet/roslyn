@@ -92,7 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var field = type.TupleElements[index];
 
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                  displayText: field.Name + ColonString,
+                  displayText: field.Name,
+                  displayTextSuffix: ColonString,
                   symbols: ImmutableArray.Create(field),
                   rules: CompletionItemRules.Default,
                   contextPosition: spanStart,
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,
-                selectedItem.DisplayText.Substring(0, selectedItem.DisplayText.Length - ColonString.Length)));
+                selectedItem.DisplayText));
         }
     }
 }

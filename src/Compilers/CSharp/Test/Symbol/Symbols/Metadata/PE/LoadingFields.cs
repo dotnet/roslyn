@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Same(f1, f1.OriginalDefinition);
             Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
             Assert.Same(vbFields, f1.ContainingSymbol);
-            Assert.Equal(0, f1.CustomModifiers.Length);
+            Assert.Equal(0, f1.TypeWithAnnotations.CustomModifiers.Length);
 
             Assert.Equal("F2", f2.Name);
             Assert.Same(((PEModuleSymbol)module2).GetCorLibType(SpecialType.System_Int32), f2.Type);
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.False(f2.IsStatic);
             Assert.False(f2.IsVolatile);
             Assert.Equal(Accessibility.Protected, f2.DeclaredAccessibility);
-            Assert.Equal(0, f2.CustomModifiers.Length);
+            Assert.Equal(0, f2.TypeWithAnnotations.CustomModifiers.Length);
 
             Assert.Equal("F3", f3.Name);
             Assert.False(f3.IsConst);
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.False(f3.IsStatic);
             Assert.False(f3.IsVolatile);
             Assert.Equal(Accessibility.Internal, f3.DeclaredAccessibility);
-            Assert.Equal(0, f3.CustomModifiers.Length);
+            Assert.Equal(0, f3.TypeWithAnnotations.CustomModifiers.Length);
 
             Assert.Equal("F4", f4.Name);
             Assert.False(f4.IsConst);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.False(f4.IsStatic);
             Assert.False(f4.IsVolatile);
             Assert.Equal(Accessibility.ProtectedOrInternal, f4.DeclaredAccessibility);
-            Assert.Equal(0, f4.CustomModifiers.Length);
+            Assert.Equal(0, f4.TypeWithAnnotations.CustomModifiers.Length);
 
             Assert.Equal("F5", f5.Name);
             Assert.True(f5.IsConst);
@@ -86,16 +86,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.True(f5.IsStatic);
             Assert.False(f5.IsVolatile);
             Assert.Equal(Accessibility.Protected, f5.DeclaredAccessibility);
-            Assert.Equal(0, f5.CustomModifiers.Length);
+            Assert.Equal(0, f5.TypeWithAnnotations.CustomModifiers.Length);
 
             Assert.Equal("F6", f6.Name);
             Assert.False(f6.IsConst);
             Assert.False(f6.IsReadOnly);
             Assert.False(f6.IsStatic);
             Assert.True(f6.IsVolatile);
-            Assert.Equal(1, f6.CustomModifiers.Length);
+            Assert.Equal(1, f6.TypeWithAnnotations.CustomModifiers.Length);
 
-            CustomModifier mod = f6.CustomModifiers[0];
+            CustomModifier mod = f6.TypeWithAnnotations.CustomModifiers[0];
 
             Assert.False(mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsVolatile", mod.Modifier.ToTestDisplayString());
@@ -131,7 +131,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(text, il, options:TestOptions.DebugExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(text, il, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"Value1
 Value2");
         }

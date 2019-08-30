@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly string _filePath;
 
             public RemoveMetadataReferenceUndoUnit(
-                VisualStudioWorkspaceImpl workspace, 
-                ProjectId fromProjectId, 
+                VisualStudioWorkspaceImpl workspace,
+                ProjectId fromProjectId,
                 string filePath)
                 : base(workspace, fromProjectId)
             {

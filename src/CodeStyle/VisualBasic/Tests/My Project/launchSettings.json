@@ -1,12 +1,14 @@
 {
   "profiles": {
-    "xUnit.net Console": {
-      "executablePath": "$(XUnitPath)",
-      "commandLineArgs": "$(XUnitArguments)"
+    "xUnit.net Console (32-bit)": {
+      "commandName": "Executable",
+      "executablePath": "$(NuGetPackageRoot)xunit.runner.console\\$(XUnitVersion)\\tools\\net452\\xunit.console.x86.exe",
+      "commandLineArgs": "$(TargetPath) -noshadow -verbose"
     },
-    "xUnit.net WPF Runner": {
-      "executablePath": "$(XUnitWpfPath)",
-      "commandLineArgs": "$(XUnitWpfArguments)"
+    "xUnit.net Console (64-bit)": {
+      "commandName": "Executable",
+      "executablePath": "$(NuGetPackageRoot)xunit.runner.console\\$(XUnitVersion)\\tools\\net452\\xunit.console.exe",
+      "commandLineArgs": "$(TargetPath) -noshadow -verbose"
     }
   }
 }

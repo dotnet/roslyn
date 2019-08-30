@@ -26,11 +26,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public int GetCaretPosition()
             => _textViewWindowInProc.GetCaretPosition();
 
+        public int GetCaretColumn()
+            => _textViewWindowInProc.GetCaretColumn();
+
         public string[] GetCompletionItems()
         {
             WaitForCompletionSet();
             return _textViewWindowInProc.GetCompletionItems();
         }
+
+        public int GetVisibleColumnCount()
+            => _textViewWindowInProc.GetVisibleColumnCount();
 
         public void PlaceCaret(
             string marker,
@@ -72,23 +78,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string[] GetLightBulbActions()
             => _textViewWindowInProc.GetLightBulbActions();
 
-        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
+        public bool ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
             => _textViewWindowInProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
 
         public void InvokeCompletionList()
         {
             _instance.ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.CompletionSet);
         }
 
         public void InvokeCodeActionList()
         {
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.DiagnosticService);
 
             ShowLightBulb();
             WaitForLightBulbSession();
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
         }
 
         /// <summary>
@@ -104,7 +110,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void InvokeQuickInfo()
         {
             _instance.ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.QuickInfo);
         }
     }
 }

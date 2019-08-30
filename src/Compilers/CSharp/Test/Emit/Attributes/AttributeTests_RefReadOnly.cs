@@ -1283,7 +1283,7 @@ class Test
         [Fact]
         public void IsReadOnlyAttributesAreNotPortedInNoPia()
         {
-            var comAssembly = CreateCompilation(@"
+            var comAssembly = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""test.dll"")]
@@ -1325,10 +1325,10 @@ class User
 
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var compilation_CompilationReference = CreateCompilation(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
+            var compilation_CompilationReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_CompilationReference, symbolValidator: symbolValidator);
 
-            var compilation_BinaryReference = CreateCompilation(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
+            var compilation_BinaryReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_BinaryReference, symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
@@ -1359,7 +1359,7 @@ class User
 public delegate int D (in int x);
 ").VerifyEmitDiagnostics();
 
-            Assert.True(reference.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.True(NeedsGeneratedIsReadOnlyAttribute(reference));
 
             var compilation = CreateCompilation(@"
 public class Test
@@ -1372,7 +1372,7 @@ public class Test
 }", references: new[] { reference.ToMetadataReference() });
 
             compilation.VerifyEmitDiagnostics();
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1386,7 +1386,7 @@ public class Test
             Assert.Equal(CandidateReason.None, result.CandidateReason);
             Assert.Empty(result.CandidateSymbols);
 
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
         }
 
         [Fact]
@@ -1396,7 +1396,7 @@ public class Test
 public delegate ref readonly int D ();
 ").VerifyEmitDiagnostics();
 
-            Assert.True(reference.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.True(NeedsGeneratedIsReadOnlyAttribute(reference));
 
             var compilation = CreateCompilation(@"
 public class Test
@@ -1414,7 +1414,7 @@ public class Test
 }", references: new[] { reference.ToMetadataReference() });
 
             compilation.VerifyEmitDiagnostics();
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1428,7 +1428,7 @@ public class Test
             Assert.Equal(CandidateReason.None, result.CandidateReason);
             Assert.Empty(result.CandidateSymbols);
 
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
         }
 
         [Fact]
@@ -1443,7 +1443,7 @@ public class Test
 }");
 
             compilation.VerifyEmitDiagnostics();
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1455,7 +1455,7 @@ public class Test
             Assert.True(model.TryGetSpeculativeSemanticModel(position, localfunction, out var newModel));
             var localFunctionSymbol = newModel.GetDeclaredSymbol(localfunction);
             Assert.NotNull(localFunctionSymbol);
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
         }
 
         [Fact]
@@ -1470,7 +1470,7 @@ public class Test
 }");
 
             compilation.VerifyEmitDiagnostics();
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1482,7 +1482,7 @@ public class Test
             Assert.True(model.TryGetSpeculativeSemanticModel(position, localfunction, out var newModel));
             var localFunctionSymbol = newModel.GetDeclaredSymbol(localfunction);
             Assert.NotNull(localFunctionSymbol);
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
         }
 
         [Fact]
@@ -1493,7 +1493,7 @@ public delegate ref readonly int D1 ();
 public delegate ref int D2 ();
 ").VerifyEmitDiagnostics();
 
-            Assert.True(reference.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.True(NeedsGeneratedIsReadOnlyAttribute(reference));
 
             var compilation = CreateCompilation(@"
 public class Test
@@ -1509,7 +1509,7 @@ public class Test
 }", references: new[] { reference.ToMetadataReference() });
 
             compilation.VerifyEmitDiagnostics();
-            Assert.False(compilation.NeedsGeneratedIsReadOnlyAttribute);
+            Assert.False(NeedsGeneratedIsReadOnlyAttribute(compilation));
         }
 
         [Fact]
@@ -2343,6 +2343,11 @@ public class Test
 
             Assert.Equal(WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute), attributes[0].AttributeClass.ToDisplayString());
             Assert.Equal(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName, attributes[1].AttributeClass.ToDisplayString());
+        }
+
+        private static bool NeedsGeneratedIsReadOnlyAttribute(CSharpCompilation compilation)
+        {
+            return (compilation.GetNeedsGeneratedAttributes() & EmbeddableAttributes.IsReadOnlyAttribute) != 0;
         }
     }
 }

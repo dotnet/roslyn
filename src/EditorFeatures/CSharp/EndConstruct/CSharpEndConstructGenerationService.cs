@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EndConstructGeneration
     [ExcludeFromCodeCoverage]
     internal class CSharpEndConstructGenerationService : IEndConstructGenerationService
     {
+        [ImportingConstructor]
+        public CSharpEndConstructGenerationService()
+        {
+        }
+
         public bool TryDo(
             ITextView textView,
             ITextBuffer subjectBuffer,

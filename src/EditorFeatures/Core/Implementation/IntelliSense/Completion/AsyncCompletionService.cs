@@ -8,8 +8,12 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
@@ -23,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     internal class AsyncCompletionService : ForegroundThreadAffinitizedObject, IAsyncCompletionService
     {
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IFeatureServiceFactory _featureServiceFactory;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> _completionPresenter;
@@ -31,31 +36,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly Dictionary<IContentType, ImmutableHashSet<char>> _autoBraceCompletionCharSet;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AsyncCompletionService(
+            IThreadingContext threadingContext,
             IEditorOperationsFactoryService editorOperationsFactoryService,
+            IFeatureServiceFactory featureServiceFactory,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
             IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, OrderableMetadata>> completionPresenters,
             [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
-            : this(editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService, listenerProvider,
-                  ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                  autoBraceCompletionChars)
-        {
-        }
-
-        public AsyncCompletionService(
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IInlineRenameService inlineRenameService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> completionPresenter,
-            IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
+            : base(threadingContext)
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _featureServiceFactory = featureServiceFactory;
             _undoHistoryRegistry = undoHistoryRegistry;
             _inlineRenameService = inlineRenameService;
-            _completionPresenter = completionPresenter;
+            _completionPresenter = ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault();
             _listener = listenerProvider.GetListener(FeatureAttribute.CompletionSet);
 
             _autoBraceCompletionChars = autoBraceCompletionChars;
@@ -66,10 +63,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             AssertIsForeground();
 
-            // check whether this feature is on.
-            if (!subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
+            if (!UseLegacyCompletion(_featureServiceFactory, textView, subjectBuffer))
             {
                 controller = null;
+                return false;
+            }
+
+            if (!_featureServiceFactory.GetOrCreate(textView).IsEnabled(PredefinedEditorFeatureNames.Completion))
+            {
+                controller = null;
+                return false;
+            }
+
+            var autobraceCompletionCharSet = GetAllAutoBraceCompletionChars(subjectBuffer.ContentType);
+            controller = Controller.GetInstance(
+                ThreadingContext,
+                textView, subjectBuffer,
+                _editorOperationsFactoryService, _undoHistoryRegistry, _completionPresenter,
+                _listener,
+                autobraceCompletionCharSet);
+
+            return true;
+        }
+
+        private bool UseLegacyCompletion(IFeatureServiceFactory featureServiceFactory, ITextView textView, ITextBuffer subjectBuffer)
+        {
+            var newCompletionEnabled = featureServiceFactory.GetOrCreate(textView).IsEnabled(PredefinedEditorFeatureNames.AsyncCompletion);
+
+            // Check whether the feature flag (async completion API) is set or this feature is off.
+            if (newCompletionEnabled || !subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
+            {
                 return false;
             }
 
@@ -79,16 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // Also, if there's an inline rename session then we do not want completion.
             if (_completionPresenter == null || _inlineRenameService.ActiveSession != null)
             {
-                controller = null;
                 return false;
             }
-
-            var autobraceCompletionCharSet = GetAllAutoBraceCompletionChars(subjectBuffer.ContentType);
-            controller = Controller.GetInstance(
-                textView, subjectBuffer,
-                _editorOperationsFactoryService, _undoHistoryRegistry, _completionPresenter,
-                _listener,
-                autobraceCompletionCharSet);
 
             return true;
         }
@@ -120,6 +135,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             return set;
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AsyncCompletionService _asyncCompletionService;
+
+            public TestAccessor(AsyncCompletionService asyncCompletionService)
+            {
+                _asyncCompletionService = asyncCompletionService;
+            }
+
+            internal bool UseLegacyCompletion(IFeatureServiceFactory featureServiceFactory, ITextView textView, ITextBuffer subjectBuffer)
+                => _asyncCompletionService.UseLegacyCompletion(featureServiceFactory, textView, subjectBuffer);
         }
     }
 }

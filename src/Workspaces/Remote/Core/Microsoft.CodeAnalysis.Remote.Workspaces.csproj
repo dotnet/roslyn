@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.Remote</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process.
+      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProvider.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.DocumentOptions.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProvider.DocumentOptions.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProviderFactory.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProviderFactory.cs" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.CodingConventions" Version="$(MicrosoftVisualStudioCodingConventionsVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" WorkItem="https://github.com/dotnet/roslyn/issues/35078" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" WorkItem="https://github.com/dotnet/roslyn/issues/35078" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
+    <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
+    <InternalsVisibleTo Include="Roslyn.Services.UnitTests.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(CompletionTestsKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
+  </ItemGroup>
+</Project>

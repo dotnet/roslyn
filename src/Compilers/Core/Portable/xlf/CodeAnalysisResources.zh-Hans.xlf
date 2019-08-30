@@ -2,6 +2,63 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">无法为此选项指定语言名称。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">必须为此选项指定语言名称。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">分析器“{0}”引发了以下异常:
+“{1}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="new">Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">给定操作块不属于当前的分析上下文。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="translated">参数“{0}”必须是 "INamedTypeSymbol 或 "IAssemblySymbol"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="translated">参数“{0}”必须是此编译或某些引用程序集的符号。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="new">Non-reported diagnostic with ID '{0}' cannot be suppressed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">给定操作具有一个非 null 父级。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">给定操作具有一个 null 语义模型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="translated">提供的操作不能是控制流图的一部分。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">输出类型不受支持。</target>
@@ -20,6 +77,36 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">模块复制不能用于创建程序集元数据。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">分析器“{0}”在其 "SupportedDiagnostics" 中包含 null 描述符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
+        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="new">Programmatic suppression of an analyzer diagnostic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="new">A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="new">If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -150,6 +237,11 @@
       <trans-unit id="GetMetadataMustReturnInstance">
         <source>{0}.GetMetadata() must return an instance of {1}.</source>
         <target state="translated">{0}.GetMetadata() 必须返回 {1} 的实例。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="new">Reported suppression with ID '{0}' is not supported by the suppressor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
@@ -427,6 +519,16 @@
         <target state="translated">无效的区域性名称:“{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="translated">在 "{2}" 的分析器配置文件中为诊断 "{0}" 给定了无效的严重性 "{1}"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="translated">分析器配置文件中的严重性无效。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">WindowsRuntime 标识不可重定目标</target>
@@ -467,13 +569,6 @@
         <target state="translated">分析器“{0}”抛出类型为“{1}”的异常，并显示消息“{2}”。</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">分析器“{0}”引发了以下异常:
-“{1}”。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>
         <target state="translated">分析器驱动程序故障</target>
@@ -496,8 +591,8 @@
         <target state="translated">PE 映像不包含任何托管元数据。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesMustBeOrderedAndNotOverlapping">
-        <source>The changes must be ordered and not overlapping.</source>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
         <target state="translated">更改必须有序且不重叠。</target>
         <note />
       </trans-unit>
@@ -826,11 +921,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">警告: 无法启用 multicore JIT，因为存在异常: {0}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CompilerDiagnosticIdReported">
-        <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="translated">报告的诊断具有 ID“{0}”，而仅只报告一个编译器。</target>
         <note />
       </trans-unit>
     </body>

@@ -57,6 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _shutdownLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
             }
 
+            public HostGroup HostGroup => _hostGroup;
+
             public Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
             {
                 // pool is not enabled by option
@@ -119,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // get stream from service hub to communicate service specific information
                 // this is what consumer actually use to communicate information
-                var serviceStream = await Connections.RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
+                var serviceStream = await Connections.RequestServiceAsync(dataRpc.Target.Workspace, _hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
                 return new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc);
             }

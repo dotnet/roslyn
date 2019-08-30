@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     [ExcludeFromCodeCoverage]
     internal sealed class ActiveStatementTagFormatDefinition : MarkerFormatDefinition
     {
+        [ImportingConstructor]
         public ActiveStatementTagFormatDefinition()
         {
             // TODO (tomat): bug 777271

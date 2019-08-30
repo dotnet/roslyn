@@ -185,5 +185,100 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ToArray();
             comp.VerifyDiagnostics(diagnostics);
         }
+
+        [Fact, WorkItem(29360, "https://github.com/dotnet/roslyn/pull/29360")]
+        public void RaceConditionOnImproperlyCapturedAnalyzedArguments()
+        {
+            const int n = 6;
+            var builder = new StringBuilder();
+            builder.AppendLine("using System;");
+
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"public class C{i}");
+                builder.AppendLine("{");
+
+                for (int j = 0; j < n; j++)
+                {
+                    builder.AppendLine($"    public string M{j}()");
+                    builder.AppendLine("    {");
+
+                    for (int k = 0; k < n; k++)
+                    {
+                        for (int l = 0; l < n; l++)
+                        {
+                            builder.AppendLine($"        Class.Method((C{k} x{k}) => x{k}.M{l});");
+                        }
+                    }
+
+                    builder.AppendLine("        return null;");
+                    builder.AppendLine("    }");
+                }
+
+                builder.AppendLine("}");
+            }
+
+            builder.AppendLine(@"
+public static class Class
+{
+    public static void Method<TClass>(Func<TClass, Func<string>> method) { }
+    public static void Method<TClass>(Func<TClass, Func<string, string>> method) { }
+}
+");
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35949, "https://github.com/dotnet/roslyn/issues/35949")]
+        public void NotNull_Complexity()
+        {
+            var source = @"
+#nullable enable
+using System;
+using System.Diagnostics.CodeAnalysis;
+class C
+{
+    C f = null!;
+
+    void M(C c)
+    {
+        c.f = c;
+        c.NotNull(
+            x => x.f.NotNull(
+                y => y.f.NotNull(
+                    z => z.f.NotNull(
+                        q => q.f.NotNull(
+                            w => w.f.NotNull(
+                                e => e.f.NotNull(
+                                    r => r.f.NotNull(
+                                        _ =>
+                                        {
+                                            """".NotNull(s => s);
+                                            """".NotNull(s => s);
+                                            """".NotNull(s => s);
+                                            """".NotNull(s => s);
+                                            """".NotNull(s => s);
+                                            """".NotNull(s => s);
+                                            """".NotNull(s => s);
+                                            """".NotNull(s => s);
+                                            """".NotNull(s => s);
+                                            """".NotNull(s => s);
+                                            """".NotNull(s => s);
+                                            """".NotNull(s => s);
+
+                                            return """";
+                                        }))))))));
+    }
+}
+
+static class Ext
+{
+    public static V NotNull<T, V>([NotNull] this T t, Func<T, V> f) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { NotNullAttributeDefinition, source });
+            comp.VerifyDiagnostics();
+        }
     }
 }

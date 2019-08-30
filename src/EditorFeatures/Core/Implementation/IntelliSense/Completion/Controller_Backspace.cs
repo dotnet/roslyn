@@ -4,23 +4,25 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<BackspaceKeyCommandArgs>.GetCommandState(BackspaceKeyCommandArgs args, System.Func<CommandState> nextHandler)
+        VSCommanding.CommandState IChainedCommandHandler<BackspaceKeyCommandArgs>.GetCommandState(BackspaceKeyCommandArgs args, System.Func<VSCommanding.CommandState> nextHandler)
         {
             AssertIsForeground();
             return nextHandler();
         }
 
-        void ICommandHandler<BackspaceKeyCommandArgs>.ExecuteCommand(BackspaceKeyCommandArgs args, Action nextHandler)
+        void IChainedCommandHandler<BackspaceKeyCommandArgs>.ExecuteCommand(BackspaceKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             ExecuteBackspaceOrDelete(args.TextView, nextHandler, isDelete: false);
         }
@@ -91,9 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 var model = sessionOpt.Computation.InitialUnfilteredModel;
 
+                // DismissIfLastCharacterDeleted should be applied only when started with Insertion, and then Deleted all characters typed.
+                // This confirms with the original VS 2010 behavior.
                 if ((model == null && CaretHasLeftDefaultTrackingSpan(subjectBufferCaretPoint, documentBeforeDeletion)) ||
                     (model != null && this.IsCaretOutsideAllItemBounds(model, this.GetCaretPointInViewBuffer())) ||
-                    (model != null && model.OriginalList.Rules.DismissIfLastCharacterDeleted && AllFilterTextsEmpty(model, GetCaretPointInViewBuffer())))
+                    (model != null && model.Trigger.Kind == CompletionTriggerKind.Insertion && model.OriginalList.Rules.DismissIfLastCharacterDeleted && AllFilterTextsEmpty(model, GetCaretPointInViewBuffer())))
                 {
                     // If the caret moved out of bounds of our items, then we want to dismiss the list. 
                     this.DismissSessionIfActive();
@@ -117,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // We haven't finished computing the model, but we may need to dismiss.
             // Get the context span and see if we're outside it.
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var contextSpan = completionService.GetDefaultCompletionListSpan(text, caretPoint);
             var newCaretPoint = GetCaretPointInViewBuffer();
             return !contextSpan.IntersectsWith(new TextSpan(newCaretPoint, 0));
@@ -161,7 +165,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var textSnapshot = caretPoint.Snapshot;
 
             var currentText = model.GetCurrentTextInSnapshot(item.Span, textSnapshot, textSpanToText);
-            var currentTextSpan = new TextSpan(filterSpanInViewBuffer.TextSpan.Start, currentText.Length);
 
             return currentText.Length == 0;
         }

@@ -2,28 +2,25 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Exe</OutputType>
     <RootNamespace>RoslynPublish</RootNamespace>
-    <AssemblyName>RoslynPublish</AssemblyName>
-    <TargetFramework>net462</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
+    <TargetFramework>net472</TargetFramework>
     <SignAssembly>false</SignAssembly>
     <AutomaticBindingRedirects>true</AutomaticBindingRedirects>
-    <Nonshipping>true</Nonshipping>
+    <IsShipping>false</IsShipping>
+
+    <!-- https://github.com/dotnet/roslyn/issues/21183 -->
+    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
-    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" />
     <PackageReference Include="Microsoft.DotNet.VersionTools" Version="$(MicrosoftDotNetVersionToolsVersion)" />
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
+    <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackagingVersion)" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

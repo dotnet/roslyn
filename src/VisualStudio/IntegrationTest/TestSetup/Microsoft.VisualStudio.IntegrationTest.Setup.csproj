@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Setup</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <IsShipping>false</IsShipping>
+
+    <!-- VSIX -->
+    <UseCodebase>true</UseCodebase>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Setup\ProvideRoslynBindingRedirection.cs">
+      <Link>ProvideRoslynBindingRedirection.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <VSCTCompile Include="IntegrationTestServiceCommands.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
+    </VSCTCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="IntegrationTestServicePackage.resx">
+      <MergeWithCTO>true</MergeWithCTO>
+      <ManifestResourceName>IntegrationTestServicePackage</ManifestResourceName>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Design" />
+    <Reference Include="System.Runtime.Remoting" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="$(MicrosoftDiagnosticsRuntimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Test\Diagnostics\Roslyn.Hosting.Diagnostics.csproj">
+      <Name>Diagnostics</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
+      <Name>Workspaces</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Setup\Roslyn.VisualStudio.Setup.csproj">
+      <Name>VisualStudioSetup</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj">
+      <Name>IntegrationService</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.Diagnostics.Runtime.dll" />
+  </ItemGroup>
+</Project>

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -294,7 +295,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         public async Task TestMissingInHiddenBlock1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {
@@ -311,7 +313,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         public async Task TestMissingInHiddenBlock2()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {
@@ -359,7 +362,8 @@ class Program
         public async Task TestAvailableInNonHiddenBlock2()
         {
             await TestInRegularAndScriptAsync(
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {
@@ -372,7 +376,8 @@ class Program
         Bar(x);
     }
 }",
-@"class Program
+@"#line default
+class Program
 {
     void Main()
     {
@@ -1325,6 +1330,133 @@ class Program
     }
 
     public static void Out<T>(out T t) => t = default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMoveInsideSwitchSection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true:
+                int [||]x = 0;
+                System.Console.WriteLine();
+                System.Console.WriteLine(x);
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true:
+                System.Console.WriteLine();
+                int x = 0;
+                System.Console.WriteLine(x);
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMoveIntoSwitchSection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        switch (true)
+        {
+            case true:
+                x = 0;
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true:
+                int x = 0;
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUsedInMultipleSwitchSections_MoveToSwitchStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        System.Console.WriteLine();
+        switch (true)
+        {
+            case true:
+                x = 0;
+                break;
+            case false:
+                x = 0;
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        System.Console.WriteLine();
+        int x;
+        switch (true)
+        {
+            case true:
+                x = 0;
+                break;
+            case false:
+                x = 0;
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUsedInMultipleSwitchSections_CannotMove()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        switch (true)
+        {
+            case true:
+                x = 0;
+                break;
+            case false:
+                x = 0;
+                break;
+        }
+    }
 }");
         }
     }

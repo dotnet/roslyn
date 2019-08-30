@@ -9,6 +9,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:s="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
+             xmlns:dest="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface"
              mc:Ignorable="d" 
              d:DesignHeight="380" d:DesignWidth="460"
              Height="380" Width="460"
@@ -29,6 +30,8 @@
         <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="textboxPadding">2</Thickness>
+        <Thickness x:Key="radioButtonPadding">2, 0, 2, 0</Thickness>
+        <u:EnumBoolConverter x:Key="enumBoolConverter" />
     </Window.Resources>
     <Grid Margin="11,6,11,11">
         <Grid.RowDefinitions>
@@ -59,19 +62,59 @@
                      Background="{DynamicResource {x:Static SystemColors.ControlBrush}}"
                      Padding="{StaticResource ResourceKey=textboxPadding}"
                      GotFocus="SelectAllInTextBox"/>
-            <Label x:Uid="FileNameLabel" 
-                   x:Name="FileNameLabel"
-                   Content="{Binding ElementName=dialog, Path=NewFileName}" 
-                   Padding="{StaticResource ResourceKey=labelPadding}"
-                   Target="{Binding ElementName=fileNameTextBox}"/>
-            <TextBox x:Uid="FileNameTextBox" 
-                     AutomationProperties.LabeledBy="{Binding ElementName=FileNameLabel}"
-                     Text="{Binding FileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     Padding="{StaticResource ResourceKey=textboxPadding}"
-                     Name="fileNameTextBox"
-                     GotFocus="SelectAllInTextBox"/>
+
+            <GroupBox x:Uid="DestinationSelectionGroupBox"
+                      Margin="0, 9, 0, 0"
+                      Header="{Binding ElementName=dialog, Path=SelectDestinationFile}">
+                <Grid
+                    Margin="9, 9, 9, 7">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <RadioButton x:Uid="DestinationCurrentFileSelectionRadioButton"
+                                 Name="DestinationCurrentFileSelectionRadioButton"
+                                 GroupName="FileDestination"
+                                 Grid.Row="0"
+                                 Grid.ColumnSpan="2" 
+                                 Margin="0, 0, 0, 5"
+                                 Content="{Binding ElementName=dialog, Path=SelectCurrentFileAsDestination}"
+                                 Padding="{StaticResource ResourceKey=radioButtonPadding}"
+                                 IsChecked="{Binding Destination, Converter={StaticResource enumBoolConverter}, ConverterParameter={x:Static dest:InterfaceDestination.CurrentFile}}"
+                                 VerticalAlignment="Center"
+                                 />
+
+                    <RadioButton x:Uid="DestinationNewFileSelectionRadioButton"
+                                 Name="DestinationNewFileSelectionRadioButton"
+                                 GroupName="FileDestination"
+                                 Grid.Row="1"
+                                 Grid.Column="0"
+                                 Content="{Binding ElementName=dialog, Path=SelectNewFileAsDestination}"
+                                 IsChecked="{Binding Destination, Converter={StaticResource enumBoolConverter}, ConverterParameter={x:Static dest:InterfaceDestination.NewFile}}"
+                                 Padding="{StaticResource ResourceKey=radioButtonPadding}"
+                                 VerticalAlignment="Center"
+                                 />
+
+                    <TextBox x:Uid="FileNameTextBox" 
+                             AutomationProperties.LabeledBy="{Binding ElementName=DestinationNewFileSelectionRadioButton}"
+                             Text="{Binding FileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                             Padding="{StaticResource ResourceKey=textboxPadding}"
+                             Margin="2, 0, 0, 0"
+                             Name="fileNameTextBox"
+                             IsEnabled="{Binding FileNameEnabled, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                             GotFocus="SelectAllInTextBox"
+                             Grid.Column="1" 
+                             Grid.Row="1" />
+                </Grid>
+            </GroupBox>
         </StackPanel>
         <GroupBox x:Uid="MemberSelectionGroupBox"
+                  x:Name="MemberSelectionGroupBox"
                   Margin="0, 9, 0, 0"
                   Grid.Row="1"
                   Header="{Binding ElementName=dialog, Path=SelectPublicMembersToFormInterface}">
@@ -82,6 +125,7 @@
                 </Grid.ColumnDefinitions>
                 <u:AutomationDelegatingListView x:Uid="MemberSelectionList"
                           x:Name="Members"
+                          AutomationProperties.LabeledBy="{Binding ElementName=MemberSelectionGroupBox}"
                           Grid.Column="0"
                           Margin="9"
                           SelectionMode="Extended"
@@ -92,23 +136,24 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
                                 <CheckBox x:Uid="SelectableMemberCheckBox"
-                                          AutomationProperties.Name="{Binding MemberAutomationText}"
+                                          AutomationProperties.Name="{Binding SymbolAutomationText}"
                                           IsChecked="{Binding IsChecked, Mode=TwoWay}" 
                                           Width="Auto"
                                           Focusable="False"
-                                          AutomationProperties.AutomationId="{Binding MemberName}">
+                                          AutomationProperties.AutomationId="{Binding SymbolName}">
                                 </CheckBox>
                                 <Image x:Uid="SelectableMemberGlyph" 
                                        Margin="8,0,0,0"
                                                Source="{Binding Glyph}"/>
                                 <TextBlock x:Uid="SelectableMemberName" 
-                                                   Text="{Binding MemberName}"/>
+                                                   Text="{Binding SymbolName}"/>
                             </StackPanel>
                         </DataTemplate>
                     </u:AutomationDelegatingListView.ItemTemplate>
                 </u:AutomationDelegatingListView>
                 <StackPanel Grid.Column="1">
                     <Button x:Uid="SelectAllButton"
+                            Name="SelectAllButton"
                             Content="{Binding ElementName=dialog, Path=SelectAll}" 
                             Margin="2, 9, 9, 7" 
                             Click="Select_All_Click" 
@@ -116,6 +161,7 @@
                             MinWidth="73"
                             MinHeight="21"/>
                     <Button x:Uid="DeselectAllButton"
+                            Name="DeselectAllButton"
                             Content="{Binding ElementName=dialog, Path=DeselectAll}" 
                             Margin="2, 0, 9, 0"
                             Padding="{StaticResource ResourceKey=selectDeselectButtonPadding}"
@@ -130,6 +176,7 @@
                     Margin="0, 11, 0, 0"
                     Orientation="Horizontal">
             <Button x:Uid="OkButton" 
+                    Name="OKButton"
                     Content="{Binding ElementName=dialog, Path=OK}" 
                     Margin="0, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
@@ -138,6 +185,7 @@
                     MinWidth="73"
                     MinHeight="21"/>
             <Button x:Uid="CancelButton" 
+                    Name="CancelButton"
                     Content="{Binding ElementName=dialog, Path=Cancel}"
                     Margin="7, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"

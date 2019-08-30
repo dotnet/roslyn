@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
-                ValueSource<Compilation> baseCompilationSource = state.Compilation;
+                var baseCompilationSource = state.Compilation;
                 var baseCompilation = baseCompilationSource.GetValue(cancellationToken);
                 if (baseCompilation != null)
                 {
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         inProgressCompilation = inProgressCompilation.AddSyntaxTrees(tree);
                         Debug.Assert(!inProgressProject.DocumentIds.Contains(docState.Id));
-                        inProgressProject = inProgressProject.AddDocument(docState);
+                        inProgressProject = inProgressProject.AddDocuments(ImmutableArray.Create(docState));
                     }
                 }
 
@@ -209,6 +210,8 @@ namespace Microsoft.CodeAnalysis
                     inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t, id)))
                 {
                     inProgressProject = this.ProjectState;
+
+                    SolutionLogger.UseExistingPartialProjectState();
                     return;
                 }
 
@@ -217,6 +220,7 @@ namespace Microsoft.CodeAnalysis
                 // if we already have a final compilation we are done.
                 if (inProgressCompilation != null && state is FinalState)
                 {
+                    SolutionLogger.UseExistingFullProjectState();
                     return;
                 }
 
@@ -262,7 +266,7 @@ namespace Microsoft.CodeAnalysis
                                 // if we failed to get the metadata, check to see if we previously had existing metadata and reuse it instead.
                                 var inProgressCompilationNotRef = inProgressCompilation;
                                 metadata = inProgressCompilationNotRef.ExternalReferences.FirstOrDefault(
-                                    r => solution.GetProjectState(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol, cancellationToken)?.Id == projectReference.ProjectId);
+                                    r => solution.GetProjectState(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol)?.Id == projectReference.ProjectId);
                             }
 
                             if (metadata != null)
@@ -276,8 +280,9 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 inProgressProject = inProgressProject.AddProjectReferences(newProjectReferences);
-
                 inProgressCompilation = UpdateCompilationWithNewReferencesAndRecordAssemblySymbols(inProgressCompilation, metadataReferences, metadataReferenceToProjectId);
+
+                SolutionLogger.CreatePartialProjectState();
             }
 
             private static bool IsTouchDocumentActionForDocument(ValueTuple<ProjectState, CompilationTranslationAction> tuple, DocumentId id)
@@ -550,7 +555,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    Contract.Requires(inProgressCompilation != null);
+                    Debug.Assert(inProgressCompilation != null);
                     var intermediateProjects = state.IntermediateProjects;
 
                     while (intermediateProjects.Length > 0)
@@ -599,7 +604,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     // if HasAllInformation is false, then this project is always not completed.
-                    bool hasSuccessfullyLoaded = this.ProjectState.HasAllInformation;
+                    var hasSuccessfullyLoaded = this.ProjectState.HasAllInformation;
 
                     var newReferences = new List<MetadataReference>();
                     var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
@@ -726,7 +731,7 @@ namespace Microsoft.CodeAnalysis
             /// compilation. Only actual compilation references are returned. Could potentially 
             /// return null if nothing can be provided.
             /// </summary>
-            public MetadataReference GetPartialMetadataReference(SolutionState solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
+            public MetadataReference GetPartialMetadataReference(SolutionState solution, ProjectState fromProject, ProjectReference projectReference)
             {
                 var state = this.ReadState();
                 // get compilation in any state it happens to be in right now.
@@ -784,18 +789,28 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
+            /// check whether the compilation contains any declaration symbol from syntax trees with
+            /// given name
+            /// </summary>
+            public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(string name, SymbolFilter filter, CancellationToken cancellationToken)
+            {
+                // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
+                var state = this.ReadState();
+                return state.DeclarationOnlyCompilation == null
+                    ? default(bool?)
+                    : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(name, filter, cancellationToken);
+            }
+
+            /// <summary>
             /// check whether the compilation contains any declaration symbol from syntax trees with given name
             /// </summary>
             public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
             {
-                var state = this.ReadState();
-                if (state.DeclarationOnlyCompilation == null)
-                {
-                    return null;
-                }
-
                 // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
-                return state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
+                var state = this.ReadState();
+                return state.DeclarationOnlyCompilation == null
+                    ? default(bool?)
+                    : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
             }
 
             /// <summary>
@@ -843,15 +858,16 @@ namespace Microsoft.CodeAnalysis
             private AsyncLazy<VersionStamp> _lazyDependentVersion;
             private AsyncLazy<VersionStamp> _lazyDependentSemanticVersion;
 
-            public async Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
+            public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
             {
                 if (_lazyDependentVersion == null)
                 {
+                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentVersionAsync(solution, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentVersionAsync(tmp, c), cacheResult: true), null);
                 }
 
-                return await _lazyDependentVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return _lazyDependentVersion.GetValueAsync(cancellationToken);
             }
 
             private async Task<VersionStamp> ComputeDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
@@ -875,15 +891,16 @@ namespace Microsoft.CodeAnalysis
                 return version;
             }
 
-            public async Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
+            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
             {
                 if (_lazyDependentSemanticVersion == null)
                 {
+                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentSemanticVersionAsync(solution, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentSemanticVersionAsync(tmp, c), cacheResult: true), null);
                 }
 
-                return await _lazyDependentSemanticVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return _lazyDependentSemanticVersion.GetValueAsync(cancellationToken);
             }
 
             private async Task<VersionStamp> ComputeDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)

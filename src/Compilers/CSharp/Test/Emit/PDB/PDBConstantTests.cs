@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBConstantTests : CSharpTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void StringsWithSurrogateChar()
         {
             var source = @"
@@ -35,7 +35,7 @@ public class T
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""T"" name=""Main"">
@@ -61,7 +61,7 @@ public class T
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""T"" name=""Main"">
@@ -79,7 +79,8 @@ public class T
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact, WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
+        [WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void InvalidUnicodeString()
         {
             var source = @"
@@ -100,7 +101,7 @@ public class T
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""T"" name=""Main"">
@@ -124,7 +125,7 @@ public class T
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""T"" name=""Main"">
@@ -140,7 +141,7 @@ public class T
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AllTypes()
         {
             var source = @"
@@ -206,7 +207,7 @@ public class C<S>
             c.VerifyPdb("C`1.F", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C`1"" name=""F"">
@@ -264,7 +265,7 @@ public class C<S>
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SimpleLocalConstant()
         {
             var text = @"
@@ -282,7 +283,7 @@ class C
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -308,7 +309,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void LambdaLocalConstants()
         {
             var text = @"
@@ -333,7 +334,7 @@ class C
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""a"">
@@ -378,7 +379,7 @@ class C
         }
 
         [WorkItem(543342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543342")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void IteratorLocalConstants()
         {
             var source = @"
@@ -416,7 +417,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -461,7 +462,9 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")]
+        // https://github.com/dotnet/roslyn/issues/33564: Was [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void LocalConstantsTypes()
         {
             var text = @"
@@ -481,7 +484,7 @@ class C
                 CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -506,7 +509,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void WRN_PDBConstantStringValueTooLong()
         {
             var longStringValue = new string('a', 2049);
@@ -553,7 +556,7 @@ class C
              * */
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void StringConstantTooLong()
         {
             var text = @"
@@ -606,7 +609,7 @@ this is a string constant that is too long to fit into the PDB"";
             c.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -626,7 +629,7 @@ this is a string constant that is too long to fit into the PDB"";
             c.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -642,7 +645,8 @@ this is a string constant that is too long to fit into the PDB"";
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact, WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+        [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void StringWithNulCharacter_MaxSupportedLength()
         {
             const int length = 2031;
@@ -662,7 +666,7 @@ class C
             c.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -685,7 +689,7 @@ class C
             c.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -701,7 +705,8 @@ class C
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact, WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+        [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void StringWithNulCharacter_OverSupportedLength()
         {
             const int length = 2032;
@@ -721,7 +726,7 @@ class C
             c.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -741,7 +746,7 @@ class C
             c.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -757,7 +762,7 @@ class C
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DecimalLocalConstants()
         {
             var text = @"
@@ -774,7 +779,7 @@ class C
                 CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">

@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
             var enumFields = typeSymbol.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.IsStatic);
 
             // Find and use the most simplified legal version of the enum type name in this context
-            string simplifiedTypeName = string.Empty;
+            var simplifiedTypeName = string.Empty;
             if (!enumFields.Any() ||
                 !TryGetSimplifiedTypeName(
                     typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),

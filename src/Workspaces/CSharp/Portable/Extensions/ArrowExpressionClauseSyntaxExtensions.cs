@@ -30,54 +30,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool createReturnStatementForExpression,
             out StatementSyntax statement)
         {
-            // It's tricky to convert an arrow expression with directives over to a block.
-            // We'd need to find and remove the directives *after* the arrow expression and
-            // move them accordingly.  So, for now, we just disallow this.
-            if (arrowExpression.Expression.GetLeadingTrivia().Any(t => t.IsDirective))
+            if (!arrowExpression.Expression.TryConvertToStatement(
+                    semicolonToken, createReturnStatementForExpression, out statement))
             {
-                statement = null;
                 return false;
             }
 
-            statement = ConvertToStatement(arrowExpression.Expression, semicolonToken, createReturnStatementForExpression);
             if (arrowExpression.ArrowToken.TrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
             {
                 statement = statement.WithPrependedLeadingTrivia(arrowExpression.ArrowToken.TrailingTrivia);
             }
 
             return true;
-        }
-
-        private static StatementSyntax ConvertToStatement(
-            ExpressionSyntax expression, 
-            SyntaxToken semicolonToken, 
-            bool createReturnStatementForExpression)
-        {
-            if (expression.IsKind(SyntaxKind.ThrowExpression))
-            {
-                var throwExpression = (ThrowExpressionSyntax)expression;
-                return SyntaxFactory.ThrowStatement(throwExpression.ThrowKeyword, throwExpression.Expression, semicolonToken);
-            }
-            else if (createReturnStatementForExpression)
-            {
-                if (expression.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
-                {
-                    return SyntaxFactory.ReturnStatement(expression.WithLeadingTrivia(SyntaxFactory.ElasticSpace))
-                                        .WithSemicolonToken(semicolonToken)
-                                        .WithLeadingTrivia(expression.GetLeadingTrivia())
-                                        .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker);
-                }
-                else
-                {
-                    return SyntaxFactory.ReturnStatement(expression)
-                                        .WithSemicolonToken(semicolonToken);
-                }
-            }
-            else
-            {
-                return SyntaxFactory.ExpressionStatement(expression)
-                                    .WithSemicolonToken(semicolonToken);
-            }
         }
     }
 }

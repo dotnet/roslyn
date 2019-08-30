@@ -1,16 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -28,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeMap _inputMap;
         private readonly MethodSymbol _constructedFrom;
 
-        private TypeSymbol _lazyReturnType;
+        private TypeWithAnnotations.Boxed _lazyReturnType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeMap _lazyMap;
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
@@ -43,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : this(containingSymbol, containingSymbol.TypeSubstitution, originalDefinition, constructedFrom: null)
         {
             Debug.Assert(containingSymbol is SubstitutedNamedTypeSymbol || containingSymbol is SubstitutedErrorTypeSymbol);
-            Debug.Assert(originalDefinition.ContainingType == containingSymbol.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals(originalDefinition.ContainingType, containingSymbol.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
         }
 
         protected SubstitutedMethodSymbol(NamedTypeSymbol containingSymbol, TypeMap map, MethodSymbol originalDefinition, MethodSymbol constructedFrom)
@@ -133,11 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                return GetTypeParametersAsTypeArguments();
             }
         }
 
@@ -154,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var method = OriginalDefinition.ReducedFrom;
-                return ((object)method == null) ? null : method.Construct(this.TypeArguments);
+                return ((object)method == null) ? null : method.Construct(this.TypeArgumentsWithAnnotations);
             }
         }
 
@@ -178,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var notUsed = OriginalDefinition.GetTypeInferredDuringReduction(reducedFromTypeParameter);
 
             Debug.Assert((object)notUsed == null && (object)OriginalDefinition.ReducedFrom != null);
-            return this.TypeArguments[reducedFromTypeParameter.Ordinal];
+            return this.TypeArgumentsWithAnnotations[reducedFromTypeParameter.Ordinal].Type;
         }
 
         public sealed override MethodSymbol ReducedFrom
@@ -232,28 +225,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override TypeSymbol ReturnType
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                var returnType = _lazyReturnType;
-                if (returnType != null)
+                if (_lazyReturnType == null)
                 {
-                    return returnType;
+                    var returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnTypeWithAnnotations);
+                    Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
                 }
-
-                returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnType).Type;
-                return Interlocked.CompareExchange(ref _lazyReturnType, returnType, null) ?? returnType;
+                return _lazyReturnType.Value;
             }
         }
 
-        public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return Map.SubstituteCustomModifiers(OriginalDefinition.ReturnType, OriginalDefinition.ReturnTypeCustomModifiers);
-            }
-        }
 
         public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -391,19 +375,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //  In short - we are not interested in the type arguments of unconstructed methods.
             if ((object)ConstructedFrom != (object)this)
             {
-                foreach (var arg in this.TypeArguments)
+                foreach (var arg in this.TypeArgumentsWithAnnotations)
                 {
-                    code = Hash.Combine(arg, code);
+                    code = Hash.Combine(arg.Type, code);
                 }
             }
 
             return code;
         }
 
-        public override bool Equals(object obj)
+        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
-            if ((object)this == obj) return true;
-
             SubstitutedMethodSymbol other = obj as SubstitutedMethodSymbol;
             if ((object)other == null) return false;
 
@@ -415,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // This checks if the methods have the same definition and the type parameters on the containing types have been
             // substituted in the same way.
-            if (this.ContainingType != other.ContainingType) return false;
+            if (!TypeSymbol.Equals(this.ContainingType, other.ContainingType, compareKind)) return false;
 
             // If both are declarations, then we don't need to check type arguments
             // If exactly one is a declaration, then they re not equal
@@ -431,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int arity = this.Arity;
             for (int i = 0; i < arity; i++)
             {
-                if (this.TypeArguments[i] != other.TypeArguments[i])
+                if (!this.TypeArgumentsWithAnnotations[i].Equals(other.TypeArgumentsWithAnnotations[i], compareKind))
                 {
                     return false;
                 }

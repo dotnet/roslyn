@@ -23,12 +23,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
         Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
                 componentModel As IComponentModel,
-                project As AbstractProject,
+                project As VisualStudioProject,
                 hierarchy As IVsHierarchy,
                 itemid As UInteger,
                 languageService As VisualBasicLanguageService,
                 sourceCodeKind As SourceCodeKind)
-            MyBase.New(bufferCoordinator, componentModel, project, hierarchy, itemid, languageService, sourceCodeKind, VisualBasicHelperFormattingRule.Instance)
+            MyBase.New(bufferCoordinator, componentModel, project, hierarchy, itemid, projectTrackerOpt:=Nothing, project.Id, languageService, VisualBasicHelperFormattingRule.Instance)
         End Sub
 
         Public Function AddStaticEventBinding(pszClassName As String,
@@ -74,7 +74,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 pszEventHandlerName,
                 itemidInsertionPoint,
                 useHandlesClause:=True,
-                additionalFormattingRule:=New LineAdjustmentFormattingRule(),
+                additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
                 cancellationToken:=Nothing)
 
             pbstrUniqueMemberID = idBodyAndInsertionPoint.Item1
@@ -124,11 +124,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
         End Function
 
         Private Class VisualBasicHelperFormattingRule
-            Inherits AbstractFormattingRule
+            Inherits CompatAbstractFormattingRule
 
-            Public Shared Shadows Instance As IFormattingRule = New VisualBasicHelperFormattingRule()
+            Public Shared Shadows Instance As AbstractFormattingRule = New VisualBasicHelperFormattingRule()
 
-            Public Overrides Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation))
+            Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextIndentBlockOperationAction)
                 ' we need special behavior for VB due to @Helper code generation weird-ness.
                 ' this will looking for code gen specific style to make it not so expansive
                 If IsEndHelperPattern(node) Then
@@ -140,7 +140,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                     Return
                 End If
 
-                MyBase.AddIndentBlockOperations(list, node, optionSet, nextOperation)
+                MyBase.AddIndentBlockOperationsSlow(list, node, optionSet, nextOperation)
             End Sub
 
             Private Shared Function IsHelperSubLambda(multiLineLambda As MultiLineLambdaExpressionSyntax) As Boolean

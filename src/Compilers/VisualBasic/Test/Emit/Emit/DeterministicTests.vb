@@ -62,6 +62,10 @@ End Class"
             Dim result3 = GetBytesEmitted(source, platform:=Platform.X64, debug:=False)
             Dim result4 = GetBytesEmitted(source, platform:=Platform.X64, debug:=False)
             AssertEx.Equal(result3, result4)
+
+            Dim result5 = GetBytesEmitted(source, platform:=Platform.Arm64, debug:=False)
+            Dim result6 = GetBytesEmitted(source, platform:=Platform.Arm64, debug:=False)
+            AssertEx.Equal(result5, result6)
         End Sub
 
         <Fact,

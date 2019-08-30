@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
         {
             MarkupTestFile.GetSpan(text, out text, out var textSpan);
 
-            Document document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
+            var document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
 
             var root = await document.GetSyntaxRootAsync();
             var node = FindExpressionSyntaxFromSpan(root, textSpan);

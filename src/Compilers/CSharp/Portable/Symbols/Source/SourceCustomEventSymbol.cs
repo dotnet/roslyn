@@ -2,9 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,15 +13,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SourceCustomEventSymbol : SourceEventSymbol
     {
-        private readonly TypeSymbol _type;
+        private readonly TypeWithAnnotations _type;
         private readonly string _name;
-        private readonly SourceCustomEventAccessorSymbol _addMethod;
-        private readonly SourceCustomEventAccessorSymbol _removeMethod;
+        private readonly SourceEventAccessorSymbol _addMethod;
+        private readonly SourceEventAccessorSymbol _removeMethod;
         private readonly TypeSymbol _explicitInterfaceType;
         private readonly ImmutableArray<EventSymbol> _explicitInterfaceImplementations;
 
         internal SourceCustomEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, EventDeclarationSyntax syntax, DiagnosticBag diagnostics) :
-            base(containingType, syntax, syntax.Modifiers, syntax.ExplicitInterfaceSpecifier, syntax.Identifier, diagnostics)
+            base(containingType, syntax, syntax.Modifiers, isFieldLike: false,
+                 interfaceSpecifierSyntaxOpt: syntax.ExplicitInterfaceSpecifier,
+                 nameTokenSyntax: syntax.Identifier, diagnostics: diagnostics)
         {
             ExplicitInterfaceSpecifierSyntax interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
             SyntaxToken nameToken = syntax.Identifier;
@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _type = BindEventType(binder, syntax.Type, diagnostics);
 
             var explicitlyImplementedEvent = this.FindExplicitlyImplementedEvent(_explicitInterfaceType, nameToken.ValueText, interfaceSpecifier, diagnostics);
+            this.FindExplicitlyImplementedMemberVerification(explicitlyImplementedEvent, diagnostics);
 
             // The runtime will not treat the accessors of this event as overrides or implementations
             // of those of another event unless both the signatures and the custom modifiers match.
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // are no conflicts.)  This is unnecessary for implicit implementations because, if the custom
             // modifiers don't match, we'll insert bridge methods for the accessors (explicit implementations 
             // that delegate to the implicit implementations) with the correct custom modifiers
-            // (see SourceNamedTypeSymbol.ImplementInterfaceMember).
+            // (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
 
             // Note: we're checking if the syntax indicates explicit implementation rather,
             // than if explicitInterfaceType is null because we don't want to look for an
@@ -71,63 +72,92 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AccessorDeclarationSyntax addSyntax = null;
             AccessorDeclarationSyntax removeSyntax = null;
-            foreach (AccessorDeclarationSyntax accessor in syntax.AccessorList.Accessors)
+
+            if (syntax.AccessorList != null)
             {
-                switch (accessor.Kind())
+                foreach (AccessorDeclarationSyntax accessor in syntax.AccessorList.Accessors)
                 {
-                    case SyntaxKind.AddAccessorDeclaration:
-                        if (addSyntax == null)
-                        {
-                            addSyntax = accessor;
-                        }
-                        else
-                        {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
-                        }
-                        break;
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                        if (removeSyntax == null)
-                        {
-                            removeSyntax = accessor;
-                        }
-                        else
-                        {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
-                        }
-                        break;
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                        diagnostics.Add(ErrorCode.ERR_AddOrRemoveExpected, accessor.Keyword.GetLocation());
-                        break;
+                    bool checkBody = false;
 
-                    case SyntaxKind.UnknownAccessorDeclaration:
-                        // Don't need to handle UnknownAccessorDeclaration.  An error will have 
-                        // already been produced for it in the parser.
-                        break;
+                    switch (accessor.Kind())
+                    {
+                        case SyntaxKind.AddAccessorDeclaration:
+                            if (addSyntax == null)
+                            {
+                                addSyntax = accessor;
+                                checkBody = true;
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
+                            }
+                            break;
+                        case SyntaxKind.RemoveAccessorDeclaration:
+                            if (removeSyntax == null)
+                            {
+                                removeSyntax = accessor;
+                                checkBody = true;
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
+                            }
+                            break;
+                        case SyntaxKind.GetAccessorDeclaration:
+                        case SyntaxKind.SetAccessorDeclaration:
+                            diagnostics.Add(ErrorCode.ERR_AddOrRemoveExpected, accessor.Keyword.GetLocation());
+                            break;
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
+                        case SyntaxKind.UnknownAccessorDeclaration:
+                            // Don't need to handle UnknownAccessorDeclaration.  An error will have 
+                            // already been produced for it in the parser.
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
+                    }
+
+                    if (checkBody && !IsAbstract && accessor.Body == null && accessor.ExpressionBody == null && accessor.SemicolonToken.Kind() == SyntaxKind.SemicolonToken)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AddRemoveMustHaveBody, accessor.SemicolonToken.GetLocation());
+                    }
                 }
-            }
 
-            _addMethod = CreateAccessorSymbol(addSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
-            _removeMethod = CreateAccessorSymbol(removeSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
-
-            if (containingType.IsInterfaceType())
-            {
-                if (addSyntax == null && removeSyntax == null) //NOTE: AND - different error code produced if one is present
+                if (IsAbstract)
                 {
-                    // CONSIDER: we're matching dev10, but it would probably be more helpful to give
-                    // an error like ERR_EventPropertyInInterface.
+                    if (!syntax.AccessorList.OpenBraceToken.IsMissing)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AbstractEventHasAccessors, syntax.AccessorList.OpenBraceToken.GetLocation(), this);
+                    }
+                }
+                else if ((addSyntax == null || removeSyntax == null) && (!syntax.AccessorList.OpenBraceToken.IsMissing || !isExplicitInterfaceImplementation))
+                {
                     diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
                 }
+            }
+            else if (isExplicitInterfaceImplementation && !IsAbstract)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitEventFieldImpl, this.Locations[0]);
+            }
+
+            if (isExplicitInterfaceImplementation && IsAbstract && syntax.AccessorList == null)
+            {
+                Debug.Assert(containingType.IsInterface);
+
+                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, this.Locations[0]);
+
+                if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.Locations[0]);
+                }
+
+                _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, explicitlyImplementedEvent, aliasQualifierOpt);
+                _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, explicitlyImplementedEvent, aliasQualifierOpt);
             }
             else
             {
-                if (addSyntax == null || removeSyntax == null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
-                }
+                _addMethod = CreateAccessorSymbol(addSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
+                _removeMethod = CreateAccessorSymbol(removeSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
             }
 
             _explicitInterfaceImplementations =
@@ -136,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<EventSymbol>(explicitlyImplementedEvent);
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }
@@ -184,7 +214,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var explicitInterfaceSpecifier = this.ExplicitInterfaceSpecifier;
                 Debug.Assert(explicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+            }
+
+            if (!_explicitInterfaceImplementations.IsEmpty)
+            {
+                // Note: we delayed nullable-related checks that could pull on NonNullTypes
+                EventSymbol explicitlyImplementedEvent = _explicitInterfaceImplementations[0];
+                TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this.ContainingType, this, explicitlyImplementedEvent, isExplicit: true, diagnostics);
             }
         }
 

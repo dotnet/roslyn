@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal interface IDebuggeeModuleMetadataProvider
     {
         /// <summary>
-        /// Finds a module of given MVID in one of the processes being debugged and returns its baseline metadata.
+        /// Finds a module of given MVID in one of the processes being debugged and returns its baseline metadata and symbols.
         /// Shall only be called while in debug mode.
         /// </summary>
-        ModuleMetadata TryGetBaselineMetadata(Guid mvid);
+        DebuggeeModuleInfo TryGetBaselineModuleInfo(Guid mvid);
     }
 }

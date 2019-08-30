@@ -1,25 +1,38 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
-    <ExportLanguageService(GetType(ISyntaxClassificationService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicSyntaxClassificationService
         Inherits AbstractSyntaxClassificationService
 
-        Private Shared ReadOnly s_defaultSyntaxClassifiers As ImmutableArray(Of ISyntaxClassifier) =
-            ImmutableArray.Create(Of ISyntaxClassifier)(
-                New NameSyntaxClassifier(),
-                New ImportAliasClauseSyntaxClassifier(),
-                New IdentifierNameSyntaxClassifier())
+        Private ReadOnly s_defaultSyntaxClassifiers As ImmutableArray(Of ISyntaxClassifier)
+
+        <Obsolete(MefConstruction.FactoryMethodMessage, True)>
+        Public Sub New(languageServices As HostLanguageServices)
+            Dim syntaxClassifiers = ImmutableArray(Of ISyntaxClassifier).Empty
+            Dim embeddedLanguagesProvider = languageServices.GetService(Of IEmbeddedLanguagesProvider)()
+            If embeddedLanguagesProvider IsNot Nothing Then
+                syntaxClassifiers = syntaxClassifiers.Add(New EmbeddedLanguagesClassifier(embeddedLanguagesProvider))
+            End If
+
+            s_defaultSyntaxClassifiers = syntaxClassifiers.AddRange(
+                {
+                    New NameSyntaxClassifier(),
+                    New ImportAliasClauseSyntaxClassifier(),
+                    New IdentifierNameSyntaxClassifier(),
+                    New OperatorOverloadSyntaxClassifier()
+                })
+        End Sub
 
         Public Overrides Function GetDefaultSyntaxClassifiers() As ImmutableArray(Of ISyntaxClassifier)
             Return s_defaultSyntaxClassifiers

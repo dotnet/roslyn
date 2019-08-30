@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     [ExportLanguageServiceFactory(typeof(BlockStructureService), LanguageNames.CSharp), Shared]
     internal class CSharpBlockStructureServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpBlockStructureServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new CSharpBlockStructureService(languageServices.WorkspaceServices.Workspace);

@@ -1029,9 +1029,8 @@ static class S
 }");
             Assert.Null(semanticInfo.Symbol);
             Utils.CheckSymbols(semanticInfo.MethodGroup);
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols,
-                "void string.E()",
-                "void string.E<string>()"
+            Utils.CheckSymbols(semanticInfo.CandidateSymbols
+                /* no candidates */
                 );
         }
 
@@ -6714,10 +6713,6 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<InitializerExpressionSyntax>(sourceCode);
             Assert.Null(semanticInfo.Type);
-            //Assert.Equal("int[]", semanticInfo.Type.ToString());
-            //Assert.Equal("int[]", semanticInfo.ConvertedType.ToString());
-            //Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
-            //Assert.True(semanticInfo.IsCompileTimeConstant);
         }
 
         [Fact]
@@ -8914,20 +8909,26 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
-
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
-
-            Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+            CreateCompilation(sourceCode).VerifyDiagnostics(
+                // (12,30): error CS1003: Syntax error, ':' expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(12, 30),
+                // (12,30): error CS1513: } expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(12, 30),
+                // (12,44): error CS1002: ; expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(12, 44),
+                // (12,44): error CS1513: } expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(12, 44),
+                // (12,28): error CS1501: No overload for method 'Deconstruct' takes 0 arguments
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_BadArgCount, "()").WithArguments("Deconstruct", "0").WithLocation(12, 28),
+                // (12,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(12, 28)
+                );
         }
 
         [Fact]
@@ -8955,20 +8956,20 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
-
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
-
-            Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+            CreateCompilation(sourceCode).VerifyDiagnostics(
+                // (13,30): error CS1003: Syntax error, ':' expected
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(13, 30),
+                // (13,30): error CS1513: } expected
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(13, 30),
+                // (13,28): error CS1501: No overload for method 'Deconstruct' takes 0 arguments
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_BadArgCount, "()").WithArguments("Deconstruct", "0").WithLocation(13, 28),
+                // (13,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(13, 28)
+                );
         }
 
         [Fact]
@@ -11473,7 +11474,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(args[0]./*<bind>*/Goo/*</bind>*/());
+        args[0]./*<bind>*/Goo/*</bind>*/();
     }
 }
 ";
@@ -11484,7 +11485,7 @@ class Program
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 System.String.Goo()", sortedCandidates[0].ToTestDisplayString());
@@ -12368,12 +12369,9 @@ class Program
             Assert.Null(semanticInfo.ConvertedType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
-            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("dynamic", sortedCandidates[0].ToTestDisplayString());
-            Assert.Equal(SymbolKind.DynamicType, sortedCandidates[0].Kind);
+            Assert.Equal("dynamic", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -12396,8 +12394,8 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<ObjectCreationExpressionSyntax>(sourceCode);
 
-            Assert.Equal("?", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
+            Assert.Equal("dynamic", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Dynamic, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);

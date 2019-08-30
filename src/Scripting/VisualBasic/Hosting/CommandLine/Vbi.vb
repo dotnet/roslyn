@@ -25,12 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
             End Get
         End Property
 
-        Friend Overrides Function GetAssemblyFileVersion() As String
-            Return Type.GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyFileVersionAttribute)().Version
-        End Function
-
         Public Overrides Sub PrintLogo(consoleOutput As TextWriter)
-            consoleOutput.WriteLine(VBScriptingResources.LogoLine1, GetAssemblyFileVersion())
+            consoleOutput.WriteLine(VBScriptingResources.LogoLine1, GetCompilerVersion())
             consoleOutput.WriteLine(VBScriptingResources.LogoLine2)
             consoleOutput.WriteLine()
         End Sub

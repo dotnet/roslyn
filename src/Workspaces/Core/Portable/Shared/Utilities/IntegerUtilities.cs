@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static int CountOfBitsSet(long v)
         {
             // http://graphics.stanford.edu/~seander/bithacks.htm
-            int c = 0;
+            var c = 0;
             while (v != 0)
             {
                 // clear the least significant bit set

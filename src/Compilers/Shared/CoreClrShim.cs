@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         {
             internal static readonly Type Type = ReflectionUtilities.TryGetType(
                 "System.AppContext, System.AppContext, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
-            
+
             // only available in netstandard 1.6+
             internal static readonly Func<string, object> GetData =
                 Type.GetTypeInfo().GetDeclaredMethod("GetData")?.CreateDelegate<Func<string, object>>();

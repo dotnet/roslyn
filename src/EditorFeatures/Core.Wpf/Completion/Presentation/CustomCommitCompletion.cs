@@ -5,16 +5,16 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Wpf;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Utilities;
+using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
-    internal sealed class CustomCommitCompletion : Completion3, ICustomCommit
+    internal sealed class CustomCommitCompletion : Completion4, ICustomCommit
     {
         private const string s_glyphCompletionWarning = "GlyphCompletionWarning";
         private readonly CompletionPresenterSession _completionPresenterSession;
@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public CustomCommitCompletion(
             CompletionPresenterSession completionPresenterSession,
             CompletionItem completionItem)
+            : base(displayText: null, insertionText: null, description: null,
+                   iconMoniker: default, suffix: completionItem.InlineDescription)
         {
             // PERF: Note that the base class contains a constructor taking the displayText string
             // but we're intentionally NOT using that here because it allocates a private CompletionState
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             // extra allocation is avoided.
             _completionPresenterSession = completionPresenterSession;
             this.CompletionItem = completionItem;
-            _imageMoniker = ImageMonikers.GetImageMoniker(CompletionItem.Tags);
+            _imageMoniker = ImageMonikers.GetFirstImageMoniker(CompletionItem.Tags);
         }
 
         public void Commit()
@@ -55,15 +57,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // to give them something non-empty so they know to go get the async description.
                 "...";
 
-        public Task<CompletionDescription> GetDescriptionAsync(CancellationToken cancellationToken)
+        public Task<CompletionDescription> GetDescriptionAsync(Document document, CancellationToken cancellationToken)
         {
-            var service = CompletionService.GetService(this.CompletionItem.Document);
-            return service?.GetDescriptionAsync(this.CompletionItem.Document, this.CompletionItem, cancellationToken);
-        }
-
-        public string GetDescription_TestingOnly()
-        {
-            return GetDescriptionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Text;
+            var service = CompletionService.GetService(document);
+            return service == null ?
+                Task.FromResult(CompletionDescription.Empty) :
+                service.GetDescriptionAsync(document, this.CompletionItem, cancellationToken);
         }
 
         public override ImageMoniker IconMoniker => _imageMoniker;
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             get
             {
-                if (this.CompletionItem.Tags.Contains(CompletionTags.Warning))
+                if (this.CompletionItem.Tags.Contains(WellKnownTags.Warning))
                 {
                     return new[] { new CompletionIcon2(Glyph.CompletionWarning.GetImageMoniker(), s_glyphCompletionWarning, s_glyphCompletionWarning) };
                 }

@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
     Partial Friend Class VisualBasicImplementAbstractClassService
         Inherits AbstractImplementAbstractClassService(Of ClassBlockSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function TryInitializeState(
                 document As Document, model As SemanticModel, classBlock As ClassBlockSyntax, cancellationToken As CancellationToken,
                 ByRef classType As INamedTypeSymbol, ByRef abstractClassType As INamedTypeSymbol) As Boolean

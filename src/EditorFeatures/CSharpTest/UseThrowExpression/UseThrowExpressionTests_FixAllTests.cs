@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
@@ -91,9 +91,9 @@ class C
 {
     void M(string s, string t)
     {
-        {|FixAllInDocument:if|} (s == null)
+        if (s == null)
         {
-            throw new ArgumentNullException(nameof(s));
+            {|FixAllInDocument:throw new ArgumentNullException(nameof(s));|}
         }
 
         if (t == null)
@@ -132,9 +132,9 @@ class C
             throw new ArgumentNullException(nameof(s));
         }
 
-        {|FixAllInDocument:if|} (t == null)
+        if (t == null)
         {
-            throw new ArgumentNullException(nameof(t));
+            {|FixAllInDocument:throw new ArgumentNullException(nameof(t));|}
         }
 
         _s = s;

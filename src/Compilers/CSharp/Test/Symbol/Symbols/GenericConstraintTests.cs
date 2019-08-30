@@ -332,26 +332,36 @@ unsafe interface I
     void M7(A<A<int>.B1[]>.B1 o);
 }";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<int>')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<int>*").WithArguments("A<int>").WithLocation(8, 15),
-                // (9,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<string>.B1')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<string>.B1*").WithArguments("A<string>.B1").WithLocation(9, 13),
                 // (10,22): error CS0122: 'A<int>.B2' is inaccessible due to its protection level
+                //     void M3(A<A<int>.B2>.B1* o);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B2").WithArguments("A<int>.B2").WithLocation(10, 22),
-                // (10,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<A<int>.B2>.B1')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<A<int>.B2>.B1*").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 13),
                 // (13,22): error CS0122: 'A<int>.B2' is inaccessible due to its protection level
+                //     void M6(A<A<int>.B2>.B1[] o);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B2").WithArguments("A<int>.B2").WithLocation(13, 22),
-                // (8,27): error CS0306: The type 'A<int>*' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o").WithArguments("A<int>*").WithLocation(8, 27),
+                // (14,31): error CS0453: The type 'A<int>.B1[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M7(A<A<int>.B1[]>.B1 o);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>.B1[]").WithLocation(14, 31),
+                // (9,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<string>.B1')
+                //     void M2(A<string>.B1** o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<string>.B1").WithLocation(9, 28),
                 // (9,28): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M2(A<string>.B1** o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "string").WithLocation(9, 28),
+                // (10,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<A<int>.B2>.B1')
+                //     void M3(A<A<int>.B2>.B1* o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 30),
                 // (11,28): error CS0453: The type 'A<int>[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M4(A<A<int>[]>.B1 o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>[]").WithLocation(11, 28),
                 // (12,30): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M5(A<string>.B1[][] o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "string").WithLocation(12, 30),
-                // (14,31): error CS0453: The type 'A<int>.B1[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>.B1[]").WithLocation(14, 31));
+                // (8,27): error CS0306: The type 'A<int>*' may not be used as a type argument
+                //     void M1(A<A<int>*>.B1 o);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o").WithArguments("A<int>*").WithLocation(8, 27),
+                // (8,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<int>')
+                //     void M1(A<A<int>*>.B1 o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<int>").WithLocation(8, 27));
         }
 
         [WorkItem(542618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542618")]
@@ -943,17 +953,23 @@ class C
     event D<I<short>> E;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,9): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("I<T>", "T", "int").WithLocation(5, 9),
                 // (8,23): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     event D<I<short>> E;
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "E").WithArguments("I<T>", "T", "short").WithLocation(8, 23),
+                // (5,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     C(I<int> i) { }
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "i").WithArguments("I<T>", "T", "int").WithLocation(5, 14),
                 // (6,13): error CS0452: The type 'byte' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<byte> P { get; set; }
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "P").WithArguments("I<T>", "T", "byte").WithLocation(6, 13),
-                // (7,15): error CS0452: The type 'double' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("I<T>", "T", "double").WithLocation(7, 15),
                 // (7,29): error CS0452: The type 'float' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<double> this[I<float> index] { get { return null; } }
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "index").WithArguments("I<T>", "T", "float").WithLocation(7, 29),
+                // (7,15): error CS0452: The type 'double' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<double> this[I<float> index] { get { return null; } }
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("I<T>", "T", "double").WithLocation(7, 15),
                 // (8,23): warning CS0067: The event 'C.E' is never used
+                //     event D<I<short>> E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(8, 23));
         }
 
@@ -2053,6 +2069,93 @@ class C<T>
         }
 
         [Fact]
+        public void DuplicateConstraintDifferencesOnPartialMethod()
+        {
+            var source =
+@"interface I<T> { }
+partial class C<T>
+{
+    partial void F<U>() where U : T, T, I<T>;
+    partial void F<U>() where U : T, I<T>, I<T> { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,38): error CS0405: Duplicate constraint 'T' for type parameter 'U'
+                //     partial void F<U>() where U : T, T, I<T>;
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T").WithArguments("T", "U").WithLocation(4, 38),
+                // (5,44): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
+                //     partial void F<U>() where U : T, I<T>, I<T> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T>").WithArguments("I<T>", "U").WithLocation(5, 44));
+        }
+
+        [Fact]
+        public void ConstraintErrorMultiplePartialDeclarations_01()
+        {
+            var source =
+@"interface I { }
+class A { }
+sealed class B { }
+static class S { }
+partial class C<T> where T : S { }
+partial class C<T> where T : S { }
+partial class D<T> where T : A, I { }
+partial class D<T> where T : I, A { }
+partial class D<T> where T : I, A { }
+partial class E<T> where T : B { }
+partial class E<T> where T : I, B { }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,30): error CS0717: 'S': static classes cannot be used as constraints
+                // partial class C<T> where T : S { }
+                Diagnostic(ErrorCode.ERR_ConstraintIsStaticClass, "S").WithArguments("S").WithLocation(5, 30),
+                // (6,30): error CS0717: 'S': static classes cannot be used as constraints
+                // partial class C<T> where T : S { }
+                Diagnostic(ErrorCode.ERR_ConstraintIsStaticClass, "S").WithArguments("S").WithLocation(6, 30),
+                // (7,15): error CS0265: Partial declarations of 'D<T>' have inconsistent constraints for type parameter 'T'
+                // partial class D<T> where T : A, I { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "D").WithArguments("D<T>", "T").WithLocation(7, 15),
+                // (8,33): error CS0406: The class type constraint 'A' must come before any other constraints
+                // partial class D<T> where T : I, A { }
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(8, 33),
+                // (9,33): error CS0406: The class type constraint 'A' must come before any other constraints
+                // partial class D<T> where T : I, A { }
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(9, 33),
+                // (10,15): error CS0265: Partial declarations of 'E<T>' have inconsistent constraints for type parameter 'T'
+                // partial class E<T> where T : B { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E").WithArguments("E<T>", "T").WithLocation(10, 15),
+                // (10,30): error CS0701: 'B' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class E<T> where T : B { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "B").WithArguments("B").WithLocation(10, 30),
+                // (11,33): error CS0701: 'B' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class E<T> where T : I, B { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "B").WithArguments("B").WithLocation(11, 33));
+        }
+
+        [Fact]
+        public void ConstraintErrorMultiplePartialDeclarations_02()
+        {
+            var source =
+@"sealed class A { }
+partial class B<T, U> where T : A where U : T { }
+partial class B<T, U> where T : A { }
+partial class C<T, U> where U : T { }
+partial class C<T, U> where T : A where U : T { }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,15): error CS0265: Partial declarations of 'B<T, U>' have inconsistent constraints for type parameter 'U'
+                // partial class B<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "B").WithArguments("B<T, U>", "U").WithLocation(2, 15),
+                // (2,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class B<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(2, 33),
+                // (3,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class B<T, U> where T : A { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(3, 33),
+                // (5,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class C<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(5, 33));
+        }
+
+        [Fact]
         public void EffectiveBaseClass01()
         {
             var source =
@@ -3091,9 +3194,12 @@ abstract class A
 }
 class B: A
 {
-    public override I<T> F<T>() { return null; }
+    public override I<U> F<U>() { return null; }
 }";
-            CompileAndVerify(source);
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp);
+            var method = comp.GetMember<MethodSymbol>("B.F");
+            Assert.Equal("I<U> B.F<U>() where U : class", method.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
         }
 
         [WorkItem(542264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542264")]
@@ -3261,7 +3367,7 @@ class C<T> : IT<T>
                 Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7));
 
             var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
-            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0];
+            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
             Assert.IsType<UnsupportedMetadataTypeSymbol>(constraintType);
             Assert.False(((INamedTypeSymbol)constraintType).IsSerializable);
         }
@@ -5515,12 +5621,24 @@ class B : A
 } 
 ";
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (4,23): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                // (4,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public virtual T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T"),
-                // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 21),
+                // (4,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public virtual T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(4, 20),
+                // (12,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T"));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 22),
+                // (12,24): error CS0508: 'B.Goo<T>()': return type must be 'T' to match overridden member 'A.Goo<T>()'
+                //     public override T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "Goo").WithArguments("B.Goo<T>()", "A.Goo<T>()", "T").WithLocation(12, 24),
+                // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T").WithLocation(12, 24),
+                // (6,16): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                //         return null; 
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(6, 16));
         }
 
         [WorkItem(543710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543710")]
@@ -5656,14 +5774,9 @@ class c
     static void Main() { }
 }
 ";
-            // NOTE: As in Dev10, we don't report that object* and void* are invalid type arguments, since validation
+            // NOTE: we don't report that object* and void* are invalid type arguments, since validation
             // is performed on A.I, not on F<object*>.I or G<void*>.I.
-            // BREAKING: Dev10 (incorrectly) fails to report that "object*" is an illegal type since the pointed-at
-            // type is managed.
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-                // class F<T> : A where T : F<object*>.I
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
@@ -6238,17 +6351,13 @@ public struct S
  
 public class E { }
 ";
-
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,5): error CS0453: The type 'E' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                // (4,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     E?[] eNullableArr;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "E?").WithArguments("System.Nullable<T>", "T", "E"),
-                // (6,28): error CS0453: The type 'E' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
-                //     public void Test() {   DoSomething(this.eNullableArr);  }
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "DoSomething").WithArguments("System.Nullable<T>", "T", "E"),
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 6),
                 // (4,10): warning CS0649: Field 'S.eNullableArr' is never assigned to, and will always have its default value null
                 //     E?[] eNullableArr;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "eNullableArr").WithArguments("S.eNullableArr", "null"));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "eNullableArr").WithArguments("S.eNullableArr", "null").WithLocation(4, 10));
         }
 
         [WorkItem(575455, "DevDiv")]

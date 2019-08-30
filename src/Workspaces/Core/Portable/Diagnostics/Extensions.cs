@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -15,11 +17,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static class Extensions
+    internal static partial class Extensions
     {
         public static readonly CultureInfo s_USCultureInfo = new CultureInfo("en-US");
 
-        public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace workspace = null)
+        public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace workspace)
         {
             var option = GetCustomTypeInBingSearchOption(workspace);
 
@@ -35,13 +37,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool GetCustomTypeInBingSearchOption(Workspace workspace)
         {
-            var workspaceForOptions = workspace ?? PrimaryWorkspace.Workspace;
-            if (workspaceForOptions == null)
+            if (workspace == null)
             {
                 return false;
             }
 
-            return workspaceForOptions.Options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch);
+            return workspace.Options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch);
         }
 
         public static DiagnosticData GetPrimaryDiagnosticData(this CodeFix fix)
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return DiagnosticData.Create(project, diagnostic);
+            return DiagnosticData.Create(project.Solution.Workspace, diagnostic, project.Id);
         }
 
         public static async Task<ImmutableArray<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
-                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSyntaxDiagnostics(tree, diagnostics);
                     }
                 }
@@ -195,14 +196,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
-                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSemanticDiagnostics(tree, diagnostics);
                     }
                 }
 
                 if (analysisResult.CompilationDiagnostics.TryGetValue(analyzer, out diagnostics))
                 {
-                    Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                     result.AddCompilationDiagnostics(diagnostics);
                 }
 
@@ -210,6 +211,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return builder.ToImmutable();
+        }
+
+        public static NotificationOption ToNotificationOption(this ReportDiagnostic reportDiagnostic, DiagnosticSeverity defaultSeverity)
+        {
+            switch (reportDiagnostic.WithDefaultSeverity(defaultSeverity))
+            {
+                case ReportDiagnostic.Error:
+                    return NotificationOption.Error;
+
+                case ReportDiagnostic.Warn:
+                    return NotificationOption.Warning;
+
+                case ReportDiagnostic.Info:
+                    return NotificationOption.Suggestion;
+
+                case ReportDiagnostic.Hidden:
+                    return NotificationOption.Silent;
+
+                case ReportDiagnostic.Suppress:
+                    return NotificationOption.None;
+
+                case ReportDiagnostic.Default:
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);
+            }
         }
     }
 }

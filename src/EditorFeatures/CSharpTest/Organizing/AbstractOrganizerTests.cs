@@ -5,11 +5,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Organizing;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
+    [UseExportProvider]
     public abstract class AbstractOrganizerTests
     {
         protected async Task CheckAsync(string initial, string final)
@@ -26,12 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 
         protected async Task CheckResultAsync(string initial, string final, bool specialCaseSystem, CSharpParseOptions options = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(initial))
-            {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                var newRoot = await (await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync();
-                Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
-            }
+            using var workspace = TestWorkspace.CreateCSharp(initial);
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var newRoot = await (await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync();
+            Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
         }
 
         protected Task CheckResultAsync(string initial, string final, CSharpParseOptions options = null)

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public TestActiveStatementTrackingService(DocumentId documentId, TextSpan?[] trackingSpans)
         {
-            this.TrackingSpans = trackingSpans;
+            TrackingSpans = trackingSpans;
             _documentId = documentId;
         }
 
@@ -29,15 +29,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 return true;
             }
 
-            span = default(TextSpan);
+            span = default;
             return false;
         }
 
-        public void UpdateActiveStatementSpans(SourceText source, IEnumerable<KeyValuePair<ActiveStatementId, TextSpan>> spans)
+        public void UpdateActiveStatementSpans(SourceText source, IEnumerable<(ActiveStatementId, ActiveStatementTextSpan)> spans)
         {
-            foreach (var span in spans)
+            foreach (var (id, span) in spans)
             {
-                TrackingSpans[span.Key.Ordinal] = span.Value.Length > 0 ? span.Value : (TextSpan?)null;
+                TrackingSpans[id.Ordinal] = span.Span.Length > 0 ? span.Span : (TextSpan?)null;
             }
         }
 
@@ -47,20 +47,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public event Action<bool> TrackingSpansChanged;
 #pragma warning restore 67
 
-        public void StartTracking(EditSession editSession)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void EndTracking()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<ActiveStatementTextSpan> GetSpans(SourceText source)
-        {
-            throw new NotImplementedException();
-        }
+        public void StartTracking(EditSession editSession) => throw new NotImplementedException();
+        public void EndTracking() => throw new NotImplementedException();
+        public IEnumerable<ActiveStatementTextSpan> GetSpans(SourceText source) => throw new NotImplementedException();
 
         #endregion
     }

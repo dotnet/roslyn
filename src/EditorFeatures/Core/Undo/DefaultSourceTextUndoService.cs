@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
     [ExportWorkspaceService(typeof(ISourceTextUndoService), ServiceLayer.Default), Shared]
     internal sealed class DefaultSourceTextUndoService : ISourceTextUndoService
     {
+        [ImportingConstructor]
+        public DefaultSourceTextUndoService()
+        {
+        }
+
         public ISourceTextUndoTransaction RegisterUndoTransaction(SourceText sourceText, string description)
         {
             return null;

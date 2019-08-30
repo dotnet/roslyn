@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -11,6 +10,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
     internal abstract partial class AbstractAddAwaitCodeFixProvider : AbstractAsyncCodeFix
     {
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix
+            // https://github.com/dotnet/roslyn/issues/34460
+            return null;
+        }
+
         protected abstract Task<DescriptionAndNode> GetDescriptionAndNodeAsync(
             SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken);
 
@@ -19,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var data = await this.GetDescriptionAndNodeAsync(root, node, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
+            var data = await GetDescriptionAndNodeAsync(root, node, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
             if (data.Node == null)
             {
                 return null;
@@ -49,13 +55,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }
 
-        protected struct DescriptionAndNode
+        protected readonly struct DescriptionAndNode
         {
             public readonly string Description;
             public readonly SyntaxNode Node;

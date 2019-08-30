@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     type = Nothing
                 End If
 
-                If Interlocked.CompareExchange(Of NamedTypeSymbol)(_lazySystemStringType, type, ErrorTypeSymbol.UnknownResultType) = ErrorTypeSymbol.UnknownResultType Then
+                If TypeSymbol.Equals(Interlocked.CompareExchange(Of NamedTypeSymbol)(_lazySystemStringType, type, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything) Then
                     If info IsNot Nothing Then
                         ReportDiagnostic(diagnostics, syntaxNodeOpt, info)
                     End If
@@ -189,11 +189,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Dim id = ERRID.ERR_None
 
             Select Case type.TypeKind
-                Case TypeKind.Interface,
-                    TypeKind.Structure,
+                Case TypeKind.Interface
+                    For Each member As Symbol In type.GetMembersUnordered()
+                        If member.Kind <> SymbolKind.NamedType Then
+                            If Not member.IsMustOverride Then
+                                id = ERRID.ERR_DefaultInterfaceImplementationInNoPIAType
+                            ElseIf member.IsNotOverridable Then
+                                id = ERRID.ERR_ReAbstractionInNoPIAType
+                            End If
+                        End If
+                    Next
+
+                    If id = ERRID.ERR_None Then
+                        GoTo checksForAllEmbedabbleTypes
+                    End If
+
+                Case TypeKind.Structure,
                     TypeKind.Enum,
                     TypeKind.Delegate
-
+checksForAllEmbedabbleTypes:
                     If type.IsTupleType Then
                         type = type.TupleUnderlyingType
                     End If
@@ -278,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             ' We do not expect this method to be called on a different thread once GetTypes is called.
             VerifyNotFrozen()
 
-            Dim noPiaIndexer = New Cci.NoPiaReferenceIndexer(New EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly:=False, includePrivateMembers:=True))
+            Dim noPiaIndexer = New Cci.TypeReferenceIndexer(New EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly:=False, includePrivateMembers:=True))
 
             ' Make sure we embed all types referenced by the type declaration: implemented interfaces, etc.
             noPiaIndexer.VisitTypeDefinitionNoMembers(embedded)

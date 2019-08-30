@@ -27,6 +27,6 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         // a suppression operation containing elastic trivia in its start/end token will be ignored
         // since they can't be used to determine line alignment between two tokens.
         // this option will make engine to accept the operation even if start/end token has elastic trivia
-        IgnoreElastic = 0x10
+        IgnoreElasticWrapping = 0x10
     }
 }

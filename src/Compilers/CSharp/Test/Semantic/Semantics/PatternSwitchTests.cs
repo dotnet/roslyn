@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             case var i when ((i&1) == 0):
                 break; // warning: unreachable (1)
             case 1: // error: duplicate case label
-                break; // warning: unreachable (2)
+                break;
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
@@ -39,10 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(11, 13),
                 // (10,17): warning CS0162: Unreachable code detected
                 //                 break; // warning: unreachable (1)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // warning: unreachable (2)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
                 );
         }
 
@@ -59,19 +56,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             case 1 when true:
                 break;
             case 1 when true: // error: subsumed
-                break; // warning: unreachable
+                break;
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (9,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 1 when true: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "1").WithLocation(9, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break; // warning: unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1").WithLocation(9, 18)
                 );
         }
 
@@ -90,21 +84,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             case 1 when true:
                 break;
             case 1: // error: handled previously
-                break; // warning
+                break; // warning?
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (11,13): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 1: // error: handled previously
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 1:").WithLocation(11, 13),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1").WithLocation(11, 18),
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // warning: unreachable code (impossible given the value)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // warning
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
                 );
         }
 
@@ -126,15 +117,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
-                // (10,13): error CS8120: The switch case has already been handled by a previous case.
+                // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case "goo": ; // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, @"case ""goo"":").WithLocation(10, 13),
-                // (11,13): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, @"""goo""").WithLocation(10, 18),
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case null: ; // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case null:").WithLocation(11, 13)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "null").WithLocation(11, 18),
+                // (10,13): error CS0163: Control cannot fall through from one case label ('case "goo":') to another
+                //             case "goo": ; // error: subsumed by previous case
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, @"case ""goo"":").WithArguments("case \"goo\":").WithLocation(10, 13),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case null:')
+                //             case null: ; // error: subsumed by previous case
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case null:").WithArguments("case null:").WithLocation(11, 13)
                 );
         }
 
@@ -152,19 +149,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             case bool n:
                 break;
             case ""goo"": // wrong type
-                break; // unreachable
+                break; // unreachable?
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
                 //             case "goo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(10, 18)
                 );
         }
 
@@ -183,19 +177,16 @@ public class X
             case IComparable i1:
                 break;
             case string s: // error: subsumed by previous case
-                break; // unreachable
+                break;
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case string s: // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "string s").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "string s").WithLocation(11, 18)
                 );
         }
 
@@ -215,7 +206,7 @@ public class X
             case IEnumerable i:
                 break;
             case IEnumerable<string> i: // error: subsumed by previous case
-                break; // unreachable
+                break;
         }
     }
 }";
@@ -223,10 +214,7 @@ public class X
             compilation.VerifyDiagnostics(
                 // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case IEnumerable<string> i: // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<string> i").WithLocation(12, 18),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "IEnumerable<string> i").WithLocation(12, 18)
                 );
         }
 
@@ -245,7 +233,7 @@ public class X : List<string>
             case List<string> list:
                 break;
             case X list: // error: subsumed by previous case
-                break; // unreachable
+                break;
         }
     }
 }";
@@ -254,10 +242,7 @@ public class X : List<string>
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case X list: // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "X list").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "X list").WithLocation(11, 18)
                 );
         }
 
@@ -276,18 +261,15 @@ public class X : List<string>
             case false:
                 break;
             case var x: // error: subsumed
-                break; // unreachable
+                break; // unreachable?
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var x: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var x").WithLocation(11, 18)
                 );
         }
 
@@ -306,18 +288,15 @@ public class X : List<string>
             case null:
                 break;
             case var x: // error: subsumed by previous cases
-                break; // unreachable
+                break; // unreachable?
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var x: // error: subsumed by previous cases
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var x").WithLocation(11, 18)
                 );
         }
 
@@ -340,7 +319,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -361,14 +340,11 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,18): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
                 //             case int i: // error: type mismatch.
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(8, 18),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(8, 18)
                 );
         }
 
@@ -415,7 +391,7 @@ public class X : List<string>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True
@@ -442,14 +418,11 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0037: Cannot convert null to 'bool' because it is a non-nullable value type
                 //             case null: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("bool").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("bool").WithLocation(10, 18)
                 );
         }
 
@@ -471,14 +444,11 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //             case 3: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "bool").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "bool").WithLocation(10, 18)
                 );
         }
 
@@ -500,14 +470,11 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
                 //             case 1000: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18)
                 );
         }
 
@@ -524,18 +491,15 @@ null";
             case int i:
                 break;
             case 11: // error: subsumed
-                break; // unreachable
+                break;
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (9,13): error CS8120: The switch case has already been handled by a previous case.
+                // (9,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 11: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 11:").WithLocation(9, 13),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "11").WithLocation(9, 18)
                 );
         }
 
@@ -553,20 +517,17 @@ null";
             case false:
                 break;
             case bool b: // error: subsumed
-                break; // unreachable
+                break;
             default: //ok
                 break; // unreachable because a single case handles all input
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case bool b: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "bool b").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "bool b").WithLocation(10, 18),
                 // (13,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable because a single case handles all input
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17)
@@ -588,7 +549,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
@@ -611,7 +572,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
@@ -634,7 +595,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
@@ -657,7 +618,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
@@ -680,7 +641,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -700,7 +661,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -716,23 +677,20 @@ null";
         switch (""goo"")
         {
             case null when true:
-                break;
-            case null:
+                break; // unreachable
+            case null: // subsumed
                 break;
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (9,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case null:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case null:").WithLocation(9, 13),
+                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case null: // subsumed
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "null").WithLocation(9, 18),
                 // (8,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
                 );
         }
 
@@ -754,7 +712,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -778,20 +736,12 @@ null";
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
                 //             case "goo": // wrong type
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (11,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "goo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
-                );
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
                 //             case "goo": // wrong type
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)
@@ -824,7 +774,7 @@ class Program
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (18,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case Color x when false:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case Color x when false:").WithArguments("pattern matching", "7.0").WithLocation(18, 13),
@@ -841,7 +791,7 @@ class Program
                 //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17)
                 );
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 //                 goto case 1; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
@@ -887,7 +837,7 @@ class Program
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (17,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 //                 goto case 1;
@@ -934,7 +884,7 @@ class Program
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"1
@@ -1025,7 +975,7 @@ class Program
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 $@"0.0d !
@@ -1048,7 +998,8 @@ null";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(25846, "https://github.com/dotnet/roslyn/issues/25846")]
         public void DuplicateDouble()
         {
             var source =
@@ -1155,7 +1106,7 @@ null";
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (13,13): error CS0152: The switch statement contains multiple cases with the label value '1.01'
                 //             case 1.01: // duplicate
@@ -1223,7 +1174,7 @@ class Program
         return BitConverter.Int64BitsToDouble(BitConverter.DoubleToInt64Bits(double.NaN) ^ x);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"zero
@@ -1280,7 +1231,7 @@ public enum EnumA
     ValueC
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"0
@@ -1314,7 +1265,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var sRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s").Single();
@@ -1360,7 +1311,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True";
@@ -1390,11 +1341,11 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case bool b: ; // error: bool already handled by previous cases.
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "bool b").WithLocation(11, 18)
+                //             case bool b: throw null; // error: bool already handled by previous cases.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "bool b").WithLocation(11, 18)
                 );
         }
 
@@ -1402,21 +1353,7 @@ class Program
         public void ExplicitTupleConversion_Crash()
         {
             var source =
-@"namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public T1 Item1;
-        public T2 Item2;
-
-        public ValueTuple(T1 item1, T2 item2)
-        {
-            this.Item1 = item1;
-            this.Item2 = item2;
-        }
-    }
-}
-class Program
+@"class Program
 {
     public static void Main(string[] args)
     {
@@ -1439,7 +1376,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "13");
         }
@@ -1504,7 +1441,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (21,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int):
@@ -1518,57 +1455,24 @@ class Program
                 // (23,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 24),
-                // (23,29): error CS1003: Syntax error, ':' expected
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(":", "").WithLocation(23, 29),
-                // (23,31): error CS1525: Invalid expression term 'case'
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case").WithLocation(23, 31),
-                // (23,31): error CS1002: ; expected
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(23, 31),
-                // (24,33): error CS1003: Syntax error, ':' expected
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(":", "").WithLocation(24, 33),
-                // (24,35): error CS1525: Invalid expression term 'case'
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case").WithLocation(24, 35),
-                // (24,35): error CS1002: ; expected
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(24, 35),
                 // (25,19): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 19),
                 // (25,25): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 25),
-                // (25,31): error CS1003: Syntax error, ':' expected
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(":", "").WithLocation(25, 31),
                 // (30,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 19),
                 // (30,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 24),
-                // (30,29): error CS1003: Syntax error, ':' expected
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(":", "").WithLocation(30, 29),
                 // (32,19): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 19),
                 // (32,25): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 25),
-                // (32,31): error CS1003: Syntax error, ':' expected
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(":", "").WithLocation(32, 31),
-                // (37,47): error CS1003: Syntax error, ':' expected
-                //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "z").WithArguments(":", "").WithLocation(37, 47),
-                // (39,47): error CS1003: Syntax error, ':' expected
-                //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(":", "").WithLocation(39, 47),
                 // (43,23): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 23),
@@ -1581,219 +1485,129 @@ class Program
                 // (45,28): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(45, 28),
-                // (45,33): error CS1026: ) expected
+                // (45,35): error CS1525: Invalid expression term ')'
                 //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "z").WithLocation(45, 33),
-                // (45,34): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(45, 35),
+                // (45,35): error CS1002: ; expected
                 //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(45, 34),
-                // (45,34): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(45, 35),
+                // (45,35): error CS1513: } expected
                 //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(45, 34),
-                // (46,37): error CS1026: ) expected
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "c").WithLocation(46, 37),
-                // (46,38): error CS1002: ; expected
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(46, 38),
-                // (46,38): error CS1513: } expected
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(46, 38),
-                // (51,51): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(45, 35),
+                // (51,53): error CS1525: Invalid expression term ')'
                 //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "z").WithLocation(51, 51),
-                // (51,52): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(51, 53),
+                // (51,53): error CS1002: ; expected
                 //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(51, 52),
-                // (51,52): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(51, 53),
+                // (51,53): error CS1513: } expected
                 //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(51, 52),
-                // (52,55): error CS1026: ) expected
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "c").WithLocation(52, 55),
-                // (52,56): error CS1002: ; expected
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(52, 56),
-                // (52,56): error CS1513: } expected
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(52, 56),
-                // (21,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(51, 53),
+                // (21,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(21, 18),
-                // (22,19): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(21, 18),
+                // (22,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(22, 19),
-                // (22,26): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int x, int y)").WithArguments("object", "Deconstruct").WithLocation(22, 18),
+                // (22,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(22, 26),
-                // (22,18): error CS0150: A constant value is expected
-                //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int x, int y)").WithLocation(22, 18),
-                // (23,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("object", "2").WithLocation(22, 18),
+                // (23,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(23, 18),
-                // (24,19): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(23, 18),
+                // (24,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(24, 19),
-                // (24,26): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int a, int b)").WithArguments("object", "Deconstruct").WithLocation(24, 18),
+                // (24,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(24, 26),
-                // (24,18): error CS0150: A constant value is expected
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(24, 18),
-                // (25,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int a, int b)").WithArguments("object", "2").WithLocation(24, 18),
+                // (25,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(long, long)").WithLocation(25, 18),
-                // (30,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(long, long)").WithArguments("object", "2").WithLocation(25, 18),
+                // (30,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(30, 18),
-                // (32,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(30, 18),
+                // (32,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(long, long)").WithLocation(32, 18),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(long, long)").WithArguments("object", "2").WithLocation(32, 18),
+                // (37,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32, System.Int32)").WithArguments("object", "Deconstruct").WithLocation(37, 18),
+                // (37,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(37, 18),
                 // (37,19): error CS0119: 'int' is a type, which is not valid in the given context
                 //             case (System.Int32, System.Int32) z:
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 19),
                 // (37,33): error CS0119: 'int' is a type, which is not valid in the given context
                 //             case (System.Int32, System.Int32) z:
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 33),
+                // (39,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int64, System.Int64)").WithArguments("object", "Deconstruct").WithLocation(39, 18),
+                // (39,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int64, System.Int64)").WithArguments("object", "2").WithLocation(39, 18),
                 // (39,19): error CS0119: 'long' is a type, which is not valid in the given context
                 //             case (System.Int64, System.Int64) d:
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 19),
                 // (39,33): error CS0119: 'long' is a type, which is not valid in the given context
                 //             case (System.Int64, System.Int64) d:
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 33),
-                // (43,22): error CS0150: A constant value is expected
+                // (43,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int, int)) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(43, 22),
-                // (44,23): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(43, 22),
+                // (44,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(44, 23),
-                // (44,30): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int x, int y)").WithArguments("object", "Deconstruct").WithLocation(44, 22),
+                // (44,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(44, 30),
-                // (44,22): error CS0150: A constant value is expected
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int x, int y)").WithLocation(44, 22),
-                // (45,22): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("object", "2").WithLocation(44, 22),
+                // (45,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(45, 22),
-                // (45,33): error CS0103: The name 'z' does not exist in the current context
-                //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(45, 33),
-                // (46,23): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(45, 22),
+                // (46,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(46, 23),
-                // (46,30): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int a, int b)").WithArguments("object", "Deconstruct").WithLocation(46, 22),
+                // (46,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(46, 30),
-                // (46,22): error CS0150: A constant value is expected
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(46, 22),
-                // (46,37): error CS0103: The name 'c' does not exist in the current context
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(46, 37),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int a, int b)").WithArguments("object", "2").WithLocation(46, 22),
+                // (49,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             if (o is (System.Int32, System.Int32)) {}
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32, System.Int32)").WithArguments("object", "Deconstruct").WithLocation(49, 22),
+                // (49,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //             if (o is (System.Int32, System.Int32)) {}
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(49, 22),
                 // (49,23): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 23),
                 // (49,37): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 37),
-                // (50,23): error CS8185: A declaration is not allowed in this context.
+                // (50,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 x").WithLocation(50, 23),
-                // (50,39): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32 x, System.Int32 y)").WithArguments("object", "Deconstruct").WithLocation(50, 22),
+                // (50,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 y").WithLocation(50, 39),
-                // (50,22): error CS0150: A constant value is expected
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.Int32 x, System.Int32 y)").WithLocation(50, 22),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32 x, System.Int32 y)").WithArguments("object", "2").WithLocation(50, 22),
+                // (51,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             if (o is (System.Int32, System.Int32) z)) {}
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32, System.Int32)").WithArguments("object", "Deconstruct").WithLocation(51, 22),
+                // (51,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //             if (o is (System.Int32, System.Int32) z)) {}
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(51, 22),
                 // (51,23): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 23),
                 // (51,37): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 37),
-                // (51,51): error CS0103: The name 'z' does not exist in the current context
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(51, 51),
-                // (52,23): error CS8185: A declaration is not allowed in this context.
+                // (52,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 a").WithLocation(52, 23),
-                // (52,39): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32 a, System.Int32 b)").WithArguments("object", "Deconstruct").WithLocation(52, 22),
+                // (52,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 b").WithLocation(52, 39),
-                // (52,22): error CS0150: A constant value is expected
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.Int32 a, System.Int32 b)").WithLocation(52, 22),
-                // (52,55): error CS0103: The name 'c' does not exist in the current context
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(52, 55),
-                // (23,29): warning CS0162: Unreachable code detected
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(23, 29),
-                // (24,33): warning CS0162: Unreachable code detected
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "c").WithLocation(24, 33),
-                // (25,31): warning CS0162: Unreachable code detected
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(25, 31),
-                // (30,29): warning CS0162: Unreachable code detected
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(30, 29),
-                // (32,31): warning CS0162: Unreachable code detected
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(32, 31),
-                // (37,47): warning CS0162: Unreachable code detected
-                //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(37, 47),
-                // (39,47): warning CS0162: Unreachable code detected
-                //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(39, 47),
-                // (23,29): warning CS0164: This label has not been referenced
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(23, 29),
-                // (24,33): warning CS0164: This label has not been referenced
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(24, 33),
-                // (25,31): warning CS0164: This label has not been referenced
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(25, 31),
-                // (30,29): warning CS0164: This label has not been referenced
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(30, 29),
-                // (32,31): warning CS0164: This label has not been referenced
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(32, 31),
-                // (37,47): warning CS0164: This label has not been referenced
-                //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(37, 47),
-                // (39,47): warning CS0164: This label has not been referenced
-                //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(39, 47),
-                // (44,23): error CS0165: Use of unassigned local variable 'x'
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(44, 23),
-                // (44,30): error CS0165: Use of unassigned local variable 'y'
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(44, 30),
-                // (46,23): error CS0165: Use of unassigned local variable 'a'
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(46, 23),
-                // (46,30): error CS0165: Use of unassigned local variable 'b'
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int b").WithArguments("b").WithLocation(46, 30),
-                // (50,23): error CS0165: Use of unassigned local variable 'x'
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 x").WithArguments("x").WithLocation(50, 23),
-                // (50,39): error CS0165: Use of unassigned local variable 'y'
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 y").WithArguments("y").WithLocation(50, 39),
-                // (52,23): error CS0165: Use of unassigned local variable 'a'
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 a").WithArguments("a").WithLocation(52, 23),
-                // (52,39): error CS0165: Use of unassigned local variable 'b'
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 b").WithArguments("b").WithLocation(52, 39)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32 a, System.Int32 b)").WithArguments("object", "2").WithLocation(52, 22)
                 );
         }
 
@@ -1823,7 +1637,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "12");
         }
@@ -1846,22 +1660,22 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
                 //             case new object() is int x1:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new object() is int x1").WithLocation(8, 18),
-                // (9,17): warning CS0162: Unreachable code detected
+                // (9,42): error CS0165: Use of unassigned local variable 'x1'
                 //                 System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(9, 42)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").Single();
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
@@ -1881,7 +1695,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
                 // (7,18): error CS1525: Invalid expression term 'is'
@@ -1889,17 +1703,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(7, 18),
                 // (7,21): error CS0246: The type or namespace name 'EnvDTE' could not be found (are you missing a using directive or an assembly reference?)
                 //             case is EnvDTE.Project x1:
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnvDTE").WithArguments("EnvDTE").WithLocation(7, 21),
-                // (8,17): warning CS0162: Unreachable code detected
-                //                 System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 17)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnvDTE").WithArguments("EnvDTE").WithLocation(7, 21)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").Single();
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [Fact, WorkItem(14296, "https://github.com/dotnet/roslyn/issues/14296")]
@@ -1930,7 +1741,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True
@@ -1970,7 +1781,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"2
@@ -2013,7 +1824,7 @@ class Rectangle
     public Rectangle(int x, int y) { Height = x; Length = y; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"other
 S 1
@@ -2044,7 +1855,7 @@ static class Program {
         Test(null);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"not null
@@ -2073,7 +1884,7 @@ class Program
 
 class A{}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = "A";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2120,7 +1931,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
@@ -2182,7 +1993,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
@@ -2238,7 +2049,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
@@ -2296,7 +2107,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
@@ -2345,7 +2156,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"case: 3
@@ -2408,6 +2219,7 @@ class Program
     }
 }
 ";
+            // Use a compilation profile that supports Task<T>.
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -2472,6 +2284,7 @@ class Program
     }
 }
 ";
+            // Use a compilation profile that supports Task<T>.
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -2531,6 +2344,7 @@ class Program
     }
 }
 ";
+            // Use a compilation profile that supports Task<T>.
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -2586,6 +2400,7 @@ class Program
     }
 }
 ";
+            // Use a compilation profile that supports Task<T>.
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -2622,6 +2437,7 @@ class Test
     }
 }
 ";
+            // Use a compilation profile that supports Task<T>.
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (12,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
@@ -2665,7 +2481,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"T
@@ -2707,7 +2523,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"T
@@ -2737,14 +2553,11 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (13,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case List<(int z, int w)> list2: // subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<(int z, int w)> list2").WithLocation(13, 18),
-                // (14,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "List<(int z, int w)> list2").WithLocation(13, 18)
                 );
         }
 
@@ -2771,7 +2584,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
@@ -2799,7 +2612,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
@@ -2827,7 +2640,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"1");
@@ -2856,14 +2669,11 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (13,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var x:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(13, 18),
-                // (14,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var x").WithLocation(13, 18)
                 );
         }
 
@@ -2890,14 +2700,11 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (13,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case List<dynamic> list2: // subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<dynamic> list2").WithLocation(13, 18),
-                // (14,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break")
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "List<dynamic> list2").WithLocation(13, 18)
                 );
         }
 
@@ -2924,7 +2731,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
@@ -2955,7 +2762,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (9,18): error CS8330: It is not legal to use the type 'dynamic' in a pattern.
                 //             case dynamic x: // error 1
@@ -3021,20 +2828,20 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var z: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var z").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var z").WithLocation(11, 18),
                 // (18,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var y: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var y").WithLocation(18, 18),
-                // (24,13): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var y").WithLocation(18, 18),
+                // (24,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 1: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 1:"),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1").WithLocation(24, 18),
                 // (30,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case int y: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int y").WithLocation(30, 18),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int y").WithLocation(30, 18),
                 // (37,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
                 //             case (string)null: // error: subsumed
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (string)null:").WithArguments("null").WithLocation(37, 13)
@@ -3057,37 +2864,28 @@ class Program
             case System.IComparable c:
                 break;
             case 2: // error: subsumed
-                break; // unreachable (1)
+                break; // unreachable (1)?
             case int n: // error: subsumed
-                break; // unreachable (2)
+                break; // unreachable (2)?
             case var i: // error: subsumed
-                break; // unreachable (3)
+                break; // unreachable (3)?
             default:
                 break; // unreachable, because `var i` would catch all
         }
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                // (12,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 2: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 2:").WithLocation(12, 13),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "2").WithLocation(12, 18),
                 // (14,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case int n: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int n").WithLocation(14, 18),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int n").WithLocation(14, 18),
                 // (16,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case var i: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var i").WithLocation(16, 18),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable (1)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17),
-                // (15,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable (2)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 17),
-                // (17,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable (3)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var i").WithLocation(16, 18),
                 // (19,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable, because `var i` would catch all
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(19, 17)
@@ -3108,7 +2906,7 @@ class Program
             case System.IComparable c:
                 break;
             case System.ValueTuple<int, int> x: // error: subsumed
-                break; // unreachable
+                break;
             default:
                 break; // unreachable because a single case handles all input
         }
@@ -3119,10 +2917,7 @@ class Program
             compilation.VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case System.ValueTuple<int, int> x: // error: subsumed
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "System.ValueTuple<int, int> x").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "System.ValueTuple<int, int> x").WithLocation(10, 18),
                 // (13,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable because a single case handles all input
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17)
@@ -3184,6 +2979,7 @@ static class Ex
     }
 }
 ";
+            // Use a compilation profile that supports Task<T>.
             var compilation = CreateCompilationWithMscorlib45(
                 source, options: TestOptions.ReleaseDll.WithOptimizationLevel(OptimizationLevel.Release), references: new[] { SystemCoreRef, CSharpRef });
             compilation.VerifyDiagnostics();
@@ -3284,7 +3080,7 @@ static class Ex
           case bool _:
           case true:     // error: subsumed (1 of 12)
           case false:    // error: subsumed (2 of 12)
-            break; // unreachable (1)
+            break;
         }
 
         switch (new object())
@@ -3300,7 +3096,7 @@ static class Ex
           case bool _:
           case true:     // error: subsumed (5 of 12)
           case false:    // error: subsumed (6 of 12)
-            break; // unreachable (2)
+            break;
         }
 
         switch ((bool?)null)
@@ -3308,7 +3104,7 @@ static class Ex
           case bool _:
           case true:     // error: subsumed (7 of 12)
           case false:    // error: subsumed (8 of 12)
-            break; // unreachable (3)
+            break;
         }
 
         switch (default(bool?))
@@ -3316,8 +3112,7 @@ static class Ex
           case bool _:
           case true:     // error: subsumed (9 of 12)
           case false:    // error: subsumed (10 of 12)
-            break; // unreachable (4)
-            // warning on the previous line missing due to https://github.com/dotnet/roslyn/issues/22125
+            break;
         }
 
         switch (default(bool))
@@ -3331,51 +3126,42 @@ static class Ex
 }";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (8,11): error CS8120: The switch case has already been handled by a previous case.
+                // (8,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (1 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(8, 11),
-                // (9,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(8, 16),
+                // (9,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (2 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(9, 11),
-                // (16,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(9, 16),
+                // (16,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (3 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(16, 11),
-                // (17,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(16, 16),
+                // (17,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (4 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(17, 11),
-                // (24,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(17, 16),
+                // (24,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (5 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(24, 11),
-                // (25,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(24, 16),
+                // (25,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (6 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(25, 11),
-                // (32,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(25, 16),
+                // (32,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (7 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(32, 11),
-                // (33,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(32, 16),
+                // (33,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (8 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(33, 11),
-                // (40,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(33, 16),
+                // (40,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (9 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(40, 11),
-                // (41,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(40, 16),
+                // (41,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (10 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(41, 11),
-                // (49,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(41, 16),
+                // (48,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case true:     // error: subsumed (11 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(49, 11),
-                // (50,11): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "true").WithLocation(48, 16),
+                // (49,16): error CS8120: The switch case has already been handled by a previous case.
                 //           case false:    // error: subsumed (12 of 12)
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(50, 11),
-                // (10,13): warning CS0162: Unreachable code detected
-                //             break; // unreachable (1)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 13),
-                // (26,13): warning CS0162: Unreachable code detected
-                //             break; // unreachable (2)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(26, 13),
-                // (34,13): warning CS0162: Unreachable code detected
-                //             break; // unreachable (3)
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(34, 13)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "false").WithLocation(49, 16)
                 );
         }
     }

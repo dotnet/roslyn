@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -37,12 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     ///     }
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public CSharpUseLocalFunctionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseLocalFunctionDiagnosticId,
+                   CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_local_function), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -55,8 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var compilation = compilationContext.Compilation;
                 var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
 
-                context.RegisterSyntaxNodeAction(
-                    ctx => SyntaxNodeAction(ctx, expressionTypeOpt), SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
+                context.RegisterSyntaxNodeAction(ctx => SyntaxNodeAction(ctx, expressionTypeOpt),
+                    SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
             });
         }
 
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            var severity = styleOption.Notification.Value;
+            var severity = styleOption.Notification.Severity;
             var anonymousFunction = (AnonymousFunctionExpressionSyntax)syntaxContext.Node;
 
             var semanticModel = syntaxContext.SemanticModel;
@@ -105,6 +104,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
+            // If there are compiler error on the declaration we can't reliably
+            // tell that the refactoring will be accurate, so don't provide any
+            // code diagnostics
+            if (localDeclaration.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            {
+                return;
+            }
+
             var local = semanticModel.GetDeclaredSymbol(localDeclaration.Declaration.Variables[0], cancellationToken);
             if (local == null)
             {
@@ -113,12 +120,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var delegateType = semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType as INamedTypeSymbol;
             if (!delegateType.IsDelegateType() ||
-                delegateType.DelegateInvokeMethod == null)
+                delegateType.DelegateInvokeMethod == null ||
+                !CanReplaceDelegateWithLocalFunction(delegateType, localDeclaration, semanticModel, cancellationToken))
             {
                 return;
             }
 
-            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var explicitInvokeCallLocations, cancellationToken))
+            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var referenceLocations, cancellationToken))
             {
                 return;
             }
@@ -128,32 +136,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 localDeclaration.GetLocation(),
                 anonymousFunction.GetLocation());
 
-            additionalLocations = additionalLocations.AddRange(explicitInvokeCallLocations);
+            additionalLocations = additionalLocations.AddRange(referenceLocations);
 
-            if (severity != DiagnosticSeverity.Hidden)
+            if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
             {
                 // If the diagnostic is not hidden, then just place the user visible part
                 // on the local being initialized with the lambda.
-                syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity),
+                syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor,
                     localDeclaration.Declaration.Variables[0].Identifier.GetLocation(),
-                    additionalLocations));
+                    severity,
+                    additionalLocations,
+                    properties: null));
             }
             else
             {
                 // If the diagnostic is hidden, place it on the entire construct.
-                syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity),
+                syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor,
                     localDeclaration.GetLocation(),
-                    additionalLocations));
+                    severity,
+                    additionalLocations,
+                    properties: null));
 
                 var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
                 if (localDeclaration != anonymousFunctionStatement)
                 {
-                    syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                        GetDescriptorWithSeverity(severity),
+                    syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                        Descriptor,
                         anonymousFunctionStatement.GetLocation(),
-                        additionalLocations));
+                        severity,
+                        additionalLocations,
+                        properties: null));
                 }
             }
         }
@@ -177,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private bool CheckForSimpleLocalDeclarationPattern(
-            SemanticModel semanticModel, 
+            SemanticModel semanticModel,
             AnonymousFunctionExpressionSyntax anonymousFunction,
             CancellationToken cancellationToken,
             out LocalDeclarationStatementSyntax localDeclaration)
@@ -201,12 +215,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
         private bool CanReplaceAnonymousWithLocalFunction(
             SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt, ISymbol local, BlockSyntax block,
-            AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> explicitInvokeCallLocations, CancellationToken cancellationToken)
+            AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> referenceLocations, CancellationToken cancellationToken)
         {
             // Check all the references to the anonymous function and disallow the conversion if
             // they're used in certain ways.
-            var explicitInvokeCalls = ArrayBuilder<Location>.GetInstance();
-            explicitInvokeCallLocations = ImmutableArray<Location>.Empty;
+            var references = ArrayBuilder<Location>.GetInstance();
+            referenceLocations = ImmutableArray<Location>.Empty;
             var anonymousFunctionStart = anonymousFunction.SpanStart;
             foreach (var descendentNode in block.DescendantNodes())
             {
@@ -238,18 +252,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                             return false;
                         }
 
-                        if (nodeToCheck.Parent is MemberAccessExpressionSyntax memberAccessExpression)
+                        if (nodeToCheck.Parent is InvocationExpressionSyntax invocationExpression)
                         {
-                            if (memberAccessExpression.Name.Identifier.Text != WellKnownMemberNames.DelegateInvokeName)
+                            references.Add(invocationExpression.GetLocation());
+                        }
+                        else if (nodeToCheck.Parent is MemberAccessExpressionSyntax memberAccessExpression)
+                        {
+                            if (memberAccessExpression.Parent is InvocationExpressionSyntax explicitInvocationExpression &&
+                                memberAccessExpression.Name.Identifier.ValueText == WellKnownMemberNames.DelegateInvokeName)
+                            {
+                                references.Add(explicitInvocationExpression.GetLocation());
+                            }
+                            else
                             {
                                 // They're doing something like "del.ToString()".  Can't do this with a
                                 // local function.
                                 return false;
                             }
-                            else
-                            {
-                                explicitInvokeCalls.Add(memberAccessExpression.GetLocation());
-                            }
+                        }
+                        else
+                        {
+                            references.Add(nodeToCheck.GetLocation());
                         }
 
                         var convertedType = semanticModel.GetTypeInfo(nodeToCheck, cancellationToken).ConvertedType;
@@ -271,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 }
             }
 
-            explicitInvokeCallLocations = explicitInvokeCalls.ToImmutableAndFree();
+            referenceLocations = references.ToImmutableAndFree();
             return true;
         }
 
@@ -334,18 +357,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                             if (localDeclaration.Declaration.Variables.Count == 1)
                             {
                                 var variableDeclarator = localDeclaration.Declaration.Variables[0];
-                                if (variableDeclarator.Initializer != null)
+                                if (variableDeclarator.Initializer == null ||
+                                    variableDeclarator.Initializer.Value.IsKind(
+                                        SyntaxKind.NullLiteralExpression,
+                                        SyntaxKind.DefaultLiteralExpression,
+                                        SyntaxKind.DefaultExpression))
                                 {
-                                    var value = variableDeclarator.Initializer.Value;
-                                    if (value.IsKind(SyntaxKind.NullLiteralExpression) ||
-                                        value.IsKind(SyntaxKind.DefaultLiteralExpression) ||
-                                        value.IsKind(SyntaxKind.DefaultExpression))
+                                    var identifierName = (IdentifierNameSyntax)assignment.Left;
+                                    if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
                                     {
-                                        var identifierName = (IdentifierNameSyntax)assignment.Left;
-                                        if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
-                                        {
-                                            return true;
-                                        }
+                                        return true;
                                     }
                                 }
                             }
@@ -358,7 +379,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             return false;
         }
 
+        private static bool CanReplaceDelegateWithLocalFunction(
+            INamedTypeSymbol delegateType,
+            LocalDeclarationStatementSyntax localDeclaration,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            var delegateContainingType = delegateType.ContainingType;
+            if (delegateContainingType is null || !delegateContainingType.IsGenericType)
+            {
+                return true;
+            }
+
+            var delegateTypeParamNames = delegateType.GetAllTypeParameters().Select(p => p.Name).ToImmutableHashSet();
+            var localEnclosingSymbol = semanticModel.GetEnclosingSymbol(localDeclaration.SpanStart, cancellationToken);
+            while (localEnclosingSymbol != null)
+            {
+                if (localEnclosingSymbol.Equals(delegateContainingType))
+                {
+                    return true;
+                }
+
+                var typeParams = localEnclosingSymbol.GetTypeParameters();
+                if (typeParams.Any())
+                {
+                    if (typeParams.Any(p => delegateTypeParamNames.Contains(p.Name)))
+                    {
+                        return false;
+                    }
+                }
+
+                localEnclosingSymbol = localEnclosingSymbol.ContainingType;
+            }
+
+            return true;
+        }
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

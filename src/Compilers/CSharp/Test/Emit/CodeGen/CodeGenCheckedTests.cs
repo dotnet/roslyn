@@ -2368,7 +2368,7 @@ class Derived2 : Base1
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedConversionsInExpressionTrees_Implicit()
         {
             // char
@@ -2467,14 +2467,14 @@ class Derived2 : Base1
             CheckedConversionInExpressionTree_Implicit("int", "long?", "arg => F(ConvertChecked(ConvertChecked(arg)))");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
         public void CheckedConversionsInExpressionTrees_ImplicitTuple()
         {
             CheckedConversionInExpressionTree_Implicit("(int, int)", "(int, int)?", ConvertMethod.Convert);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedConversionsInExpressionTrees_Explicit()
         {
             // char
@@ -2663,7 +2663,7 @@ class Derived2 : Base1
             CheckedConversionInExpressionTree_Explicit("int", "long?", "arg => ConvertChecked(ConvertChecked(arg))");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedConversionsInExpressionTrees_ExplicitTuple()
         {
             CheckedConversionInExpressionTree_Explicit("(int, int)", "(int, int)?", ConvertMethod.Convert);

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -804,6 +805,35 @@ class Test
 }");
         }
 
+        [WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestFullyQualifyUnboundIdentifier3()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    public [|Inner|] Name
+}",
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    public Program.Inner Name
+}");
+        }
+
         [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyTypeName_NotForGenericType()
@@ -1022,7 +1052,7 @@ class Program
         public async Task TestAttribute()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
-            await TestActionCountAsync(input, 1);
+            await TestActionCountAsync(input, 2);
 
             await TestInRegularAndScriptAsync(
 input,

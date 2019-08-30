@@ -15,6 +15,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SpanStackSafetyTests : CompilingTestBase
     {
         [Fact]
+        public void SpanAssignmentExpression()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M()
+    {
+        Span<int> s1 = stackalloc int[1];
+        Span<int> s2 = new Span<int>();
+
+        s2 = (s2 = new Span<int>());
+        s2 = (s1 = s2);
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use local 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //         s2 = (s1 = s2);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s1 = s2").WithArguments("s1").WithLocation(11, 15));
+        }
+
+        [Fact]
         public void SpanToSpanSwitch()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -55,10 +77,8 @@ class C
             comp.VerifyDiagnostics(
                 // (10,18): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<int>'.
                 //             case Span<int> span:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(10, 18)
+                );
         }
 
         [Fact]
@@ -82,10 +102,8 @@ class C
             comp.VerifyDiagnostics(
                 // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
                 //             case Span<int> span:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18)
+                );
         }
 
         [Fact]
@@ -109,10 +127,8 @@ class C
             comp.VerifyDiagnostics(
                 // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
                 //             case Span<int> span:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18)
+                );
         }
 
         [Fact]
@@ -139,13 +155,8 @@ class C
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<object>").WithArguments("System.Span<string>", "System.Span<object>").WithLocation(9, 18),
                 // (11,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'object'.
                 //             case object o:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<string>", "object").WithLocation(11, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<string>", "object").WithLocation(11, 18)
+                );
         }
 
         [Fact]
@@ -167,10 +178,8 @@ class C
             comp.VerifyDiagnostics(
                 // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18)
+                );
         }
 
         [Fact]
@@ -192,10 +201,8 @@ class C
             comp.VerifyDiagnostics(
                 // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
                 //             case T t:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18)
+                );
         }
 
         [Fact]
@@ -697,10 +704,34 @@ public class Program
             comp.VerifyDiagnostics(
                 // (14,28): error CS8343: 'Program.S1': ref structs cannot implement interfaces
                 //     public ref struct S1 : IDisposable
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IDisposable").WithArguments("Program.S1", "System.IDisposable").WithLocation(14, 28),
-                // (8,16): error CS1674: 'Program.S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'
-                //         using (new S1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new S1()").WithArguments("Program.S1").WithLocation(8, 16)
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IDisposable").WithArguments("Program.S1", "System.IDisposable").WithLocation(14, 28)
+            );
+        }
+
+        [Fact]
+        public void NoInterfaceImp()
+        {
+            var text = @"
+public class Program
+{
+    static void Main(string[] args)
+    {
+        using (new S1())
+        {
+
+        }
+    }
+
+    public ref struct S1
+    {
+        public void Dispose() { }
+    }
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+
+            comp.VerifyDiagnostics(
             );
         }
 
@@ -1073,7 +1104,7 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyEmitDiagnostics(
-                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
+                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'Span<int>'
                 //         TakesSpan(s: default(Span<int>), i: await I1());
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(14, 45)
             );
@@ -1081,7 +1112,7 @@ public class Program
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
-                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
+                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'Span<int>'
                 //         TakesSpan(s: default(Span<int>), i: await I1());
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(14, 45)
             );
@@ -1404,8 +1435,8 @@ class Program
         var x = S1[1];       
         var y = new S1(S1, 1);
     }
-}");           
-            
+}");
+
             comp.VerifyDiagnostics(
                 // (14,9): error CS0120: An object reference is required for the non-static field, method, or property 'Program.S1.Test(int)'
                 //         S1.Test(1);
@@ -1417,6 +1448,245 @@ class Program
                 //         var y = new S1(S1, 1);
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "S1").WithArguments("Program.S1", "type").WithLocation(16, 24)
                 );
+        }
+
+        [Fact]
+        [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
+        public void PassingSpansToLocals_EscapeScope()
+        {
+            CompileAndVerify(
+                CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Span<int> x = stackalloc int [10];
+        
+        Console.WriteLine(M1(ref x).Length);
+        Console.WriteLine(M2(ref x).Length);
+    }
+    
+    static ref Span<int> M1(ref Span<int> x)
+    {
+        ref Span<int> q = ref x;
+        return ref q;
+  	}
+    
+    static ref Span<int> M2(ref Span<int> x)
+    {
+        return ref x;
+    }
+}",
+                options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
+10
+10");
+        }
+
+        [Fact]
+        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        public void PassingSpansToInParameters_Methods()
+        {
+            CompileAndVerify(CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Span<int> s1 = stackalloc int[1];
+        M1(s1);
+    }
+    
+    static void M1(Span<int> s1)
+    {
+		Span<int> s2 = stackalloc int[2];
+
+        M2(s1, s2);
+        M2(s2, s1);
+
+        M2(s1, in s2);
+        M2(s2, in s1);
+
+        M2(x: s1, y: in s2);
+        M2(x: s2, y: in s1);
+
+        M2(y: in s2, x: s1);
+        M2(y: in s1, x: s2);
+  	}
+
+    static void M2(Span<int> x, in Span<int> y)
+    {
+        Console.WriteLine(x.Length + "" - "" + y.Length);
+    }
+}", options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
+1 - 2
+2 - 1
+1 - 2
+2 - 1
+1 - 2
+2 - 1
+1 - 2
+2 - 1");
+        }
+
+        [Fact]
+        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        public void PassingSpansToInParameters_Indexers()
+        {
+            CompileAndVerify(CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Span<int> s1 = stackalloc int[1];
+        M1(s1);
+    }
+    
+    static void M1(Span<int> s1)
+    {
+		var obj = new C();
+		Span<int> s2 = stackalloc int[2];
+
+        Console.WriteLine(obj[s1, s2]);
+        Console.WriteLine(obj[s2, s1]);
+
+        Console.WriteLine(obj[s1, in s2]);
+        Console.WriteLine(obj[s2, in s1]);
+
+        Console.WriteLine(obj[x: s1, y: in s2]);
+        Console.WriteLine(obj[x: s2, y: in s1]);
+
+        Console.WriteLine(obj[y: in s2, x: s1]);
+        Console.WriteLine(obj[y: in s1, x: s2]);
+  	}
+
+    string this[Span<int> x, in Span<int> y] => x.Length + "" - "" + y.Length;
+}", options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
+1 - 2
+2 - 1
+1 - 2
+2 - 1
+1 - 2
+2 - 1
+1 - 2
+2 - 1");
+        }
+
+        [Fact]
+        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        public void PassingSpansToParameters_Errors()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Span<int> s1 = stackalloc int[1];
+        M1(s1);
+    }
+    
+    static void M1(Span<int> s1)
+    {
+		var obj = new C();
+		Span<int> s2 = stackalloc int[2];
+
+        M2(ref s1, out s2);         // one
+        M2(ref s2, out s1);         // two
+
+        M2(ref s1, out s2);         // three
+        M2(ref s2, out s1);         // four
+
+        M2(y: out s2, x: ref s1);   // five
+        M2(y: out s1, x: ref s2);   // six
+
+        M2(ref s1, out s1);         // should be ok
+        M2(ref s2, out s2);         // should be ok
+  	}
+
+    static void M2(ref Span<int> x, out Span<int> y)
+    {
+        y = default;
+    }
+}").VerifyDiagnostics(
+                // (16,24): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s1, out s2);         // one
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(16, 24),
+                // (16,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         M2(ref s1, out s2);         // one
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(16, 9),
+                // (17,16): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s2, out s1);         // two
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(17, 16),
+                // (17,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         M2(ref s2, out s1);         // two
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
+                // (19,24): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s1, out s2);         // three
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(19, 24),
+                // (19,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         M2(ref s1, out s2);         // three
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(19, 9),
+                // (20,16): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s2, out s1);         // four
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(20, 16),
+                // (20,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         M2(ref s2, out s1);         // four
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
+                // (22,19): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(y: out s2, x: ref s1);   // five
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(22, 19),
+                // (22,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         M2(y: out s2, x: ref s1);   // five
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s2, x: ref s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(22, 9),
+                // (23,30): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(y: out s1, x: ref s2);   // six
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(23, 30),
+                // (23,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         M2(y: out s1, x: ref s2);   // six
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9));
+        }
+
+        [Fact]
+        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        public void PassingSpansToParameters_Errors_Arglist()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Span<int> s1 = stackalloc int[1];
+        M1(s1);
+    }
+    
+    static void M1(Span<int> s1)
+    {
+		var obj = new C();
+		Span<int> s2 = stackalloc int[2];
+
+        M2(__arglist(ref s1, ref s2));  // one
+        M2(__arglist(ref s2, ref s1));  // two
+  	}
+
+    static void M2(__arglist)
+    {
+    }
+}").VerifyDiagnostics(
+                // (16,34): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(__arglist(ref s1, ref s2));  // one
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(16, 34),
+                // (16,9): error CS8350: This combination of arguments to 'C.M2(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         M2(__arglist(ref s1, ref s2));  // one
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(__arglist(ref s1, ref s2))").WithArguments("C.M2(__arglist)", "__arglist").WithLocation(16, 9),
+                // (17,26): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(__arglist(ref s2, ref s1));  // two
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(17, 26),
+                // (17,9): error CS8350: This combination of arguments to 'C.M2(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         M2(__arglist(ref s2, ref s1));  // two
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(__arglist(ref s2, ref s1))").WithArguments("C.M2(__arglist)", "__arglist").WithLocation(17, 9));
         }
     }
 }

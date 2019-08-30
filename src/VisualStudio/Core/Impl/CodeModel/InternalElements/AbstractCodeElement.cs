@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 throw new ArgumentException();
             }
 
-            CodeModelService.Rename(LookupSymbol(), newName, this.Workspace.CurrentSolution);
+            CodeModelService.Rename(LookupSymbol(), newName, this.Workspace, this.State.ProjectCodeModelFactory);
         }
 
         protected virtual Document DeleteCore(Document document)

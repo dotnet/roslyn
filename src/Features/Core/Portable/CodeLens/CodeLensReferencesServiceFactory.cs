@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CodeLens
     {
         public static readonly ICodeLensReferencesService Instance = new CodeLensReferencesService();
 
+        [ImportingConstructor]
+        public CodeLensReferencesServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return Instance;

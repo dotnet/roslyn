@@ -4,13 +4,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Xml.Linq;
+using DiffPlex;
+using DiffPlex.DiffBuilder;
+using DiffPlex.DiffBuilder.Model;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -179,11 +180,11 @@ namespace Roslyn.Test.Utilities
         }
 
         public static void Equal<T>(
-            IEnumerable<T> expected, 
-            IEnumerable<T> actual, 
+            IEnumerable<T> expected,
+            IEnumerable<T> actual,
             IEqualityComparer<T> comparer = null,
             string message = null,
-            string itemSeparator = null, 
+            string itemSeparator = null,
             Func<T, string> itemInspector = null,
             string expectedValueSourcePath = null,
             int expectedValueSourceLine = 0)
@@ -210,6 +211,48 @@ namespace Roslyn.Test.Utilities
             }
 
             Assert.True(false, assertMessage);
+        }
+
+        /// <summary>
+        /// Asserts that two strings are equal, and prints a diff between the two if they are not.
+        /// </summary>
+        /// <param name="expected">The expected string. This is presented as the "baseline/before" side in the diff.</param>
+        /// <param name="actual">The actual string. This is presented as the changed or "after" side in the diff.</param>
+        /// <param name="message">The message to precede the diff, if the values are not equal.</param>
+        public static void EqualOrDiff(string expected, string actual, string message = null)
+        {
+            if (expected == actual)
+            {
+                return;
+            }
+
+            var diffBuilder = new InlineDiffBuilder(new Differ());
+            var diff = diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false);
+            var messageBuilder = new StringBuilder();
+            messageBuilder.AppendLine(
+                string.IsNullOrEmpty(message)
+                    ? "Actual and expected values differ. Expected shown in baseline of diff:"
+                    : message);
+
+            foreach (var line in diff.Lines)
+            {
+                switch (line.Type)
+                {
+                    case ChangeType.Inserted:
+                        messageBuilder.Append("+");
+                        break;
+                    case ChangeType.Deleted:
+                        messageBuilder.Append("-");
+                        break;
+                    default:
+                        messageBuilder.Append(" ");
+                        break;
+                }
+
+                messageBuilder.AppendLine(line.Text);
+            }
+
+            Assert.True(false, messageBuilder.ToString());
         }
 
         public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null,
@@ -265,6 +308,98 @@ namespace Roslyn.Test.Utilities
             }
 
             return true;
+        }
+
+        public static void SetEqual(IEnumerable<string> expected, IEnumerable<string> actual, IEqualityComparer<string> comparer = null, string message = null, string itemSeparator = "\r\n", Func<string, string> itemInspector = null)
+        {
+            var indexes = new Dictionary<string, int>(comparer);
+            int counter = 0;
+            foreach (var expectedItem in expected)
+            {
+                if (!indexes.ContainsKey(expectedItem))
+                {
+                    indexes.Add(expectedItem, counter++);
+                }
+            }
+
+            SetEqual<string>(expected, actual.OrderBy(e => getIndex(e)), comparer, message, itemSeparator, itemInspector);
+
+            int getIndex(string item)
+            {
+                // exact match to expected items
+                if (indexes.TryGetValue(item, out var index))
+                {
+                    return index;
+                }
+
+                // closest match to expected items
+                int closestDistance = int.MaxValue;
+                string closestItem = null;
+                foreach (var expectedItem in indexes.Keys)
+                {
+                    var distance = levenshtein(item, expectedItem);
+                    if (distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                        closestItem = expectedItem;
+                    }
+                }
+
+                if (closestItem != null)
+                {
+                    _ = indexes.TryGetValue(closestItem, out index);
+                    return index;
+                }
+
+                return -1;
+            }
+
+            // Adapted from Toub's https://blogs.msdn.microsoft.com/toub/2006/05/05/generic-levenshtein-edit-distance-with-c/
+            int levenshtein(string first, string second)
+            {
+                // Get the length of both.  If either is 0, return
+                // the length of the other, since that number of insertions
+                // would be required.
+                int n = first.Length, m = second.Length;
+                if (n == 0) return m;
+                if (m == 0) return n;
+
+                // Rather than maintain an entire matrix (which would require O(n*m) space),
+                // just store the current row and the next row, each of which has a length m+1,
+                // so just O(m) space. Initialize the current row.
+                int curRow = 0, nextRow = 1;
+                int[][] rows = new int[][] { new int[m + 1], new int[m + 1] };
+                for (int j = 0; j <= m; ++j) rows[curRow][j] = j;
+
+                // For each virtual row (since we only have physical storage for two)
+                for (int i = 1; i <= n; ++i)
+                {
+                    // Fill in the values in the row
+                    rows[nextRow][0] = i;
+                    for (int j = 1; j <= m; ++j)
+                    {
+                        int dist1 = rows[curRow][j] + 1;
+                        int dist2 = rows[nextRow][j - 1] + 1;
+                        int dist3 = rows[curRow][j - 1] + (first[i - 1].Equals(second[j - 1]) ? 0 : 1);
+                        rows[nextRow][j] = Math.Min(dist1, Math.Min(dist2, dist3));
+                    }
+
+                    // Swap the current and next rows
+                    if (curRow == 0)
+                    {
+                        curRow = 1;
+                        nextRow = 0;
+                    }
+                    else
+                    {
+                        curRow = 0;
+                        nextRow = 1;
+                    }
+                }
+
+                // Return the computed edit distance
+                return rows[curRow][m];
+            }
         }
 
         public static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = "\r\n", Func<T, string> itemInspector = null)
@@ -455,7 +590,7 @@ namespace Roslyn.Test.Utilities
         {
             if (itemInspector == null)
             {
-                if (expected is IEnumerable<byte>)
+                if (typeof(T) == typeof(byte))
                 {
                     itemInspector = b => $"0x{b:X2}";
                 }
@@ -467,27 +602,31 @@ namespace Roslyn.Test.Utilities
 
             if (itemSeparator == null)
             {
-                if (expected is IEnumerable<byte>)
+                if (typeof(T) == typeof(byte))
                 {
                     itemSeparator = ", ";
                 }
                 else
                 {
-                    itemSeparator = ",\r\n";
+                    itemSeparator = "," + Environment.NewLine;
                 }
             }
 
-            var expectedString = string.Join(itemSeparator, expected.Select(itemInspector));
+            var expectedString = string.Join(itemSeparator, expected.Take(10).Select(itemInspector));
             var actualString = string.Join(itemSeparator, actual.Select(itemInspector));
 
             var message = new StringBuilder();
             message.AppendLine();
             message.AppendLine("Expected:");
             message.AppendLine(expectedString);
+            if (expected.Count() > 10)
+            {
+                message.AppendLine("... truncated ...");
+            }
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
             message.AppendLine("Differences:");
-            message.AppendLine(DiffUtil.DiffReport(expected, actual, comparer, itemInspector, itemSeparator));
+            message.AppendLine(DiffUtil.DiffReport(expected, actual, itemSeparator, comparer, itemInspector));
 
             if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out var link))
             {
@@ -560,6 +699,72 @@ namespace Roslyn.Test.Utilities
                 itemSeparator: Environment.NewLine,
                 expectedValueSourcePath: expectedValueSourcePath,
                 expectedValueSourceLine: expectedValueSourceLine);
+        }
+
+        public static void Throws<TException>(Action action, Action<TException> checker = null)
+            where TException : Exception
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                if (e is AggregateException agg && agg.InnerExceptions.Count == 1)
+                {
+                    e = agg.InnerExceptions[0];
+                }
+
+                Assert.Equal(typeof(TException), e.GetType());
+                checker?.Invoke((TException)e);
+            }
+        }
+
+        public static void Equal(bool[,] expected, Func<int, int, bool> getResult, int size)
+        {
+            Equal<bool>(expected, getResult, (b1, b2) => b1 == b2, b => b ? "true" : "false", "{0,-6:G}", size);
+        }
+
+        public static void Equal<T>(T[,] expected, Func<int, int, T> getResult, Func<T, T, bool> valuesEqual, Func<T, string> printValue, string format, int size)
+        {
+            bool mismatch = false;
+            for (int i = 0; i < size; i++)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    if (!valuesEqual(expected[i, j], getResult(i, j)))
+                    {
+                        mismatch = true;
+                    }
+                }
+            }
+
+            if (mismatch)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine("Actual result: ");
+                for (int i = 0; i < size; i++)
+                {
+                    builder.Append("{ ");
+                    for (int j = 0; j < size; j++)
+                    {
+                        string resultWithComma = printValue(getResult(i, j));
+                        if (j < size - 1)
+                        {
+                            resultWithComma += ",";
+                        }
+
+                        builder.Append(string.Format(format, resultWithComma));
+                        if (j < size - 1)
+                        {
+                            builder.Append(' ');
+                        }
+                    }
+                    builder.AppendLine("},");
+                }
+
+                Assert.True(false, builder.ToString());
+            }
         }
     }
 }

@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
     internal partial class CSharpGenerateEnumMemberService :
         AbstractGenerateEnumMemberService<CSharpGenerateEnumMemberService, SimpleNameSyntax, ExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpGenerateEnumMemberService()
+        {
+        }
+
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
         {
             return node is IdentifierNameSyntax;
@@ -26,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
             if (identifierToken.ValueText != string.Empty &&
                 !identifierName.IsVar)
             {
-                var memberAccess = identifierName.Parent as MemberAccessExpressionSyntax;
-                simpleNameOrMemberAccessExpression = memberAccess != null && memberAccess.Name == identifierName
+                simpleNameOrMemberAccessExpression = identifierName.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == identifierName
                     ? (ExpressionSyntax)memberAccess
                     : identifierName;
 

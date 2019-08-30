@@ -51,10 +51,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
                 }
 
-                if (PreferLiveErrorsOnOpenedFiles(workspace))
+                // if we have updated errors, refresh open files
+                if (map.Count > 0 && PreferLiveErrorsOnOpenedFiles(workspace))
                 {
                     // enqueue re-analysis of open documents.
-                    this.Owner.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
+                    Owner.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
                 }
             }
         }
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // errors from build shouldn't have any span set.
                 // this is debug check since it gets data from us only not from third party unlike one in compiler
                 // that checks span for third party reported diagnostics
-                Contract.Requires(!diagnostic.HasTextSpan);
+                Debug.Assert(!diagnostic.HasTextSpan);
             }
         }
 
@@ -84,35 +85,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> CreateAnalysisResults(
             Project project, ImmutableArray<StateSet> stateSets, ProjectAnalysisData oldAnalysisData, ImmutableArray<DiagnosticData> diagnostics)
         {
-            using (var poolObject = SharedPools.Default<HashSet<string>>().GetPooledObject())
+            using var poolObject = SharedPools.Default<HashSet<string>>().GetPooledObject();
+
+            var lookup = diagnostics.ToLookup(d => d.Id);
+
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
+            foreach (var stateSet in stateSets)
             {
-                // we can't distinguish locals and non locals from build diagnostics nor determine right snapshot version for the build.
-                // so we put everything in as semantic local with default version. this lets us to replace those to live diagnostics when needed easily.
-                var version = VersionStamp.Default;
-                var lookup = diagnostics.ToLookup(d => d.Id);
+                var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
+                var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), GetDiagnostics(oldAnalysisData.GetResult(stateSet.Analyzer)));
 
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
-                foreach (var stateSet in stateSets)
-                {
-                    var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
-                    var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), GetDiagnostics(oldAnalysisData.GetResult(stateSet.Analyzer)));
+                var result = DiagnosticAnalysisResult.CreateFromBuild(project, liveDiagnostics);
 
-                    var group = liveDiagnostics.GroupBy(d => d.DocumentId);
-                    var result = new DiagnosticAnalysisResult(
-                        project.Id,
-                        version,
-                        documentIds: group.Where(g => g.Key != null).Select(g => g.Key).ToImmutableHashSet(),
-                        syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        semanticLocals: group.Where(g => g.Key != null).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray()),
-                        nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        others: group.Where(g => g.Key == null).SelectMany(g => g).ToImmutableArrayOrEmpty(),
-                        fromBuild: true);
-
-                    builder.Add(stateSet.Analyzer, result);
-                }
-
-                return builder.ToImmutable();
+                builder.Add(stateSet.Analyzer, result);
             }
+
+            return builder.ToImmutable();
         }
 
         private ImmutableArray<DiagnosticData> GetDiagnostics(DiagnosticAnalysisResult result)
@@ -152,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             if (existingDiagnostics.Length > 0)
             {
                 // retain hidden live diagnostics since it won't be comes from build.
-                builder = builder ?? ImmutableArray.CreateBuilder<DiagnosticData>();
+                builder ??= ImmutableArray.CreateBuilder<DiagnosticData>();
                 builder.AddRange(existingDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Hidden));
             }
 
@@ -183,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     continue;
                 }
 
-                builder = builder ?? ImmutableArray.CreateBuilder<DiagnosticData>();
+                builder ??= ImmutableArray.CreateBuilder<DiagnosticData>();
                 builder.AddRange(items.Select(d => CreateLiveDiagnostic(descriptor, d)));
             }
 
@@ -203,7 +191,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 diagnostic.WarningLevel,
                 descriptor.CustomTags.ToImmutableArray(),
                 diagnostic.Properties,
-                diagnostic.Workspace,
                 diagnostic.ProjectId,
                 diagnostic.DataLocation,
                 diagnostic.AdditionalLocations,
@@ -215,26 +202,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private static string LogSynchronizeWithBuild(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
         {
-            using (var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject())
+            using var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject();
+            var sb = pooledObject.Object;
+            sb.Append($"PreferBuildError:{PreferBuildErrors(workspace)}, PreferLiveOnOpenFiles:{PreferLiveErrorsOnOpenedFiles(workspace)}");
+
+            if (map.Count > 0)
             {
-                var sb = pooledObject.Object;
-                sb.Append($"PreferBuildError:{PreferBuildErrors(workspace)}, PreferLiveOnOpenFiles:{PreferLiveErrorsOnOpenedFiles(workspace)}");
-
-                if (map.Count > 0)
+                foreach (var kv in map)
                 {
-                    foreach (var kv in map)
-                    {
-                        sb.AppendLine($"{kv.Key}, Count: {kv.Value.Length}");
+                    sb.AppendLine($"{kv.Key}, Count: {kv.Value.Length}");
 
-                        foreach (var diagnostic in kv.Value)
-                        {
-                            sb.AppendLine($"    {diagnostic.ToString()}");
-                        }
+                    foreach (var diagnostic in kv.Value)
+                    {
+                        sb.AppendLine($"    {diagnostic.ToString()}");
                     }
                 }
-
-                return sb.ToString();
             }
+
+            return sb.ToString();
         }
     }
 }

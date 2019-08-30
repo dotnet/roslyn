@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis
         {
             return workspace.Options
                             .WithChangedOption(InternalRuntimeDiagnosticOptions.Syntax, (options & Options.Syntax) == Options.Syntax)
-                            .WithChangedOption(InternalRuntimeDiagnosticOptions.Semantic, (options & Options.Semantic) == Options.Semantic);
+                            .WithChangedOption(InternalRuntimeDiagnosticOptions.Semantic, (options & Options.Semantic) == Options.Semantic)
+                            .WithChangedOption(InternalRuntimeDiagnosticOptions.ScriptSemantic, (options & Options.ScriptSemantic) == Options.ScriptSemantic);
         }
 
         [Flags]
@@ -44,6 +45,11 @@ namespace Microsoft.CodeAnalysis
             /// Include semantic errors
             /// </summary>
             Semantic = 0x02,
+
+            /// <summary>
+            /// Include script semantic errors
+            /// </summary>
+            ScriptSemantic = 0x04,
         }
     }
 }

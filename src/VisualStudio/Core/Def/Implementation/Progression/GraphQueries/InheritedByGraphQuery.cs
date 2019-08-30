@@ -17,8 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var namedType = graphBuilder.GetSymbol(node) as INamedTypeSymbol;
-                if (namedType == null)
+                if (!(graphBuilder.GetSymbol(node) is INamedTypeSymbol namedType))
                 {
                     continue;
                 }

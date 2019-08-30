@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     }
                 }
 
-                return TryFinishInitializingState(service, document, cancellationToken);
+                return TryFinishInitializingStateAsync(service, document, cancellationToken);
             }
 
             private bool TryInitializeExplicitInterface(
@@ -89,48 +88,48 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                this.IdentifierToken = identifierToken;
-                this.TypeToGenerateIn = typeToGenerateIn;
+                IdentifierToken = identifierToken;
+                TypeToGenerateIn = typeToGenerateIn;
 
                 cancellationToken.ThrowIfCancellationRequested();
                 var semanticModel = document.SemanticModel;
-                this.ContainingType = semanticModel.GetEnclosingNamedType(methodDeclaration.SpanStart, cancellationToken);
-                if (this.ContainingType == null)
+                ContainingType = semanticModel.GetEnclosingNamedType(methodDeclaration.SpanStart, cancellationToken);
+                if (ContainingType == null)
                 {
                     return false;
                 }
 
-                if (!this.ContainingType.Interfaces.Contains(this.TypeToGenerateIn))
+                if (!ContainingType.Interfaces.Contains(TypeToGenerateIn))
                 {
                     return false;
                 }
 
-                this.SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
+                SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
                 return true;
             }
 
             private bool TryInitializeSimpleName(
                 TService service,
-                SemanticDocument document,
+                SemanticDocument semanticDocument,
                 TSimpleNameSyntax simpleName,
                 CancellationToken cancellationToken)
             {
                 MethodKind = MethodKind.Ordinary;
-                this.SimpleNameOpt = simpleName;
+                SimpleNameOpt = simpleName;
                 if (!service.TryInitializeSimpleNameState(
-                        document, simpleName, cancellationToken,
+                        semanticDocument, simpleName, cancellationToken,
                         out var identifierToken, out var simpleNameOrMemberAccessExpression,
                         out var invocationExpressionOpt, out var isInConditionalExpression))
                 {
                     return false;
                 }
 
-                this.IdentifierToken = identifierToken;
-                this.SimpleNameOrMemberAccessExpression = simpleNameOrMemberAccessExpression;
-                this.InvocationExpressionOpt = invocationExpressionOpt;
-                this.IsInConditionalAccessExpression = isInConditionalExpression;
+                IdentifierToken = identifierToken;
+                SimpleNameOrMemberAccessExpression = simpleNameOrMemberAccessExpression;
+                InvocationExpressionOpt = invocationExpressionOpt;
+                IsInConditionalAccessExpression = isInConditionalExpression;
 
-                if (string.IsNullOrWhiteSpace(this.IdentifierToken.ValueText))
+                if (string.IsNullOrWhiteSpace(IdentifierToken.ValueText))
                 {
                     return false;
                 }
@@ -138,36 +137,36 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 // If we're not in a type, don't even bother.  NOTE(cyrusn): We'll have to rethink this
                 // for C# Script.
                 cancellationToken.ThrowIfCancellationRequested();
-                var semanticModel = document.SemanticModel;
-                this.ContainingType = semanticModel.GetEnclosingNamedType(this.SimpleNameOpt.SpanStart, cancellationToken);
-                if (this.ContainingType == null)
+                var semanticModel = semanticDocument.SemanticModel;
+                ContainingType = semanticModel.GetEnclosingNamedType(SimpleNameOpt.SpanStart, cancellationToken);
+                if (ContainingType == null)
                 {
                     return false;
                 }
 
-                if (this.InvocationExpressionOpt != null)
+                if (InvocationExpressionOpt != null)
                 {
-                    this.SignatureInfo = service.CreateInvocationMethodInfo(document, this);
+                    SignatureInfo = service.CreateInvocationMethodInfo(semanticDocument, this);
                 }
                 else
                 {
-                    var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
-                    var delegateType = typeInference.InferDelegateType(semanticModel, this.SimpleNameOrMemberAccessExpression, cancellationToken);
+                    var typeInference = semanticDocument.Document.GetLanguageService<ITypeInferenceService>();
+                    var delegateType = typeInference.InferDelegateType(semanticModel, SimpleNameOrMemberAccessExpression, cancellationToken);
                     if (delegateType != null && delegateType.DelegateInvokeMethod != null)
                     {
-                        this.SignatureInfo = new MethodSignatureInfo(document, this, delegateType.DelegateInvokeMethod);
+                        SignatureInfo = new MethodSignatureInfo(semanticDocument, this, delegateType.DelegateInvokeMethod);
                     }
                     else
                     {
                         // We don't have and invocation expression or a delegate, but we may have a special expression without parenthesis.  Lets see
                         // if the type inference service can directly infer the type for our expression.
-                        var expressionType = service.DetermineReturnTypeForSimpleNameOrMemberAccessExpression(typeInference, semanticModel, this.SimpleNameOrMemberAccessExpression, cancellationToken);
+                        var expressionType = service.DetermineReturnTypeForSimpleNameOrMemberAccessExpression(typeInference, semanticModel, SimpleNameOrMemberAccessExpression, cancellationToken);
                         if (expressionType == null)
                         {
                             return false;
                         }
 
-                        this.SignatureInfo = new MethodSignatureInfo(document, this, CreateMethodSymbolWithReturnType(expressionType));
+                        SignatureInfo = new MethodSignatureInfo(semanticDocument, this, CreateMethodSymbolWithReturnType(expressionType));
                     }
                 }
 
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // If the name bound with errors, then this is a candidate for generate method.
-                var semanticInfo = semanticModel.GetSymbolInfo(this.SimpleNameOrMemberAccessExpression, cancellationToken);
+                var semanticInfo = semanticModel.GetSymbolInfo(SimpleNameOrMemberAccessExpression, cancellationToken);
                 if (semanticInfo.GetAllSymbols().Any(s => s.Kind == SymbolKind.Local || s.Kind == SymbolKind.Parameter) &&
                     !service.AreSpecialOptionsActive(semanticModel))
                 {
@@ -199,17 +198,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 // into, and if it's valid then proceed.
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!service.TryDetermineTypeToGenerateIn(
-                        document, this.ContainingType, this.SimpleNameOrMemberAccessExpression, cancellationToken,
+                        semanticDocument, ContainingType, SimpleNameOrMemberAccessExpression, cancellationToken,
                         out var typeToGenerateIn, out var isStatic))
                 {
                     return false;
                 }
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
-                this.IsWrittenTo = semanticFacts.IsWrittenTo(semanticModel, this.InvocationExpressionOpt ?? this.SimpleNameOrMemberAccessExpression, cancellationToken);
-                this.TypeToGenerateIn = typeToGenerateIn;
-                this.IsStatic = isStatic;
-                this.MethodGenerationKind = MethodGenerationKind.Member;
+                var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+                IsWrittenTo = semanticFacts.IsWrittenTo(semanticModel, InvocationExpressionOpt ?? SimpleNameOrMemberAccessExpression, cancellationToken);
+                TypeToGenerateIn = typeToGenerateIn;
+                IsStatic = isStatic;
+                MethodGenerationKind = MethodGenerationKind.Member;
                 return true;
             }
 

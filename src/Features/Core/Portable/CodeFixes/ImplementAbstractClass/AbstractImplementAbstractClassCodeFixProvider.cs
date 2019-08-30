@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.ImplementAbstractClass
             }
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var classSymbol = semanticModel.GetDeclaredSymbol(classNode) as INamedTypeSymbol;
-            if (classSymbol == null)
+            if (!(semanticModel.GetDeclaredSymbol(classNode) is INamedTypeSymbol classSymbol))
             {
                 return;
             }
@@ -69,8 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.ImplementAbstractClass
                 context.Diagnostics);
         }
 
-        // internal for testing purposes.
-        internal static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName)
+        private static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName)
         {
             return FeaturesResources.Implement_Abstract_Class + ";" +
                 assemblyName + ";" +
@@ -86,8 +84,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.ImplementAbstractClass
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string id) :
-                base(FeaturesResources.Implement_Abstract_Class, createChangedDocument, id)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string id)
+                : base(FeaturesResources.Implement_Abstract_Class, createChangedDocument, id)
             {
             }
         }

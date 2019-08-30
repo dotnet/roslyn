@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     {
         public Guid SymbolSpecificationID;
         public Guid NamingStyleID;
-        public DiagnosticSeverity EnforcementLevel;
+        public ReportDiagnostic EnforcementLevel;
 
         public NamingRule GetRule(NamingStylePreferences info)
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var element = new XElement(nameof(SerializableNamingRule),
                 new XAttribute(nameof(SymbolSpecificationID), SymbolSpecificationID),
                 new XAttribute(nameof(NamingStyleID), NamingStyleID),
-                new XAttribute(nameof(EnforcementLevel), EnforcementLevel));
+                new XAttribute(nameof(EnforcementLevel), EnforcementLevel.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
             return element;
         }
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             return new SerializableNamingRule()
             {
-                EnforcementLevel = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), namingRuleElement.Attribute(nameof(EnforcementLevel)).Value),
+                EnforcementLevel = ((DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), namingRuleElement.Attribute(nameof(EnforcementLevel)).Value)).ToReportDiagnostic(),
                 NamingStyleID = Guid.Parse(namingRuleElement.Attribute(nameof(NamingStyleID)).Value),
                 SymbolSpecificationID = Guid.Parse(namingRuleElement.Attribute(nameof(SymbolSpecificationID)).Value)
             };

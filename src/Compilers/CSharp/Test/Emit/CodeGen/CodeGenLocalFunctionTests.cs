@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
@@ -32,6 +33,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
+        [Fact]
+        [WorkItem(37459, "https://github.com/dotnet/roslyn/pull/37459")]
+        public void StaticLocalFunctionCaptureConstants()
+        {
+            var src = @"
+using System;
+class C
+{
+    const int X = 1;
+
+    void M()
+    {
+        const int Y = 5;
+
+        local();
+        return;
+        static void local()
+        {
+            Console.WriteLine(X);
+            Console.WriteLine(Y);
+        }
+    }
+
+    public static void Main()
+    {
+        (new C()).M();
+    }
+}
+";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+1
+5");
+            verifier.VerifyIL("C.<M>g__local|1_0", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.WriteLine(int)""
+  IL_0006:  ldc.i4.5
+  IL_0007:  call       ""void System.Console.WriteLine(int)""
+  IL_000c:  ret
+}");
+        }
+
         [Fact]
         [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
         public void Repro481125()
@@ -70,12 +115,13 @@ internal class D : IDisposable
 public class E
 {
     public int Id;
-}", references: new[] { LinqAssemblyRef }, options: TestOptions.ReleaseExe);
+}", options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"1
 0");
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(24647, "https://github.com/dotnet/roslyn/issues/24647")]
         public void Repro24647()
         {
@@ -89,10 +135,24 @@ class Program
 }");
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var creation = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            var localFunction = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var creation = localFunction.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
 
-            var operation = model.GetOperation(creation);
-            Assert.Null(operation); // we didn't bind the expression body, but should. See issue https://github.com/dotnet/roslyn/issues/24650
+            var objectCreationOperation = model.GetOperation(creation);
+            var localFunctionOperation = (ILocalFunctionOperation)model.GetOperation(localFunction);
+            Assert.NotNull(objectCreationOperation);
+
+            comp.VerifyOperationTree(creation, expectedOperationTree:
+@"
+IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object, IsInvalid) (Syntax: 'new object()')
+  Arguments(0)
+  Initializer: 
+    null
+");
+
+            Assert.Equal(OperationKind.ExpressionStatement, objectCreationOperation.Parent.Kind);
+            Assert.Equal(OperationKind.Block, objectCreationOperation.Parent.Parent.Kind);
+            Assert.Same(localFunctionOperation.IgnoredBody, objectCreationOperation.Parent.Parent);
 
             var info = model.GetTypeInfo(creation);
             Assert.Equal("System.Object", info.Type.ToTestDisplayString());
@@ -161,7 +221,7 @@ class C
     {
         public int SomeField { get; set; }
     }
-}", references: new[] { LinqAssemblyRef });
+}");
             CompileAndVerify(comp);
         }
 
@@ -196,7 +256,7 @@ class Program
                 }
             });
     }
-}", references: new[] { LinqAssemblyRef });
+}");
         }
 
         [Fact]
@@ -703,7 +763,7 @@ public class Program {
             }
         }
     }
-}", references: new[] { LinqAssemblyRef });
+}");
             CompileAndVerify(comp);
         }
 
@@ -794,7 +854,7 @@ class C
         L1();
         Console.WriteLine(_x);
     }
-}", expectedOutput: 
+}", expectedOutput:
 @"0
 1");
             verifier.VerifyIL("C.M()", @"
@@ -1298,7 +1358,7 @@ class C
 1");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope7()
         {
@@ -4628,7 +4688,7 @@ class C
         Console.WriteLine(y);
     }
 }";
-            VerifyOutput(src, "10\r\n4", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
+            VerifyOutput(src, $"10{Environment.NewLine}4", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4676,7 +4736,7 @@ while (i < 10)
 8
 9");
         }
-        
+
         [Fact]
         [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
         public void NestedLocalFuncCapture()

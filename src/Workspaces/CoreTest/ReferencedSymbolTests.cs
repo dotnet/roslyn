@@ -17,25 +17,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void DebuggerDisplay_OneReference()
         {
-            ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Goo", 1);
+            var referencedSymbol = CreateReferencedSymbol("Goo", 1);
 
-            Assert.Equal("Goo, 1 ref", referencedSymbol.GetDebuggerDisplay());
+            Assert.Equal("Goo, 1 ref", referencedSymbol.GetTestAccessor().GetDebuggerDisplay());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void DebuggerDisplay_NoReferences()
         {
-            ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Goo", 0);
+            var referencedSymbol = CreateReferencedSymbol("Goo", 0);
 
-            Assert.Equal("Goo, 0 refs", referencedSymbol.GetDebuggerDisplay());
+            Assert.Equal("Goo, 0 refs", referencedSymbol.GetTestAccessor().GetDebuggerDisplay());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void DebuggerDisplay_TwoReferences()
         {
-            ReferencedSymbol referencedSymbol = CreateReferencedSymbol("Goo", 2);
+            var referencedSymbol = CreateReferencedSymbol("Goo", 2);
 
-            Assert.Equal("Goo, 2 refs", referencedSymbol.GetDebuggerDisplay());
+            Assert.Equal("Goo, 2 refs", referencedSymbol.GetTestAccessor().GetDebuggerDisplay());
         }
 
         private static ReferencedSymbol CreateReferencedSymbol(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var symbol = new StubSymbol(symbolName);
 
             var locations = new List<ReferenceLocation>(capacity: referenceCount);
-            for (int i = 0; i < referenceCount; i++)
+            for (var i = 0; i < referenceCount; i++)
             {
                 locations.Add(new ReferenceLocation());
             }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 throw new NotImplementedException();
             }
 
-            public string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+            public string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
             {
                 throw new NotImplementedException();
             }
@@ -300,6 +300,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             public bool Equals(ISymbol other)
             {
                 return this.Equals((object)other);
+            }
+
+            public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+            {
+                return equalityComparer.Equals(this, other);
             }
         }
     }

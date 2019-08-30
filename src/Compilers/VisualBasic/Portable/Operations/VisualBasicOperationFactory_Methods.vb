@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.AnonymousTypeManager
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Operations
@@ -24,16 +25,12 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return node.Kind = BoundKind.MidResult
         End Function
 
-        Private Function CreateCompoundAssignment(boundAssignment As BoundAssignmentOperator) As ICompoundAssignmentOperation
-            Debug.Assert(boundAssignment.LeftOnTheRightOpt IsNot Nothing)
+        Friend Function CreateCompoundAssignmentRightOperand(boundAssignment As BoundAssignmentOperator) As IOperation
             Dim binaryOperator As BoundExpression = Nothing
-            Dim inConversion = New Conversion(Conversions.Identity)
-            Dim outConversion As Conversion = inConversion
             Select Case boundAssignment.Right.Kind
                 Case BoundKind.Conversion
                     Dim inConversionNode = DirectCast(boundAssignment.Right, BoundConversion)
                     binaryOperator = GetConversionOperand(inConversionNode)
-                    outConversion = CreateConversion(inConversionNode)
                 Case BoundKind.UserDefinedBinaryOperator, BoundKind.BinaryOperator
                     binaryOperator = boundAssignment.Right
                 Case Else
@@ -41,15 +38,42 @@ Namespace Microsoft.CodeAnalysis.Operations
             End Select
 
             Dim operatorInfo As BinaryOperatorInfo
-            Dim rightOperand As Lazy(Of IOperation)
             Select Case binaryOperator.Kind
                 Case BoundKind.BinaryOperator
                     operatorInfo = GetBinaryOperatorInfo(DirectCast(binaryOperator, BoundBinaryOperator))
-                    rightOperand = New Lazy(Of IOperation)(Function() Create(operatorInfo.RightOperand))
+                    Return Create(operatorInfo.RightOperand)
                 Case BoundKind.UserDefinedBinaryOperator
                     Dim userDefinedOperator = DirectCast(binaryOperator, BoundUserDefinedBinaryOperator)
                     operatorInfo = GetUserDefinedBinaryOperatorInfo(userDefinedOperator)
-                    rightOperand = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(userDefinedOperator, operatorInfo.RightOperand))
+                    Return GetUserDefinedBinaryOperatorChild(userDefinedOperator, operatorInfo.RightOperand)
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(boundAssignment.Kind)
+            End Select
+        End Function
+
+        Private Function CreateCompoundAssignment(boundAssignment As BoundAssignmentOperator) As ICompoundAssignmentOperation
+            Debug.Assert(boundAssignment.LeftOnTheRightOpt IsNot Nothing)
+            Dim inConversion = New Conversion(Conversions.Identity)
+            Dim outConversion As Conversion = inConversion
+            Dim binaryOperator As BoundExpression = Nothing
+            Select Case boundAssignment.Right.Kind
+                Case BoundKind.Conversion
+                    Dim inConversionNode = DirectCast(boundAssignment.Right, BoundConversion)
+                    outConversion = CreateConversion(inConversionNode)
+                    binaryOperator = GetConversionOperand(inConversionNode)
+                Case BoundKind.UserDefinedBinaryOperator, BoundKind.BinaryOperator
+                    binaryOperator = boundAssignment.Right
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(boundAssignment.Kind)
+            End Select
+
+            Dim operatorInfo As BinaryOperatorInfo
+            Select Case binaryOperator.Kind
+                Case BoundKind.BinaryOperator
+                    operatorInfo = GetBinaryOperatorInfo(DirectCast(binaryOperator, BoundBinaryOperator))
+                Case BoundKind.UserDefinedBinaryOperator
+                    Dim userDefinedOperator = DirectCast(binaryOperator, BoundUserDefinedBinaryOperator)
+                    operatorInfo = GetUserDefinedBinaryOperatorInfo(userDefinedOperator)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(boundAssignment.Kind)
             End Select
@@ -69,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignment.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAssignment.WasCompilerGenerated
 
-            Return New LazyVisualBasicCompoundAssignmentOperation(leftOperand, rightOperand, inConversion, outConversion, operatorInfo.OperatorKind,
+            Return New VisualBasicLazyCompoundAssignmentOperation(Me, boundAssignment, inConversion, outConversion, operatorInfo.OperatorKind,
                                                                   operatorInfo.IsLifted, operatorInfo.IsChecked, operatorInfo.OperatorMethod,
                                                                   _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
@@ -127,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Return Create(child)
             End If
             Dim isImplicit As Boolean = [operator].UnderlyingExpression.WasCompilerGenerated
-            Return OperationFactory.CreateInvalidExpression(_semanticModel, [operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
+            Return OperationFactory.CreateInvalidOperation(_semanticModel, [operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
         End Function
 
         Private Shared Function GetUserDefinedBinaryOperatorChildBoundNode([operator] As BoundUserDefinedBinaryOperator, index As Integer) As BoundExpression
@@ -144,13 +168,35 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return GetChildOfBadExpressionBoundNode([operator].UnderlyingExpression, index)
         End Function
 
-        Friend Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol), invocationWasCompilerGenerated As Boolean) As ImmutableArray(Of IArgumentOperation)
+        Friend Function DeriveArguments(boundNode As BoundNode) As ImmutableArray(Of IArgumentOperation)
+            Select Case boundNode.Kind
+                Case BoundKind.Call
+                    Dim boundCall = DirectCast(boundNode, BoundCall)
+                    Return DeriveArguments(boundCall.Arguments, boundCall.Method.Parameters, boundCall.DefaultArguments)
+                Case BoundKind.ObjectCreationExpression
+                    Dim boundCreation = DirectCast(boundNode, BoundObjectCreationExpression)
+                    If boundCreation.Arguments.IsDefault Then
+                        Return ImmutableArray(Of IArgumentOperation).Empty
+                    End If
+                    Return If(boundCreation.ConstructorOpt Is Nothing, ImmutableArray(Of IArgumentOperation).Empty, DeriveArguments(boundCreation.Arguments, boundCreation.ConstructorOpt.Parameters, boundCreation.DefaultArguments))
+                Case BoundKind.PropertyAccess
+                    Dim boundProperty = DirectCast(boundNode, BoundPropertyAccess)
+                    Return If(boundProperty.Arguments.Length = 0, ImmutableArray(Of IArgumentOperation).Empty, DeriveArguments(boundProperty.Arguments, boundProperty.PropertySymbol.Parameters, boundProperty.DefaultArguments))
+                Case BoundKind.RaiseEventStatement
+                    Dim boundRaiseEvent = DirectCast(boundNode, BoundRaiseEventStatement)
+                    Return DeriveArguments(DirectCast(boundRaiseEvent.EventInvocation, BoundCall))
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(boundNode.Kind)
+            End Select
+        End Function
+
+        Friend Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol), ByRef defaultArguments As BitVector) As ImmutableArray(Of IArgumentOperation)
             Dim argumentsLength As Integer = boundArguments.Length
             Debug.Assert(argumentsLength = parameters.Length)
 
             Dim arguments As ArrayBuilder(Of IArgumentOperation) = ArrayBuilder(Of IArgumentOperation).GetInstance(argumentsLength)
             For index As Integer = 0 To argumentsLength - 1 Step 1
-                arguments.Add(DeriveArgument(index, boundArguments(index), parameters, invocationWasCompilerGenerated))
+                arguments.Add(DeriveArgument(index, boundArguments(index), parameters, defaultArguments(index)))
             Next
 
             Return arguments.ToImmutableAndFree()
@@ -160,19 +206,18 @@ Namespace Microsoft.CodeAnalysis.Operations
             index As Integer,
             argument As BoundExpression,
             parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol),
-            invocationWasCompilerGenerated As Boolean
+            isDefault As Boolean
         ) As IArgumentOperation
             Dim isImplicit As Boolean = argument.WasCompilerGenerated AndAlso argument.Syntax.Kind <> SyntaxKind.OmittedArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Dim byRefArgument = DirectCast(argument, BoundByRefArgumentWithCopyBack)
                     Dim parameter = parameters(index)
-                    Dim value = Create(byRefArgument.OriginalArgument)
 
                     Return CreateArgumentOperation(
                         ArgumentKind.Explicit,
                         parameter,
-                        value,
+                        byRefArgument.OriginalArgument,
                         CreateConversion(byRefArgument.InConversion),
                         CreateConversion(byRefArgument.OutConversion),
                         isImplicit)
@@ -180,30 +225,18 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Dim lastParameterIndex = parameters.Length - 1
                     Dim kind As ArgumentKind = ArgumentKind.Explicit
 
-                    If argument.WasCompilerGenerated AndAlso Not invocationWasCompilerGenerated Then
-
-                        If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
-                            ' TODO: figure out if this is true:
-                            '       a compiler generated argument for a ParamArray parameter is created iff
-                            '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
-                            '       https://github.com/dotnet/roslyn/issues/18550
-                            If argument.Kind = BoundKind.ArrayCreation Then
-                                kind = ArgumentKind.ParamArray
-                            End If
-                        Else
-                            ' TODO: figure our if this is true:
-                            '       a compiler generated argument for an Optional parameter is created iff
-                            '       the argument is omitted from the source
-                            '       https://github.com/dotnet/roslyn/issues/18550
+                    If argument.WasCompilerGenerated Then
+                        If isDefault Then
                             kind = ArgumentKind.DefaultValue
+                        ElseIf argument.Kind = BoundKind.ArrayCreation AndAlso DirectCast(argument, BoundArrayCreation).IsParamArrayArgument Then
+                            kind = ArgumentKind.ParamArray
                         End If
                     End If
 
-                    Dim value = Create(argument)
                     Return CreateArgumentOperation(
                         kind,
                         parameters(index),
-                        value,
+                        argument,
                         New Conversion(Conversions.Identity),
                         New Conversion(Conversions.Identity),
                         isImplicit)
@@ -213,30 +246,48 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateArgumentOperation(
             kind As ArgumentKind,
             parameter As IParameterSymbol,
-            value As IOperation,
+            valueNode As BoundNode,
             inConversion As Conversion,
             outConversion As Conversion,
             isImplicit As Boolean) As IArgumentOperation
 
             ' put argument syntax to argument operation
-            Dim argument = If(value.Syntax.Kind = SyntaxKind.OmittedArgument, value.Syntax, TryCast(value.Syntax?.Parent, ArgumentSyntax))
+            Dim argument = If(valueNode.Syntax.Kind = SyntaxKind.OmittedArgument, valueNode.Syntax, TryCast(valueNode.Syntax?.Parent, ArgumentSyntax))
 
-            ' if argument syntax doesn't exist, then this operation is implicit
-            Return New VisualBasicArgument(
-                kind,
-                parameter,
-                value,
-                inConversion:=inConversion,
-                outConversion:=outConversion,
-                semanticModel:=_semanticModel,
-                syntax:=If(argument, value.Syntax),
-                constantValue:=Nothing,
-                isImplicit:=isImplicit OrElse argument Is Nothing)
+            If argument Is Nothing Then
+
+                ' We don't create this lazily because, in the case of query nodes we may want to skip intermediate nodes and then
+                ' use the same syntax as the underlying value for the containing Argument. So we need to actually create the child
+                ' node to determine the correct syntax
+                Dim value = Create(valueNode)
+
+                Return New ArgumentOperation(
+                    value,
+                    kind,
+                    parameter,
+                    inConversion,
+                    outConversion,
+                    semanticModel:=_semanticModel,
+                    syntax:=value.Syntax,
+                    isImplicit:=True)
+            Else
+                Debug.Assert(argument IsNot valueNode.Syntax OrElse valueNode.Syntax Is Create(valueNode).Syntax)
+                Return New VisualBasicLazyArgumentOperation(
+                    Me,
+                    valueNode,
+                    kind,
+                    inConversion,
+                    outConversion,
+                    parameter,
+                    semanticModel:=_semanticModel,
+                    syntax:=argument,
+                    isImplicit:=isImplicit)
+            End If
         End Function
 
-        Private Function CreateReceiverOperation(node As BoundNode, symbol As ISymbol) As Lazy(Of IOperation)
+        Friend Function CreateReceiverOperation(node As BoundNode, symbol As ISymbol) As IOperation
             If node Is Nothing OrElse node.Kind = BoundKind.TypeExpression Then
-                Return OperationFactory.NullOperation
+                Return Nothing
             End If
 
             If symbol IsNot Nothing AndAlso
@@ -245,10 +296,10 @@ Namespace Microsoft.CodeAnalysis.Operations
                (node.Kind = BoundKind.MeReference OrElse
                 node.Kind = BoundKind.WithLValueExpressionPlaceholder OrElse
                 node.Kind = BoundKind.WithRValueExpressionPlaceholder) Then
-                Return OperationFactory.NullOperation
+                Return Nothing
             End If
 
-            Return New Lazy(Of IOperation)(Function() Create(node))
+            Return Create(node)
         End Function
 
         Private Shared Function ParameterIsParamArray(parameter As VisualBasic.Symbols.ParameterSymbol) As Boolean
@@ -261,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Return child
             End If
             Dim isImplicit As Boolean = parent.WasCompilerGenerated
-            Return OperationFactory.CreateInvalidExpression(_semanticModel, parent.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
+            Return OperationFactory.CreateInvalidOperation(_semanticModel, parent.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
         End Function
 
         Private Shared Function GetChildOfBadExpressionBoundNode(parent As BoundNode, index As Integer) As BoundExpression
@@ -277,57 +328,80 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return If(expression.InitializerOpt IsNot Nothing, expression.InitializerOpt.Initializers.SelectAsArray(Function(n) Create(n)), ImmutableArray(Of IOperation).Empty)
         End Function
 
-        Private Function GetAnonymousTypeCreationInitializers(expression As BoundAnonymousTypeCreationExpression) As ImmutableArray(Of IOperation)
+        Friend Function GetAnonymousTypeCreationInitializers(expression As BoundAnonymousTypeCreationExpression) As ImmutableArray(Of IOperation)
+            ' For error cases and non-assignment initializers, the binder generates only the argument.
             Debug.Assert(expression.Arguments.Length >= expression.Declarations.Length)
 
+            Dim properties = DirectCast(expression.Type, AnonymousTypePublicSymbol).Properties
+            Debug.Assert(properties.Length = expression.Arguments.Length)
+
             Dim builder = ArrayBuilder(Of IOperation).GetInstance(expression.Arguments.Length)
+            Dim currentDeclarationIndex = 0
             For i As Integer = 0 To expression.Arguments.Length - 1
                 Dim value As IOperation = Create(expression.Arguments(i))
-                If i >= expression.Declarations.Length Then
-                    builder.Add(value)
-                    Continue For
+
+                Dim target As IOperation
+                Dim isImplicitAssignment As Boolean
+
+                ' Find matching declaration for the current argument
+                If currentDeclarationIndex >= expression.Declarations.Length OrElse
+                   i <> expression.Declarations(currentDeclarationIndex).PropertyIndex Then
+                    ' No matching declaration, synthesize a property reference with an implicit receiver to be assigned.
+                    Dim [property] As IPropertySymbol = properties(i)
+                    Dim instance As IInstanceReferenceOperation = CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], expression.Syntax)
+                    target = New PropertyReferenceOperation(
+                        [property],
+                        ImmutableArray(Of IArgumentOperation).Empty,
+                        instance,
+                        _semanticModel,
+                        value.Syntax,
+                        [property].Type,
+                        constantValue:=Nothing,
+                        isImplicit:=True)
+                    isImplicitAssignment = True
+                Else
+                    Debug.Assert(i = expression.Declarations(currentDeclarationIndex).PropertyIndex)
+                    target = CreateBoundAnonymousTypePropertyAccessOperation(expression.Declarations(currentDeclarationIndex))
+                    currentDeclarationIndex = currentDeclarationIndex + 1
+                    isImplicitAssignment = expression.WasCompilerGenerated
                 End If
 
                 Dim isRef As Boolean = False
-                Dim target As IOperation = Create(expression.Declarations(i))
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
                 Dim constantValue As [Optional](Of Object) = value.ConstantValue
-                Dim assignment = New SimpleAssignmentExpression(target, isRef, value, _semanticModel, syntax, type, constantValue, isImplicit:=expression.WasCompilerGenerated)
+                Dim assignment = New SimpleAssignmentOperation(isRef, target, value, _semanticModel, syntax, type, constantValue, isImplicitAssignment)
                 builder.Add(assignment)
             Next i
 
+            Debug.Assert(currentDeclarationIndex = expression.Declarations.Length)
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSimpleCaseClause) As BoundExpression
-            If clause.ValueOpt IsNot Nothing Then
-                Return clause.ValueOpt
-            End If
-
-            If clause.ConditionOpt IsNot Nothing AndAlso clause.ConditionOpt.Kind = BoundKind.BinaryOperator Then
-                Dim value As BoundBinaryOperator = DirectCast(clause.ConditionOpt, BoundBinaryOperator)
-                If value.OperatorKind = VisualBasic.BinaryOperatorKind.Equals Then
-                    Return value.Right
-                End If
-            End If
-
-            Return Nothing
+        Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSingleValueCaseClause) As BoundExpression
+            Return GetCaseClauseValue(clause.ValueOpt, clause.ConditionOpt)
         End Function
 
-        Private Shared Function GetRelationalCaseClauseValue(clause As BoundRelationalCaseClause) As BoundExpression
-            If clause.OperandOpt IsNot Nothing Then
-                Return clause.OperandOpt
+        Friend Shared Function GetCaseClauseValue(valueOpt As BoundExpression, conditionOpt As BoundExpression) As BoundExpression
+            If valueOpt IsNot Nothing Then
+                Return valueOpt
             End If
 
-            If clause.ConditionOpt?.Kind = BoundKind.BinaryOperator Then
-                Return DirectCast(clause.ConditionOpt, BoundBinaryOperator).Right
-            End If
+            Select Case conditionOpt.Kind
+                Case BoundKind.BinaryOperator
+                    Dim binaryOp As BoundBinaryOperator = DirectCast(conditionOpt, BoundBinaryOperator)
+                    Return binaryOp.Right
 
-            Return Nothing
+                Case BoundKind.UserDefinedBinaryOperator
+                    Dim binaryOp As BoundUserDefinedBinaryOperator = DirectCast(conditionOpt, BoundUserDefinedBinaryOperator)
+                    Return GetUserDefinedBinaryOperatorChildBoundNode(binaryOp, 1)
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(conditionOpt.Kind)
+            End Select
         End Function
 
-        Private Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IVariableDeclarationOperation)
+        Friend Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IVariableDeclarationOperation)
             ' Group the declarations by their VariableDeclaratorSyntaxes. The issue we're compensating for here is that the
             ' the declarations that are BoundLocalDeclaration nodes have a ModifiedIdentifierSyntax as their syntax nodes,
             ' not a VariableDeclaratorSyntax. We want to group BoundLocalDeclarations by their parent VariableDeclaratorSyntax
@@ -363,7 +437,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Dim last = DirectCast(declarationGroup.Last(), BoundLocalDeclaration)
                     If last.DeclarationInitializerOpt IsNot Nothing Then
                         Debug.Assert(last.Syntax.IsKind(SyntaxKind.ModifiedIdentifier))
-                        Dim initializerValue As IOperation = Create(last.InitializerOpt)
                         Dim declaratorSyntax = DirectCast(last.Syntax.Parent, VariableDeclaratorSyntax)
                         Dim initializerSyntax As SyntaxNode = declaratorSyntax.Initializer
 
@@ -373,21 +446,22 @@ Namespace Microsoft.CodeAnalysis.Operations
                             initializerSyntax = declaratorSyntax.AsClause
                         ElseIf initializerSyntax Is Nothing Then
                             ' There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
-                            initializerSyntax = initializerValue.Syntax
+                            initializerSyntax = last.InitializerOpt.Syntax
                             isImplicit = True
                         End If
-                        initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit)
+                        initializer = New VisualBasicLazyVariableInitializerOperation(Me, last.InitializerOpt, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=Nothing, isImplicit)
                     End If
                 Else
                     Dim asNewDeclarations = DirectCast(first, BoundAsNewLocalDeclarations)
                     declarators = asNewDeclarations.LocalDeclarations.SelectAsArray(AddressOf GetVariableDeclarator)
                     Dim initializerSyntax As AsClauseSyntax = DirectCast(asNewDeclarations.Syntax, VariableDeclaratorSyntax).AsClause
                     Dim initializerValue As IOperation = Create(asNewDeclarations.Initializer)
-                    initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit:=False)
+                    initializer = New VisualBasicLazyVariableInitializerOperation(Me, asNewDeclarations.Initializer, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=Nothing, isImplicit:=False)
                 End If
 
-                builder.Add(New VariableDeclaration(declarators,
+                builder.Add(New VariableDeclarationOperation(declarators,
                                                          initializer,
+                                                         ImmutableArray(Of IOperation).Empty,
                                                          _semanticModel,
                                                          declarationGroup.Key,
                                                          type:=Nothing,
@@ -399,20 +473,16 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function GetVariableDeclarator(boundLocalDeclaration As BoundLocalDeclaration) As IVariableDeclaratorOperation
-            Dim initializer As Lazy(Of IVariableInitializerOperation) = New Lazy(Of IVariableInitializerOperation)(
-                Function()
-                    If boundLocalDeclaration.IdentifierInitializerOpt IsNot Nothing Then
-                        Dim syntax = boundLocalDeclaration.Syntax
-                        Dim initializerValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLocalDeclaration.IdentifierInitializerOpt))
-                        Return New LazyVariableInitializer(initializerValue, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
-                    Else
-                        Return Nothing
-                    End If
-                End Function)
-            Dim ignoredArguments As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
-                Function() ImmutableArray(Of IOperation).Empty)
+            Dim initializer As IVariableInitializerOperation = Nothing
+            If boundLocalDeclaration.IdentifierInitializerOpt IsNot Nothing Then
+                Dim syntax = boundLocalDeclaration.Syntax
+                Dim initializerValue As BoundNode = boundLocalDeclaration.IdentifierInitializerOpt
+                initializer = New VisualBasicLazyVariableInitializerOperation(Me, initializerValue, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+            End If
 
-            Return New LazyVariableDeclarator(boundLocalDeclaration.LocalSymbol, initializer, ignoredArguments, _semanticModel, boundLocalDeclaration.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
+            Dim ignoredArguments = ImmutableArray(Of IOperation).Empty
+
+            Return New VariableDeclaratorOperation(boundLocalDeclaration.LocalSymbol, initializer, ignoredArguments, _semanticModel, boundLocalDeclaration.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
         End Function
 
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationGroupOperation
@@ -425,12 +495,10 @@ Namespace Microsoft.CodeAnalysis.Operations
                             isImplicit:=False) ' Declaration is always explicit
         End Function
 
-        Private Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
-            Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
-            Dim eventReference = If(eventAccess Is Nothing, Nothing, CreateBoundEventAccessOperation(eventAccess))
+        Friend Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
-            Return New EventAssignmentOperation(
-                eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+            Return New VisualBasicLazyEventAssignmentOperation(
+                Me, statement, adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
         End Function
 
 #Region "Conversions"
@@ -440,24 +508,22 @@ Namespace Microsoft.CodeAnalysis.Operations
         ''' is actually a delegate creation.
         ''' </summary>
         Private Function GetConversionInfo(boundConversion As BoundConversionOrCast
-                                          ) As (Operation As Lazy(Of IOperation), Conversion As Conversion, IsDelegateCreation As Boolean)
+                                          ) As (Operation As IOperation, Conversion As Conversion, IsDelegateCreation As Boolean)
             Dim conversion = CreateConversion(boundConversion)
             Dim boundOperand = GetConversionOperand(boundConversion)
             If conversion.IsIdentity AndAlso boundConversion.ExplicitCastInCode Then
                 Dim adjustedInfo = TryGetAdjustedConversionInfo(boundConversion, boundOperand)
 
                 If adjustedInfo.Operation IsNot Nothing Then
-                    Return (Operation:=New Lazy(Of IOperation)(Function() adjustedInfo.Operation),
-                            adjustedInfo.Conversion,
-                            adjustedInfo.IsDelegateCreation)
+                    Return adjustedInfo
                 End If
             End If
 
             If IsDelegateCreation(boundConversion.Syntax, boundOperand, boundConversion.Type) Then
-                Return (New Lazy(Of IOperation)(Function() CreateDelegateCreationConversionOperand(boundOperand)),
+                Return (CreateDelegateCreationConversionOperand(boundOperand),
                     conversion, IsDelegateCreation:=True)
             Else
-                Return (New Lazy(Of IOperation)(Function() Create(boundOperand)), conversion, IsDelegateCreation:=False)
+                Return (Create(boundOperand), conversion, IsDelegateCreation:=False)
             End If
         End Function
 
@@ -470,7 +536,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             If boundOperand.Kind = BoundKind.Parenthesized Then
                 Dim adjustedInfo = TryGetAdjustedConversionInfo(topLevelConversion, DirectCast(boundOperand, BoundParenthesized).Expression)
                 If adjustedInfo.Operation IsNot Nothing Then
-                    Return (Operation:=New ParenthesizedExpression(adjustedInfo.Operation,
+                    Return (Operation:=New ParenthesizedOperation(adjustedInfo.Operation,
                                                                    _semanticModel,
                                                                    boundOperand.Syntax,
                                                                    adjustedInfo.Operation.Type,
@@ -484,15 +550,14 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim nestedOperand As BoundExpression = GetConversionOperand(nestedConversion)
 
                 If nestedConversion.Syntax Is nestedOperand.Syntax AndAlso
-                   nestedConversion.Type <> nestedOperand.Type AndAlso
+                   Not TypeSymbol.Equals(nestedConversion.Type, nestedOperand.Type, TypeCompareKind.ConsiderEverything) AndAlso
                    nestedConversion.ExplicitCastInCode AndAlso
-                   topLevelConversion.Type = nestedConversion.Type Then
+                   TypeSymbol.Equals(topLevelConversion.Type, nestedConversion.Type, TypeCompareKind.ConsiderEverything) Then
 
-                    Dim conversionInfo = GetConversionInfo(nestedConversion)
-                    Return (Operation:=conversionInfo.Operation.Value, conversionInfo.Conversion, conversionInfo.IsDelegateCreation)
+                    Return GetConversionInfo(nestedConversion)
                 End If
             ElseIf boundOperand.Syntax.IsKind(SyntaxKind.AddressOfExpression) AndAlso
-                   topLevelConversion.Type = boundOperand.Type AndAlso
+                   TypeSymbol.Equals(topLevelConversion.Type, boundOperand.Type, TypeCompareKind.ConsiderEverything) AndAlso
                    IsDelegateCreation(topLevelConversion.Syntax, boundOperand, boundOperand.Type) Then
 
                 Return (CreateDelegateCreationConversionOperand(boundOperand), Conversion:=Nothing, IsDelegateCreation:=True)
@@ -534,9 +599,9 @@ Namespace Microsoft.CodeAnalysis.Operations
                 If conversionKind.HasFlag(VisualBasic.ConversionKind.UserDefined) AndAlso conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
                     method = DirectCast(conversion.Operand, BoundUserDefinedConversion).Call.Method
                 End If
-                Return New Conversion(KeyValuePair.Create(conversionKind, method))
+                Return New Conversion(KeyValuePairUtil.Create(conversionKind, method))
             ElseIf expression.Kind = BoundKind.TryCast OrElse expression.Kind = BoundKind.DirectCast Then
-                Return New Conversion(KeyValuePair.Create(Of ConversionKind, MethodSymbol)(DirectCast(expression, BoundConversionOrCast).ConversionKind, Nothing))
+                Return New Conversion(KeyValuePairUtil.Create(Of ConversionKind, MethodSymbol)(DirectCast(expression, BoundConversionOrCast).ConversionKind, Nothing))
             End If
             Return New Conversion(Conversions.Identity)
         End Function

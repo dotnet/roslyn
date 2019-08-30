@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Roslyn.VisualStudio.RemoteHostClientMock</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <IsShipping>false</IsShipping>
+
+    <!-- VSIX -->
+    <UseCodebase>true</UseCodebase>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj">
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj">
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <NuGetPackageToIncludeInVsix Include="Nerdbank.FullDuplexStream" />
+    <NuGetPackageToIncludeInVsix Include="Validation" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+</Project>

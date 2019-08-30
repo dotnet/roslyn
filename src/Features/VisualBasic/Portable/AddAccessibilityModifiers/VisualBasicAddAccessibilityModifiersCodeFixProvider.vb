@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
     Friend Class VisualBasicAddAccessibilityModifiersCodeFixProvider
         Inherits AbstractAddAccessibilityModifiersCodeFixProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function MapToDeclarator(declaration As SyntaxNode) As SyntaxNode
             If TypeOf declaration Is FieldDeclarationSyntax Then
                 Return DirectCast(declaration, FieldDeclarationSyntax).Declarators(0).Names(0)

@@ -673,7 +673,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileAndVerify(new string[] { source }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -735,7 +735,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileAndVerify(new string[] { source }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -800,7 +800,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileAndVerify(new string[] { source }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -877,7 +877,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileAndVerify(new string[] { source }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -955,7 +955,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileAndVerify(new string[] { source }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 

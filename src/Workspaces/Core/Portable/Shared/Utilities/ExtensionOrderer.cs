@@ -17,19 +17,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return graph.TopologicalSort();
         }
 
-        /// <summary>
-        /// Internal test helper for checking whether cycles exist in the extension ordering.
-        /// Throws <see cref="ArgumentException"/> if a cycle is detected.
-        /// </summary>
-        /// <exception cref="ArgumentException">A cycle was detected in the extension ordering.</exception>
-        internal static void CheckForCycles<TExtension, TMetadata>(
-            IEnumerable<Lazy<TExtension, TMetadata>> extensions)
-            where TMetadata : IOrderableMetadata
-        {
-            var graph = GetGraph(extensions);
-            graph.CheckForCycles();
-        }
-
         private static Graph<TExtension, TMetadata> GetGraph<TExtension, TMetadata>(
             IEnumerable<Lazy<TExtension, TMetadata>> extensions)
             where TMetadata : IOrderableMetadata
@@ -77,6 +64,22 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             where TMetadata : IOrderableMetadata
         {
             return extension.Metadata.After ?? SpecializedCollections.EmptyEnumerable<string>();
+        }
+
+        internal static class TestAccessor
+        {
+            /// <summary>
+            /// Helper for checking whether cycles exist in the extension ordering.
+            /// Throws <see cref="ArgumentException"/> if a cycle is detected.
+            /// </summary>
+            /// <exception cref="ArgumentException">A cycle was detected in the extension ordering.</exception>
+            internal static void CheckForCycles<TExtension, TMetadata>(
+                IEnumerable<Lazy<TExtension, TMetadata>> extensions)
+                where TMetadata : IOrderableMetadata
+            {
+                var graph = GetGraph(extensions);
+                graph.CheckForCycles();
+            }
         }
     }
 }

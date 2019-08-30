@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     [ExportLanguageServiceFactory(typeof(ICodeGenerationService), LanguageNames.CSharp), Shared]
     internal partial class CSharpCodeGenerationServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpCodeGenerationServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {
             return new CSharpCodeGenerationService(provider);

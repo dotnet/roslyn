@@ -11,7 +11,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class MethodWellKnownAttributeData : CommonMethodWellKnownAttributeData
     {
-        #region SkipLocalsInitAttribute
+        private bool _hasDoesNotReturnAttribute;
+        public bool HasDoesNotReturnAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasDoesNotReturnAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasDoesNotReturnAttribute = value;
+                SetDataStored();
+            }
+        }
+
         private bool _hasSkipLocalsInitAttribute;
         public bool HasSkipLocalsInitAttribute
         {
@@ -27,6 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SetDataStored();
             }
         }
-        #endregion
+
     }
 }

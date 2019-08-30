@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -23,14 +23,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private const int DefaultTimeoutInMilliseconds = 10000;
 
         private readonly string _viewCommand;
-        private readonly string _windowTitle;
+        private readonly Guid _windowId;
         private int _timeoutInMilliseconds;
         private IInteractiveWindow _interactiveWindow;
 
-        protected InteractiveWindow_InProc(string viewCommand, string windowTitle)
+        protected InteractiveWindow_InProc(string viewCommand, Guid windowId)
         {
             _viewCommand = viewCommand;
-            _windowTitle = windowTitle;
+            _windowId = windowId;
             _timeoutInMilliseconds = DefaultTimeoutInMilliseconds;
         }
 
@@ -60,6 +60,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public string GetReplText()
             => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
+
+        protected override bool HasActiveTextView()
+            => _interactiveWindow.TextView is object;
 
         protected override IWpfTextView GetActiveTextView()
             => _interactiveWindow.TextView;
@@ -163,16 +166,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void CloseWindow()
         {
-            var dte = GetDTE();
-
-            foreach (EnvDTE.Window window in dte.Windows)
+            InvokeOnUIThread(cancellationToken =>
             {
-                if (window.Caption == _windowTitle)
+                var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
+                if (ErrorHandler.Succeeded(shell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFrameOnly, _windowId, out var windowFrame)))
                 {
-                    window?.Close();
-                    break;
+                    ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave));
                 }
-            }
+            });
         }
 
         public void ShowWindow(bool waitForPrompt = true)
@@ -186,10 +187,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForReplPrompt()
-            => WaitForPredicate(() => GetReplText().EndsWith(ReplPromptText));
+            => WaitForPredicate(GetReplText, value => value.EndsWith(ReplPromptText));
 
         public void WaitForReplOutput(string outputText)
-            => WaitForPredicate(() => GetReplText().EndsWith(outputText + Environment.NewLine + ReplPromptText));
+            => WaitForPredicate(GetReplText, value => value.EndsWith(outputText + Environment.NewLine + ReplPromptText));
 
         public void ClearScreen()
         {
@@ -202,26 +203,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForLastReplOutput(string outputText)
-            => WaitForPredicate(() => GetLastReplOutput().Contains(outputText));
+            => WaitForPredicate(GetLastReplOutput, value => value.Contains(outputText));
 
         public void WaitForLastReplOutputContains(string outputText)
-            => WaitForPredicate(() => GetLastReplOutput().Contains(outputText));
+            => WaitForPredicate(GetLastReplOutput, value => value.Contains(outputText));
 
         public void WaitForLastReplInputContains(string outputText)
-            => WaitForPredicate(() => GetLastReplInput().Contains(outputText));
+            => WaitForPredicate(GetLastReplInput, value => value.Contains(outputText));
 
-        private void WaitForPredicate(Func<bool> predicate)
+        private void WaitForPredicate(Func<string> getValue, Func<string, bool> isExpectedValue)
         {
             var beginTime = DateTime.UtcNow;
-            while (!predicate() && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
+            string value;
+            while (!isExpectedValue(value = getValue()) && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
             {
                 Thread.Sleep(50);
             }
 
-            if (!predicate())
+            if (!isExpectedValue(value = getValue()))
             {
-                var replText = GetReplText();
-                throw new Exception($"Predicate never assigned a value after {_timeoutInMilliseconds} milliseconds and no exceptions were thrown. REPL text: {replText}.");
+                throw new Exception($"Unable to find expected content in REPL within {_timeoutInMilliseconds} milliseconds and no exceptions were thrown. Actual content:{Environment.NewLine}[[{value}]]");
             }
         }
 

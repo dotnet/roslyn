@@ -28,5 +28,10 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         public SyntaxToken StartToken { get; }
         public SyntaxToken EndToken { get; }
+
+#if DEBUG
+        public override string ToString()
+            => $"Suppress {TextSpan} from '{StartToken}' to '{EndToken}' with '{Option}'";
+#endif
     }
 }

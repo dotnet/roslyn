@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// This option says if we should simplify the Explicit Type in Local Declarations
         /// </summary>
-        public static Option<bool> PreferImplicitTypeInLocalDeclaration { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferImplicitTypeInLocalDeclaration), false,
+        public static Option<bool> PreferImplicitTypeInLocalDeclaration { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferImplicitTypeInLocalDeclaration), true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferImplicitTypeInLocalDeclaration"));
 
         /// <summary>
@@ -101,8 +101,10 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// and the level to which those rules should be enforced.
         /// </summary>
         internal static PerLanguageOption<NamingStylePreferences> NamingPreferences { get; } = new PerLanguageOption<NamingStylePreferences>(nameof(SimplificationOptions), nameof(NamingPreferences), defaultValue: NamingStylePreferences.Default,
-            storageLocations: new OptionStorageLocation[]{
+            storageLocations: new OptionStorageLocation[] {
                 new NamingStylePreferenceEditorConfigStorageLocation(),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences")});
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences5"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences")
+            });
     }
 }

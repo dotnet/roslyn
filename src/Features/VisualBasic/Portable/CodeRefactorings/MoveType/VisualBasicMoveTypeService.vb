@@ -10,5 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
     Friend Class VisualBasicMoveTypeService
         Inherits AbstractMoveTypeService(Of VisualBasicMoveTypeService, TypeBlockSyntax, NamespaceBlockSyntax, MethodBaseSyntax, CompilationUnitSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

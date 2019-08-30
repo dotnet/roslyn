@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -715,5 +716,81 @@ class T
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestOnlyArgumentSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = string.Format([|""{0}""|], 1);
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestOnlyArgumentSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = string.Format(""{0}"", [|1|]);
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgumentsSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = string.Format([|""{0}"", 1|]);
+    }
+}",
+@"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}"";
+    }
+}");
+        }
+
     }
 }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private partial class IncrementalAnalyzerProcessor
             {
-                private static readonly Func<int, object, bool, string> s_enqueueLogger = (t, i, s) => string.Format("Tick:{0}, Id:{1}, Replaced:{2}", t, i.ToString(), s);
+                private static readonly Func<int, object, bool, string> s_enqueueLogger = EnqueueLogger;
 
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
@@ -42,8 +43,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 public IncrementalAnalyzerProcessor(
                     IAsynchronousOperationListener listener,
                     IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
+                    bool initializeLazily,
                     Registration registration,
-                    int highBackOffTimeSpanInMs, int normalBackOffTimeSpanInMs, int lowBackOffTimeSpanInMs, CancellationToken shutdownToken)
+                    int highBackOffTimeSpanInMs,
+                    int normalBackOffTimeSpanInMs,
+                    int lowBackOffTimeSpanInMs,
+                    CancellationToken shutdownToken)
                 {
                     _logAggregator = new LogAggregator();
 
@@ -58,6 +63,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // create analyzers lazily.
                     var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: true));
                     var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: false));
+
+                    if (!initializeLazily)
+                    {
+                        // realize all analyzer right away
+                        _ = lazyActiveFileAnalyzers.Value;
+                        _ = lazyAllAnalyzers.Value;
+                    }
 
                     // event and worker queues
                     _documentTracker = _registration.GetService<IDocumentTrackingService>();
@@ -91,6 +103,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _highPriorityProcessor.Enqueue(item);
                     _normalPriorityProcessor.Enqueue(item);
                     _lowPriorityProcessor.Enqueue(item);
+
+                    ReportPendingWorkItemCount();
                 }
 
                 public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
@@ -143,7 +157,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _logAggregator = new LogAggregator();
                 }
 
-                private static async Task ProcessDocumentAnalyzersAsync(
+                private void ReportPendingWorkItemCount()
+                {
+                    var pendingItemCount = _highPriorityProcessor.WorkItemCount + _normalPriorityProcessor.WorkItemCount + _lowPriorityProcessor.WorkItemCount;
+                    _registration.ProgressReporter.UpdatePendingItemCount(pendingItemCount);
+                }
+
+                private async Task ProcessDocumentAnalyzersAsync(
                     Document document, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                 {
                     // process all analyzers for each categories in this order - syntax, body, document
@@ -164,9 +184,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private static async Task RunAnalyzersAsync<T>(ImmutableArray<IIncrementalAnalyzer> analyzers, T value,
-                    Func<IIncrementalAnalyzer, T, CancellationToken, Task> runnerAsync, CancellationToken cancellationToken)
+                private async Task RunAnalyzersAsync<T>(
+                    ImmutableArray<IIncrementalAnalyzer> analyzers,
+                    T value,
+                    Func<IIncrementalAnalyzer, T, CancellationToken, Task> runnerAsync,
+                    CancellationToken cancellationToken)
                 {
+                    using var evaluating = _registration.ProgressReporter.GetEvaluatingScope();
+
+                    ReportPendingWorkItemCount();
                     foreach (var analyzer in analyzers)
                     {
                         if (cancellationToken.IsCancellationRequested)
@@ -188,12 +214,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private static async Task RunBodyAnalyzersAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, CancellationToken cancellationToken)
+                private async Task RunBodyAnalyzersAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, CancellationToken cancellationToken)
                 {
                     try
                     {
                         var root = await GetOrDefaultAsync(document, (d, c) => d.GetSyntaxRootAsync(c), cancellationToken).ConfigureAwait(false);
-                        var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                        var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                         var reasons = workItem.InvocationReasons;
                         if (root == null || syntaxFactsService == null)
                         {
@@ -263,7 +289,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     ProjectId activeProjectId = null;
                     if (_documentTracker != null)
                     {
-                        var activeDocument = _documentTracker.GetActiveDocument();
+                        var activeDocument = _documentTracker.TryGetActiveDocument();
                         if (activeDocument != null)
                         {
                             activeProjectId = activeDocument.ProjectId;
@@ -271,6 +297,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     return null;
+                }
+
+                private static string EnqueueLogger(int tick, object documentOrProjectId, bool replaced)
+                {
+                    if (documentOrProjectId is DocumentId documentId)
+                    {
+                        return $"Tick:{tick}, {documentId}, {documentId.ProjectId}, Replaced:{replaced}";
+                    }
+
+                    return $"Tick:{tick}, {documentOrProjectId}, Replaced:{replaced}";
                 }
 
                 private static bool CrashUnlessCanceled(AggregateException aggregate)

@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType
@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocumentScope_PreferExplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -123,7 +122,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
         }
 
         [Fact]
@@ -131,7 +130,6 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject_PreferExplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -238,7 +236,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
         }
 
         [Fact]
@@ -246,7 +244,6 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_PreferExplicitTypeEverywhere()
         {
-            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -353,7 +350,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
         }
 
         [Fact]
@@ -361,7 +358,6 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocumentScope_PreferExplicitTypeExceptWhereApparent()
         {
-            var fixAllActionId = CSharpFeaturesResources.Use_explicit_type_instead_of_var;
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -404,7 +400,7 @@ class Program
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeExceptWhereApparent(), fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeExceptWhereApparent());
         }
 
         #endregion

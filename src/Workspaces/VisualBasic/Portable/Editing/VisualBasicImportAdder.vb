@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
     Partial Friend Class VisualBasicImportAdder
         Inherits ImportAdderService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetExplicitNamespaceSymbol(node As SyntaxNode, model As SemanticModel) As INamespaceSymbol
             Dim qname = TryCast(node, QualifiedNameSyntax)
             If qname IsNot Nothing Then

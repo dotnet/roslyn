@@ -178,6 +178,58 @@
                 case ErrorCode.WRN_FilterIsConstantFalse:
                 case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
+                case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
+                case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
+                case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
+                case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustive:
+                case ErrorCode.WRN_CaseConstantNamedUnderscore:
+                case ErrorCode.WRN_IsTypeNamedUnderscore:
+                case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
+                case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                case ErrorCode.WRN_ThrowPossibleNull:
+                case ErrorCode.WRN_ConvertingNullableToNonNullable:
+                case ErrorCode.WRN_NullReferenceAssignment:
+                case ErrorCode.WRN_NullReferenceReceiver:
+                case ErrorCode.WRN_NullReferenceReturn:
+                case ErrorCode.WRN_NullReferenceArgument:
+                case ErrorCode.WRN_UnboxPossibleNull:
+                case ErrorCode.WRN_NullReferenceIterationVariable:
+                case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
+                case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
+                case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation:
+                case ErrorCode.WRN_UninitializedNonNullableField:
+                case ErrorCode.WRN_NullabilityMismatchInAssignment:
+                case ErrorCode.WRN_NullabilityMismatchInArgument:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
+                case ErrorCode.WRN_NullabilityMismatchInArgumentForOutput:
+                case ErrorCode.WRN_NullAsNonNullable:
+                case ErrorCode.WRN_AsOperatorMayReturnNull:
+                case ErrorCode.WRN_NullableValueTypeMayBeNull:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
+                case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
+                case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
+                case ErrorCode.WRN_ConditionalAccessMayReturnNull:
+                case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
+                case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
+                case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
+                case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
+                case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
+                case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
+                case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                     return true;
                 default:
                     return false;
@@ -192,7 +244,7 @@
                 case ErrorCode.FTL_DebugEmitFailure:
                 case ErrorCode.FTL_BadCodepage:
                 case ErrorCode.FTL_InvalidTarget:
-                case ErrorCode.FTL_InputFileNameTooLong:
+                case ErrorCode.FTL_InvalidInputFileName:
                 case ErrorCode.FTL_OutputFileExists:
                 case ErrorCode.FTL_BadChecksumAlgorithm:
                     return true;

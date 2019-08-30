@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
                 new object[] { project.Id, query.Name, query.Kind, criteria }, cancellationToken).ConfigureAwait(false);
 

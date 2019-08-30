@@ -2,9 +2,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders

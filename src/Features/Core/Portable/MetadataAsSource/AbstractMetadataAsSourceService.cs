@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             _codeGenerationService = codeGenerationService;
         }
 
-        public async Task<Document> AddSourceToAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
             if (document == null)
             {
@@ -47,19 +47,19 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var docWithDocComments = await ConvertDocCommentsToRegularComments(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
-            var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
+            var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
             var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var formattedDoc = await Formatter.FormatAsync(
                 docWithAssemblyInfo, SpecializedCollections.SingletonEnumerable(node.FullSpan), options: null, rules: GetFormattingRules(docWithAssemblyInfo), cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var reducers = this.GetReducers();
+            var reducers = GetReducers();
             return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// provide formatting rules to be used when formatting MAS file
         /// </summary>
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
+        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         /// <summary>
         /// Prepends a region directive at the top of the document with a name containing
@@ -68,7 +68,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// a string similar to "location unknown" will be placed in the comment inside the region
         /// instead of the path.
         /// </summary>
-        protected abstract Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken);
+        /// <param name="document">The document to generate source into</param>
+        /// <param name="symbolCompilation">The <see cref="Compilation"/> in which symbol is resolved.</param>
+        /// <param name="symbol">The symbol to generate source for</param>
+        /// <param name="cancellationToken">To cancel document operations</param>
+        /// <returns>The updated document</returns>
+        protected abstract Task<Document> AddAssemblyInfoRegionAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken);
 
         protected abstract Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken);
 

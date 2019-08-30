@@ -3,11 +3,13 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -32,12 +34,12 @@ public class Program
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpExtractMethod(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpExtractMethod))
+        public CSharpExtractMethod(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpExtractMethod))
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void SimpleExtractMethod()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -68,7 +70,7 @@ public class Program
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
             VisualStudio.Editor.Verify.TextContains(expectedText);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
 
             VisualStudio.Editor.SendKeys("SayHello", VirtualKey.Enter);
@@ -78,7 +80,7 @@ public class Program
     }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractViaCodeAction()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -113,7 +115,7 @@ public class Program
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractViaCodeActionWithMoveLocal()
         {
             VisualStudio.Editor.SetText(TestSource);

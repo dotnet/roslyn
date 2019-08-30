@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(nameof(id));
             }
 
-            debugName = debugName ?? "unsaved";
+            debugName ??= "unsaved";
 
             return new SolutionId(id, debugName);
         }
@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis
         {
             return this.Id.GetHashCode();
         }
+
+        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {

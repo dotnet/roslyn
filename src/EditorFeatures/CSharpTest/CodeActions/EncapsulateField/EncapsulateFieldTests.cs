@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -10,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
 
         private IDictionary<OptionKey, object> AllOptionsOff =>
             OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
         internal Task TestAllOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
@@ -62,6 +62,48 @@ class goo
     private int bar;
 
     public int Bar
+    {
+        get
+        {
+            return bar;
+        }
+
+        set
+        {
+            bar = value;
+        }
+    }
+
+    void baz()
+    {
+        var q = bar;
+    }
+}
+";
+            await TestAllOptionsOffAsync(text, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task PrivateNullableFieldToPropertyIgnoringReferences()
+        {
+            var text = @"#nullable enable
+class goo
+{
+    private string? b[|a|]r;
+
+    void baz()
+    {
+        var q = bar;
+    }
+}
+";
+
+            var expected = @"#nullable enable
+class goo
+{
+    private string? bar;
+
+    public string? Bar
     {
         get
         {
@@ -164,10 +206,10 @@ class goo
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, 
+            await TestInRegularAndScriptAsync(text, expected,
                 options: OptionsSet(
-                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
-                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -199,7 +241,7 @@ class goo
 }
 ";
             await TestInRegularAndScriptAsync(text, expected,
-                options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+                options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -1112,7 +1154,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|iyi|];
-}", 
+}",
 @"class C
 {
     int iyi;
@@ -1143,7 +1185,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|ırak|];
-}", 
+}",
 @"class C
 {
     int ırak;
@@ -1174,7 +1216,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|بيت|];
-}", 
+}",
 @"class C
 {
     int بيت;
@@ -1205,7 +1247,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|árbol|];
-}", 
+}",
 @"class C
 {
     int árbol;
@@ -1236,7 +1278,7 @@ namespace ConsoleApplication1
 @"class C
 {
     int [|σκύλος|];
-}", 
+}",
 @"class C
 {
     int σκύλος;
@@ -1323,7 +1365,7 @@ class C
 @"class C
 {
     int [|i|];
-}", 
+}",
 @"class C
 {
     int i;

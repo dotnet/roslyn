@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             // can with Syntax.  This approach is capable of providing parity with the pre-Roslyn implementation.
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, position, useFullSpan: true);
 
             // It might be reasonable to return an empty Name and a LineOffset from the beginning of the
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             // appear to consume this information, so we'll just return the simplest thing (no location).
             if ((memberDeclaration == null) || (memberDeclaration.Kind() == SyntaxKind.GlobalStatement))
             {
-                return default(DebugLocationInfo);
+                return default;
             }
 
             // field or event field declarations may contain multiple variable declarators. Try finding the correct one.
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             VariableDeclaratorSyntax fieldDeclarator = null;
             if (memberDeclaration.Kind() == SyntaxKind.FieldDeclaration || memberDeclaration.Kind() == SyntaxKind.EventFieldDeclaration)
             {
-                SeparatedSyntaxList<VariableDeclaratorSyntax> variableDeclarators = ((BaseFieldDeclarationSyntax)memberDeclaration).Declaration.Variables;
+                var variableDeclarators = ((BaseFieldDeclarationSyntax)memberDeclaration).Declaration.Variables;
 
                 foreach (var declarator in variableDeclarators)
                 {

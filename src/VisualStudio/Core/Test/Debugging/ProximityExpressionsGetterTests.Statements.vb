@@ -1,17 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Linq
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
-Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
+    <[UseExportProvider]>
     Partial Public Class ProximityExpressionsGetterTests
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Sub TestAtStartOfStatement_0()

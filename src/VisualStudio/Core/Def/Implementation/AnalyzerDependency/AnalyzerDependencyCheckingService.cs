@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
 
@@ -19,21 +18,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [Export(typeof(AnalyzerDependencyCheckingService))]
     internal sealed class AnalyzerDependencyCheckingService
     {
+        /// <summary>
+        /// Object given as key for <see cref="HostDiagnosticUpdateSource.UpdateDiagnosticsForProject(ProjectId, object, IEnumerable{DiagnosticData})"/>.
+        /// </summary>
         private static readonly object s_dependencyConflictErrorId = new object();
         private static readonly IIgnorableAssemblyList s_systemPrefixList = new IgnorableAssemblyNamePrefixList("System");
         private static readonly IIgnorableAssemblyList s_codeAnalysisPrefixList = new IgnorableAssemblyNamePrefixList("Microsoft.CodeAnalysis");
         private static readonly IIgnorableAssemblyList s_explicitlyIgnoredAssemblyList = new IgnorableAssemblyIdentityList(GetExplicitlyIgnoredAssemblyIdentities());
         private static readonly IIgnorableAssemblyList s_assembliesIgnoredByNameList = new IgnorableAssemblyNameList(ImmutableHashSet.Create("mscorlib"));
+        private static readonly IBindingRedirectionService s_bindingRedirectionService = new BindingRedirectionService();
 
-        private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly HostDiagnosticUpdateSource _updateSource;
-        private readonly BindingRedirectionService _bindingRedirectionService;
+        private readonly VisualStudioWorkspace _workspace;
+        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
+        /// <summary>
+        /// Object given to synchronize access to the mutable fields in this class.
+        /// </summary>
+        private readonly object _gate = new object();
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        private Task<AnalyzerDependencyResults> _task = Task.FromResult(AnalyzerDependencyResults.Empty);
-        private ImmutableHashSet<string> _analyzerPaths = ImmutableHashSet.Create<string>(StringComparer.OrdinalIgnoreCase);
 
-        private readonly DiagnosticDescriptor _missingAnalyzerReferenceRule = new DiagnosticDescriptor(
+        /// <summary>
+        /// The most recently started analysis task; if we start a new analysis we will cancel the previous one and start the next one
+        /// as a continuation of this task to ensure any notification to <see cref="_hostDiagnosticUpdateSource"/> was done first.
+        /// </summary>
+        private Task _task = Task.CompletedTask;
+        private ImmutableHashSet<string> _previousAnalyzerPaths = ImmutableHashSet.Create<string>(StringComparer.OrdinalIgnoreCase);
+
+        private static readonly DiagnosticDescriptor s_missingAnalyzerReferenceRule = new DiagnosticDescriptor(
             id: IDEDiagnosticIds.MissingAnalyzerReferenceId,
             title: ServicesVSResources.MissingAnalyzerReference,
             messageFormat: ServicesVSResources.Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well,
@@ -41,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        private readonly DiagnosticDescriptor _analyzerDependencyConflictRule = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor s_analyzerDependencyConflictRule = new DiagnosticDescriptor(
             id: IDEDiagnosticIds.AnalyzerDependencyConflictId,
             title: ServicesVSResources.AnalyzerDependencyConflict,
             messageFormat: ServicesVSResources.Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly,
@@ -49,49 +60,92 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+
         [ImportingConstructor]
         public AnalyzerDependencyCheckingService(
-            VisualStudioWorkspaceImpl workspace,
-            HostDiagnosticUpdateSource updateSource)
+            VisualStudioWorkspace workspace,
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _workspace = workspace;
-            _updateSource = updateSource;
-            _bindingRedirectionService = new BindingRedirectionService();
+            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
-        public async void CheckForConflictsAsync()
+        public void ReanalyzeSolutionForConflicts()
         {
-            AnalyzerDependencyResults results = null;
-            try
-            {
-                results = await GetConflictsAsync().ConfigureAwait(continueOnCapturedContext: true);
-            }
-            catch
-            {
-                return;
-            }
+            var solution = _workspace.CurrentSolution;
+            var currentAnalyzerPaths = solution
+                .Projects
+                .SelectMany(p => p.AnalyzerReferences)
+                .OfType<AnalyzerFileReference>()
+                .Select(a => a.FullPath)
+                .ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
 
-            if (results == null)
+            lock (_gate)
             {
-                return;
+                // If we've already started analysis for this set of analyzers, no reason to start over
+                if (currentAnalyzerPaths.SetEquals(_previousAnalyzerPaths))
+                {
+                    return;
+                }
+
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource = new CancellationTokenSource();
+                _previousAnalyzerPaths = currentAnalyzerPaths;
+
+                // Capturing cancellationToken here so the right instance is passed into the delegates below
+                var cancellationToken = _cancellationTokenSource.Token;
+
+                // We are explicitly relying on SafeContinueWith including LazyCancellation as a continuation option here
+                _task = _task.SafeContinueWith(_ =>
+                {
+                    AnalyzeAndReportConflictsInSolution(solution, currentAnalyzerPaths, _hostDiagnosticUpdateSource, cancellationToken);
+                },
+                cancellationToken, TaskScheduler.Default);
             }
+        }
+
+        // Method is static to prevent accidental use of mutable state in this class
+        private static void AnalyzeAndReportConflictsInSolution(
+            Solution solution,
+            ImmutableHashSet<string> currentAnalyzerPaths,
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            CancellationToken cancellationToken)
+        {
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => AssemblyIdentity.FromAssemblyDefinition(assembly));
+            var loadedAssembliesList = new IgnorableAssemblyIdentityList(loadedAssemblies);
+
+            var ignorableAssemblyLists = new[] { s_systemPrefixList, s_codeAnalysisPrefixList, s_explicitlyIgnoredAssemblyList, s_assembliesIgnoredByNameList, loadedAssembliesList };
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var results = AnalyzerDependencyChecker.ComputeDependencyConflicts(currentAnalyzerPaths, ignorableAssemblyLists, s_bindingRedirectionService, cancellationToken);
 
             var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
 
             var conflicts = results.Conflicts;
             var missingDependencies = results.MissingDependencies;
 
-            foreach (var project in _workspace.DeferredState.ProjectTracker.ImmutableProjects)
+            foreach (var project in solution.Projects)
             {
                 builder.Clear();
 
+                // If our analysis has been cancelled, it means another request has been queued behind us; thus it's OK to stop
+                // doing the analysis now and let that other one fix up any stale results.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var analyzerFilePaths = new HashSet<string>(
+                    project.AnalyzerReferences
+                           .OfType<AnalyzerFileReference>()
+                           .Select(f => f.FullPath),
+                    StringComparer.OrdinalIgnoreCase);
+
                 foreach (var conflict in conflicts)
                 {
-                    if (project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath1) ||
-                        project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath2))
+                    if (analyzerFilePaths.Contains(conflict.AnalyzerFilePath1) ||
+                        analyzerFilePaths.Contains(conflict.AnalyzerFilePath2))
                     {
                         var messageArguments = new string[] { conflict.AnalyzerFilePath1, conflict.AnalyzerFilePath2, conflict.Identity.ToString() };
-                        if (DiagnosticData.TryCreate(_analyzerDependencyConflictRule, messageArguments, project.Id, _workspace, out var diagnostic))
+                        if (DiagnosticData.TryCreate(s_analyzerDependencyConflictRule, messageArguments, project.Id, solution.Workspace, out var diagnostic))
                         {
                             builder.Add(diagnostic);
                         }
@@ -100,17 +154,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 foreach (var missingDependency in missingDependencies)
                 {
-                    if (project.CurrentProjectAnalyzersContains(missingDependency.AnalyzerPath))
+                    if (analyzerFilePaths.Contains(missingDependency.AnalyzerPath))
                     {
                         var messageArguments = new string[] { missingDependency.AnalyzerPath, missingDependency.DependencyIdentity.ToString() };
-                        if (DiagnosticData.TryCreate(_missingAnalyzerReferenceRule, messageArguments, project.Id, _workspace, out var diagnostic))
+                        if (DiagnosticData.TryCreate(s_missingAnalyzerReferenceRule, messageArguments, project.Id, solution.Workspace, out var diagnostic))
                         {
                             builder.Add(diagnostic);
                         }
                     }
                 }
 
-                _updateSource.UpdateDiagnosticsForProject(project.Id, s_dependencyConflictErrorId, builder.ToImmutable());
+                hostDiagnosticUpdateSource.UpdateDiagnosticsForProject(project.Id, s_dependencyConflictErrorId, builder.ToImmutable());
             }
 
             foreach (var conflict in conflicts)
@@ -124,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private void LogConflict(AnalyzerDependencyConflict conflict)
+        private static void LogConflict(AnalyzerDependencyConflict conflict)
         {
             Logger.Log(
                 FunctionId.AnalyzerDependencyCheckingService_LogConflict,
@@ -136,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }));
         }
 
-        private void LogMissingDependency(MissingAnalyzerDependency missingDependency)
+        private static void LogMissingDependency(MissingAnalyzerDependency missingDependency)
         {
             Logger.Log(
                 FunctionId.AnalyzerDependencyCheckingService_LogMissingDependency,
@@ -145,37 +199,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     m["Analyzer"] = missingDependency.AnalyzerPath;
                     m["Identity"] = missingDependency.DependencyIdentity;
                 }));
-        }
-
-        private Task<AnalyzerDependencyResults> GetConflictsAsync()
-        {
-            ImmutableHashSet<string> currentAnalyzerPaths = _workspace.CurrentSolution
-                .Projects
-                .SelectMany(p => p.AnalyzerReferences)
-                .OfType<AnalyzerFileReference>()
-                .Select(a => a.FullPath)
-                .ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
-
-            if (currentAnalyzerPaths.SetEquals(_analyzerPaths))
-            {
-                return _task;
-            }
-
-            _cancellationTokenSource.Cancel();
-            _cancellationTokenSource = new CancellationTokenSource();
-            _analyzerPaths = currentAnalyzerPaths;
-
-            _task = _task.SafeContinueWith(_ =>
-            {
-                IEnumerable<AssemblyIdentity> loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => AssemblyIdentity.FromAssemblyDefinition(assembly));
-                IgnorableAssemblyIdentityList loadedAssembliesList = new IgnorableAssemblyIdentityList(loadedAssemblies);
-
-                IIgnorableAssemblyList[] ignorableAssemblyLists = new[] { s_systemPrefixList, s_codeAnalysisPrefixList, s_explicitlyIgnoredAssemblyList, s_assembliesIgnoredByNameList, loadedAssembliesList };
-                return new AnalyzerDependencyChecker(currentAnalyzerPaths, ignorableAssemblyLists, _bindingRedirectionService).Run(_cancellationTokenSource.Token);
-            },
-            TaskScheduler.Default);
-
-            return _task;
         }
 
         private static IEnumerable<AssemblyIdentity> GetExplicitlyIgnoredAssemblyIdentities()
@@ -198,11 +221,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             list.Add(identity);
         }
 
-        private class BindingRedirectionService : IBindingRedirectionService
+        private sealed class BindingRedirectionService : IBindingRedirectionService
         {
             public AssemblyIdentity ApplyBindingRedirects(AssemblyIdentity originalIdentity)
             {
-                string redirectedAssemblyName = AppDomain.CurrentDomain.ApplyPolicy(originalIdentity.ToString());
+                var redirectedAssemblyName = AppDomain.CurrentDomain.ApplyPolicy(originalIdentity.ToString());
                 if (AssemblyIdentity.TryParseDisplayName(redirectedAssemblyName, out var redirectedAssemblyIdentity))
                 {
                     return redirectedAssemblyIdentity;

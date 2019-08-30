@@ -36,19 +36,23 @@
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="5" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock TextWrapping="Wrap">
-            <Run Text="{x:Static local:GridOptionPreviewControl.CodeStylePageHeader}"/>
-            <Run Text=" "/>
-            <Hyperlink RequestNavigate="LearnMoreHyperlink_RequestNavigate" NavigateUri="{x:Static local:GridOptionPreviewControl.CodeStylePageHeaderLearnMoreUri}">
-                <TextBlock Text="{x:Static local:GridOptionPreviewControl.CodeStylePageHeaderLearnMoreText}"/>
-            </Hyperlink>
-        </TextBlock>
-        <DataGrid
+        <options:CodeStyleNoticeTextBlock Grid.Row="0" Margin="5 0 5 0" />
+        <Button
             Grid.Row="1"
+            Name="GenerateEditorConfigButton" 
+            Click="Generate_Save_EditorConfig" 
+            Content="{x:Static local:GridOptionPreviewControl.GenerateEditorConfigFileFromSettingsText}"
+            HorizontalAlignment="Left"
+            Margin="0,5,0,0"
+            VerticalAlignment="Center"
+            Padding="5"/>
+        <DataGrid
+            Grid.Row="2"
             x:Uid="CodeStyleContent"
             x:Name="CodeStyleMembers"
             Margin="0,5,0,0"
@@ -177,8 +181,8 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <GridSplitter Grid.Row="2" HorizontalAlignment="Stretch"></GridSplitter>
-        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1">
+        <GridSplitter Grid.Row="3" HorizontalAlignment="Stretch"></GridSplitter>
+        <Border Grid.Row="4" BorderBrush="Gray" BorderThickness="1">
             <ContentControl Name="EditorControl" Content="{Binding TextViewHost, Mode=OneWay}" Focusable="False"></ContentControl>
         </Border>
     </Grid>

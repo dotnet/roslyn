@@ -9,12 +9,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public class SnapshotSerializationTestBase
     {
         internal static Solution CreateFullSolution(HostServices hostServices = null)
@@ -32,8 +34,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             project1 = project1.AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
             project1 = project1.AddAnalyzerReference(new AnalyzerFileReference(typeof(object).Assembly.Location, new TestAnalyzerAssemblyLoader()));
 
-            var textDocument1 = project1.AddAdditionalDocument("Additional", SourceText.From("hello"), ImmutableArray.Create("test"), @".\Add");
-            return textDocument1.Project.Solution;
+            project1 = project1.AddAdditionalDocument("Additional", SourceText.From("hello"), ImmutableArray.Create("test"), @".\Add").Project;
+
+            return project1.Solution.AddAnalyzerConfigDocuments(
+                ImmutableArray.Create(
+                    DocumentInfo.Create(
+                        DocumentId.CreateNewId(project1.Id),
+                        ".editorconfig",
+                        loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())))));
         }
 
         internal static async Task VerifyAssetAsync(IRemotableDataService service, SolutionStateChecksums solutionObject)
@@ -95,6 +103,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var documentObject = await service.GetValueAsync<DocumentStateChecksums>(checksum).ConfigureAwait(false);
                 await VerifyAssetAsync(service, documentObject).ConfigureAwait(false);
             }
+
+            foreach (var checksum in projectObject.AnalyzerConfigDocuments)
+            {
+                var documentObject = await service.GetValueAsync<DocumentStateChecksums>(checksum).ConfigureAwait(false);
+                await VerifyAssetAsync(service, documentObject).ConfigureAwait(false);
+            }
         }
 
         internal static async Task VerifyAssetAsync(IRemotableDataService service, DocumentStateChecksums documentObject)
@@ -112,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             IRemotableDataService service,
             Checksum checksum,
             WellKnownSynchronizationKind kind,
-            Func<T, WellKnownSynchronizationKind, Serializer, RemotableData> assetGetter)
+            Func<T, WellKnownSynchronizationKind, ISerializerService, RemotableData> assetGetter)
         {
             // re-create asset from object
             var syncService = (RemotableDataServiceFactory.Service)service;
@@ -148,6 +162,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             ChecksumWithChildrenEqual(projectObjects1.Documents.ToDocumentObjects(service), projectObjects2.Documents.ToDocumentObjects(service));
             ChecksumWithChildrenEqual(projectObjects1.AdditionalDocuments.ToDocumentObjects(service), projectObjects2.AdditionalDocuments.ToDocumentObjects(service));
+            ChecksumWithChildrenEqual(projectObjects1.AnalyzerConfigDocuments.ToDocumentObjects(service), projectObjects2.AnalyzerConfigDocuments.ToDocumentObjects(service));
         }
 
         internal static void ProjectStatesEqual(IRemotableDataService service, ChecksumObjectCollection<ProjectStateChecksums> projectObjects1, ChecksumObjectCollection<ProjectStateChecksums> projectObjects2)

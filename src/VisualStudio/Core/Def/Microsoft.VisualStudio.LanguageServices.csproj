@@ -1,0 +1,290 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.VisualStudio.LanguageServices</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>net472</TargetFramework>
+    <CreateVsixContainer>false</CreateVsixContainer>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <DeployExtension>false</DeployExtension>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for Visual Studio.
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup Label="Build Items">
+    <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+      <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
+      <Link>InternalUtilities\FileKey.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
+      <Link>Shared\ConcurrentLruCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
+      <Link>Shared\ClientDirectStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\Extensions.cs">
+      <Link>Shared\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.cs">
+      <Link>Shared\RoslynJsonConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.RoslynOnly.cs">
+      <Link>Shared\RoslynJsonConverter.RoslynOnly.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.SolutionIdConverters.cs">
+      <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ServerDirectStream.cs">
+      <Link>Shared\ServerDirectStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\ExpressionEvaluator\Core\Source\ExpressionCompiler\DkmExceptionUtilities.cs" Link="Implementation\EditAndContinue\Interop\DkmExceptionUtilities.cs" />
+    <Compile Update="Implementation\MoveToNamespace\MoveToNamespaceDialog.xaml.cs">
+      <DependentUpon>MoveToNamespaceDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Implementation\PickMembers\PickMembersDialog.xaml.cs">
+      <DependentUpon>PickMembersDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Implementation\Workspace\DetailedErrorInfoDialog.xaml.cs">
+      <DependentUpon>DetailedErrorInfoDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="ServicesVSResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ServicesVSResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="VSPackage.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>VSPackage.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <!-- Microsoft.VisualStudio.LanugageServices is intended to only be used by VisualStudio and since 
+         Microsoft.CodeAnalysis.EditorFeatures and Microsoft.CodeAnalysis.EditorFeatures.Wpf are not required to
+         access the public API in this package, they are not published to NuGet, so mark them PrivateAssets="all" -->
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+    <ProjectReference Include="..\..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" PrivateAssets="all" Aliases="InteractiveHost" />
+  </ItemGroup>
+  <ItemGroup Label="File References">
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.TestWindow.CodeLens" Key="$(UnitTestingKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" WorkItem="https://github.com/dotnet/roslyn/issues/35078" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" WorkItem="https://github.com/dotnet/roslyn/issues/35078" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" WorkItem="https://github.com/dotnet/roslyn/issues/35085" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <!-- <TODO> remove, once project system is updated https://github.com/dotnet/roslyn/issues/20320 -->
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
+    <!-- </TODO> -->
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
+    <internalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.IntegrationTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ErrorList.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.LiveShare" />
+    <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35076" />
+    <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35076" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
+    <InternalsVisibleTo Include="Roslyn.Services.Editor.TypeScript.UnitTests" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
+    <RestrictedInternalsVisibleTo Include="ManagedSourceCodeAnalysis" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
+    <RestrictedInternalsVisibleTo Include="CodeAnalysis" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
+    <RestrictedInternalsVisibleTo Include="StanCore" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.7" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.8" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.16.0" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.16.1" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.15.7" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.15.8" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.16.0" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.16.1" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35079" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ManagedEditAndContinueService.vsdconfigxml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="UIAutomationTypes" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="WindowsFormsIntegration" />
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
+    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.UI.Interfaces" Version="$(MicrosoftVisualStudioDebuggerUIInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="$(MicrosoftVisualStudioOLEInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="$(MicrosoftVisualStudioShellInterop100Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.11.0" Version="$(MicrosoftVisualStudioShellInterop110Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioShellInterop121DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.7.DesignTime" Version="$(MicrosoftVisualStudioShellInterop157DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" Version="$(MicrosoftVisualStudioShellImmutable100Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion)" />
+    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" Version="$(MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="$(MicrosoftVisualStudioProgressionCodeSchemaVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Progression.Common" Version="$(MicrosoftVisualStudioProgressionCommonVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Progression.Interfaces" Version="$(MicrosoftVisualStudioProgressionInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.GraphModel" Version="$(MicrosoftVisualStudioGraphModelVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="$(MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Design" Version="$(MicrosoftVisualStudioShellDesignVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.10.0" Version="$(MicrosoftVisualStudioTextManagerInterop100Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.0" Version="$(MicrosoftVisualStudioTextManagerInterop120Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.16.0.DesignTime" Version="$(MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="$(MicrosoftVisualStudioVsInteractiveWindowVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="$(MicrosoftVisualStudioDesignerInterfacesVersion)" />
+    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.MSXML" Version="$(MicrosoftMSXMLVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
+    <PackageReference Include="VSLangProj2" Version="$(VSLangProj2Version)" />
+    <PackageReference Include="VSLangProj80" Version="$(VSLangProj80Version)" />
+    <PackageReference Include="VSLangProj140" Version="$(VSLangProj140Version)" />
+    <PackageReference Include="VsWebsite.Interop" Version="$(VsWebsiteInteropVersion)" />
+    <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudioVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Implementation\ChangeSignature\ChangeSignatureDialog.xaml.cs">
+      <DependentUpon>ChangeSignatureDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Implementation\PreviewPane\PreviewPane.xaml.cs">
+      <DependentUpon>PreviewPane.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Implementation\ExtractInterface\ExtractInterfaceDialog.xaml.cs">
+      <DependentUpon>ExtractInterfaceDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Implementation\GenerateType\GenerateTypeDialog.xaml.cs">
+      <DependentUpon>GenerateTypeDialog.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Implementation\ChangeSignature\ChangeSignatureDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Implementation\MoveToNamespace\MoveToNamespaceDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Implementation\PickMembers\PickMembersDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Implementation\PreviewPane\PreviewPane.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Implementation\ExtractInterface\ExtractInterfaceDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Implementation\GenerateType\GenerateTypeDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Implementation\PullMemberUp\MainDialog\PullMemberUpDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Implementation\PullMemberUp\WarningDialog\PullMemberUpWarningDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Implementation\Workspace\DetailedErrorInfoDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="ServicesVSResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>ServicesVSResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="VSPackage.resx">
+      <MergeWithCTO>true</MergeWithCTO>
+      <ManifestResourceName>VSPackage</ManifestResourceName>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>VSPackage.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <VSCTCompile Include="Commands.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
+    </VSCTCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <VsdConfigXmlFiles Include="ManagedEditAndContinueService.vsdconfigxml" />
+  </ItemGroup>
+  <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
+</Project>

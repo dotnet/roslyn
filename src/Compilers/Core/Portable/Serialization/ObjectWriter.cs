@@ -361,10 +361,14 @@ namespace Roslyn.Utilities
             public bool TryGetReferenceId(object value, out int referenceId)
                 => _valueToIdMap.TryGetValue(value, out referenceId);
 
-            public void Add(object value)
+            public void Add(object value, bool isReusable)
             {
                 var id = _nextId++;
-                _valueToIdMap.Add(value, id);
+
+                if (isReusable)
+                {
+                    _valueToIdMap.Add(value, id);
+                }
             }
         }
 
@@ -410,8 +414,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                int id;
-                if (_stringReferenceMap.TryGetReferenceId(value, out id))
+                if (_stringReferenceMap.TryGetReferenceId(value, out int id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
@@ -432,7 +435,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    _stringReferenceMap.Add(value);
+                    _stringReferenceMap.Add(value, isReusable: true);
 
                     if (value.IsValidUnicodeString())
                     {
@@ -506,7 +509,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        a => WriteArrayValues((Array)a), 
+                        a => WriteArrayValues((Array)a),
                         array,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
@@ -801,9 +804,9 @@ namespace Roslyn.Utilities
 
         private void WriteObjectWorker(IObjectWritable writable)
         {
-            // emit object header up front
-            _objectReferenceMap.Add(writable);
+            _objectReferenceMap.Add(writable, writable.ShouldReuseInSerialization);
 
+            // emit object header up front
             _writer.Write((byte)EncodingKind.Object);
 
             // Directly write out the type-id for this object.  i.e. no need to write out the 'Type'

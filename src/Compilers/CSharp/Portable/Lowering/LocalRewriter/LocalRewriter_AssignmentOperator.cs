@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true);
                     break;
 
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    loweredLeft = VisitIndexOrRangePatternIndexerAccess(
+                        (BoundIndexOrRangePatternIndexerAccess)left,
+                        isLeftOfAssignment: true);
+                    break;
+
                 case BoundKind.EventAccess:
                     {
                         BoundEventAccess eventAccess = (BoundEventAccess)left;
@@ -222,10 +228,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRef: isRef);
                     }
 
+                case BoundKind.Parameter:
+                    {
+                        Debug.Assert(!isRef || rewrittenLeft.GetRefKind() != RefKind.None);
+                        return new BoundAssignmentOperator(
+                            syntax,
+                            rewrittenLeft,
+                            rewrittenRight,
+                            isRef,
+                            type);
+                    }
+
                 case BoundKind.DiscardExpression:
                     {
                         return rewrittenRight;
                     }
+
+                case BoundKind.Sequence:
+                    // An Index or Range pattern-based indexer produces a sequence with a nested
+                    // BoundIndexerAccess. We need to lower the final expression and produce an
+                    // update sequence
+                    var sequence = (BoundSequence)rewrittenLeft;
+                    if (sequence.Value.Kind == BoundKind.IndexerAccess)
+                    {
+                        return sequence.Update(
+                            sequence.Locals,
+                            sequence.SideEffects,
+                            MakeStaticAssignmentOperator(
+                                syntax,
+                                sequence.Value,
+                                rewrittenRight,
+                                isRef,
+                                type,
+                                used),
+                            type);
+                    }
+                    goto default;
 
                 default:
                     {
@@ -268,7 +306,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> argTemps;
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, property, setMethod, expanded, argsToParamsOpt, ref argumentRefKindsOpt, out argTemps, enableCallerInfo: ThreeState.True);
+            rewrittenArguments = MakeArguments(
+                syntax,
+                rewrittenArguments,
+                property,
+                setMethod,
+                expanded,
+                argsToParamsOpt,
+                ref argumentRefKindsOpt,
+                out argTemps,
+                invokedAsExtensionMethod: false,
+                enableCallerInfo: ThreeState.True);
 
             if (used)
             {

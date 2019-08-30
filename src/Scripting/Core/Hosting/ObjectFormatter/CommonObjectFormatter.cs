@@ -65,9 +65,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
 
-            builder.AppendLine(e.Message);
+            builder.Append(e.GetType());
+            builder.Append(": ");
+            builder.Append(e.Message);
+            builder.Append(Environment.NewLine);
 
-            var trace = new StackTrace(e, needFileInfo: true);
+            var trace = new StackTrace(e, fNeedFileInfo: true);
             foreach (var frame in trace.GetFrames())
             {
                 if (!Filter.Include(frame))

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -23,6 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
@@ -50,16 +49,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var typeName = methodSymbol.ContainingType.Name;
 
-            bool tokensMatch(SyntaxToken t)
+            var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);
+            if (semanticModel.Language == LanguageNames.VisualBasic)
+            {
+                tokens = tokens.Concat(await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
+            }
+
+            return await FindReferencesInTokensAsync(
+                 methodSymbol,
+                 document,
+                 semanticModel,
+                 tokens,
+                 TokensMatch,
+                 cancellationToken).ConfigureAwait(false);
+
+            // local functions
+            bool TokensMatch(SyntaxToken t)
             {
                 if (syntaxFactsService.IsBaseConstructorInitializer(t))
                 {
@@ -78,19 +93,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 return false;
             }
-
-            var tokens = await document.GetConstructorInitializerTokensAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel.Language == LanguageNames.VisualBasic)
-            {
-                tokens = tokens.Concat(await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync("New", cancellationToken).ConfigureAwait(false)).Distinct();
-            }
-
-            return await FindReferencesInTokensAsync(
-                 methodSymbol,
-                 document,
-                 tokens,
-                 tokensMatch,
-                 cancellationToken).ConfigureAwait(false);
         }
     }
 }

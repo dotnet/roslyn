@@ -2,9 +2,12 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -15,8 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpAddBracesDiagnosticAnalyzer(), new CSharpAddBracesCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForIfWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForIfWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -28,11 +34,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForElseWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForElseWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -48,11 +58,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForElseWithChildIf()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForElseWithChildIf(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -64,11 +78,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [|else|] if (false)
             return;
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForForWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForForWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -80,11 +98,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForForEachWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForForEachWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -96,11 +118,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForWhileWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForWhileWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -112,11 +138,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForDoWhileWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForDoWhileWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -129,11 +159,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         }
         while (true);
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForUsingWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForUsingWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -153,11 +187,15 @@ class Fizz : IDisposable
     {
         throw new NotImplementedException();
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForUsingWithChildUsing()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForUsingWithChildUsing(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -184,11 +222,15 @@ class Buzz : IDisposable
     {
         throw new NotImplementedException();
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForLockWithBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForLockWithBraces(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -201,11 +243,15 @@ class Buzz : IDisposable
             return;
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForLockWithChildLock()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForLockWithChildLock(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -218,11 +264,15 @@ class Buzz : IDisposable
             lock (str2)
                 return;
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task DoNotFireForFixedWithChildFixed()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        public async Task DoNotFireForFixedWithChildFixed(int bracesPreference)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Program
@@ -234,13 +284,17 @@ class Buzz : IDisposable
         {
         }
     }
-}");
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForFixedWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForFixedWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Program
 {
     unsafe static void Main()
@@ -260,13 +314,18 @@ class Buzz : IDisposable
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForIfWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
    @"
 class Program
 {
@@ -286,13 +345,18 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForElseWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForElseWithoutBracesButHasContextBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
             @"
 class Program
 {
@@ -314,13 +378,82 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForIfNestedInElseWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForElseWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        if (true) return;
+        [|else|] return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        if (true) return;
+        else
+        {
+            return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForStandaloneElseWithoutBraces(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        [|else|]
+            return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+{}
+        else
+            return;
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfNestedInElseWithoutBraces(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
             @"
 class Program
 {
@@ -342,13 +475,242 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForForWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfNestedInElseWithoutBracesWithMultilineContext1(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        if (true)
+            if (true)   // This multiline statement does not directly impact the other nested statement
+                return;
+            else
+                return;
+        else [|if|] (false) return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        if (true)
+            if (true)   // This multiline statement does not directly impact the other nested statement
+                return;
+            else
+                return;
+        else if (false)
+        {
+            return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfNestedInElseWithoutBracesWithMultilineContext2(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            if (true)
+                return;
+            else
+                return;
+        }
+        else [|if|] (false) return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            if (true)
+                return;
+            else
+                return;
+        }
+        else if (false)
+        {
+            return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfNestedInElseWithoutBracesWithMultilineContext3(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            [|if|] (true)
+                return;
+            else
+                return;
+        }
+        else if (false) return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+            else
+                return;
+        }
+        else if (false) return;
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfNestedInElseWithoutBracesWithMultilineContext4(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            if (true)
+                return;
+            [|else|]
+                return;
+        }
+        else if (false) return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            if (true)
+                return;
+            else
+            {
+                return;
+            }
+        }
+        else if (false) return;
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        /// <summary>
+        /// Verifies that the use of braces in a construct nested within the true portion of an <c>if</c> statement does
+        /// not trigger the multiline behavior the <c>else</c> clause of a containing stetemnet for
+        /// <see cref="PreferBracesPreference.WhenMultiline"/>. The <c>else</c> clause would only need braces if the true
+        /// portion also used braces (which would be required if the true portion was considered multiline.
+        /// </summary>
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForIfNestedInElseWithoutBracesWithMultilineContext5(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            if (true)
+                if (true) { return; } else { return; }
+            [|else|]
+                return;
+        }
+        else if (false) return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            if (true)
+                if (true) { return; } else { return; }
+            else
+            {
+                return;
+            }
+        }
+        else if (false) return;
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForForWithoutBraces(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
             @"
 class Program
 {
@@ -368,13 +730,120 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForForEachWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForMultilineForWithoutBraces1(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        [|for|] (var i = 0;
+            i < 5;
+            i++) return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        for (var i = 0;
+            i < 5;
+            i++)
+        {
+            return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForMultilineForWithoutBraces2(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        [|for|] (var i = 0; i < 5; i++) if (true)
+            return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        for (var i = 0; i < 5; i++)
+        {
+            if (true)
+            return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForMultilineForWithoutBraces3(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        [|for|] (var i = 0; i < 5; i++)
+            if (true)
+                return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        for (var i = 0; i < 5; i++)
+        {
+            if (true)
+                return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForForEachWithoutBraces(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
             @"
 class Program
 {
@@ -394,13 +863,18 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForWhileWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForWhileWithoutBraces(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
             @"
 class Program
 {
@@ -420,13 +894,18 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForDoWhileWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForDoWhileWithoutBraces1(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
             @"
 class Program
 {
@@ -447,13 +926,86 @@ class Program
         }
         while (true);
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForUsingWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForDoWhileWithoutBraces2(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        [|do|]
+            return;
+        while (true);
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        do
+        {
+            return;
+        }
+        while (true);
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForMultilineDoWhileWithoutBraces1(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        [|do|] return; while (true ||
+            true);
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        do
+        {
+            return;
+        }
+        while (true ||
+            true);
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForUsingWithoutBraces(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
             @"
 class Program
 {
@@ -490,13 +1042,18 @@ class Fizz : IDisposable
     {
         throw new NotImplementedException();
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForUsingWithoutBracesNestedInUsing()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForUsingWithoutBracesNestedInUsing(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
             @"
 class Program
 {
@@ -551,13 +1108,154 @@ class Buzz : IDisposable
     {
         throw new NotImplementedException();
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForLockWithoutBraces()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForMultilineUsingWithoutBracesNestedInUsing1(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        using (var f        // <-- This multiline condition doesn't trigger a multiline braces requirement when it's the outer 'using' statement
+            = new Fizz())
+        [|using|] (var b = new Buzz())
+            return;
+    }
+}
+
+class Fizz : IDisposable
+{
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class Buzz : IDisposable
+{
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        using (var f        // <-- This multiline condition doesn't trigger a multiline braces requirement when it's the outer 'using' statement
+            = new Fizz())
+        using (var b = new Buzz())
+        {
+            return;
+        }
+    }
+}
+
+class Fizz : IDisposable
+{
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class Buzz : IDisposable
+{
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForMultilineUsingWithoutBracesNestedInUsing2(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        using (var f = new Fizz())
+        [|using|] (var b        // <-- This multiline condition triggers a multiline braces requirement because it's the inner 'using' statement
+            = new Buzz())
+            return;
+    }
+}
+
+class Fizz : IDisposable
+{
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class Buzz : IDisposable
+{
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        using (var f = new Fizz())
+        using (var b        // <-- This multiline condition triggers a multiline braces requirement because it's the inner 'using' statement
+            = new Buzz())
+        {
+            return;
+        }
+    }
+}
+
+class Fizz : IDisposable
+{
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class Buzz : IDisposable
+{
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForLockWithoutBraces(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
             @"
 class Program
 {
@@ -580,13 +1278,18 @@ class Program
             return;
         }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-        public async Task FireForLockWithoutBracesNestedInLock()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        public async Task FireForLockWithoutBracesNestedInLock(int bracesPreference, bool expectDiagnostic)
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
             @"
 class Program
 {
@@ -615,7 +1318,518 @@ class Program
                 return;
             }
     }
-}");
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task DoNotFireForIfWhenIntercedingDirectiveBefore(int bracesPreference)
+        {
+            await TestMissingInRegularAndScriptAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        [|if (true)|]
+#endif
+            return;
+    }
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task DoNotFireForIfWithIntercedingDirectiveAfter(int bracesPreference)
+        {
+            await TestMissingInRegularAndScriptAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)|]
+#if test
+            return;
+#endif
+    }
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task DoNotFireForIfElseWithIntercedingDirectiveInBoth(int bracesPreference)
+        {
+            await TestMissingInRegularAndScriptAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)
+#if test
+            return;
+        else|]
+#endif
+            return;
+    }
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task OnlyFireForIfWithIntercedingDirectiveInElseAroundIf(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        [|if (true)
+            return;
+        else|]
+#endif
+            return;
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        if (true)
+        {
+            return;
+        }
+        else
+#endif
+            return;
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task OnlyFireForElseWithIntercedingDirectiveInIfAroundElse(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)
+#if test
+            return;
+        else|]
+            return;
+#endif
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        if (true)
+#if test
+            return;
+        else
+        {
+            return;
+        }
+#endif
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task OnlyFireForElseWithIntercedingDirectiveInIf(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        [|if (true)
+#endif
+            return;
+        else|]
+            return;
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        if (true)
+#endif
+            return;
+        else
+        {
+            return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task OnlyFireForIfWithIntercedingDirectiveInElse(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)
+            return;
+        else|]
+#if test
+            return;
+#endif
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+        else
+#if test
+            return;
+#endif
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForIfElseWithDirectiveAroundIf(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        [|if (true)
+            return;
+#endif
+        else|]
+        {
+            return;
+        }
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        if (true)
+        {
+            return;
+        }
+#endif
+        else
+        {
+            return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForIfElseWithDirectiveAroundElse(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)
+        {
+            return;
+        }
+#if test
+        else|]
+            return;
+#endif
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+#if test
+        else
+        {
+            return;
+        }
+#endif
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForIfWithoutIntercedingDirective(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+#endif
+        [|if (true)|]
+            return;
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+#endif
+        if (true)
+        {
+            return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForIfWithDirectiveAfterEmbeddedStatement(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)|]
+            return;
+#if test
+#endif
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+#if test
+#endif
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForInnerNestedStatementWhenDirectiveEntirelyInside(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|while (true)
+#if test
+            if (true)|]
+                return;
+#endif
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        while (true)
+#if test
+            if (true)
+            {
+                return;
+            }
+#endif
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForOuterNestedStatementWhenDirectiveEntirelyInside(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|while (true)
+#if test
+            if (true)|]
+#endif
+                return;
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        while (true)
+        {
+#if test
+            if (true)
+#endif
+                return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        private async Task TestAsync(string initialMarkup, string expectedMarkup, PreferBracesPreference bracesPreference, bool expectDiagnostic)
+        {
+            if (expectDiagnostic)
+            {
+                await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: Option(CSharpCodeStyleOptions.PreferBraces, bracesPreference, NotificationOption.Silent));
+            }
+            else
+            {
+                await TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, bracesPreference, NotificationOption.Silent)));
+            }
         }
     }
 }

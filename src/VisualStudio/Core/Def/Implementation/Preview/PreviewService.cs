@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -20,7 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         private readonly IVsImageService2 _imageService;
 
         [ImportingConstructor]
-        public PreviewDialogService(SVsServiceProvider serviceProvider)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public PreviewDialogService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _previewChanges = (IVsPreviewChangesService)serviceProvider.GetService(typeof(SVsPreviewChangesService));
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
@@ -43,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             bool showCheckBoxes = true)
         {
             var engine = new PreviewEngine(
+                ThreadingContext,
                 title,
                 helpString,
                 description,

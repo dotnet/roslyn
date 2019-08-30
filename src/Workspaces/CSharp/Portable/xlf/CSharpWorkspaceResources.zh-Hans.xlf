@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpWorkspaceResources.resx">
     <body>
+      <trans-unit id="Code_block_preferences">
+        <source>Code-block preferences</source>
+        <target state="translated">代码块首选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_bodied_members">
+        <source>Expression-bodied members</source>
+        <target state="translated">Expression-bodied 成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_preferences">
+        <source>Indentation preferences</source>
+        <target state="translated">缩进首选项</target>
+        <note />
+      </trans-unit>
       <trans-unit id="No_available_location_found_to_add_statements_to">
         <source>No available location found to add statements to.</source>
         <target state="translated">没有找到添加语句的可用位置。</target>
@@ -24,7 +39,22 @@
       </trans-unit>
       <trans-unit id="Node_not_in_parent_s_child_list">
         <source>Node not in parent's child list</source>
-        <target state="translated">不在父级的子列表中的节点</target>
+        <target state="translated">节点不在父级的子列表中</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Null_checking_preferences">
+        <source>Null-checking preferences</source>
+        <target state="translated">Null 检查首选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pattern_matching_preferences">
+        <source>Pattern matching preferences</source>
+        <target state="translated">模式匹配首选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Space_preferences">
+        <source>Space preferences</source>
+        <target state="translated">空格键首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Trivia_is_not_associated_with_token">
@@ -45,6 +75,21 @@
       <trans-unit id="Implement_Interface">
         <source>Implement Interface</source>
         <target state="translated">实现接口</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping_preferences">
+        <source>Wrapping preferences</source>
+        <target state="translated">包装首选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_directive_preferences">
+        <source>'using' directive preferences</source>
+        <target state="translated">"using" 指令首选项</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="var_preferences">
+        <source>var preferences</source>
+        <target state="translated">var 首选项</target>
         <note />
       </trans-unit>
     </body>

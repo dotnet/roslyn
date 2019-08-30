@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -10,19 +11,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     {
         private static bool TryGetNamingStyleData(
             string namingRuleName,
-            IReadOnlyDictionary<string, object> allRawConventions,
+            IReadOnlyDictionary<string, string> rawOptions,
             out NamingStyle namingStyle)
         {
             namingStyle = default;
-            if (!TryGetNamingStyleTitle(namingRuleName, allRawConventions, out string namingStyleTitle))
+            if (!TryGetNamingStyleTitle(namingRuleName, rawOptions, out var namingStyleTitle))
             {
                 return false;
             }
 
-            var requiredPrefix = GetNamingRequiredPrefix(namingStyleTitle, allRawConventions);
-            var requiredSuffix = GetNamingRequiredSuffix(namingStyleTitle, allRawConventions);
-            var wordSeparator = GetNamingWordSeparator(namingStyleTitle, allRawConventions);
-            if (!TryGetNamingCapitalization(namingStyleTitle, allRawConventions, out var capitalization))
+            var requiredPrefix = GetNamingRequiredPrefix(namingStyleTitle, rawOptions);
+            var requiredSuffix = GetNamingRequiredSuffix(namingStyleTitle, rawOptions);
+            var wordSeparator = GetNamingWordSeparator(namingStyleTitle, rawOptions);
+            if (!TryGetNamingCapitalization(namingStyleTitle, rawOptions, out var capitalization))
             {
                 return false;
             }
@@ -40,12 +41,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static bool TryGetNamingStyleTitle(
             string namingRuleName,
-            IReadOnlyDictionary<string, object> conventionsDictionary,
+            IReadOnlyDictionary<string, string> conventionsDictionary,
             out string namingStyleName)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.style", out object result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.style", out namingStyleName))
             {
-                namingStyleName = result as string;
                 return namingStyleName != null;
             }
 
@@ -53,29 +53,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return false;
         }
 
-        private static string GetNamingRequiredPrefix(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary)
+        private static string GetNamingRequiredPrefix(string namingStyleName, IReadOnlyDictionary<string, string> conventionsDictionary)
             => GetStringFromConventionsDictionary(namingStyleName, "required_prefix", conventionsDictionary);
 
-        private static string GetNamingRequiredSuffix(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary)
+        private static string GetNamingRequiredSuffix(string namingStyleName, IReadOnlyDictionary<string, string> conventionsDictionary)
             => GetStringFromConventionsDictionary(namingStyleName, "required_suffix", conventionsDictionary);
 
-        private static string GetNamingWordSeparator(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary)
+        private static string GetNamingWordSeparator(string namingStyleName, IReadOnlyDictionary<string, string> conventionsDictionary)
             => GetStringFromConventionsDictionary(namingStyleName, "word_separator", conventionsDictionary);
 
-        private static bool TryGetNamingCapitalization(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary, out Capitalization capitalization)
+        private static bool TryGetNamingCapitalization(string namingStyleName, IReadOnlyDictionary<string, string> conventionsDictionary, out Capitalization capitalization)
         {
             var result = GetStringFromConventionsDictionary(namingStyleName, "capitalization", conventionsDictionary);
             return TryParseCapitalizationScheme(result, out capitalization);
         }
 
-        private static string GetStringFromConventionsDictionary(string namingStyleName, string optionName, IReadOnlyDictionary<string, object> conventionsDictionary)
+        private static string GetStringFromConventionsDictionary(string namingStyleName, string optionName, IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_style.{namingStyleName}.{optionName}", out object result))
-            {
-                return result as string ?? string.Empty;
-            }
-
-            return string.Empty;
+            conventionsDictionary.TryGetValue($"dotnet_naming_style.{namingStyleName}.{optionName}", out var result);
+            return result ?? string.Empty;
         }
 
         private static bool TryParseCapitalizationScheme(string namingStyleCapitalization, out Capitalization capitalization)
@@ -100,6 +96,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 default:
                     capitalization = default;
                     return false;
+            }
+        }
+
+        public static string ToEditorConfigString(this Capitalization capitalization)
+        {
+            switch (capitalization)
+            {
+                case Capitalization.PascalCase:
+                    return "pascal_case";
+
+                case Capitalization.CamelCase:
+                    return "camel_case";
+
+                case Capitalization.FirstUpper:
+                    return "first_word_upper";
+
+                case Capitalization.AllUpper:
+                    return "all_upper";
+
+                case Capitalization.AllLower:
+                    return "all_lower";
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(capitalization);
             }
         }
     }

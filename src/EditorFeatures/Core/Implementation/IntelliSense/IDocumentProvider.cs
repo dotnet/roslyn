@@ -10,22 +10,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
     internal interface IDocumentProvider
     {
-        Task<Document> GetDocumentAsync(ITextSnapshot snapshot, CancellationToken cancellationToken);
-        Document GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot snapshot);
+        Document GetDocument(ITextSnapshot snapshot, CancellationToken cancellationToken);
     }
 
     internal class DocumentProvider : ForegroundThreadAffinitizedObject, IDocumentProvider
     {
-        public Task<Document> GetDocumentAsync(ITextSnapshot snapshot, CancellationToken cancellationToken)
+        public DocumentProvider(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
-            AssertIsBackground();
-            return Task.FromResult(snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken));
         }
 
-        public Document GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot snapshot)
+        public Document GetDocument(ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
-            var text = snapshot.AsText();
-            return text.GetOpenDocumentInCurrentContextWithChanges();
+            AssertIsBackground();
+            return snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
         }
     }
 }

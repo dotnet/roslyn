@@ -35,8 +35,9 @@ namespace Microsoft.CodeAnalysis
                 // sorted by ID so we have a consistent sort.
                 var documentChecksumsTasks = _documentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
                 var additionalDocumentChecksumTasks = _additionalDocumentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
+                var analyzerConfigDocumentChecksumTasks = _analyzerConfigDocumentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
 
-                var serializer = new Serializer(_solutionServices.Workspace);
+                var serializer = _solutionServices.Workspace.Services.GetService<ISerializerService>();
 
                 var infoChecksum = serializer.CreateChecksum(ProjectInfo.Attributes, cancellationToken);
 
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis
 
                 var documentChecksums = await Task.WhenAll(documentChecksumsTasks).ConfigureAwait(false);
                 var additionalChecksums = await Task.WhenAll(additionalDocumentChecksumTasks).ConfigureAwait(false);
+                var analyzerConfigDocumentChecksums = await Task.WhenAll(analyzerConfigDocumentChecksumTasks).ConfigureAwait(false);
 
                 return new ProjectStateChecksums(
                     infoChecksum,
@@ -59,7 +61,8 @@ namespace Microsoft.CodeAnalysis
                     projectReferenceChecksums,
                     metadataReferenceChecksums,
                     analyzerReferenceChecksums,
-                    new TextDocumentChecksumCollection(additionalChecksums));
+                    new TextDocumentChecksumCollection(additionalChecksums),
+                    new AnalyzerConfigDocumentChecksumCollection(analyzerConfigDocumentChecksums));
             }
         }
     }

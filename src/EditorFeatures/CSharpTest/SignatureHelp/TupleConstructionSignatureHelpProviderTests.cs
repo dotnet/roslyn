@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
-using Xunit;
-using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
@@ -36,6 +34,40 @@ class C
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task InvocationWithNullableReferenceTypes()
+        {
+            var markup = @"
+class C
+{
+    (string?, string) y = [|($$
+|]}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(string?, string)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [WorkItem(655607, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/655607")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestMissingTupleElement()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        (a, ) = [|($$
+|]  }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(object a, object)", currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }

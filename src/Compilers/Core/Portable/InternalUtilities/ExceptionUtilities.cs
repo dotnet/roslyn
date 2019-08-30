@@ -7,6 +7,11 @@ namespace Roslyn.Utilities
 {
     internal static class ExceptionUtilities
     {
+        /// <summary>
+        /// Creates an <see cref="InvalidOperationException"/> with information about an unexpected value.
+        /// </summary>
+        /// <param name="o">The unexpected value.</param>
+        /// <returns>The <see cref="InvalidOperationException"/>, which should be thrown by the caller.</returns>
         internal static Exception UnexpectedValue(object o)
         {
             string output = string.Format("Unexpected value '{0}' of type '{1}'", o, (o != null) ? o.GetType().FullName : "<unknown>");

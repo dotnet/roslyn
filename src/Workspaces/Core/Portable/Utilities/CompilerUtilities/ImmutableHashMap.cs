@@ -50,9 +50,9 @@ namespace Roslyn.Collections.Immutable
         private ImmutableHashMap(Bucket root, IEqualityComparer<TKey> comparer, IEqualityComparer<TValue> valueComparer)
             : this(comparer, valueComparer)
         {
-            Contract.Requires(root != null);
-            Contract.Requires(comparer != null);
-            Contract.Requires(valueComparer != null);
+            Debug.Assert(root != null);
+            Debug.Assert(comparer != null);
+            Debug.Assert(valueComparer != null);
 
             _root = root;
         }
@@ -457,8 +457,8 @@ namespace Roslyn.Collections.Immutable
         /// </returns>
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder("ImmutableHashMap[");
-            bool needComma = false;
+            var builder = new StringBuilder("ImmutableHashMap[");
+            var needComma = false;
             foreach (var kv in this)
             {
                 builder.Append(kv.Key);
@@ -539,7 +539,7 @@ namespace Roslyn.Collections.Immutable
         [Pure]
         private ImmutableHashMap<TKey, TValue> AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs, bool overwriteOnCollision, bool avoidToHashMap)
         {
-            Contract.Requires(pairs != null);
+            Debug.Assert(pairs != null);
             Contract.Ensures(Contract.Result<ImmutableHashMap<TKey, TValue>>() != null);
 
             // Some optimizations may apply if we're an empty list.
@@ -713,8 +713,8 @@ namespace Roslyn.Collections.Immutable
             internal ListBucket(ValueBucket[] buckets)
                 : base(buckets[0].Hash)
             {
-                Contract.Requires(buckets != null);
-                Contract.Requires(buckets.Length >= 2);
+                Debug.Assert(buckets != null);
+                Debug.Assert(buckets.Length >= 2);
                 _buckets = buckets;
             }
 
@@ -724,7 +724,7 @@ namespace Roslyn.Collections.Immutable
             {
                 if (this.Hash == bucket.Hash)
                 {
-                    int pos = this.Find(bucket.Key, comparer);
+                    var pos = this.Find(bucket.Key, comparer);
                     if (pos >= 0)
                     {
                         // If the value hasn't changed for this key, return the original bucket.
@@ -759,7 +759,7 @@ namespace Roslyn.Collections.Immutable
             {
                 if (this.Hash == hash)
                 {
-                    int pos = this.Find(key, comparer);
+                    var pos = this.Find(key, comparer);
                     if (pos >= 0)
                     {
                         if (_buckets.Length == 1)
@@ -784,7 +784,7 @@ namespace Roslyn.Collections.Immutable
             {
                 if (this.Hash == hash)
                 {
-                    int pos = this.Find(key, comparer);
+                    var pos = this.Find(key, comparer);
                     if (pos >= 0)
                     {
                         return _buckets[pos];
@@ -796,7 +796,7 @@ namespace Roslyn.Collections.Immutable
 
             private int Find(TKey key, IEqualityComparer<TKey> comparer)
             {
-                for (int i = 0; i < _buckets.Length; i++)
+                for (var i = 0; i < _buckets.Length; i++)
                 {
                     if (comparer.Equals(key, _buckets[i].Key))
                     {
@@ -829,8 +829,8 @@ namespace Roslyn.Collections.Immutable
             /// <param name="count">The count.</param>
             private HashBucket(int hashRoll, uint used, Bucket[] buckets, int count)
             {
-                Contract.Requires(buckets != null);
-                Contract.Requires(buckets.Length == CountBits(used));
+                Debug.Assert(buckets != null);
+                Debug.Assert(buckets.Length == CountBits(used));
 
                 _hashRoll = hashRoll & 31;
                 _used = used;
@@ -846,16 +846,16 @@ namespace Roslyn.Collections.Immutable
             /// <param name="bucket2">The bucket2.</param>
             internal HashBucket(int suggestedHashRoll, ValueOrListBucket bucket1, ValueOrListBucket bucket2)
             {
-                Contract.Requires(bucket1 != null);
-                Contract.Requires(bucket2 != null);
-                Contract.Requires(bucket1.Hash != bucket2.Hash);
+                Debug.Assert(bucket1 != null);
+                Debug.Assert(bucket2 != null);
+                Debug.Assert(bucket1.Hash != bucket2.Hash);
 
                 // find next hashRoll that causes these two to be slotted in different buckets
                 var h1 = bucket1.Hash;
                 var h2 = bucket2.Hash;
                 int s1;
                 int s2;
-                for (int i = 0; i < 32; i++)
+                for (var i = 0; i < 32; i++)
                 {
                     _hashRoll = (suggestedHashRoll + i) & 31;
                     s1 = this.ComputeLogicalSlot(h1);
@@ -878,11 +878,11 @@ namespace Roslyn.Collections.Immutable
 
             internal override Bucket Add(int suggestedHashRoll, ValueBucket bucket, IEqualityComparer<TKey> keyComparer, IEqualityComparer<TValue> valueComparer, bool overwriteExistingValue)
             {
-                int logicalSlot = ComputeLogicalSlot(bucket.Hash);
+                var logicalSlot = ComputeLogicalSlot(bucket.Hash);
                 if (IsInUse(logicalSlot))
                 {
                     // if this slot is in use, then add the new item to the one in this slot
-                    int physicalSlot = ComputePhysicalSlot(logicalSlot);
+                    var physicalSlot = ComputePhysicalSlot(logicalSlot);
                     var existing = _buckets[physicalSlot];
 
                     // suggest hash roll that will cause any nested hash bucket to use entirely new bits for picking logical slot
@@ -900,7 +900,7 @@ namespace Roslyn.Collections.Immutable
                 }
                 else
                 {
-                    int physicalSlot = ComputePhysicalSlot(logicalSlot);
+                    var physicalSlot = ComputePhysicalSlot(logicalSlot);
                     var newBuckets = _buckets.InsertAt(physicalSlot, bucket);
                     var newUsed = InsertBit(logicalSlot, _used);
                     return new HashBucket(_hashRoll, newUsed, newBuckets, _count + bucket.Count);
@@ -909,12 +909,12 @@ namespace Roslyn.Collections.Immutable
 
             internal override Bucket Remove(int hash, TKey key, IEqualityComparer<TKey> comparer)
             {
-                int logicalSlot = ComputeLogicalSlot(hash);
+                var logicalSlot = ComputeLogicalSlot(hash);
                 if (IsInUse(logicalSlot))
                 {
-                    int physicalSlot = ComputePhysicalSlot(logicalSlot);
+                    var physicalSlot = ComputePhysicalSlot(logicalSlot);
                     var existing = _buckets[physicalSlot];
-                    Bucket result = existing.Remove(hash, key, comparer);
+                    var result = existing.Remove(hash, key, comparer);
                     if (result == null)
                     {
                         if (_buckets.Length == 1)
@@ -941,10 +941,10 @@ namespace Roslyn.Collections.Immutable
 
             internal override ValueBucket Get(int hash, TKey key, IEqualityComparer<TKey> comparer)
             {
-                int logicalSlot = ComputeLogicalSlot(hash);
+                var logicalSlot = ComputeLogicalSlot(hash);
                 if (IsInUse(logicalSlot))
                 {
-                    int physicalSlot = ComputePhysicalSlot(logicalSlot);
+                    var physicalSlot = ComputePhysicalSlot(logicalSlot);
                     return _buckets[physicalSlot].Get(hash, key, comparer);
                 }
 
@@ -963,15 +963,15 @@ namespace Roslyn.Collections.Immutable
 
             private int ComputeLogicalSlot(int hc)
             {
-                uint uc = unchecked((uint)hc);
-                uint rotated = RotateRight(uc, _hashRoll);
+                var uc = unchecked((uint)hc);
+                var rotated = RotateRight(uc, _hashRoll);
                 return unchecked((int)(rotated & 31));
             }
 
             [Pure]
             private static uint RotateRight(uint v, int n)
             {
-                Contract.Requires(n >= 0 && n < 32);
+                Debug.Assert(n >= 0 && n < 32);
                 if (n == 0)
                 {
                     return v;
@@ -982,7 +982,7 @@ namespace Roslyn.Collections.Immutable
 
             private int ComputePhysicalSlot(int logicalSlot)
             {
-                Contract.Requires(logicalSlot >= 0 && logicalSlot < 32);
+                Debug.Assert(logicalSlot >= 0 && logicalSlot < 32);
                 Contract.Ensures(Contract.Result<int>() >= 0);
                 if (_buckets.Length == 32)
                 {
@@ -994,7 +994,7 @@ namespace Roslyn.Collections.Immutable
                     return 0;
                 }
 
-                uint mask = uint.MaxValue >> (32 - logicalSlot); // only count the bits up to the logical slot #
+                var mask = uint.MaxValue >> (32 - logicalSlot); // only count the bits up to the logical slot #
                 return CountBits(_used & mask);
             }
 
@@ -1003,7 +1003,7 @@ namespace Roslyn.Collections.Immutable
             {
                 unchecked
                 {
-                    v = v - ((v >> 1) & 0x55555555u);
+                    v -= ((v >> 1) & 0x55555555u);
                     v = (v & 0x33333333u) + ((v >> 2) & 0x33333333u);
                     return (int)((v + (v >> 4) & 0xF0F0F0Fu) * 0x1010101u) >> 24;
                 }
@@ -1012,14 +1012,14 @@ namespace Roslyn.Collections.Immutable
             [Pure]
             private static uint InsertBit(int position, uint bits)
             {
-                Contract.Requires(0 == (bits & (1u << position)));
+                Debug.Assert(0 == (bits & (1u << position)));
                 return bits | (1u << position);
             }
 
             [Pure]
             private static uint RemoveBit(int position, uint bits)
             {
-                Contract.Requires(0 != (bits & (1u << position)));
+                Debug.Assert(0 != (bits & (1u << position)));
                 return bits & ~(1u << position);
             }
         }

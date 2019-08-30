@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener asyncListener,
                 Mutex testSessionHookupMutex)
+                : base(eventHookupSessionManager.ThreadingContext)
             {
                 AssertIsForeground();
                 _cancellationTokenSource = new CancellationTokenSource();
@@ -111,17 +112,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                         _cancellationTokenSource.Token,
                         TaskScheduler.Default);
 
-                    var continuedTask = this.GetEventNameTask.SafeContinueWith(t =>
+                    var continuedTask = this.GetEventNameTask.SafeContinueWithFromAsync(
+                        async t =>
                         {
-                            AssertIsForeground();
+                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
+                            _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
                             if (t.Result != null)
                             {
                                 commandHandler.EventHookupSessionManager.EventHookupFoundInSession(this);
                             }
                         },
                         _cancellationTokenSource.Token,
-                        TaskContinuationOptions.OnlyOnRanToCompletion,
-                        ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
+                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
 
                     continuedTask.CompletesAsyncOperation(asyncToken);
                 }
@@ -187,8 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             private IEventSymbol GetEventSymbol(SemanticModel semanticModel, SyntaxToken plusEqualsToken, CancellationToken cancellationToken)
             {
                 AssertIsBackground();
-                var parentToken = plusEqualsToken.Parent as AssignmentExpressionSyntax;
-                if (parentToken == null)
+                if (!(plusEqualsToken.Parent is AssignmentExpressionSyntax parentToken))
                 {
                     return null;
                 }

@@ -1,21 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -33,7 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
         protected readonly SVsServiceProvider ServiceProvider;
 
-        public AbstractSnippetCommandHandler(IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
+        public string DisplayName => FeaturesResources.Snippets;
+
+        public AbstractSnippetCommandHandler(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
             this.ServiceProvider = serviceProvider;
@@ -41,26 +43,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected abstract AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer);
         protected abstract bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken);
-        protected abstract void InvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, Action nextHandler, bool surroundWith = false);
+        protected abstract bool TryInvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, bool surroundWith = false);
 
         protected virtual bool TryInvokeSnippetPickerOnQuestionMark(ITextView textView, ITextBuffer textBuffer)
         {
             return false;
         }
 
-        public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(TabKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
             if (!AreSnippetsEnabled(args))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
                 snippetExpansionClient.TryHandleTab())
             {
-                return;
+                return true;
             }
 
             // Insert snippet/show picker only if we don't have a selection: the user probably wants to indent instead
@@ -68,170 +69,166 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 if (TryHandleTypedSnippet(args.TextView, args.SubjectBuffer))
                 {
-                    return;
+                    return true;
                 }
 
                 if (TryInvokeSnippetPickerOnQuestionMark(args.TextView, args.SubjectBuffer))
                 {
-                    return;
+                    return true;
                 }
             }
 
-            nextHandler();
+            return false;
         }
 
-        public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(TabKeyCommandArgs args)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             return CommandState.Available;
         }
 
-        public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
             if (!AreSnippetsEnabled(args))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
                 snippetExpansionClient.TryHandleReturn())
             {
-                return;
+                return true;
             }
 
-            nextHandler();
+            return false;
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             return CommandState.Available;
         }
 
-        public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
             if (!AreSnippetsEnabled(args))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
                 snippetExpansionClient.TryHandleEscape())
             {
-                return;
+                return true;
             }
 
-            nextHandler();
+            return false;
         }
 
-        public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(EscapeKeyCommandArgs args)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             return CommandState.Available;
         }
 
-        public void ExecuteCommand(BackTabKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(BackTabKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
             if (!AreSnippetsEnabled(args))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
                 snippetExpansionClient.TryHandleBackTab())
             {
-                return;
+                return true;
             }
 
-            nextHandler();
+            return false;
         }
 
-        public CommandState GetCommandState(BackTabKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(BackTabKeyCommandArgs args)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             return CommandState.Available;
         }
 
-        public void ExecuteCommand(InsertSnippetCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(InsertSnippetCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
-            InvokeInsertionUI(args.TextView, args.SubjectBuffer, nextHandler);
+            return TryInvokeInsertionUI(args.TextView, args.SubjectBuffer);
         }
 
-        public CommandState GetCommandState(InsertSnippetCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(InsertSnippetCommandArgs args)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             return CommandState.Available;
@@ -241,14 +238,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             AssertIsForeground();
 
-            Document document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return false;
             }
 
             var currentText = subjectBuffer.AsTextContainer().CurrentText;
-            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
             var endPositionInSubjectBuffer = textView.GetCaretPoint(subjectBuffer);
             if (endPositionInSubjectBuffer == null)
@@ -262,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // Find the snippet shortcut
             while (startPosition > 0)
             {
-                char c = currentText[startPosition - 1];
+                var c = currentText[startPosition - 1];
                 if (!syntaxFactsService.IsIdentifierPartCharacter(c) && c != '#' && c != '~')
                 {
                     break;
@@ -297,7 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return expansionManager != null;
         }
 
-        protected static bool AreSnippetsEnabled(CommandArgs args)
+        protected static bool AreSnippetsEnabled(EditorCommandArgs args)
         {
             return args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.Snippets) &&
                 // TODO (https://github.com/dotnet/roslyn/issues/5107): enable in interactive

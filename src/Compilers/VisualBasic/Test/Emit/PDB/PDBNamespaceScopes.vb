@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBNamespaceScopes
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ProjectLevelXmlImportsWithoutRootNamespace()
             Dim source =
 <compilation>
@@ -106,8 +106,8 @@ End Namespace
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="40, 26, 2D, BC, C1, 9A,  B, B7, 68, F0, ED, 8E, CA, 70, 22, 73, 78, 33, EA, C0, "/>
-        <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="94, 7A, FB,  B, 3B, B0, EF, 63, B9, ED, E8, A9, D0, 58, BA, D0, 21,  7, C2, CE, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="40-26-2D-BC-C1-9A-0B-B7-68-F0-ED-8E-CA-70-22-73-78-33-EA-C0"/>
+        <file id="2" name="b.vb" language="VB" checksumAlgorithm="SHA1" checksum="94-7A-FB-0B-3B-B0-EF-63-B9-ED-E8-A9-D0-58-BA-D0-21-07-C2-CE"/>
     </files>
     <entryPoint declaringType="Boo.C1" methodName="Main"/>
     <methods>
@@ -181,7 +181,7 @@ End Namespace
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ProjectLevelXmlImportsWithRootNamespace()
             Dim source =
 <compilation>
@@ -279,8 +279,8 @@ End Namespace
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="93, 20, A5, 3E, 2C, 50, B2,  E, 7C, D6, 29, 3F, E9, 9E, 33, 72, A6, 21, FD, 3F, "/>
-        <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="94, 7A, FB,  B, 3B, B0, EF, 63, B9, ED, E8, A9, D0, 58, BA, D0, 21,  7, C2, CE, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="93-20-A5-3E-2C-50-B2-0E-7C-D6-29-3F-E9-9E-33-72-A6-21-FD-3F"/>
+        <file id="2" name="b.vb" language="VB" checksumAlgorithm="SHA1" checksum="94-7A-FB-0B-3B-B0-EF-63-B9-ED-E8-A9-D0-58-BA-D0-21-07-C2-CE"/>
     </files>
     <entryPoint declaringType="DefaultNamespace.Boo.C1" methodName="Main"/>
     <methods>
@@ -356,7 +356,7 @@ End Namespace
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub EmittingPdbVsNot()
             Dim source =
 <compilation name="EmittingPdbVsNot">
@@ -387,7 +387,7 @@ End Class
             MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ImportedNoPiaTypes()
             Dim sourceLib =
 <compilation name="ImportedNoPiaTypesAssemblyName">
@@ -476,7 +476,7 @@ End Class
             v.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -497,7 +497,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ImportedTypeWithUnknownBase()
             Dim sourceLib1 =
 <compilation>
@@ -546,7 +546,7 @@ End Class
             v.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// System.Runtime.WindowsRuntime assembly.
         /// </summary> 
         [Fact]
-        public void FunctionPrototypeForwarded()
+        public void FunctionSignatureForwarded()
         {
             var text = "public class A{};";
             var comp = CreateCompilationWithWinRT(text);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             wns1 = wns1.GetMember<NamespaceSymbol>("Foundation");
             var iref = wns1.GetMember<PENamedTypeSymbol>("IUriRuntimeClass");
             var func = iref.GetMember<PEMethodSymbol>("CombineUri");
-            var ret = func.ReturnType;
+            var ret = func.ReturnTypeWithAnnotations;
             Assert.Equal(func.ReturnType.ToTestDisplayString(), "System.Uri");
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// Ensure that a simple program that uses projected types can compile
         /// and run.
         /// </summary>
-        [ConditionalFact(typeof(OSVersionWin8))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void WinMdColorTest()
         {
             var text = @"using Windows.UI;
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 }
                              };";
 
-            CompileAndVerify(text, WinRtRefs, expectedOutput: "#FF000000");
+            CompileAndVerify(text, WinRtRefs, targetFramework: TargetFramework.Empty, expectedOutput: "#FF000000");
         }
 
         /// <summary>
@@ -231,6 +231,7 @@ public class MyAttribute : System.Attribute
             CompileAndVerify(
                 source,
                 WinRtRefs.Concat(new[] { AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference() }),
+                targetFramework: TargetFramework.Empty,
                 symbolValidator: m =>
             {
                 var module = (PEModuleSymbol)m;
