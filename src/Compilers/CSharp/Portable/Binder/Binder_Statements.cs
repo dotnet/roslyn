@@ -3068,6 +3068,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckForUnobservedAwaitable(expression, diagnostics);
                     statement = expressionStatement;
                 }
+                else if (IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ReturnInIterator, syntax);
+                    statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
+                }
                 else
                 {
                     expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
