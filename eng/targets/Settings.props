@@ -194,4 +194,8 @@
       </PropertyGroup>
     </When>
   </Choose>
+
+  <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+    <DefineConstants>DotNetBuildFromSource</DefineConstants>
+  </PropertyGroup>
 </Project>
