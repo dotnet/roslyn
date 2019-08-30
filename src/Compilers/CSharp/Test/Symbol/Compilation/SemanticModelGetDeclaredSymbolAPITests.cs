@@ -5220,5 +5220,27 @@ class C
 
             Assert.Contains(symbols, s => s.Name == "Local");
         }
+
+        [Fact]
+        [WorkItem(784401, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/784401")]
+        public void LocalFunctionInvalidParameterWithDefaultValue()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void F(int x, = 3) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            foreach (var decl in decls)
+            {
+                _ = model.GetDeclaredSymbol(decl);
+            }
+        }
     }
 }
