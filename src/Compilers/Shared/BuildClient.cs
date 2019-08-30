@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
 {
     internal delegate int CompileFunc(string[] arguments, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerAssemblyLoader);
 
-    internal delegate bool CreateServerFunc(string clientDir, string pipeName);
-
     internal readonly struct RunCompilationResult
     {
         internal static readonly RunCompilationResult Succeeded = new RunCompilationResult(CommonCompiler.Succeeded);
