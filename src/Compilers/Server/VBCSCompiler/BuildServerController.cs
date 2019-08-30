@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var sdkDirectory = BuildClient.GetSystemSdkDirectory();
 
-            return new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
+            return new CompilerServerHost(clientDirectory, sdkDirectory);
         }
 
         internal static IClientConnectionHost CreateClientConnectionHostForServerHost(
