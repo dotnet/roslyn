@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace Analyzer.Utilities
 {
@@ -14,8 +15,8 @@ namespace Analyzer.Utilities
     {
         // Bounded weak reference cache.
         // Size 5 is an arbitrarily chosen bound, which can be tuned in future as required.
-        private readonly WeakReference<Entry>[] _weakReferencedEntries
-            = new[] {
+        private readonly List<WeakReference<Entry>> _weakReferencedEntries
+            = new List<WeakReference<Entry>> {
                 new WeakReference<Entry>(null),
                 new WeakReference<Entry>(null),
                 new WeakReference<Entry>(null),
@@ -28,7 +29,7 @@ namespace Analyzer.Utilities
             lock (_weakReferencedEntries)
             {
                 var indexToSetTarget = -1;
-                for (var i = 0; i < _weakReferencedEntries.Length; i++)
+                for (var i = 0; i < _weakReferencedEntries.Count; i++)
                 {
                     var weakReferencedEntry = _weakReferencedEntries[i];
                     if (!weakReferencedEntry.TryGetTarget(out var cachedEntry) ||
@@ -44,6 +45,10 @@ namespace Analyzer.Utilities
 
                     if (Equals(cachedEntry.Key, key))
                     {
+                        // Move the cache hit item to the end of the list
+                        // so it would be least likely to be evicted on next cache miss.
+                        _weakReferencedEntries.RemoveAt(i);
+                        _weakReferencedEntries.Add(weakReferencedEntry);
                         return cachedEntry.Value;
                     }
                 }
