@@ -1785,6 +1785,19 @@ public class C { } // end").Members[0];
     event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 }");
         }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact]
+        public void TestUnsafeFieldDeclarationFromSymbol()
+        {
+            VerifySyntax<MethodDeclarationSyntax>(
+                Generator.Declaration(
+                    _emptyCompilation.GetTypeByMetadataName("System.IntPtr").GetMembers("ToPointer").Single()),
+@"public unsafe void *ToPointer()
+{
+}");
+        }
+
         #endregion
 
         #region Add/Insert/Remove/Get declarations & members/elements

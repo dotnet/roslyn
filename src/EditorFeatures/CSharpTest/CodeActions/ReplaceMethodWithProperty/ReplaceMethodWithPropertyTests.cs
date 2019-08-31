@@ -2153,6 +2153,58 @@ class C
 }");
         }
 
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUnsafeGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe int [||]GetP()
+    {
+        return 0;
+    }
+
+    public void SetP(int value)
+    { }
+}",
+@"class C
+{
+    public unsafe int P
+    {
+        get => 0;
+        set
+        { }
+    }
+}", index: 1);
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUnsafeSetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public int [||]GetP()
+    {
+        return 0;
+    }
+
+    public unsafe void SetP(int value)
+    { }
+}",
+@"class C
+{
+    public unsafe int P
+    {
+        get => 0;
+        set
+        { }
+    }
+}", index: 1);
+        }
+
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null, int index = 0)
