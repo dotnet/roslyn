@@ -3,13 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
 #if HAS_IOPERATION
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 #endif
@@ -412,8 +410,8 @@ namespace Analyzer.Utilities.Extensions
         /// across analyzers and analyzer callbacks to re-use the operations, semanticModel and control flow graph.
         /// </summary>
         /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>> s_methodToTopmostOperationBlockCache
-            = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>>();
+        private static readonly BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>> s_methodToTopmostOperationBlockCache
+            = new BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>>();
 
         /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
