@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             var foreachStatement = await context.TryGetRelevantNodeAsync<TForEachStatement>().ConfigureAwait(false);
             if (foreachStatement == null || !IsValid(foreachStatement))
             {

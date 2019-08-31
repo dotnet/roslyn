@@ -5557,4 +5557,10 @@
   <data name="ERR_BadSwitchValue" xml:space="preserve">
     <value>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</value>
   </data>
+  <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation" xml:space="preserve">
+    <value>Target runtime doesn't support default interface implementation.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember" xml:space="preserve">
+    <value>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</value>
+  </data>
 </root>

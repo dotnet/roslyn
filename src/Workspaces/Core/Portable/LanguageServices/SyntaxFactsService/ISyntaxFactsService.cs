@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTrueLiteralExpression(SyntaxNode node);
         bool IsThisExpression(SyntaxNode node);
         bool IsBaseExpression(SyntaxNode node);
+        bool IsExpressionStatement(SyntaxNode node);
+
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -139,6 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsAwaitExpression(SyntaxNode node);
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
+        bool IsExpressionOfForeach(SyntaxNode node);
 
         bool IsLogicalAndExpression(SyntaxNode node);
         bool IsLogicalOrExpression(SyntaxNode node);
@@ -421,7 +424,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, out SyntaxNode localDeclaration);
         bool IsOnIfStatementHeader(SyntaxNode root, int position, out SyntaxNode ifStatement);
         bool IsOnForeachHeader(SyntaxNode root, int position, out SyntaxNode foreachStatement);
-        bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
+        bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, out SyntaxNode typeDeclaration);
 
         // Walks the tree, starting from contextNode, looking for the first construct
         // with a missing close brace.  If found, the close brace will be added and the

@@ -586,7 +586,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
-                    VisitMethodGroup((BoundMethodGroup)node.Operand, parentIsConversion: true);
+                    CheckMethodGroup((BoundMethodGroup)node.Operand, node.Conversion.Method, parentIsConversion: true);
+
                     return node;
 
                 case ConversionKind.AnonymousFunction:
@@ -632,9 +633,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.Visit(node.Argument);
             }
-            else if (_inExpressionLambda && node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
+            else
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+                CheckMethodGroup((BoundMethodGroup)node.Argument, node.MethodOpt, parentIsConversion: true);
             }
 
             return null;
@@ -642,10 +643,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
-            return VisitMethodGroup(node, parentIsConversion: false);
+            CheckMethodGroup(node, method: null, parentIsConversion: false);
+            return null;
         }
 
-        private BoundNode VisitMethodGroup(BoundMethodGroup node, bool parentIsConversion)
+        private void CheckMethodGroup(BoundMethodGroup node, MethodSymbol method, bool parentIsConversion)
         {
             // Formerly reported ERR_MemGroupInExpressionTree when this occurred, but the expanded 
             // ERR_LambdaInIsAs makes this impossible (since the node will always be wrapped in
@@ -658,7 +660,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckReceiverIfField(node.ReceiverOpt);
-            return base.VisitMethodGroup(node);
+
+            if (method is LocalFunctionSymbol)
+            {
+                CheckReferenceToVariable(node, method);
+            }
+
+            if (method == null || method.RequiresInstanceReceiver)
+            {
+                Visit(node.ReceiverOpt);
+            }
         }
 
         public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
