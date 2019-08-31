@@ -3816,5 +3816,37 @@ public ref struct S
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "{ P1: true }").WithArguments("S").WithLocation(9, 20)
                 );
         }
+
+        [Fact]
+        [WorkItem(37783, "https://github.com/dotnet/roslyn/issues/37783")]
+        public void ExpressionLambdaWithObjectInitializer()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static async Task Main()
+    {
+        int value = 42;
+        Console.WriteLine(await M(() => new Box<int>() { Value = value }));
+    }
+
+    static Task<int> M(Expression<Func<Box<int>>> e)
+    {
+        return Task.FromResult(e.Compile()().Value);
+    }
+}
+
+class Box<T>
+{
+    public T Value;
+}
+";
+            CompileAndVerify(source, expectedOutput: "42", options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: "42", options: TestOptions.ReleaseExe);
+        }
     }
 }
