@@ -256,6 +256,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName(typeof(System.CLSCompliantAttribute).FullName);
         }
 
+        public static INamedTypeSymbol RazorCompiledItemAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute);
+        }
+
         public static INamedTypeSymbol ConditionalAttribute(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName(typeof(System.Diagnostics.ConditionalAttribute).FullName);

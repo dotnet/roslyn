@@ -345,5 +345,6 @@ namespace Analyzer.Utilities
         public const string SystemNetServicePointManager = "System.Net.ServicePointManager";
         public const string SystemRandom = "System.Random";
         public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
+        public const string MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute = "Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute";
     }
 }
