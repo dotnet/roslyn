@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // private static T <Factory>(object[] submissionArray) 
             // {
-            //     var submission = new Submission#N(submissionArray);
+            //     var submission = new Submission_N(submissionArray);
             //     return submission.<Initialize>();
             // }
             internal override BoundBlock CreateBody(DiagnosticBag diagnostics)
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _containingType)
                 { WasCompilerGenerated = true };
 
-                // var submission = new Submission#N(submissionArray);
+                // var submission = new Submission_N(submissionArray);
                 var submissionAssignment = new BoundExpressionStatement(
                     syntax,
                     new BoundAssignmentOperator(

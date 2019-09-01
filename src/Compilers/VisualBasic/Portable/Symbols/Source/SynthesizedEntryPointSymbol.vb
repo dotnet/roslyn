@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Property
 
             ' Private Shared Function <Factory>(submissionArray As Object()) As T
-            '     Dim submission As New Submission#N(submissionArray)
+            '     Dim submission As New Submission_N(submissionArray)
             '     Return submission.<Initialize>()
             ' End Function
             Friend Overrides Function CreateBody() As BoundBlock
@@ -359,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     New SynthesizedLocal(Me, _containingType, SynthesizedLocalKind.LoweringTemp),
                     _containingType).MakeCompilerGenerated()
 
-                ' Dim submission As New Submission#N(submissionArray)
+                ' Dim submission As New Submission_N(submissionArray)
                 Dim submissionAssignment = New BoundExpressionStatement(
                     syntax,
                     New BoundAssignmentOperator(

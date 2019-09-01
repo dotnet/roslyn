@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var submission0Id = ProjectId.CreateNewId();
             var submission0DocId = DocumentId.CreateNewId(submission0Id);
-            const string submission0Name = "Submission#0";
+            const string submission0Name = "Submission_0";
             solution = solution
                 .AddProject(submission0Id, submission0Name, submission0Name, LanguageNames.CSharp)
                 .AddMetadataReference(submission0Id, MscorlibRef)
@@ -166,7 +166,7 @@ public class Outer
 
             var submission1Id = ProjectId.CreateNewId();
             var submission1DocId = DocumentId.CreateNewId(submission1Id);
-            const string submission1Name = "Submission#1";
+            const string submission1Name = "Submission_1";
             solution = solution
                 .AddProject(submission1Id, submission1Name, submission1Name, LanguageNames.CSharp)
                 .AddMetadataReference(submission1Id, MscorlibRef)
