@@ -6,7 +6,7 @@
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecPackageId>Roslyn.Diagnostics.Analyzers</NuspecPackageId>
-    <Description>Roslyn.Diagnostics Analyzers</Description>
+    <Description>Private analyzers specific to Roslyn repo. These analyzers are not intended for public consumptions outside of the Roslyn repo.</Description>
     <Summary>Roslyn.Diagnostics Analyzers</Summary>
     <ReleaseNotes>Roslyn.Diagnostics Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
