@@ -948,6 +948,17 @@ i", options);
             );
         }
 
+        [WorkItem(5279, "https://github.com/dotnet/roslyn/issues/22859")]
+        [Fact]
+        public async Task CreateXmlSerializerFromScriptClass()
+        {
+            var serializer = await CSharpScript.RunAsync(
+@"#r ""System.Xml""
+class X { }
+new System.Xml.Serialization.XmlSerializer(typeof(X))");
+            Assert.NotNull(serializer);
+        }
+
         private class StreamOffsetResolver : SourceReferenceResolver
         {
             public override bool Equals(object other) => ReferenceEquals(this, other);

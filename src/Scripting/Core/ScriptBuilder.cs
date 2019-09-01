@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         static ScriptBuilder()
         {
-            s_globalAssemblyNamePrefix = "\u211B*" + Guid.NewGuid().ToString();
+            s_globalAssemblyNamePrefix = "\u211B_" + Guid.NewGuid().ToString();
         }
 
         public ScriptBuilder(InteractiveAssemblyLoader assemblyLoader)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             int id = Interlocked.Increment(ref _submissionIdDispenser);
             string idAsString = id.ToString();
             assemblyName = _assemblyNamePrefix + "-" + idAsString;
-            typeName = "Submission#" + idAsString;
+            typeName = "Submission_" + idAsString;
             return id;
         }
 

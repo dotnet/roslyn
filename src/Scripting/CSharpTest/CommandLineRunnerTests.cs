@@ -257,13 +257,13 @@ $@"{LogoAndHelpPrompt}
 > div(10, 0)
 «Red»
 {exception.GetType()}: {exception.Message}
-  + Submission#0.div(int, int)
+  + Submission_0.div(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
 
             Assert.Equal(
 $@"{exception.GetType()}: {exception.Message}
-  + Submission#0.div(int, int)
+  + Submission_0.div(int, int)
 ", runner.Console.Error.ToString());
         }
 
@@ -286,13 +286,13 @@ $@"{LogoAndHelpPrompt}
 > C<string>.div<bool>(10, 0)
 «Red»
 {exception.GetType()}: {exception.Message}
-  + Submission#0.C<T>.div<U>(int, int)
+  + Submission_0.C<T>.div<U>(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
 
             Assert.Equal(
 $@"{exception.GetType()}: {exception.Message}
-  + Submission#0.C<T>.div<U>(int, int)
+  + Submission_0.C<T>.div<U>(int, int)
 ", runner.Console.Error.ToString());
         }
 
