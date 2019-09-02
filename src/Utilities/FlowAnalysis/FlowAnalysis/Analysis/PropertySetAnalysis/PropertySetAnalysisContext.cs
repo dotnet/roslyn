@@ -42,7 +42,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
             HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
-            ImmutableDictionary<INamedTypeSymbol, string> hazardousUsageTypesToNames)
+            ImmutableDictionary<(INamedTypeSymbol, bool), string> hazardousUsageTypesToNames)
             : base(
                   valueDomain,
                   wellKnownTypeProvider,
@@ -156,7 +156,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </summary>
         public HazardousUsageEvaluatorCollection HazardousUsageEvaluators { get; }
 
-        public ImmutableDictionary<INamedTypeSymbol, string> HazardousUsageTypesToNames { get; }
+        public ImmutableDictionary<(INamedTypeSymbol, bool), string> HazardousUsageTypesToNames { get; }
 
 #pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
         protected override void ComputeHashCodePartsSpecific(Action<int> addPart)

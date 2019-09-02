@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -212,7 +213,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
                 else
                 {
-                    if (TryFindNonTrackedTypeHazardousUsageEvaluator(operation.Constructor, operation, operation.Arguments, out var hazardousUsageEvaluator, out var propertySetInstance))
+                    if (TryFindNonTrackedTypeHazardousUsageEvaluator(operation.Constructor, operation.Arguments, out HazardousUsageEvaluator hazardousUsageEvaluator, out IOperation propertySetInstance))
                     {
                         this.EvaluatePotentialHazardousUsage(
                             operation.Syntax,
@@ -493,8 +494,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 IOperation propertySetInstance = visitedInstance;
                 if ((visitedInstance != null
                     && this.TrackedTypeSymbols.Contains(visitedInstance.Type)
-                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out var hazardousUsageEvaluator))
-                    || TryFindNonTrackedTypeHazardousUsageEvaluator(method, visitedInstance, visitedArguments, out hazardousUsageEvaluator, out propertySetInstance))
+                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out HazardousUsageEvaluator hazardousUsageEvaluator))
+                    || TryFindNonTrackedTypeHazardousUsageEvaluator(method, visitedArguments, out hazardousUsageEvaluator, out propertySetInstance))
                 {
                     this.EvaluatePotentialHazardousUsage(
                         originalOperation.Syntax,
@@ -513,41 +514,82 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// <summary>
             /// Find the hazardous usage evaluator for the non tracked type.
             /// </summary>
-            /// <param name="method">The petential hazardous method.</param>
-            /// <param name="visitedInstance">Instance of this invocation.</param>
+            /// <param name="method">The potential hazardous method.</param>
             /// <param name="visitedArguments">IArgumentOperations of this invocation.</param>
             /// <param name="evaluator">Target evaluator.</param>
             /// <param name="instance">The tracked argument.</param>
-            bool TryFindNonTrackedTypeHazardousUsageEvaluator(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, out HazardousUsageEvaluator evaluator, out IOperation instance)
+            bool TryFindNonTrackedTypeHazardousUsageEvaluator(IMethodSymbol method, ImmutableArray<IArgumentOperation> visitedArguments, out HazardousUsageEvaluator evaluator, out IOperation instance)
             {
                 evaluator = null;
                 instance = null;
-                if (!this.DataFlowAnalysisContext.HazardousUsageTypesToNames.TryGetValue(
-                        visitedInstance?.Type as INamedTypeSymbol ?? method.ContainingType,
-                        out string containingTypeName))
+                PooledHashSet<string> hazardousUsageTypeNames = null;
+                try
                 {
-                    return false;
-                }
-
-                // This doesn't handle the case of multiple instances of the type being tracked.
-                // If that's needed one day, will need to extend this.
-                foreach (IArgumentOperation argumentOperation in visitedArguments)
-                {
-                    IOperation value = argumentOperation.Value;
-                    ITypeSymbol argumentTypeSymbol = value is IConversionOperation conversionOperation ? conversionOperation.Operand.Type : value.Type;
-                    if (this.TrackedTypeSymbols.Contains(argumentTypeSymbol)
-                        && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(
-                                containingTypeName,
-                                method.MetadataName,
-                                argumentOperation.Parameter.MetadataName,
-                                out evaluator))
+                    if (!GetNamesOfHazardousUsageTypes(method.ContainingType, out hazardousUsageTypeNames))
                     {
-                        instance = argumentOperation.Value;
-                        return true;
+                        return false;
                     }
+
+                    // This doesn't handle the case of multiple instances of the type being tracked.
+                    // If that's needed one day, will need to extend this.
+                    foreach (IArgumentOperation argumentOperation in visitedArguments)
+                    {
+                        IOperation value = argumentOperation.Value;
+                        ITypeSymbol argumentTypeSymbol = value is IConversionOperation conversionOperation ? conversionOperation.Operand.Type : value.Type;
+                        foreach (string hazardousUsageTypeName in hazardousUsageTypeNames)
+                        {
+                            if (this.TrackedTypeSymbols.Contains(argumentTypeSymbol)
+                                && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(
+                                        hazardousUsageTypeName,
+                                        method.MetadataName,
+                                        argumentOperation.Parameter.MetadataName,
+                                        out evaluator))
+                            {
+                                instance = argumentOperation.Value;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    hazardousUsageTypeNames?.Free();
                 }
 
                 return false;
+            }
+
+            private bool GetNamesOfHazardousUsageTypes(INamedTypeSymbol containingType, out PooledHashSet<string> hazardousUsageTypeNames)
+            {
+                hazardousUsageTypeNames = null;
+                if (this.DataFlowAnalysisContext.HazardousUsageTypesToNames.TryGetValue(
+                        (containingType, false),
+                        out string containingTypeName))
+                {
+                    if (hazardousUsageTypeNames == null)
+                    {
+                        hazardousUsageTypeNames = PooledHashSet<string>.GetInstance();
+                    }
+
+                    hazardousUsageTypeNames.Add(containingTypeName);
+                }
+
+                foreach (INamedTypeSymbol type in containingType.GetBaseTypesAndThis())
+                {
+                    if (this.DataFlowAnalysisContext.HazardousUsageTypesToNames.TryGetValue(
+                        (type, true),
+                        out containingTypeName))
+                    {
+                        if (hazardousUsageTypeNames == null)
+                        {
+                            hazardousUsageTypeNames = PooledHashSet<string>.GetInstance();
+                        }
+
+                        hazardousUsageTypeNames.Add(containingTypeName);
+                    }
+                }
+
+                return hazardousUsageTypeNames != null;
             }
 
             /// <summary>
