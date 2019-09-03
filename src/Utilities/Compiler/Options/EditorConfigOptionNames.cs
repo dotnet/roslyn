@@ -48,6 +48,15 @@ namespace Analyzer.Utilities
         public const string NullCheckValidationMethods = "null_check_validation_methods";
 
         /// <summary>
+        /// String option to configure names of additional string formatting methods (separated by '|') for CA2241 (https://docs.microsoft.com/visualstudio/code-quality/ca2241-provide-correct-arguments-to-formatting-methods).
+        /// Allowed method name formats:
+        ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional "M:" prefix.
+        /// </summary>
+        public const string AdditionalStringFormattingMethods = "additional_string_formatting_methods";
+
+        /// <summary>
         /// String option to configure names of symbols (separated by '|') that are excluded for analysis.
         /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303-do-not-pass-literals-as-localized-parameters).
         /// Allowed method name formats:

@@ -120,6 +120,13 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetSymbolNamesOption(EditorConfigOptionNames.NullCheckValidationMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
 
+        public static SymbolNamesOption GetAdditionalStringFormattingMethodsOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalStringFormattingMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
+
         public static SymbolNamesOption GetExcludedSymbolNamesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
