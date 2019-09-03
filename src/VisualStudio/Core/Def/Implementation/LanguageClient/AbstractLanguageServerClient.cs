@@ -13,12 +13,18 @@ using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.CodeAnalysis.Host;
 using System.Composition;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
+using System.Linq;
+using Microsoft.CodeAnalysis.Experiments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract class AbstractLanguageServerClient : ILanguageClient
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
+        private readonly IEnumerable<Lazy<IOptionPersister>> _lazyOptions;
         private readonly LanguageServerClientEventListener _eventListener;
         private readonly IAsynchronousOperationListener _asyncListener;
 
@@ -55,13 +61,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 #pragma warning restore CS0067 // event never used
 
         public AbstractLanguageServerClient(
+            IThreadingContext threadingContext,
             Workspace workspace,
+            IEnumerable<Lazy<IOptionPersister>> lazyOptions,
             LanguageServerClientEventListener eventListener,
             IAsynchronousOperationListenerProvider listenerProvider,
             string languageServerName,
             string serviceHubClientName)
         {
+            _threadingContext = threadingContext;
             _workspace = workspace;
+            _lazyOptions = lazyOptions;
             _eventListener = eventListener;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
 
@@ -103,6 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // set up event stream so that we start LSP server once Roslyn is loaded
             _eventListener.WorkspaceStarted.ContinueWith(async _ =>
             {
+                // initialize things on UI thread
+                await InitializeOnUIAsync().ConfigureAwait(false);
+
                 // this might get called before solution is fully loaded and before file is opened. 
                 // we delay our OOP start until then, but user might do vsstart before that. so we make sure we start OOP if 
                 // it is not running yet. multiple start is no-op
@@ -122,6 +135,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }, TaskScheduler.Default).CompletesAsyncOperation(token);
 
             return Task.CompletedTask;
+
+            async Task InitializeOnUIAsync()
+            {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                // this doesn't attempt to solve our JTF and some services being not free-thread issue here, but
+                // try to fix this particular deadlock issue only. we already have long discussion on
+                // how we need to deal with JTF, Roslyn service requirements and VS services reality conflicting
+                // each others. architectural fix should come from the result of that discussion.
+
+                // Ensure the options persisters are loaded since we have to fetch options from the shell
+                _lazyOptions.Select(o => o.Value);
+
+                // experimentation service unfortunately uses JTF to jump to UI thread in certain cases
+                // which can cause deadlock if 2 parties try to enable OOP from BG and then FG before 
+                // experimentation service tries to jump to UI thread.
+                var experimentationService = _workspace.Services.GetService<IExperimentationService>();
+            }
         }
 
         /// <summary>

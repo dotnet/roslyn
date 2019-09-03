@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
@@ -25,10 +29,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageClient
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLanguageServerClient(
+            IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
+            [ImportMany]IEnumerable<Lazy<IOptionPersister>> lazyOptions,
             LanguageServerClientEventListener eventListener,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(workspace,
+            : base(
+                threadingContext,
+                workspace,
+                lazyOptions,
                 eventListener,
                 listenerProvider,
                 languageServerName: WellKnownServiceHubServices.CSharpLanguageServer,

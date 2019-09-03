@@ -2,7 +2,9 @@
 
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.LanguageServer.Client
@@ -23,10 +25,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageClient
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(workspace As VisualStudioWorkspace,
+        Public Sub New(threadingContext As IThreadingContext,
+                       workspace As VisualStudioWorkspace,
+                       <ImportMany> lazyOptions As IEnumerable(Of Lazy(Of IOptionPersister)),
                        eventListener As LanguageServerClientEventListener,
                        listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(workspace,
+            MyBase.New(threadingContext,
+                       workspace,
+                       lazyOptions,
                        eventListener,
                        listenerProvider,
                        languageServerName:=WellKnownServiceHubServices.VisualBasicLanguageServer,
