@@ -1970,7 +1970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ImmutableArray<NamedTypeSymbol> ModuloNullabilityDifferences(IEnumerable<NamedTypeSymbol> interfaces, VarianceKind variance)
         {
-            var dictionary = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(ComparerIgnoringNullabilityDifferences.Instance);
+            var dictionary = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(SymbolEqualityComparer.IgnoreNullableModifiersForReferenceTypes);
 
             foreach (var @interface in interfaces)
             {
@@ -1987,15 +1987,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return dictionary.Keys.ToImmutableArray();
-        }
-
-        private class ComparerIgnoringNullabilityDifferences : IEqualityComparer<NamedTypeSymbol>
-        {
-            public static ComparerIgnoringNullabilityDifferences Instance = new ComparerIgnoringNullabilityDifferences();
-            public bool Equals(NamedTypeSymbol x, NamedTypeSymbol y)
-                => x.Equals(y, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-            public int GetHashCode(NamedTypeSymbol obj)
-                => obj.GetHashCode();
         }
 
         private void LowerBoundTypeArgumentInference(NamedTypeSymbol source, NamedTypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
