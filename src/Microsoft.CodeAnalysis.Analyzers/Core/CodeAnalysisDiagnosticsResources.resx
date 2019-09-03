@@ -339,7 +339,7 @@
     <value>Upgrade MSBuildWorkspace</value>
   </data>
   <data name="CompareSymbolsCorrectlyDescription" xml:space="preserve">
-    <value>Symbols should be compared for equality with an EqualityComparer.</value>
+    <value>Symbols should be compared for equality, not identity.</value>
   </data>
   <data name="CompareSymbolsCorrectlyMessage" xml:space="preserve">
     <value>Compare symbols correctly</value>
