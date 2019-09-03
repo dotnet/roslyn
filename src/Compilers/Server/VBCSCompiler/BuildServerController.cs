@@ -53,9 +53,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             try
             {
-                int keepAliveValue;
-                string keepAliveStr = _appSettings[KeepAliveSettingName];
-                if (int.TryParse(keepAliveStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out keepAliveValue) &&
+                if (int.TryParse(_appSettings[KeepAliveSettingName], NumberStyles.Integer, CultureInfo.InvariantCulture, out int keepAliveValue) &&
                     keepAliveValue >= 0)
                 {
                     if (keepAliveValue == 0)
@@ -83,13 +81,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Was a server running with the specified session key during the execution of this call?
         /// </summary>
-        private bool? WasServerRunning(string pipeName)
+        private static bool? WasServerRunning(string pipeName)
         {
             string mutexName = BuildServerConnection.GetServerMutexName(pipeName);
             return BuildServerConnection.WasServerMutexOpen(mutexName);
         }
 
-        private IClientConnectionHost CreateClientConnectionHost(string pipeName)
+        private static IClientConnectionHost CreateClientConnectionHost(string pipeName)
         {
             var compilerServerHost = CreateCompilerServerHost();
             return CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return await BuildServerConnection.TryConnectToServerAsync(pipeName, timeout, cancellationToken: default).ConfigureAwait(false);
         }
 
-        private string GetDefaultPipeName()
+        private static string GetDefaultPipeName()
         {
             var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
             return BuildServerConnection.GetPipeNameForPathOpt(clientDirectory);
@@ -131,9 +129,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             TimeSpan? keepAlive = null,
             CancellationToken cancellationToken = default)
         {
-            keepAlive = keepAlive ?? GetKeepAliveTimeout();
-            listener = listener ?? new EmptyDiagnosticListener();
-            clientConnectionHost = clientConnectionHost ?? CreateClientConnectionHost(pipeName);
+            keepAlive ??= GetKeepAliveTimeout();
+            listener ??= new EmptyDiagnosticListener();
+            clientConnectionHost ??= CreateClientConnectionHost(pipeName);
 
             // Grab the server mutex to prevent multiple servers from starting with the same
             // pipename and consuming excess resources. If someone else holds the mutex

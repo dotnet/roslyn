@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     out string commandLinePipeName,
                     out errorMessageOpt))
             {
-                pipeName = pipeName ?? commandLinePipeName;
+                pipeName ??= commandLinePipeName;
             }
             else
             {
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// retrieves the name of the pipe for client/server communication on
         /// that instance of the compiler.
         /// </summary>
-        private string GetPipeName(BuildPaths buildPaths)
+        private static string GetPipeName(BuildPaths buildPaths)
         {
             return BuildServerConnection.GetPipeNameForPathOpt(buildPaths.ClientDirectory);
         }

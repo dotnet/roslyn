@@ -42,17 +42,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// The caching metadata provider used by the C# and VB compilers
         /// </summary>
-        public Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; } = SharedAssemblyReferenceProvider;
+        private Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; } = SharedAssemblyReferenceProvider;
 
         /// <summary>
         /// Directory that contains the compiler executables and the response files. 
         /// </summary>
-        public string ClientDirectory { get; }
+        private string ClientDirectory { get; }
 
         /// <summary>
         /// Directory that contains mscorlib.  Can be null when the host is executing in a CoreCLR context.
         /// </summary>
-        public string SdkDirectory { get; }
+        private string SdkDirectory { get; }
 
         internal CompilerServerHost(string clientDirectory, string sdkDirectory)
         {

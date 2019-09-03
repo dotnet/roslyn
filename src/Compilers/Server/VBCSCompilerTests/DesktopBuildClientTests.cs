@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 CompileFunc compileFunc = null,
                 CreateServerFunc createServerFunc = null)
             {
-                language = language ?? RequestLanguage.CSharpCompile;
-                compileFunc = compileFunc ?? delegate { return 0; };
-                createServerFunc = createServerFunc ?? ((_, pipeName) => TryCreateServer(pipeName));
+                language ??= RequestLanguage.CSharpCompile;
+                compileFunc ??= delegate { return 0; };
+                createServerFunc ??= ((_, pipeName) => TryCreateServer(pipeName));
                 return new BuildClient(language.Value, compileFunc, createServerFunc);
             }
 
