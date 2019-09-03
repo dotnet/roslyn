@@ -200,8 +200,7 @@ End Module")
             // case where these tests are run under extreme load.  In high load scenarios the
             // client will correctly drop down to a local compilation if the server doesn't respond
             // fast enough.
-            var client = ServerUtil.CreateBuildClient(language);
-            client.TimeoutOverride = Timeout.Infinite;
+            var client = ServerUtil.CreateBuildClient(language, timeoutOverride: Timeout.Infinite);
 
             var sdkDir = ServerUtil.DefaultSdkDirectory;
 
