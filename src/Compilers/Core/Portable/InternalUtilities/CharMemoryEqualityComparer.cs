@@ -14,26 +14,7 @@ namespace Roslyn.Utilities
 
         private CharMemoryEqualityComparer() { }
 
-        public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y)
-        {
-            if (x.Length != y.Length)
-            {
-                return false;
-            }
-
-            var xSpan = x.Span;
-            var ySpan = y.Span;
-
-            for (int i = 0; i < xSpan.Length; i++)
-            {
-                if (xSpan[i] != ySpan[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+        public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y) => x.Span.SequenceEqual(y.Span);
 
         public int GetHashCode(ReadOnlyMemory<char> mem) => Hash.GetFNVHashCode(mem.Span);
     }
