@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
     [Shared]
     public class CompareSymbolsCorrectlyFix : CodeFixProvider
     {
-        private const string s_equalityComparerIdentifier = "Microsoft.CodeAnalysis.SymbolEqualityComparer.Default";
+        private const string s_equalityComparerIdentifier = "Microsoft.CodeAnalysis.SymbolEqualityComparer";
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CompareSymbolsCorrectlyAnalyzer.Rule.Id);
 
@@ -75,26 +75,26 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
 
-            var parameters = UseEqualityComparer(semanticModel.Compilation) switch
+            var replacement = UseEqualityComparer(semanticModel.Compilation) switch
             {
-                true => new[] {
+                true => 
+                    generator.InvocationExpression(
+                        generator.MemberAccessExpression(
+                            generator.MemberAccessExpression(
+                                generator.DottedName(s_equalityComparerIdentifier),
+                                "Default"),
+                            nameof(object.Equals)),
                         binaryOperation.LeftOperand.Syntax.WithoutLeadingTrivia(),
-                        binaryOperation.RightOperand.Syntax.WithoutTrailingTrivia(),
-                        generator.IdentifierName(s_equalityComparerIdentifier)
-                    },
+                        binaryOperation.RightOperand.Syntax.WithoutTrailingTrivia()),
 
                 false =>
-                    new[] {
+                    generator.InvocationExpression(
+                        generator.MemberAccessExpression(
+                            generator.TypeExpression(semanticModel.Compilation.GetSpecialType(SpecialType.System_Object)),
+                            nameof(object.Equals)),
                         binaryOperation.LeftOperand.Syntax.WithoutLeadingTrivia(),
-                        binaryOperation.RightOperand.Syntax.WithoutTrailingTrivia()
-                    }
+                        binaryOperation.RightOperand.Syntax.WithoutTrailingTrivia())
             };
-
-            var replacement = generator.InvocationExpression(
-                generator.MemberAccessExpression(
-                    generator.TypeExpression(semanticModel.Compilation.GetSpecialType(SpecialType.System_Object)),
-                    nameof(object.Equals)),
-                parameters);
 
             if (binaryOperation.OperatorKind == BinaryOperatorKind.NotEquals)
             {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
         private static bool UseEqualityComparer(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(CompareSymbolsCorrectlyAnalyzer.SymbolEqualityComparerName) is object;
+            return compilation.GetTypeByMetadataName(s_equalityComparerIdentifier) is object;
         }
     }
 }

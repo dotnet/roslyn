@@ -145,6 +145,57 @@ Class Symbol
 End Class
 ";
 
+        private const string SymbolEqualityComparerStubVisualBasic =
+@"
+Imports System.Collections.Generic
+
+Namespace Microsoft
+    Namespace CodeAnalysis
+        Public Class SymbolEqualityComparer
+            Implements IEqualityComparer(Of ISymbol)
+
+            Public Shared ReadOnly [Default] As SymbolEqualityComparer = New SymbolEqualityComparer()
+
+            Private Sub New()
+            End Sub
+
+            Public Function Equals(x As ISymbol, y As ISymbol) As Boolean Implements IEqualityComparer(Of ISymbol).Equals
+                Throw New System.NotImplementedException()
+            End Function
+
+            Public Function GetHashCode(obj As ISymbol) As Integer Implements IEqualityComparer(Of ISymbol).GetHashCode
+                Throw New System.NotImplementedException()
+            End Function
+        End Class
+    End Namespace
+End Namespace";
+
+        private const string SymbolEqualityComparerStubCSharp =
+@"
+using System.Collections.Generic;
+
+namespace Microsoft.CodeAnalysis
+{
+    public class SymbolEqualityComparer : IEqualityComparer<ISymbol>
+    {
+        public static readonly SymbolEqualityComparer Default = new SymbolEqualityComparer();
+
+        private SymbolEqualityComparer()
+        {
+        }
+
+        public bool Equals(ISymbol x, ISymbol y)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public int GetHashCode(ISymbol obj)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}";
+
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
@@ -162,11 +213,38 @@ class TestClass {{
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method({symbolType} x, {symbolType} y) {{
-        return Equals(x, y);
+        return SymbolEqualityComparer.Default.Equals(x, y);
     }}
 }}
 ";
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
 
+        [Theory]
+        [InlineData(nameof(ISymbol))]
+        [InlineData(nameof(INamedTypeSymbol))]
+        public async Task CompareTwoSymbolsEquals_NoComparer_CSharp(string symbolType)
+        {
+            var source = $@"
+using Microsoft.CodeAnalysis;
+class TestClass {{
+    bool Method({symbolType} x, {symbolType} y) {{
+        return [|x == y|];
+    }}
+}}
+";
+            var fixedSource = $@"
+using Microsoft.CodeAnalysis;
+class TestClass {{
+    bool Method({symbolType} x, {symbolType} y) {{
+        return SymbolEqualityComparer.Default.Equals(x, y);
+    }}
+}}
+";
             await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
         }
 
@@ -230,7 +308,36 @@ class TestClass {{
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method(Symbol x, {symbolType} y) {{
-        return Equals(x, y, Microsoft.CodeAnalysis.SymbolEqualityComparer.Default);
+        return SymbolEqualityComparer.Default.Equals(x, y);
+    }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, MinimalSymbolImplementationCSharp, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, MinimalSymbolImplementationCSharp, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData(nameof(ISymbol))]
+        [InlineData(nameof(INamedTypeSymbol))]
+        public async Task CompareSymbolImplementationWithInterface_NoComparer_CSharp(string symbolType)
+        {
+            var source = $@"
+using Microsoft.CodeAnalysis;
+class TestClass {{
+    bool Method(Symbol x, {symbolType} y) {{
+        return [|x == y|];
+    }}
+}}
+";
+            var fixedSource = $@"
+using Microsoft.CodeAnalysis;
+class TestClass {{
+    bool Method(Symbol x, {symbolType} y) {{
+        return Equals(x, y);
     }}
 }}
 ";
@@ -286,6 +393,35 @@ class TestClass {{
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
         public async Task CompareTwoSymbolsEquals_VisualBasic(string symbolType)
+        {
+            var source = $@"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Function Method(x As {symbolType}, y As {symbolType}) As Boolean
+        Return [|x Is y|]
+    End Function
+End Class
+";
+            var fixedSource = $@"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Function Method(x As {symbolType}, y As {symbolType}) As Boolean
+        Return SymbolEqualityComparer.Default.Equals(x, y)
+    End Function
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubVisualBasic } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubVisualBasic } },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData(nameof(ISymbol))]
+        [InlineData(nameof(INamedTypeSymbol))]
+        public async Task CompareTwoSymbolsEquals_NoComparer_VisualBasic(string symbolType)
         {
             var source = $@"
 Imports Microsoft.CodeAnalysis
