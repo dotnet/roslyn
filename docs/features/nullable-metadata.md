@@ -101,7 +101,7 @@ The type declaration is synthesized by the compiler if not already included in t
 
 The `NullableContextAttribute` is optional - nullable annotations can be represented in metadata with full fidelity using `NullableAttribute` only.
 
-`NullableContextAttribute` is valid in metadata at the type and method declarations.
+`NullableContextAttribute` is valid in metadata on type and method declarations.
 The `byte` value represents the implicit `NullableAttribute` value for type references within that scope
 that do not have an explicit `NullableAttribute` and would not otherwise be represented by an empty `byte[]`.
 The nearest `NullableContextAttribute` in the metadata hierarchy applies.

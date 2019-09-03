@@ -3,12 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -3009,6 +3007,113 @@ class Driver
             CompileAndVerify(source, "0");
         }
 
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
+        public void SpillCompoundAssignmentToNullableMemberOfLocal_01()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+struct S
+{
+    int? i;
+
+    static async Task Main()
+    {
+        S s = default;
+        Console.WriteLine(s.i += await GetInt());
+    }
+
+    static Task<int?> GetInt() => Task.FromResult((int?)1);
+}";
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
+        }
+
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
+        public void SpillCompoundAssignmentToNullableMemberOfLocal_02()
+        {
+            var source = @"
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await new C().M();
+    }
+
+    int field = 1;
+    async System.Threading.Tasks.Task M()
+    {
+         this.field += await M2();
+         System.Console.Write(this.field);
+    }
+
+    async System.Threading.Tasks.Task<int> M2()
+    {
+         await System.Threading.Tasks.Task.Yield();
+         return 42;
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
+        }
+
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
+        public void SpillCompoundAssignmentToNullableMemberOfLocal_03()
+        {
+            var source = @"
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await new C().M();
+    }
+
+    int? field = 1;
+    async System.Threading.Tasks.Task M()
+    {
+         this.field += await M2();
+         System.Console.Write(this.field);
+    }
+
+    async System.Threading.Tasks.Task<int?> M2()
+    {
+         await System.Threading.Tasks.Task.Yield();
+         return 42;
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: "43", options: TestOptions.DebugExe);
+        }
+
+        [Fact, WorkItem(36443, "https://github.com/dotnet/roslyn/issues/36443")]
+        public void SpillCompoundAssignmentToNullableMemberOfLocal_04()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+struct S
+{
+    int? i;
+
+    static async Task M(S s = default)
+    {
+        s = default;
+        Console.WriteLine(s.i += await GetInt());
+    }
+
+    static async Task Main()
+    {
+        M();
+    }
+
+    static Task<int?> GetInt() => Task.FromResult((int?)1);
+}";
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
+        }
+
         [Fact]
         public void SpillSacrificialRead()
         {
@@ -3391,95 +3496,325 @@ namespace System.Text.Json.Serialization
             var v = CompileAndVerify(source, options: TestOptions.DebugExe);
 
             v.VerifyIL("Program.<Serialize>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
-{
-    // Code size      184 (0xb8)
-    .maxstack  3
-    .locals init (int V_0,
-                System.Runtime.CompilerServices.TaskAwaiter<byte[]> V_1,
-                Program.<Serialize>d__1 V_2,
-                System.Exception V_3)
-    IL_0000:  ldarg.0
-    IL_0001:  ldfld      ""int Program.<Serialize>d__1.<>1__state""
-    IL_0006:  stloc.0
-    .try
     {
-    IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_0047
-    IL_000e:  nop
-    IL_000f:  call       ""System.Threading.Tasks.Task<byte[]> Program.TestAsync()""
-    IL_0014:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> System.Threading.Tasks.Task<byte[]>.GetAwaiter()""
-    IL_0019:  stloc.1
-    IL_001a:  ldloca.s   V_1
-    IL_001c:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<byte[]>.IsCompleted.get""
-    IL_0021:  brtrue.s   IL_0063
-    IL_0023:  ldarg.0
-    IL_0024:  ldc.i4.0
-    IL_0025:  dup
-    IL_0026:  stloc.0
-    IL_0027:  stfld      ""int Program.<Serialize>d__1.<>1__state""
-    IL_002c:  ldarg.0
-    IL_002d:  ldloc.1
-    IL_002e:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
-    IL_0033:  ldarg.0
-    IL_0034:  stloc.2
-    IL_0035:  ldarg.0
-    IL_0036:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
-    IL_003b:  ldloca.s   V_1
-    IL_003d:  ldloca.s   V_2
-    IL_003f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<byte[]>, Program.<Serialize>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<byte[]>, ref Program.<Serialize>d__1)""
-    IL_0044:  nop
-    IL_0045:  leave.s    IL_00b7
-    IL_0047:  ldarg.0
-    IL_0048:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
-    IL_004d:  stloc.1
-    IL_004e:  ldarg.0
-    IL_004f:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
-    IL_0054:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<byte[]>""
-    IL_005a:  ldarg.0
-    IL_005b:  ldc.i4.m1
-    IL_005c:  dup
-    IL_005d:  stloc.0
-    IL_005e:  stfld      ""int Program.<Serialize>d__1.<>1__state""
-    IL_0063:  ldarg.0
-    IL_0064:  ldloca.s   V_1
-    IL_0066:  call       ""byte[] System.Runtime.CompilerServices.TaskAwaiter<byte[]>.GetResult()""
-    IL_006b:  stfld      ""byte[] Program.<Serialize>d__1.<>s__1""
-    IL_0070:  ldarg.0
-    IL_0071:  ldfld      ""byte[] Program.<Serialize>d__1.<>s__1""
-    IL_0076:  call       ""System.ReadOnlySpan<byte> System.ReadOnlySpan<byte>.op_Implicit(byte[])""
-    IL_007b:  ldnull
-    IL_007c:  call       ""string System.Text.Json.Serialization.JsonSerializer.Parse<string>(System.ReadOnlySpan<byte>, System.Text.Json.Serialization.JsonSerializerOptions)""
-    IL_0081:  pop
-    IL_0082:  ldarg.0
-    IL_0083:  ldnull
-    IL_0084:  stfld      ""byte[] Program.<Serialize>d__1.<>s__1""
-    IL_0089:  leave.s    IL_00a3
+      // Code size      184 (0xb8)
+      .maxstack  3
+      .locals init (int V_0,
+                    System.Runtime.CompilerServices.TaskAwaiter<byte[]> V_1,
+                    Program.<Serialize>d__1 V_2,
+                    System.Exception V_3)
+      IL_0000:  ldarg.0
+      IL_0001:  ldfld      ""int Program.<Serialize>d__1.<>1__state""
+      IL_0006:  stloc.0
+      .try
+      {
+        IL_0007:  ldloc.0
+        IL_0008:  brfalse.s  IL_000c
+        IL_000a:  br.s       IL_000e
+        IL_000c:  br.s       IL_0047
+        IL_000e:  nop
+        IL_000f:  call       ""System.Threading.Tasks.Task<byte[]> Program.TestAsync()""
+        IL_0014:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> System.Threading.Tasks.Task<byte[]>.GetAwaiter()""
+        IL_0019:  stloc.1
+        IL_001a:  ldloca.s   V_1
+        IL_001c:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<byte[]>.IsCompleted.get""
+        IL_0021:  brtrue.s   IL_0063
+        IL_0023:  ldarg.0
+        IL_0024:  ldc.i4.0
+        IL_0025:  dup
+        IL_0026:  stloc.0
+        IL_0027:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+        IL_002c:  ldarg.0
+        IL_002d:  ldloc.1
+        IL_002e:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
+        IL_0033:  ldarg.0
+        IL_0034:  stloc.2
+        IL_0035:  ldarg.0
+        IL_0036:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
+        IL_003b:  ldloca.s   V_1
+        IL_003d:  ldloca.s   V_2
+        IL_003f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<byte[]>, Program.<Serialize>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<byte[]>, ref Program.<Serialize>d__1)""
+        IL_0044:  nop
+        IL_0045:  leave.s    IL_00b7
+        IL_0047:  ldarg.0
+        IL_0048:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
+        IL_004d:  stloc.1
+        IL_004e:  ldarg.0
+        IL_004f:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
+        IL_0054:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<byte[]>""
+        IL_005a:  ldarg.0
+        IL_005b:  ldc.i4.m1
+        IL_005c:  dup
+        IL_005d:  stloc.0
+        IL_005e:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+        IL_0063:  ldarg.0
+        IL_0064:  ldloca.s   V_1
+        IL_0066:  call       ""byte[] System.Runtime.CompilerServices.TaskAwaiter<byte[]>.GetResult()""
+        IL_006b:  stfld      ""byte[] Program.<Serialize>d__1.<>s__1""
+        IL_0070:  ldarg.0
+        IL_0071:  ldfld      ""byte[] Program.<Serialize>d__1.<>s__1""
+        IL_0076:  call       ""System.ReadOnlySpan<byte> System.ReadOnlySpan<byte>.op_Implicit(byte[])""
+        IL_007b:  ldnull
+        IL_007c:  call       ""string System.Text.Json.Serialization.JsonSerializer.Parse<string>(System.ReadOnlySpan<byte>, System.Text.Json.Serialization.JsonSerializerOptions)""
+        IL_0081:  pop
+        IL_0082:  ldarg.0
+        IL_0083:  ldnull
+        IL_0084:  stfld      ""byte[] Program.<Serialize>d__1.<>s__1""
+        IL_0089:  leave.s    IL_00a3
+      }
+      catch System.Exception
+      {
+        IL_008b:  stloc.3
+        IL_008c:  ldarg.0
+        IL_008d:  ldc.i4.s   -2
+        IL_008f:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+        IL_0094:  ldarg.0
+        IL_0095:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
+        IL_009a:  ldloc.3
+        IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+        IL_00a0:  nop
+        IL_00a1:  leave.s    IL_00b7
+      }
+      IL_00a3:  ldarg.0
+      IL_00a4:  ldc.i4.s   -2
+      IL_00a6:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+      IL_00ab:  ldarg.0
+      IL_00ac:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
+      IL_00b1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+      IL_00b6:  nop
+      IL_00b7:  ret
     }
-    catch System.Exception
-    {
-    IL_008b:  stloc.3
-    IL_008c:  ldarg.0
-    IL_008d:  ldc.i4.s   -2
-    IL_008f:  stfld      ""int Program.<Serialize>d__1.<>1__state""
-    IL_0094:  ldarg.0
-    IL_0095:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
-    IL_009a:  ldloc.3
-    IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_00a0:  nop
-    IL_00a1:  leave.s    IL_00b7
-    }
-    IL_00a3:  ldarg.0
-    IL_00a4:  ldc.i4.s   -2
-    IL_00a6:  stfld      ""int Program.<Serialize>d__1.<>1__state""
-    IL_00ab:  ldarg.0
-    IL_00ac:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
-    IL_00b1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-    IL_00b6:  nop
-    IL_00b7:  ret
-}
 ", sequencePoints: "Program.Serialize");
+        }
+
+        [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
+        public void ShouldNotSpillStackallocToField_01()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public class P
+{
+    static async Task Main()
+    {
+        await Async1(F1(), G(F2(), stackalloc int[] { 40, 500, 6000 }));
+    }
+
+    static int F1() => 70000;
+    static int F2() => 800000;
+    static int G(int k, Span<int> span) => k + span.Length + span[0] + span[1] + span[2];
+    static Task Async1(int k, int i)
+    {
+        Console.WriteLine(k + i);
+        return Task.Delay(1);
+    }
+}
+";
+            var expectedOutput = @"876543";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var v = CompileAndVerify(
+                compilation: comp,
+                expectedOutput: expectedOutput,
+                verify: Verification.Fails // localloc is not verifiable.
+                );
+            comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            v = CompileAndVerify(
+                compilation: comp,
+                expectedOutput: expectedOutput,
+                verify: Verification.Fails // localloc is not verifiable.
+                );
+        }
+
+        [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
+        public void ShouldNotSpillStackallocToField_02()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public class P
+{
+    static async Task Main()
+    {
+        await Async1(F1(), G(F2(), stackalloc int[] { 40, await Task.FromResult(500), 6000 }));
+    }
+
+    static int F1() => 70000;
+    static int F2() => 800000;
+    static int G(int k, Span<int> span) => k + span.Length + span[0] + span[1] + span[2];
+    static Task Async1(int k, int i)
+    {
+        Console.WriteLine(k + i);
+        return Task.Delay(1);
+    }
+}
+";
+            var expectedOutput = @"876543";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var v = CompileAndVerify(
+                compilation: comp,
+                expectedOutput: expectedOutput,
+                verify: Verification.Fails // localloc is not verifiable.
+                );
+            comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            v = CompileAndVerify(
+                compilation: comp,
+                expectedOutput: expectedOutput,
+                verify: Verification.Fails // localloc is not verifiable.
+                );
+        }
+
+        [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
+        public void ShouldNotSpillStackallocToField_03()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public class P
+{
+    static async Task Main()
+    {
+        await Async1(F1(), G(F2(), stackalloc int[] { 1, 2, 3 }, await F3()));
+    }
+
+    static object F1() => 1;
+    static object F2() => 1;
+    static Task<object> F3() => Task.FromResult<object>(1);
+    static int G(object obj, Span<int> span, object o2) => span.Length;
+    static async Task Async1(Object obj, int i) { await Task.Delay(1); }
+}
+";
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+            {
+                var comp = CreateCompilationWithMscorlibAndSpan(source, options: options);
+                comp.VerifyDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (9,66): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
+                    //         await Async1(F1(), G(F2(), stackalloc int[] { 1, 2, 3 }, await F3()));
+                    Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await F3()").WithArguments("System.Span<int>").WithLocation(9, 66)
+                    );
+            }
+        }
+
+        [Fact]
+        public void SpillStateMachineTemps()
+        {
+            var source = @"using System;
+using System.Threading.Tasks;
+
+public class C {
+    public static void Main()
+    {
+        Console.WriteLine(M1(new Q(), SF()).Result);
+    }
+    public static async Task<int> M1(object o, Task<bool> c)
+    {
+        return o switch
+        {
+            Q { F: { P1: true } } when await c => 1, // cached Q.F is alive
+            Q { F: { P2: true } } => 2,
+            _ => 3,
+        };
+    }
+    public static async Task<bool> SF()
+    {
+        await Task.Delay(10);
+        return false;
+    }
+}
+
+class Q
+{
+    public F F => new F(true);
+}
+
+struct F
+{
+    bool _result;
+    public F(bool result)
+    {
+        _result = result;
+    }
+    public bool P1 => _result;
+    public bool P2 => _result;
+}
+";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "2");
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "2");
+        }
+
+        [Fact]
+        [WorkItem(37713, "https://github.com/dotnet/roslyn/issues/37713")]
+        public void RefStructInAsyncStateMachineWithWhenClause()
+        {
+            var source = @"
+using System.Threading.Tasks;
+class Program
+{
+    async Task<int> M1(object o, Task<bool> c, int r)
+    {
+        return o switch
+        {
+            Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
+            Q { F: { P2: true } } => 2,
+            _ => 3,
+        };
+    }
+    async Task<int> M2(object o, Task<bool> c, int r)
+    {
+        return o switch
+        {
+            Q { F: { P1: true } } when await c => r, // ok: only Q.P1 is live
+            Q { F: { P1: true } } => 2,
+            _ => 3,
+        };
+    }
+    async Task<int> M3(object o, bool c, Task<int> r)
+    {
+        return o switch
+        {
+            Q { F: { P1: true } } when c => await r, // ok: nothing alive at await
+            Q { F: { P2: true } } => 2,
+            _ => 3,
+        };
+    }
+    async Task<int> M4(object o, Task<bool> c, int r)
+    {
+        return o switch
+        {
+            Q { F: { P1: true } } when await c => r, // ok: no switch state is alive
+            _ => 3,
+        };
+    }
+}
+public class Q
+{
+    public S F => throw null!;
+}
+public ref struct S
+{
+    public bool P1 => true;
+    public bool P2 => true;
+}
+";
+            CreateCompilation(source, options: TestOptions.DebugDll).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // (9,20): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
+                //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "{ P1: true }").WithArguments("S").WithLocation(9, 20)
+                );
+            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // (9,20): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
+                //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "{ P1: true }").WithArguments("S").WithLocation(9, 20)
+                );
         }
     }
 }

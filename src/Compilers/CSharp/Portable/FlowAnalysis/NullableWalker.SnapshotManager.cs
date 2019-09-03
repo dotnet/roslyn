@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode nodeToAnalyze,
                 Binder binder,
                 ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap,
-                ImmutableDictionary<BoundCall, MethodSymbol>.Builder updatedMethodSymbolMap,
+                ImmutableDictionary<(BoundNode, Symbol), Symbol>.Builder updatedSymbolMap,
                 SnapshotManager.Builder newManagerOpt)
             {
                 Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            variableState,
                                            returnTypesOpt: null,
                                            analyzedNullabilityMap,
-                                           updatedMethodSymbolMap,
+                                           updatedSymbolMap,
                                            snapshotBuilderOpt: newManagerOpt,
                                            isSpeculative: true),
                         variableState,

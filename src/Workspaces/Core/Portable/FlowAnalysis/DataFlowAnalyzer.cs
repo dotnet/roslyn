@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     internal abstract class DataFlowAnalyzer<TBlockAnalysisData> : IDisposable
     {
         /// <summary>
-        /// Gets current analysis data for the given basic block.
+        /// Gets current analysis data for the given basic block, or an empty analysis data.
         /// </summary>
         public abstract TBlockAnalysisData GetCurrentAnalysisData(BasicBlock basicBlock);
 

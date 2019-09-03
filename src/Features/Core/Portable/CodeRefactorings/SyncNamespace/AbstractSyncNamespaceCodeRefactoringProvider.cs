@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                         : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace),
                     token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, token));
 
-                context.RegisterRefactoring(solutionChangeAction);
+                context.RegisterRefactoring(solutionChangeAction, textSpan);
             }
         }
 

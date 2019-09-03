@@ -155,8 +155,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return variables[0];
             }
 
-            protected IEnumerable<TStatement> AddReturnIfUnreachable(
-                IEnumerable<TStatement> statements, CancellationToken cancellationToken)
+            protected IEnumerable<TStatement> AddReturnIfUnreachable(IEnumerable<TStatement> statements)
             {
                 if (AnalyzerResult.EndOfSelectionReachable)
                 {
@@ -287,7 +286,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return new HashSet<SyntaxAnnotation>(annotations.Select(t => t.Item2));
             }
 
-            protected ImmutableArray<ITypeParameterSymbol> CreateMethodTypeParameters(CancellationToken cancellationToken)
+            protected ImmutableArray<ITypeParameterSymbol> CreateMethodTypeParameters()
             {
                 if (AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0)
                 {

@@ -1923,7 +1923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '       where the property is a getter-only autoproperty 
                         '       and the writing is happening in the corresponding constructor or initializer
                         If setMethod IsNot Nothing Then
-                            ReportDiagnosticsIfObsolete(diagnostics, setMethod, node)
+                            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
 
                             If ReportUseSiteError(diagnostics, op1.Syntax, setMethod) Then
                                 isError = True

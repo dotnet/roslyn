@@ -5915,7 +5915,7 @@ class C
                 System.IO.MemoryStream V_1) //n
   // sequence point: {
   IL_0000:  nop
-  // sequence point: MemoryStream m = new MemoryStream()
+  // sequence point: using MemoryStream m = new MemoryStream()
   IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
   IL_0006:  stloc.0
   .try
@@ -5961,41 +5961,41 @@ class C
 ");
 
             c.VerifyPdb("C.Main", @"
- <symbols>
-   <files>
-     <file id=""1"" name="""" language=""C#"" />
-   </files>
-   <methods>
-     <method containingType=""C"" name=""Main"">
-       <customDebugInfo>
-         <using>
-           <namespace usingCount=""2"" />
-         </using>
-         <encLocalSlotMap>
-           <slot kind=""0"" offset=""30"" />
-           <slot kind=""0"" offset=""54"" />
-         </encLocalSlotMap>
-       </customDebugInfo>
-       <sequencePoints>
-         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-         <entry offset=""0x1"" startLine=""8"" startColumn=""15"" endLine=""8"" endColumn=""50"" document=""1"" />
-         <entry offset=""0x7"" startLine=""8"" startColumn=""52"" endLine=""8"" endColumn=""74"" document=""1"" />
-         <entry offset=""0xd"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""30"" document=""1"" />
-         <entry offset=""0x14"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
-         <entry offset=""0x16"" hidden=""true"" document=""1"" />
-         <entry offset=""0x20"" hidden=""true"" document=""1"" />
-         <entry offset=""0x21"" hidden=""true"" document=""1"" />
-         <entry offset=""0x2b"" hidden=""true"" document=""1"" />
-         <entry offset=""0x2c"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
-       </sequencePoints>
-       <scope startOffset=""0x0"" endOffset=""0x2d"">
-         <namespace name=""System"" />
-         <namespace name=""System.IO"" />
-         <local name=""m"" il_index=""0"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
-         <local name=""n"" il_index=""1"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
-       </scope>
-     </method>
-   </methods>
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""30"" />
+          <slot kind=""0"" offset=""54"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""50"" document=""1"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""52"" endLine=""8"" endColumn=""74"" document=""1"" />
+        <entry offset=""0xd"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x14"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x16"" hidden=""true"" document=""1"" />
+        <entry offset=""0x20"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2c"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2d"">
+        <namespace name=""System"" />
+        <namespace name=""System.IO"" />
+        <local name=""m"" il_index=""0"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
+        <local name=""n"" il_index=""1"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
  </symbols>");
         }
 
@@ -6030,7 +6030,7 @@ class C
                 int V_1)
   // sequence point: {
   IL_0000:  nop
-  // sequence point: MemoryStream m = new MemoryStream();
+  // sequence point: using MemoryStream m = new MemoryStream();
   IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
   IL_0006:  stloc.0
   .try
@@ -6079,7 +6079,7 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""15"" endLine=""8"" endColumn=""51"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""51"" document=""1"" />
         <entry offset=""0x7"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""30"" document=""1"" />
         <entry offset=""0xe"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""18"" document=""1"" />
         <entry offset=""0x12"" hidden=""true"" document=""1"" />
@@ -6141,7 +6141,7 @@ class C
   IL_0008:  brfalse.s  IL_0026
   // sequence point: {
   IL_000a:  nop
-  // sequence point: var m = new MemoryStream();
+  // sequence point: using var m = new MemoryStream();
   IL_000b:  newobj     ""System.IO.MemoryStream..ctor()""
   IL_0010:  stloc.1
   .try
@@ -6175,7 +6175,7 @@ class C
 ");
 
             c.VerifyPdb("C.Main", @"
- <symbols>
+<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
@@ -6193,7 +6193,7 @@ class C
         <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""17"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
         <entry offset=""0xa"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xb"" startLine=""12"" startColumn=""19"" endLine=""12"" endColumn=""46"" document=""1"" />
+        <entry offset=""0xb"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""46"" document=""1"" />
         <entry offset=""0x11"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""34"" document=""1"" />
         <entry offset=""0x1a"" hidden=""true"" document=""1"" />
         <entry offset=""0x24"" hidden=""true"" document=""1"" />
@@ -8245,273 +8245,269 @@ class Program
             // note no sequence points emitted within the switch expression
 
             verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL: @"
-{
-  // Code size      454 (0x1c6)
-  .maxstack  3
-  .locals init (int V_0, //a
-                int V_1, //x
-                object V_2, //y
-                object V_3, //z
-                int V_4, //p
-                int V_5, //q
-                int V_6, //p
-                int V_7, //z
-                int V_8,
-                object V_9,
-                System.Runtime.CompilerServices.ITuple V_10,
-                int V_11,
-                D V_12,
-                double V_13,
-                C V_14,
-                object V_15,
-                C V_16,
-                int V_17,
-                D V_18,
-                int V_19,
-                C V_20,
-                int V_21)
- -IL_0000:  nop
- -IL_0001:  call       ""object Program.F()""
-  IL_0006:  stloc.s    V_9
-  IL_0008:  ldloc.s    V_9
-  IL_000a:  isinst     ""int""
-  IL_000f:  brfalse.s  IL_001e
-  IL_0011:  ldloc.s    V_9
-  IL_0013:  unbox.any  ""int""
-  IL_0018:  stloc.1
-  IL_0019:  br         IL_015e
-  IL_001e:  ldloc.s    V_9
-  IL_0020:  isinst     ""bool""
-  IL_0025:  brtrue     IL_016f
-  IL_002a:  ldloc.s    V_9
-  IL_002c:  isinst     ""System.Runtime.CompilerServices.ITuple""
-  IL_0031:  stloc.s    V_10
-  IL_0033:  ldloc.s    V_10
-  IL_0035:  brfalse.s  IL_008f
-  IL_0037:  ldloc.s    V_10
-  IL_0039:  callvirt   ""int System.Runtime.CompilerServices.ITuple.Length.get""
-  IL_003e:  stloc.s    V_11
-  IL_0040:  ldloc.s    V_11
-  IL_0042:  ldc.i4.2
-  IL_0043:  bne.un.s   IL_005c
-  IL_0045:  ldloc.s    V_10
-  IL_0047:  ldc.i4.0
-  IL_0048:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
-  IL_004d:  stloc.2
-  IL_004e:  ldloc.s    V_10
-  IL_0050:  ldc.i4.1
-  IL_0051:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
-  IL_0056:  stloc.3
-  IL_0057:  br         IL_0174
-  IL_005c:  ldloc.s    V_9
-  IL_005e:  isinst     ""C""
-  IL_0063:  brtrue     IL_0180
-  IL_0068:  br.s       IL_0073
-  IL_006a:  ldloc.s    V_11
-  IL_006c:  brfalse    IL_019d
-  IL_0071:  br.s       IL_00c4
-  IL_0073:  ldloc.s    V_11
-  IL_0075:  brfalse    IL_019d
-  IL_007a:  ldloc.s    V_9
-  IL_007c:  isinst     ""D""
-  IL_0081:  stloc.s    V_12
-  IL_0083:  ldloc.s    V_12
-  IL_0085:  brtrue     IL_0116
-  IL_008a:  br         IL_01b8
-  IL_008f:  ldloc.s    V_9
-  IL_0091:  isinst     ""double""
-  IL_0096:  brfalse.s  IL_00b6
-  IL_0098:  ldloc.s    V_9
-  IL_009a:  unbox.any  ""double""
-  IL_009f:  stloc.s    V_13
-  IL_00a1:  ldloc.s    V_13
-  IL_00a3:  ldc.r8     4
-  IL_00ac:  beq        IL_017b
-  IL_00b1:  br         IL_01b8
-  IL_00b6:  ldloc.s    V_9
-  IL_00b8:  isinst     ""C""
-  IL_00bd:  brtrue     IL_018c
-  IL_00c2:  br.s       IL_0104
-  IL_00c4:  ldloc.s    V_9
-  IL_00c6:  castclass  ""C""
-  IL_00cb:  stloc.s    V_14
-  IL_00cd:  ldloc.s    V_14
-  IL_00cf:  ldloca.s   V_4
-  IL_00d1:  ldloca.s   V_15
-  IL_00d3:  callvirt   ""void C.Deconstruct(out int, out object)""
-  IL_00d8:  nop
-  IL_00d9:  ldloc.s    V_15
-  IL_00db:  isinst     ""C""
-  IL_00e0:  stloc.s    V_16
-  IL_00e2:  ldloc.s    V_16
-  IL_00e4:  brfalse.s  IL_00f5
-  IL_00e6:  ldloc.s    V_16
-  IL_00e8:  ldloca.s   V_5
-  IL_00ea:  callvirt   ""void C.Deconstruct(out int)""
-  IL_00ef:  nop
-  IL_00f0:  br         IL_01a2
-  IL_00f5:  ldloc.s    V_14
-  IL_00f7:  ldloca.s   V_6
-  IL_00f9:  callvirt   ""void C.Deconstruct(out int)""
-  IL_00fe:  nop
-  IL_00ff:  br         IL_01a9
-  IL_0104:  ldloc.s    V_9
-  IL_0106:  isinst     ""D""
-  IL_010b:  stloc.s    V_12
-  IL_010d:  ldloc.s    V_12
-  IL_010f:  brtrue.s   IL_0116
-  IL_0111:  br         IL_01b8
-  IL_0116:  ldloc.s    V_12
-  IL_0118:  callvirt   ""int D.P.get""
-  IL_011d:  stloc.s    V_17
-  IL_011f:  ldloc.s    V_17
-  IL_0121:  ldc.i4.1
-  IL_0122:  bne.un     IL_01b8
-  IL_0127:  ldloc.s    V_12
-  IL_0129:  callvirt   ""D D.Q.get""
-  IL_012e:  stloc.s    V_18
-  IL_0130:  ldloc.s    V_18
-  IL_0132:  brfalse    IL_01b8
-  IL_0137:  ldloc.s    V_18
-  IL_0139:  callvirt   ""int D.P.get""
-  IL_013e:  stloc.s    V_19
-  IL_0140:  ldloc.s    V_19
-  IL_0142:  ldc.i4.2
-  IL_0143:  bne.un.s   IL_01b8
-  IL_0145:  ldloc.s    V_12
-  IL_0147:  callvirt   ""C D.R.get""
-  IL_014c:  stloc.s    V_20
-  IL_014e:  ldloc.s    V_20
-  IL_0150:  brfalse.s  IL_01b8
-  IL_0152:  ldloc.s    V_20
-  IL_0154:  ldloca.s   V_7
-  IL_0156:  callvirt   ""void C.Deconstruct(out int)""
-  IL_015b:  nop
-  IL_015c:  br.s       IL_01b0
-  IL_015e:  ldloc.1
-  IL_015f:  call       ""int Program.G(int)""
-  IL_0164:  ldc.i4.s   10
-  IL_0166:  bgt.s      IL_016a
-  IL_0168:  br.s       IL_01b8
-  IL_016a:  ldc.i4.1
-  IL_016b:  stloc.s    V_8
-  IL_016d:  br.s       IL_01be
-  IL_016f:  ldc.i4.2
-  IL_0170:  stloc.s    V_8
-  IL_0172:  br.s       IL_01be
-  IL_0174:  br.s       IL_0176
-  IL_0176:  ldc.i4.3
-  IL_0177:  stloc.s    V_8
-  IL_0179:  br.s       IL_01be
-  IL_017b:  ldc.i4.4
-  IL_017c:  stloc.s    V_8
-  IL_017e:  br.s       IL_01be
-  IL_0180:  call       ""bool Program.B()""
-  IL_0185:  brtrue.s   IL_0198
-  IL_0187:  br         IL_006a
-  IL_018c:  call       ""bool Program.B()""
-  IL_0191:  brtrue.s   IL_0198
-  IL_0193:  br         IL_00c4
-  IL_0198:  ldc.i4.5
-  IL_0199:  stloc.s    V_8
-  IL_019b:  br.s       IL_01be
-  IL_019d:  ldc.i4.6
-  IL_019e:  stloc.s    V_8
-  IL_01a0:  br.s       IL_01be
-  IL_01a2:  br.s       IL_01a4
-  IL_01a4:  ldc.i4.7
-  IL_01a5:  stloc.s    V_8
-  IL_01a7:  br.s       IL_01be
-  IL_01a9:  br.s       IL_01ab
-  IL_01ab:  ldc.i4.8
-  IL_01ac:  stloc.s    V_8
-  IL_01ae:  br.s       IL_01be
-  IL_01b0:  br.s       IL_01b2
-  IL_01b2:  ldc.i4.s   9
-  IL_01b4:  stloc.s    V_8
-  IL_01b6:  br.s       IL_01be
-  IL_01b8:  ldc.i4.s   10
-  IL_01ba:  stloc.s    V_8
-  IL_01bc:  br.s       IL_01be
-  IL_01be:  ldloc.s    V_8
-  IL_01c0:  stloc.s    V_21
-  IL_01c2:  ldloc.s    V_21
-  IL_01c4:  stloc.0
- -IL_01c5:  ret
-}
+    {
+      // Code size      450 (0x1c2)
+      .maxstack  3
+      .locals init (int V_0, //a
+                    int V_1, //x
+                    object V_2, //y
+                    object V_3, //z
+                    int V_4, //p
+                    int V_5, //q
+                    int V_6, //p
+                    int V_7, //z
+                    int V_8,
+                    object V_9,
+                    System.Runtime.CompilerServices.ITuple V_10,
+                    int V_11,
+                    D V_12,
+                    double V_13,
+                    C V_14,
+                    object V_15,
+                    C V_16,
+                    int V_17,
+                    D V_18,
+                    int V_19,
+                    C V_20)
+     -IL_0000:  nop
+     -IL_0001:  call       ""object Program.F()""
+      IL_0006:  stloc.s    V_9
+      IL_0008:  ldloc.s    V_9
+      IL_000a:  isinst     ""int""
+      IL_000f:  brfalse.s  IL_001e
+      IL_0011:  ldloc.s    V_9
+      IL_0013:  unbox.any  ""int""
+      IL_0018:  stloc.1
+      IL_0019:  br         IL_015e
+      IL_001e:  ldloc.s    V_9
+      IL_0020:  isinst     ""bool""
+      IL_0025:  brtrue     IL_016f
+      IL_002a:  ldloc.s    V_9
+      IL_002c:  isinst     ""System.Runtime.CompilerServices.ITuple""
+      IL_0031:  stloc.s    V_10
+      IL_0033:  ldloc.s    V_10
+      IL_0035:  brfalse.s  IL_008f
+      IL_0037:  ldloc.s    V_10
+      IL_0039:  callvirt   ""int System.Runtime.CompilerServices.ITuple.Length.get""
+      IL_003e:  stloc.s    V_11
+      IL_0040:  ldloc.s    V_11
+      IL_0042:  ldc.i4.2
+      IL_0043:  bne.un.s   IL_005c
+      IL_0045:  ldloc.s    V_10
+      IL_0047:  ldc.i4.0
+      IL_0048:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
+      IL_004d:  stloc.2
+      IL_004e:  ldloc.s    V_10
+      IL_0050:  ldc.i4.1
+      IL_0051:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
+      IL_0056:  stloc.3
+      IL_0057:  br         IL_0174
+      IL_005c:  ldloc.s    V_9
+      IL_005e:  isinst     ""C""
+      IL_0063:  brtrue     IL_0180
+      IL_0068:  br.s       IL_0073
+      IL_006a:  ldloc.s    V_11
+      IL_006c:  brfalse    IL_019d
+      IL_0071:  br.s       IL_00c4
+      IL_0073:  ldloc.s    V_11
+      IL_0075:  brfalse    IL_019d
+      IL_007a:  ldloc.s    V_9
+      IL_007c:  isinst     ""D""
+      IL_0081:  stloc.s    V_12
+      IL_0083:  ldloc.s    V_12
+      IL_0085:  brtrue     IL_0116
+      IL_008a:  br         IL_01b8
+      IL_008f:  ldloc.s    V_9
+      IL_0091:  isinst     ""double""
+      IL_0096:  brfalse.s  IL_00b6
+      IL_0098:  ldloc.s    V_9
+      IL_009a:  unbox.any  ""double""
+      IL_009f:  stloc.s    V_13
+      IL_00a1:  ldloc.s    V_13
+      IL_00a3:  ldc.r8     4
+      IL_00ac:  beq        IL_017b
+      IL_00b1:  br         IL_01b8
+      IL_00b6:  ldloc.s    V_9
+      IL_00b8:  isinst     ""C""
+      IL_00bd:  brtrue     IL_018c
+      IL_00c2:  br.s       IL_0104
+      IL_00c4:  ldloc.s    V_9
+      IL_00c6:  castclass  ""C""
+      IL_00cb:  stloc.s    V_14
+      IL_00cd:  ldloc.s    V_14
+      IL_00cf:  ldloca.s   V_4
+      IL_00d1:  ldloca.s   V_15
+      IL_00d3:  callvirt   ""void C.Deconstruct(out int, out object)""
+      IL_00d8:  nop
+      IL_00d9:  ldloc.s    V_15
+      IL_00db:  isinst     ""C""
+      IL_00e0:  stloc.s    V_16
+      IL_00e2:  ldloc.s    V_16
+      IL_00e4:  brfalse.s  IL_00f5
+      IL_00e6:  ldloc.s    V_16
+      IL_00e8:  ldloca.s   V_5
+      IL_00ea:  callvirt   ""void C.Deconstruct(out int)""
+      IL_00ef:  nop
+      IL_00f0:  br         IL_01a2
+      IL_00f5:  ldloc.s    V_14
+      IL_00f7:  ldloca.s   V_6
+      IL_00f9:  callvirt   ""void C.Deconstruct(out int)""
+      IL_00fe:  nop
+      IL_00ff:  br         IL_01a9
+      IL_0104:  ldloc.s    V_9
+      IL_0106:  isinst     ""D""
+      IL_010b:  stloc.s    V_12
+      IL_010d:  ldloc.s    V_12
+      IL_010f:  brtrue.s   IL_0116
+      IL_0111:  br         IL_01b8
+      IL_0116:  ldloc.s    V_12
+      IL_0118:  callvirt   ""int D.P.get""
+      IL_011d:  stloc.s    V_17
+      IL_011f:  ldloc.s    V_17
+      IL_0121:  ldc.i4.1
+      IL_0122:  bne.un     IL_01b8
+      IL_0127:  ldloc.s    V_12
+      IL_0129:  callvirt   ""D D.Q.get""
+      IL_012e:  stloc.s    V_18
+      IL_0130:  ldloc.s    V_18
+      IL_0132:  brfalse    IL_01b8
+      IL_0137:  ldloc.s    V_18
+      IL_0139:  callvirt   ""int D.P.get""
+      IL_013e:  stloc.s    V_19
+      IL_0140:  ldloc.s    V_19
+      IL_0142:  ldc.i4.2
+      IL_0143:  bne.un.s   IL_01b8
+      IL_0145:  ldloc.s    V_12
+      IL_0147:  callvirt   ""C D.R.get""
+      IL_014c:  stloc.s    V_20
+      IL_014e:  ldloc.s    V_20
+      IL_0150:  brfalse.s  IL_01b8
+      IL_0152:  ldloc.s    V_20
+      IL_0154:  ldloca.s   V_7
+      IL_0156:  callvirt   ""void C.Deconstruct(out int)""
+      IL_015b:  nop
+      IL_015c:  br.s       IL_01b0
+      IL_015e:  ldloc.1
+      IL_015f:  call       ""int Program.G(int)""
+      IL_0164:  ldc.i4.s   10
+      IL_0166:  bgt.s      IL_016a
+      IL_0168:  br.s       IL_01b8
+      IL_016a:  ldc.i4.1
+      IL_016b:  stloc.s    V_8
+      IL_016d:  br.s       IL_01be
+      IL_016f:  ldc.i4.2
+      IL_0170:  stloc.s    V_8
+      IL_0172:  br.s       IL_01be
+      IL_0174:  br.s       IL_0176
+      IL_0176:  ldc.i4.3
+      IL_0177:  stloc.s    V_8
+      IL_0179:  br.s       IL_01be
+      IL_017b:  ldc.i4.4
+      IL_017c:  stloc.s    V_8
+      IL_017e:  br.s       IL_01be
+      IL_0180:  call       ""bool Program.B()""
+      IL_0185:  brtrue.s   IL_0198
+      IL_0187:  br         IL_006a
+      IL_018c:  call       ""bool Program.B()""
+      IL_0191:  brtrue.s   IL_0198
+      IL_0193:  br         IL_00c4
+      IL_0198:  ldc.i4.5
+      IL_0199:  stloc.s    V_8
+      IL_019b:  br.s       IL_01be
+      IL_019d:  ldc.i4.6
+      IL_019e:  stloc.s    V_8
+      IL_01a0:  br.s       IL_01be
+      IL_01a2:  br.s       IL_01a4
+      IL_01a4:  ldc.i4.7
+      IL_01a5:  stloc.s    V_8
+      IL_01a7:  br.s       IL_01be
+      IL_01a9:  br.s       IL_01ab
+      IL_01ab:  ldc.i4.8
+      IL_01ac:  stloc.s    V_8
+      IL_01ae:  br.s       IL_01be
+      IL_01b0:  br.s       IL_01b2
+      IL_01b2:  ldc.i4.s   9
+      IL_01b4:  stloc.s    V_8
+      IL_01b6:  br.s       IL_01be
+      IL_01b8:  ldc.i4.s   10
+      IL_01ba:  stloc.s    V_8
+      IL_01bc:  br.s       IL_01be
+      IL_01be:  ldloc.s    V_8
+      IL_01c0:  stloc.0
+     -IL_01c1:  ret
+    }
 ");
 
             verifier.VerifyPdb("Program.Main", @"   
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
-  <methods>
-    <method containingType=""Program"" name=""Main"">
-      <customDebugInfo>
-        <forward declaringType=""C"" methodName=""Deconstruct"" />
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""15"" />
-          <slot kind=""0"" offset=""94"" />
-          <slot kind=""0"" offset=""225"" />
-          <slot kind=""0"" offset=""228"" />
-          <slot kind=""0"" offset=""406"" />
-          <slot kind=""0"" offset=""415"" />
-          <slot kind=""0"" offset=""447"" />
-          <slot kind=""0"" offset=""539"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""23"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""24"" startColumn=""9"" endLine=""48"" endColumn=""11"" document=""1"" />
-        <entry offset=""0x1c5"" startLine=""49"" startColumn=""5"" endLine=""49"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1c6"">
-        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1c6"" attributes=""0"" />
-        <scope startOffset=""0x1"" endOffset=""0x1c5"">
-          <local name=""x"" il_index=""1"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""y"" il_index=""2"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""z"" il_index=""3"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""p"" il_index=""4"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""q"" il_index=""5"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""p"" il_index=""6"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""z"" il_index=""7"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <scope startOffset=""0x15e"" endOffset=""0x16f"">
-            <local name=""x"" il_index=""1"" il_start=""0x15e"" il_end=""0x16f"" attributes=""0"" />
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""Program"" name=""Main"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName=""Deconstruct"" />
+            <encLocalSlotMap>
+              <slot kind=""0"" offset=""15"" />
+              <slot kind=""0"" offset=""94"" />
+              <slot kind=""0"" offset=""225"" />
+              <slot kind=""0"" offset=""228"" />
+              <slot kind=""0"" offset=""406"" />
+              <slot kind=""0"" offset=""415"" />
+              <slot kind=""0"" offset=""447"" />
+              <slot kind=""0"" offset=""539"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1"" startLine=""24"" startColumn=""9"" endLine=""48"" endColumn=""11"" document=""1"" />
+            <entry offset=""0x1c1"" startLine=""49"" startColumn=""5"" endLine=""49"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x1c2"">
+            <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1c2"" attributes=""0"" />
+            <scope startOffset=""0x1"" endOffset=""0x1c1"">
+              <local name=""x"" il_index=""1"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""y"" il_index=""2"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""z"" il_index=""3"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""p"" il_index=""4"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""q"" il_index=""5"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""p"" il_index=""6"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""z"" il_index=""7"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <scope startOffset=""0x15e"" endOffset=""0x16f"">
+                <local name=""x"" il_index=""1"" il_start=""0x15e"" il_end=""0x16f"" attributes=""0"" />
+              </scope>
+              <scope startOffset=""0x174"" endOffset=""0x17b"">
+                <local name=""y"" il_index=""2"" il_start=""0x174"" il_end=""0x17b"" attributes=""0"" />
+                <local name=""z"" il_index=""3"" il_start=""0x174"" il_end=""0x17b"" attributes=""0"" />
+              </scope>
+              <scope startOffset=""0x1a2"" endOffset=""0x1a9"">
+                <local name=""p"" il_index=""4"" il_start=""0x1a2"" il_end=""0x1a9"" attributes=""0"" />
+                <local name=""q"" il_index=""5"" il_start=""0x1a2"" il_end=""0x1a9"" attributes=""0"" />
+              </scope>
+              <scope startOffset=""0x1a9"" endOffset=""0x1b0"">
+                <local name=""p"" il_index=""6"" il_start=""0x1a9"" il_end=""0x1b0"" attributes=""0"" />
+              </scope>
+              <scope startOffset=""0x1b0"" endOffset=""0x1b8"">
+                <local name=""z"" il_index=""7"" il_start=""0x1b0"" il_end=""0x1b8"" attributes=""0"" />
+              </scope>
+            </scope>
           </scope>
-          <scope startOffset=""0x174"" endOffset=""0x17b"">
-            <local name=""y"" il_index=""2"" il_start=""0x174"" il_end=""0x17b"" attributes=""0"" />
-            <local name=""z"" il_index=""3"" il_start=""0x174"" il_end=""0x17b"" attributes=""0"" />
-          </scope>
-          <scope startOffset=""0x1a2"" endOffset=""0x1a9"">
-            <local name=""p"" il_index=""4"" il_start=""0x1a2"" il_end=""0x1a9"" attributes=""0"" />
-            <local name=""q"" il_index=""5"" il_start=""0x1a2"" il_end=""0x1a9"" attributes=""0"" />
-          </scope>
-          <scope startOffset=""0x1a9"" endOffset=""0x1b0"">
-            <local name=""p"" il_index=""6"" il_start=""0x1a9"" il_end=""0x1b0"" attributes=""0"" />
-          </scope>
-          <scope startOffset=""0x1b0"" endOffset=""0x1b8"">
-            <local name=""z"" il_index=""7"" il_start=""0x1b0"" il_end=""0x1b8"" attributes=""0"" />
-          </scope>
-        </scope>
-      </scope>
-    </method>
-  </methods>
-</symbols>
+        </method>
+      </methods>
+    </symbols>
 ");
         }
 
@@ -8806,267 +8802,252 @@ public class C
             // The values of the closure offsets are incorrect.
 
             verifier.VerifyIL("C.M", sequencePoints: "C.M", expectedIL: @"
-{
-  // Code size      459 (0x1cb)
-  .maxstack  2
-  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
-                int V_1,
-                int V_2,
-                C.<>c__DisplayClass0_1 V_3, //CS$<>8__locals1
-                int V_4,
-                object V_5,
-                int V_6,
-                C V_7,
-                object V_8,
-                int V_9,
-                C.<>c__DisplayClass0_2 V_10, //CS$<>8__locals2
-                int V_11,
-                object V_12,
-                C V_13,
-                object V_14,
-                object V_15,
-                C V_16,
-                object V_17,
-                int V_18,
-                C.<>c__DisplayClass0_3 V_19, //CS$<>8__locals3
-                int V_20,
-                int V_21)
- -IL_0000:  nop
- ~IL_0001:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
-  IL_0006:  stloc.0
- ~IL_0007:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
-  IL_000c:  stloc.3
-  IL_000d:  call       ""object C.F()""
-  IL_0012:  stloc.s    V_5
-  IL_0014:  ldloc.s    V_5
-  IL_0016:  isinst     ""int""
-  IL_001b:  brfalse.s  IL_003a
-  IL_001d:  ldloc.s    V_5
-  IL_001f:  unbox.any  ""int""
-  IL_0024:  stloc.s    V_6
-  IL_0026:  ldloc.s    V_6
-  IL_0028:  ldc.i4.1
-  IL_0029:  beq.s      IL_0071
-  IL_002b:  br.s       IL_002d
-  IL_002d:  ldloc.s    V_6
-  IL_002f:  ldc.i4.2
-  IL_0030:  beq        IL_010f
-  IL_0035:  br         IL_018b
-  IL_003a:  ldloc.s    V_5
-  IL_003c:  isinst     ""C""
-  IL_0041:  stloc.s    V_7
-  IL_0043:  ldloc.s    V_7
-  IL_0045:  brfalse    IL_018b
-  IL_004a:  ldloc.s    V_7
-  IL_004c:  callvirt   ""object C.Q.get""
-  IL_0051:  stloc.s    V_8
-  IL_0053:  ldloc.s    V_8
-  IL_0055:  isinst     ""int""
-  IL_005a:  brfalse    IL_018b
-  IL_005f:  ldloc.3
-  IL_0060:  ldloc.s    V_8
-  IL_0062:  unbox.any  ""int""
-  IL_0067:  stfld      ""int C.<>c__DisplayClass0_1.<s>5__3""
-  IL_006c:  br         IL_0174
- ~IL_0071:  newobj     ""C.<>c__DisplayClass0_2..ctor()""
-  IL_0076:  stloc.s    V_10
-  IL_0078:  call       ""object C.F()""
-  IL_007d:  stloc.s    V_12
-  IL_007f:  ldloc.s    V_12
-  IL_0081:  isinst     ""C""
-  IL_0086:  stloc.s    V_13
-  IL_0088:  ldloc.s    V_13
-  IL_008a:  brfalse.s  IL_00fc
-  IL_008c:  ldloc.s    V_13
-  IL_008e:  callvirt   ""object C.P.get""
-  IL_0093:  stloc.s    V_14
-  IL_0095:  ldloc.s    V_14
-  IL_0097:  isinst     ""int""
-  IL_009c:  brfalse.s  IL_00fc
-  IL_009e:  ldloc.s    V_10
-  IL_00a0:  ldloc.s    V_14
-  IL_00a2:  unbox.any  ""int""
-  IL_00a7:  stfld      ""int C.<>c__DisplayClass0_2.<p>5__4""
-  IL_00ac:  ldloc.s    V_13
-  IL_00ae:  callvirt   ""object C.Q.get""
-  IL_00b3:  stloc.s    V_15
-  IL_00b5:  ldloc.s    V_15
-  IL_00b7:  isinst     ""C""
-  IL_00bc:  stloc.s    V_16
-  IL_00be:  ldloc.s    V_16
-  IL_00c0:  brfalse.s  IL_00fc
-  IL_00c2:  ldloc.s    V_16
-  IL_00c4:  callvirt   ""object C.P.get""
-  IL_00c9:  stloc.s    V_17
-  IL_00cb:  ldloc.s    V_17
-  IL_00cd:  isinst     ""int""
-  IL_00d2:  brfalse.s  IL_00fc
-  IL_00d4:  ldloc.s    V_10
-  IL_00d6:  ldloc.s    V_17
-  IL_00d8:  unbox.any  ""int""
-  IL_00dd:  stfld      ""int C.<>c__DisplayClass0_2.<q>5__5""
-  IL_00e2:  br.s       IL_00e4
-  IL_00e4:  br.s       IL_00e6
-  IL_00e6:  ldloc.s    V_10
-  IL_00e8:  ldftn      ""int C.<>c__DisplayClass0_2.<M>b__2()""
-  IL_00ee:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_00f3:  call       ""int C.G(System.Func<int>)""
-  IL_00f8:  stloc.s    V_11
-  IL_00fa:  br.s       IL_0102
-  IL_00fc:  ldc.i4.s   10
-  IL_00fe:  stloc.s    V_11
-  IL_0100:  br.s       IL_0102
-  IL_0102:  ldloc.s    V_11
-  IL_0104:  stloc.s    V_18
-  IL_0106:  ldloc.s    V_18
-  IL_0108:  stloc.s    V_4
-  IL_010a:  br         IL_0190
- ~IL_010f:  newobj     ""C.<>c__DisplayClass0_3..ctor()""
-  IL_0114:  stloc.s    V_19
-  IL_0116:  call       ""object C.F()""
-  IL_011b:  stloc.s    V_17
-  IL_011d:  ldloc.s    V_17
-  IL_011f:  isinst     ""C""
-  IL_0124:  stloc.s    V_16
-  IL_0126:  ldloc.s    V_16
-  IL_0128:  brfalse.s  IL_0164
-  IL_012a:  ldloc.s    V_16
-  IL_012c:  callvirt   ""object C.P.get""
-  IL_0131:  stloc.s    V_15
-  IL_0133:  ldloc.s    V_15
-  IL_0135:  isinst     ""int""
-  IL_013a:  brfalse.s  IL_0164
-  IL_013c:  ldloc.s    V_19
-  IL_013e:  ldloc.s    V_15
-  IL_0140:  unbox.any  ""int""
-  IL_0145:  stfld      ""int C.<>c__DisplayClass0_3.<r>5__6""
-  IL_014a:  br.s       IL_014c
-  IL_014c:  br.s       IL_014e
-  IL_014e:  ldloc.s    V_19
-  IL_0150:  ldftn      ""int C.<>c__DisplayClass0_3.<M>b__3()""
-  IL_0156:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_015b:  call       ""int C.G(System.Func<int>)""
-  IL_0160:  stloc.s    V_11
-  IL_0162:  br.s       IL_016a
-  IL_0164:  ldc.i4.s   20
-  IL_0166:  stloc.s    V_11
-  IL_0168:  br.s       IL_016a
-  IL_016a:  ldloc.s    V_11
-  IL_016c:  stloc.s    V_20
-  IL_016e:  ldloc.s    V_20
-  IL_0170:  stloc.s    V_4
-  IL_0172:  br.s       IL_0190
-  IL_0174:  br.s       IL_0176
-  IL_0176:  ldloc.3
-  IL_0177:  ldftn      ""int C.<>c__DisplayClass0_1.<M>b__1()""
-  IL_017d:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_0182:  call       ""int C.G(System.Func<int>)""
-  IL_0187:  stloc.s    V_4
-  IL_0189:  br.s       IL_0190
-  IL_018b:  ldc.i4.0
-  IL_018c:  stloc.s    V_4
-  IL_018e:  br.s       IL_0190
-  IL_0190:  ldloc.s    V_4
-  IL_0192:  stloc.s    V_9
-  IL_0194:  ldloc.0
-  IL_0195:  ldloc.s    V_9
-  IL_0197:  stfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
-  IL_019c:  br.s       IL_019e
-  IL_019e:  ldloc.0
-  IL_019f:  ldfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
-  IL_01a4:  ldc.i4.0
-  IL_01a5:  bgt.s      IL_01a9
-  IL_01a7:  br.s       IL_01bd
-  IL_01a9:  ldloc.0
-  IL_01aa:  ldftn      ""int C.<>c__DisplayClass0_0.<M>b__0()""
-  IL_01b0:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_01b5:  call       ""int C.G(System.Func<int>)""
-  IL_01ba:  stloc.1
-  IL_01bb:  br.s       IL_01c1
-  IL_01bd:  ldc.i4.0
-  IL_01be:  stloc.1
-  IL_01bf:  br.s       IL_01c1
-  IL_01c1:  ldloc.1
-  IL_01c2:  stloc.2
-  IL_01c3:  ldloc.2
-  IL_01c4:  stloc.s    V_21
-  IL_01c6:  br.s       IL_01c8
- -IL_01c8:  ldloc.s    V_21
-  IL_01ca:  ret
-}");
+    {
+      // Code size      437 (0x1b5)
+      .maxstack  2
+      .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                    int V_1,
+                    C.<>c__DisplayClass0_1 V_2, //CS$<>8__locals1
+                    int V_3,
+                    object V_4,
+                    int V_5,
+                    C V_6,
+                    object V_7,
+                    C.<>c__DisplayClass0_2 V_8, //CS$<>8__locals2
+                    int V_9,
+                    object V_10,
+                    C V_11,
+                    object V_12,
+                    object V_13,
+                    C V_14,
+                    object V_15,
+                    C.<>c__DisplayClass0_3 V_16, //CS$<>8__locals3
+                    int V_17)
+     -IL_0000:  nop
+     ~IL_0001:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+      IL_0006:  stloc.0
+     ~IL_0007:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
+      IL_000c:  stloc.2
+      IL_000d:  call       ""object C.F()""
+      IL_0012:  stloc.s    V_4
+      IL_0014:  ldloc.s    V_4
+      IL_0016:  isinst     ""int""
+      IL_001b:  brfalse.s  IL_003a
+      IL_001d:  ldloc.s    V_4
+      IL_001f:  unbox.any  ""int""
+      IL_0024:  stloc.s    V_5
+      IL_0026:  ldloc.s    V_5
+      IL_0028:  ldc.i4.1
+      IL_0029:  beq.s      IL_0071
+      IL_002b:  br.s       IL_002d
+      IL_002d:  ldloc.s    V_5
+      IL_002f:  ldc.i4.2
+      IL_0030:  beq        IL_0107
+      IL_0035:  br         IL_017d
+      IL_003a:  ldloc.s    V_4
+      IL_003c:  isinst     ""C""
+      IL_0041:  stloc.s    V_6
+      IL_0043:  ldloc.s    V_6
+      IL_0045:  brfalse    IL_017d
+      IL_004a:  ldloc.s    V_6
+      IL_004c:  callvirt   ""object C.Q.get""
+      IL_0051:  stloc.s    V_7
+      IL_0053:  ldloc.s    V_7
+      IL_0055:  isinst     ""int""
+      IL_005a:  brfalse    IL_017d
+      IL_005f:  ldloc.2
+      IL_0060:  ldloc.s    V_7
+      IL_0062:  unbox.any  ""int""
+      IL_0067:  stfld      ""int C.<>c__DisplayClass0_1.<s>5__3""
+      IL_006c:  br         IL_0167
+     ~IL_0071:  newobj     ""C.<>c__DisplayClass0_2..ctor()""
+      IL_0076:  stloc.s    V_8
+      IL_0078:  call       ""object C.F()""
+      IL_007d:  stloc.s    V_10
+      IL_007f:  ldloc.s    V_10
+      IL_0081:  isinst     ""C""
+      IL_0086:  stloc.s    V_11
+      IL_0088:  ldloc.s    V_11
+      IL_008a:  brfalse.s  IL_00fc
+      IL_008c:  ldloc.s    V_11
+      IL_008e:  callvirt   ""object C.P.get""
+      IL_0093:  stloc.s    V_12
+      IL_0095:  ldloc.s    V_12
+      IL_0097:  isinst     ""int""
+      IL_009c:  brfalse.s  IL_00fc
+      IL_009e:  ldloc.s    V_8
+      IL_00a0:  ldloc.s    V_12
+      IL_00a2:  unbox.any  ""int""
+      IL_00a7:  stfld      ""int C.<>c__DisplayClass0_2.<p>5__4""
+      IL_00ac:  ldloc.s    V_11
+      IL_00ae:  callvirt   ""object C.Q.get""
+      IL_00b3:  stloc.s    V_13
+      IL_00b5:  ldloc.s    V_13
+      IL_00b7:  isinst     ""C""
+      IL_00bc:  stloc.s    V_14
+      IL_00be:  ldloc.s    V_14
+      IL_00c0:  brfalse.s  IL_00fc
+      IL_00c2:  ldloc.s    V_14
+      IL_00c4:  callvirt   ""object C.P.get""
+      IL_00c9:  stloc.s    V_15
+      IL_00cb:  ldloc.s    V_15
+      IL_00cd:  isinst     ""int""
+      IL_00d2:  brfalse.s  IL_00fc
+      IL_00d4:  ldloc.s    V_8
+      IL_00d6:  ldloc.s    V_15
+      IL_00d8:  unbox.any  ""int""
+      IL_00dd:  stfld      ""int C.<>c__DisplayClass0_2.<q>5__5""
+      IL_00e2:  br.s       IL_00e4
+      IL_00e4:  br.s       IL_00e6
+      IL_00e6:  ldloc.s    V_8
+      IL_00e8:  ldftn      ""int C.<>c__DisplayClass0_2.<M>b__2()""
+      IL_00ee:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_00f3:  call       ""int C.G(System.Func<int>)""
+      IL_00f8:  stloc.s    V_9
+      IL_00fa:  br.s       IL_0102
+      IL_00fc:  ldc.i4.s   10
+      IL_00fe:  stloc.s    V_9
+      IL_0100:  br.s       IL_0102
+      IL_0102:  ldloc.s    V_9
+      IL_0104:  stloc.3
+      IL_0105:  br.s       IL_0181
+     ~IL_0107:  newobj     ""C.<>c__DisplayClass0_3..ctor()""
+      IL_010c:  stloc.s    V_16
+      IL_010e:  call       ""object C.F()""
+      IL_0113:  stloc.s    V_15
+      IL_0115:  ldloc.s    V_15
+      IL_0117:  isinst     ""C""
+      IL_011c:  stloc.s    V_14
+      IL_011e:  ldloc.s    V_14
+      IL_0120:  brfalse.s  IL_015c
+      IL_0122:  ldloc.s    V_14
+      IL_0124:  callvirt   ""object C.P.get""
+      IL_0129:  stloc.s    V_13
+      IL_012b:  ldloc.s    V_13
+      IL_012d:  isinst     ""int""
+      IL_0132:  brfalse.s  IL_015c
+      IL_0134:  ldloc.s    V_16
+      IL_0136:  ldloc.s    V_13
+      IL_0138:  unbox.any  ""int""
+      IL_013d:  stfld      ""int C.<>c__DisplayClass0_3.<r>5__6""
+      IL_0142:  br.s       IL_0144
+      IL_0144:  br.s       IL_0146
+      IL_0146:  ldloc.s    V_16
+      IL_0148:  ldftn      ""int C.<>c__DisplayClass0_3.<M>b__3()""
+      IL_014e:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_0153:  call       ""int C.G(System.Func<int>)""
+      IL_0158:  stloc.s    V_9
+      IL_015a:  br.s       IL_0162
+      IL_015c:  ldc.i4.s   20
+      IL_015e:  stloc.s    V_9
+      IL_0160:  br.s       IL_0162
+      IL_0162:  ldloc.s    V_9
+      IL_0164:  stloc.3
+      IL_0165:  br.s       IL_0181
+      IL_0167:  br.s       IL_0169
+      IL_0169:  ldloc.2
+      IL_016a:  ldftn      ""int C.<>c__DisplayClass0_1.<M>b__1()""
+      IL_0170:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_0175:  call       ""int C.G(System.Func<int>)""
+      IL_017a:  stloc.3
+      IL_017b:  br.s       IL_0181
+      IL_017d:  ldc.i4.0
+      IL_017e:  stloc.3
+      IL_017f:  br.s       IL_0181
+      IL_0181:  ldloc.0
+      IL_0182:  ldloc.3
+      IL_0183:  stfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
+      IL_0188:  br.s       IL_018a
+      IL_018a:  ldloc.0
+      IL_018b:  ldfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
+      IL_0190:  ldc.i4.0
+      IL_0191:  bgt.s      IL_0195
+      IL_0193:  br.s       IL_01a9
+      IL_0195:  ldloc.0
+      IL_0196:  ldftn      ""int C.<>c__DisplayClass0_0.<M>b__0()""
+      IL_019c:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_01a1:  call       ""int C.G(System.Func<int>)""
+      IL_01a6:  stloc.1
+      IL_01a7:  br.s       IL_01ad
+      IL_01a9:  ldc.i4.0
+      IL_01aa:  stloc.1
+      IL_01ab:  br.s       IL_01ad
+      IL_01ad:  ldloc.1
+      IL_01ae:  stloc.s    V_17
+      IL_01b0:  br.s       IL_01b2
+     -IL_01b2:  ldloc.s    V_17
+      IL_01b4:  ret
+    }
+");
             verifier.VerifyPdb("C.M", @"
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
-  <methods>
-    <method containingType=""C"" name=""M"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""30"" offset=""238"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""238"" />
-          <slot kind=""30"" offset=""238"" ordinal=""1"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""238"" ordinal=""1"" />
-          <slot kind=""30"" offset=""63"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""63"" />
-          <slot kind=""30"" offset=""238"" ordinal=""2"" />
-          <slot kind=""28"" offset=""238"" ordinal=""2"" />
-          <slot kind=""21"" offset=""0"" />
-        </encLocalSlotMap>
-        <encLambdaMap>
-          <methodOrdinal>0</methodOrdinal>
-          <closure offset=""238"" />
-          <closure offset=""238"" />
-          <closure offset=""63"" />
-          <closure offset=""238"" />
-          <lambda offset=""511"" closure=""0"" />
-          <lambda offset=""407"" closure=""1"" />
-          <lambda offset=""157"" closure=""2"" />
-          <lambda offset=""313"" closure=""3"" />
-        </encLambdaMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" hidden=""true"" document=""1"" />
-        <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0x71"" hidden=""true"" document=""1"" />
-        <entry offset=""0x10f"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1c8"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1cb"">
-        <namespace name=""System"" />
-        <scope startOffset=""0x1"" endOffset=""0x1c8"">
-          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x1c8"" attributes=""0"" />
-          <scope startOffset=""0x7"" endOffset=""0x19c"">
-            <local name=""CS$&lt;&gt;8__locals1"" il_index=""3"" il_start=""0x7"" il_end=""0x19c"" attributes=""0"" />
-            <scope startOffset=""0x71"" endOffset=""0x10a"">
-              <local name=""CS$&lt;&gt;8__locals2"" il_index=""10"" il_start=""0x71"" il_end=""0x10a"" attributes=""0"" />
-            </scope>
-            <scope startOffset=""0x10f"" endOffset=""0x172"">
-              <local name=""CS$&lt;&gt;8__locals3"" il_index=""19"" il_start=""0x10f"" il_end=""0x172"" attributes=""0"" />
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""M"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""1"" />
+            </using>
+            <encLocalSlotMap>
+              <slot kind=""30"" offset=""238"" />
+              <slot kind=""temp"" />
+              <slot kind=""30"" offset=""238"" ordinal=""1"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""30"" offset=""63"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""30"" offset=""238"" ordinal=""2"" />
+              <slot kind=""21"" offset=""0"" />
+            </encLocalSlotMap>
+            <encLambdaMap>
+              <methodOrdinal>0</methodOrdinal>
+              <closure offset=""238"" />
+              <closure offset=""238"" />
+              <closure offset=""63"" />
+              <closure offset=""238"" />
+              <lambda offset=""511"" closure=""0"" />
+              <lambda offset=""407"" closure=""1"" />
+              <lambda offset=""157"" closure=""2"" />
+              <lambda offset=""313"" closure=""3"" />
+            </encLambdaMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1"" hidden=""true"" document=""1"" />
+            <entry offset=""0x7"" hidden=""true"" document=""1"" />
+            <entry offset=""0x71"" hidden=""true"" document=""1"" />
+            <entry offset=""0x107"" hidden=""true"" document=""1"" />
+            <entry offset=""0x1b2"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x1b5"">
+            <namespace name=""System"" />
+            <scope startOffset=""0x1"" endOffset=""0x1b2"">
+              <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x1b2"" attributes=""0"" />
+              <scope startOffset=""0x7"" endOffset=""0x188"">
+                <local name=""CS$&lt;&gt;8__locals1"" il_index=""2"" il_start=""0x7"" il_end=""0x188"" attributes=""0"" />
+                <scope startOffset=""0x71"" endOffset=""0x105"">
+                  <local name=""CS$&lt;&gt;8__locals2"" il_index=""8"" il_start=""0x71"" il_end=""0x105"" attributes=""0"" />
+                </scope>
+                <scope startOffset=""0x107"" endOffset=""0x165"">
+                  <local name=""CS$&lt;&gt;8__locals3"" il_index=""16"" il_start=""0x107"" il_end=""0x165"" attributes=""0"" />
+                </scope>
+              </scope>
             </scope>
           </scope>
-        </scope>
-      </scope>
-    </method>
-  </methods>
-</symbols>
+        </method>
+      </methods>
+    </symbols>
 ");
         }
 
@@ -10426,34 +10407,32 @@ class C
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.G", @"
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
-  <methods>
-    <method containingType=""C"" name=""G"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""0"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""13"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""35"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""35"" ordinal=""1"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""32"" endLine=""1"" endColumn=""99"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x33"">
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x33"" attributes=""0"" />
-      </scope>
-    </method>
-  </methods>
-</symbols>
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""G"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""0"" />
+            </using>
+            <encLocalSlotMap>
+              <slot kind=""0"" offset=""13"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""1"" startColumn=""32"" endLine=""1"" endColumn=""99"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x2a"">
+            <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x2a"" attributes=""0"" />
+          </scope>
+        </method>
+      </methods>
+    </symbols>
 ");
         }
 

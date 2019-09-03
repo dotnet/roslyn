@@ -1205,6 +1205,52 @@ Target->Ultimate
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
+        [Fact]
+        public void PointerAsInputType()
+        {
+            var source =
+@"unsafe class Program
+{
+    static void Main(string[] args)
+    {
+    }
+    bool M1(int* p) => p is null; // 1
+    bool M2(int* p) => p is var _; // 2
+    void M3(int* p)
+    {
+        switch (p)
+        {
+            case null: // 3
+                break;
+        }
+    }
+    void M4(int* p)
+    {
+        switch (p)
+        {
+            case var _: // 4
+                break;
+        }
+    }
+}";
+            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,29): error CS8521: Pattern-matching is not permitted for pointer types.
+                //     bool M1(int* p) => p is null; // 1
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(6, 29),
+                // (7,29): error CS8521: Pattern-matching is not permitted for pointer types.
+                //     bool M2(int* p) => p is var _; // 2
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(7, 29),
+                // (12,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                //             case null: // 3
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(12, 18),
+                // (20,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                //             case var _: // 4
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(20, 18)
+                );
+            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                );
+        }
+
         [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
         public void TargetTypedSwitch_NaturalTypeWithUntypedArm_01()
         {

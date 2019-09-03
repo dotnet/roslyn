@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The file path of the document.
         /// </summary>
-        public string FilePath => Attributes.FilePath;
+        public string? FilePath => Attributes.FilePath;
 
         /// <summary>
         /// True if the document is a side effect of the build.
@@ -52,17 +54,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A loader that can retrieve the document text.
         /// </summary>
-        public TextLoader TextLoader { get; }
+        public TextLoader? TextLoader { get; }
 
         /// <summary>
         /// A <see cref="IDocumentServiceProvider"/> associated with this document
         /// </summary>
-        internal IDocumentServiceProvider DocumentServiceProvider { get; }
+        internal IDocumentServiceProvider? DocumentServiceProvider { get; }
 
         /// <summary>
         /// Create a new instance of a <see cref="DocumentInfo"/>.
         /// </summary>
-        internal DocumentInfo(DocumentAttributes attributes, TextLoader loader, IDocumentServiceProvider documentServiceProvider)
+        internal DocumentInfo(DocumentAttributes attributes, TextLoader? loader, IDocumentServiceProvider? documentServiceProvider)
         {
             Attributes = attributes;
             TextLoader = loader;
@@ -72,10 +74,10 @@ namespace Microsoft.CodeAnalysis
         public static DocumentInfo Create(
             DocumentId id,
             string name,
-            IEnumerable<string> folders = null,
+            IEnumerable<string>? folders = null,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
-            TextLoader loader = null,
-            string filePath = null,
+            TextLoader? loader = null,
+            string? filePath = null,
             bool isGenerated = false)
         {
             return Create(id, name, folders, sourceCodeKind, loader, filePath, isGenerated, documentServiceProvider: null);
@@ -84,20 +86,20 @@ namespace Microsoft.CodeAnalysis
         internal static DocumentInfo Create(
             DocumentId id,
             string name,
-            IEnumerable<string> folders,
+            IEnumerable<string>? folders,
             SourceCodeKind sourceCodeKind,
-            TextLoader loader,
-            string filePath,
+            TextLoader? loader,
+            string? filePath,
             bool isGenerated,
-            IDocumentServiceProvider documentServiceProvider)
+            IDocumentServiceProvider? documentServiceProvider)
         {
             return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated), loader, documentServiceProvider);
         }
 
         private DocumentInfo With(
-            DocumentAttributes attributes = null,
-            Optional<TextLoader> loader = default,
-            Optional<IDocumentServiceProvider> documentServiceProvider = default)
+            DocumentAttributes? attributes = null,
+            Optional<TextLoader?> loader = default,
+            Optional<IDocumentServiceProvider?> documentServiceProvider = default)
         {
             var newAttributes = attributes ?? Attributes;
             var newLoader = loader.HasValue ? loader.Value : TextLoader;
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(attributes: Attributes.With(name: name));
         }
 
-        public DocumentInfo WithFolders(IEnumerable<string> folders)
+        public DocumentInfo WithFolders(IEnumerable<string>? folders)
         {
             return this.With(attributes: Attributes.With(folders: folders.ToImmutableReadOnlyListOrEmpty()));
         }
@@ -133,12 +135,12 @@ namespace Microsoft.CodeAnalysis
             return this.With(attributes: Attributes.With(sourceCodeKind: kind));
         }
 
-        public DocumentInfo WithTextLoader(TextLoader loader)
+        public DocumentInfo WithTextLoader(TextLoader? loader)
         {
             return With(loader: loader);
         }
 
-        public DocumentInfo WithFilePath(string filePath)
+        public DocumentInfo WithFilePath(string? filePath)
         {
             return this.With(attributes: Attributes.With(filePath: filePath));
         }
@@ -177,7 +179,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// The file path of the document.
             /// </summary>
-            public string FilePath { get; }
+            public string? FilePath { get; }
 
             /// <summary>
             /// True if the document is a side effect of the build.
@@ -187,9 +189,9 @@ namespace Microsoft.CodeAnalysis
             public DocumentAttributes(
                 DocumentId id,
                 string name,
-                IEnumerable<string> folders,
+                IEnumerable<string>? folders,
                 SourceCodeKind sourceCodeKind,
-                string filePath,
+                string? filePath,
                 bool isGenerated)
             {
                 Id = id ?? throw new ArgumentNullException(nameof(id));
@@ -201,11 +203,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             public DocumentAttributes With(
-                DocumentId id = null,
-                string name = null,
-                IEnumerable<string> folders = null,
+                DocumentId? id = null,
+                string? name = null,
+                IEnumerable<string>? folders = null,
                 Optional<SourceCodeKind> sourceCodeKind = default,
-                Optional<string> filePath = default,
+                Optional<string?> filePath = default,
                 Optional<bool> isGenerated = default)
             {
                 var newId = id ?? Id;
@@ -254,7 +256,7 @@ namespace Microsoft.CodeAnalysis
                 return new DocumentAttributes(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
             }
 
-            private Checksum _lazyChecksum;
+            private Checksum? _lazyChecksum;
             Checksum IChecksummedObject.Checksum
             {
                 get

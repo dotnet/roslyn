@@ -26,10 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override bool IsInstrinsic(ISymbol s)
-        {
-            var ts = s as ITypeSymbol;
-            return ts != null && ts.IsIntrinsicType();
-        }
+            => s is ITypeSymbol ts && ts.IsIntrinsicType();
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {

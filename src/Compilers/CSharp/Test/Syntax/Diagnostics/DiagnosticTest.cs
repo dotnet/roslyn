@@ -295,6 +295,7 @@ class X
                         case ErrorCode.WRN_NullableValueTypeMayBeNull:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                         case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
+                        case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
@@ -348,6 +349,7 @@ class X
                 var nullableUnrelatedWarnings = new[]
                 {
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
+                    ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
                 };
 

@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Dim baseType = DeclaringCompilation.GetSpecialType(SpecialType.System_Object)
 
             ' check that System.Object is available. 
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return If(Me.TypeKind = TypeKind.Submission, Nothing, baseType)
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 

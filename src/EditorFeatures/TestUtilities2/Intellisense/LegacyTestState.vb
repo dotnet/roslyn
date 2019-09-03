@@ -158,6 +158,24 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Null(Me.CurrentCompletionPresenterSession)
         End Function
 
+        Public Overrides Async Function AssertCompletionItemsDoNotContainAny(displayText As String()) As Task
+            Await AssertCompletionSession()
+            Dim items = GetCompletionItems()
+            Assert.False(displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v)))
+        End Function
+
+        Public Overrides Async Function AssertCompletionItemsContainAll(displayText As String()) As Task
+            Await AssertCompletionSession()
+            Dim items = GetCompletionItems()
+            Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
+        End Function
+
+        Public Overrides Async Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
+            Await AssertCompletionSession()
+            Dim items = GetCompletionItems()
+            Assert.True(items.Any(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix))
+        End Function
+
         Public Overrides Sub AssertNoCompletionSessionWithNoBlock()
             Assert.Null(Me.CurrentCompletionPresenterSession)
         End Sub
@@ -194,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional projectionsView As ITextView = Nothing) As Task
             ' projectionsView is not used in this implementation.
 
-            Await WaitForAsynchronousOperationsAsync()
+            Await AssertCompletionSession()
             If isSoftSelected.HasValue Then
                 Assert.True(isSoftSelected.Value = Me.CurrentCompletionPresenterSession.IsSoftSelected, "Current completion is not soft-selected.")
             End If
@@ -231,12 +249,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Null(automationText)
         End Function
 
-        Public Overrides Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
+        Public Overrides Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             If Not CurrentCompletionPresenterSession Is Nothing Then
-                AssertCompletionItemsDoNotContainAny({text})
+                Await AssertCompletionItemsDoNotContainAny({text})
             End If
-
-            Return Task.CompletedTask
         End Function
 
         Public Overrides Async Function WaitForUIRenderedAsync() As Task
