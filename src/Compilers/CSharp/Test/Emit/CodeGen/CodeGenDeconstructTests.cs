@@ -5991,7 +5991,7 @@ class C
                 Assert.Equal(symbol.GetHashCode(), symbol0.GetHashCode());
 
                 // Test to show that reference-unequal discards are equal by type.
-                IDiscardSymbol symbolClone = DiscardSymbol.CreateForTest(TypeWithAnnotations.Create((TypeSymbol)symbol.Type));
+                IDiscardSymbol symbolClone = new DiscardSymbol(TypeWithAnnotations.Create((TypeSymbol)symbol.Type));
                 Assert.NotSame(symbol, symbolClone);
                 Assert.Equal(SymbolKind.Discard, symbolClone.Kind);
                 Assert.Equal("int _", symbolClone.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));

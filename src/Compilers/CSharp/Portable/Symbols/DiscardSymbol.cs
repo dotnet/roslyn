@@ -17,11 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         CodeAnalysis.NullableAnnotation IDiscardSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
         public TypeWithAnnotations TypeWithAnnotations { get; }
 
-        /// <summary>
-        /// Produce a fresh discard symbol for testing.
-        /// </summary>
-        internal static DiscardSymbol CreateForTest(TypeWithAnnotations typeWithAnnotations) => new DiscardSymbol(typeWithAnnotations);
-
         public override Symbol ContainingSymbol => null;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
