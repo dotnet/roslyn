@@ -34,6 +34,7 @@ usage()
   echo "  --skipAnalyzers            Do not run analyzers during build operations"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
+  echo "  --sourceBuild              Simulate building for source-build"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -68,6 +69,7 @@ prepare_machine=false
 warn_as_error=false
 properties=""
 disable_parallel_restore=false
+source_build=false
 
 docker=false
 args=""
@@ -141,6 +143,9 @@ while [[ $# > 0 ]]; do
       shift
       continue
       ;;
+    --sourcebuild)
+      source_build=true
+      ;;
     /p:*)
       properties="$properties $1"
       ;;
@@ -206,6 +211,9 @@ function MakeBootstrapBuild {
 
 function BuildSolution {
   local solution="Compilers.sln"
+  if [[ "$source_build" == true ]]; then
+    solution="SourceBuild.sln"
+  fi
   echo "$solution:"
 
   InitializeToolset
@@ -274,6 +282,7 @@ function BuildSolution {
     /p:TreatWarningsAsErrors=true \
     /p:RestoreDisableParallel=$disable_parallel_restore \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
+    /p:DotNetBuildFromSource=$source_build \
     $test_runtime \
     $mono_tool \
     $properties
