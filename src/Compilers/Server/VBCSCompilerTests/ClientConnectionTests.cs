@@ -11,83 +11,13 @@ using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Runtime.InteropServices;
+using System.IO.Pipes;
+using System.Data.SqlClient;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class ClientConnectionTests
     {
-        private sealed class TestableClientConnection : ClientConnection
-        {
-            internal Stream Stream;
-            internal Func<CancellationToken, Task> CreateMonitorDisconnectTaskFunc;
-
-            internal TestableClientConnection(ICompilerServerHost compilerServerHost, Stream stream)
-                : base(compilerServerHost, "identifier", stream)
-            {
-                Stream = stream;
-                CreateMonitorDisconnectTaskFunc = ct => Task.Delay(-1, ct);
-            }
-
-            public override void Close()
-            {
-            }
-
-            protected override Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
-            {
-                return CreateMonitorDisconnectTaskFunc(cancellationToken);
-            }
-        }
-
-        private sealed class TestableStream : Stream
-        {
-            internal readonly MemoryStream ReadStream = new MemoryStream();
-            internal readonly MemoryStream WriteStream = new MemoryStream();
-
-            public override bool CanRead => true;
-            public override bool CanSeek => false;
-            public override bool CanWrite => true;
-            public override long Length { get { throw new NotImplementedException(); } }
-            public override long Position
-            {
-                get { throw new NotImplementedException(); }
-                set { throw new NotImplementedException(); }
-            }
-
-            public override void Flush()
-            {
-            }
-
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-                return ReadStream.Read(buffer, offset, count);
-            }
-
-            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-            {
-                return ReadStream.ReadAsync(buffer, offset, count, cancellationToken);
-            }
-
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void SetLength(long value)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                WriteStream.Write(buffer, offset, count);
-            }
-
-            public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-            {
-                return WriteStream.WriteAsync(buffer, offset, count, cancellationToken);
-            }
-        }
-
         private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
             BuildProtocolConstants.ProtocolVersion,
             RequestLanguage.CSharpCompile,
@@ -99,19 +29,39 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             utf8output: false,
             output: string.Empty);
 
-        private static TestableClientConnection CreateConnection(Stream stream, ICompilerServerHost compilerServerHost = null)
+        private static async Task<(NamedPipeClientStream Client, NamedPipeServerStream Server)> CreateNamedPipePair()
         {
-            compilerServerHost = compilerServerHost ?? new Mock<ICompilerServerHost>().Object;
-            return new TestableClientConnection(compilerServerHost, stream);
+            var pipeName = Guid.NewGuid().ToString("N").Substring(0, 10);
+            var serverStream = NamedPipeUtil.CreateServer(pipeName);
+            var clientStream = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+            var listenTask = serverStream.WaitForConnectionAsync();
+            await clientStream.ConnectAsync().ConfigureAwait(false);
+            await listenTask.ConfigureAwait(false);
+            return (clientStream, serverStream);
         }
 
         [Fact]
         public async Task ReadFailure()
         {
-            var stream = new Mock<Stream>(MockBehavior.Strict);
-            var connection = CreateConnection(stream.Object);
-            var result = await connection.HandleConnection().ConfigureAwait(true);
-            Assert.Equal(CompletionReason.CompilationNotStarted, result.CompletionReason);
+            var host = new TestableCompilerServerHost(runCompilation: delegate
+            {
+                return s_emptyBuildResponse;
+            });
+
+            var (clientStream, serverStream) = await CreateNamedPipePair().ConfigureAwait(false);
+            try
+            {
+                var connection = new NamedPipeClientConnection(host, "identifier", serverStream);
+                clientStream.Close();
+                var connectionData = await connection.HandleConnection().ConfigureAwait(false);
+                Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
+                Assert.Null(connectionData.KeepAlive);
+            }
+            finally
+            {
+                clientStream.Close();
+                serverStream.Close();
+            }
         }
 
         /// <summary>
@@ -121,52 +71,93 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public async Task WriteError()
         {
-            var realStream = new MemoryStream();
-            await s_emptyCSharpBuildRequest.WriteAsync(realStream, CancellationToken.None).ConfigureAwait(true);
-            realStream.Position = 0;
+            using var compileMre = new ManualResetEvent(initialState: false);
+            using var closedStreamMre = new ManualResetEvent(initialState: false);
+            var host = new TestableCompilerServerHost(runCompilation: delegate
+            {
+                compileMre.Set();
+                closedStreamMre.WaitOne();
+                return s_emptyBuildResponse;
+            });
 
-            var stream = new Mock<Stream>(MockBehavior.Strict);
-            stream
-                .Setup(x => x.ReadAsync(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .Returns((byte[] array, int start, int length, CancellationToken ct) => Task.FromResult(realStream.Read(array, start, length)));
+            var (clientStream, serverStream) = await CreateNamedPipePair().ConfigureAwait(false);
+            try
+            {
+                var connection = new NamedPipeClientConnection(host, "identifier", serverStream);
 
-            var host = new TestableCompilerServerHost(runCompilation: delegate { return s_emptyBuildResponse; });
-            var connection = CreateConnection(stream.Object, host);
-            var connectionData = await connection.HandleConnection().ConfigureAwait(true);
-            Assert.Equal(CompletionReason.ClientDisconnect, connectionData.CompletionReason);
-            Assert.Null(connectionData.KeepAlive);
+                await s_emptyCSharpBuildRequest.WriteAsync(clientStream).ConfigureAwait(false);
+                var connectionTask = connection.HandleConnection();
+                await compileMre.WaitOneAsync().ConfigureAwait(false);
+                clientStream.Close();
+                closedStreamMre.Set();
+
+                var connectionData = await connectionTask.ConfigureAwait(false);
+                Assert.Equal(CompletionReason.ClientDisconnect, connectionData.CompletionReason);
+                Assert.Null(connectionData.KeepAlive);
+            }
+            finally
+            {
+                clientStream.Close();
+                serverStream.Close();
+            }
         }
 
         [Fact]
         public async Task NoCompilationsRejectBuildRequest()
         {
-            var stream = new TestableStream();
-            await s_emptyCSharpBuildRequest.WriteAsync(stream.ReadStream, CancellationToken.None).ConfigureAwait(true);
-            stream.ReadStream.Position = 0;
+            var host = new TestableCompilerServerHost(runCompilation: delegate
+            {
+                // We should never get here.
+                Assert.False(true);
+                throw null;
+            });
 
-            var connection = CreateConnection(stream);
-            var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
-            Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
+            var (clientStream, serverStream) = await CreateNamedPipePair().ConfigureAwait(false);
+            try
+            {
+                var connection = new NamedPipeClientConnection(host, "identifier", serverStream);
+                await s_emptyCSharpBuildRequest.WriteAsync(clientStream).ConfigureAwait(false);
+                var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
+                Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
+                Assert.Null(connectionData.KeepAlive);
 
-            stream.WriteStream.Position = 0;
-            var response = await BuildResponse.ReadAsync(stream.WriteStream).ConfigureAwait(false);
-            Assert.Equal(BuildResponse.ResponseType.Rejected, response.Type);
+                var response = await BuildResponse.ReadAsync(clientStream);
+                Assert.Equal(BuildResponse.ResponseType.Rejected, response.Type);
+            }
+            finally
+            {
+                clientStream.Close();
+                serverStream.Close();
+            }
         }
 
         [Fact]
         public async Task NoCompilationsProcessShutdown()
         {
-            var stream = new TestableStream();
-            await BuildRequest.CreateShutdown().WriteAsync(stream.ReadStream, CancellationToken.None).ConfigureAwait(true);
-            stream.ReadStream.Position = 0;
+            var host = new TestableCompilerServerHost(runCompilation: delegate
+            {
+                // We should never get here.
+                Assert.False(true);
+                throw null;
+            });
 
-            var connection = CreateConnection(stream);
-            var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
-            Assert.Equal(CompletionReason.ClientShutdownRequest, connectionData.CompletionReason);
+            var (clientStream, serverStream) = await CreateNamedPipePair().ConfigureAwait(false);
+            try
+            {
+                var connection = new NamedPipeClientConnection(host, "identifier", serverStream);
+                await BuildRequest.CreateShutdown().WriteAsync(clientStream).ConfigureAwait(false);
+                var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
+                Assert.Equal(CompletionReason.ClientShutdownRequest, connectionData.CompletionReason);
+                Assert.Null(connectionData.KeepAlive);
 
-            stream.WriteStream.Position = 0;
-            var response = await BuildResponse.ReadAsync(stream.WriteStream).ConfigureAwait(false);
-            Assert.Equal(BuildResponse.ResponseType.Shutdown, response.Type);
+                var response = await BuildResponse.ReadAsync(clientStream);
+                Assert.Equal(BuildResponse.ResponseType.Shutdown, response.Type);
+            }
+            finally
+            {
+                clientStream.Close();
+                serverStream.Close();
+            }
         }
     }
 }
