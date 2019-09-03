@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Collections.Immutable;
 using Analyzer.Utilities;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
         private const string s_symbolEqualsName = nameof(ISymbol.Equals);
-        private const string s_symbolEqualityComparerName = "Microsoft.CodeAnalysis.Shared.Utilities.SymbolEquivalenceComparer";
+        public const string SymbolEqualityComparerName = "Microsoft.CodeAnalysis.Shared.Utilities.SymbolEquivalenceComparer";
 
         public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 // Check that the s_symbolEqualityComparerName exists and can be used, otherwise the Roslyn version
                 // being used it too low to need the change for method references
-                var symbolEqualityComparerType = context.Compilation.GetTypeByMetadataName(s_symbolEqualityComparerName);
+                var symbolEqualityComparerType = context.Compilation.GetTypeByMetadataName(SymbolEqualityComparerName);
                 var operatorsToHandle = symbolEqualityComparerType is null ?
                     new[] { OperationKind.BinaryOperator } :
                     new[] { OperationKind.BinaryOperator, OperationKind.MethodReference };

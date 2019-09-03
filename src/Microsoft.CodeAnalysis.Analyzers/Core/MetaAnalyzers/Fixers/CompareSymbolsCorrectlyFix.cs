@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
     [Shared]
     public class CompareSymbolsCorrectlyFix : CodeFixProvider
     {
+        private const string s_equalityComparerIdentifier = "Microsoft.CodeAnalysis.SymbolEqualityComparer.Default";
+
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CompareSymbolsCorrectlyAnalyzer.Rule.Id);
 
         public override FixAllProvider GetFixAllProvider()
@@ -41,7 +43,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var expression = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
-            if (!(semanticModel.GetOperation(expression, cancellationToken) is IBinaryOperation operation))
+            var rawOperation = semanticModel.GetOperation(expression, cancellationToken);
+
+            return rawOperation switch
+            {
+                IBinaryOperation binaryOperation => await ConvertToEqualsAsync(document, semanticModel, binaryOperation, cancellationToken).ConfigureAwait(false),
+                IMethodReferenceOperation methodReferenceOperation => await EnsureEqualsCorrectAsync(document, semanticModel, methodReferenceOperation, cancellationToken).ConfigureAwait(false),
+                _ => document
+            };
+        }
+
+        private static async Task<Document> EnsureEqualsCorrectAsync(Document document, SemanticModel semanticModel, IMethodReferenceOperation methodReference, CancellationToken cancellationToken)
+        {
+            if (!UseEqualityComparer(semanticModel.Compilation))
             {
                 return document;
             }
@@ -49,19 +63,51 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
 
+            var replacement = generator.AddParameters(methodReference.Syntax, new[] { generator.IdentifierName(s_equalityComparerIdentifier) });
+            editor.ReplaceNode(methodReference.Syntax, replacement.WithTriviaFrom(methodReference.Syntax));
+            return editor.GetChangedDocument();
+        }
+
+        private static async Task<Document> ConvertToEqualsAsync(Document document, SemanticModel semanticModel, IBinaryOperation binaryOperation, CancellationToken cancellationToken)
+        {
+
+            var expression = binaryOperation.Syntax;
+            var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var generator = editor.Generator;
+
+            var parameters = UseEqualityComparer(semanticModel.Compilation) switch
+            {
+                true => new[] {
+                        binaryOperation.LeftOperand.Syntax.WithoutLeadingTrivia(),
+                        binaryOperation.RightOperand.Syntax.WithoutTrailingTrivia(),
+                        generator.IdentifierName(s_equalityComparerIdentifier)
+                    },
+
+                false =>
+                    new[] {
+                        binaryOperation.LeftOperand.Syntax.WithoutLeadingTrivia(),
+                        binaryOperation.RightOperand.Syntax.WithoutTrailingTrivia()
+                    }
+            };
+
             var replacement = generator.InvocationExpression(
                 generator.MemberAccessExpression(
                     generator.TypeExpression(semanticModel.Compilation.GetSpecialType(SpecialType.System_Object)),
                     nameof(object.Equals)),
-                operation.LeftOperand.Syntax.WithoutLeadingTrivia(),
-                operation.RightOperand.Syntax.WithoutTrailingTrivia());
-            if (operation.OperatorKind == BinaryOperatorKind.NotEquals)
+                parameters);
+
+            if (binaryOperation.OperatorKind == BinaryOperatorKind.NotEquals)
             {
                 replacement = generator.LogicalNotExpression(replacement);
             }
 
             editor.ReplaceNode(expression, replacement.WithTriviaFrom(expression));
             return editor.GetChangedDocument();
+        }
+
+        private static bool UseEqualityComparer(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(CompareSymbolsCorrectlyAnalyzer.SymbolEqualityComparerName) is object;
         }
     }
 }
