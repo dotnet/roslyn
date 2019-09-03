@@ -69,6 +69,17 @@ namespace Analyzer.Utilities
         public const string ExcludedTypeNamesWithDerivedTypes = "excluded_type_names_with_derived_types";
 
         /// <summary>
+        /// String option to configure names of symbols (separated by '|') that are disallowed in analysis.
+        /// Configurable rules: CA1031 (https://docs.microsoft.com/visualstudio/code-quality/ca1031-do-not-catch-general-exception-types).
+        /// Allowed method name formats:
+        ///   1. Symbol name only (includes all symbols with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format.
+        ///      Note that each symbol name requires a symbol kind prefix, such as "M:" prefix for methods, "T:" prefix for types, "N:" prefix for namespaces, etc.
+        ///   3. ".ctor" for constructors and ".cctor" for static constructors
+        /// </summary>
+        public const string DisallowedSymbolNames = "disallowed_symbol_names";
+
+        /// <summary>
         /// Enumeration option to configure unsafe DllImportSearchPath bits when using DefaultDllImportSearchPaths attribute.
         /// Do not use the OR operator to represent the bitwise combination of its member values, use the integeral value directly.
         /// </summary>

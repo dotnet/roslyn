@@ -134,6 +134,13 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, namePrefixOpt: "T:", rule, compilation, cancellationToken);
 
+        public static SymbolNamesOption GetDisallowedSymbolNamesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.DisallowedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
+
         private static SymbolNamesOption GetSymbolNamesOption(
             this AnalyzerOptions options,
             string optionName,
