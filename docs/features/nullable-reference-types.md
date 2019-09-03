@@ -61,7 +61,7 @@ Some expressions which may not return `bool` are also considered pure null tests
 
 Example of how a pure null test can affect flow analysis:
 ```cs
-string? s = "hello";
+string s = "hello";
 if (s != null)
 {
     _ = s.ToString(); // ok
@@ -74,7 +74,7 @@ else
 
 Versus a "not pure" null test:
 ```cs
-string? s = "hello";
+string s = "hello";
 if (s is string)
 {
     _ = s.ToString(); // ok
