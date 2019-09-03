@@ -257,13 +257,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             commonType = CreateErrorType();
                             hasErrors = true;
                         }
-                        result = ConvertSwitchExpression(expr, commonType, diagnostics, hasErrors);
+                        result = ConvertSwitchExpression(expr, commonType, targetTyped: false, diagnostics, hasErrors);
                     }
                     break;
                 case BoundTupleLiteral sourceTuple:
                     result = new BoundConvertedTupleLiteral(
                         sourceTuple.Syntax,
                         sourceTuple,
+                        wasTargetTyped: false,
                         sourceTuple.Arguments.SelectAsArray(e => BindToNaturalType(e, diagnostics, reportDefaultMissingType)),
                         sourceTuple.ArgumentNamesOpt,
                         sourceTuple.InferredNamesOpt,
@@ -800,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             includeNullability: false,
                             errorPositions: disallowInferredNames ? inferredPositions : default);
 
-                        return new BoundConvertedTupleLiteral(syntax, sourceTuple: null, subExpressions, tupleNames, inferredPositions, tupleType);
+                        return new BoundConvertedTupleLiteral(syntax, sourceTuple: null, wasTargetTyped: true, subExpressions, tupleNames, inferredPositions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());

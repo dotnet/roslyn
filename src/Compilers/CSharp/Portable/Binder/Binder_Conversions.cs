@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.Kind == ConversionKind.SwitchExpression)
             {
-                return ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, diagnostics);
+                return ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, targetTyped: true, diagnostics);
             }
 
             if (source.Kind == BoundKind.UnconvertedSwitchExpression)
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
 
-                source = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, type, diagnostics, hasErrors);
+                source = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, type, targetTyped: false, diagnostics, hasErrors);
                 if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
                 {
                     return source;
@@ -152,8 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Rewrite the expressions in the switch expression arms to add a conversion to the destination type.
         /// </summary>
-        private BoundExpression ConvertSwitchExpression(BoundUnconvertedSwitchExpression source, TypeSymbol destination, DiagnosticBag diagnostics, bool hasErrors = false)
+        private BoundExpression ConvertSwitchExpression(BoundUnconvertedSwitchExpression source, TypeSymbol destination, bool targetTyped, DiagnosticBag diagnostics, bool hasErrors = false)
         {
+            Debug.Assert(targetTyped || destination.IsErrorType() || destination.Equals(source.Type, TypeCompareKind.ConsiderEverything));
             var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance(source.SwitchArms.Length);
             foreach (var oldCase in source.SwitchArms)
             {
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newSwitchArms = builder.ToImmutableAndFree();
             return new BoundConvertedSwitchExpression(
-                source.Syntax, source.Type, source.Expression, newSwitchArms, source.DecisionDag,
+                source.Syntax, source.Type, targetTyped, source.Expression, newSwitchArms, source.DecisionDag,
                 source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors);
         }
 
@@ -464,6 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression result = new BoundConvertedTupleLiteral(
                 sourceTuple.Syntax,
                 sourceTuple,
+                wasTargetTyped: true,
                 convertedArguments.ToImmutableAndFree(),
                 sourceTuple.ArgumentNamesOpt,
                 sourceTuple.InferredNamesOpt,
