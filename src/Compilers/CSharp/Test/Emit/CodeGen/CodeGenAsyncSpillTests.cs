@@ -3848,5 +3848,43 @@ class Box<T>
             CompileAndVerify(source, expectedOutput: "42", options: TestOptions.DebugExe);
             CompileAndVerify(source, expectedOutput: "42", options: TestOptions.ReleaseExe);
         }
+
+        [Fact]
+        [WorkItem(38309, "https://github.com/dotnet/roslyn/issues/38309")]
+        public void ExpressionLambdaWithUserDefinedControlFlow()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+namespace RoslynFailFastReproduction
+{
+    static class Program
+    {
+        static async Task Main(string[] args)
+        {
+            await MainAsync(args);
+        }
+        static async Task MainAsync(string[] args)
+        {
+            Expression<Func<AltBoolean, AltBoolean>> expr = x => x && x;
+
+            var result = await Task.FromResult(true);
+            Console.WriteLine(result);
+        }
+
+        class AltBoolean
+        {
+            public static AltBoolean operator &(AltBoolean x, AltBoolean y) => default;
+            public static bool operator true(AltBoolean x) => default;
+            public static bool operator false(AltBoolean x) => default;
+        }
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "True", options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: "True", options: TestOptions.ReleaseExe);
+        }
     }
 }
