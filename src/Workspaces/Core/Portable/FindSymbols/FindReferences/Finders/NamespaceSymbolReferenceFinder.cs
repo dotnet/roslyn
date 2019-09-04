@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, cancellationToken, GetNamespaceIdentifierName(symbol, project));
+            return FindDocumentsAsync(project, documents, cancellationToken, GetNamespaceIdentifierName(symbol));
         }
 
-        private static string GetNamespaceIdentifierName(INamespaceSymbol symbol, Project project)
+        private static string GetNamespaceIdentifierName(INamespaceSymbol symbol)
         {
             return symbol.IsGlobalNamespace
                 ? symbol.ToDisplayString(s_globalNamespaceFormat)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var identifierName = GetNamespaceIdentifierName(symbol, document.Project);
+            var identifierName = GetNamespaceIdentifierName(symbol);
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
             var nonAliasReferences = FindReferencesInTokens(symbol,

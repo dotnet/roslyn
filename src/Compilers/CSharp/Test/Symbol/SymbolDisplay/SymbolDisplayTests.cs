@@ -475,7 +475,7 @@ namespace N1 {
             {
                 var type = global.GetTypeMember("C1");
                 var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
-                return method.ReduceExtensionMethod(type);
+                return method.ReduceExtensionMethod(type, null!);
             };
 
             var format = new SymbolDisplayFormat(
@@ -540,7 +540,7 @@ namespace N1 {
             {
                 var type = global.GetTypeMember("C1");
                 var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
-                return method.ReduceExtensionMethod(type);
+                return method.ReduceExtensionMethod(type, null!);
             };
 
             var format = new SymbolDisplayFormat(
@@ -596,7 +596,7 @@ namespace N1 {
             {
                 var type = global.GetTypeMember("C1");
                 var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
-                return method.ReduceExtensionMethod(type);
+                return method.ReduceExtensionMethod(type, null!);
             };
 
             var format = new SymbolDisplayFormat(

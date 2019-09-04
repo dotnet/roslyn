@@ -199,14 +199,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 case BinaryOperatorKind.LessThanOrEqual when IsNumericLiteral(rightOperand):
                     return CanSimplifyToLengthEqualsZeroExpression(
-                        leftOperand,
-                        (ILiteralOperation)rightOperand,
-                        cancellationToken);
+                        leftOperand, (ILiteralOperation)rightOperand);
                 case BinaryOperatorKind.GreaterThanOrEqual when IsNumericLiteral(leftOperand):
                     return CanSimplifyToLengthEqualsZeroExpression(
-                        rightOperand,
-                        (ILiteralOperation)leftOperand,
-                        cancellationToken);
+                        rightOperand, (ILiteralOperation)leftOperand);
             }
 
             return false;
@@ -223,9 +219,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool CanSimplifyToLengthEqualsZeroExpression(
-            IOperation variableExpression,
-            ILiteralOperation numericLiteralExpression,
-            CancellationToken cancellationToken)
+            IOperation variableExpression, ILiteralOperation numericLiteralExpression)
         {
             var numericValue = numericLiteralExpression.ConstantValue;
             if (numericValue.HasValue && numericValue.Value is 0)

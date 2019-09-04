@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
         <source>Allow unsafe code in this project</source>
-        <target state="new">Allow unsafe code in this project</target>
+        <target state="translated">在此專案中允許不安全的程式碼</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
@@ -62,9 +62,19 @@
         <target state="translated">套用 'this.' 資格喜好設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="Assign_out_parameters">
+        <source>Assign 'out' parameters</source>
+        <target state="new">Assign 'out' parameters</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters_at_start">
+        <source>Assign 'out' parameters (at start)</source>
+        <target state="new">Assign 'out' parameters (at start)</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
-        <target state="new">Convert switch statement to expression</target>
+        <target state="translated">將 switch 陳述式轉換為運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -79,7 +89,7 @@
       </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
-        <target state="new">Fix return type</target>
+        <target state="translated">修正傳回型別</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -99,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Make_ref_struct">
         <source>Make 'ref struct'</source>
-        <target state="new">Make 'ref struct'</target>
+        <target state="translated">設為 'ref struct'</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -129,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Sort_Usings">
         <source>&amp;Sort Usings</source>
-        <target state="new">&amp;Sort Usings</target>
+        <target state="translated">排序 Using(&amp;S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
@@ -139,12 +149,12 @@
       </trans-unit>
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
-        <target state="new">Unseal class '{0}'</target>
+        <target state="translated">為類別 '{0}' 解密</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
-        <target state="new">Use 'switch' expression</target>
+        <target state="translated">使用 'switch' 運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -534,7 +544,7 @@
       </trans-unit>
       <trans-unit id="is_pattern">
         <source>is pattern</source>
-        <target state="translated">為模式</target>
+        <target state="translated">is 模式</target>
         <note>{Locked="is"} "is" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="deconstruction">
@@ -559,7 +569,7 @@
       </trans-unit>
       <trans-unit id="ref_local_or_expression">
         <source>ref local or expression</source>
-        <target state="translated">參考本機或運算式</target>
+        <target state="translated">ref 區域或運算式</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="global_statement">
@@ -804,27 +814,27 @@
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
-        <target state="new">Misplaced using directive</target>
+        <target state="translated">using 指示詞位置錯誤</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Move_misplaced_using_directives">
         <source>Move misplaced using directives</source>
-        <target state="new">Move misplaced using directives</target>
+        <target state="translated">移動位置錯誤的 using 指示詞</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
         <source>Using directives must be placed inside of a namespace declaration</source>
-        <target state="new">Using directives must be placed inside of a namespace declaration</target>
+        <target state="translated">using 指示詞必須放在 namespace 宣告內</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
         <source>Using directives must be placed outside of a namespace declaration</source>
-        <target state="new">Using directives must be placed outside of a namespace declaration</target>
+        <target state="translated">using 指示詞必須放在 namespace 宣告外</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
         <source>Warning: Moving using directives may change code meaning.</source>
-        <target state="new">Warning: Moving using directives may change code meaning.</target>
+        <target state="translated">警告: 移動 using 指示詞可能會變更程式碼意義。</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">

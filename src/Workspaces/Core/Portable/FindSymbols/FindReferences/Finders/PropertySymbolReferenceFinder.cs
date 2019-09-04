@@ -206,13 +206,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var match = symbolsMatch(node, semanticModel);
-                if (match.matched)
+                var (matched, reason) = symbolsMatch(node, semanticModel);
+                if (matched)
                 {
                     var location = node.SyntaxTree.GetLocation(new TextSpan(node.SpanStart, 0));
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
-                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalProperties(syntaxFacts, semanticModel, node), candidateReason: match.reason)));
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalProperties(syntaxFacts, semanticModel, node), candidateReason: reason)));
                 }
             }
 

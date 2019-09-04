@@ -275,8 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            var statementNode = node as StatementSyntax;
-            if (statementNode == null || statementNode.Kind() == SyntaxKind.Block)
+            if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
             {
                 return;
             }

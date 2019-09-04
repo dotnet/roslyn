@@ -1387,6 +1387,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Kind() = SyntaxKind.StringLiteralExpression
         End Function
 
+        Public Function IsCharacterLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsCharacterLiteralExpression
+            Return node.Kind() = SyntaxKind.CharacterLiteralExpression
+        End Function
+
         Public Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimStringLiteral
             ' VB does not have verbatim strings
             Return False
@@ -1609,6 +1613,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, AwaitExpressionSyntax).Expression
         End Function
 
+        Public Function IsExpressionOfForeach(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfForeach
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, ForEachStatementSyntax)?.Expression Is node
+        End Function
+
         Public Function IsPossibleTupleContext(
             syntaxTree As SyntaxTree,
             position As Integer,
@@ -1721,6 +1729,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function IsMultiLineCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            ' VB does not have multi-line comments.
+            Return False
+        End Function
+
+        Public Overrides Function IsSingleLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+        End Function
+
+        Public Overrides Function IsMultiLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
             ' VB does not have multi-line comments.
             Return False
         End Function
@@ -1839,9 +1856,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
+        Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer, ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
             Dim token = root.FindToken(position)
             Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)
+            typeDeclaration = typeDecl
+
             If typeDecl IsNot Nothing Then
                 Dim start = If(typeDecl.Implements.LastOrDefault()?.Span.End,
                                If(typeDecl.Inherits.LastOrDefault()?.Span.End,
@@ -2059,6 +2078,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return IsOnHeader(position, node, node.ForEachStatement)
+        End Function
+
+        Private Function ISyntaxFactsService_IsExpressionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionStatement
+            Return MyBase.IsExpressionStatement(node)
         End Function
     End Class
 End Namespace

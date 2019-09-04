@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return InterfacesNoUseSiteDiagnostics
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
             If (Me._flags And TypeAttributes.Interface) = 0 Then
                 Dim moduleSymbol As PEModuleSymbol = Me.ContainingPEModule
 
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Nothing
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Try
                 Dim moduleSymbol As PEModuleSymbol = Me.ContainingPEModule
                 Dim interfaceImpls = moduleSymbol.Module.GetInterfaceImplementationsOrThrow(Me._handle)

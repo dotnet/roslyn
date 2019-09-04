@@ -181,8 +181,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+
+            context.RegisterCompilationStartAction(
                 compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(compilationContext, this));
+        }
 
         private bool TryGetOptions(
             SyntaxTree syntaxTree,

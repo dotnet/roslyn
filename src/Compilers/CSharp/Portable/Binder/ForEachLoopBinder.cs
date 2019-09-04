@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindRValueWithoutTargetType(_syntax.Expression, diagnostics);
 
-            ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
+            var builder = new ForEachEnumeratorInfo.Builder();
             TypeWithAnnotations inferredType;
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindRValueWithoutTargetType(_syntax.Expression, diagnostics);
 
-            ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
+            var builder = new ForEachEnumeratorInfo.Builder();
             TypeWithAnnotations inferredType;
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = this.GetBinder(collectionSyntax).BindValue(collectionSyntax, diagnostics, BindValueKind.RValue);
 
-            ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
+            var builder = new ForEachEnumeratorInfo.Builder();
             GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out TypeWithAnnotations inferredType);
             return inferredType;
         }
@@ -626,6 +626,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool GetEnumeratorInfo(ref ForEachEnumeratorInfo.Builder builder, BoundExpression collectionExpr, DiagnosticBag diagnostics)
         {
             bool isAsync = IsAsync;
+            builder.IsAsync = isAsync;
+
             EnumeratorResult found = GetEnumeratorInfo(ref builder, collectionExpr, isAsync, diagnostics);
             switch (found)
             {
@@ -682,18 +684,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if ((object)collectionExprType == null) // There's no way to enumerate something without a type.
+            if (collectionExprType is null) // There's no way to enumerate something without a type.
             {
-                if (collectionExpr.Kind == BoundKind.DefaultExpression)
-                {
-                    diagnostics.Add(ErrorCode.ERR_DefaultLiteralNotValid, _syntax.Expression.Location);
-                }
-                else
-                {
-                    // The null and default literals were caught above, so anything else with a null type is a method group or anonymous function
-                    diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, _syntax.Expression.Location, collectionExpr.Display);
-                    // CONSIDER: dev10 also reports ERR_ForEachMissingMember (i.e. failed pattern match).
-                }
+                // The null and default literals were caught earlier (binding the collection without target-type in BindForEachPartsWorker), so anything else with a null type is a method group or anonymous function
+                diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, _syntax.Expression.Location, collectionExpr.Display);
+                // CONSIDER: dev10 also reports ERR_ForEachMissingMember (i.e. failed pattern match).
                 return EnumeratorResult.FailedAndReported;
             }
 

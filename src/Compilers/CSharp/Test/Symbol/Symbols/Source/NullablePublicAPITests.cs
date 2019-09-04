@@ -2217,5 +2217,238 @@ public class C
             Assert.Equal("s", symbol.Name);
             Assert.Equal(SpecialType.System_String, symbol.Type.SpecialType);
         }
+
+        [Fact, WorkItem(37879, "https://github.com/dotnet/roslyn/issues/37879")]
+        public void MissingSymbols_ReinferredParent()
+        {
+            var source = @"
+class C
+{
+    public void A<T>(T t) where T:class
+    {
+        var c = new F<T>[] { }.Select(v => new { Value = v.Item }).ToArray();
+    }
+    private class F<T>
+    {
+        public F(T oldItem) => Item = oldItem;
+        public T Item { get; }
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var select = root.DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Select").Single();
+            var symbolInfo = model.GetSymbolInfo(select);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact, WorkItem(37879, "https://github.com/dotnet/roslyn/issues/37879")]
+        public void MultipleSymbols_ReinferredParent()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void A<T>(T t) where T : class
+    {
+        var c = new F<T>[] { }.Select(v => new { Value = v.Item }).ToArray();
+    }
+    private class F<T>
+    {
+        public F(T oldItem) => Item = oldItem;
+        public T Item { get; }
+    }
+}
+static class ArrayExtensions
+{
+    public static U Select<T, U>(this T[] arr, Func<T, object, U> mapper, object arg) => throw null!;
+    public static U Select<T, U, V>(this T[] arr, Func<T, V, U> mapper, V arg) => throw null!;
+    public static U Select<T, U>(this T[] arr, C mapper) => throw null!;
+    public static U Select<T, U>(this T[] arr, string mapper) => throw null!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var select = root.DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Select").Single();
+            var symbolInfo = model.GetSymbolInfo(select);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(4, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        public void GetSymbolInfo_PropertySymbols()
+        {
+            var source = @"
+class C<T>
+{
+    public T GetT { get; }
+
+    static C<U> Create<U>(U u) => new C<U>();
+
+    static void M(object? o)
+    {
+        var c1 = Create(o);
+        _ = c1.GetT;
+        if (o is null) return;
+        var c2 = Create(o);
+        _ = c2.GetT;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (4,14): warning CS8618: Non-nullable property 'GetT' is uninitialized. Consider declaring the property as nullable.
+                    //     public T GetT { get; }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "GetT").WithArguments("property", "GetT").WithLocation(4, 14));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var memberAccess = root.DescendantNodes().OfType<MemberAccessExpressionSyntax>().ToList();
+
+            var symInfo = model.GetSymbolInfo(memberAccess[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IPropertySymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            symInfo = model.GetSymbolInfo(memberAccess[1]);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((IPropertySymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+        }
+
+        [Fact]
+        public void GetSymbolInfo_FieldSymbols()
+        {
+            var source = @"
+class C<T>
+{
+    public T GetT;
+
+    static C<U> Create<U>(U u) => new C<U>();
+
+    static void M(object? o)
+    {
+        var c1 = Create(o);
+        _ = c1.GetT;
+        if (o is null) return;
+        var c2 = Create(o);
+        _ = c2.GetT;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (4,14): warning CS8618: Non-nullable field 'GetT' is uninitialized. Consider declaring the field as nullable.
+                    //     public T GetT;
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "GetT").WithArguments("field", "GetT").WithLocation(4, 14),
+                    // (4,14): warning CS0649: Field 'C<T>.GetT' is never assigned to, and will always have its default value 
+                    //     public T GetT;
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "GetT").WithArguments("C<T>.GetT", "").WithLocation(4, 14));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var memberAccess = root.DescendantNodes().OfType<MemberAccessExpressionSyntax>().ToList();
+
+            var symInfo = model.GetSymbolInfo(memberAccess[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IFieldSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            symInfo = model.GetSymbolInfo(memberAccess[1]);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((IFieldSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+        }
+
+        [Fact]
+        public void GetSymbolInfo_EventAdditionSymbols()
+        {
+            var source = @"
+#pragma warning disable CS0067
+using System;
+class C<T>
+{
+    public event EventHandler? Event;
+
+    static C<U> Create<U>(U u) => new C<U>();
+
+    static void M(object? o)
+    {
+        var c1 = Create(o);
+        c1.Event += (obj, sender) => {};
+        if (o is null) return;
+        var c2 = Create(o);
+        c2.Event += (obj, sender) => {};
+        c2.Event += c1.Event;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var memberAccess = root.DescendantNodes().OfType<MemberAccessExpressionSyntax>().ToList();
+
+            var symInfo = model.GetSymbolInfo(memberAccess[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            symInfo = model.GetSymbolInfo(memberAccess[1]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+
+            var event1 = model.GetSymbolInfo(memberAccess[2]).Symbol;
+            var event2 = model.GetSymbolInfo(memberAccess[3]).Symbol;
+            Assert.NotNull(event1);
+            Assert.NotNull(event2);
+            Assert.True(event1.Equals(event2, SymbolEqualityComparer.Default));
+            Assert.False(event1.Equals(event2, SymbolEqualityComparer.IncludeNullability));
+        }
+
+        [Fact]
+        public void GetSymbolInfo_EventAssignmentSymbols()
+        {
+            var source = @"
+#pragma warning disable CS0067
+using System;
+class C<T>
+{
+    public event EventHandler? Event;
+
+    static C<U> Create<U>(U u) => new C<U>();
+
+    static void M(object? o)
+    {
+        var c1 = Create(o);
+        c1.Event = (obj, sender) => {};
+        if (o is null) return;
+        var c2 = Create(o);
+        c2.Event = (obj, sender) => {};
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var memberAccess = root.DescendantNodes().OfType<MemberAccessExpressionSyntax>().ToList();
+
+            var symInfo = model.GetSymbolInfo(memberAccess[0]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+            symInfo = model.GetSymbolInfo(memberAccess[1]);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+        }
     }
 }

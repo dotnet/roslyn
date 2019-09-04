@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
-        <target state="new">Add optional parameter to constructor</target>
+        <target state="translated">Agregar parámetro opcional al constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
         <source>Add parameter to constructor</source>
-        <target state="new">Add parameter to constructor</target>
+        <target state="translated">Agregar parámetro al constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -74,12 +74,12 @@
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">Evite las asignaciones de valores innecesarias en el código, ya que probablemente indican cálculos de valores redundantes. Si el cálculo de valor no es redundante y tiene intención de retener la asignación, cambie el destino de asignación a una variable local cuyo nombre empieza por un carácter de subrayado, seguido opcionalmente por un entero, como "_", "_1", "_2", etc. Estos se tratan como nombres de símbolos de descarte especiales.</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">Evite los parámetros sin usar en el código. Si el parámetro no se puede quitar, cámbielo de nombre para que empiece por un carácter de subrayado, seguido opcionalmente por un entero, como "_", "_1", "_2", etc. Estos se tratan como nombres de símbolos de descarte especiales.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -149,27 +149,27 @@
       </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
-        <target state="new">A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</target>
+        <target state="translated">Un tipo que implementa System.IDisposable declara campos de tipos que también implementan IDisposable. El método Dispose del tipo declarativo no llama al método Dispose del campo. Para corregir una infracción de esta regla, llame a Dispose en campos que sean de tipos que implementan IDisposable si usted es el responsable de asignar y liberar los recursos no administrados que contiene el campo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_field_0_is_never_disposed">
         <source>Disposable field '{0}' is never disposed</source>
-        <target state="new">Disposable field '{0}' is never disposed</target>
+        <target state="translated">El campo "{0}" descartable nunca se desecha.</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_fields_should_be_disposed">
         <source>Disposable fields should be disposed</source>
-        <target state="new">Disposable fields should be disposed</target>
+        <target state="translated">Aplique Dispose a los campos a los que se pueda</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
         <source>Disposable object created by '{0}' is never disposed</source>
-        <target state="new">Disposable object created by '{0}' is never disposed</target>
+        <target state="translated">El objeto descartable creado por "{0}" nunca se desecha.</target>
         <note />
       </trans-unit>
       <trans-unit id="Dispose_objects_before_losing_scope">
         <source>Dispose objects before losing scope</source>
-        <target state="new">Dispose objects before losing scope</target>
+        <target state="translated">Desechar (Dispose) objetos antes de perder el ámbito</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -199,12 +199,12 @@
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
         <source>Generate parameter '{0}'</source>
-        <target state="new">Generate parameter '{0}'</target>
+        <target state="translated">Generar el parámetro "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="new">Generate parameter '{0}' (and overrides/implementations)</target>
+        <target state="translated">Generar el parámetro "{0}" (y reemplazos/implementaciones)</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
         <source>Make readonly fields writable</source>
-        <target state="new">Make readonly fields writable</target>
+        <target state="translated">Convertir en editables los campos readonly</target>
         <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -264,37 +264,37 @@
       </trans-unit>
       <trans-unit id="Local_function_can_be_made_static">
         <source>Local function can be made static</source>
-        <target state="new">Local function can be made static</target>
+        <target state="translated">La función local se puede convertir en estática</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_local_function_static">
         <source>Make local function 'static'</source>
-        <target state="new">Make local function 'static'</target>
+        <target state="translated">Convertir la función local "static"</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
         <source>Merge with nested '{0}' statement</source>
-        <target state="new">Merge with nested '{0}' statement</target>
+        <target state="translated">Combinar con la instrucción "{0}" anidada</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_next_0_statement">
         <source>Merge with next '{0}' statement</source>
-        <target state="new">Merge with next '{0}' statement</target>
+        <target state="translated">Combinar con la instrucción "{0}" siguiente</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_outer_0_statement">
         <source>Merge with outer '{0}' statement</source>
-        <target state="new">Merge with outer '{0}' statement</target>
+        <target state="translated">Combinar con la instrucción "{0}" externa</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_previous_0_statement">
         <source>Merge with previous '{0}' statement</source>
-        <target state="new">Merge with previous '{0}' statement</target>
+        <target state="translated">Combinar con la instrucción "{0}" anterior</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
         <source>{0} must return a stream that supports read and seek operations.</source>
-        <target state="new">{0} must return a stream that supports read and seek operations.</target>
+        <target state="translated">{0} debe devolver una secuencia que admita operaciones de lectura y búsqueda.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
-        <target state="new">Move contents to namespace...</target>
+        <target state="translated">Mover contenido al espacio de nombres...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
-        <target state="new">Move to namespace...</target>
+        <target state="translated">Mover a espacio de nombres...</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -344,7 +344,7 @@
       </trans-unit>
       <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
         <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
+        <target state="translated">La propiedad privada "{0}" se puede convertir en un método porque su descriptor de acceso get nunca se invoca.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -419,17 +419,17 @@
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
-        <target state="new">Split into consecutive '{0}' statements</target>
+        <target state="translated">Dividir en instrucciones "{0}" consecutivas</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
-        <target state="new">Split into nested '{0}' statements</target>
+        <target state="translated">Dividir en instrucciones "{0}" anidadas</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportReadAndSeek">
         <source>Stream must support read and seek operations.</source>
-        <target state="new">Stream must support read and seek operations.</target>
+        <target state="translated">La secuencia debe admitir las operaciones de lectura y búsqueda.</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_0">
@@ -439,17 +439,17 @@
       </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
-        <target state="new">Target type matches</target>
+        <target state="translated">El tipo de destino coincide con</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
-        <target state="new">Unnecessary assignment of a value</target>
+        <target state="translated">Asignación innecesaria de un valor</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
         <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="new">Unnecessary assignment of a value to '{0}'</target>
+        <target state="translated">Asignación innecesaria de un valor a "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -499,7 +499,7 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="new">Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</target>
+        <target state="translated">Use el patrón Dispose recomendado para asegurarse de que los objetos descartables de ámbito local se desechan en todas las rutas de acceso. Si es posible, incluya la creación en una instrucción "using" o una declaración "using". En caso contrario, use un patrón try-finally, con la declaración de una variable local dedicada antes de la región "try" y una invocación de Dispose incondicional en un valor no nulo en la región "finally", por ejemplo, "x?.Dispose()". Si el objeto se desecha de forma explícita en la región "try" o la pertenencia de Dispose se transfiere a otro objeto o método, asigne "null" a la variable local justo después de tal operación para evitar un doble Dispose en "finally".</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -554,17 +554,17 @@
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
         <source>Use recommended dispose pattern</source>
-        <target state="new">Use recommended dispose pattern</target>
+        <target state="translated">Usar el patrón Dispose recomendado</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="new">Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</target>
+        <target state="translated">Use el patrón Dispose recomendado para asegurarse de que el objeto creado por "{0}" se desecha en todas las rutas de acceso: instrucción o declaración using o try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
         <source>Use simple 'using' statement</source>
-        <target state="new">Use simple 'using' statement</target>
+        <target state="translated">Use la instrucción "using" simple</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -584,7 +584,7 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
-        <target state="new">Wrap and align expression</target>
+        <target state="translated">Expresión de encapsulado y alineación</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_long_call_chain">
@@ -649,7 +649,7 @@
       </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
-        <target state="new">in Source (attribute)</target>
+        <target state="translated">en el origen (atributo)</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -1259,7 +1259,7 @@
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">La actualización del modificador Async o Iterator en una instrucción de acción impedirá que la sesión de depuración continúe.</target>
+        <target state="translated">La actualización del modificador async o iterator en una instrucción activa impedirá que la sesión de depuración continúe.</target>
         <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing">
@@ -2582,7 +2582,7 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="using_statement_can_be_simplified">
         <source>'using' statement can be simplified</source>
-        <target state="new">'using' statement can be simplified</target>
+        <target state="translated">La instrucción "using" se puede simplificar</target>
         <note />
       </trans-unit>
     </body>

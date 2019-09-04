@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis
                             return constant.UInt64Value.GetHashCode();
 
                         case ConstantValueTypeDiscriminator.String:
-                            return constant.StringValue.GetHashCode();
+                            return constant.RopeValue.GetHashCode();
                     }
                 }
 

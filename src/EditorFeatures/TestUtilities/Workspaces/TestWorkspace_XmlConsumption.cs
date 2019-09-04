@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -17,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -259,6 +259,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ref int projectId,
             ref int documentId)
         {
+            AssertNoChildText(projectElement);
+
             var language = GetLanguage(workspace, projectElement);
 
             var assemblyName = GetAssemblyName(workspace, projectElement, ref projectId);
@@ -525,6 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var checkOverflow = false;
             var allowUnsafe = false;
             var outputKind = OutputKind.DynamicallyLinkedLibrary;
+            var nullable = NullableContextOptions.Disable;
 
             if (compilationOptionsElement != null)
             {
@@ -589,6 +592,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     delaySign = (bool)delaySignAttribute;
                 }
 
+                var nullableAttribute = compilationOptionsElement.Attribute(NullableAttributeName);
+                if (nullableAttribute != null)
+                {
+                    nullable = (NullableContextOptions)Enum.Parse(typeof(NullableContextOptions), (string)nullableAttribute.Value);
+                }
+
                 var outputTypeAttribute = compilationOptionsElement.Attribute(OutputTypeAttributeName);
                 if (outputTypeAttribute != null
                     && outputTypeAttribute.Value == "WindowsRuntimeMetadata")
@@ -630,7 +639,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (language == LanguageNames.CSharp)
             {
-                compilationOptions = ((CSharpCompilationOptions)compilationOptions).WithAllowUnsafe(allowUnsafe);
+                compilationOptions = ((CSharpCompilationOptions)compilationOptions).WithAllowUnsafe(allowUnsafe).WithNullableContextOptions(nullable);
             }
 
             if (language == LanguageNames.VisualBasic)
@@ -802,6 +811,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static Compilation CreateCompilation(TestWorkspace workspace, XElement referencedSource)
         {
+            AssertNoChildText(referencedSource);
+
             var languageName = GetLanguage(workspace, referencedSource);
 
             var assemblyName = "ReferencedAssembly";
@@ -946,6 +957,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public static bool IsWorkspaceElement(string text)
         {
             return text.TrimStart('\r', '\n', ' ').StartsWith("<Workspace>", StringComparison.Ordinal);
+        }
+
+        private static void AssertNoChildText(XElement element)
+        {
+            foreach (var node in element.Nodes())
+            {
+                if (node is XText text && !string.IsNullOrWhiteSpace(text.Value))
+                {
+                    throw new Exception($"Element {element} has child text that isn't recognized. The XML syntax is invalid.");
+                }
+            }
         }
     }
 }

@@ -124,10 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
                 LocalDeclarationStatementSyntax localDeclarationStatement,
                 SyntaxEditor editor)
             {
-                using (var helper = new RemoveDiscardHelper(localDeclarationStatement, editor))
-                {
-                    helper.ProcessDeclarationStatement();
-                }
+                using var helper = new RemoveDiscardHelper(localDeclarationStatement, editor);
+                helper.ProcessDeclarationStatement();
             }
 
             public void Dispose() => _statementsBuilder.Free();

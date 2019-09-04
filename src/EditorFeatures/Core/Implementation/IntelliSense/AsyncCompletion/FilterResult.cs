@@ -1,7 +1,7 @@
-﻿
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Roslyn.Utilities;
 
@@ -21,42 +21,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         public int CompareTo(FilterResult other)
-        {
-            var item1 = this.CompletionItem;
-            var item2 = other.CompletionItem;
+            => ComparerWithState.CompareTo(this, other, s_comparers);
 
-            var prefixLength1 = item1.FilterText.GetCaseInsensitivePrefixLength(this.FilterText);
-            var prefixLength2 = item2.FilterText.GetCaseInsensitivePrefixLength(other.FilterText);
-
-            // Prefer the item that matches a longer prefix of the filter text.
-            if (prefixLength1 != prefixLength2)
-            {
-                return prefixLength1.CompareTo(prefixLength2);
-            }
-
-            // If the lengths are the same, prefer the one with the higher match priority.
-            // But only if it's an item that would have been hard selected.  We don't want
-            // to aggressively select an item that was only going to be softly offered.
-            var item1Priority = item1.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                ? item1.Rules.MatchPriority : MatchPriority.Default;
-            var item2Priority = item2.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                ? item2.Rules.MatchPriority : MatchPriority.Default;
-
-            if (item1Priority != item2Priority)
-            {
-                return item1Priority.CompareTo(item2Priority);
-            }
-
-            prefixLength1 = item1.FilterText.GetCaseSensitivePrefixLength(this.FilterText);
-            prefixLength2 = item2.FilterText.GetCaseSensitivePrefixLength(other.FilterText);
-
-            // If there are "Abc" vs "abc", we should prefer the case typed by user.
-            if (prefixLength1 != prefixLength2)
-            {
-                return prefixLength1.CompareTo(prefixLength2);
-            }
-
-            return this.CompletionItem.IsPreferredItem().CompareTo(other.CompletionItem.IsPreferredItem());
-        }
+        private readonly static ImmutableArray<Func<FilterResult, IComparable>> s_comparers =
+            ImmutableArray.Create<Func<FilterResult, IComparable>>(
+                // Prefer the item that matches a longer prefix of the filter text.
+                f => f.CompletionItem.FilterText.GetCaseInsensitivePrefixLength(f.FilterText),
+                // If the lengths are the same, prefer the one with the higher match priority.
+                // But only if it's an item that would have been hard selected.  We don't want
+                // to aggressively select an item that was only going to be softly offered.
+                f => f.CompletionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
+                    ? f.CompletionItem.Rules.MatchPriority
+                    : MatchPriority.Default,
+                // If there are "Abc" vs "abc", we should prefer the case typed by user.
+                f => f.CompletionItem.FilterText.GetCaseSensitivePrefixLength(f.FilterText),
+                // Prefer Intellicode items.
+                f => f.CompletionItem.IsPreferredItem());
     }
 }

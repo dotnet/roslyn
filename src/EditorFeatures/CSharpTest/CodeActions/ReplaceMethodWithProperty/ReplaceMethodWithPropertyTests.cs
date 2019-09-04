@@ -1974,6 +1974,185 @@ class C : IGoo
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfTopLevelNullableIsDifferent_GetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string name)
+    {
+        this.name = name;
+    }
+
+    public string? [||]GetName()
+    {
+        return this.name;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string name)
+    {
+        this.name = name;
+    }
+
+    public string? Name => this.name;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfTopLevelNullableIsDifferent_SetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string? name)
+    {
+        this.name = name;
+    }
+
+    public string [||]GetName()
+    {
+        return this.name ?? """";
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private string? name;
+
+    public void SetName(string? name)
+    {
+        this.name = name;
+    }
+
+    public string Name => this.name ?? """";
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfNestedNullableIsDifferent_GetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string?> [||]GetNames()
+    {
+        return this.names;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string?> Names => this.names;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task IgnoreIfNestedNullableIsDifferent_SetterNullable()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+using System.Linq;
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string?> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string> [||]GetNames()
+    {
+        return this.names.Where(n => n is object);
+    }
+}",
+@"
+#nullable enable
+
+using System.Linq;
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string?> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string> Names => this.names.Where(n => n is object);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task NullabilityOfFieldDifferentThanProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    private string name;
+    
+    public string? [||]GetName()
+    {
+        return name;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    private string name;
+
+    public string? Name => name;
+}");
+        }
+
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null, int index = 0)
