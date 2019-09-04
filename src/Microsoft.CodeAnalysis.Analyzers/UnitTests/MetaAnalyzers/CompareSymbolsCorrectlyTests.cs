@@ -241,7 +241,7 @@ class TestClass {{
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method({symbolType} x, {symbolType} y) {{
-        return SymbolEqualityComparer.Default.Equals(x, y);
+        return Equals(x, y);
     }}
 }}
 ";
