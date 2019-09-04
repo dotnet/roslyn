@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 }
 
                 var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
-                Assert.IsNotType<ProjectDiagnosticAnalyzer>(liveId.Analyzer);
+                Assert.False(liveId.Analyzer is ProjectDiagnosticAnalyzer);
 
                 called = true;
             };
