@@ -979,7 +979,8 @@ namespace Microsoft.CodeAnalysis
                 CheckAdditionalDocumentIsInCurrentSolution(documentId);
 
                 var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithAdditionalDocumentFilePath(documentId, newName))
+                var newSolution = this.SetCurrentSolution(oldSolution.WithAdditionalDocumentFilePath(documentId, newName));
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
         }
 
@@ -1020,6 +1021,20 @@ namespace Microsoft.CodeAnalysis
                 var newSolution = this.SetCurrentSolution(oldSolution.RemoveAnalyzerConfigDocument(documentId));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
+        /// <summary>
+        /// Call this method when an analyzer config document is renamed in a project in the host environment.
+        /// </summary>
+        protected internal void OnAnalyzerConfigDocumentRenamed(DocumentId documentId, string newName)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(this.CurrentSolution.WithDocumentName(documentId, newName));
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
         }
 

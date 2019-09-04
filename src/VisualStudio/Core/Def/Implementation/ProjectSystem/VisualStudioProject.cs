@@ -586,7 +586,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RenameSourceFile(string originalFilePath, string newFilePath)
         {
-            // TODO
+            _sourceFiles.RenameFile(originalFilePath, newFilePath);
         }
 
         public void RemoveSourceTextContainer(SourceTextContainer textContainer)
@@ -616,7 +616,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RenameAdditionalFile(string originalFilePath, string newFilePath)
         {
-            // TODO
+            _additionalFiles.RenameFile(originalFilePath, newFilePath);
         }
 
         #endregion
@@ -699,11 +699,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // provider is free-threaded. so fine to call Wait rather than JTF
             provider.RemoveDynamicFileInfoAsync(
                 projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).Wait(CancellationToken.None);
-        }
-
-        public void RenameDynamicSourceFile(string originalFilePath, string newFilePath)
-        {
-            // TODO
         }
 
         private void OnDynamicFileInfoUpdated(object sender, string dynamicFilePath)
