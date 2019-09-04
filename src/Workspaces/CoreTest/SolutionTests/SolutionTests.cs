@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private Solution CreateSolution()
         {
-            return new AdhocWorkspace().CurrentSolution;
+            return new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly))).CurrentSolution;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1562,7 +1562,7 @@ public class C : A {
             var factory = dummyProject.LanguageServices.SyntaxTreeFactory;
 
             // create the origin tree
-            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), treeDiagnosticReportingOptionsOpt: null, CancellationToken.None);
+            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), treeDiagnosticReportingOptions: null, CancellationToken.None);
 
             // create recoverable tree off the original tree
             var recoverableTree = factory.CreateRecoverableTree(
@@ -1836,6 +1836,43 @@ public class C : A {
             var finalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
 
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterUpdateRoot));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void NoCompilationProjectsHaveNullSyntaxTreesAndSemanticModels()
+        {
+            var solution = CreateSolution();
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", NoCompilationConstants.LanguageName);
+            solution = solution.AddDocument(documentId, "Test.cs", "", filePath: @"Z:\Test.txt");
+
+            var document = solution.GetDocument(documentId)!;
+
+            Assert.False(document.TryGetSyntaxTree(out _));
+            Assert.Null(document.GetSyntaxTreeAsync().Result);
+            Assert.Null(document.GetSyntaxTreeSynchronously(CancellationToken.None));
+
+            Assert.False(document.TryGetSemanticModel(out _));
+            Assert.Null(document.GetSemanticModelAsync().Result);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void ChangingFilePathOfFileInNoCompilationProjectWorks()
+        {
+            var solution = CreateSolution();
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", NoCompilationConstants.LanguageName);
+            solution = solution.AddDocument(documentId, "Test.cs", "", filePath: @"Z:\Test.txt");
+
+            Assert.Null(solution.GetDocument(documentId)!.GetSyntaxTreeAsync().Result);
+
+            solution = solution.WithDocumentFilePath(documentId, @"Z:\NewPath.txt");
+
+            Assert.Null(solution.GetDocument(documentId)!.GetSyntaxTreeAsync().Result);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

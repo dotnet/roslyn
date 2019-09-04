@@ -65,44 +65,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
         protected async Task AssertFormatAsync(string expected, string code, IEnumerable<TextSpan> spans, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, int? baseIndentation = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code))
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var hostdoc = workspace.Documents.First();
+            var buffer = hostdoc.GetTextBuffer();
+
+            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+            var syntaxTree = await document.GetSyntaxTreeAsync();
+
+            // create new buffer with cloned content
+            var clonedBuffer = EditorFactory.CreateBuffer(
+                buffer.ContentType.TypeName,
+                workspace.ExportProvider,
+                buffer.CurrentSnapshot.GetText());
+
+            var formattingRuleProvider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+            if (baseIndentation.HasValue)
             {
-                var hostdoc = workspace.Documents.First();
-                var buffer = hostdoc.GetTextBuffer();
-
-                var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-
-                // create new buffer with cloned content
-                var clonedBuffer = EditorFactory.CreateBuffer(
-                    buffer.ContentType.TypeName,
-                    workspace.ExportProvider,
-                    buffer.CurrentSnapshot.GetText());
-
-                var formattingRuleProvider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-                if (baseIndentation.HasValue)
-                {
-                    var factory = formattingRuleProvider as TestFormattingRuleFactoryServiceFactory.Factory;
-                    factory.BaseIndentation = baseIndentation.Value;
-                    factory.TextSpan = spans.First();
-                }
-
-                var options = workspace.Options;
-                if (changedOptionSet != null)
-                {
-                    foreach (var entry in changedOptionSet)
-                    {
-                        options = options.WithChangedOption(entry.Key, entry.Value);
-                    }
-                }
-
-                var root = await syntaxTree.GetRootAsync();
-                var rules = formattingRuleProvider.CreateRule(workspace.CurrentSolution.GetDocument(syntaxTree), 0).Concat(Formatter.GetDefaultFormattingRules(workspace, root.Language));
-                AssertFormat(workspace, expected, options, rules, clonedBuffer, root, spans);
-
-                // format with node and transform
-                AssertFormatWithTransformation(workspace, expected, options, rules, root, spans);
+                var factory = formattingRuleProvider as TestFormattingRuleFactoryServiceFactory.Factory;
+                factory.BaseIndentation = baseIndentation.Value;
+                factory.TextSpan = spans.First();
             }
+
+            var options = workspace.Options;
+            if (changedOptionSet != null)
+            {
+                foreach (var entry in changedOptionSet)
+                {
+                    options = options.WithChangedOption(entry.Key, entry.Value);
+                }
+            }
+
+            var root = await syntaxTree.GetRootAsync();
+            var rules = formattingRuleProvider.CreateRule(workspace.CurrentSolution.GetDocument(syntaxTree), 0).Concat(Formatter.GetDefaultFormattingRules(workspace, root.Language));
+            AssertFormat(workspace, expected, options, rules, clonedBuffer, root, spans);
+
+            // format with node and transform
+            AssertFormatWithTransformation(workspace, expected, options, rules, root, spans);
         }
 
         internal static void AssertFormatWithTransformation(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<AbstractFormattingRule> rules, SyntaxNode root, IEnumerable<TextSpan> spans)
@@ -128,74 +126,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
         protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, params (PerLanguageOption<bool> option, bool enabled)[] options)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
+            using var workspace = TestWorkspace.CreateCSharp(codeWithMarker);
+            if (options != null)
             {
-                if (options != null)
+                foreach (var option in options)
                 {
-                    foreach (var option in options)
-                    {
-                        workspace.Options = workspace.Options.WithChangedOption(option.option, LanguageNames.CSharp, option.enabled);
-                    }
+                    workspace.Options = workspace.Options.WithChangedOption(option.option, LanguageNames.CSharp, option.enabled);
                 }
-
-                // set up caret position
-                var testDocument = workspace.Documents.Single();
-                var view = testDocument.GetTextView();
-                view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
-
-                // get original buffer
-                var buffer = workspace.Documents.First().GetTextBuffer();
-
-                var commandHandler = workspace.GetService<FormatCommandHandler>();
-
-                var commandArgs = new FormatDocumentCommandArgs(view, view.TextBuffer);
-                commandHandler.ExecuteCommand(commandArgs, TestCommandExecutionContext.Create());
-                MarkupTestFile.GetPosition(expectedWithMarker, out var expected, out int expectedPosition);
-
-                Assert.Equal(expected, view.TextSnapshot.GetText());
-
-                var caretPosition = view.Caret.Position.BufferPosition.Position;
-                Assert.True(expectedPosition == caretPosition,
-                    string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
             }
+
+            // set up caret position
+            var testDocument = workspace.Documents.Single();
+            var view = testDocument.GetTextView();
+            view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
+
+            // get original buffer
+            var buffer = workspace.Documents.First().GetTextBuffer();
+
+            var commandHandler = workspace.GetService<FormatCommandHandler>();
+
+            var commandArgs = new FormatDocumentCommandArgs(view, view.TextBuffer);
+            commandHandler.ExecuteCommand(commandArgs, TestCommandExecutionContext.Create());
+            MarkupTestFile.GetPosition(expectedWithMarker, out var expected, out int expectedPosition);
+
+            Assert.Equal(expected, view.TextSnapshot.GetText());
+
+            var caretPosition = view.Caret.Position.BufferPosition.Position;
+            Assert.True(expectedPosition == caretPosition,
+                string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
         }
 
         protected static void AssertFormatWithPasteOrReturn(string expectedWithMarker, string codeWithMarker, bool allowDocumentChanges, bool isPaste = true)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
+            using var workspace = TestWorkspace.CreateCSharp(codeWithMarker);
+            workspace.CanApplyChangeDocument = allowDocumentChanges;
+
+            // set up caret position
+            var testDocument = workspace.Documents.Single();
+            var view = testDocument.GetTextView();
+            view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
+
+            // get original buffer
+            var buffer = workspace.Documents.First().GetTextBuffer();
+
+            if (isPaste)
             {
-                workspace.CanApplyChangeDocument = allowDocumentChanges;
-
-                // set up caret position
-                var testDocument = workspace.Documents.Single();
-                var view = testDocument.GetTextView();
-                view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
-
-                // get original buffer
-                var buffer = workspace.Documents.First().GetTextBuffer();
-
-                if (isPaste)
-                {
-                    var commandHandler = workspace.GetService<FormatCommandHandler>();
-                    var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
-                    commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
-                }
-                else
-                {
-                    // Return Key Command
-                    var commandHandler = workspace.GetService<FormatCommandHandler>();
-                    var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
-                    commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
-                }
-
-                MarkupTestFile.GetPosition(expectedWithMarker, out var expected, out int expectedPosition);
-
-                Assert.Equal(expected, view.TextSnapshot.GetText());
-
-                var caretPosition = view.Caret.Position.BufferPosition.Position;
-                Assert.True(expectedPosition == caretPosition,
-                    string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
+                var commandHandler = workspace.GetService<FormatCommandHandler>();
+                var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
+                commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
             }
+            else
+            {
+                // Return Key Command
+                var commandHandler = workspace.GetService<FormatCommandHandler>();
+                var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
+                commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
+            }
+
+            MarkupTestFile.GetPosition(expectedWithMarker, out var expected, out int expectedPosition);
+
+            Assert.Equal(expected, view.TextSnapshot.GetText());
+
+            var caretPosition = view.Caret.Position.BufferPosition.Position;
+            Assert.True(expectedPosition == caretPosition,
+                string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
         }
 
         protected async Task AssertFormatWithBaseIndentAsync(string expected, string markupCode, int baseIndentation)

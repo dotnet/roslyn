@@ -24,8 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
 
         public bool CanPreview(Document document)
         {
-            var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace == null)
+            if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
             {
                 return false;
             }

@@ -24,10 +24,11 @@
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all" Condition="'$(DotNetBuildFromSource)' != 'true'" />
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Remove="Storage\Sqlite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
     <Compile Include="..\..\..\CodeStyle\Core\CodeFixes\FixAllContextHelper.cs" Link="CodeFixes\FixAllOccurrences\FixAllContextHelper.cs" />
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>Execution\Desktop\DesktopAnalyzerAssemblyLoader.cs</Link>
@@ -254,6 +255,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />

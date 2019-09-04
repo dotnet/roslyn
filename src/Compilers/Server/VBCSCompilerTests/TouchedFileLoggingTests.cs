@@ -47,7 +47,7 @@ class C
                 filelist.Add(source1);
                 var outWriter = new StringWriter();
                 var cmd = new CSharpCompilerServer(
-                    DesktopCompilerServerHost.SharedAssemblyReferenceProvider,
+                    CompilerServerHost.SharedAssemblyReferenceProvider,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
                     new BuildPaths(null, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
                     s_libDirectory,

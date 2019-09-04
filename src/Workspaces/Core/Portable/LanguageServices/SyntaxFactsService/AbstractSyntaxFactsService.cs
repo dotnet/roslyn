@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -115,7 +114,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var shebangComment = Matcher.Single<SyntaxTrivia>(IsShebangDirectiveTrivia, "#!");
             var singleLineComment = Matcher.Single<SyntaxTrivia>(IsSingleLineCommentTrivia, "//");
             var multiLineComment = Matcher.Single<SyntaxTrivia>(IsMultiLineCommentTrivia, "/**/");
-            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment);
+            var singleLineDocumentationComment = Matcher.Single<SyntaxTrivia>(IsSingleLineDocCommentTrivia, "///");
+            var multiLineDocumentationComment = Matcher.Single<SyntaxTrivia>(IsMultiLineDocCommentTrivia, "/** */");
+            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment, singleLineDocumentationComment, multiLineDocumentationComment);
 
             var commentLine = Matcher.Sequence(whitespace, anyCommentMatcher, whitespace, endOfLine);
 
@@ -134,6 +135,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract bool IsEndOfLineTrivia(SyntaxTrivia trivia);
         public abstract bool IsSingleLineCommentTrivia(SyntaxTrivia trivia);
         public abstract bool IsMultiLineCommentTrivia(SyntaxTrivia trivia);
+        public abstract bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia);
+        public abstract bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia);
         public abstract bool IsShebangDirectiveTrivia(SyntaxTrivia trivia);
         public abstract bool IsPreprocessorDirective(SyntaxTrivia trivia);
 
@@ -162,11 +165,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             while (stack.Count > 0)
             {
-                var current = stack.Pop();
-                var currentNodeOrToken = current.nodeOrToken;
-                var currentLeading = current.leading;
-                var currentTrailing = current.trailing;
-
+                var (currentNodeOrToken, currentLeading, currentTrailing) = stack.Pop();
                 if (currentNodeOrToken.IsToken)
                 {
                     // If this token isn't on a single line, then the original node definitely
@@ -576,5 +575,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool IsReturnStatement(SyntaxNode node)
             => node.RawKind == SyntaxKinds.ReturnStatement;
+
+        public bool IsExpressionStatement(SyntaxNode node)
+            => node.RawKind == SyntaxKinds.ExpressionStatement;
     }
 }

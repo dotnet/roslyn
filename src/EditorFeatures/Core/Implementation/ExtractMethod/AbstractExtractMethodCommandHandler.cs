@@ -24,20 +24,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
     internal abstract class AbstractExtractMethodCommandHandler : VSCommanding.ICommandHandler<ExtractMethodCommandArgs>
     {
         private readonly ITextBufferUndoManagerProvider _undoManager;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IInlineRenameService _renameService;
 
         public AbstractExtractMethodCommandHandler(
             ITextBufferUndoManagerProvider undoManager,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
             IInlineRenameService renameService)
         {
             Contract.ThrowIfNull(undoManager);
-            Contract.ThrowIfNull(editorOperationsFactoryService);
             Contract.ThrowIfNull(renameService);
 
             _undoManager = undoManager;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
             _renameService = renameService;
         }
         public string DisplayName => EditorFeaturesResources.Extract_Method;

@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -31,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// do not have the ability to know the version of the document up front, and instead can
         /// only retrieve is asynchronously through <see cref="TextAndVersionSource"/>.
         /// </summary> 
-        protected readonly SourceText sourceTextOpt;
+        protected readonly SourceText? sourceText;
         protected ValueSource<TextAndVersion> TextAndVersionSource { get; }
 
         // Checksums for this solution state
@@ -39,13 +42,13 @@ namespace Microsoft.CodeAnalysis
 
         protected TextDocumentState(
             SolutionServices solutionServices,
-            IDocumentServiceProvider documentServiceProvider,
+            IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
-            SourceText sourceTextOpt,
+            SourceText? sourceText,
             ValueSource<TextAndVersion> textAndVersionSource)
         {
             this.solutionServices = solutionServices;
-            this.sourceTextOpt = sourceTextOpt;
+            this.sourceText = sourceText;
             this.TextAndVersionSource = textAndVersionSource;
 
             Attributes = attributes;
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis
             get { return Attributes.Id; }
         }
 
-        public string FilePath
+        public string? FilePath
         {
             get { return Attributes.FilePath; }
         }
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis
                   services,
                   info.DocumentServiceProvider,
                   info.Attributes,
-                  sourceTextOpt: null,
+                  sourceText: null,
                   textAndVersionSource: info.TextLoader != null
                     ? CreateRecoverableText(info.TextLoader, info.Id, services, reportInvalidDataException: false)
                     : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath)))
@@ -212,7 +215,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public ITemporaryTextStorage Storage
+        public ITemporaryTextStorage? Storage
         {
             get
             {
@@ -226,11 +229,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public bool TryGetText(out SourceText text)
+        public bool TryGetText([NotNullWhen(returnValue: true)] out SourceText? text)
         {
-            if (this.sourceTextOpt != null)
+            if (this.sourceText != null)
             {
-                text = sourceTextOpt;
+                text = sourceText;
                 return true;
             }
 
@@ -268,9 +271,9 @@ namespace Microsoft.CodeAnalysis
 
         public async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
-            if (sourceTextOpt != null)
+            if (sourceText != null)
             {
-                return sourceTextOpt;
+                return sourceText;
             }
 
             if (TryGetText(out var text))
@@ -367,7 +370,7 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.Services,
                 this.Attributes,
-                sourceTextOpt: null,
+                sourceText: null,
                 textAndVersionSource: newTextSource);
         }
 

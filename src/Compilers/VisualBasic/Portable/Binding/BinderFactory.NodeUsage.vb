@@ -44,6 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' For an inherits statement in a type
             InheritsStatement
 
+            ' For an implements statement in a type
+            ImplementsStatement
+
             ' For the full part of a method (type parameters in scope, but not parameter or locals)
             MethodFull
 

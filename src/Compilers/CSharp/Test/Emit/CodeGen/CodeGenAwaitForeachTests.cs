@@ -717,6 +717,7 @@ class C
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
+            Assert.True(info.IsAsynchronous);
             Assert.Equal("C.Enumerator C.GetAsyncEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<System.Boolean> C.Enumerator.MoveNextAsync()", info.MoveNextMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Enumerator.Current { get; }", info.CurrentProperty.ToTestDisplayString());
@@ -2498,7 +2499,7 @@ public class C
     IL_000c:  br         IL_009a
     // sequence point: {
     IL_0011:  nop
-    // sequence point: foreach
+    // sequence point: await foreach
     IL_0012:  nop
     // sequence point: new C()
     IL_0013:  ldarg.0
@@ -4208,7 +4209,7 @@ class C
     IL_0012:  ldarg.0
     IL_0013:  newobj     ""Collection<int>..ctor()""
     IL_0018:  stfld      ""ICollection<int> C.<Main>d__0.<c>5__1""
-    // sequence point: foreach
+    // sequence point: await foreach
     IL_001d:  nop
     // sequence point: c
     IL_001e:  ldarg.0

@@ -480,9 +480,9 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         [Fact]
         public async Task UnknownLanguageTest()
         {
-            var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NullLanguageService).Assembly));
+            var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly));
 
-            var project = new AdhocWorkspace(hostServices).CurrentSolution.AddProject("Project", "Project.dll", NullLanguageService.TestLanguage);
+            var project = new AdhocWorkspace(hostServices).CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName);
 
             var snapshotService = (new RemotableDataServiceFactory()).CreateService(project.Solution.Workspace.Services) as IRemotableDataService;
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
@@ -697,21 +697,6 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             shadow.CopyContentFrom(typeof(object).Assembly.Location);
 
             return new AnalyzerFileReference(original, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(original, shadow.Path)));
-        }
-
-        private interface INullLanguageService : ILanguageService { }
-
-        [ExportLanguageService(typeof(INullLanguageService), TestLanguage), Shared]
-        private class NullLanguageService : INullLanguageService
-        {
-            public const string TestLanguage = nameof(TestLanguage);
-
-            [ImportingConstructor]
-            public NullLanguageService()
-            {
-            }
-
-            // do nothing
         }
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
