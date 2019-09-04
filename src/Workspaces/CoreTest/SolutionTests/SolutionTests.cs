@@ -672,6 +672,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestUpdatingAdditionalFilePath()
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            const string OldFilePath = @"Z:\OldFilePath.cs";
+            const string NewFilePath = @"Z:\NewFilePath.cs";
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "goo", "goo.dll", LanguageNames.CSharp)
+                .AddAdditionalDocument(documentId, "OldFilePath.cs", "public class Goo { }", filePath: OldFilePath);
+
+            // scope so later asserts don't accidentally use oldDocument
+            {
+                var oldDocument = solution.GetAdditionalDocument(documentId);
+                Assert.Equal(OldFilePath, oldDocument.FilePath);
+            }
+
+            solution = solution.WithAdditionalDocumentFilePath(documentId, NewFilePath);
+
+            {
+                var newDocument = solution.GetAdditionalDocument(documentId);
+                Assert.Equal(NewFilePath, newDocument.FilePath);
+            }
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestSyntaxRootNotKeptAlive()
         {

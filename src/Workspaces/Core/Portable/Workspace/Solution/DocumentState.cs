@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis
                 _treeSource);
         }
 
-        public DocumentState UpdateFilePath(string filePath)
+        public override TextDocumentState UpdateFilePath(string filePath)
         {
             var newAttributes = this.Attributes.With(filePath: filePath);
 

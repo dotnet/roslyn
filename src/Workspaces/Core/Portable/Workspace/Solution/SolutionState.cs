@@ -1336,7 +1336,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var oldDocument = this.GetDocumentState(documentId)!;
-            var newDocument = oldDocument.UpdateFilePath(filePath);
+            var newDocument = (DocumentState)oldDocument.UpdateFilePath(filePath);
 
             return this.WithDocumentState(newDocument);
         }
@@ -1357,13 +1357,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            // TODO: huh?
-            //var oldDocument = this.GetAdditionalDocumentState(documentId)!;
-            //var newDocument = oldDocument.UpdateFilePath(filePath);
-
-            //return this.WithDocumentState(newDocument);
-
-            return this;
+            var oldDocument = this.GetAdditionalDocumentState(documentId)!;
+            var newDocument = oldDocument.UpdateFilePath(filePath);
+            return this.WithAdditionalDocumentState(newDocument.UpdateFilePath(filePath));
         }
 
         /// <summary>

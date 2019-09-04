@@ -320,6 +320,18 @@ namespace Microsoft.CodeAnalysis
             return UpdateText(newTextSource, mode, incremental: true);
         }
 
+        public virtual TextDocumentState UpdateFilePath(string filePath)
+        {
+            var newAttributes = this.Attributes.With(filePath: filePath);
+
+            return new TextDocumentState(
+                this.solutionServices,
+                this.Services,
+                newAttributes,
+                sourceTextOpt: this.sourceTextOpt,
+                textAndVersionSource: this.TextAndVersionSource);
+        }
+
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
         {
             if (newText == null)
