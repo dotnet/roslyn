@@ -43,14 +43,13 @@ namespace Microsoft.CodeAnalysis.Completion
         /// results, or false if it should not be.
         /// </summary>
         public bool MatchesPattern(string text, string pattern, CultureInfo culture)
-            => GetMatch(text, pattern, culture) != null;
+            => GetMatch(text, pattern, includeMatchSpans: false, culture) != null;
 
-        private PatternMatch? GetMatch(string text, string pattern, CultureInfo culture)
-            => GetMatch(text, pattern, includeMatchSpans: false, culture: culture);
-
-        private PatternMatch? GetMatch(
-            string completionItemText, string pattern,
-            bool includeMatchSpans, CultureInfo culture)
+        public PatternMatch? GetMatch(
+            string completionItemText,
+            string pattern,
+            bool includeMatchSpans,
+            CultureInfo culture)
         {
             // If the item has a dot in it (i.e. for something like enum completion), then attempt
             // to match what the user wrote against the last portion of the name.  That way if they
@@ -136,9 +135,14 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public int CompareItems(CompletionItem item1, CompletionItem item2, string pattern, CultureInfo culture)
         {
-            var match1 = GetMatch(item1.FilterText, pattern, culture);
-            var match2 = GetMatch(item2.FilterText, pattern, culture);
+            var match1 = GetMatch(item1.FilterText, pattern, includeMatchSpans: false, culture);
+            var match2 = GetMatch(item2.FilterText, pattern, includeMatchSpans: false, culture);
 
+            return CompareItems(item1, match1, item2, match2);
+        }
+
+        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2)
+        {
             if (match1 != null && match2 != null)
             {
                 var result = CompareMatches(match1.Value, match2.Value, item1, item2);

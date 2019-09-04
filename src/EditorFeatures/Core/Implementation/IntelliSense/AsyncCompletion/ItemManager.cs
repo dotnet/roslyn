@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -174,9 +176,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         displayTextSuffix: item.Suffix);
                 }
 
-                if (MatchesFilterText(completionHelper, roslynItem, filterText, initialRoslynTriggerKind, filterReason, _recentItemsManager.RecentItems))
+                if (MatchesFilterText(completionHelper, roslynItem, filterText, initialRoslynTriggerKind, filterReason, _recentItemsManager.RecentItems, out var patternMatch))
                 {
-                    initialListOfItemsToBeIncluded.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: true)));
+                    initialListOfItemsToBeIncluded.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: true, patternMatch)));
                 }
                 else
                 {
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         initialRoslynTriggerKind == CompletionTriggerKind.Invoke ||
                         filterText.Length <= 1)
                     {
-                        initialListOfItemsToBeIncluded.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: false)));
+                        initialListOfItemsToBeIncluded.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: false, patternMatch)));
                     }
                 }
             }
@@ -214,30 +216,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
             }
 
+            // todo: Add comment
+            var itemsToBeIncludedSortedByMatch = initialListOfItemsToBeIncluded.OrderBy(result => result.FilterResult.PatternMatch).ToImmutableArray();
+
             var options = document?.Project.Solution.Options;
             var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? true;
             var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
 
             var updatedFilters = showCompletionItemFilters
-                ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
+                ? GetUpdatedFilters(itemsToBeIncludedSortedByMatch, data.SelectedFilters)
                 : ImmutableArray<CompletionFilterWithState>.Empty;
 
-            var highlightedList = GetHighlightedList(initialListOfItemsToBeIncluded, filterText, completionHelper, highlightMatchingPortions).ToImmutableArray();
+            var highlightedList = GetHighlightedList(itemsToBeIncludedSortedByMatch, filterText, completionHelper, highlightMatchingPortions);
 
             // If this was deletion, then we control the entire behavior of deletion ourselves.
             if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
             {
-                return HandleDeletionTrigger(data.Trigger.Reason, initialListOfItemsToBeIncluded, filterText, updatedFilters, highlightedList);
+                return HandleDeletionTrigger(data.Trigger.Reason, itemsToBeIncludedSortedByMatch, filterText, updatedFilters, highlightedList);
             }
 
-            Func<ImmutableArray<RoslynCompletionItem>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
+            Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
             if (completionService == null)
             {
-                filterMethod = (items, text) => CompletionService.FilterItems(completionHelper, items, text);
+                filterMethod = (itemsWithPatternMatches, text) => CompletionService.FilterItems(completionHelper, itemsWithPatternMatches);
             }
             else
             {
-                filterMethod = (items, text) => completionService.FilterItems(document, items, text);
+                filterMethod = (itemsWithPatternMatches, text) => completionService.FilterItems(document, itemsWithPatternMatches, text);
             }
 
             return HandleNormalFiltering(
@@ -247,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 initialRoslynTriggerKind,
                 filterReason,
                 data.Trigger.Character,
-                initialListOfItemsToBeIncluded,
+                itemsToBeIncludedSortedByMatch,
                 highlightedList,
                 completionHelper,
                 hasSuggestedItemOptions);
@@ -284,6 +289,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // 2. or, all associated expanders are unselected, therefore should be excluded
                 return associatedWithUnselectedExpander;
             }
+
+            static ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(
+                ImmutableArray<ExtendedFilterResult> filterResults,
+                string filterText,
+                CompletionHelper completionHelper,
+                bool highlightMatchingPortions)
+            {
+                if (!highlightMatchingPortions)
+                {
+                    return filterResults.SelectAsArray(r => new CompletionItemWithHighlight(r.VSCompletionItem, ImmutableArray<Span>.Empty));
+                }
+
+                var highlightedItems = ArrayBuilder<CompletionItemWithHighlight>.GetInstance(filterResults.Length);
+                foreach (var extendedResult in filterResults)
+                {
+                    // The PatternMatch in FilterResult is calculated based on Roslyn item's FilterText, 
+                    // which can be used to calculate highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
+                    // However, if the PatternMatch is null or the Roslyn item's FilterText is different from its DisplayText,
+                    // we need to do the match against the display text of the VS item directly to get the highlighted spans.
+                    var filterResult = extendedResult.FilterResult;
+                    var highlightedSpans = filterResult.PatternMatch.HasValue && !filterResult.CompletionItem.HasDifferentFilterText
+                        ? filterResult.PatternMatch.Value.MatchedSpans.SelectAsArray(s => s.ToSpan(filterResult.CompletionItem.DisplayTextPrefix?.Length ?? 0))
+                        : completionHelper.GetHighlightedSpans(extendedResult.VSCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
+
+                    highlightedItems.Add(new CompletionItemWithHighlight(extendedResult.VSCompletionItem, highlightedSpans));
+                }
+
+                return highlightedItems.ToImmutableAndFree();
+            }
         }
 
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
@@ -293,13 +327,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         private FilteredCompletionModel HandleNormalFiltering(
-            Func<ImmutableArray<RoslynCompletionItem>, string, ImmutableArray<RoslynCompletionItem>> filterMethod,
+            Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod,
             string filterText,
             ImmutableArray<CompletionFilterWithState> filters,
             CompletionTriggerKind initialRoslynTriggerKind,
             CompletionFilterReason filterReason,
             char typeChar,
-            List<ExtendedFilterResult> itemsInList,
+            ImmutableArray<ExtendedFilterResult> itemsInList,
             ImmutableArray<CompletionItemWithHighlight> highlightedList,
             CompletionHelper completionHelper,
             bool hasSuggestedItemOptions)
@@ -309,8 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // Ask the language to determine which of the *matched* items it wants to select.
             var matchingItems = itemsInList.Where(r => r.FilterResult.MatchedFilterText)
-                                           .Select(t => t.FilterResult.CompletionItem)
-                                           .AsImmutable();
+                                           .SelectAsArray(t => (t.FilterResult.CompletionItem, t.FilterResult.PatternMatch));
 
             var chosenItems = filterMethod(matchingItems, filterText);
 
@@ -331,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (bestItem != null)
             {
                 selectedItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, bestItem));
-                var deduplicatedListCount = matchingItems.Where(r => !r.IsPreferredItem()).Count();
+                var deduplicatedListCount = matchingItems.Where(r => !r.CompletionItem.IsPreferredItem()).Count();
                 if (selectedItemIndex > -1 &&
                     deduplicatedListCount == 1 &&
                     filterText.Length > 0)
@@ -376,12 +409,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private FilteredCompletionModel HandleDeletionTrigger(
             CompletionTriggerReason filterTriggerKind,
-            List<ExtendedFilterResult> filterResults,
+            ImmutableArray<ExtendedFilterResult> filterResults,
             string filterText,
             ImmutableArray<CompletionFilterWithState> filters,
             ImmutableArray<CompletionItemWithHighlight> highlightedList)
         {
-            var matchingItems = filterResults.Where(r => r.FilterResult.MatchedFilterText).AsImmutable();
+            var matchingItems = filterResults.WhereAsArray(r => r.FilterResult.MatchedFilterText);
             if (filterTriggerKind == CompletionTriggerReason.Insertion &&
                 !matchingItems.Any())
             {
@@ -479,26 +512,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 filters, selection, centerSelection: true, uniqueItem: default);
         }
 
-        private static IEnumerable<CompletionItemWithHighlight> GetHighlightedList(
-            IEnumerable<ExtendedFilterResult> filterResults,
-            string filterText,
-            CompletionHelper completionHelper,
-            bool highlightMatchingPortions)
-        {
-            var highlightedList = new List<CompletionItemWithHighlight>();
-            foreach (var item in filterResults)
-            {
-                var highlightedSpans = highlightMatchingPortions
-                    ? completionHelper.GetHighlightedSpans(item.VSCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture)
-                    : ImmutableArray<TextSpan>.Empty;
-                highlightedList.Add(new CompletionItemWithHighlight(item.VSCompletionItem, highlightedSpans.Select(s => s.ToSpan()).ToImmutableArray()));
-            }
-
-            return highlightedList;
-        }
-
         private static ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(
-            List<ExtendedFilterResult> filteredList,
+            ImmutableArray<ExtendedFilterResult> filteredList,
             ImmutableArray<CompletionFilterWithState> filters)
         {
             // See which filters might be enabled based on the typed code
@@ -571,10 +586,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             => result1.CompareTo(result2) > 0;
 
         internal static bool MatchesFilterText(
-            CompletionHelper helper, RoslynCompletionItem item,
-            string filterText, CompletionTriggerKind initialTriggerKind,
-            CompletionFilterReason filterReason, ImmutableArray<string> recentItems)
+            CompletionHelper helper,
+            RoslynCompletionItem item,
+            string filterText,
+            CompletionTriggerKind initialTriggerKind,
+            CompletionFilterReason filterReason,
+            ImmutableArray<string> recentItems,
+            out PatternMatch? patternMatch)
         {
+            // Get the match of the given completion item for the pattern provided so far. 
+            // A completion item is checked against the pattern by see if it's 
+            // CompletionItem.FilterText matches the item. That way, the pattern it checked 
+            // against terms like "IList" and not IList<>
+            patternMatch = helper.GetMatch(item.FilterText, filterText, includeMatchSpans: true, CultureInfo.CurrentCulture);
+
             // For the deletion we bake in the core logic for how matching should work.
             // This way deletion feels the same across all languages that opt into deletion 
             // as a completion trigger.
@@ -603,11 +628,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            // Checks if the given completion item matches the pattern provided so far. 
-            // A  completion item is checked against the pattern by see if it's 
-            // CompletionItem.FilterText matches the item.  That way, the pattern it checked 
-            // against terms like "IList" and not IList<>
-            return helper.MatchesPattern(item.FilterText, filterText, CultureInfo.CurrentCulture);
+            // Otherwise, the item matches filter text if a pattern match is returned.
+            return patternMatch != null;
         }
 
         internal static bool IsHardSelection(
@@ -644,7 +666,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // If the user moved the caret left after they started typing, the 'best' match may not match at all
             // against the full text span that this item would be replacing.
-            if (!ItemManager.MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, initialTriggerKind, filterReason, recentItems))
+            if (!ItemManager.MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, initialTriggerKind, filterReason, recentItems, out _))
             {
                 return false;
             }

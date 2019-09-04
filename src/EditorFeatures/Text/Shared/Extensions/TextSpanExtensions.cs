@@ -2,7 +2,6 @@
 
 using System.Diagnostics;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
 {
@@ -14,6 +13,14 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         public static Span ToSpan(this TextSpan textSpan)
         {
             return new Span(textSpan.Start, textSpan.Length);
+        }
+
+        /// <summary>
+        /// Convert a <see cref="TextSpan"/> instance to a <see cref="TextSpan"/> with additional offset.
+        /// </summary>
+        public static Span ToSpan(this TextSpan textSpan, int offset)
+        {
+            return new Span(textSpan.Start + offset, textSpan.Length);
         }
 
         /// <summary>
