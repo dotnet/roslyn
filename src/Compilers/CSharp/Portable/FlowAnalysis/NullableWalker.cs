@@ -6889,17 +6889,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitIsOperator(node);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Boolean);
 
-            if (operand.Type?.IsValueType == false)
+            var slotBuilder = ArrayBuilder<int>.GetInstance();
+            GetSlotsToMarkAsNotNullable(operand, slotBuilder);
+            if (slotBuilder.Count > 0)
             {
-                var slotBuilder = ArrayBuilder<int>.GetInstance();
-                GetSlotsToMarkAsNotNullable(operand, slotBuilder);
-                if (slotBuilder.Count > 0)
-                {
-                    Split();
-                    MarkSlotsAsNotNull(slotBuilder, ref StateWhenTrue);
-                }
-                slotBuilder.Free();
+                Split();
+                MarkSlotsAsNotNull(slotBuilder, ref StateWhenTrue);
             }
+            slotBuilder.Free();
 
             VisitTypeExpression(node.TargetType);
             SetNotNullResult(node);
