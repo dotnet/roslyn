@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptGoToDefinitionHandler : GotoDefinitionWithFarHandler
     {
         [ImportingConstructor]
-        public TypeScriptGoToDefinitionHandler([Import(AllowDefault = true)] IMetadataAsSourceFileService metadataAsSourceService) : base(metadataAsSourceService)
+        public TypeScriptGoToDefinitionHandler() : base(null)
         {
         }
     }

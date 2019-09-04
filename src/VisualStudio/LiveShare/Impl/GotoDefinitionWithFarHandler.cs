@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
 
-        public GotoDefinitionWithFarHandler([Import(AllowDefault = true)] IMetadataAsSourceFileService metadataAsSourceService)
+        public GotoDefinitionWithFarHandler(IMetadataAsSourceFileService metadataAsSourceService)
         {
             this._metadataAsSourceService = metadataAsSourceService;
         }
