@@ -13,7 +13,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class RoslynGoToDefinitionHandler : AbstractGoToDefinitionWithFarHandler
     {
         [ImportingConstructor]
-        public RoslynGoToDefinitionHandler([Import(AllowDefault = true)] IMetadataAsSourceFileService metadataAsSourceService) : base(metadataAsSourceService)
+        public RoslynGoToDefinitionHandler([Import(AllowDefault = true)] IMetadataAsSourceFileService metadataAsSourceService)
+            : base(metadataAsSourceService)
         {
         }
     }

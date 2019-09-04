@@ -9,7 +9,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
 {
     internal class GoToDefinitionHandlerShim : AbstractLiveShareHandlerShim<TextDocumentPositionParams, object>
     {
-        public GoToDefinitionHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers, Methods.TextDocumentDefinitionName)
+        public GoToDefinitionHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+            : base(requestHandlers, Methods.TextDocumentDefinitionName)
         {
         }
     }
@@ -18,7 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
     internal class CSharpGoToDefinitionHandlerShim : GoToDefinitionHandlerShim
     {
         [ImportingConstructor]
-        public CSharpGoToDefinitionHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        public CSharpGoToDefinitionHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+            : base(requestHandlers)
         {
         }
     }
@@ -27,7 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
     internal class VisualBasicGoToDefinitionHandlerShim : GoToDefinitionHandlerShim
     {
         [ImportingConstructor]
-        public VisualBasicGoToDefinitionHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        public VisualBasicGoToDefinitionHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+            : base(requestHandlers)
         {
         }
     }
