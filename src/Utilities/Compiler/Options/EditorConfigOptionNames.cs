@@ -18,6 +18,12 @@ namespace Analyzer.Utilities
         public const string ApiSurface = "api_surface";
 
         /// <summary>
+        /// Option to configure required modifiers for analyzed APIs.
+        /// Allowed option values: One or more fields of flags enum <see cref="SymbolModifiers"/> as a comma separated list.
+        /// </summary>
+        public const string RequiredModifiers = "required_modifiers";
+
+        /// <summary>
         /// Boolean option to exclude analysis of async void methods.
         /// </summary>
         public const string ExcludeAsyncVoidMethods = "exclude_async_void_methods";

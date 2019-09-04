@@ -27,6 +27,13 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.ApiSurface, rule, defaultValue, cancellationToken);
 
+        public static SymbolModifiers GetRequiredModifiersOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            SymbolModifiers defaultValue,
+            CancellationToken cancellationToken)
+            => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.RequiredModifiers, rule, defaultValue, cancellationToken);
+
         public static ImmutableHashSet<OutputKind> GetOutputKindsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,

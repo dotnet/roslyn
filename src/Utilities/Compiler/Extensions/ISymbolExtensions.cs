@@ -189,6 +189,23 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Returns true if the given symbol has required symbol modifiers based on options:
+        ///   1. If user has explicitly configured candidate <see cref="SymbolModifiers"/> in editor config options and
+        ///      given symbol has all the required modifiers.
+        ///   2. Otherwise, if user has not configured modifiers.
+        /// </summary>
+        public static bool MatchesConfiguredModifiers(
+            this ISymbol symbol,
+            AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            CancellationToken cancellationToken,
+            SymbolModifiers defaultRequiredModifiers = SymbolModifiers.None)
+        {
+            var requiredModifiers = options.GetRequiredModifiersOption(rule, defaultRequiredModifiers, cancellationToken);
+            return symbol.GetSymbolModifiers().Contains(requiredModifiers);
+        }
+
+        /// <summary>
         /// True if the symbol is externally visible outside this assembly.
         /// </summary>
         public static bool IsExternallyVisible(this ISymbol symbol) =>
@@ -669,5 +686,38 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
             => symbol?.Name.StartsWith("_", StringComparison.Ordinal) == true &&
                (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
+
+        public static bool IsConst(this ISymbol symbol)
+        {
+            switch (symbol)
+            {
+                case IFieldSymbol field:
+                    return field.IsConst;
+
+                case ILocalSymbol local:
+                    return local.IsConst;
+
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsReadOnly(this ISymbol symbol)
+        {
+            switch (symbol)
+            {
+                case IFieldSymbol field:
+                    return field.IsReadOnly;
+
+                case IPropertySymbol property:
+                    return property.IsReadOnly;
+
+                // TODO: IMethodSymbol and ITypeSymbol also have IsReadOnly in Microsoft.CodeAnalysis 3.x
+                //       Add these cases once we move to the required Microsoft.CodeAnalysis.nupkg.
+
+                default:
+                    return false;
+            }
+        }
     }
 }
