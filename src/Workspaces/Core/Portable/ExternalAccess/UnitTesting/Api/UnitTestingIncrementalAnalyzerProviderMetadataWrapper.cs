@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal struct UnitTestingIncrementalAnalyzerProviderMetadataWrapper
+    internal readonly struct UnitTestingIncrementalAnalyzerProviderMetadataWrapper
     {
         public UnitTestingIncrementalAnalyzerProviderMetadataWrapper(
             string name,
