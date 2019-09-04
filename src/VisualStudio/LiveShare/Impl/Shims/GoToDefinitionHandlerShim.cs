@@ -15,19 +15,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
     }
 
     [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.TextDocumentDefinitionName)]
-    internal class CSharpFindImplementationsHandlerShim : GoToDefinitionHandlerShim
+    internal class CSharpGoToDefinitionHandlerShim : GoToDefinitionHandlerShim
     {
         [ImportingConstructor]
-        public CSharpFindImplementationsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        public CSharpGoToDefinitionHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.TextDocumentDefinitionName)]
-    internal class VisualBasicFindImplementationsHandlerShim : GoToDefinitionHandlerShim
+    internal class VisualBasicGoToDefinitionHandlerShim : GoToDefinitionHandlerShim
     {
         [ImportingConstructor]
-        public VisualBasicFindImplementationsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
+        public VisualBasicGoToDefinitionHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }
     }
