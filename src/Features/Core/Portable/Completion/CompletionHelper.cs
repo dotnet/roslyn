@@ -182,14 +182,10 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
-            // First see how the two items compare in a case insensitive fashion.  Matches that 
-            // are strictly better (ignoring case) should prioritize the item.  i.e. if we have
-            // a prefix match, that should always be better than a substring match.
-            //
-            // The reason we ignore case is that it's very common for people to type expecting
-            // completion to fix up their casing.  i.e. 'false' will be written with the 
-            // expectation that it will get fixed by the completion list to 'False'.  
-            var diff = match1.CompareTo(match2, ignoreCase: true);
+            // Use the case sensitivity preferred by the helper, i.e. by language.
+            // For VB, we expect 'false' corrected to 'False'.
+            // For C#, we should prefer 'class' rather than 'Class' if typed 'cl'.
+            var diff = match1.CompareTo(match2, ignoreCase: !_isCaseSensitive);
             if (diff != 0)
             {
                 return diff;

@@ -5509,6 +5509,33 @@ class C
 
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         <MemberData(NameOf(AllCompletionImplementations))>
+        <WorkItem(38297, "https://github.com/dotnet/roslyn/issues/38297")>
+        Public Async Function SelectionMustBeCaseSensitiveWithEnums(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+class C
+{
+    void M(SampleEnum sampleEnum)
+    {
+        N($$
+    }
+
+    void N(SampleEnum sampleEnum) { }
+    enum SampleEnum
+    {
+        One,
+        Two
+    }
+}]]>
+                </Document>)
+
+                state.SendTypeChars("sam")
+                Await state.AssertSelectedCompletionItem("sampleEnum")
+            End Using
+        End Function
+
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
         Public Async Function CompletionBeforeVarWithEnableNullableReferenceAnalysisIDEFeatures(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                  <Workspace>
