@@ -157,7 +157,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
             {
                 PropertySetAbstractValue abstractValue = base.VisitObjectCreation(operation, argument);
-                if (this.TrackedTypeSymbols.Contains(operation.Type))
+                if (this.TrackedTypeSymbols.Any(s => operation.Type.GetBaseTypesAndThis().Contains(s)))
                 {
                     ConstructorMapper constructorMapper = this.DataFlowAnalysisContext.ConstructorMapper;
                     if (!constructorMapper.PropertyAbstractValues.IsEmpty)
@@ -233,7 +233,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 // If we need to evaluate hazardous usages on initializations, track assignments of properties and fields, so
                 // at the end of the CFG we can figure out which assignment operations to flag.
                 if (this.TrackedFieldPropertyAssignmentsOpt != null
-                    && this.TrackedTypeSymbols.Contains(operation.Target.Type)
+                    && this.TrackedTypeSymbols.Any(s =>operation.Target.Type.GetBaseTypesAndThis().Contains(s))
                     && (operation.Target.Kind == OperationKind.PropertyReference
                         || operation.Target.Kind == OperationKind.FieldReference
                         || operation.Target.Kind == OperationKind.FlowCaptureReference))
@@ -297,7 +297,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 if (operation.Target is IPropertyReferenceOperation propertyReferenceOperation
                     && propertyReferenceOperation.Instance != null
-                    && this.TrackedTypeSymbols.Contains(propertyReferenceOperation.Instance.Type)
+                    && this.TrackedTypeSymbols.Any(s => propertyReferenceOperation.Instance.Type.GetBaseTypesAndThis().Contains(s))
                     && this.DataFlowAnalysisContext.PropertyMappers.TryGetPropertyMapper(
                         propertyReferenceOperation.Property.Name,
                         out PropertyMapper propertyMapper,
@@ -478,7 +478,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     foreach (IArgumentOperation visitedArgument in visitedArguments)
                     {
-                        if (visitedArgument.Value != null && this.TrackedTypeSymbols.Contains(visitedArgument.Value.Type))
+                        if (visitedArgument.Value != null && this.TrackedTypeSymbols.Any(s => visitedArgument.Value.Type.GetBaseTypesAndThis().Contains(s)))
                         {
                             this.EvaluatePotentialHazardousUsage(
                                 visitedArgument.Value.Syntax,
@@ -493,7 +493,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 // or for a method within a different type.
                 IOperation propertySetInstance = visitedInstance;
                 if ((visitedInstance != null
-                    && this.TrackedTypeSymbols.Contains(visitedInstance.Type)
+                    && this.TrackedTypeSymbols.Any(s => visitedInstance.Type.GetBaseTypesAndThis().Contains(s))
                     && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out HazardousUsageEvaluator hazardousUsageEvaluator))
                     || TryFindNonTrackedTypeHazardousUsageEvaluator(method, visitedArguments, out hazardousUsageEvaluator, out propertySetInstance))
                 {
@@ -538,7 +538,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         ITypeSymbol argumentTypeSymbol = value is IConversionOperation conversionOperation ? conversionOperation.Operand.Type : value.Type;
                         foreach (string hazardousUsageTypeName in hazardousUsageTypeNames)
                         {
-                            if (this.TrackedTypeSymbols.Contains(argumentTypeSymbol)
+                            if (this.TrackedTypeSymbols.Any(s => argumentTypeSymbol.GetBaseTypesAndThis().Contains(s))
                                 && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(
                                         hazardousUsageTypeName,
                                         method.MetadataName,
@@ -657,7 +657,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 base.ProcessReturnValue(returnValue);
 
                 if (returnValue != null
-                    && this.TrackedTypeSymbols.Contains(returnValue.Type)
+                    && this.TrackedTypeSymbols.Any(s => returnValue.Type.GetBaseTypesAndThis().Contains(s))
                     && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(
                         out HazardousUsageEvaluator hazardousUsageEvaluator))
                 {
