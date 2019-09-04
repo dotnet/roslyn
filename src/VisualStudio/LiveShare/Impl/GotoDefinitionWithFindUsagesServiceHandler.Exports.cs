@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentDefinitionName)]
     [Obsolete("Used for backwards compatibility with old liveshare clients.")]
-    internal class RoslynGoToDefinitionHandler : AbstractGoToDefinitionWithFarHandler
+    internal class RoslynGoToDefinitionHandler : AbstractGoToDefinitionWithFindUsagesServiceHandler
     {
         [ImportingConstructor]
         public RoslynGoToDefinitionHandler([Import(AllowDefault = true)] IMetadataAsSourceFileService metadataAsSourceService)
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentDefinitionName)]
-    internal class TypeScriptGoToDefinitionHandler : AbstractGoToDefinitionWithFarHandler
+    internal class TypeScriptGoToDefinitionHandler : AbstractGoToDefinitionWithFindUsagesServiceHandler
     {
         [ImportingConstructor]
         public TypeScriptGoToDefinitionHandler() : base(null)

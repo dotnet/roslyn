@@ -22,11 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// So implement goto def for typescript using FAR.
     /// FAR has a UI thread dependency.
     /// </summary>
-    internal abstract class AbstractGoToDefinitionWithFarHandler : ILspRequestHandler<LSP.TextDocumentPositionParams, object, Solution>
+    internal abstract class AbstractGoToDefinitionWithFindUsagesServiceHandler : ILspRequestHandler<LSP.TextDocumentPositionParams, object, Solution>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
 
-        public AbstractGoToDefinitionWithFarHandler(IMetadataAsSourceFileService metadataAsSourceService)
+        public AbstractGoToDefinitionWithFindUsagesServiceHandler(IMetadataAsSourceFileService metadataAsSourceService)
         {
             this._metadataAsSourceService = metadataAsSourceService;
         }
