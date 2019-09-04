@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
     {
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
-            IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, int position, CancellationToken cancellationToken)
+            IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan, CancellationToken cancellationToken)
         {
 
             // List to keep track of the valid parameters
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Great.  The list has parameters that need null checks. Offer to add null checks for all.
             return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                  FeaturesResources.Add_null_checks_for_all_parameters,
-                     c => UpdateDocumentForRefactoringAsync(document, functionDeclaration, blockStatementOpt, listOfParametersOrdinals, position, c)));
+                     c => UpdateDocumentForRefactoringAsync(document, blockStatementOpt, listOfParametersOrdinals, parameterSpan, c)));
         }
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -98,19 +99,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private async Task<Document> UpdateDocumentForRefactoringAsync(
             Document document,
-            SyntaxNode functionDeclaration,
             IBlockOperation blockStatementOpt,
             List<int> listOfParametersOrdinals,
-            int position,
+            TextSpan parameterSpan,
             CancellationToken cancellationToken)
         {
             foreach (var index in listOfParametersOrdinals)
             {
                 // Updates functionDeclaration and uses it to get the first valid ParameterNode using the ordinals (index).
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var token = root.FindToken(position);
-                var firstparameterNode = GetParameterNode(token, position);
-                functionDeclaration = firstparameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+
+                var firstParameterNode = root.FindNode(parameterSpan) as TParameterSyntax;
+                var functionDeclaration = firstParameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var parameterNodes = generator.GetParameters(functionDeclaration);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

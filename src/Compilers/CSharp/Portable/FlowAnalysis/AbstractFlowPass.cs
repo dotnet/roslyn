@@ -890,6 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode DefaultVisit(BoundNode node)
         {
             Debug.Assert(false, $"Should Visit{node.Kind} be overridden in {this.GetType().Name}?");
+            Diagnostics.Add(ErrorCode.ERR_InternalError, node.Syntax.Location);
             return null;
         }
 

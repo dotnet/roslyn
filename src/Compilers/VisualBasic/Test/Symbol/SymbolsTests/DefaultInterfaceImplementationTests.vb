@@ -16,10 +16,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DefaultInterfaceImplementationTests
         Inherits BasicTestBase
 
-        Private Function GetCSharpCompilation(csSource As String, Optional additionalReferences As MetadataReference() = Nothing, Optional targetFramework As TargetFramework = TargetFramework.NetStandardLatest) As CSharp.CSharpCompilation
+        Private Function GetCSharpCompilation(
+            csSource As String,
+            Optional additionalReferences As MetadataReference() = Nothing,
+            Optional targetFramework As TargetFramework = TargetFramework.NetStandardLatest,
+            Optional compilationOptions As CSharp.CSharpCompilationOptions = Nothing
+        ) As CSharp.CSharpCompilation
             Return CreateCSharpCompilation(csSource,
                                            parseOptions:=CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.CSharp8),
-                                           referencedAssemblies:=TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences))
+                                           referencedAssemblies:=TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences),
+                                           compilationOptions:=compilationOptions)
         End Function
 
         Private Shared ReadOnly Property VerifyOnMonoOrCoreClr As Verification
@@ -1118,14 +1124,26 @@ Public Class C
     Implements I1
     Shared Sub Main()
         System.Console.WriteLine(I1.M1())
+        Dim d1 as System.Func(Of String) = AddressOf I1.M1
+        Dim d2 = New System.Func(Of String)(AddressOf I1.M1)
     End Sub
 End Class
 ]]></file>
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.M1())
+                                 ~~~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        Dim d1 as System.Func(Of String) = AddressOf I1.M1
+                                                     ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        Dim d2 = New System.Func(Of String)(AddressOf I1.M1)
+                                                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1151,14 +1169,26 @@ Public Class C
     Implements I1
     Shared Sub Main()
         System.Console.WriteLine(I1.M1())
+        Dim d1 as System.Func(Of String) = AddressOf I1.M1
+        Dim d2 = New System.Func(Of String)(AddressOf I1.M1)
     End Sub
 End Class
 ]]></file>
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.M1())
+                                 ~~~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        Dim d1 as System.Func(Of String) = AddressOf I1.M1
+                                                     ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        Dim d2 = New System.Func(Of String)(AddressOf I1.M1)
+                                                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1181,6 +1211,8 @@ Public Class C
     Shared Sub Main()
         Dim i1 as I1 = New Test()
         i1.M1()
+        Dim d1 as System.Func(Of String) = AddressOf i1.M1
+        Dim d2 = New System.Func(Of String)(AddressOf i1.M1)
     End Sub
 End Class
 
@@ -1191,8 +1223,18 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35885 Expect an error similar to - error CS8501: Target runtime doesn't support default interface implementation.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37309: Target runtime doesn't support default interface implementation.
+        i1.M1()
+        ~~~~~~~
+BC37309: Target runtime doesn't support default interface implementation.
+        Dim d1 as System.Func(Of String) = AddressOf i1.M1
+                                                     ~~~~~
+BC37309: Target runtime doesn't support default interface implementation.
+        Dim d2 = New System.Func(Of String)(AddressOf i1.M1)
+                                                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1218,6 +1260,8 @@ Interface I2
         Shared Sub Main()
             Dim i2 as I2 = New C()
             i2.M1()
+            Dim d1 as System.Action = AddressOf i2.M1
+            Dim d2 = New System.Action(AddressOf i2.M1)
         End Sub
     End Class
 End Interface
@@ -1232,8 +1276,18 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.M1()
+            ~~~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            Dim d1 as System.Action = AddressOf i2.M1
+                                                ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            Dim d2 = New System.Action(AddressOf i2.M1)
+                                                 ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1260,6 +1314,8 @@ Interface I2
         Shared Sub Main()
             Dim i2 as I2 = New C()
             i2.M1()
+            Dim d1 as System.Action = AddressOf i2.M1
+            Dim d2 = New System.Action(AddressOf i2.M1)
         End Sub
     End Class
 End Interface
@@ -1274,8 +1330,18 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.M1()
+            ~~~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            Dim d1 as System.Action = AddressOf i2.M1
+                                                ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            Dim d2 = New System.Action(AddressOf i2.M1)
+                                                 ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1572,8 +1638,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.M1)
+                                 ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -1602,8 +1672,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.M1)
+                                 ~~~~~
+</expected>)
         End Sub
 
         Private Const NoPiaAttributes As String = "
@@ -2403,8 +2477,30 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35834 Expect errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        Dim a As I1.T1 = new Test1()
+                 ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(new I1.T2())
+                                     ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(new I1.T3())
+                                     ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.T4.B.ToString())
+                                 ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(new I1.T5(AddressOf a.M1))
+                                     ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        Implements I1.T1
+                   ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        Sub M1() Implements I1.T1.M1
+                            ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -2606,8 +2702,30 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35834 Expect errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        Dim a As I1.T1 = new Test1()
+                 ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(new I1.T2())
+                                     ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(new I1.T3())
+                                     ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.T4.B.ToString())
+                                 ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(new I1.T5(AddressOf a.M1))
+                                     ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        Implements I1.T1
+                   ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        Sub M1() Implements I1.T1.M1
+                            ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -3445,14 +3563,21 @@ End Class
 Public Class C2
     Implements I1
 
-    Property P1 As Integer Implements I1.P1
+    Property P1 As Integer Implements I1.P1 ' 2
 End Class
 ]]></file>
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect an error: 'I1.P1.Set' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30390: 'I1.Property Set P1(value As Integer)' is not accessible in this context because it is 'Friend'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
+BC30390: 'I1.Property Set P1(value As Integer)' is not accessible in this context because it is 'Friend'.
+    Property P1 As Integer Implements I1.P1 ' 2
+                                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -3486,14 +3611,21 @@ End Class
 Public Class C2
     Implements I1
 
-    Property P1 As Integer Implements I1.P1
+    Property P1 As Integer Implements I1.P1 ' 2
 End Class
 ]]></file>
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect an error: 'I1.P1.Get' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30390: 'I1.Property Get P1() As Integer' is not accessible in this context because it is 'Friend'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
+BC30390: 'I1.Property Get P1() As Integer' is not accessible in this context because it is 'Friend'.
+    Property P1 As Integer Implements I1.P1 ' 2
+                                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -3869,14 +4001,21 @@ End Class
 Public Class C2
     Implements I1
 
-    Property P1 As Integer Implements I1.P1
+    Property P1 As Integer Implements I1.P1 ' 2
 End Class
 ]]></file>
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1.Set' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30390: 'I1.Property Set P1(value As Integer)' is not accessible in this context because it is 'Private Protected'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
+BC30390: 'I1.Property Set P1(value As Integer)' is not accessible in this context because it is 'Private Protected'.
+    Property P1 As Integer Implements I1.P1 ' 2
+                                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -3910,14 +4049,21 @@ End Class
 Public Class C2
     Implements I1
 
-    Property P1 As Integer Implements I1.P1
+    Property P1 As Integer Implements I1.P1 ' 2
 End Class
 ]]></file>
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
-            ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1.Get' is inaccessible due to its protection level 
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30390: 'I1.Property Get P1() As Integer' is not accessible in this context because it is 'Private Protected'.
+    Property P1 As Integer Implements I1.P1
+                                      ~~~~~
+BC30390: 'I1.Property Get P1() As Integer' is not accessible in this context because it is 'Private Protected'.
+    Property P1 As Integer Implements I1.P1 ' 2
+                                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6249,8 +6395,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        I1.P1 = 100
+        ~~~~~~~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.P1)
+                                 ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6280,8 +6433,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        I1.P1 = 100
+        ~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6311,8 +6468,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.P1)
+                                 ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6342,8 +6503,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        I1.P1 = 100
+        ~~~~~~~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.P1)
+                                 ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6373,8 +6541,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        I1.P1 = 100
+        ~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6404,8 +6576,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.P1)
+                                 ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6438,8 +6614,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35885 Expect an error similar to - error CS8501: Target runtime doesn't support default interface implementation.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37309: Target runtime doesn't support default interface implementation.
+        i1.P1 += 1
+        ~~~~~
+BC37309: Target runtime doesn't support default interface implementation.
+        i1.P1 += 1
+        ~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6478,8 +6661,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.P1 += 1
+            ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.P1 += 1
+            ~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6518,8 +6708,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.P1 += 1
+            ~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6558,8 +6752,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.P1 += 1
+            ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6598,8 +6796,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.P1 += 1
+            ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.P1 += 1
+            ~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6638,8 +6843,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.P1 += 1
+            ~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -6678,8 +6887,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.P1 += 1
+            ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -7776,8 +7989,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.P1)
+                                 ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -7806,8 +8023,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        System.Console.WriteLine(I1.P1)
+                                 ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -7840,8 +8061,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35885 Expect an error similar to - error CS8501: Target runtime doesn't support default interface implementation.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37309: Target runtime doesn't support default interface implementation.
+        Dim x = i1.P1
+                ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -7880,8 +8105,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            Dim x = i2.P1
+                    ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -7920,8 +8149,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            Dim x = i2.P1
+                    ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -9021,8 +9254,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        I1.P1 = 100
+        ~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -9051,8 +9288,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        I1.P1 = 100
+        ~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -9085,8 +9326,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35885 Expect an error similar to - error CS8501: Target runtime doesn't support default interface implementation.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37309: Target runtime doesn't support default interface implementation.
+        i1.P1 = 1
+        ~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -9125,8 +9370,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.P1 = 1
+            ~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -9165,8 +9414,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            i2.P1 = 1
+            ~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -10428,8 +10681,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        AddHandler I1.P1, Nothing
+                   ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        RemoveHandler I1.P1, Nothing
+                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -10459,8 +10719,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        AddHandler I1.P1, Nothing
+                   ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+        RemoveHandler I1.P1, Nothing
+                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -10494,8 +10761,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35885 Expect an error similar to - error CS8501: Target runtime doesn't support default interface implementation.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37309: Target runtime doesn't support default interface implementation.
+        AddHandler i1.P1, Nothing
+                   ~~~~~
+BC37309: Target runtime doesn't support default interface implementation.
+        RemoveHandler i1.P1, Nothing
+                      ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -10535,8 +10809,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            AddHandler i2.P1, Nothing
+                       ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            RemoveHandler i2.P1, Nothing
+                          ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -10576,8 +10857,15 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
-            'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
-            comp1.AssertTheseDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            AddHandler i2.P1, Nothing
+                       ~~~~~
+BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
+            RemoveHandler i2.P1, Nothing
+                          ~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -11003,6 +11291,92 @@ BC30452: Operator '-' is not defined for types 'C1' and 'I1'.
         x = y - x
             ~~~~~
 </expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")>
+        Public Sub WindowsRuntimeEvent_01()
+
+            Dim csSource =
+"
+public interface I1
+{
+    event System.Action WinRT
+    {
+        add { throw null; }
+        remove { throw null; }
+    }
+}
+
+public interface I2 : I1
+{
+    event System.Action I1.WinRT 
+    { 
+        add { throw null; }
+        remove { throw null; }
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource, compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class C1
+    Implements I1
+
+    Custom Event E1 As System.Action Implements I1.WinRT
+        AddHandler(value As System.Action)
+            Return new System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken()
+        End AddHandler
+        RemoveHandler(value As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+
+Public Class C2
+    Implements I2
+
+    Custom Event E2 As System.Action Implements I1.WinRT
+        AddHandler(value As System.Action)
+            Return new System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken()
+        End AddHandler
+        RemoveHandler(value As System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+
+            Dim validator = Sub(m As ModuleSymbol)
+                                Dim c1 = m.GlobalNamespace.GetTypeMember("C1")
+                                Dim c2 = m.GlobalNamespace.GetTypeMember("C2")
+                                Dim i1 = c1.Interfaces.Single()
+                                Dim i2 = i1.ContainingModule.GlobalNamespace.GetTypeMember("I2")
+
+                                Dim i1WinRT = i1.GetMember(Of EventSymbol)("WinRT")
+                                Dim i2WinRT = DirectCast(i2.GetMembers("I1.WinRT").Single(), EventSymbol)
+
+                                Assert.True(i1WinRT.IsWindowsRuntimeEvent)
+                                Assert.True(i2WinRT.IsWindowsRuntimeEvent)
+
+                                Assert.Same(c1.GetMember(Of EventSymbol)("E1"), c1.FindImplementationForInterfaceMember(i1WinRT))
+                                Assert.Same(c2.GetMember(Of EventSymbol)("E2"), c2.FindImplementationForInterfaceMember(i1WinRT))
+                                Assert.Null(i2.FindImplementationForInterfaceMember(i1WinRT))
+                                Assert.Null(i2.FindImplementationForInterfaceMember(i1WinRT.AddMethod))
+                                Assert.Null(i2.FindImplementationForInterfaceMember(i1WinRT.RemoveMethod))
+                                Assert.Same(i1WinRT, i2WinRT.ExplicitInterfaceImplementations.Single())
+                                Assert.Same(i1WinRT.AddMethod, i2WinRT.AddMethod.ExplicitInterfaceImplementations.Single())
+                                Assert.Same(i1WinRT.RemoveMethod, i2WinRT.RemoveMethod.ExplicitInterfaceImplementations.Single())
+                            End Sub
+
+            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
     End Class

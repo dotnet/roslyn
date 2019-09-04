@@ -341,7 +341,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         /// </summary>
         protected override async Task<SyntaxNode?> TryGetApplicableContainerFromSpanAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(syntaxRoot);
+            var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
             SyntaxNode? container = null;
 
             // Empty span means that user wants to move all types declared in the document to a new namespace.
