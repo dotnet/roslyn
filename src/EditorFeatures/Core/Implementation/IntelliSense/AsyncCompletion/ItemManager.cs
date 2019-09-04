@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var completionRules = completionService?.GetRules() ?? CompletionRules.Default;
             var completionHelper = document != null ? CompletionHelper.GetHelper(document) : _defaultCompletionHelper;
 
-            var initialListOfItemsToBeIncluded = new List<ExtendedFilterResult>();
+            var initialListOfItemsToBeIncludedBuilder = ArrayBuilder<ExtendedFilterResult>.GetInstance();
             foreach (var item in data.InitialSortedList)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 if (MatchesFilterText(completionHelper, roslynItem, filterText, initialRoslynTriggerKind, filterReason, _recentItemsManager.RecentItems, out var patternMatch))
                 {
-                    initialListOfItemsToBeIncluded.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: true, patternMatch)));
+                    initialListOfItemsToBeIncludedBuilder.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: true, patternMatch)));
                 }
                 else
                 {
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         initialRoslynTriggerKind == CompletionTriggerKind.Invoke ||
                         filterText.Length <= 1)
                     {
-                        initialListOfItemsToBeIncluded.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: false, patternMatch)));
+                        initialListOfItemsToBeIncludedBuilder.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: false, patternMatch)));
                     }
                 }
             }
@@ -211,28 +212,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            if (initialListOfItemsToBeIncluded.Count == 0)
+            if (initialListOfItemsToBeIncludedBuilder.Count == 0)
             {
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
             }
 
-            // todo: Add comment
-            var itemsToBeIncludedSortedByMatch = initialListOfItemsToBeIncluded.OrderBy(result => result.FilterResult.PatternMatch).ToImmutableArray();
+            var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
+            if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SortCompletionListByMatch))
+            {
+                initialListOfItemsToBeIncludedBuilder.Sort(new NullablePatternMatchComparer());
+            }
+
+            var initialListOfItemsToBeIncluded = initialListOfItemsToBeIncludedBuilder.ToImmutableAndFree();
 
             var options = document?.Project.Solution.Options;
             var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? true;
             var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
 
             var updatedFilters = showCompletionItemFilters
-                ? GetUpdatedFilters(itemsToBeIncludedSortedByMatch, data.SelectedFilters)
+                ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
                 : ImmutableArray<CompletionFilterWithState>.Empty;
 
-            var highlightedList = GetHighlightedList(itemsToBeIncludedSortedByMatch, filterText, completionHelper, highlightMatchingPortions);
+            var highlightedList = GetHighlightedList(initialListOfItemsToBeIncluded, filterText, completionHelper, highlightMatchingPortions);
 
             // If this was deletion, then we control the entire behavior of deletion ourselves.
             if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
             {
-                return HandleDeletionTrigger(data.Trigger.Reason, itemsToBeIncludedSortedByMatch, filterText, updatedFilters, highlightedList);
+                return HandleDeletionTrigger(data.Trigger.Reason, initialListOfItemsToBeIncluded, filterText, updatedFilters, highlightedList);
             }
 
             Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
@@ -252,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 initialRoslynTriggerKind,
                 filterReason,
                 data.Trigger.Character,
-                itemsToBeIncludedSortedByMatch,
+                initialListOfItemsToBeIncluded,
                 highlightedList,
                 completionHelper,
                 hasSuggestedItemOptions);
@@ -750,6 +756,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 VSCompletionItem = item;
                 FilterResult = filterResult;
+            }
+        }
+
+        private class NullablePatternMatchComparer : IComparer<ExtendedFilterResult>
+        {
+            public int Compare(ExtendedFilterResult x, ExtendedFilterResult y)
+            {
+                var matchX = x.FilterResult.PatternMatch;
+                var matchY = y.FilterResult.PatternMatch;
+
+                if (matchX.HasValue)
+                {
+                    if (matchY.HasValue)
+                    {
+                        return matchX.Value.CompareTo(matchY.Value);
+                    }
+
+                    return -1;
+                }
+
+                if (matchY.HasValue)
+                {
+                    return 1;
+                }
+
+                return 0;
             }
         }
     }
