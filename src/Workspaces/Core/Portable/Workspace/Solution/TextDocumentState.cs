@@ -331,8 +331,8 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.Services,
                 newAttributes,
-                sourceTextOpt: this.sourceTextOpt,
-                textAndVersionSource: this.TextAndVersionSource);
+                this.sourceText,
+                this.TextAndVersionSource);
         }
 
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
