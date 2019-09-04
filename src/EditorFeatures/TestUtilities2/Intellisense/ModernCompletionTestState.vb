@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Inherits TestStateBase
 
         Private Const timeoutMs = 10000
+        Private Const editorTimeoutMs = 20000
         Friend Const RoslynItem = "RoslynItem"
         Friend ReadOnly EditorCompletionCommandHandler As VSCommanding.ICommandHandler
         Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
@@ -36,6 +37,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 extraExportedTypes,
                 includeFormatCommandHandler,
                 workspaceKind:=workspaceKind)
+
+            ' The current default timeout defined in the Editor may not work on slow virtual test machines.
+            ' Need to use a safe timeout there to follow real code paths.
+            TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionThresholdOptionId, editorTimeoutMs)
 
             CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
@@ -318,6 +323,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
             Return presenter.GetFilters().Select(Function(f) New CompletionItemFilter(f.Filter.DisplayText, "", f.Filter.AccessKey(0))).ToImmutableArray()
         End Function
+
+        Public Overrides Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            If Not isAvailable Then
+                Assert.False(isSelected)
+                Assert.Null(expander)
+            Else
+                Assert.NotNull(expander)
+                Assert.Equal(expander.IsSelected, isSelected)
+            End If
+        End Sub
+
+        Public Overrides Sub SetCompletionItemExpanderState(isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            Assert.NotNull(expander)
+            presenter.SetExpander(isSelected)
+        End Sub
 
         Public Overrides Function HasSuggestedItem() As Boolean
             AssertNoAsynchronousOperationsRunning()

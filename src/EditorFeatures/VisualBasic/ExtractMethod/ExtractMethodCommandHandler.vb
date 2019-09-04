@@ -2,6 +2,7 @@
 
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
@@ -15,10 +16,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
         Inherits AbstractExtractMethodCommandHandler
 
         <ImportingConstructor()>
-        Public Sub New(undoManager As ITextBufferUndoManagerProvider,
-                       editorOperationsFactoryService As IEditorOperationsFactoryService,
+        Public Sub New(threadingContext As IThreadingContext,
+                       undoManager As ITextBufferUndoManagerProvider,
                        renameService As IInlineRenameService)
-            MyBase.New(undoManager, editorOperationsFactoryService, renameService)
+            MyBase.New(threadingContext, undoManager, renameService)
         End Sub
     End Class
 End Namespace
