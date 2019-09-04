@@ -3106,7 +3106,7 @@ class Test
             var selectNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as SelectClauseSyntax;
             var model = compilation.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(selectNode);
-            Assert.NotNull(symbolInfo);
+            Assert.NotEqual(default, symbolInfo);
             Assert.Null(symbolInfo.Symbol); // there is no select method to call because the receiver is bad
             var typeInfo = model.GetTypeInfo(selectNode);
             Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
@@ -3134,7 +3134,7 @@ class Test
             var model = compilation.GetSemanticModel(tree);
             var queryInfo = model.GetQueryClauseInfo(joinNode);
 
-            Assert.NotNull(queryInfo);
+            Assert.NotEqual(default, queryInfo);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

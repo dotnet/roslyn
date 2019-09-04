@@ -1092,7 +1092,7 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
             {
                 if (expected[i] is null)
                 {
-                    Assert.Null(options[i]);
+                    Assert.NotEqual(default, options[i]);
                 }
                 else
                 {
@@ -1113,7 +1113,7 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
             {
                 if (expected[i] is null)
                 {
-                    Assert.Null(options[i]);
+                    Assert.NotEqual(default, options[i]);
                 }
                 else
                 {

@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             foreach (var expr in GetAllExpressions(tree.GetCompilationUnitRoot()))
             {
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.NotNull(symbolInfo);
+                Assert.NotEqual(default, symbolInfo);
                 model.AnalyzeDataFlow(expr);
             }
         }
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             foreach (var expr in GetAllExpressions(node))
             {
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.NotNull(symbolInfo);
+                Assert.NotEqual(default, symbolInfo);
             }
         }
 

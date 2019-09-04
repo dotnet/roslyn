@@ -82,7 +82,7 @@ event System.Action e;
             c.VerifyDiagnostics();
 
             var evnt = c.ScriptClass.GetMember<EventSymbol>("e");
-            Assert.NotNull(evnt.TypeWithAnnotations);
+            Assert.NotEqual(default, evnt.TypeWithAnnotations);
         }
 
         [WorkItem(598860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598860")]

@@ -140,13 +140,13 @@ class B
             Assert.Equal(name, sym.Symbol.Name);
 
             var typeInfo = model.GetTypeInfo(expr);
-            Assert.NotNull(typeInfo);
+            Assert.NotEqual(default, typeInfo);
 
             var methodGroup = model.GetMemberGroup(expr);
-            Assert.NotNull(methodGroup);
+            Assert.NotEqual(default, methodGroup);
 
             var indexerGroup = model.GetIndexerGroup(expr);
-            Assert.NotNull(indexerGroup);
+            Assert.NotEqual(default, indexerGroup);
 
             var position = GetPositionForBinding(tree);
 

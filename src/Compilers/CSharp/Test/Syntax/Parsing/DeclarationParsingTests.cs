@@ -3014,7 +3014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("b", ms.ReturnType.ToString());
             Assert.NotEqual(default, ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
-            Assert.NotEqual(default, default, ms.ParameterList.OpenParenToken);
+            Assert.NotEqual(default, ms.ParameterList.OpenParenToken);
             Assert.False(ms.ParameterList.OpenParenToken.IsMissing);
 
             Assert.Equal(2, ms.ParameterList.Parameters.Count);
