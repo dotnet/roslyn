@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using System;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
