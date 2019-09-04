@@ -12,5 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         Task<bool> HasRefactoringsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
         Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+
+        Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(Document document, TextSpan textSpan, bool isBlocking, CancellationToken cancellationToken);
     }
 }

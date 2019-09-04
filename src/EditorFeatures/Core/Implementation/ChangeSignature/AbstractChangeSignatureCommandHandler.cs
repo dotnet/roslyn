@@ -2,17 +2,15 @@
 
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
@@ -20,6 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
     internal abstract class AbstractChangeSignatureCommandHandler : VSCommanding.ICommandHandler<ReorderParametersCommandArgs>,
         VSCommanding.ICommandHandler<RemoveParametersCommandArgs>
     {
+        private readonly IThreadingContext _threadingContext;
+
+        protected AbstractChangeSignatureCommandHandler(IThreadingContext threadingContext)
+        {
+            _threadingContext = threadingContext;
+        }
+
         public string DisplayName => EditorFeaturesResources.Change_Signature;
 
         public VSCommanding.CommandState GetCommandState(ReorderParametersCommandArgs args)
@@ -57,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                     return false;
                 }
 
-                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                    context.OperationContext, _threadingContext);
                 if (document == null)
                 {
                     return false;

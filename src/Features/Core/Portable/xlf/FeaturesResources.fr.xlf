@@ -82,6 +82,11 @@
         <target state="translated">Évitez les paramètres inutilisés dans votre code. Évitez les paramètres inutilisés dans votre code. Si vous ne pouvez pas supprimer un paramètre, changez son nom en le faisant commencer par un trait de soulignement éventuellement suivi d'un entier, par exemple '_', '_1', '_2', etc. Ces types d'élément sont traités en tant que noms de symboles discard spéciaux.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotApplyChangesUnexpectedError">
+        <source>Cannot apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Cannot apply changes -- unexpected error: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
         <target state="translated">Remplacer l’espace de noms par '{0}'</target>
@@ -90,6 +95,16 @@
       <trans-unit id="Change_to_global_namespace">
         <source>Change to global namespace</source>
         <target state="translated">Remplacer par l'espace de noms général</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesDisallowedWhileStoppedAtException">
+        <source>Changes are not allowed while stopped at exception</source>
+        <target state="new">Changes are not allowed while stopped at exception</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesNotAppliedWhileRunning">
+        <source>Changes made in project '{0}' will not be applied while the application is running</source>
+        <target state="new">Changes made in project '{0}' will not be applied while the application is running</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
@@ -170,6 +185,26 @@
       <trans-unit id="Dispose_objects_before_losing_scope">
         <source>Dispose objects before losing scope</source>
         <target state="translated">Supprimer les objets avant la mise hors de portée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="new">Edit and Continue</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByModule">
+        <source>Edit and Continue disallowed by module</source>
+        <target state="new">Edit and Continue disallowed by module</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByProject">
+        <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
+        <target state="new">Changes made in project '{0}' will prevent the debug session from continuing: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ErrorReadingFile">
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="new">Error while reading file '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -415,6 +450,11 @@
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Remplacer '{0}' par '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RudeEdit">
+        <source>Rude edit</source>
+        <target state="new">Rude edit</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -1478,11 +1518,6 @@ Voulez-vous continuer ?</target>
         <target state="translated">Supprimer une qualification</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_and_Continue1">
-        <source>Edit and Continue</source>
-        <target state="translated">Modifier et continuer</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
         <source>This signature does not contain parameters that can be changed.</source>
         <target state="translated">Cette signature ne contient pas de paramètres susceptibles d'être modifiés.</target>
@@ -1568,11 +1603,6 @@ Voulez-vous continuer ?</target>
         <target state="translated">Compilateur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_and_Continue2">
-        <source>Edit and Continue</source>
-        <target state="translated">Modifier et continuer</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Style">
         <source>Style</source>
         <target state="translated">Style</target>
@@ -1646,11 +1676,6 @@ Voulez-vous continuer ?</target>
       <trans-unit id="Compiler2">
         <source>Compiler</source>
         <target state="translated">Compilateur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_And_Continue">
-        <source>Edit And Continue</source>
-        <target state="translated">Modifier &amp; Continuer</target>
         <note />
       </trans-unit>
       <trans-unit id="Live">

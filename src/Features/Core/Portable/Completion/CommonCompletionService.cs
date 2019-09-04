@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -30,6 +33,17 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return base.GetBetterItem(item, existingItem);
+        }
+
+        internal override Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
+            Document document,
+            int caretPosition,
+            CompletionTrigger trigger,
+            ImmutableHashSet<string> roles,
+            OptionSet options,
+            CancellationToken cancellationToken)
+        {
+            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, trigger, roles, options, cancellationToken);
         }
 
         protected static bool IsKeywordItem(CompletionItem item)

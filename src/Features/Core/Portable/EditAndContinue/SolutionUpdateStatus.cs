@@ -2,21 +2,21 @@
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal enum SessionReadOnlyReason
+    internal enum SolutionUpdateStatus
     {
         /// <summary>
-        /// The project is editable.
+        /// No updates have been made to the solution.
         /// </summary>
-        None,
+        None = 0,
 
         /// <summary>
-        /// The program is running. No edits allowed.
+        /// Solution udpate is ready to be applied.
         /// </summary>
-        Running,
+        Ready = 1,
 
         /// <summary>
-        /// The program is stopped at exception. No edits allowed.
+        /// Solution update is blocked. Edit can't be applied due to compiler errors or rude edits.
         /// </summary>
-        StoppedAtException,
+        Blocked = 2,
     }
 }

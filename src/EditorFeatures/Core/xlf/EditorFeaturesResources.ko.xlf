@@ -37,6 +37,16 @@
         <target state="translated">계속하시겠습니까? 계속하면 손상된 코드가 생성될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="new">items from unimported namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="new">Expander</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_method_encountered_the_following_issues">
         <source>Extract method encountered the following issues:</source>
         <target state="translated">메서드 추출에서 다음 문제가 발생했습니다.</target>
@@ -52,6 +62,11 @@
         <target state="translated">추가 정리를 수행 하는 문서</target>
         <note />
       </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="new">Go To Base</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">잘못된 어셈블리 이름</target>
@@ -65,6 +80,11 @@
       <trans-unit id="Keyword_Control">
         <source>Keyword - Control</source>
         <target state="translated">키워드 - 제어</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="new">Locating bases...</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
