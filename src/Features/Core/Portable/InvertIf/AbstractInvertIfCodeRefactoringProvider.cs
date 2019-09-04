@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.InvertIf
                 return;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             context.RegisterRefactoring(
                 new MyCodeAction(GetTitle(),
                     c => InvertIfAsync(document, ifNode, c)),
