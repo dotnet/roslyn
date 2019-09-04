@@ -45,6 +45,11 @@ namespace Analyzer.Utilities
         public const string SufficientIterationCountForWeakKDFAlgorithm = "sufficient_IterationCount_for_weak_KDF_algorithm";
 
         /// <summary>
+        /// Boolean option to exclude analysis of 'this' parameter for extension methods.
+        /// </summary>
+        public const string ExcludeExtensionMethodThisParameter = "exclude_extension_method_this_parameter";
+
+        /// <summary>
         /// String option to configure names of null check validation methods (separated by '|') that validate arguments passed to the method are non-null for CA1062 (https://docs.microsoft.com/visualstudio/code-quality/ca1062-validate-arguments-of-public-methods).
         /// Allowed method name formats:
         ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
