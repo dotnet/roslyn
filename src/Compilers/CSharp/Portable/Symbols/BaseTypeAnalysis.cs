@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(on.IsDefinition);
 
             var hs = PooledHashSet<Symbol>.GetInstance();
-            ClassDependsClosure(depends, depends.DeclaringCompilation, hs);
+            TypeDependsClosure(depends, depends.DeclaringCompilation, hs);
 
             var result = hs.Contains(on);
             hs.Free();
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static void ClassDependsClosure(NamedTypeSymbol type, CSharpCompilation currentCompilation, HashSet<Symbol> partialClosure)
+        private static void TypeDependsClosure(NamedTypeSymbol type, CSharpCompilation currentCompilation, HashSet<Symbol> partialClosure)
         {
             if ((object)type == null)
             {
@@ -35,12 +35,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             type = type.OriginalDefinition;
             if (partialClosure.Add(type))
             {
-                ClassDependsClosure(type.GetDeclaredBaseType(null), currentCompilation, partialClosure);
+                if (type.IsInterface)
+                {
+                    foreach (var bt in type.GetDeclaredInterfaces(null))
+                    {
+                        TypeDependsClosure(bt, currentCompilation, partialClosure);
+                    }
+                }
+                else
+                {
+                    TypeDependsClosure(type.GetDeclaredBaseType(null), currentCompilation, partialClosure);
+                }
 
                 // containment is interesting only for the current compilation
                 if (currentCompilation != null && type.IsFromCompilation(currentCompilation))
                 {
-                    ClassDependsClosure(type.ContainingType, currentCompilation, partialClosure);
+                    TypeDependsClosure(type.ContainingType, currentCompilation, partialClosure);
                 }
             }
         }
@@ -280,25 +290,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(on.IsDefinition);
 
             var hs = PooledHashSet<Symbol>.GetInstance();
-            InterfaceDependsClosure(depends, hs);
+            TypeDependsClosure(depends, depends.DeclaringCompilation, hs);
 
             var result = hs.Contains(on);
             hs.Free();
 
             return result;
-        }
-
-        private static void InterfaceDependsClosure(NamedTypeSymbol type, HashSet<Symbol> partialClosure)
-        {
-            type = type.OriginalDefinition;
-            if (partialClosure.Add(type))
-            {
-                foreach (var bt in type.GetDeclaredInterfaces(null))
-                {
-                    InterfaceDependsClosure(bt, partialClosure);
-                    // containment is not interesting for interfaces as they cannot nest in C#
-                }
-            }
         }
     }
 }
