@@ -233,7 +233,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 // If we need to evaluate hazardous usages on initializations, track assignments of properties and fields, so
                 // at the end of the CFG we can figure out which assignment operations to flag.
                 if (this.TrackedFieldPropertyAssignmentsOpt != null
-                    && this.TrackedTypeSymbols.Any(s =>operation.Target.Type.GetBaseTypesAndThis().Contains(s))
+                    && this.TrackedTypeSymbols.Any(s => operation.Target.Type.GetBaseTypesAndThis().Contains(s))
                     && (operation.Target.Kind == OperationKind.PropertyReference
                         || operation.Target.Kind == OperationKind.FieldReference
                         || operation.Target.Kind == OperationKind.FlowCaptureReference))
