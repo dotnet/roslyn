@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class BaseTypeAnalysis
     {
-        internal static bool ClassDependsOn(NamedTypeSymbol depends, NamedTypeSymbol on)
+        internal static bool TypeDependsOn(NamedTypeSymbol depends, NamedTypeSymbol on)
         {
             Debug.Assert((object)depends != null);
             Debug.Assert((object)on != null);
@@ -281,21 +281,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     return (ThreeState.True, hasGenerics);
             }
-        }
-
-        internal static bool InterfaceDependsOn(NamedTypeSymbol depends, NamedTypeSymbol on)
-        {
-            Debug.Assert((object)depends != null);
-            Debug.Assert((object)on != null);
-            Debug.Assert(on.IsDefinition);
-
-            var hs = PooledHashSet<Symbol>.GetInstance();
-            TypeDependsClosure(depends, depends.DeclaringCompilation, hs);
-
-            var result = hs.Contains(on);
-            hs.Free();
-
-            return result;
         }
     }
 }
