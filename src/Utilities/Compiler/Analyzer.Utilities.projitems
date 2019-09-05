@@ -39,6 +39,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolNamesOption.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolModifiers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledHashSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ArrayBuilder.Enumerator.cs" />
