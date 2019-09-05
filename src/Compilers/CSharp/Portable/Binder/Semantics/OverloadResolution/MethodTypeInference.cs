@@ -1998,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var result = dictionary.Count != interfaces.Count() ? dictionary.Values.ToImmutableArray() : interfaces;
+            var result = dictionary.Count != interfaces.Length ? dictionary.Values.ToImmutableArray() : interfaces;
             dictionary.Free();
             return result;
         }
