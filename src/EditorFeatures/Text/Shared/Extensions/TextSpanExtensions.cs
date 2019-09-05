@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         }
 
         /// <summary>
-        /// Convert a <see cref="TextSpan"/> instance to a <see cref="TextSpan"/> with additional offset.
+        /// Convert a <see cref="TextSpan"/> instance to a <see cref="Span"/> with an additional offset.
         /// </summary>
         public static Span ToSpan(this TextSpan textSpan, int offset)
         {

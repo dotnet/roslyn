@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     // Check if the item matches the filter text typed so far.
-                    var matchesFilterText = ItemManager.MatchesFilterText(helper, currentItem, filterText, model.Trigger.Kind, filterReason, recentItems, out var patternMatch);
+                    var matchesFilterText = ItemManager.MatchesFilterText(helper, currentItem, filterText, model.Trigger.Kind, filterReason, recentItems, includeMatchSpans: false, out var patternMatch);
 
                     if (matchesFilterText)
                     {

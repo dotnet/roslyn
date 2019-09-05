@@ -153,6 +153,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var completionRules = completionService?.GetRules() ?? CompletionRules.Default;
             var completionHelper = document != null ? CompletionHelper.GetHelper(document) : _defaultCompletionHelper;
 
+            // DismissIfLastCharacterDeleted should be applied only when started with Insertion, and then Deleted all characters typed.
+            // This confirms with the original VS 2010 behavior.
+            if (initialRoslynTriggerKind == CompletionTriggerKind.Insertion &&
+                data.Trigger.Reason == CompletionTriggerReason.Backspace &&
+                completionRules.DismissIfLastCharacterDeleted &&
+                session.ApplicableToSpan.GetText(data.Snapshot).Length == 0)
+            {
+                // Dismiss the session
+                return null;
+            }
+
+            var options = document?.Project.Solution.Options;
+            var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? true;
+
             var builder = ArrayBuilder<ExtendedFilterResult>.GetInstance();
             foreach (var item in data.InitialSortedList)
             {
@@ -177,7 +191,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         displayTextSuffix: item.Suffix);
                 }
 
-                if (MatchesFilterText(completionHelper, roslynItem, filterText, initialRoslynTriggerKind, filterReason, _recentItemsManager.RecentItems, out var patternMatch))
+                if (MatchesFilterText(
+                    completionHelper,
+                    roslynItem,
+                    filterText,
+                    initialRoslynTriggerKind,
+                    filterReason,
+                    _recentItemsManager.RecentItems,
+                    includeMatchSpans: highlightMatchingPortions,
+                    out var patternMatch))
                 {
                     builder.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: true, patternMatch)));
                 }
@@ -201,17 +223,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            // DismissIfLastCharacterDeleted should be applied only when started with Insertion, and then Deleted all characters typed.
-            // This confirms with the original VS 2010 behavior.
-            if (initialRoslynTriggerKind == CompletionTriggerKind.Insertion &&
-                data.Trigger.Reason == CompletionTriggerReason.Backspace &&
-                completionRules.DismissIfLastCharacterDeleted &&
-                session.ApplicableToSpan.GetText(data.Snapshot).Length == 0)
-            {
-                // Dismiss the session
-                return null;
-            }
-
             if (builder.Count == 0)
             {
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
@@ -226,8 +237,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 initialListOfItemsToBeIncluded = initialListOfItemsToBeIncluded.OrderBy(new NullablePatternMatchComparer()).ToImmutableArray();
             }
 
-            var options = document?.Project.Solution.Options;
-            var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? true;
             var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
 
             var updatedFilters = showCompletionItemFilters
@@ -599,13 +608,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionTriggerKind initialTriggerKind,
             CompletionFilterReason filterReason,
             ImmutableArray<string> recentItems,
+            bool includeMatchSpans,
             out PatternMatch? patternMatch)
         {
             // Get the match of the given completion item for the pattern provided so far. 
             // A completion item is checked against the pattern by see if it's 
             // CompletionItem.FilterText matches the item. That way, the pattern it checked 
             // against terms like "IList" and not IList<>
-            patternMatch = helper.GetMatch(item.FilterText, filterText, includeMatchSpans: true, CultureInfo.CurrentCulture);
+            patternMatch = helper.GetMatch(item.FilterText, filterText, includeMatchSpans: includeMatchSpans, CultureInfo.CurrentCulture);
 
             // For the deletion we bake in the core logic for how matching should work.
             // This way deletion feels the same across all languages that opt into deletion 
@@ -673,7 +683,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // If the user moved the caret left after they started typing, the 'best' match may not match at all
             // against the full text span that this item would be replacing.
-            if (!ItemManager.MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, initialTriggerKind, filterReason, recentItems, out _))
+            if (!ItemManager.MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, initialTriggerKind, filterReason, recentItems, includeMatchSpans: false, out _))
             {
                 return false;
             }
