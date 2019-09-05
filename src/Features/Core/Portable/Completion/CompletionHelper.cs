@@ -165,26 +165,20 @@ namespace Microsoft.CodeAnalysis.Completion
             // Prefer things with a keyword tag, if the filter texts are the same.
             if (!TagsEqual(item1, item2) && item1.FilterText == item2.FilterText)
             {
-                return IsKeywordItem(item1) ? -1 : IsKeywordItem(item2) ? 1 : 0;
+                return (!IsKeywordItem(item1)).CompareTo(!IsKeywordItem(item2));
             }
 
             return 0;
         }
 
         private static bool TagsEqual(CompletionItem item1, CompletionItem item2)
-        {
-            return TagsEqual(item1.Tags, item2.Tags);
-        }
+            => TagsEqual(item1.Tags, item2.Tags);
 
         private static bool TagsEqual(ImmutableArray<string> tags1, ImmutableArray<string> tags2)
-        {
-            return tags1 == tags2 || System.Linq.Enumerable.SequenceEqual(tags1, tags2);
-        }
+            => tags1 == tags2 || System.Linq.Enumerable.SequenceEqual(tags1, tags2);
 
         private static bool IsKeywordItem(CompletionItem item)
-        {
-            return item.Tags.Contains(WellKnownTags.Keyword);
-        }
+            => item.Tags.Contains(WellKnownTags.Keyword);
 
         private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
@@ -216,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return preselectionDiff;
             }
 
-            // At this point we have two items which we're matching in a rather similar fasion.
+            // At this point we have two items which we're matching in a rather similar fashion.
             // If one is a prefix of the other, prefer the prefix.  i.e. if we have 
             // "Table" and "table:=" and the user types 't' and we are in a case insensitive 
             // language, then we prefer the former.
@@ -235,32 +229,13 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Now compare the matches again in a case sensitive manner.  If everything was
             // equal up to this point, we prefer the item that better matches based on case.
-            diff = match1.CompareTo(match2, ignoreCase: false);
-            if (diff != 0)
-            {
-                return diff;
-            }
-
-            return 0;
+            return match1.CompareTo(match2, ignoreCase: false);
         }
 
+        // If they both seemed just as good, but they differ on preselection, then
+        // item1 is better if it is preselected, otherwise it is worse.
         private int ComparePreselection(CompletionItem item1, CompletionItem item2)
-        {
-            // If they both seemed just as good, but they differ on preselection, then
-            // item1 is better if it is preselected, otherwise it is worse.
-            if (item1.Rules.MatchPriority == MatchPriority.Preselect &&
-                item2.Rules.MatchPriority != MatchPriority.Preselect)
-            {
-                return -1;
-            }
-            else if (item1.Rules.MatchPriority != MatchPriority.Preselect &&
-                     item2.Rules.MatchPriority == MatchPriority.Preselect)
-            {
-                return 1;
-            }
-
-            return 0;
-        }
+            => (item1.Rules.MatchPriority != MatchPriority.Preselect).CompareTo(item2.Rules.MatchPriority != MatchPriority.Preselect);
 
         private int CompareExpandedItem(CompletionItem item1, CompletionItem item2)
         {

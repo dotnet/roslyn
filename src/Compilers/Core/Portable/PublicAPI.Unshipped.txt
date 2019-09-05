@@ -79,6 +79,8 @@ Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.NullableFlowState.MaybeNull = 2 -> Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.NullableFlowState.None = 0 -> Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.NullableFlowState.NotNull = 1 -> Microsoft.CodeAnalysis.NullableFlowState
+Microsoft.CodeAnalysis.Operations.IForEachLoopOperation.IsAsynchronous.get -> bool
+Microsoft.CodeAnalysis.Operations.IUsingOperation.IsAsynchronous.get -> bool
 Microsoft.CodeAnalysis.SuppressionDescriptor
 Microsoft.CodeAnalysis.SuppressionDescriptor.Equals(Microsoft.CodeAnalysis.SuppressionDescriptor other) -> bool
 Microsoft.CodeAnalysis.SuppressionDescriptor.Id.get -> string
@@ -105,6 +107,8 @@ abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.C
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
 abstract Microsoft.CodeAnalysis.CompilationOptions.NullableContextOptions.get -> Microsoft.CodeAnalysis.NullableContextOptions
+abstract Microsoft.CodeAnalysis.DataFlowAnalysis.DefinitelyAssignedOnEntry.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
+abstract Microsoft.CodeAnalysis.DataFlowAnalysis.DefinitelyAssignedOnExit.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.TryGetValue(string key, out string value) -> bool
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.GetOptions(Microsoft.CodeAnalysis.AdditionalText textFile) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.GetOptions(Microsoft.CodeAnalysis.SyntaxTree tree) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
@@ -125,17 +129,6 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.GetAsyncEnumeratorMethodName =
 const Microsoft.CodeAnalysis.WellKnownMemberNames.LengthPropertyName = "Length" -> string
 const Microsoft.CodeAnalysis.WellKnownMemberNames.MoveNextAsyncMethodName = "MoveNextAsync" -> string
 Microsoft.CodeAnalysis.AnalyzerConfig
-Microsoft.CodeAnalysis.AnalyzerConfig.GlobalSection.get -> Microsoft.CodeAnalysis.AnalyzerConfig.Section
-Microsoft.CodeAnalysis.AnalyzerConfig.IsRoot.get -> bool
-Microsoft.CodeAnalysis.AnalyzerConfig.NamedSections.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AnalyzerConfig.Section>
-Microsoft.CodeAnalysis.AnalyzerConfig.NormalizedDirectory.get -> string
-Microsoft.CodeAnalysis.AnalyzerConfig.PathToFile.get -> string
-Microsoft.CodeAnalysis.AnalyzerConfig.Section
-Microsoft.CodeAnalysis.AnalyzerConfig.Section.Name.get -> string
-Microsoft.CodeAnalysis.AnalyzerConfig.Section.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
-Microsoft.CodeAnalysis.AnalyzerConfig.Section.Section(string name, System.Collections.Immutable.ImmutableDictionary<string, string> properties) -> void
-Microsoft.CodeAnalysis.AnalyzerConfig.SectionNameMatcher
-Microsoft.CodeAnalysis.AnalyzerConfig.SectionNameMatcher.IsMatch(string s) -> bool
 Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult
 Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult.AnalyzerOptions.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
@@ -333,11 +326,6 @@ override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor.Initiali
 override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor>
 static Microsoft.CodeAnalysis.AnalyzerConfig.Parse(Microsoft.CodeAnalysis.Text.SourceText text, string pathToFile) -> Microsoft.CodeAnalysis.AnalyzerConfig
 static Microsoft.CodeAnalysis.AnalyzerConfig.Parse(string text, string pathToFile) -> Microsoft.CodeAnalysis.AnalyzerConfig
-static Microsoft.CodeAnalysis.AnalyzerConfig.ReservedKeys.get -> System.Collections.Immutable.ImmutableHashSet<string>
-static Microsoft.CodeAnalysis.AnalyzerConfig.ReservedValues.get -> System.Collections.Immutable.ImmutableHashSet<string>
-static Microsoft.CodeAnalysis.AnalyzerConfig.Section.NameComparer.get -> System.StringComparison
-static Microsoft.CodeAnalysis.AnalyzerConfig.Section.PropertiesKeyComparer.get -> System.StringComparer
-static Microsoft.CodeAnalysis.AnalyzerConfig.TryCreateSectionNameMatcher(string sectionName) -> Microsoft.CodeAnalysis.AnalyzerConfig.SectionNameMatcher?
 static Microsoft.CodeAnalysis.AnalyzerConfigSet.Create<TList>(TList analyzerConfigs) -> Microsoft.CodeAnalysis.AnalyzerConfigSet
 static Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.KeyComparer.get -> System.StringComparer
 override Microsoft.CodeAnalysis.NullabilityInfo.Equals(object other) -> bool
@@ -371,9 +359,11 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowAnonymousFun
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCapture(Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCaptureReference(Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureReferenceOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitIsNull(Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitPropertySubpattern(Microsoft.CodeAnalysis.Operations.IPropertySubpatternOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitRangeOperation(Microsoft.CodeAnalysis.Operations.IRangeOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitReDim(Microsoft.CodeAnalysis.Operations.IReDimOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitReDimClause(Microsoft.CodeAnalysis.Operations.IReDimClauseOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitRecursivePattern(Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitStaticLocalInitializationSemaphore(Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSwitchExpression(Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSwitchExpressionArm(Microsoft.CodeAnalysis.Operations.ISwitchExpressionArmOperation operation) -> void
@@ -384,9 +374,11 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowCapture(Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowCaptureReference(Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureReferenceOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitIsNull(Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitPropertySubpattern(Microsoft.CodeAnalysis.Operations.IPropertySubpatternOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitRangeOperation(Microsoft.CodeAnalysis.Operations.IRangeOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitReDim(Microsoft.CodeAnalysis.Operations.IReDimOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitReDimClause(Microsoft.CodeAnalysis.Operations.IReDimClauseOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitRecursivePattern(Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitStaticLocalInitializationSemaphore(Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSwitchExpression(Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSwitchExpressionArm(Microsoft.CodeAnalysis.Operations.ISwitchExpressionArmOperation operation, TArgument argument) -> TResult

@@ -551,7 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.AddStatements(VisitList(node.SideEffects));
             builder.AddLocals(node.Locals);
             var value = VisitExpression(ref builder, node.Value);
-            value = Spill(builder, value);
             return builder.Update(value);
         }
 

@@ -46,65 +46,53 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
         public void TestCheckBox()
         {
-            using (var workspace = TestWorkspace.CreateCSharp(""))
-            {
-                var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
-                var optionStore = new OptionStore(workspace.Options, Enumerable.Empty<IOption>());
-                using (var viewModel = new SpacingViewModel(optionStore, serviceProvider))
-                {
-                    // Use the first item's preview.
-                    var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().First();
-                    viewModel.SetOptionAndUpdatePreview(checkbox.IsChecked, checkbox.Option, checkbox.GetPreview());
+            using var workspace = TestWorkspace.CreateCSharp("");
+            var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
+            var optionStore = new OptionStore(workspace.Options, Enumerable.Empty<IOption>());
+            using var viewModel = new SpacingViewModel(optionStore, serviceProvider);
+            // Use the first item's preview.
+            var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().First();
+            viewModel.SetOptionAndUpdatePreview(checkbox.IsChecked, checkbox.Option, checkbox.GetPreview());
 
-                    // Get a checkbox and toggle it
-                    var originalPreview = GetText(viewModel);
+            // Get a checkbox and toggle it
+            var originalPreview = GetText(viewModel);
 
-                    checkbox.IsChecked = !checkbox.IsChecked;
-                    var modifiedPreview = GetText(viewModel);
-                    Assert.NotEqual(modifiedPreview, originalPreview);
+            checkbox.IsChecked = !checkbox.IsChecked;
+            var modifiedPreview = GetText(viewModel);
+            Assert.NotEqual(modifiedPreview, originalPreview);
 
-                    // Switch it back
-                    checkbox.IsChecked = !checkbox.IsChecked;
-                    Assert.Equal(originalPreview, viewModel.TextViewHost.TextView.TextBuffer.CurrentSnapshot.GetText().ToString());
-                }
-            }
+            // Switch it back
+            checkbox.IsChecked = !checkbox.IsChecked;
+            Assert.Equal(originalPreview, viewModel.TextViewHost.TextView.TextBuffer.CurrentSnapshot.GetText().ToString());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
         public void TestOptionLoading()
         {
-            using (var workspace = TestWorkspace.CreateCSharp(""))
-            {
-                var optionSet = workspace.Options.WithChangedOption(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true);
-                var optionStore = new OptionStore(optionSet, Enumerable.Empty<IOption>());
+            using var workspace = TestWorkspace.CreateCSharp("");
+            var optionSet = workspace.Options.WithChangedOption(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true);
+            var optionStore = new OptionStore(optionSet, Enumerable.Empty<IOption>());
 
-                var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
-                using (var viewModel = new SpacingViewModel(optionStore, serviceProvider))
-                {
-                    // Use the first item's preview.
-                    var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().Where(c => c.Option == CSharpFormattingOptions.SpacingAfterMethodDeclarationName).First();
-                    Assert.True(checkbox.IsChecked);
-                }
-            }
+            var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
+            using var viewModel = new SpacingViewModel(optionStore, serviceProvider);
+            // Use the first item's preview.
+            var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().Where(c => c.Option == CSharpFormattingOptions.SpacingAfterMethodDeclarationName).First();
+            Assert.True(checkbox.IsChecked);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
         public void TestOptionSaving()
         {
-            using (var workspace = TestWorkspace.CreateCSharp(""))
-            {
-                var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
-                var optionStore = new OptionStore(workspace.Options, Enumerable.Empty<IOption>());
-                using (var viewModel = new SpacingViewModel(optionStore, serviceProvider))
-                {
-                    // Use the first item's preview.
-                    var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().Where(c => c.Option == CSharpFormattingOptions.SpacingAfterMethodDeclarationName).First();
-                    var initial = checkbox.IsChecked;
-                    checkbox.IsChecked = !checkbox.IsChecked;
+            using var workspace = TestWorkspace.CreateCSharp("");
+            var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
+            var optionStore = new OptionStore(workspace.Options, Enumerable.Empty<IOption>());
+            using var viewModel = new SpacingViewModel(optionStore, serviceProvider);
+            // Use the first item's preview.
+            var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().Where(c => c.Option == CSharpFormattingOptions.SpacingAfterMethodDeclarationName).First();
+            var initial = checkbox.IsChecked;
+            checkbox.IsChecked = !checkbox.IsChecked;
 
-                    Assert.NotEqual(optionStore.GetOption(CSharpFormattingOptions.SpacingAfterMethodDeclarationName), initial);
-                }
-            }
+            Assert.NotEqual(optionStore.GetOption(CSharpFormattingOptions.SpacingAfterMethodDeclarationName), initial);
         }
     }
 }

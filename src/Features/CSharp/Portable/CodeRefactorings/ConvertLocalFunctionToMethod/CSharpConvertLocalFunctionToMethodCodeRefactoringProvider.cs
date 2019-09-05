@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             }
 
             var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
-            if (localFunction == default)
+            if (localFunction == null)
             {
                 return;
             }
@@ -52,8 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            context.RegisterRefactoring(new MyCodeAction(CSharpFeaturesResources.Convert_to_method,
-                c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    CSharpFeaturesResources.Convert_to_method,
+                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)),
+                localFunction.Span);
         }
 
         private static async Task<Document> UpdateDocumentAsync(

@@ -62,6 +62,11 @@
         <target state="translated">格式文档执行了额外的清理</target>
         <note />
       </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="new">Go To Base</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">程序集名称无效</target>
@@ -75,6 +80,11 @@
       <trans-unit id="Keyword_Control">
         <source>Keyword - Control</source>
         <target state="translated">关键字-控制</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="new">Locating bases...</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">

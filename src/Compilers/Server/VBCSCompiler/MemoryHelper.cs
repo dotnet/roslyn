@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CommandLine;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -31,6 +32,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public static bool IsMemoryAvailable()
         {
+            if (!PlatformInformation.IsWindows)
+            {
+                // assume we have enough memory on non-Windows machines
+                return true;
+            }
+
             MemoryHelper status = new MemoryHelper();
             GlobalMemoryStatusEx(status);
             ulong max = status.MaxVirtual;

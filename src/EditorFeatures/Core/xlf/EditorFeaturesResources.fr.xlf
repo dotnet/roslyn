@@ -62,6 +62,11 @@
         <target state="translated">L'opération Mettre en forme le document a effectué un nettoyage supplémentaire</target>
         <note />
       </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="new">Go To Base</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">Nom d'assembly non valide</target>
@@ -75,6 +80,11 @@
       <trans-unit id="Keyword_Control">
         <source>Keyword - Control</source>
         <target state="translated">Mot clé - contrôle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="new">Locating bases...</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">

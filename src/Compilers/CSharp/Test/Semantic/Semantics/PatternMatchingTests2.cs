@@ -341,26 +341,26 @@ public class Point
         int i = 12;
         if (i is default) {} // error 1
         if (i is (default)) {} // error 2
-        switch (i) { case default: break; } // warning 3
+        switch (i) { case default: break; } // error 3
         switch (i) { case default when true: break; } // error 4
         switch ((1, 2)) { case (1, default): break; } // error 5
     }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,18): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 18),
-                // (7,19): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (7,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default)) {} // error 2
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(7, 19),
-                // (8,27): error CS8313: Did you mean to use the default switch label ('default:') rather than 'case default:'? If you really mean to use the default value, use another literal ('case 0:' or 'case null:') as appropriate.
-                //         switch (i) { case default: break; } // warning 3
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(8, 27),
-                // (9,27): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (8,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch (i) { case default: break; } // error 3
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 27),
+                // (9,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default when true: break; } // error 4
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
-                // (10,36): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (10,36): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch ((1, 2)) { case (1, default): break; } // error 5
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36)
                 );

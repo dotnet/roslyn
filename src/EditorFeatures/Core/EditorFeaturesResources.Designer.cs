@@ -945,6 +945,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Go To Base.
+        /// </summary>
+        internal static string Go_To_Base {
+            get {
+                return ResourceManager.GetString("Go_To_Base", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Go to Definition.
         /// </summary>
         internal static string Go_to_Definition {
@@ -1220,6 +1229,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Loading_Peek_information {
             get {
                 return ResourceManager.GetString("Loading_Peek_information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Locating bases....
+        /// </summary>
+        internal static string Locating_bases {
+            get {
+                return ResourceManager.GetString("Locating_bases", resourceCulture);
             }
         }
         

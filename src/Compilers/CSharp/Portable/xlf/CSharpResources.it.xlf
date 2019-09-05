@@ -107,6 +107,11 @@
         <target state="translated">Non è possibile incorporare il tipo '{0}' perché contiene un membro non astratto. Provare a impostare la proprietà 'Incorpora tipi di interoperabilità' su false.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">Non è possibile usare un valore letterale predefinito 'default' come criterio. Usare un altro valore letterale, ad esempio '0' o 'null'. Per abbinare tutto, usare un criterio di rimozione '_'.</target>
@@ -220,6 +225,11 @@
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">'{0}' non può implementare il membro di interfaccia '{1}' nel tipo '{2}' perché contiene un parametro __arglist</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InternalError">
+        <source>Internal error in the C# compiler.</source>
+        <target state="new">Internal error in the C# compiler.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -350,6 +360,11 @@
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">Con un criterio secondario di proprietà è richiesto un riferimento alla proprietà o al campo da abbinare, ad esempio '{{ Name: {0} }}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
@@ -1412,6 +1427,16 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="needs-review-translation">L'annotazione per i tipi riferimento nullable deve essere usata solo nel codice in un contesto '#nullable'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
@@ -8891,8 +8916,8 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">La lunghezza della costante di stringa supera il limite di memoria corrente. Provare a dividere la stringa in più costanti.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">La lunghezza della costante di stringa supera il limite di memoria corrente. Provare a dividere la stringa in più costanti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9445,11 +9470,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="translated">Non è consentito usare il tipo 'dynamic' in un criterio.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">Non è possibile usare un valore letterale predefinito come argomento di un'operazione inviata dinamicamente.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">La modalità di documentazione specificata non è supportata o non è valida: '{0}'.</target>
@@ -9648,11 +9668,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_ConditionalInInterpolation">
         <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
         <target state="translated">Non è possibile usare un'espressione condizionale in un'interpolazione di stringa perché l'interpolazione termina con ':'. Racchiudere tra parentesi l'espressione condizionale.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">Non è possibile usare un valore letterale predefinito 'default' come costante di case. Usare un altro valore letterale, ad esempio '0' o 'null'. Se si intendeva scrivere l'etichetta predefinita, usare 'default:' senza 'case'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">

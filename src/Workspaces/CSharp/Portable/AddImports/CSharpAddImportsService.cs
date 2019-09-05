@@ -52,24 +52,20 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
         }
 
         protected override SyntaxList<UsingDirectiveSyntax> GetUsingsAndAliases(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case CompilationUnitSyntax c: return c.Usings;
-                case NamespaceDeclarationSyntax n: return n.Usings;
-                default: return default;
-            }
-        }
+                CompilationUnitSyntax c => c.Usings,
+                NamespaceDeclarationSyntax n => n.Usings,
+                _ => default,
+            };
 
         protected override SyntaxList<ExternAliasDirectiveSyntax> GetExterns(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case CompilationUnitSyntax c: return c.Externs;
-                case NamespaceDeclarationSyntax n: return n.Externs;
-                default: return default;
-            }
-        }
+                CompilationUnitSyntax c => c.Externs,
+                NamespaceDeclarationSyntax n => n.Externs,
+                _ => default,
+            };
 
         private class Rewriter : CSharpSyntaxRewriter
         {

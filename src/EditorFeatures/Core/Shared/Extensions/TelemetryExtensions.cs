@@ -28,15 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         public static short GetScopeIdForTelemetry(this FixAllScope scope)
-        {
-            switch (scope)
+            => (short)(scope switch
             {
-                case FixAllScope.Document: return 1;
-                case FixAllScope.Project: return 2;
-                case FixAllScope.Solution: return 3;
-                default: return 4;
-            }
-        }
+                FixAllScope.Document => 1,
+                FixAllScope.Project => 2,
+                FixAllScope.Solution => 3,
+                _ => 4,
+            });
 
         public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
         {

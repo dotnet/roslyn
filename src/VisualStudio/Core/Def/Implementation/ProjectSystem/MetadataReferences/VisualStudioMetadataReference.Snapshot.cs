@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly VisualStudioMetadataReferenceManager _provider;
             private readonly Lazy<DateTime> _timestamp;
             private Exception _error;
-            private FileChangeTracker _fileChangeTrackerOpt;
+            private readonly FileChangeTracker _fileChangeTrackerOpt;
 
             internal Snapshot(VisualStudioMetadataReferenceManager provider, MetadataReferenceProperties properties, string fullPath, FileChangeTracker fileChangeTrackerOpt)
                 : base(properties, fullPath)

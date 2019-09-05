@@ -239,11 +239,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend NotOverridable Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Return DirectCast(OriginalDefinition.GetDeclaredBase(basesBeingResolved).InternalSubstituteTypeParameters(_substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
         End Function
 
-        Friend NotOverridable Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend NotOverridable Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim instanceInterfaces = OriginalDefinition.GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved)
 
             If instanceInterfaces.Length = 0 Then
@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return True
         End Function
 
-        Friend Overrides Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
+        Friend Overrides Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved) As NamedTypeSymbol
             Dim fullBase = OriginalDefinition.GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved)
 
             If fullBase IsNot Nothing Then

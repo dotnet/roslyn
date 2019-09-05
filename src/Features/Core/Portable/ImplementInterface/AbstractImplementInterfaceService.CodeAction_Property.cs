@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     accessibility: accessibility,
                     explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.SetMethod) : default,
                     statements: GetSetAccessorStatements(
-                        compilation, property, generateAbstractly, propertyGenerationBehavior, cancellationToken));
+                        compilation, property, generateAbstractly, propertyGenerationBehavior));
             }
 
             private IMethodSymbol? GenerateGetAccessor(
@@ -131,15 +131,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     accessibility: accessibility,
                     explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.GetMethod) : default,
                     statements: GetGetAccessorStatements(
-                        compilation, property, generateAbstractly, propertyGenerationBehavior, cancellationToken));
+                        compilation, property, generateAbstractly, propertyGenerationBehavior));
             }
 
             private ImmutableArray<SyntaxNode> GetSetAccessorStatements(
                 Compilation compilation,
                 IPropertySymbol property,
                 bool generateAbstractly,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (generateAbstractly)
                 {
@@ -182,8 +181,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Compilation compilation,
                 IPropertySymbol property,
                 bool generateAbstractly,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (generateAbstractly)
                 {

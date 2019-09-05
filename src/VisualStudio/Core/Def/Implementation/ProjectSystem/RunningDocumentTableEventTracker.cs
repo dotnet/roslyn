@@ -198,12 +198,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // hold onto as a field
             var runningDocumentTable = (IVsRunningDocumentTable)_runningDocumentTable;
             ErrorHandler.ThrowOnFailure(runningDocumentTable.GetRunningDocumentsEnum(out var enumRunningDocuments));
-            uint[] cookies = new uint[16];
+            var cookies = new uint[16];
 
             while (ErrorHandler.Succeeded(enumRunningDocuments.Next((uint)cookies.Length, cookies, out var cookiesFetched))
                    && cookiesFetched > 0)
             {
-                for (int cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
+                for (var cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
                 {
                     var cookie = cookies[cookieIndex];
 
