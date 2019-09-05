@@ -51,6 +51,19 @@ Initially each type variable Xi is unfixed with an empty set of bounds.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    internal static class PooledDictionaryIgnoringNullableModifiersForReferenceTypes
+    {
+        private static readonly ObjectPool<PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>> s_poolInstance
+            = PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>.CreatePool(TypeSymbol.EqualsIgnoringNullableComparer);
+
+        internal static PooledDictionary<NamedTypeSymbol, NamedTypeSymbol> GetInstance()
+        {
+            var instance = s_poolInstance.Allocate();
+            Debug.Assert(instance.Count == 0);
+            return instance;
+        }
+    }
+
     // Method type inference can fail, but we still might have some best guesses. 
     internal struct MethodTypeInferenceResult
     {
@@ -1957,7 +1970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // duplicates with only nullability differences can be merged (to avoid an error in type inference)
-            allInterfaces = ModuloNullabilityDifferences(allInterfaces, VarianceKind.In);
+            allInterfaces = ModuloReferenceTypeNullabilityDifferences(allInterfaces, VarianceKind.In);
 
             NamedTypeSymbol matchingInterface = GetInterfaceInferenceBound(allInterfaces, target);
             if ((object)matchingInterface == null)
@@ -1968,17 +1981,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal static ImmutableArray<NamedTypeSymbol> ModuloNullabilityDifferences(IEnumerable<NamedTypeSymbol> interfaces, VarianceKind variance)
+        internal static ImmutableArray<NamedTypeSymbol> ModuloReferenceTypeNullabilityDifferences(IEnumerable<NamedTypeSymbol> interfaces, VarianceKind variance)
         {
-            var dictionary = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(SymbolEqualityComparer.IgnoreNullableModifiersForReferenceTypes);
+            var dictionary = PooledDictionaryIgnoringNullableModifiersForReferenceTypes.GetInstance();
 
             foreach (var @interface in interfaces)
             {
                 if (dictionary.TryGetValue(@interface, out var found))
                 {
-                    dictionary.Remove(@interface);
                     var merged = (NamedTypeSymbol)found.MergeNullability(@interface, variance);
-                    dictionary.Add(merged, merged);
+                    dictionary[@interface] = merged;
                 }
                 else
                 {
@@ -1986,7 +1998,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return dictionary.Keys.ToImmutableArray();
+            var result = dictionary.Values.ToImmutableArray();
+            dictionary.Free();
+            return result;
         }
 
         private void LowerBoundTypeArgumentInference(NamedTypeSymbol source, NamedTypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2274,7 +2288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<NamedTypeSymbol> allInterfaces = target.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
 
             // duplicates with only nullability differences can be merged (to avoid an error in type inference)
-            allInterfaces = ModuloNullabilityDifferences(allInterfaces, VarianceKind.Out);
+            allInterfaces = ModuloReferenceTypeNullabilityDifferences(allInterfaces, VarianceKind.Out);
 
             NamedTypeSymbol bestInterface = GetInterfaceInferenceBound(allInterfaces, source);
             if ((object)bestInterface == null)

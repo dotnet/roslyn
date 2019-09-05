@@ -1313,7 +1313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            interfaces = MethodTypeInferrer.ModuloNullabilityDifferences(interfaces, VarianceKind.In);
+            interfaces = MethodTypeInferrer.ModuloReferenceTypeNullabilityDifferences(interfaces, VarianceKind.In);
 
             foreach (NamedTypeSymbol @interface in interfaces)
             {

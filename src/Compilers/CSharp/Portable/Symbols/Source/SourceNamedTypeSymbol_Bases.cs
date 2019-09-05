@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                         foreach (var t in localInterfaces)
                         {
-                            if (TypeSymbol.Equals(t, baseType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                            if (TypeSymbol.Equals(t, baseType, TypeCompareKind.ConsiderEverything))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceInBaseList, location, baseType);
                                 continue;
