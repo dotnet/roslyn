@@ -140,7 +140,8 @@ class B
             Assert.Equal(name, sym.Symbol.Name);
 
             var typeInfo = model.GetTypeInfo(expr);
-            Assert.NotEqual(default, typeInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, typeInfo);
 
             var methodGroup = model.GetMemberGroup(expr);
             Assert.NotEqual(default, methodGroup);

@@ -81,8 +81,8 @@ event System.Action e;
 
             c.VerifyDiagnostics();
 
-            var evnt = c.ScriptClass.GetMember<EventSymbol>("e");
-            Assert.NotEqual(default, evnt.TypeWithAnnotations);
+            var @event = c.ScriptClass.GetMember<EventSymbol>("e");
+            Assert.False(@event.TypeWithAnnotations.IsDefault);
         }
 
         [WorkItem(598860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598860")]

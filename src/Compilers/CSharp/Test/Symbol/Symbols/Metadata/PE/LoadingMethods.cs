@@ -1344,7 +1344,7 @@ class P
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             var method = type.GetMember<MethodSymbol>("M");
-            Assert.NotEqual(default, method.ReturnTypeWithAnnotations);
+            Assert.False(method.ReturnTypeWithAnnotations.IsDefault);
         }
 
         [Fact, WorkItem(217681, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")]
