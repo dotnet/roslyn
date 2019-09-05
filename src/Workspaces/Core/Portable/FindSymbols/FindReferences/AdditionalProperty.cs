@@ -3,18 +3,12 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal class AdditionalProperty
     {
-        public static readonly AdditionalProperty None = new AdditionalProperty();
-
-        public string Label { get; set; }
-        public string Value { get; set; }
-
-        public AdditionalProperty()
-        {
-        }
+        public string Label { get; }
+        public string Value { get; }
 
         public AdditionalProperty(string label, string value)
         {

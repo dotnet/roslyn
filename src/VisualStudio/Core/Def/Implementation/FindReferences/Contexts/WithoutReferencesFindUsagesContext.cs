@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServices.AdditionalProperty;
+using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public WithoutReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
-                ImmutableArray<AbstractAdditionalPropertyDefinition> customColumns)
+                ImmutableArray<AbstractCustomColumnDefinition> customColumns)
                 : base(presenter, findReferencesWindow, customColumns)
             {
             }
@@ -65,8 +65,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             definitionBucket,
                             sourceSpan,
                             HighlightSpanKind.Definition,
-                            referenceUsageInfo: null,
-                            additionalProperties: ImmutableArray<CodeAnalysis.AdditionalProperty>.Empty)
+                            customColumnsDataOpt: null,
+                            additionalProperties: ImmutableArray<CodeAnalysis.FindSymbols.AdditionalProperty>.Empty)
                                 .ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
                     }

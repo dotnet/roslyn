@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Location = location;
             this.IsImplicit = isImplicit;
             this.SymbolUsageInfo = symbolUsageInfo;
-            this.AdditionalProperties = additionalProperties;
+            this.AdditionalProperties = additionalProperties.NullToEmpty();
             this.CandidateReason = candidateReason;
         }
 

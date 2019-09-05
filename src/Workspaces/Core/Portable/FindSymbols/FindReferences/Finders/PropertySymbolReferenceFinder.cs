@@ -224,13 +224,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// </summary>
         /// <param name="syntaxFacts"></param>
         /// <param name="node"></param>
-        /// <returns></returns>
         private static ImmutableArray<AdditionalProperty> GetAdditionalProperties(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node)
         {
-            var additionalProperties = new ArrayBuilder<AdditionalProperty>();
-            additionalProperties.Add(GetInfo(syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart), ContainingTypeInfoPropertyName, semanticModel, syntaxFacts));
-            additionalProperties.Add(GetInfo(syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart), ContainingMemberInfoPropertyName, semanticModel, syntaxFacts));
-            return additionalProperties.ToImmutable();
+            var additionalProperties = new ArrayBuilder<AdditionalProperty>
+            {
+                GetInfo(syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart), ContainingTypeInfoPropertyName, semanticModel),
+                GetInfo(syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart), ContainingMemberInfoPropertyName, semanticModel)
+            };
+            return additionalProperties.ToImmutableAndFree();
         }
     }
 }

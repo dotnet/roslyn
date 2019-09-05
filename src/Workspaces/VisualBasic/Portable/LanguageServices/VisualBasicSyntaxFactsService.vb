@@ -696,31 +696,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 FirstOrDefault(Function(n) TypeOf n Is TypeBlockSyntax OrElse TypeOf n Is DelegateStatementSyntax)
         End Function
 
-        Private Function IsMemberDeclaration(node As SyntaxNode) As Boolean
-            Select Case node.Kind
-                Case SyntaxKind.ClassStatement,
-                    SyntaxKind.InterfaceStatement,
-                    SyntaxKind.ModuleStatement,
-                    SyntaxKind.StructureStatement,
-                    SyntaxKind.EnumStatement,
-                    SyntaxKind.EnumMemberDeclaration,
-                    SyntaxKind.DelegateSubStatement,
-                    SyntaxKind.DelegateFunctionStatement,
-                    SyntaxKind.FieldDeclaration,
-                    SyntaxKind.EventStatement,
-                    SyntaxKind.PropertyStatement,
-                    SyntaxKind.OperatorStatement,
-                    SyntaxKind.FunctionStatement,
-                    SyntaxKind.SubStatement,
-                    SyntaxKind.SubNewStatement,
-                    SyntaxKind.DeclareFunctionStatement,
-                    SyntaxKind.DeclareSubStatement
-                    Return True
-                Case Else
-                    Return False
-            End Select
-        End Function
-
         Public Function GetContainingVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetContainingVariableDeclaratorOfFieldDeclaration
             If node Is Nothing Then
                 Throw New ArgumentNullException(NameOf(node))

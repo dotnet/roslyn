@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServices.AdditionalProperty;
+using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Roslyn.Utilities;
 
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public WithReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
-                ImmutableArray<AbstractAdditionalPropertyDefinition> customColumns)
+                ImmutableArray<AbstractCustomColumnDefinition> customColumns)
                 : base(presenter, findReferencesWindow, customColumns)
             {
             }
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, referenceUsageInfo: null, additionalProperties: definition.DisplayableProperties).ConfigureAwait(false);
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, customColumnsDataOpt: null, additionalProperties: definition.DisplayableProperties).ConfigureAwait(false);
                     declarations.AddIfNotNull(definitionEntry);
                 }
 

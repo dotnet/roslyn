@@ -8,14 +8,14 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.AdditionalProperty
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     /// <summary>
     /// Custom column to display the containing member for the All References window.
     /// </summary>
     [Export(typeof(ITableColumnDefinition))]
     [Name(ColumnName)]
-    internal class ContainingMemberColumnDefinition : AbstractAdditionalPropertyDefinition
+    internal class ContainingMemberColumnDefinition : AbstractCustomColumnDefinition
     {
         public const string ColumnName = AbstractReferenceFinder.ContainingMemberInfoPropertyName;
 
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.AdditionalProperty
         public override string Name => ColumnName;
         public override string DisplayName => ServicesVSResources.Containing_member;
 
-        public override string GetDisplayStringForAdditionalProperty(ImmutableArray<string> values)
+        public override string GetDisplayStringForColumnValues(ImmutableArray<string> values)
             => throw ExceptionUtilities.Unreachable;
     }
 }

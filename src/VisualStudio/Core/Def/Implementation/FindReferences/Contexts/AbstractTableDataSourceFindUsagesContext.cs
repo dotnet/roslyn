@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.AdditionalProperty;
+using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
-                 ImmutableArray<AbstractAdditionalPropertyDefinition> customColumns)
+                 ImmutableArray<AbstractCustomColumnDefinition> customColumns)
             {
                 presenter.AssertIsForeground();
 
@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// </summary>
             private static Dictionary<string, ColumnState2> GetInitialCustomColumnStates(
                 IReadOnlyList<ColumnState> allColumnStates,
-                ImmutableArray<AbstractAdditionalPropertyDefinition> customColumns)
+                ImmutableArray<AbstractCustomColumnDefinition> customColumns)
             {
                 var customColumnStatesMap = new Dictionary<string, ColumnState2>(customColumns.Length);
                 var customColumnNames = new HashSet<string>(customColumns.Select(c => c.Name));
@@ -326,8 +326,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
-                ImmutableDictionary<string, ImmutableArray<string>> referenceUsageInfo,
-                ImmutableArray<CodeAnalysis.AdditionalProperty> additionalProperties)
+                ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt,
+                ImmutableArray<CodeAnalysis.FindSymbols.AdditionalProperty> additionalProperties)
             {
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
@@ -342,7 +342,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return new DocumentSpanEntry(
                     this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetCustomColumnsData(referenceUsageInfo, additionalProperties));
+                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetCustomColumnsData(customColumnsDataOpt, additionalProperties));
             }
 
             private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
@@ -370,7 +370,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            private ImmutableDictionary<string, string> GetCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsWithMultipleValues, ImmutableArray<CodeAnalysis.AdditionalProperty> customColumns)
+            private ImmutableDictionary<string, string> GetCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsWithMultipleValuesOpt, ImmutableArray<CodeAnalysis.FindSymbols.AdditionalProperty> customColumns)
             {
                 var builder = ImmutableDictionary.CreateBuilder<string, string>();
 
@@ -387,11 +387,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 //   { "Column1", "Value1, Value2" },
                 //   { "Column2", "Value3, Value4" }
                 // }
-                if (customColumnsWithMultipleValues != null && customColumnsWithMultipleValues.Any())
+                if (customColumnsWithMultipleValuesOpt != null && customColumnsWithMultipleValuesOpt.Any())
                 {
-                    foreach (var column in customColumnsWithMultipleValues)
+                    foreach (var column in customColumnsWithMultipleValuesOpt)
                     {
-                        builder.Add(column.Key, GetCustomColumn(column.Key).GetDisplayStringForAdditionalProperty(column.Value));
+                        if (_customColumnTitleToStatesMap.ContainsKey(column.Key))
+                        {
+                            builder.Add(
+                                column.Key,
+                                ((AbstractCustomColumnDefinition)TableControl.ColumnDefinitionManager.GetColumnDefinition(column.Key)).GetDisplayStringForColumnValues(column.Value));
+                        }
                     }
                 }
 
@@ -408,10 +413,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 return builder.ToImmutable();
-
-                // Local functions.
-                AbstractAdditionalPropertyDefinition GetCustomColumn(string columnName)
-                    => (AbstractAdditionalPropertyDefinition)TableControl.ColumnDefinitionManager.GetColumnDefinition(columnName);
             }
 
 
@@ -435,10 +436,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         foreach (var customColumnName in customUsageData.Keys)
                         {
                             // Get the matching custom column.
-                            var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractAdditionalPropertyDefinition;
+                            var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractCustomColumnDefinition;
                             if (customColumnDefinition == null)
                             {
-                                Debug.Fail($"{nameof(SourceReferenceItem.AdditionalPropertiesWithMultipleValues)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractAdditionalPropertyDefinition)}' with this name.");
+                                Debug.Fail($"{nameof(SourceReferenceItem.AdditionalPropertiesWithMultipleValues)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractCustomColumnDefinition)}' with this name.");
                                 continue;
                             }
 

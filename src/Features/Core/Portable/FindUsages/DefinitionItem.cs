@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
-            DisplayableProperties = !displayableProperties.IsDefault ? displayableProperties : ImmutableArray<AdditionalProperty>.Empty;
+            DisplayableProperties = displayableProperties.NullToEmpty();
             DisplayIfNoReferences = displayIfNoReferences;
 
             if (Properties.ContainsKey(MetadataSymbolKey))

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                       node,
                       new ReferenceLocation(
                           document,
-                          null,
+                          alias: null,
                           node.GetLocation(),
                           isImplicit: false,
                           symbolUsageInfo: GetSymbolUsageInfo(
@@ -118,7 +118,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                               syntaxFactsService,
                               semanticFactsService,
                               cancellationToken),
-                          additionalProperties: GetAdditionalProperties(node, semanticModel, syntaxFactsService),
+                          additionalProperties: GetAdditionalProperties(
+                              node, semanticModel, syntaxFactsService),
                           candidateReason: CandidateReason.None)));
         }
     }

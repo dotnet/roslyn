@@ -699,10 +699,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         internal static ImmutableArray<AdditionalProperty> GetAdditionalProperties(SyntaxNode node, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
         {
-            var additionalProperties = new ArrayBuilder<AdditionalProperty>();
-            additionalProperties.Add(GetInfo(syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart), ContainingTypeInfoPropertyName, semanticModel, syntaxFacts));
-            additionalProperties.Add(GetInfo(syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart), ContainingMemberInfoPropertyName,  semanticModel, syntaxFacts));
-            return additionalProperties.ToImmutable();
+            var additionalProperties = new ArrayBuilder<AdditionalProperty>
+            {
+                GetInfo(syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart), ContainingTypeInfoPropertyName, semanticModel),
+                GetInfo(syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart), ContainingMemberInfoPropertyName, semanticModel)
+            };
+            return additionalProperties.ToImmutableAndFree();
         }
 
         internal static ImmutableArray<AdditionalProperty> GetAdditionalProperties(ISymbol definition)
@@ -716,15 +718,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             var containingSymbol = definition.ContainingSymbol;
+
+            // Containing member should only include fields, properties, methods, or events.  Since ContainingSymbol can return other types, use the return value of GetMemberType to restrict to members only.
             if (containingSymbol != null && containingSymbol.GetMemberType() != null)
             {
                 additionalProperties.Add(GetAdditionalProperty(ContainingMemberInfoPropertyName, containingSymbol));
             }
 
-            return additionalProperties.ToImmutable();
+            return additionalProperties.ToImmutableAndFree();
         }
 
-        protected static AdditionalProperty GetInfo(SyntaxNode node, string name, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
+        protected static AdditionalProperty GetInfo(SyntaxNode node, string name, SemanticModel semanticModel)
         {
             if (node != null)
             {
@@ -735,11 +739,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return default;
+            return new AdditionalProperty(name, "");
         }
 
         private static AdditionalProperty GetAdditionalProperty(string propertyName, ISymbol symbol)
         {
+            if (symbol == null)
+            {
+                return new AdditionalProperty(propertyName, "");
+            }
+
             return new AdditionalProperty(propertyName, symbol.Name);
         }
     }

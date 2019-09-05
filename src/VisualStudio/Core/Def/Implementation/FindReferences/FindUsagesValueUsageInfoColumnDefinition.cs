@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.AdditionalProperty;
+using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     /// </summary>
     [Export(typeof(ITableColumnDefinition))]
     [Name(ColumnName)]
-    internal sealed class FindUsagesValueUsageInfoColumnDefinition : AbstractAdditionalPropertyDefinition
+    internal sealed class FindUsagesValueUsageInfoColumnDefinition : AbstractCustomColumnDefinition
     {
         // We can have only a handful of different values for ValueUsageInfo flags enum, so the maximum size of the below dictionaries are capped.
         // So, we store these as static dictionarys which will be held in memory for the lifetime of the process.
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public override string DisplayName => ServicesVSResources.Kind;
         public override double DefaultWidth => 100.0;
 
-        public override string GetDisplayStringForAdditionalProperty(ImmutableArray<string> values)
+        public override string GetDisplayStringForColumnValues(ImmutableArray<string> values)
             => s_constituentValuesToDisplayValuesMap.GetOrAdd(values, JoinValues);
         private ImmutableArray<string> SplitColumnDisplayValue(string displayValue)
             => s_displayValueToConstituentValuesMap.GetOrAdd(displayValue, SplitAndTrimValue);

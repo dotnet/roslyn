@@ -4,21 +4,21 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.AdditionalProperty
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     /// <summary>
     /// Column definition for additional properties to be displayed in the Find All References window.
     /// </summary>
-    internal abstract class AbstractAdditionalPropertyDefinition : TableColumnDefinitionBase
+    internal abstract class AbstractCustomColumnDefinition : TableColumnDefinitionBase
     {
-        protected AbstractAdditionalPropertyDefinition()
+        protected AbstractCustomColumnDefinition()
         {
             DefaultColumnState = new ColumnState2(Name, isVisible: false, DefaultWidth);
         }
 
         public ColumnState2 DefaultColumnState { get; }
 
-        public abstract string GetDisplayStringForAdditionalProperty(ImmutableArray<string> values);
+        public abstract string GetDisplayStringForColumnValues(ImmutableArray<string> values);
 
         protected static string JoinValues(ImmutableArray<string> values) => string.Join(", ", values);
 

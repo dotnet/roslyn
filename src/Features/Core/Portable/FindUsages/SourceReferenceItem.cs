@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
@@ -70,16 +71,17 @@ namespace Microsoft.CodeAnalysis.FindUsages
             : this(definition, sourceSpan, GetOrCreateReferenceUsageInfo(symbolUsageInfo))
         {
             IsWrittenTo = symbolUsageInfo.IsWrittenTo();
+            AdditionalProperties = ImmutableArray<AdditionalProperty>.Empty;
         }
 
         internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableArray<AdditionalProperty> additionalProperties)
             : this(definition, sourceSpan, GetOrCreateReferenceUsageInfo(symbolUsageInfo))
         {
             IsWrittenTo = symbolUsageInfo.IsWrittenTo();
-            AdditionalProperties = additionalProperties;
+            AdditionalProperties = additionalProperties.NullToEmpty();
         }
 
-        private static ReferenceUsageInfoMap GetOrCreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo) 
+        private static ReferenceUsageInfoMap GetOrCreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)
             => s_symbolUsageInfoToReferenceInfoMap.GetOrAdd(symbolUsageInfo, v => CreateReferenceUsageInfo(v));
 
         private static ReferenceUsageInfoMap CreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)

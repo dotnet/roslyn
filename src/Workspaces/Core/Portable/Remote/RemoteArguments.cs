@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
 
-        public ImmutableArray<AdditionalProperty> AdditionalProperties{ get; set; }
+        public ImmutableArray<AdditionalProperty> AdditionalProperties { get; set; }
 
         public CandidateReason CandidateReason { get; set; }
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
                 symbolUsageInfo: SymbolUsageInfo.Rehydrate(),
-                additionalProperties: additionalProperties,
+                additionalProperties: additionalProperties.NullToEmpty(),
                 candidateReason: CandidateReason);
         }
 
