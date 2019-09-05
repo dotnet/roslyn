@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -12,6 +11,9 @@ namespace Test.Utilities
 {
     public static class DiagnosticExtensions
     {
+        private static void OnAnalyzerException(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
+            => Environment.FailFast(exception.ToString(), exception);
+
         public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(
             this TCompilation c,
             DiagnosticAnalyzer[] analyzers,
@@ -19,7 +21,8 @@ namespace Test.Utilities
             AnalyzerOptions options = null)
             where TCompilation : Compilation
         {
-            var compilationWithAnalyzers = c.WithAnalyzers(analyzers.ToImmutableArray(), options, CancellationToken.None);
+            var compilationWithAnalyzerOptions = new CompilationWithAnalyzersOptions(options, OnAnalyzerException, concurrentAnalysis: c.Options.ConcurrentBuild, logAnalyzerExecutionTime: false);
+            var compilationWithAnalyzers = c.WithAnalyzers(analyzers.ToImmutableArray(), compilationWithAnalyzerOptions);
             var diagnostics = c.GetDiagnostics();
             if (validationMode != TestValidationMode.AllowCompileErrors)
             {

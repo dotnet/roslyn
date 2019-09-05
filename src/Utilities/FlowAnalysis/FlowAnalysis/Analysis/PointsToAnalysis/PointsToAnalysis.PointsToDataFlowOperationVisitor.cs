@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public override PointsToAbstractValue VisitFlowCapture(IFlowCaptureOperation operation, object argument)
             {
                 var value = base.VisitFlowCapture(operation, argument);
-                if (IsLValueFlowCapture(operation.Id) &&
+                if (IsLValueFlowCapture(operation) &&
                     AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity flowCaptureEntity))
                 {
                     value = PointsToAbstractValue.Create(operation.Value);
@@ -1153,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public override PointsToAbstractValue VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object argument)
             {
                 var value = base.VisitFlowCaptureReference(operation, argument);
-                if (IsLValueFlowCapture(operation.Id) &&
+                if (IsLValueFlowCaptureReference(operation) &&
                     AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity flowCaptureEntity))
                 {
                     return GetAbstractValue(flowCaptureEntity);
