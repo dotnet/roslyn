@@ -1,17 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\net472\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
-    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\netcoreapp2.1\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
+    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)microsoft.dotnet.nugetrepack.tasks\$(MicrosoftDotnetNuGetRepackTasksVersion)\tools\net472\Microsoft.DotNet.NuGetRepack.Tasks.dll</_NuGetRepackAssembly>
+    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)microsoft.dotnet.nugetrepack.tasks\$(MicrosoftDotnetNuGetRepackTasksVersion)\tools\netcoreapp2.1\Microsoft.DotNet.NuGetRepack.Tasks.dll</_NuGetRepackAssembly>
   </PropertyGroup>
 
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GroupItemsBy" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.Unsign" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.NET.Build.Tasks.JoinItems" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />
-  <UsingTask TaskName="Roslyn.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
+  <UsingTask TaskName="Microsoft.DotNet.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -29,8 +29,6 @@
   <PropertyGroup>
     <_DependentAssemblyVersionsFile>$(VisualStudioBuildPackagesDir)DependentAssemblyVersions.csv</_DependentAssemblyVersionsFile>
     <_OptimizedDependenciesDir>$(ArtifactsTmpDir)OptimizedDependencies\</_OptimizedDependenciesDir>
-    <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' != 'true'">vs-ci</_OptimizedNuGetPackageVersionSuffix>
-    <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' == 'true'">vs-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_OptimizedNuGetPackageVersionSuffix>
   </PropertyGroup>
 
   <!-- 
@@ -48,6 +46,7 @@
   -->
   <ItemGroup>
     <ExpectedDependency Include="Humanizer.Core"/>
+    <ExpectedDependency Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" OptimizeAssemblies="lib/netstandard1.3/Microsoft.CodeAnalysis.FlowAnalysis.Utilities.dll"/>
     <ExpectedDependency Include="ICSharpCode.Decompiler"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
@@ -59,7 +58,6 @@
     <!-- We do not have a training scenario that covers lib/netstandard2.0/System.Text.Encoding.CodePages.dll  -->
     <ExpectedDependency Include="System.Text.Encoding.CodePages" />
     <ExpectedDependency Include="System.Numerics.Vectors"/>
-
     <!--
       Do not overwrite optimization data for this binary for now.
       This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
@@ -93,6 +91,13 @@
     <!--     
       Exclude dependencies that are not inserted from Roslyn repo.
       Note: can't use globs due to https://github.com/Microsoft/msbuild/issues/3791.
+      
+      these dependency should be removed once StreamJsonRpc adds a build target for
+      net472 - https://github.com/dotnet/roslyn/issues/34558
+      
+      <_Dependency Remove="Nerdbank.Streams"/>
+      <_Dependency Remove="System.IO.Pipelines"/>
+      <_Dependency Remove="System.ValueTuple"/>
     -->
     <ItemGroup>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.VisualStudio.'))"/>
@@ -106,6 +111,9 @@
       <_Dependency Remove="Newtonsoft.Json"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
+      <_Dependency Remove="Nerdbank.Streams"/>
+      <_Dependency Remove="System.IO.Pipelines"/>
+      <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
@@ -141,7 +149,7 @@
     -->
     <ItemGroup>
       <ExpectedDependency>
-        <_EffectiveOptimizeAssemblies Condition="'$(ApplyPartialNgenOptimization)' == 'true'">%(ExpectedDependency.OptimizeAssemblies)</_EffectiveOptimizeAssemblies>
+        <_EffectiveOptimizeAssemblies Condition="'$(EnableNgenOptimization)' == 'true' and '$(ApplyNgenOptimization)' != ''">%(ExpectedDependency.OptimizeAssemblies)</_EffectiveOptimizeAssemblies>
       </ExpectedDependency>
       
       <_OptimizeAssembliesSplit Include="%(ExpectedDependency._EffectiveOptimizeAssemblies)" DependencyName="%(ExpectedDependency.Identity)" />
@@ -191,13 +199,14 @@
     Write a list of assembly names and versions that the insertion tool uses to update assembly versions in DevDiv.
   -->
   <Target Name="_GenerateDependentAssemblyVersions" 
-          AfterTargets="Build" 
-          DependsOnTargets="_CalculateDependenciesToInsert"
+          BeforeTargets="AfterBuild"
+          DependsOnTargets="_CalculateDependenciesToInsert;GetAssemblyVersion"
           Inputs="$(MSBuildAllProjects)"
           Outputs="$(_DependentAssemblyVersionsFile)">
 
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
     <WriteLinesToFile Lines="@(_Dependency->'%(_AssemblyName),%(_AssemblyVersion)')" File="$(_DependentAssemblyVersionsFile)" Overwrite="true"/>
+    <WriteLinesToFile Lines="Roslyn,$(AssemblyVersion)" File="$(_DependentAssemblyVersionsFile)" Overwrite="false" />
 
     <ItemGroup>
       <FileWrites Include="$(_DependentAssemblyVersionsFile)"/>
@@ -215,23 +224,28 @@
     Copy NuGet packages to be inserted into VS by the insertion tool.
   -->
   <Target Name="_CopyPackagesToInsert"
-          AfterTargets="Build"
+          BeforeTargets="AfterBuild"
           Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true'"
           DependsOnTargets="_CalculateDependenciesToInsert;_UnpackDependencies;ApplyOptimizations">
 
+    <PropertyGroup>
+      <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' != 'true'">vs-ci</_OptimizedNuGetPackageVersionSuffix>
+      <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' == 'true'">vs-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_OptimizedNuGetPackageVersionSuffix>
+    </PropertyGroup>
+    
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
 
     <!-- Unsign assemblies that need to be unsigned but not optimized. -->
     <Microsoft.DotNet.Arcade.Sdk.Unsign FilePath="%(_UnsignAssembly.Identity)" />
 
     <!-- Repack optimized dependencies -->
-    <Roslyn.Tools.ReplacePackageParts SourcePackage="%(_PackageToRepack.Identity)"
-                                      DestinationFolder="$(VisualStudioBuildPackagesDir)"
-                                      NewVersionSuffix="$(_OptimizedNuGetPackageVersionSuffix)"
-                                      Parts="%(_PackageToRepack.Parts)"
-                                      ReplacementFiles="%(_PackageToRepack.ReplacementFiles)">
+    <Microsoft.DotNet.Tools.ReplacePackageParts SourcePackage="%(_PackageToRepack.Identity)"
+                                                DestinationFolder="$(VisualStudioBuildPackagesDir)"
+                                                NewVersionSuffix="$(_OptimizedNuGetPackageVersionSuffix)"
+                                                Parts="%(_PackageToRepack.Parts)"
+                                                ReplacementFiles="%(_PackageToRepack.ReplacementFiles)">
       <Output TaskParameter="NewPackage" ItemName="FileWrites" />
-    </Roslyn.Tools.ReplacePackageParts>
+    </Microsoft.DotNet.Tools.ReplacePackageParts>
 
     <!-- Copy unoptimized dependencies -->
     <Copy SourceFiles="@(_PackageToCopy)" DestinationFolder="$(VisualStudioBuildPackagesDir)">

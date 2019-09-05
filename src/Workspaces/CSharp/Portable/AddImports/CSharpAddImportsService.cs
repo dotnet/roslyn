@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddImports;
@@ -13,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
     internal class CSharpAddImportsService : AbstractAddImportsService<
         CompilationUnitSyntax, NamespaceDeclarationSyntax, UsingDirectiveSyntax, ExternAliasDirectiveSyntax>
     {
+        [ImportingConstructor]
+        public CSharpAddImportsService()
+        {
+        }
+
         // C# doesn't have global imports.
         protected override ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation)
             => ImmutableArray<SyntaxNode>.Empty;
@@ -45,24 +52,20 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
         }
 
         protected override SyntaxList<UsingDirectiveSyntax> GetUsingsAndAliases(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case CompilationUnitSyntax c: return c.Usings;
-                case NamespaceDeclarationSyntax n: return n.Usings;
-                default: return default;
-            }
-        }
+                CompilationUnitSyntax c => c.Usings,
+                NamespaceDeclarationSyntax n => n.Usings,
+                _ => default,
+            };
 
         protected override SyntaxList<ExternAliasDirectiveSyntax> GetExterns(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case CompilationUnitSyntax c: return c.Externs;
-                case NamespaceDeclarationSyntax n: return n.Externs;
-                default: return default;
-            }
-        }
+                CompilationUnitSyntax c => c.Externs,
+                NamespaceDeclarationSyntax n => n.Externs,
+                _ => default,
+            };
 
         private class Rewriter : CSharpSyntaxRewriter
         {

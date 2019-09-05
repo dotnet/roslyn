@@ -38,7 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(CodeAnalysis.Workspace workspace)
         {
-            return new DesignerAttributeIncrementalAnalyzer(_threadingContext, _serviceProvider, _notificationService, _listenerProvider);
+            return new DesignerAttributeIncrementalAnalyzer(
+                _threadingContext, _serviceProvider, _notificationService, _listenerProvider);
         }
     }
 }

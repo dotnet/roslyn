@@ -300,13 +300,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckNullableAnnotationsInConstraints(DiagnosticBag diagnostics)
         {
-            if ((this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null) ||
-                this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.NeedsNullableAttribute()) ||
-                (!this.HasReferenceTypeConstraint && !this.HasValueTypeConstraint &&
-                 this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullableIfReferenceType == false))
+            if (ConstraintsNeedNullableAttribute())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, this.GetNonNullSyntaxNode().Location, ModifyCompilationForAttributeEmbedding());
             }
+        }
+
+        // See https://github.com/dotnet/roslyn/blob/master/docs/features/nullable-metadata.md
+        internal bool ConstraintsNeedNullableAttribute()
+        {
+            if (!DeclaringCompilation.ShouldEmitNullableAttributes(this))
+            {
+                return false;
+            }
+            if (this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null)
+            {
+                return true;
+            }
+            if (this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.NeedsNullableAttribute()))
+            {
+                return true;
+            }
+            if (this.HasNotNullConstraint)
+            {
+                return true;
+            }
+            return !this.HasReferenceTypeConstraint &&
+                !this.HasValueTypeConstraint &&
+                this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty &&
+                this.IsNotNullable == false;
         }
 
         private NamedTypeSymbol GetDefaultBaseType()
@@ -358,36 +380,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsUnmanagedAttribute(this));
             }
 
-            byte nullableAttributeValue = NullableAnnotationExtensions.ObliviousAttributeValue;
+            var compilation = DeclaringCompilation;
+            if (compilation.ShouldEmitNullableAttributes(this))
+            {
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    moduleBuilder.SynthesizeNullableAttributeIfNecessary(GetNullableContextValue(), GetSynthesizedNullableAttributeValue()));
+            }
+        }
 
+        internal byte GetSynthesizedNullableAttributeValue()
+        {
             if (this.HasReferenceTypeConstraint)
             {
                 switch (this.ReferenceTypeConstraintIsNullable)
                 {
                     case true:
-                        nullableAttributeValue = NullableAnnotationExtensions.AnnotatedAttributeValue;
-                        break;
+                        return NullableAnnotationExtensions.AnnotatedAttributeValue;
                     case false:
-                        nullableAttributeValue = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-                        break;
+                        return NullableAnnotationExtensions.NotAnnotatedAttributeValue;
                 }
             }
-            else if (!this.HasValueTypeConstraint && this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullableIfReferenceType == false)
+            else if (this.HasNotNullConstraint)
             {
-                nullableAttributeValue = NullableAnnotationExtensions.AnnotatedAttributeValue;
+                return NullableAnnotationExtensions.NotAnnotatedAttributeValue;
             }
-
-            if (nullableAttributeValue != NullableAnnotationExtensions.ObliviousAttributeValue)
+            else if (!this.HasValueTypeConstraint && this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullable == false)
             {
-                NamedTypeSymbol byteType = DeclaringCompilation.GetSpecialType(SpecialType.System_Byte);
-                Debug.Assert((object)byteType != null);
-
-                AddSynthesizedAttribute(
-                    ref attributes,
-                    moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
-                                                              ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
-                                                                                                      nullableAttributeValue))));
+                return NullableAnnotationExtensions.AnnotatedAttributeValue;
             }
+            return NullableAnnotationExtensions.ObliviousAttributeValue;
         }
 
         internal override sealed void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -491,7 +513,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool? IsNotNullableIfReferenceType
+        public override bool HasNotNullConstraint
+        {
+            get
+            {
+                var constraints = this.GetDeclaredConstraints();
+                return (constraints & TypeParameterConstraintKind.NotNull) != 0;
+            }
+        }
+
+        internal override bool? IsNotNullable
         {
             get
             {
@@ -500,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return CalculateIsNotNullableIfReferenceType();
+                return CalculateIsNotNullable();
             }
         }
 
@@ -595,6 +626,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool HasNotNullConstraint
+        {
+            get
+            {
+                var constraints = this.GetDeclaredConstraints();
+                return (constraints & TypeParameterConstraintKind.NotNull) != 0;
+            }
+        }
+
         internal override bool? ReferenceTypeConstraintIsNullable
         {
             get
@@ -603,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool? IsNotNullableIfReferenceType
+        internal override bool? IsNotNullable
         {
             get
             {
@@ -612,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return CalculateIsNotNullableIfReferenceType();
+                return CalculateIsNotNullable();
             }
         }
 
@@ -835,11 +875,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool? IsNotNullableIfReferenceType
+        public override bool HasNotNullConstraint
         {
             get
             {
-                return this.OverriddenTypeParameter?.IsNotNullableIfReferenceType;
+                return this.OverriddenTypeParameter?.HasNotNullConstraint == true;
+            }
+        }
+
+        internal override bool? IsNotNullable
+        {
+            get
+            {
+                return this.OverriddenTypeParameter?.IsNotNullable;
             }
         }
 

@@ -8,12 +8,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class NamespaceDeclarationSyntax
     {
-        new internal Syntax.InternalSyntax.NamespaceDeclarationSyntax Green
+        new internal InternalSyntax.NamespaceDeclarationSyntax Green
         {
             get
             {
-                return (Syntax.InternalSyntax.NamespaceDeclarationSyntax)base.Green;
+                return (InternalSyntax.NamespaceDeclarationSyntax)base.Green;
             }
         }
+
+        public NamespaceDeclarationSyntax Update(SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+            => this.Update(this.AttributeLists, this.Modifiers, namespaceKeyword, name, openBraceToken, externs, usings, members, closeBraceToken, semicolonToken);
     }
 }

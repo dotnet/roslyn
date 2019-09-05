@@ -18,12 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, options))
-            {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            using var workspace = TestWorkspace.CreateCSharp(code, options);
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-                return GetAllClassificationsAsync(document, span);
-            }
+            return GetAllClassificationsAsync(document, span);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1404,6 +1402,393 @@ class True
     Punctuation.Semicolon,
     Punctuation.CloseCurly,
     Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_InsideMethod()
+        {
+            await TestInMethodAsync(@"
+var notnull = 0;
+notnull++;",
+                Keyword("var"),
+                Local("notnull"),
+                Operators.Equals,
+                Number("0"),
+                Punctuation.Semicolon,
+                Local("notnull"),
+                Operators.PlusPlus,
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Type_Keyword()
+        {
+            await TestAsync(
+                "class X<T> where T : notnull { }",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Type_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+class X<T> where T : notnull { }",
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Type_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+class X<T> where T : notnull { }",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Method_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void M<T>() where T : notnull { }
+}",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Method_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+class X
+{
+    void M<T>() where T : notnull { }
+}",
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Method_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+class X
+{
+    void M<T>() where T : notnull { }
+}",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Delegate_Keyword()
+        {
+            await TestAsync(
+                "delegate void D<T>() where T : notnull;",
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Delegate_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+delegate void D<T>() where T : notnull;",
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Interface("notnull"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_Delegate_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+delegate void D<T>() where T : notnull;",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_LocalFunction_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        void M<T>() where T : notnull { }
+    }
+}",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_LocalFunction_ExistingInterface()
+        {
+            await TestAsync(@"
+interface notnull {}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : notnull { }
+    }
+}",
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestNotNullConstraint_LocalFunction_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface notnull {}
+}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : notnull { }
+    }
+}",
+                Keyword("namespace"),
+                Namespace("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
         }
     }
 }

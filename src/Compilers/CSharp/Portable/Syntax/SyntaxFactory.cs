@@ -2,18 +2,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using System.Xml.Linq;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Syntax;
-using System.Collections.Immutable;
-using System.ComponentModel;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
+using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -2507,17 +2507,87 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, default(BlockSyntax), expressionBody, semicolonToken);
 
-        /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
-        public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+        public static EnumMemberDeclarationSyntax EnumMemberDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue)
+            => EnumMemberDeclaration(attributeLists, modifiers: default,
+                identifier, equalsValue);
+
+        public static NamespaceDeclarationSyntax NamespaceDeclaration(NameSyntax name, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members)
+            => NamespaceDeclaration(attributeLists: default, modifiers: default,
+                name, externs, usings, members);
+
+        public static NamespaceDeclarationSyntax NamespaceDeclaration(SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+            => NamespaceDeclaration(attributeLists: default, modifiers: default,
+                namespaceKeyword, name, openBraceToken, externs, usings, members, closeBraceToken, semicolonToken);
+
+        /// <summary>Creates a new EventDeclarationSyntax instance.</summary>
+        public static EventDeclarationSyntax EventDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList)
         {
-            return PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword: default, errorCodes, endOfDirectiveToken, isActive);
+            return EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken: default);
         }
 
-        /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
-        public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        /// <summary>Creates a new EventDeclarationSyntax instance.</summary>
+        public static EventDeclarationSyntax EventDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, SyntaxToken semicolonToken)
         {
-            return PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes: default, endOfDirectiveToken, isActive);
+            return EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList: null, semicolonToken);
         }
+
+        /// <summary>Creates a new SwitchStatementSyntax instance.</summary>
+        public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expression, SyntaxList<SwitchSectionSyntax> sections)
+        {
+            bool needsParens = !(expression is TupleExpressionSyntax);
+            var openParen = needsParens ? SyntaxFactory.Token(SyntaxKind.OpenParenToken) : default;
+            var closeParen = needsParens ? SyntaxFactory.Token(SyntaxKind.CloseParenToken) : default;
+            return SyntaxFactory.SwitchStatement(
+                SyntaxFactory.Token(SyntaxKind.SwitchKeyword),
+                openParen,
+                expression,
+                closeParen,
+                SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                sections,
+                SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+        }
+
+        /// <summary>Creates a new SwitchStatementSyntax instance.</summary>
+        public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expression)
+        {
+            return SyntaxFactory.SwitchStatement(expression, default(SyntaxList<SwitchSectionSyntax>));
+        }
+
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? SimpleLambdaExpression(parameter, block, null)
+                : SimpleLambdaExpression(parameter, null, (ExpressionSyntax)body);
+
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, block, null)
+                : SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, null, (ExpressionSyntax)body);
+
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(CSharpSyntaxNode body)
+            => ParenthesizedLambdaExpression(parameterList: null, body);
+
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(ParameterListSyntax parameterList, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? ParenthesizedLambdaExpression(parameterList, block, null)
+                : ParenthesizedLambdaExpression(parameterList, null, (ExpressionSyntax)body);
+
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, block, null)
+                : ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, null, (ExpressionSyntax)body);
+
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(CSharpSyntaxNode body)
+            => AnonymousMethodExpression(parameterList: null, body);
+
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(ParameterListSyntax parameterList, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? AnonymousMethodExpression(default, SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, block, null)
+                : AnonymousMethodExpression(default, SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, null, (ExpressionSyntax)null);
+
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, block, null)
+                : AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, null, (ExpressionSyntax)body);
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,19 +15,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     // GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
-        protected AbstractGoToDefinitionService(
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
+        protected AbstractGoToDefinitionService(IStreamingFindUsagesPresenter streamingPresenter)
         {
-            _streamingPresenters = streamingPresenters;
+            _streamingPresenter = streamingPresenter;
         }
 
         public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-            var (symbol, span) = await symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).ConfigureAwait(false);
+            var (symbol, _) = await symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).ConfigureAwait(false);
 
             // Try to compute source definitions from symbol.
             var items = symbol != null
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return GoToDefinitionHelpers.TryGoToDefinition(symbol,
                 document.Project,
-                _streamingPresenters,
+                _streamingPresenter,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
                 throwOnHiddenDefinition: true,
                 cancellationToken: cancellationToken);
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                         ? symbolToNavigateTo
                         : symbolToNavigateTo.ContainingType;
 
-                    if (containingTypeSymbol == candidateTypeSymbol)
+                    if (Equals(containingTypeSymbol, candidateTypeSymbol))
                     {
                         // We are navigating from the same type, so don't allow third parties to perform the navigation.
                         // This ensures that if we navigate to a class from within that class, we'll stay in the same file

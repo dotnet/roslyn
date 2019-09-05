@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 // Note: if we're in a lambda that has a block body, then we don't ever get here
                 // because of the early check for IsInBlockContext.
-                if (!_service.IsInFieldInitializer(this.Expression))
+                if (!_service.IsInFieldInitializer(Expression))
                 {
                     return false;
                 }
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
 
                 // Can't extract out an anonymous type used in a field initializer.
-                var info = this.Document.SemanticModel.GetTypeInfo(this.Expression, cancellationToken);
+                var info = Document.SemanticModel.GetTypeInfo(Expression, cancellationToken);
                 if (info.Type.ContainsAnonymousType())
                 {
                     return false;

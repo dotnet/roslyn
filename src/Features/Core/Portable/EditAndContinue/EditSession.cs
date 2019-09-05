@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -14,8 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var debugInfo in debugInfos)
             {
-                string documentName = debugInfo.DocumentNameOpt;
+                var documentName = debugInfo.DocumentNameOpt;
                 if (documentName == null)
                 {
                     // Ignore active statements that do not have a source location.
@@ -166,7 +165,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 // TODO: associate only those documents that are from a project with the right module id
                 // https://github.com/dotnet/roslyn/issues/24320
-                for (int i = 1; i < documentIds.Length; i++)
+                for (var i = 1; i < documentIds.Length; i++)
                 {
                     var documentId = documentIds[i];
                     if (!SupportsEditAndContinue(documentId))
@@ -227,7 +226,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var instructionMap = baseActiveStatements.InstructionMap;
-                var builder = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count);
+                using var builderDisposer = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count, out var builder);
                 builder.Count = instructionMap.Count;
 
                 foreach (var activeStatement in instructionMap.Values)
@@ -237,12 +236,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                     var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
-                    var exceptionRegions = analyzer.GetExceptionRegions(sourceText, syntaxRoot, activeStatement.Span, activeStatement.IsNonLeaf, out bool isCovered);
+                    var exceptionRegions = analyzer.GetExceptionRegions(sourceText, syntaxRoot, activeStatement.Span, activeStatement.IsNonLeaf, out var isCovered);
 
                     builder[activeStatement.Ordinal] = new ActiveStatementExceptionRegions(exceptionRegions, isCovered);
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -253,8 +252,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal CancellationTokenSource Cancellation => _cancellation;
 
         internal Solution BaseSolution => _baseSolution;
-
-        private Solution CurrentSolution => _baseSolution.Workspace.CurrentSolution;
 
         public bool StoppedAtException => _stoppedAtException;
 
@@ -404,8 +401,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ProjectAnalysisSummary.NoChanges;
                 }
 
-                bool hasChanges = false;
-                bool hasSignificantChanges = false;
+                var hasChanges = false;
+                var hasSignificantChanges = false;
 
                 foreach (var analysis in documentAnalyses)
                 {
@@ -511,43 +508,41 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var pdbStream = new MemoryStream();
                 var updatedMethods = new List<MethodDefinitionHandle>();
 
-                using (var metadataStream = SerializableBytes.CreateWritableStream())
-                using (var ilStream = SerializableBytes.CreateWritableStream())
-                {
-                    EmitDifferenceResult result = currentCompilation.EmitDifference(
-                        baseline,
-                        projectChanges.SemanticEdits,
-                        s => allAddedSymbols?.Contains(s) ?? false,
-                        metadataStream,
-                        ilStream,
-                        pdbStream,
-                        updatedMethods,
-                        cancellationToken);
+                using var metadataStream = SerializableBytes.CreateWritableStream();
+                using var ilStream = SerializableBytes.CreateWritableStream();
+                var result = currentCompilation.EmitDifference(
+                    baseline,
+                    projectChanges.SemanticEdits,
+                    s => allAddedSymbols?.Contains(s) ?? false,
+                    metadataStream,
+                    ilStream,
+                    pdbStream,
+                    updatedMethods,
+                    cancellationToken);
 
-                    int[] updatedMethodTokens = updatedMethods.Select(h => MetadataTokens.GetToken(h)).ToArray();
+                var updatedMethodTokens = updatedMethods.Select(h => MetadataTokens.GetToken(h)).ToArray();
 
-                    // Determine all active statements whose span changed and exception region span deltas.
+                // Determine all active statements whose span changed and exception region span deltas.
 
-                    GetActiveStatementAndExceptionRegionSpans(
-                        baseline.OriginalMetadata.GetModuleVersionId(),
-                        baseActiveStatements,
-                        baseActiveExceptionRegions,
-                        updatedMethodTokens,
-                        _nonRemappableRegions,
-                        projectChanges.NewActiveStatements,
-                        out var activeStatementsInUpdatedMethods,
-                        out var nonRemappableRegions);
+                GetActiveStatementAndExceptionRegionSpans(
+                    baseline.OriginalMetadata.GetModuleVersionId(),
+                    baseActiveStatements,
+                    baseActiveExceptionRegions,
+                    updatedMethodTokens,
+                    _nonRemappableRegions,
+                    projectChanges.NewActiveStatements,
+                    out var activeStatementsInUpdatedMethods,
+                    out var nonRemappableRegions);
 
-                    return new Deltas(
-                        ilStream.ToArray(),
-                        metadataStream.ToArray(),
-                        pdbStream,
-                        updatedMethodTokens,
-                        projectChanges.LineChanges,
-                        nonRemappableRegions,
-                        activeStatementsInUpdatedMethods,
-                        result);
-                }
+                return new Deltas(
+                    ilStream.ToArray(),
+                    metadataStream.ToArray(),
+                    pdbStream,
+                    updatedMethodTokens,
+                    projectChanges.LineChanges,
+                    nonRemappableRegions,
+                    activeStatementsInUpdatedMethods,
+                    result);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashAndPropagate(e))
             {
@@ -576,7 +571,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
                 Debug.Assert(newActiveStatements.Length == newExceptionRegions.Length);
 
-                for (int i = 0; i < newActiveStatements.Length; i++)
+                for (var i = 0; i < newActiveStatements.Length; i++)
                 {
                     var oldActiveStatement = oldActiveStatements[i];
                     var newActiveStatement = newActiveStatements[i];
@@ -584,7 +579,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var methodToken = oldInstructionId.MethodId.Token;
                     var methodVersion = oldInstructionId.MethodId.Version;
 
-                    bool isMethodUpdated = updatedMethodTokens.Contains(methodToken);
+                    var isMethodUpdated = updatedMethodTokens.Contains(methodToken);
                     if (isMethodUpdated)
                     {
                         foreach (var threadId in oldActiveStatement.ThreadIds)
@@ -601,7 +596,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // when break state was entered and now being updated (regardless of whether the active span changed or not).
                             if (isMethodUpdated)
                             {
-                                int lineDelta = oldSpan.GetLineDelta(newSpan: newSpan);
+                                var lineDelta = oldSpan.GetLineDelta(newSpan: newSpan);
                                 nonRemappableRegionsBuilder.Add((oldInstructionId.MethodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion)));
                             }
 
@@ -619,7 +614,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     AddNonRemappableRegion(oldActiveStatement.Span, newActiveStatement.Span, isExceptionRegion: false);
 
-                    int j = 0;
+                    var j = 0;
                     foreach (var oldSpan in baseActiveExceptionRegions[oldActiveStatement.Ordinal].Spans)
                     {
                         AddNonRemappableRegion(oldSpan, newExceptionRegions[oldActiveStatement.PrimaryDocumentOrdinal][j++], isExceptionRegion: true);

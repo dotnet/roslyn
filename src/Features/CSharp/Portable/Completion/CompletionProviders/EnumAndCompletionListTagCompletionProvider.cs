@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -74,56 +75,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var span = new TextSpan(position, 0);
                 var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-                var type = typeInferenceService.InferType(semanticModel, position,
-                    objectAsDefault: true,
+                var types = typeInferenceService.InferTypes(semanticModel, position,
                     cancellationToken: cancellationToken);
 
-                // If we have a Nullable<T>, unwrap it.
-                if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                if (types.Length == 0)
                 {
-                    type = type.GetTypeArguments().FirstOrDefault();
+                    types = ImmutableArray.Create<ITypeSymbol>(semanticModel.Compilation.ObjectType);
+                }
 
-                    if (type == null)
+                foreach (var typeIterator in types)
+                {
+                    var type = typeIterator;
+
+                    // If we have a Nullable<T>, unwrap it.
+                    if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
                     {
-                        return;
+                        type = type.GetTypeArguments().FirstOrDefault();
+
+                        if (type == null)
+                        {
+                            continue;
+                        }
                     }
-                }
 
-                if (type.TypeKind != TypeKind.Enum)
-                {
-                    type = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken) ??
-                           TryGetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
-
-                    if (type == null)
+                    if (type.TypeKind != TypeKind.Enum)
                     {
-                        return;
+                        type = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken) ??
+                               TryGetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
+
+                        if (type == null)
+                        {
+                            continue;
+                        }
                     }
+
+                    if (!type.IsEditorBrowsable(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation))
+                    {
+                        continue;
+                    }
+
+                    // Does type have any aliases?
+                    var alias = await type.FindApplicableAlias(position, semanticModel, cancellationToken).ConfigureAwait(false);
+
+                    var displayService = document.GetLanguageService<ISymbolDisplayService>();
+                    var displayText = alias != null
+                        ? alias.Name
+                        : displayService.ToMinimalDisplayString(semanticModel, position, type);
+
+                    var workspace = document.Project.Solution.Workspace;
+                    var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    var item = SymbolCompletionItem.CreateWithSymbolId(
+                        displayText: displayText,
+                        displayTextSuffix: "",
+                        symbols: ImmutableArray.Create(alias ?? type),
+                        rules: s_rules.WithMatchPriority(MatchPriority.Preselect),
+                        contextPosition: position);
+
+                    context.AddItem(item);
                 }
-
-                if (!type.IsEditorBrowsable(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation))
-                {
-                    return;
-                }
-
-                // Does type have any aliases?
-                var alias = await type.FindApplicableAlias(position, semanticModel, cancellationToken).ConfigureAwait(false);
-
-                var displayService = document.GetLanguageService<ISymbolDisplayService>();
-                var displayText = alias != null
-                    ? alias.Name
-                    : displayService.ToMinimalDisplayString(semanticModel, position, type);
-
-                var workspace = document.Project.Solution.Workspace;
-                var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                var item = SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: displayText,
-                    displayTextSuffix: "",
-                    symbols: ImmutableArray.Create(alias ?? type),
-                    rules: s_rules.WithMatchPriority(MatchPriority.Preselect),
-                    contextPosition: position);
-
-                context.AddItem(item);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -190,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // PERF: Avoid parsing XML unless the text contains the word "completionlist".
-            string xmlText = type.GetDocumentationCommentXml();
+            var xmlText = type.GetDocumentationCommentXml();
             if (xmlText == null || !xmlText.Contains(DocumentationCommentXmlNames.CompletionListElementName))
             {
                 return null;

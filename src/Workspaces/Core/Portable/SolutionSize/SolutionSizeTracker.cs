@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.SolutionSize
     {
         private readonly IncrementalAnalyzer _tracker = new IncrementalAnalyzer();
 
+        [ImportingConstructor]
+        public SolutionSizeTracker()
+        {
+        }
+
         /// <summary>
         /// Get approximate solution size at the point of call.
         /// 

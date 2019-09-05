@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
         private string _lazyDocComment;
+        private string _lazyExpandedDocComment;
 
         private ThreeState _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown;
 
@@ -109,7 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
+            ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
         #endregion
@@ -392,7 +394,8 @@ next:;
 
                 if (constraint.Constraints != mergedKind || mergedConstraintTypes != null)
                 {
-                    Debug.Assert((constraint.Constraints & TypeParameterConstraintKind.AllNonNullableKinds) == (mergedKind & TypeParameterConstraintKind.AllNonNullableKinds));
+                    Debug.Assert((constraint.Constraints & (TypeParameterConstraintKind.AllNonNullableKinds | TypeParameterConstraintKind.NotNull)) ==
+                                 (mergedKind & (TypeParameterConstraintKind.AllNonNullableKinds | TypeParameterConstraintKind.NotNull)));
                     Debug.Assert((mergedKind & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) == 0 ||
                                  (constraint.Constraints & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) != 0);
                     Debug.Assert((constraint.Constraints & TypeParameterConstraintKind.AllReferenceTypeKinds) == (mergedKind & TypeParameterConstraintKind.AllReferenceTypeKinds) ||
@@ -432,7 +435,7 @@ next:;
             {
                 bool result = true;
 
-                if ((mergedKind & TypeParameterConstraintKind.AllNonNullableKinds) != (clause.Constraints & TypeParameterConstraintKind.AllNonNullableKinds))
+                if ((mergedKind & (TypeParameterConstraintKind.AllNonNullableKinds | TypeParameterConstraintKind.NotNull)) != (clause.Constraints & (TypeParameterConstraintKind.AllNonNullableKinds | TypeParameterConstraintKind.NotNull)))
                 {
                     result = false;
                 }
@@ -917,6 +920,10 @@ next:;
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableContextAttribute))
+            {
+                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullableContextAttribute);
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -1365,25 +1372,6 @@ next:;
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
                     ImmutableArray.Create(defaultMemberNameConstant)));
-            }
-
-            NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
-            if ((object)baseType != null)
-            {
-                if (baseType.ContainsDynamic())
-                {
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(baseType, customModifiersCount: 0));
-                }
-
-                if (baseType.ContainsTupleNames())
-                {
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(baseType));
-                }
-
-                if (baseType.NeedsNullableAttribute())
-                {
-                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeWithAnnotations.Create(baseType)));
-                }
             }
         }
 

@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared
     [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), ServiceLayer.Editor), Shared]
     internal sealed class DefaultTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
     {
+        [ImportingConstructor]
+        public DefaultTextBufferSupportsFeatureService()
+        {
+        }
+
         public bool SupportsCodeFixes(ITextBuffer textBuffer)
         {
             return true;

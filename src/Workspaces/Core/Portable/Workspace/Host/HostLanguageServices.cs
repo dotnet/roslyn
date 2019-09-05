@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -23,12 +26,14 @@ namespace Microsoft.CodeAnalysis.Host
         /// Gets a language specific service provided by the host identified by the service type. 
         /// If the host does not provide the service, this method returns null.
         /// </summary>
+        [return: MaybeNull]
         public abstract TLanguageService GetService<TLanguageService>() where TLanguageService : ILanguageService;
 
         /// <summary>
         /// Gets a language specific service provided by the host identified by the service type. 
         /// If the host does not provide the service, this method returns throws <see cref="InvalidOperationException"/>.
         /// </summary>
+        [return: NotNull]
         public TLanguageService GetRequiredService<TLanguageService>() where TLanguageService : ILanguageService
         {
             var service = GetService<TLanguageService>();
@@ -45,13 +50,13 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// A factory for creating compilations instances.
         /// </summary>
-        internal virtual ICompilationFactoryService CompilationFactory
+        internal virtual ICompilationFactoryService? CompilationFactory
         {
             get { return this.GetService<ICompilationFactoryService>(); }
         }
 
         // needs some work on the interface before it can be public
-        internal virtual ISyntaxTreeFactoryService SyntaxTreeFactory
+        internal virtual ISyntaxTreeFactoryService? SyntaxTreeFactory
         {
             get { return this.GetService<ISyntaxTreeFactoryService>(); }
         }

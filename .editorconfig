@@ -37,17 +37,17 @@ indent_size = 2
 
 # Dotnet diagnostic settings
 [*.{cs,vb}]
-dotnet_diagnostic.xUnit2018.severity = suppress # "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now
+dotnet_diagnostic.xUnit2018.severity = none # "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now
 
 # Dotnet code style settings:
 [*.{cs,vb}]
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true
 # Avoid "this." and "Me." if not necessary
-dotnet_style_qualification_for_field = false:suggestion
-dotnet_style_qualification_for_property = false:suggestion
-dotnet_style_qualification_for_method = false:suggestion
-dotnet_style_qualification_for_event = false:suggestion
+dotnet_style_qualification_for_field = false:refactoring
+dotnet_style_qualification_for_property = false:refactoring
+dotnet_style_qualification_for_method = false:refactoring
+dotnet_style_qualification_for_event = false:refactoring
 
 # Use language keywords instead of framework type names for type references
 dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
@@ -66,7 +66,7 @@ dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.symbols = non
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.style = non_private_static_field_style
 
 dotnet_naming_symbols.non_private_static_fields.applicable_kinds = field
-dotnet_naming_symbols.non_private_static_fields.applicable_accessibilities = public, protected, internal, protected internal, private protected
+dotnet_naming_symbols.non_private_static_fields.applicable_accessibilities = public, protected, internal, protected_internal, private_protected
 dotnet_naming_symbols.non_private_static_fields.required_modifiers = static
 
 dotnet_naming_style.non_private_static_field_style.capitalization = pascal_case
@@ -77,7 +77,7 @@ dotnet_naming_rule.non_private_readonly_fields_should_be_pascal_case.symbols = n
 dotnet_naming_rule.non_private_readonly_fields_should_be_pascal_case.style = non_private_readonly_field_style
 
 dotnet_naming_symbols.non_private_readonly_fields.applicable_kinds = field
-dotnet_naming_symbols.non_private_readonly_fields.applicable_accessibilities = public, protected, internal, protected internal, private protected
+dotnet_naming_symbols.non_private_readonly_fields.applicable_accessibilities = public, protected, internal, protected_internal, private_protected
 dotnet_naming_symbols.non_private_readonly_fields.required_modifiers = readonly
 
 dotnet_naming_style.non_private_readonly_field_style.capitalization = pascal_case
@@ -142,6 +142,15 @@ dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
 # CSharp code style settings:
 [*.cs]
+# Newline settings
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
 # Indentation preferences
 csharp_indent_block_contents = true
 csharp_indent_braces = false
@@ -172,27 +181,29 @@ csharp_style_inlined_variable_declaration = true:suggestion
 csharp_style_throw_expression = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
 
-# Newline settings
-csharp_new_line_before_open_brace = all
-csharp_new_line_before_else = true
-csharp_new_line_before_catch = true
-csharp_new_line_before_finally = true
-csharp_new_line_before_members_in_object_initializers = true
-csharp_new_line_before_members_in_anonymous_types = true
-csharp_new_line_between_query_expression_clauses = true
-
-# Spacing
+# Space preferences
 csharp_space_after_cast = false
 csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_after_comma = true
+csharp_space_after_dot = false
 csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_after_semicolon_in_for_statement = true
 csharp_space_around_binary_operators = before_and_after
+csharp_space_around_declaration_statements = do_not_ignore
 csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_before_comma = false
+csharp_space_before_dot = false
+csharp_space_before_open_square_brackets = false
+csharp_space_before_semicolon_in_for_statement = false
+csharp_space_between_empty_square_brackets = false
 csharp_space_between_method_call_empty_parameter_list_parentheses = false
 csharp_space_between_method_call_name_and_opening_parenthesis = false
 csharp_space_between_method_call_parameter_list_parentheses = false
 csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+csharp_space_between_method_declaration_name_and_open_parenthesis = false
 csharp_space_between_method_declaration_parameter_list_parentheses = false
 csharp_space_between_parentheses = false
+csharp_space_between_square_brackets = false
 
 # Blocks are allowed
 csharp_prefer_braces = true:silent

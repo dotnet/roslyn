@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetBreakPoint(string fileName, string text, int charsOffset = 0)
         {
+            _instance.Editor.Activate();
             _instance.Editor.SelectTextInCurrentDocument(text);
             int lineNumber = _instance.Editor.GetLine();
             int columnIndex = _instance.Editor.GetColumn();

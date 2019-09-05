@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
@@ -43,10 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption<bool> AutoFormattingOnTyping = new PerLanguageOption<bool>(
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnTyping), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing"));
-
-        public static readonly PerLanguageOption<bool> AutoFormattingOnReturn = new PerLanguageOption<bool>(
-            nameof(FeatureOnOffOptions), nameof(AutoFormattingOnReturn), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return"));
 
         public static readonly PerLanguageOption<bool> AutoFormattingOnCloseBrace = new PerLanguageOption<bool>(
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnCloseBrace), defaultValue: true,
@@ -88,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
 
         /// <summary>
-        /// Feature to enable run-nullable-analysis in the compiler flags for all csharp projects.
+        /// Feature to enable <see cref="CompilerFeatureFlags.RunNullableAnalysis"/> in the compiler flags for all csharp projects.
         /// 0 = default, which leaves the flag unset.
         /// 1 = set to true
         /// -1 = set to false
@@ -105,6 +102,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     [ExportOptionProvider, Shared]
     internal class FeatureOnOffOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public FeatureOnOffOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             FeatureOnOffOptions.EndConstruct,
             FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers,
@@ -117,7 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.AutoInsertBlockCommentStartString,
             FeatureOnOffOptions.PrettyListing,
             FeatureOnOffOptions.AutoFormattingOnTyping,
-            FeatureOnOffOptions.AutoFormattingOnReturn,
             FeatureOnOffOptions.AutoFormattingOnCloseBrace,
             FeatureOnOffOptions.AutoFormattingOnSemicolon,
             FeatureOnOffOptions.RenameTrackingPreview,

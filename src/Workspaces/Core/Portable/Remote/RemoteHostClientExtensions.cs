@@ -118,33 +118,30 @@ namespace Microsoft.CodeAnalysis.Remote
             this RemoteHostClient client, string serviceName, Solution solution, object callbackTarget,
             string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (var session = await client.TryCreateSessionAsync(serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false))
-            {
-                if (session == null)
-                {
-                    // can't create Session. RemoteHost seems not responding for some reasons such as OOP gone.
-                    return false;
-                }
+            using var session = await client.TryCreateSessionAsync(serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
 
-                await session.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
-                return true;
+            if (session == null)
+            {
+                // can't create Session. RemoteHost seems not responding for some reasons such as OOP gone.
+                return false;
             }
+
+            await session.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
         public static async Task<bool> TryRunRemoteAsync(
             this RemoteHostClient client, string serviceName, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (var connection = await client.TryCreateConnectionAsync(serviceName, cancellationToken).ConfigureAwait(false))
+            using var connection = await client.TryCreateConnectionAsync(serviceName, cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
-                if (connection == null)
-                {
-                    // can't create Connection. RemoteHost seems not responding for some reasons such as OOP gone.
-                    return false;
-                }
-
-                await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
-                return true;
+                // can't create Connection. RemoteHost seems not responding for some reasons such as OOP gone.
+                return false;
             }
+
+            await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
         /// <summary>
@@ -153,16 +150,15 @@ namespace Microsoft.CodeAnalysis.Remote
         public static async Task<T> TryRunRemoteAsync<T>(
             this RemoteHostClient client, string serviceName, Solution solution, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (var session = await client.TryCreateSessionAsync(serviceName, solution, cancellationToken).ConfigureAwait(false))
-            {
-                if (session == null)
-                {
-                    // can't create Session. RemoteHost seems not responding for some reasons such as OOP gone.
-                    return default;
-                }
+            using var session = await client.TryCreateSessionAsync(serviceName, solution, cancellationToken).ConfigureAwait(false);
 
-                return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            if (session == null)
+            {
+                // can't create Session. RemoteHost seems not responding for some reasons such as OOP gone.
+                return default;
             }
+
+            return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
         }
 
         public static Task<bool> TryRunCodeAnalysisRemoteAsync(
@@ -217,7 +213,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 await remoteHostClient.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, solution,
-                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken).ConfigureAwait(false);
+                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+                    new object[] { checksum, solution.WorkspaceVersion },
+                    cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -253,16 +251,15 @@ namespace Microsoft.CodeAnalysis.Remote
         public static async Task<bool> TryRunCodeAnalysisRemoteAsync(
             this Solution solution, object callbackTarget, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (var session = await TryCreateCodeAnalysisSessionAsync(solution, callbackTarget, cancellationToken).ConfigureAwait(false))
-            {
-                if (session == null)
-                {
-                    return false;
-                }
+            using var session = await TryCreateCodeAnalysisSessionAsync(solution, callbackTarget, cancellationToken).ConfigureAwait(false);
 
-                await session.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
-                return true;
+            if (session == null)
+            {
+                return false;
             }
+
+            await session.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
         /// <summary>
@@ -280,15 +277,13 @@ namespace Microsoft.CodeAnalysis.Remote
         public static async Task<T> TryRunCodeAnalysisRemoteAsync<T>(
             this Solution solution, object callbackTarget, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (var session = await TryCreateCodeAnalysisSessionAsync(solution, callbackTarget, cancellationToken).ConfigureAwait(false))
+            using var session = await TryCreateCodeAnalysisSessionAsync(solution, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (session == null)
             {
-                if (session == null)
-                {
-                    return default;
-                }
-
-                return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                return default;
             }
+
+            return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
         }
     }
 }

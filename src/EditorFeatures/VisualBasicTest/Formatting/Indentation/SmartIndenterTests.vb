@@ -1,21 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Microsoft.VisualStudio.Text.Operations
-Imports Microsoft.VisualStudio.Text.Projection
-Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     <[UseExportProvider]>
@@ -2591,7 +2581,7 @@ End Namespace
             AssertSmartIndent(
                 code,
                 indentationLine:=3,
-                expectedIndentation:=Nothing,
+                expectedIndentation:=0,
                 expectedBlankLineIndentation:=0,
                 indentStyle:=FormattingOptions.IndentStyle.None)
         End Sub
@@ -2982,8 +2972,7 @@ End Class
 
         Private Sub AssertSmartIndentIndentationInProjection(
                 markup As String,
-                expectedIndentation As Integer,
-                Optional expectedBlankLineIndentation As Integer? = Nothing)
+                expectedIndentation As Integer)
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents, LanguageNames.CSharp)
@@ -2999,9 +2988,7 @@ End Class
                 Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor)
 
                 TestIndentation(
-                    workspace, point.Value,
-                    expectedIndentation, expectedBlankLineIndentation,
-                    projectedDocument.GetTextView(), subjectDocument)
+                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
             End Using
         End Sub
 
@@ -3014,9 +3001,7 @@ End Class
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
 
-                TestIndentation(
-                    workspace, indentationLine,
-                    expectedIndentation, expectedBlankLineIndentation)
+                TestIndentation(workspace, indentationLine, expectedIndentation)
             End Using
         End Sub
     End Class

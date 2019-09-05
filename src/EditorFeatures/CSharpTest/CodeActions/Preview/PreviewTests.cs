@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
                 var codeAction = new MyCodeAction(context.Document);
-                context.RegisterRefactoring(codeAction);
+                context.RegisterRefactoring(codeAction, context.Span);
                 return Task.CompletedTask;
             }
 
             private class MyCodeAction : CodeAction
             {
-                private Document _oldDocument;
+                private readonly Document _oldDocument;
 
                 public MyCodeAction(Document document)
                 {
@@ -95,34 +95,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         public async Task TestPickTheRightPreview_NoPreference()
         {
             var parameters = new TestParameters();
-            using (var workspace = CreateWorkspaceFromOptions("class D {}", parameters))
-            {
-                GetMainDocumentAndPreviews(parameters, workspace, out var document, out var previews);
+            using var workspace = CreateWorkspaceFromOptions("class D {}", parameters);
 
-                // The changed document comes first.
-                var previewObjects = await previews.GetPreviewsAsync();
-                var preview = previewObjects[0];
-                Assert.NotNull(preview);
-                Assert.True(preview is DifferenceViewerPreview);
-                var diffView = preview as DifferenceViewerPreview;
-                var text = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
-                Assert.Equal(ChangedDocumentText, text);
-                diffView.Dispose();
+            GetMainDocumentAndPreviews(parameters, workspace, out var document, out var previews);
 
-                // Then comes the removed metadata reference.
-                preview = previewObjects[1];
-                Assert.NotNull(preview);
-                Assert.True(preview is string);
-                text = preview as string;
-                Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal);
+            // The changed document comes first.
+            var previewObjects = await previews.GetPreviewsAsync();
+            var preview = previewObjects[0];
+            Assert.NotNull(preview);
+            Assert.True(preview is DifferenceViewerPreview);
+            var diffView = preview as DifferenceViewerPreview;
+            var text = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
+            Assert.Equal(ChangedDocumentText, text);
+            diffView.Dispose();
 
-                // And finally the added project.
-                preview = previewObjects[2];
-                Assert.NotNull(preview);
-                Assert.True(preview is string);
-                text = preview as string;
-                Assert.Contains(AddedProjectName, text, StringComparison.Ordinal);
-            }
+            // Then comes the removed metadata reference.
+            preview = previewObjects[1];
+            Assert.NotNull(preview);
+            Assert.True(preview is string);
+            text = preview as string;
+            Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal);
+
+            // And finally the added project.
+            preview = previewObjects[2];
+            Assert.NotNull(preview);
+            Assert.True(preview is string);
+            text = preview as string;
+            Assert.Contains(AddedProjectName, text, StringComparison.Ordinal);
         }
     }
 }

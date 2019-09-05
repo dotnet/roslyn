@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             AnonymousObjectCreationExpressionSyntax,
             NamespaceDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public CSharpConvertAnonymousTypeToClassCodeRefactoringProvider()
+        {
+        }
+
         protected override ObjectCreationExpressionSyntax CreateObjectCreationExpression(
             NameSyntax nameNode, AnonymousObjectCreationExpressionSyntax anonymousObject)
         {

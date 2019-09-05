@@ -475,7 +475,7 @@ namespace N1 {
             {
                 var type = global.GetTypeMember("C1");
                 var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
-                return method.ReduceExtensionMethod(type);
+                return method.ReduceExtensionMethod(type, null!);
             };
 
             var format = new SymbolDisplayFormat(
@@ -540,7 +540,7 @@ namespace N1 {
             {
                 var type = global.GetTypeMember("C1");
                 var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
-                return method.ReduceExtensionMethod(type);
+                return method.ReduceExtensionMethod(type, null!);
             };
 
             var format = new SymbolDisplayFormat(
@@ -596,7 +596,7 @@ namespace N1 {
             {
                 var type = global.GetTypeMember("C1");
                 var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
-                return method.ReduceExtensionMethod(type);
+                return method.ReduceExtensionMethod(type, null!);
             };
 
             var format = new SymbolDisplayFormat(
@@ -5174,7 +5174,7 @@ class C
                 }
             }
 
-            public ImmutableArray<CodeAnalysis.NullableAnnotation> TypeArgumentsNullableAnnotations
+            public ImmutableArray<CodeAnalysis.NullableAnnotation> TypeArgumentNullableAnnotations
             {
                 get
                 {
@@ -5233,6 +5233,11 @@ class C
             }
 
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
+            {
+                throw new NotImplementedException();
+            }
+
+            public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
             {
                 throw new NotImplementedException();
             }
@@ -5323,6 +5328,11 @@ class C
             }
 
             public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, CodeAnalysis.NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
             {
                 throw new NotImplementedException();
             }

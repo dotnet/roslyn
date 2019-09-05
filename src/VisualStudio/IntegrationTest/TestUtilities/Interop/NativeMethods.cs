@@ -72,23 +72,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         public const uint WM_GETTEXT = 0x000D;
         public const uint WM_GETTEXTLENGTH = 0x000E;
 
-        [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 8)]
+        [StructLayout(LayoutKind.Sequential)]
         public struct INPUT
         {
-            [FieldOffset(0)]
             public uint Type;
+            public InputUnion Input;
+        }
 
-            [FieldOffset(4)]
+        [StructLayout(LayoutKind.Explicit)]
+        public struct InputUnion
+        {
+            [FieldOffset(0)]
             public MOUSEINPUT mi;
 
-            [FieldOffset(4)]
+            [FieldOffset(0)]
             public KEYBDINPUT ki;
 
-            [FieldOffset(4)]
+            [FieldOffset(0)]
             public HARDWAREINPUT hi;
         }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 8)]
+        [StructLayout(LayoutKind.Sequential)]
         public struct HARDWAREINPUT
         {
             public uint uMsg;
@@ -96,7 +100,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
             public ushort wParamH;
         }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 8)]
+        [StructLayout(LayoutKind.Sequential)]
         public struct KEYBDINPUT
         {
             public ushort wVk;
@@ -106,7 +110,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
             public IntPtr dwExtraInfo;
         }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 8)]
+        [StructLayout(LayoutKind.Sequential)]
         public struct MOUSEINPUT
         {
             public int dx;
@@ -188,6 +192,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 
         [DllImport(User32, CharSet = CharSet.Unicode)]
         public static extern uint MapVirtualKey(uint uCode, uint uMapType);
+
+        [DllImport(User32)]
+        public static extern IntPtr GetMessageExtraInfo();
 
         #endregion
     }

@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance();
                 var countTemp = CaptureExpressionInTempIfNeeded(rewrittenCount, sideEffects, locals, SynthesizedLocalKind.Spill);
                 var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
-                stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, spanType);
+                stackAllocNode = new BoundConvertedStackAllocExpression(
+                    stackAllocNode.Syntax, elementType, stackSize, initializerOpt, _compilation.CreatePointerTypeSymbol(elementType));
 
                 BoundExpression constructorCall;
                 if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor, out MethodSymbol spanConstructor))
@@ -63,12 +64,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: ErrorTypeSymbol.UnknownResultType);
                 }
 
+                // The stackalloc instruction requires that the evaluation stack contains only its parameter when executed.
+                // We arrange to clear the stack by wrapping it in a SpillSequence, which will cause pending computations
+                // to be spilled, and also by storing the result in a temporary local, so that the result does not get
+                // hoisted/spilled into some state machine.  If that temp local needs to be spilled that will result in an
+                // error.
                 _needsSpilling = true;
+                var tempAccess = _factory.StoreToTemp(constructorCall, out BoundAssignmentOperator tempAssignment, syntaxOpt: stackAllocNode.Syntax);
+                sideEffects.Add(tempAssignment);
+                locals.Add(tempAccess.LocalSymbol);
                 return new BoundSpillSequence(
                     syntax: stackAllocNode.Syntax,
                     locals: locals.ToImmutableAndFree(),
                     sideEffects: sideEffects.ToImmutableAndFree(),
-                    value: constructorCall,
+                    value: tempAccess,
                     type: spanType);
             }
             else

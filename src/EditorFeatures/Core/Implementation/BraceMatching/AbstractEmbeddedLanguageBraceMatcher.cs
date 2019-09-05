@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var languagesProvider = document.GetLanguageService<IEmbeddedLanguageEditorFeaturesProvider>();
+            var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
             if (languagesProvider != null)
             {
                 foreach (var language in languagesProvider.Languages)
                 {
-                    var braceMatcher = language.BraceMatcher;
+                    var braceMatcher = (language as IEmbeddedLanguageEditorFeatures)?.BraceMatcher;
                     if (braceMatcher != null)
                     {
                         var result = await braceMatcher.FindBracesAsync(

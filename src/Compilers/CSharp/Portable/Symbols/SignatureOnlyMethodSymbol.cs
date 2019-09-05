@@ -65,6 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations { get { return _returnType; } }
 
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get { return _parameters; } }

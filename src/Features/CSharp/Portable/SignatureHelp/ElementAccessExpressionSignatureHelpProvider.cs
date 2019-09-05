@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("ElementAccessExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
+        [ImportingConstructor]
+        public ElementAccessExpressionSignatureHelpProvider()
+        {
+        }
+
         public override bool IsTriggerCharacter(char ch)
         {
             return IsTriggerCharacterInternal(ch);
@@ -87,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             var accessibleIndexers = indexers.WhereAsArray(
-                m => m.IsAccessibleWithin(within, throughTypeOpt: expressionType));
+                m => m.IsAccessibleWithin(within, throughType: expressionType));
             if (!accessibleIndexers.Any())
             {
                 return null;
@@ -165,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 //   <expression>[
                 // or
                 //   <identifier>?[
-                ElementAccessExpressionSyntax elementAccessExpression = SyntaxFactory.ElementAccessExpression(expression, newBracketedArgumentList);
+                var elementAccessExpression = SyntaxFactory.ElementAccessExpression(expression, newBracketedArgumentList);
                 offset = expression.SpanStart - elementAccessExpression.SpanStart;
                 argumentList = elementAccessExpression.ArgumentList;
             }
@@ -212,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     ?? semanticModel.GetSymbolInfo(expression).GetAnySymbol().GetSymbolType();
             }
 
-            indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer)
+            indexers = semanticModel.LookupSymbols(position, expressionType.WithoutNullability(), WellKnownMemberNames.Indexer)
                 .OfType<IPropertySymbol>()
                 .ToImmutableArray();
             return true;

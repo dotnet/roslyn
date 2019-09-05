@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Completion
     [ExportOptionProvider, Shared]
     internal class CompletionOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public CompletionOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             CompletionOptions.HideAdvancedMembers,
             CompletionOptions.TriggerOnTyping,

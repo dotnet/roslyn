@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             this.Name = null;
 
-            string[] languages = new string[additionalLanguages.Length + 1];
+            var languages = new string[additionalLanguages.Length + 1];
             languages[0] = firstLanguage ?? throw new ArgumentNullException(nameof(firstLanguage));
-            for (int index = 0; index < additionalLanguages.Length; index++)
+            for (var index = 0; index < additionalLanguages.Length; index++)
             {
                 languages[index + 1] = additionalLanguages[index];
             }

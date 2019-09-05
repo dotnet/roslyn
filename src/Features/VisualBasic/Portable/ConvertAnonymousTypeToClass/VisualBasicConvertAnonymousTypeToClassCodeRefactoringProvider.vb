@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToClass
             AnonymousObjectCreationExpressionSyntax,
             NamespaceBlockSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function CreateObjectCreationExpression(
             nameNode As NameSyntax, anonymousObject As AnonymousObjectCreationExpressionSyntax) As ObjectCreationExpressionSyntax
 

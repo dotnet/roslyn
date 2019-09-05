@@ -16,12 +16,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.AnalyzerConfig;
-using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct BuildPaths
+    internal readonly struct BuildPaths
     {
         /// <summary>
         /// The path which contains the compiler binaries and response files.
@@ -486,6 +484,14 @@ namespace Microsoft.CodeAnalysis
             bool hasErrors = false;
             foreach (var diag in diagnostics)
             {
+                reportDiagnostic(diag);
+            }
+
+            return hasErrors;
+
+            // Local functions
+            void reportDiagnostic(Diagnostic diag)
+            {
                 if (_reportedDiagnostics.Contains(diag))
                 {
                     // TODO: This invariant fails (at least) in the case where we see a member declaration "x = 1;".
@@ -496,20 +502,38 @@ namespace Microsoft.CodeAnalysis
                     // we previously created.
                     //this assert isn't valid if we change the design to not bail out after each phase.
                     //System.Diagnostics.Debug.Assert(diag.Severity != DiagnosticSeverity.Error);
-                    continue;
+                    return;
                 }
                 else if (diag.Severity == DiagnosticSeverity.Hidden)
                 {
                     // Not reported from the command-line compiler.
-                    continue;
+                    return;
                 }
 
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
                 errorLoggerOpt?.LogDiagnostic(diag);
+
+                // If the diagnostic was suppressed by one or more DiagnosticSuppressor(s), then we report info diagnostics for each suppression
+                // so that the suppression information is available in the binary logs and verbose build logs.
+                if (diag.ProgrammaticSuppressionInfo != null)
+                {
+                    foreach (var (id, justification) in diag.ProgrammaticSuppressionInfo.Suppressions)
+                    {
+                        var suppressionDiag = new SuppressionDiagnostic(diag, id, justification);
+                        if (_reportedDiagnostics.Add(suppressionDiag))
+                        {
+                            PrintError(suppressionDiag, consoleOutput);
+                        }
+                    }
+
+                    _reportedDiagnostics.Add(diag);
+                    return;
+                }
+
                 if (diag.IsSuppressed)
                 {
-                    continue;
+                    return;
                 }
 
                 // Diagnostics that aren't suppressed will be reported to the console output and, if they are errors,
@@ -523,8 +547,6 @@ namespace Microsoft.CodeAnalysis
 
                 _reportedDiagnostics.Add(diag);
             }
-
-            return hasErrors;
         }
 
         /// <summary>Returns true if there were any errors, false otherwise.</summary>
@@ -536,18 +558,16 @@ namespace Microsoft.CodeAnalysis
             => ReportDiagnostics(diagnostics.Select(info => Diagnostic.Create(info)), consoleOutput, errorLoggerOpt);
 
         /// <summary>
-        /// Returns true if there are any diagnostics in the bag which have error severity and are
-        /// not marked "suppressed". Note: does NOT do filtering, so it may return false if a
-        /// non-error diagnostic were later elevated to an error through filtering (e.g., through
-        /// warn-as-error). This is meant to be a check if there are any "real" errors, in the bag
-        /// since diagnostics with default "error" severity can never be suppressed or reduced
-        /// below error severity.
+        /// Returns true if there are any error diagnostics in the bag which cannot be suppressed and
+        /// are guaranteed to break the build.
+        /// Only diagnostics which have default severity error and are tagged as NotConfigurable fall in this bucket.
+        /// This includes all compiler error diagnostics and specific analyzer error diagnostics that are marked as not configurable by the analyzer author.
         /// </summary>
-        internal static bool HasUnsuppressedErrors(DiagnosticBag diagnostics)
+        internal static bool HasUnsuppressableErrors(DiagnosticBag diagnostics)
         {
             foreach (var diag in diagnostics.AsEnumerable())
             {
-                if (IsReportedError(diag))
+                if (diag.IsUnsuppressableError())
                 {
                     return true;
                 }
@@ -556,11 +576,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns true if the diagnostic is an error that should be reported.
+        /// Returns true if the bag has any diagnostics with effective Severity=Error. Also returns true for warnings or informationals
+        /// or warnings promoted to error via /warnaserror which are not suppressed.
         /// </summary>
-        private static bool IsReportedError(Diagnostic diagnostic)
+        internal static bool HasUnsuppressedErrors(DiagnosticBag diagnostics)
         {
-            return (diagnostic.Severity == DiagnosticSeverity.Error) && !diagnostic.IsSuppressed;
+            foreach (Diagnostic diagnostic in diagnostics.AsEnumerable())
+            {
+                if (diagnostic.IsUnsuppressedError)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected virtual void PrintError(Diagnostic diagnostic, TextWriter consoleOutput)
@@ -826,7 +855,7 @@ namespace Microsoft.CodeAnalysis
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (HasUnsuppressedErrors(diagnostics))
+            if (HasUnsuppressableErrors(diagnostics))
             {
                 return;
             }
@@ -874,7 +903,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (HasUnsuppressedErrors(diagnostics))
+            if (HasUnsuppressableErrors(diagnostics))
             {
                 return;
             }
@@ -882,8 +911,8 @@ namespace Microsoft.CodeAnalysis
             cancellationToken.ThrowIfCancellationRequested();
 
             string outputName = GetOutputFileName(compilation, cancellationToken);
-            var finalPeFilePath = Path.Combine(Arguments.OutputDirectory, outputName);
-            var finalPdbFilePath = Arguments.PdbPath ?? Path.ChangeExtension(finalPeFilePath, ".pdb");
+            var finalPeFilePath = Arguments.GetOutputFilePath(outputName);
+            var finalPdbFilePath = Arguments.GetPdbFilePath(outputName);
             var finalXmlFilePath = Arguments.DocumentationPath;
 
             NoThrowStreamDisposer sourceLinkStreamDisposerOpt = null;
@@ -947,6 +976,22 @@ namespace Microsoft.CodeAnalysis
                             filterOpt: null,
                             cancellationToken: cancellationToken);
 
+                        // Prior to generating the xml documentation file,
+                        // we apply programmatic suppressions for compiler warnings from diagnostic suppressors.
+                        // If there are still any unsuppressed errors or warnings escalated to errors
+                        // then we bail out from generating the documentation file.
+                        // This maintains the compiler invariant that xml documentation file should not be
+                        // generated in presence of diagnostics that break the build.
+                        if (analyzerDriver != null && !diagnostics.IsEmptyWithoutResolution)
+                        {
+                            analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                        }
+
+                        if (HasUnsuppressedErrors(diagnostics))
+                        {
+                            success = false;
+                        }
+
                         if (success)
                         {
                             // NOTE: as native compiler does, we generate the documentation file
@@ -986,7 +1031,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 using (var win32ResourceStreamOpt = GetWin32Resources(MessageProvider, Arguments, compilation, diagnostics))
                                 {
-                                    if (HasUnsuppressedErrors(diagnostics))
+                                    if (HasUnsuppressableErrors(diagnostics))
                                     {
                                         return;
                                     }
@@ -1022,9 +1067,11 @@ namespace Microsoft.CodeAnalysis
                             // TryComplete, we may miss diagnostics.
                             var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
                             diagnostics.AddRange(hostDiagnostics);
-                            if (hostDiagnostics.Any(IsReportedError))
+
+                            if (!diagnostics.IsEmptyWithoutResolution)
                             {
-                                success = false;
+                                // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
+                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
                             }
                         }
                     }
@@ -1033,12 +1080,15 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt.CompilationFinished();
                     }
 
+                    if (HasUnsuppressedErrors(diagnostics))
+                    {
+                        success = false;
+                    }
+
                     if (success)
                     {
-                        bool emitPdbFile = Arguments.EmitPdb && emitOptions.DebugInformationFormat != Emit.DebugInformationFormat.Embedded;
-
                         var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
-                        var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
+                        var pdbStreamProviderOpt = Arguments.EmitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
 
                         string finalRefPeFilePath = Arguments.OutputRefFilePath;
                         var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
@@ -1082,7 +1132,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (HasUnsuppressedErrors(diagnostics))
+                if (HasUnsuppressableErrors(diagnostics))
                 {
                     return;
                 }
@@ -1102,7 +1152,7 @@ namespace Microsoft.CodeAnalysis
             if (analyzerExceptionDiagnostics != null)
             {
                 diagnostics.AddRange(analyzerExceptionDiagnostics);
-                if (HasUnsuppressedErrors(analyzerExceptionDiagnostics))
+                if (HasUnsuppressableErrors(analyzerExceptionDiagnostics))
                 {
                     return;
                 }

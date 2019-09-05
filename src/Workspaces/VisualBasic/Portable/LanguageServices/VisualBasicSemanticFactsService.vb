@@ -16,6 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicSemanticFactsServiceFactory
         Implements ILanguageServiceFactory
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return VisualBasicSemanticFactsService.Instance
         End Function
@@ -324,8 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.FirstAncestorOrSelf(Of NameOfExpressionSyntax) IsNot Nothing
         End Function
 
-        Private Function ISemanticFactsService_GenerateUniqueName1(
-            semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, filter As Func(Of ISymbol, Boolean), usedNames As IEnumerable(Of String), cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName
+        Private Function ISemanticFactsService_GenerateUniqueName(semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, filter As Func(Of ISymbol, Boolean), usedNames As IEnumerable(Of String), cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName
             Return MyBase.GenerateUniqueName(semanticModel, location, containerOpt, baseName, filter, usedNames, cancellationToken)
         End Function
     End Class

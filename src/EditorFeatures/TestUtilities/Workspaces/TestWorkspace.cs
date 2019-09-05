@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IList<TestHostProject> Projects { get; }
         public IList<TestHostDocument> Documents { get; }
         public IList<TestHostDocument> AdditionalDocuments { get; }
+        public IList<TestHostDocument> AnalyzerConfigDocuments { get; }
         public IList<TestHostDocument> ProjectionDocuments { get; }
 
         private readonly BackgroundCompiler _backgroundCompiler;
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.Projects = new List<TestHostProject>();
             this.Documents = new List<TestHostDocument>();
             this.AdditionalDocuments = new List<TestHostDocument>();
+            this.AnalyzerConfigDocuments = new List<TestHostDocument>();
             this.ProjectionDocuments = new List<TestHostDocument>();
 
             this.CanApplyChangeDocument = true;
@@ -108,6 +110,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
+            foreach (var document in AnalyzerConfigDocuments)
+            {
+                document.CloseTextView();
+            }
+
             foreach (var document in ProjectionDocuments)
             {
                 document.CloseTextView();
@@ -157,6 +164,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     this.AdditionalDocuments.Add(doc);
                 }
+
+                foreach (var doc in project.AnalyzerConfigDocuments)
+                {
+                    this.AnalyzerConfigDocuments.Add(doc);
+                }
             }
 
             this.OnProjectAdded(project.ToProjectInfo());
@@ -204,7 +216,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public DocumentId GetDocumentId(TestHostDocument hostDocument)
         {
-            if (!Documents.Contains(hostDocument) && !AdditionalDocuments.Contains(hostDocument))
+            if (!Documents.Contains(hostDocument) &&
+                !AdditionalDocuments.Contains(hostDocument) &&
+                !AnalyzerConfigDocuments.Contains(hostDocument))
             {
                 return null;
             }
@@ -220,6 +234,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public TestHostDocument GetTestAdditionalDocument(DocumentId documentId)
         {
             return this.AdditionalDocuments.FirstOrDefault(d => d.Id == documentId);
+        }
+
+        public TestHostDocument GetTestAnalyzerConfigDocument(DocumentId documentId)
+        {
+            return this.AnalyzerConfigDocuments.FirstOrDefault(d => d.Id == documentId);
         }
 
         public TestHostProject GetTestProject(DocumentId documentId)
@@ -245,10 +264,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 case ApplyChangesKind.RemoveDocument:
                 case ApplyChangesKind.AddAdditionalDocument:
                 case ApplyChangesKind.RemoveAdditionalDocument:
+                case ApplyChangesKind.AddAnalyzerConfigDocument:
+                case ApplyChangesKind.RemoveAnalyzerConfigDocument:
                     return true;
 
                 case ApplyChangesKind.ChangeDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
+                case ApplyChangesKind.ChangeAnalyzerConfigDocument:
+                case ApplyChangesKind.ChangeDocumentInfo:
                     return this.CanApplyChangeDocument;
 
                 case ApplyChangesKind.AddProjectReference:
@@ -304,6 +327,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var hostDocument = this.GetTestAdditionalDocument(documentId);
             hostProject.RemoveAdditionalDocument(hostDocument);
             this.OnAdditionalDocumentRemoved(documentId);
+        }
+
+        protected override void ApplyAnalyzerConfigDocumentTextChanged(DocumentId document, SourceText newText)
+        {
+            var testDocument = this.GetTestAnalyzerConfigDocument(document);
+            testDocument.Update(newText);
+        }
+
+        protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
+        {
+            var hostProject = this.GetTestProject(info.Id.ProjectId);
+            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id);
+            hostProject.AddAnalyzerConfigDocument(hostDocument);
+            this.OnAnalyzerConfigDocumentAdded(hostDocument.ToDocumentInfo());
+        }
+
+        protected override void ApplyAnalyzerConfigDocumentRemoved(DocumentId documentId)
+        {
+            var hostProject = this.GetTestProject(documentId.ProjectId);
+            var hostDocument = this.GetTestAnalyzerConfigDocument(documentId);
+            hostProject.RemoveAnalyzerConfigDocument(hostDocument);
+            this.OnAnalyzerConfigDocumentRemoved(documentId);
         }
 
         internal override void SetDocumentContext(DocumentId documentId)
@@ -371,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IProjectionEditResolver editResolver = null)
         {
             GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments,
-                out var projectionBufferSpans, out Dictionary<string, ImmutableArray<TextSpan>> mappedSpans, out var mappedCaretLocation);
+                out var projectionBufferSpans, out var mappedSpans, out var mappedCaretLocation);
 
             var projectionBufferFactory = this.GetService<IProjectionBufferFactoryService>();
             var projectionBuffer = projectionBufferFactory.CreateProjectionBuffer(editResolver, projectionBufferSpans, options);
@@ -533,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var tempMappedMarkupSpans = new Dictionary<string, ArrayBuilder<TextSpan>>();
 
-            foreach (string key in markupSpans.Keys)
+            foreach (var key in markupSpans.Keys)
             {
                 tempMappedMarkupSpans[key] = ArrayBuilder<TextSpan>.GetInstance();
                 foreach (var markupSpan in markupSpans[key])
@@ -607,6 +652,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
 
+        public void ChangeAnalyzerConfigDocument(DocumentId documentId, SourceText text)
+        {
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(oldSolution.WithAnalyzerConfigDocumentText(documentId, text));
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
+        }
+
         public void ChangeProject(ProjectId projectId, Solution solution)
         {
             var oldSolution = this.CurrentSolution;
@@ -627,5 +680,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
+
+        public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
+            => true;
     }
 }

@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Calling a static method defined on an outer class via its simple name.
                         NamedTypeSymbol firstContainer = node.ApplicableMethods.First().ContainingType;
-                        Debug.Assert(node.ApplicableMethods.All(m => m.IsStatic && TypeSymbol.Equals(m.ContainingType, firstContainer, TypeCompareKind.ConsiderEverything2)));
+                        Debug.Assert(node.ApplicableMethods.All(m => !m.RequiresInstanceReceiver && TypeSymbol.Equals(m.ContainingType, firstContainer, TypeCompareKind.ConsiderEverything2)));
 
                         loweredReceiver = new BoundTypeExpression(node.Syntax, null, firstContainer);
                     }
-                    else if (hasImplicitReceiver && _factory.TopLevelMethod.IsStatic)
+                    else if (hasImplicitReceiver && !_factory.TopLevelMethod.RequiresInstanceReceiver)
                     {
                         // Calling a static method defined on the current class via its simple name.
                         loweredReceiver = new BoundTypeExpression(node.Syntax, null, _factory.CurrentType);
@@ -315,7 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.AnonymousFunction:
                                 case ConversionKind.ImplicitConstant:
                                 case ConversionKind.MethodGroup:
-                                case ConversionKind.DefaultOrNullLiteral:
+                                case ConversionKind.NullLiteral:
+                                case ConversionKind.DefaultLiteral:
                                     return true;
 
                                 case ConversionKind.Boxing:

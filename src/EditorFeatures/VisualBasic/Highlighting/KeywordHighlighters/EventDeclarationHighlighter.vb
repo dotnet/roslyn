@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 Imports Microsoft.CodeAnalysis.Text
@@ -9,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     <ExportHighlighter(LanguageNames.VisualBasic)>
     Friend Class EventDeclarationHighlighter
         Inherits AbstractKeywordHighlighter(Of EventStatementSyntax)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function GetHighlights(eventDeclaration As EventStatementSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
             ' If the ancestor is not a event block, treat this as a single line event.

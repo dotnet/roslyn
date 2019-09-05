@@ -35,7 +35,7 @@ usage()
   echo "  --nodeReuse <value>      Sets nodereuse msbuild parameter ('true' or 'false')"
   echo "  --warnAsError <value>    Sets warnaserror msbuild parameter ('true' or 'false')"
   echo ""
-  echo "Command line arguments starting with '/p:' are passed through to MSBuild."
+  echo "Command line arguments not listed above are passed thru to msbuild."
   echo "Arguments can also be passed in with a single hyphen."
 }
 
@@ -66,6 +66,7 @@ ci=false
 warn_as_error=true
 node_reuse=true
 binary_log=false
+pipelines_log=false
 
 projects=''
 configuration='Debug'
@@ -91,6 +92,9 @@ while [[ $# > 0 ]]; do
       ;;
     -binarylog|-bl)
       binary_log=true
+      ;;
+    -pipelineslog|-pl)
+      pipelines_log=true
       ;;
     -restore|-r)
       restore=true
@@ -137,22 +141,8 @@ while [[ $# > 0 ]]; do
       node_reuse=$2
       shift
       ;;
-    -p:*|/p:*)
-      properties="$properties $1"
-      ;;
-    -m:*|/m:*)
-      properties="$properties $1"
-      ;;
-    -bl:*|/bl:*)
-      properties="$properties $1"
-      ;;
-    -dl:*|/dl:*)
-      properties="$properties $1"
-      ;;
     *)
-      echo "Invalid argument: $1"
-      usage
-      exit 1
+      properties="$properties $1"
       ;;
   esac
 
@@ -160,6 +150,7 @@ while [[ $# > 0 ]]; do
 done
 
 if [[ "$ci" == true ]]; then
+  pipelines_log=true
   binary_log=true
   node_reuse=false
 fi
@@ -216,6 +207,10 @@ fi
 # Remove once repos are updated.
 if [[ -n "${useInstalledDotNetCli:-}" ]]; then
   use_installed_dotnet_cli="$useInstalledDotNetCli"
+fi
+
+if [[ "$restore" == true && -z ${DisableNativeToolsetInstalls:-} ]]; then
+  InitializeNativeTools
 fi
 
 Build

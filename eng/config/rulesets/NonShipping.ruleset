@@ -32,6 +32,12 @@
     <!-- DiagnosticId must be unique across analyzers - suppress for non-shipping/test projects -->
     <Rule Id="RS1019" Action="None" />
 
+    <!-- Configure generated code analysis - suppress for non-shipping/test projects -->
+    <Rule Id="RS1025" Action="None" />
+
+    <!-- Enable concurrent execution - suppress for non-shipping/test projects -->
+    <Rule Id="RS1026" Action="None" />
+
     <!-- Do not use generic CodeAction.Create to create CodeAction - not useful for tests -->
     <Rule Id="RS0005" Action="None" />
   </Rules>

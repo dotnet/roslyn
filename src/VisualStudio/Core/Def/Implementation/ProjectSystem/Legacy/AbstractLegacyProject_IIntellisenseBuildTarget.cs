@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -44,15 +45,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             Logger.Log(FunctionId.IntellisenseBuild_Failed, KeyValueLogMessage.Create(m => m["Reason"] = reason ?? string.Empty));
 
             return new DiagnosticData(
-                IDEDiagnosticIds.IntellisenseBuildFailedDiagnosticId,
-                FeaturesResources.Roslyn_HostError,
-                ServicesVSResources.Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled,
-                ServicesVSResources.ResourceManager.GetString(nameof(ServicesVSResources.Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled), CodeAnalysis.Diagnostics.Extensions.s_USCultureInfo),
-                DiagnosticSeverity.Warning,
+                id: IDEDiagnosticIds.IntellisenseBuildFailedDiagnosticId,
+                category: FeaturesResources.Roslyn_HostError,
+                message: ServicesVSResources.Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled,
+                enuMessageForBingSearch: ServicesVSResources.ResourceManager.GetString(nameof(ServicesVSResources.Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled), CodeAnalysis.Diagnostics.Extensions.s_USCultureInfo),
+                severity: DiagnosticSeverity.Warning,
+                defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 warningLevel: 0,
-                workspace: Workspace,
                 projectId: VisualStudioProject.Id,
+                customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty,
                 title: ServicesVSResources.Project_loading_failed,
                 description: GetDescription(reason),
                 helpLink: "http://go.microsoft.com/fwlink/p/?LinkID=734719");

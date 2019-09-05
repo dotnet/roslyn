@@ -1091,13 +1091,11 @@ class C
     }
 }";
             var testParameters = new TestParameters(retainNonFixableDiagnostics: true);
-            using (var workspace = CreateWorkspaceFromOptions(source, testParameters))
-            {
-                var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
-                diagnostics.Verify(Diagnostic("IDE0052", "P").WithLocation(3, 17));
-                var expectedMessage = string.Format(FeaturesResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P");
-                Assert.Equal(expectedMessage, diagnostics.Single().GetMessage());
-            }
+            using var workspace = CreateWorkspaceFromOptions(source, testParameters);
+            var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
+            diagnostics.Verify(Diagnostic("IDE0052", "P").WithLocation(3, 17));
+            var expectedMessage = string.Format(FeaturesResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P");
+            Assert.Equal(expectedMessage, diagnostics.Single().GetMessage());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -2348,6 +2346,18 @@ public class MyClass
     public void M() => _field ??= new MyClass();
 }", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)),
     expected: Diagnostic("IDE0052"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(37213, "https://github.com/dotnet/roslyn/issues/37213")]
+        public async Task UsedPrivateExtensionMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"public static class B
+{
+    public static void PublicExtensionMethod(this string s) => s.PrivateExtensionMethod();
+    private static void [|PrivateExtensionMethod|](this string s) { }
+}");
         }
     }
 }

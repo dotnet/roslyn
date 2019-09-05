@@ -9,6 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommentSelection
     Friend Class VisualBasicCommentSelectionService
         Inherits AbstractCommentSelectionService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property SingleLineCommentString As String = "'"
 
         Public Overrides ReadOnly Property SupportsBlockComment As Boolean = False

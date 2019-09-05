@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>net472;netcoreapp3.0</TargetFrameworks>
     <RootNamespace></RootNamespace>
 
     <!-- A zillion test failures + crash. See https://github.com/mono/mono/issues/10756. -->
@@ -32,4 +32,5 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
+  <Import Project="$(RepositoryEngineeringDir)targets\ILTools.targets" />
 </Project>

@@ -20,18 +20,6 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-      <Pack>false</Pack>
-    </Content>
-    <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.amd64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-      <Pack>false</Pack>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\..\Shared\DesktopShim.cs" />
     <Compile Update="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -47,9 +35,7 @@
       Note: PrivateAssets="ContentFiles" ensures that projects referencing Microsoft.CodeAnalysis.Common package 
       will import everything but content files from Microsoft.CodeAnalysis.Analyzers, specifically, analyzers.
     -->
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="ContentFiles" />
-
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" PrivateAssets="ContentFiles" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
@@ -75,7 +61,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.CSharp.EnC.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35071" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests" />
@@ -84,7 +69,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.EnC.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35071" />
     <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.IOperation.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests" />

@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     [ExportOptionProvider, Shared]
     internal class SignatureHelpOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public SignatureHelpOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             SignatureHelpOptions.ShowSignatureHelp);
     }

@@ -153,10 +153,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(IsNullableEnabled(questionToken), questionToken.GetLocation(), diagnostics);
+                                LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(AreNullableAnnotationsEnabled(questionToken), questionToken.GetLocation(), diagnostics);
                             }
                         }
-                        else if (isForOverride || IsNullableEnabled(constraintSyntax.ClassOrStructKeyword))
+                        else if (isForOverride || AreNullableAnnotationsEnabled(constraintSyntax.ClassOrStructKeyword))
                         {
                             constraints |= TypeParameterConstraintKind.NotNullableReferenceType;
                         }
@@ -238,22 +238,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                             }
 
-                            var type = BindTypeOrUnmanagedKeyword(typeSyntax, diagnostics, out var isUnmanaged);
+                            var type = BindTypeOrConstraintKeyword(typeSyntax, diagnostics, out ConstraintContextualKeyword keyword);
 
-                            if (isUnmanaged)
+                            switch (keyword)
                             {
-                                if (constraints != 0 || constraintTypes.Any())
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, typeSyntax.GetLocation());
+                                case ConstraintContextualKeyword.Unmanaged:
+                                    if (i != 0)
+                                    {
+                                        diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, typeSyntax.GetLocation());
+                                        continue;
+                                    }
+
+                                    // This should produce diagnostics if the types are missing
+                                    GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType, diagnostics, typeSyntax);
+                                    GetSpecialType(SpecialType.System_ValueType, diagnostics, typeSyntax);
+
+                                    constraints |= TypeParameterConstraintKind.Unmanaged;
                                     continue;
-                                }
 
-                                // This should produce diagnostics if the types are missing
-                                GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType, diagnostics, typeSyntax);
-                                GetSpecialType(SpecialType.System_ValueType, diagnostics, typeSyntax);
+                                case ConstraintContextualKeyword.NotNull:
+                                    if (i != 0)
+                                    {
+                                        diagnostics.Add(ErrorCode.ERR_NotNullConstraintMustBeFirst, typeSyntax.GetLocation());
+                                    }
 
-                                constraints |= TypeParameterConstraintKind.Unmanaged;
-                                continue;
+                                    constraints |= TypeParameterConstraintKind.NotNull;
+                                    continue;
+
+                                case ConstraintContextualKeyword.None:
+                                    break;
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(keyword);
                             }
 
                             constraintTypes.Add(type);
@@ -265,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!isForOverride && !hasTypeLikeConstraint && !IsNullableEnabled(typeParameterSyntax.Identifier))
+            if (!isForOverride && !hasTypeLikeConstraint && !AreNullableAnnotationsEnabled(typeParameterSyntax.Identifier))
             {
                 constraints |= TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType;
             }
@@ -299,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeParameterConstraintClause GetDefaultTypeParameterConstraintClause(TypeParameterSyntax typeParameterSyntax, bool isForOverride = false)
         {
-            return isForOverride || IsNullableEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.ObliviousNullabilityIfReferenceType;
+            return isForOverride || AreNullableAnnotationsEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.ObliviousNullabilityIfReferenceType;
         }
 
         /// <summary>
@@ -468,16 +483,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SpecialType.System_Object:
-                    if (typeWithAnnotations.NullableAnnotation.IsAnnotated())
-                    {
-                        // "Constraint cannot be special class '{0}'"
-                        Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, typeWithAnnotations);
-                        return false;
-                    }
-
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureObjectGenericTypeConstraint, diagnostics);
-                    break;
-
                 case SpecialType.System_ValueType:
                 case SpecialType.System_Array:
                     // "Constraint cannot be special class '{0}'"

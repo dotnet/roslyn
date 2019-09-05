@@ -8,10 +8,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
     {
         private partial class State
         {
-            private bool IsInAttributeContext(
-                CancellationToken cancellationToken)
+            private bool IsInAttributeContext()
             {
-                if (!_service.IsInAttributeArgumentInitializer(this.Expression))
+                if (!_service.IsInAttributeArgumentInitializer(Expression))
                 {
                     return false;
                 }

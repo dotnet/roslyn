@@ -17,6 +17,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceService(typeof(IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService : IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService
     {
+        [ImportingConstructor]
+        public VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService()
+        {
+        }
+
         public CodeActionOperation CreateAddMetadataReferenceOperation(ProjectId projectId, AssemblyIdentity assemblyIdentity)
         {
             if (projectId == null)

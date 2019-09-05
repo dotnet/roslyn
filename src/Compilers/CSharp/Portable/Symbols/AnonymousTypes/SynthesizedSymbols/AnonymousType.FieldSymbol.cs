@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return GeneratedNames.MakeAnonymousTypeBackingFieldName(_property.Name); }
             }
 
+            public override FlowAnalysisAnnotations FlowAnalysisAnnotations
+                => FlowAnalysisAnnotations.None;
+
             internal override bool HasSpecialName
             {
                 get { return false; }

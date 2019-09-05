@@ -30,15 +30,12 @@ class C : IAsyncEnumerable<int>
 }";
             var expected = new[]
             {
-                // (7,9): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,9): error CS8652: The feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await foreach (int i in new C())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("async streams").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(7, 9)
             };
 
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(expected);
-
-            comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularDefault);
             comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularPreview);
@@ -720,6 +717,7 @@ class C
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
+            Assert.True(info.IsAsynchronous);
             Assert.Equal("C.Enumerator C.GetAsyncEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<System.Boolean> C.Enumerator.MoveNextAsync()", info.MoveNextMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Enumerator.Current { get; }", info.CurrentProperty.ToTestDisplayString());
@@ -2501,7 +2499,7 @@ public class C
     IL_000c:  br         IL_009a
     // sequence point: {
     IL_0011:  nop
-    // sequence point: foreach
+    // sequence point: await foreach
     IL_0012:  nop
     // sequence point: new C()
     IL_0013:  ldarg.0
@@ -4211,7 +4209,7 @@ class C
     IL_0012:  ldarg.0
     IL_0013:  newobj     ""Collection<int>..ctor()""
     IL_0018:  stfld      ""ICollection<int> C.<Main>d__0.<c>5__1""
-    // sequence point: foreach
+    // sequence point: await foreach
     IL_001d:  nop
     // sequence point: c
     IL_001e:  ldarg.0

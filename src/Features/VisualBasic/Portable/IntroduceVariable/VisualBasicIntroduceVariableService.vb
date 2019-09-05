@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     Partial Friend Class VisualBasicIntroduceVariableService
         Inherits AbstractIntroduceVariableService(Of VisualBasicIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeBlockSyntax, QueryExpressionSyntax, NameSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetContainingExecutableBlocks(expression As ExpressionSyntax) As IEnumerable(Of SyntaxNode)
             Return expression.GetContainingExecutableBlocks()
         End Function

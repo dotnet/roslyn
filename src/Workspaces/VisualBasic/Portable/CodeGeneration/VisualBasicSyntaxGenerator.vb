@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Friend Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
         Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
 
@@ -366,6 +370,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function ThrowExpression(expression As SyntaxNode) As SyntaxNode
             Throw New NotSupportedException("ThrowExpressions are not supported in Visual Basic")
+        End Function
+
+        Friend Overrides Function SupportsThrowExpression() As Boolean
+            Return False
         End Function
 
         Public Overrides Function NameExpression(namespaceOrTypeSymbol As INamespaceOrTypeSymbol) As SyntaxNode
@@ -1650,7 +1658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ElseIf existingAttributes.Count > 0 Then
                 Return Me.InsertNodesAfter(declaration, existingAttributes(existingAttributes.Count - 1), newAttributes)
             Else
-                Dim lists = Me.GetAttributeLists(declaration)
+                Dim lists = GetAttributeLists(declaration)
                 Return Me.WithAttributeLists(declaration, lists.AddRange(AsAttributeLists(attributes)))
             End If
         End Function
@@ -1743,7 +1751,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Private Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
+        Friend Shared Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
             Select Case node.Kind
                 Case SyntaxKind.CompilationUnit
                     Return SyntaxFactory.List(DirectCast(node, CompilationUnitSyntax).Attributes.SelectMany(Function(s) s.AttributeLists))

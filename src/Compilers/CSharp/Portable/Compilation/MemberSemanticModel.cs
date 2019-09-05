@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -26,6 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The bound nodes associated with a syntax node, from highest in the tree to lowest.
         private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
         private Dictionary<SyntaxNode, BoundStatement> _lazyGuardedSynthesizedStatementsMap;
+        private ConcurrentDictionary<LocalSymbol, LocalSymbol> _analyzedVariableTypesOpt;
+        private NullableWalker.SnapshotManager _lazySnapshotManager;
+        /// <summary>
+        /// Only used when this is a speculative semantic model.
+        /// </summary>
+        private readonly NullableWalker.SnapshotManager _parentSnapshotManagerOpt;
 
         internal readonly Binder RootBinder;
 
@@ -46,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder rootBinder,
             SyntaxTreeSemanticModel containingSemanticModelOpt,
             SyntaxTreeSemanticModel parentSemanticModelOpt,
+            NullableWalker.SnapshotManager snapshotManagerOpt,
             int speculatedPosition)
         {
             Debug.Assert(root != null);
@@ -53,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(parentSemanticModelOpt == null ^ containingSemanticModelOpt == null);
             Debug.Assert(containingSemanticModelOpt == null || !containingSemanticModelOpt.IsSpeculativeSemanticModel);
             Debug.Assert(parentSemanticModelOpt == null || !parentSemanticModelOpt.IsSpeculativeSemanticModel, CSharpResources.ChainingSpeculativeModelIsNotSupported);
+            Debug.Assert(snapshotManagerOpt == null || parentSemanticModelOpt != null);
 
             _root = root;
             _memberSymbol = memberSymbol;
@@ -60,9 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _containingSemanticModelOpt = containingSemanticModelOpt;
             _parentSemanticModelOpt = parentSemanticModelOpt;
+            _parentSnapshotManagerOpt = snapshotManagerOpt;
             _speculatedPosition = speculatedPosition;
 
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
+            if (Compilation.NullableSemanticAnalysisEnabled)
+            {
+                _analyzedVariableTypesOpt = new ConcurrentDictionary<LocalSymbol, LocalSymbol>();
+            }
         }
 
         public override CSharpCompilation Compilation
@@ -131,6 +145,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsInTree(node) ? this : null;
         }
 
+        /// <remarks>
+        /// This will cause the bound node cache to be populated if nullable semantic analysis is enabled.
+        /// </remarks>
+        protected virtual NullableWalker.SnapshotManager GetSnapshotManager()
+        {
+            EnsureNullabilityAnalysisPerformedIfNecessary();
+            Debug.Assert(_lazySnapshotManager is object || !Compilation.NullableSemanticAnalysisEnabled);
+            return _lazySnapshotManager;
+        }
+
         internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel)
         {
             var expression = SyntaxFactory.GetStandaloneExpression(type);
@@ -138,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = this.GetSpeculativeBinder(position, expression, bindingOption);
             if (binder != null)
             {
-                speculativeModel = new SpeculativeMemberSemanticModel(parentModel, _memberSymbol, type, binder, position);
+                speculativeModel = new SpeculativeMemberSemanticModel(parentModel, _memberSymbol, type, binder, GetSnapshotManager(), position);
                 return true;
             }
 
@@ -151,6 +175,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // crefs can never legally appear within members.
             speculativeModel = null;
             return false;
+        }
+
+        internal override BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
+            if (!Compilation.NullableSemanticAnalysisEnabled || bindingOption != SpeculativeBindingOption.BindAsExpression)
+            {
+                return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
+            }
+
+            crefSymbols = default;
+            position = CheckAndAdjustPosition(position);
+            expression = SyntaxFactory.GetStandaloneExpression(expression);
+            binder = GetEnclosingBinder(position);
+            var boundRoot = binder.BindExpression(expression, _ignoredDiagnostics);
+            return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, GetSnapshotManager(), takeNewSnapshots: false, newSnapshots: out _);
         }
 
         private Binder GetEnclosingBinderInternalWithinRoot(SyntaxNode node, int position)
@@ -616,12 +660,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (local.IdentifierToken == declaredIdentifier)
                     {
-                        return local;
+                        return GetAdjustedLocalSymbol(local, declarationSyntax.SpanStart);
                     }
                 }
             }
 
             return null;
+        }
+
+        internal override LocalSymbol GetAdjustedLocalSymbol(LocalSymbol local, int position)
+        {
+            Debug.Assert(local is SourceLocalSymbol);
+            LocalSymbol adjustedLocal;
+            if (Compilation.NullableSemanticAnalysisEnabled)
+            {
+                if (!_analyzedVariableTypesOpt.TryGetValue(local, out adjustedLocal))
+                {
+                    var types = GetSnapshotManager().GetVariableTypesForPosition(position);
+
+                    // If the local was not inferred, it does not get an entry in this dictionary. Save the local mapped
+                    // to itself to avoid needing to enter this code path in the future.
+                    if (types.TryGetValue(local, out TypeWithAnnotations type))
+                    {
+                        adjustedLocal = _analyzedVariableTypesOpt.GetOrAdd(local, ((SourceLocalSymbol)local).WithAnalyzedType(type));
+                    }
+                    else
+                    {
+                        _analyzedVariableTypesOpt.TryAdd(local, local);
+                        adjustedLocal = local;
+                    }
+                }
+            }
+            else
+            {
+                adjustedLocal = local;
+            }
+
+            return adjustedLocal;
         }
 
         private LocalFunctionSymbol GetDeclaredLocalFunction(LocalFunctionStatementSyntax declarationSyntax, SyntaxToken declaredIdentifier)
@@ -865,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol disposeMethod = null;
             if (enumeratorInfoOpt.NeedsDisposal)
             {
-                if (!(enumeratorInfoOpt.DisposeMethod is null))
+                if (enumeratorInfoOpt.DisposeMethod is object)
                 {
                     disposeMethod = enumeratorInfoOpt.DisposeMethod;
                 }
@@ -878,6 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new ForEachStatementInfo(
+                enumeratorInfoOpt.IsAsync,
                 enumeratorInfoOpt.GetEnumeratorMethod,
                 enumeratorInfoOpt.MoveNextMethod,
                 currentProperty: (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol,
@@ -1382,15 +1458,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _guardedNodeMap.TryGetValue(syntax, out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
-        protected void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound)
+        protected void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound, NullableWalker.SnapshotManager manager = null)
         {
             using (_nodeMapLock.DisposableWrite())
             {
-                GuardedAddBoundTreeForStandaloneSyntax(syntax, bound);
+                GuardedAddBoundTreeForStandaloneSyntax(syntax, bound, manager);
             }
         }
 
-        protected void GuardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound)
+        protected void GuardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound, NullableWalker.SnapshotManager manager = null)
         {
             Debug.Assert(_nodeMapLock.IsWriteLockHeld);
             bool alreadyInTree = false;
@@ -1416,6 +1492,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // expressions can be added individually.
                     NodeMapBuilder.AddToMap(bound, _guardedNodeMap, syntax);
+                }
+
+                Debug.Assert((manager is null && (!Compilation.NullableSemanticAnalysisEnabled || syntax != Root || syntax is TypeSyntax ||
+                                                  // Supporting attributes is tracked by
+                                                  // https://github.com/dotnet/roslyn/issues/36066
+                                                  this is AttributeSemanticModel)) ||
+                             (manager is object && syntax == Root && Compilation.NullableSemanticAnalysisEnabled && _lazySnapshotManager is null));
+                if (manager is object)
+                {
+                    _lazySnapshotManager = manager;
                 }
             }
         }
@@ -1530,7 +1616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If not, bind the outermost expression containing the lambda and then fill in the map.
             ImmutableArray<BoundNode> nodes;
 
-            EnsureRootBoundForNullabilityIfNecessary();
+            EnsureNullabilityAnalysisPerformedIfNecessary();
 
             using (_nodeMapLock.DisposableRead())
             {
@@ -1625,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
 #if DEBUG
                 var diagnostics = new DiagnosticBag();
-                _ = RewriteNullableBoundNodes(boundOuterExpression, incrementalBinder, diagnostics);
+                _ = RewriteNullableBoundNodesWithSnapshots(boundOuterExpression, incrementalBinder, diagnostics, takeSnapshots: false, snapshotManager: out _);
 #endif
 
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
@@ -1807,21 +1893,28 @@ done:
         /// analysis does not run a subset of code, so we need to fully bind the entire member
         /// first
         /// </summary>
-        private void EnsureRootBoundForNullabilityIfNecessary()
+        protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
             // In DEBUG without nullable analysis enabled, we want to use a temp diagnosticbag
             // that can't produce any observable side effects
             DiagnosticBag diagnostics = _ignoredDiagnostics;
 
             // If we're in DEBUG mode, always enable the analysis, but throw away the results
-            // https://github.com/dotnet/roslyn/issues/35037: Disable speculative semantic models for now.
-            if (!Compilation.NullableAnalysisEnabled || IsSpeculativeSemanticModel)
+            if (!Compilation.NullableSemanticAnalysisEnabled)
             {
 #if DEBUG
                 diagnostics = new DiagnosticBag();
 #else
                 return;
 #endif
+            }
+
+            // If we have a snapshot manager, then we've already done
+            // all the work necessary and we should avoid taking an
+            // unnecessary read lock.
+            if (_lazySnapshotManager is object)
+            {
+                return;
             }
 
             var bindableRoot = GetBindableSyntaxNode(Root);
@@ -1832,7 +1925,7 @@ done:
                 // In DEBUG mode, we don't want to increase test run times, so if
                 // nullable analysis isn't enabled and some node has already been bound
                 // we assume we've already done this test binding and just return
-                || (!Compilation.NullableAnalysisEnabled && _guardedNodeMap.Count > 0)
+                || (!Compilation.NullableSemanticAnalysisEnabled && _guardedNodeMap.Count > 0)
 #endif
                 )
             {
@@ -1843,22 +1936,47 @@ done:
 
             Debug.Assert(Root == GetBindableSyntaxNode(Root));
 
-            // https://github.com/dotnet/roslyn/issues/35037: Speculative models are going to have to do something more advanced
-            // here. They will need to run nullable analysis up to the point that is being speculated on, and
-            // then take that state and run analysis on the statement or expression being speculated on.
-            // Currently, it will return incorrect info because it's just running analysis on the speculated
-            // part.
             var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
             var boundRoot = Bind(binder, bindableRoot, diagnostics);
-            boundRoot = RewriteNullableBoundNodes(boundRoot, binder, diagnostics);
-
-            if (Compilation.NullableAnalysisEnabled && !IsSpeculativeSemanticModel)
+            if (IsSpeculativeSemanticModel)
             {
-                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot);
+                ensureSpeculativeNodeBound();
+            }
+            else
+            {
+                bindAndRewrite();
+            }
+
+            void ensureSpeculativeNodeBound()
+            {
+                // Not all speculative models are created with existing snapshots. Attributes,
+                // TypeSyntaxes, and MethodBodies do not depend on existing state in a member,
+                // and so the SnapshotManager can be null in these cases.
+                if (_parentSnapshotManagerOpt is null)
+                {
+                    bindAndRewrite();
+                    return;
+                }
+
+                boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _parentSnapshotManagerOpt, takeNewSnapshots: true, out var newSnapshots);
+                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, newSnapshots);
+            }
+
+            void bindAndRewrite()
+            {
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, takeSnapshots: true, out var snapshotManager);
+#if DEBUG
+                // Don't actually cache the results if the nullable analysis is not enabled in debug mode.
+                if (!Compilation.NullableSemanticAnalysisEnabled) return;
+#endif
+                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager);
             }
         }
 
-        protected abstract BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics);
+        /// <summary>
+        /// Rewrites the given bound node with nullability information, and returns snapshots for later speculative analysis at positions inside this member.
+        /// </summary>
+        protected abstract BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool takeSnapshots, out NullableWalker.SnapshotManager snapshotManager);
 
         /// <summary>
         /// Get all bounds nodes associated with a node, ordered from highest to lowest in the bound tree.
@@ -1874,7 +1992,7 @@ done:
             }
             Debug.Assert(node == GetBindableSyntaxNode(node));
 
-            EnsureRootBoundForNullabilityIfNecessary();
+            EnsureNullabilityAnalysisPerformedIfNecessary();
 
             // We have one SemanticModel for each method.
             //

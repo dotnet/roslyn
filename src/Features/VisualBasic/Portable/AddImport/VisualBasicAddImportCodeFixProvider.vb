@@ -97,6 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
     Friend Class VisualBasicAddImportCodeFixProvider
         Inherits AbstractAddImportCodeFixProvider
 
+        <ImportingConstructor>
         Public Sub New()
         End Sub
 

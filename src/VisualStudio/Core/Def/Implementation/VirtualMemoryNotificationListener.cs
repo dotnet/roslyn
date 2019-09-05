@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        private VirtualMemoryNotificationListener(
+        public VirtualMemoryNotificationListener(
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspace workspace)

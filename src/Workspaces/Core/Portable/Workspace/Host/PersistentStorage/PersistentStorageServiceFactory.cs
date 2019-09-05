@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Default), Shared]
     internal class PersistentStorageServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public PersistentStorageServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => NoOpPersistentStorageService.Instance;
     }

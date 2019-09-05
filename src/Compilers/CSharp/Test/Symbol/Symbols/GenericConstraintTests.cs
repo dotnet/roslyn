@@ -108,7 +108,7 @@ class C : I<C, object>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var method = type.GetMethod("I<C,System.Object>.M");
-                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C", "object");
+                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
             };
 
             CompileAndVerify(
@@ -332,26 +332,36 @@ unsafe interface I
     void M7(A<A<int>.B1[]>.B1 o);
 }";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<int>')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<int>*").WithArguments("A<int>").WithLocation(8, 15),
-                // (9,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<string>.B1')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<string>.B1*").WithArguments("A<string>.B1").WithLocation(9, 13),
                 // (10,22): error CS0122: 'A<int>.B2' is inaccessible due to its protection level
+                //     void M3(A<A<int>.B2>.B1* o);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B2").WithArguments("A<int>.B2").WithLocation(10, 22),
-                // (10,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<A<int>.B2>.B1')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<A<int>.B2>.B1*").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 13),
                 // (13,22): error CS0122: 'A<int>.B2' is inaccessible due to its protection level
+                //     void M6(A<A<int>.B2>.B1[] o);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B2").WithArguments("A<int>.B2").WithLocation(13, 22),
-                // (8,27): error CS0306: The type 'A<int>*' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o").WithArguments("A<int>*").WithLocation(8, 27),
+                // (14,31): error CS0453: The type 'A<int>.B1[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M7(A<A<int>.B1[]>.B1 o);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>.B1[]").WithLocation(14, 31),
+                // (9,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<string>.B1')
+                //     void M2(A<string>.B1** o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<string>.B1").WithLocation(9, 28),
                 // (9,28): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M2(A<string>.B1** o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "string").WithLocation(9, 28),
+                // (10,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<A<int>.B2>.B1')
+                //     void M3(A<A<int>.B2>.B1* o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 30),
                 // (11,28): error CS0453: The type 'A<int>[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M4(A<A<int>[]>.B1 o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>[]").WithLocation(11, 28),
                 // (12,30): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M5(A<string>.B1[][] o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "string").WithLocation(12, 30),
-                // (14,31): error CS0453: The type 'A<int>.B1[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>.B1[]").WithLocation(14, 31));
+                // (8,27): error CS0306: The type 'A<int>*' may not be used as a type argument
+                //     void M1(A<A<int>*>.B1 o);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o").WithArguments("A<int>*").WithLocation(8, 27),
+                // (8,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<int>')
+                //     void M1(A<A<int>*>.B1 o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<int>").WithLocation(8, 27));
         }
 
         [WorkItem(542618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542618")]
@@ -5175,10 +5185,11 @@ class C
         }
 
         /// <summary>
-        /// Redundant '.ctor' and System.ValueType constraints should be
+        /// Redundant System.Object constraints should be removed
+        /// and '.ctor' and System.ValueType constraints should be
         /// removed if 'valuetype' is specified. By contrast, redundant
         /// 'class' constraints should not be removed if explicit class
-        /// constraint is specified. System.Object constraint shouldn't be removed either.
+        /// constraint is specified.
         /// </summary>
         [WorkItem(543335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543335")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -5199,7 +5210,7 @@ class C
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             var @namespace = compilation.GlobalNamespace;
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
-            CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("V1").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("V2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("V3").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
@@ -5245,8 +5256,8 @@ class C
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("B1");
-            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("B2");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "ValueType", "ValueType", "ValueType");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
@@ -5354,6 +5365,10 @@ class C1 : C0
             CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics();
         }
 
+        /// <summary>
+        /// Object constraints should be dropped from TypeParameterSymbol.ConstraintTypes
+        /// on import and type substitution.
+        /// </summary>
         [WorkItem(543831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543831")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectConstraintTypes()
@@ -5419,13 +5434,13 @@ class D0 : D<object>
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics();
             var @namespace = compilation.GlobalNamespace;
             var type = @namespace.GetMember<NamedTypeSymbol>("I0");
-            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("A1");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("A2");
-            CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("I1");
-            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("B0");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("B1");
@@ -5437,9 +5452,9 @@ class D0 : D<object>
             type = @namespace.GetMember<NamedTypeSymbol>("C1");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("C2");
-            CheckConstraints(type.GetMethod("I<System.Object>.M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.GetMethod("I<System.Object>.M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("D0");
-            CheckConstraints(type.BaseType().GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.BaseType().GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
         }
 
         /// <summary>
@@ -5474,7 +5489,7 @@ class A1 : A<C>
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
                 CheckConstraints(type.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
                 var method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A0").GetMember<MethodSymbol>("M");
-                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
                 method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A1").GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
             };
@@ -5538,16 +5553,16 @@ class D2 : D<A>
             var compilation = CreateCompilation(source);
             var @namespace = compilation.GlobalNamespace;
             var type = @namespace.GetMember<NamedTypeSymbol>("C0");
-            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("C1");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "ValueType", "ValueType", "ValueType");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("D0");
-            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IA", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IB", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M3").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "A", "A", "A", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M4").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "B", "B", "B", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IA");
+            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IB");
+            CheckConstraints(type.GetMember<MethodSymbol>("M3").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "A", "A", "A");
+            CheckConstraints(type.GetMember<MethodSymbol>("M4").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "B", "B", "B");
             type = @namespace.GetMember<NamedTypeSymbol>("D1");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IA");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IB", "IA");
@@ -5759,14 +5774,9 @@ class c
     static void Main() { }
 }
 ";
-            // NOTE: As in Dev10, we don't report that object* and void* are invalid type arguments, since validation
+            // NOTE: we don't report that object* and void* are invalid type arguments, since validation
             // is performed on A.I, not on F<object*>.I or G<void*>.I.
-            // BREAKING: Dev10 (incorrectly) fails to report that "object*" is an illegal type since the pointed-at
-            // type is managed.
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-                // class F<T> : A where T : F<object*>.I
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]

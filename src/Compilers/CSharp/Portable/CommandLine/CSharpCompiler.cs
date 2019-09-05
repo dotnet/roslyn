@@ -305,11 +305,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)");
                 }
-                else if (v == LanguageVersion.CSharp8)
-                {
-                    // https://github.com/dotnet/roslyn/issues/29819 This should be removed once we are ready to move C# 8.0 out of beta
-                    consoleOutput.WriteLine($"{v.ToDisplayString()} *beta*");
-                }
                 else
                 {
                     consoleOutput.WriteLine(v.ToDisplayString());

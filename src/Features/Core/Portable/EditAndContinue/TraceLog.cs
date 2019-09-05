@@ -2,9 +2,8 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading;
-using Roslyn.Utilities;
 using System.Linq;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void Append(Entry entry)
         {
-            int index = Interlocked.Increment(ref _currentLine);
+            var index = Interlocked.Increment(ref _currentLine);
             _log[(index - 1) % _log.Length] = entry;
         }
 

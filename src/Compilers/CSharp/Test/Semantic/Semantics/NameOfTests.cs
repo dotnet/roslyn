@@ -842,7 +842,7 @@ public class Program
 }";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (14,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                // (14,22): error CS1061: 'A' does not contain a definition for 'Extension' and no accessible extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(14, 22)
                 );
@@ -996,7 +996,7 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (16,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                // (16,22): error CS1061: 'A' does not contain a definition for 'Extension' and no accessible extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(16, 22)
                 );

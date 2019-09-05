@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// If <see cref="HasReferenceTypeConstraint"/> is true, returns the top-level nullability of the
         /// <c>class</c> constraint that was specified for the type parameter. If there was no <c>class</c>
-        /// constraint, this returns <see cref="NullableAnnotation.NotApplicable"/>.
+        /// constraint, this returns <see cref="NullableAnnotation.None"/>.
         /// </summary>
         NullableAnnotation ReferenceTypeConstraintNullableAnnotation { get; }
 
@@ -61,6 +61,11 @@ namespace Microsoft.CodeAnalysis
         /// True if the value type constraint (<c>unmanaged</c>) was specified for the type parameter.
         /// </summary>
         bool HasUnmanagedTypeConstraint { get; }
+
+        /// <summary>
+        /// True if the notnull constraint (<c>notnull</c>) was specified for the type parameter.
+        /// </summary>
+        bool HasNotNullConstraint { get; }
 
         /// <summary>
         /// True if the parameterless constructor constraint (<c>new()</c>) was specified for the type parameter.

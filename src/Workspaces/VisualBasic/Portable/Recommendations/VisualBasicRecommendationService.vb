@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
     Friend Class VisualBasicRecommendationService
         Inherits AbstractRecommendationService(Of VisualBasicSyntaxContext)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function CreateContext(
                                                   workspace As Workspace,
                                                   semanticModel As SemanticModel,

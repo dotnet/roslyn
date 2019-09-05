@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
         Friend Const BC30512 As String = "BC30512" ' Option Strict On disallows implicit conversions from '{0}' to '{1}'.
         Friend Const BC42016 As String = "BC42016" ' Implicit conversions from '{0}' to '{1}'.
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30512, BC42016)

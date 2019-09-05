@@ -349,13 +349,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim intOverflow As Boolean = False
             Dim divideByZero As Boolean = False
-            Dim compoundLengthOutOfLimit As Boolean = False
+            Dim lengthOutOfLimit As Boolean = False
 
-            Dim constant = OverloadResolution.TryFoldConstantBinaryOperator(binaryOpKind, left, right, resultType, intOverflow, divideByZero, compoundLengthOutOfLimit)
+            Dim constant = OverloadResolution.TryFoldConstantBinaryOperator(binaryOpKind, left, right, resultType, intOverflow, divideByZero, lengthOutOfLimit)
             If constant IsNot Nothing AndAlso
                 Not divideByZero AndAlso
                 Not (intOverflow And isChecked) AndAlso
-                Not compoundLengthOutOfLimit Then
+                Not lengthOutOfLimit Then
 
                 Debug.Assert(Not constant.IsBad)
                 Return New BoundLiteral(syntax, constant, resultType)

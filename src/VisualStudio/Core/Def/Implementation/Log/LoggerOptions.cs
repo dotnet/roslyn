@@ -24,6 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportOptionProvider, Shared]
     internal class LoggerOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public LoggerOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             LoggerOptions.EtwLoggerKey,
             LoggerOptions.TraceLoggerKey,

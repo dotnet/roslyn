@@ -1289,7 +1289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // available 8041-8049
         ERR_InitializerOnNonAutoProperty = 8050,
         ERR_AutoPropertyMustHaveGetAccessor = 8051,
-        ERR_AutoPropertyInitializerInInterface = 8052,
+        // ERR_AutoPropertyInitializerInInterface = 8052,
+        // available 8053
 
         ERR_EnumsCantContainDefaultConstructor = 8054,
         ERR_EncodinglessSyntaxTree = 8055,
@@ -1487,9 +1488,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoRefOutWhenRefOnly = 8308,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
         ERR_BadOpOnNullOrDefault = 8310,
-        ERR_BadDynamicMethodArgDefaultLiteral = 8311,
+        // ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
-        ERR_DefaultInSwitch = 8313,
+        // ERR_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
         ERR_AmbigBinaryOpsOnDefault = 8315,
 
@@ -1582,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# 8.0
         ERR_FeatureNotAvailableInVersion8 = 8400,
         ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
-        WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
+        // Unused 8402
         ERR_IteratorMustBeAsync = 8403,
 
         ERR_NoConvToIAsyncDisp = 8410,
@@ -1631,7 +1632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_ThrowPossibleNull = 8597,
         ERR_IllegalSuppression = 8598,
-        WRN_IllegalPPWarningSafeOnly = 8599,
+        // available 8599,
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
         WRN_NullReferenceReceiver = 8602,
@@ -1639,7 +1640,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceArgument = 8604,
         WRN_UnboxPossibleNull = 8605,
         WRN_NullReferenceIterationVariable = 8606,
-        // Unused 8607-8608
+        WRN_DisallowNullAttributeForbidsMaybeNullAssignment = 8607,
+        WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
         WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
         WRN_NullabilityMismatchInParameterTypeOnPartial = 8611,
@@ -1701,6 +1703,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OverrideValConstraintNotSatisfied = 8666,
 
         WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
+        ERR_NullableDirectiveTargetExpected = 8668,
+        WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode = 8669,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 
@@ -1717,8 +1721,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_NotDeclaredInBase = 8710,
 
         ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
+        ERR_AbstractEventHasAccessors = 8712,
+        ERR_NotNullConstraintMustBeFirst = 8713,
+        WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
+
+        ERR_DuplicateNullSuppression = 8715,
+        ERR_DefaultLiteralNoTargetType = 8716,
+
+        ERR_ReAbstractionInNoPIAType = 8750,
 
         #endregion diagnostics introduced for C# 8.0
+
+        ERR_InternalError = 8751,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

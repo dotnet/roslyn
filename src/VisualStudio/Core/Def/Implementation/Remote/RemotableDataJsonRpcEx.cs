@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.Threading;
@@ -65,6 +66,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // only expected exception will be catched. otherwise, NFW and let it propagate
                 Debug.Assert(cancellationToken.IsCancellationRequested || ex is IOException);
             }
+        }
+
+        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken _)
+        {
+            return Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
         }
 
         private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
@@ -147,7 +153,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         protected override void Disconnected(JsonRpcDisconnectedEventArgs e)
         {
-            if (e.Reason != DisconnectedReason.Disposed)
+            // we don't expect OOP side to disconnect the connection. 
+            // Host (VS) always initiate or disconnect the connection.
+            if (e.Reason != DisconnectedReason.LocallyDisposed)
             {
                 // log when this happens
                 LogDisconnectInfo(e, new StackTrace().ToString());

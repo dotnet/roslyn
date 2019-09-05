@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     [ExtensionOrder(After = QuickInfoProviderNames.Semantic)]
     internal class CSharpSyntacticQuickInfoProvider : CommonQuickInfoProvider
     {
+        [ImportingConstructor]
+        public CSharpSyntacticQuickInfoProvider()
+        {
+        }
+
         protected override async Task<QuickInfoItem> BuildQuickInfoAsync(
             Document document,
             SyntaxToken token,

@@ -3573,7 +3573,7 @@ class Program
         string s = "";
         new Program(s);
     }
-}", options: options.FieldNamesAreCamelCaseWithUnderscore);
+}", options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
         }
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
@@ -3607,7 +3607,7 @@ class Program
         string s = """";
         new Program(s);
     }
-}", options: options.FieldNamesAreCamelCaseWithUnderscore);
+}", options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
         }
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
@@ -3639,7 +3639,7 @@ class Program
         string s = """";
         new Program(s);
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
         }
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
@@ -3674,7 +3674,7 @@ class MyAttribute : Attribute
 [MyAttribute(123)]
 class D
 {
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
         }
 
         [WorkItem(33673, "https://github.com/dotnet/roslyn/issues/33673")]
@@ -3713,6 +3713,76 @@ class Program
         new Program({argumentName});
     }}
 }}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithTopLevelNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    void M()
+    {
+        string? s = null;
+        new [|C|](s);
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    private string? s;
+
+    public C(string? s)
+    {
+        this.s = s;
+    }
+
+    void M()
+    {
+        string? s = null;
+        new C(s);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWitNestedNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<string?> s;
+        new [|C|](s);
+    }
+}",
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class C
+{
+    private IEnumerable<string?> s;
+
+    public C(IEnumerable<string?> s)
+    {
+        this.s = s;
+    }
+
+    void M()
+    {
+        IEnumerable<string?> s;
+        new C(s);
+    }
+}");
         }
     }
 }

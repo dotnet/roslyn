@@ -26,10 +26,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // hold last async token
             private IAsyncToken _lastToken;
 
-            public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken) :
-                base(service.Listener,
-                     service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
-                     service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
+            public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken)
+                : base(service.Listener,
+                       service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
+                       service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
             {
                 _service = service;
                 _textChangeQueue = new SimpleTaskQueue(TaskScheduler.Default);
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 lock (_gate)
                 {
-                    _lastToken = _lastToken ?? Listener.BeginAsyncOperation(nameof(SolutionChecksumUpdater));
+                    _lastToken ??= Listener.BeginAsyncOperation(nameof(SolutionChecksumUpdater));
                 }
 
                 _event.Release();
@@ -149,10 +149,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // VS side. this optimization saves times we need to do full text
                 // synchronization for typing scenario.
 
-                SourceText oldText = null;
-                SourceText newText = null;
-                if ((oldDocument.TryGetText(out oldText) == false) ||
-                    (newDocument.TryGetText(out newText) == false))
+                if ((oldDocument.TryGetText(out var oldText) == false) ||
+                    (newDocument.TryGetText(out var newText) == false))
                 {
                     // we only support case where text already exist
                     return;

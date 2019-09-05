@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
     Friend Class VisualBasicMakeFieldReadonlyCodeFixProvider
         Inherits AbstractMakeFieldReadonlyCodeFixProvider(Of ModifiedIdentifierSyntax, FieldDeclarationSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetVariableDeclarators(declaration As FieldDeclarationSyntax) As ImmutableList(Of ModifiedIdentifierSyntax)
             Return declaration.Declarators.SelectMany(Function(d) d.Names).ToImmutableListOrEmpty()
         End Function

@@ -4,6 +4,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.InvertConditional
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InvertConditional
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
@@ -11,11 +12,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertConditional
     Friend Class VisualBasicInvertConditionalCodeRefactoringProvider
         Inherits AbstractInvertConditionalCodeRefactoringProvider(Of TernaryConditionalExpressionSyntax)
 
-        Protected Overrides Function ShouldOffer(
-            conditional As TernaryConditionalExpressionSyntax, position As Integer) As Boolean
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
-            Return position <= conditional.FirstCommaToken.Span.Start AndAlso
-                   Not conditional.FirstCommaToken.IsMissing AndAlso
+        Protected Overrides Function ShouldOffer(
+            conditional As TernaryConditionalExpressionSyntax) As Boolean
+
+            Return Not conditional.FirstCommaToken.IsMissing AndAlso
                    Not conditional.SecondCommaToken.IsMissing AndAlso
                    Not conditional.CloseParenToken.IsMissing
         End Function

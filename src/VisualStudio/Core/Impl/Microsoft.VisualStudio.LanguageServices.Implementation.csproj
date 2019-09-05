@@ -21,11 +21,11 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
-    <InternalsVisibleTo Include="RoslynETAHost" WorkItem="https://github.com/dotnet/roslyn/issues/35072" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
@@ -67,7 +67,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Options\GridOptionPreviewControl.xaml.cs">
@@ -90,6 +92,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Options\CodeStyleNoticeTextBlock.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Options\GridOptionPreviewControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

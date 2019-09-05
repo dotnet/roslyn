@@ -9,5 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
     [ExportLanguageService(typeof(IDocumentationCommentFormattingService), LanguageNames.CSharp), Shared]
     internal class CSharpDocumentationCommentFormattingService : AbstractDocumentationCommentFormattingService
     {
+        [ImportingConstructor]
+        public CSharpDocumentationCommentFormattingService()
+        {
+        }
     }
 }

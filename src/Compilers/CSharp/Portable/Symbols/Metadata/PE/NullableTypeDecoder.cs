@@ -16,13 +16,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal static TypeWithAnnotations TransformType(
             TypeWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
-            PEModuleSymbol containingModule)
+            PEModuleSymbol containingModule,
+            Symbol accessSymbol,
+            Symbol nullableContext)
         {
             Debug.Assert(metadataType.HasType);
+            Debug.Assert(accessSymbol.IsDefinition);
+            Debug.Assert((object)accessSymbol.ContainingModule == containingModule);
+#if DEBUG
+            // Ensure we could check accessibility at this point if we had to in ShouldDecodeNullableAttributes().
+            // That is, ensure the accessibility of the symbol (and containing symbols) is available.
+            _ = AccessCheck.IsEffectivelyPublicOrInternal(accessSymbol, out _);
+#endif
 
             byte defaultTransformFlag;
             ImmutableArray<byte> nullableTransformFlags;
-            containingModule.Module.HasNullableAttribute(targetSymbolToken, out defaultTransformFlag, out nullableTransformFlags);
+            if (!containingModule.Module.HasNullableAttribute(targetSymbolToken, out defaultTransformFlag, out nullableTransformFlags))
+            {
+                byte? value = nullableContext.GetNullableContextValue();
+                if (value == null)
+                {
+                    return metadataType;
+                }
+                defaultTransformFlag = value.GetValueOrDefault();
+            }
+
+            if (!containingModule.ShouldDecodeNullableAttributes(accessSymbol))
+            {
+                return metadataType;
+            }
 
             return TransformType(metadataType, defaultTransformFlag, nullableTransformFlags);
         }
@@ -44,23 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // No NullableAttribute applied to the target symbol, or flags do not line-up, return unchanged metadataType.
             return metadataType;
-        }
-
-        // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
-        internal static TypeWithAnnotations TransformType(
-            TypeWithAnnotations metadataType,
-            EntityHandle targetSymbolToken,
-            PEModuleSymbol containingModule,
-            ImmutableArray<byte> extraAnnotations)
-        {
-            if (extraAnnotations.IsDefault)
-            {
-                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule);
-            }
-            else
-            {
-                return NullableTypeDecoder.TransformType(metadataType, defaultTransformFlag: 0, extraAnnotations);
-            }
         }
     }
 }

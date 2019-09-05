@@ -4,11 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
-using Microsoft.VisualStudio.LanguageServices.Remote;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -20,14 +21,12 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private static int s_instanceId;
 
-        private readonly CancellationTokenSource _shutdownCancellationSource;
         private readonly JsonRpc _rpc;
 
         protected readonly int InstanceId;
 
         protected readonly TraceSource Logger;
         protected readonly AssetStorage AssetStorage;
-        protected readonly CancellationToken ShutdownCancellationToken;
 
         [Obsolete("don't use RPC directly but use it through StartService and InvokeAsync", error: true)]
         protected readonly JsonRpc Rpc;
@@ -50,6 +49,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private bool _disposed;
 
         protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
+            : this(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
+        {
+        }
+
+        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter> jsonConverters)
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
             _disposed = false;
@@ -60,14 +64,12 @@ namespace Microsoft.CodeAnalysis.Remote
             Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
             Logger.TraceInformation($"{DebugInstanceString} Service instance created");
 
-            _shutdownCancellationSource = new CancellationTokenSource();
-            ShutdownCancellationToken = _shutdownCancellationSource.Token;
-
             // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
             // all sub type must explicitly start JsonRpc once everything is
-            // setup
-            _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), this);
-            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+            // setup. 
+            // we also wires given json converters when creating JsonRpc so that razor or SBD can register
+            // their own converter when they create their own service
+            _rpc = stream.CreateStreamJsonRpc(target: this, Logger, jsonConverters);
             _rpc.Disconnected += OnRpcDisconnected;
 
             // we do this since we want to mark Rpc as obsolete but want to set its value for
@@ -75,6 +77,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // obsolete error and we can't suppress it since it is an error
             this.GetType().GetField("Rpc", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(this, _rpc);
         }
+
+        protected event EventHandler Disconnected;
 
         protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
 
@@ -98,10 +102,15 @@ namespace Microsoft.CodeAnalysis.Remote
             _rpc.StartListening();
         }
 
+        protected Task<TResult> InvokeAsync<TResult>(string targetName, CancellationToken cancellationToken)
+        {
+            return InvokeAsync<TResult>(targetName, SpecializedCollections.EmptyReadOnlyList<object>(), cancellationToken);
+        }
+
         protected Task<TResult> InvokeAsync<TResult>(
             string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            return _rpc.InvokeWithCancellationAsync<TResult>(targetName, arguments, cancellationToken);
+            return _rpc.InvokeWithCancellationAsync<TResult>(targetName, arguments?.AsArray(), cancellationToken);
         }
 
         protected Task<TResult> InvokeAsync<TResult>(
@@ -113,13 +122,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected Task InvokeAsync(string targetName, CancellationToken cancellationToken)
         {
-            return InvokeAsync(targetName, SpecializedCollections.EmptyReadOnlyList<object>(), cancellationToken);
+            return InvokeAsync(targetName, arguments: null, cancellationToken);
         }
 
         protected Task InvokeAsync(
             string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            return _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken);
+            return _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), cancellationToken);
         }
 
         protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
@@ -164,16 +173,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             _disposed = true;
             _rpc.Dispose();
-            _shutdownCancellationSource.Dispose();
 
             Dispose(disposing: true);
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
-        }
-
-        protected virtual void OnDisconnected(JsonRpcDisconnectedEventArgs e)
-        {
-            // do nothing
         }
 
         protected void Log(TraceEventType errorType, string message)
@@ -183,12 +186,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
-            // raise cancellation
-            _shutdownCancellationSource.Cancel();
+            Disconnected?.Invoke(this, EventArgs.Empty);
 
-            OnDisconnected(e);
-
-            if (e.Reason != DisconnectedReason.Disposed)
+            // either service naturally went away since nobody is using 
+            // or the other side closed the connection such as closing VS
+            if (e.Reason != DisconnectedReason.LocallyDisposed &&
+                e.Reason != DisconnectedReason.RemotePartyTerminated)
             {
                 // we no longer close connection forcefully. so connection shouldn't go away 
                 // in normal situation. if it happens, log why it did in more detail.
@@ -203,89 +206,122 @@ namespace Microsoft.CodeAnalysis.Remote
         private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             var solutionController = (ISolutionController)roslynService.SolutionService;
-            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, cancellationToken);
+            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
         }
 
+        protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                return await callAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                await callAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        protected T RunService<T>(Func<T> call, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                return call();
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        protected void RunService(Action call, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                call();
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        [Obsolete("Use one with no CancellationToken given. underlying issue has been addressed", error: true)]
         protected async Task<T> RunServiceAsync<T>(Func<CancellationToken, Task<T>> callAsync, CancellationToken cancellationToken)
         {
             AssetStorage.UpdateLastActivityTime();
 
-            // merge given cancellation token with shutdown cancellation token. it looks like if cancellation and disconnection happens
-            // almost same time, we might not get cancellation message back from stream json rpc and get disconnected
-            // https://github.com/Microsoft/vs-streamjsonrpc/issues/64
-            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ShutdownCancellationToken))
+            try
             {
-                try
-                {
-                    return await callAsync(mergedCancellation.Token).ConfigureAwait(false);
-                }
-                catch (Exception ex) when (LogUnlessCanceled(ex, mergedCancellation.Token))
-                {
-                    // never reach
-                    throw ExceptionUtilities.Unreachable;
-                }
+                return await callAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
+        [Obsolete("Use one with no CancellationToken given. underlying issue has been addressed", error: true)]
         protected async Task RunServiceAsync(Func<CancellationToken, Task> callAsync, CancellationToken cancellationToken)
         {
             AssetStorage.UpdateLastActivityTime();
 
-            // merge given cancellation token with shutdown cancellation token. it looks like if cancellation and disconnection happens
-            // almost same time, we might not get cancellation message back from stream json rpc and get disconnected
-            // https://github.com/Microsoft/vs-streamjsonrpc/issues/64
-            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ShutdownCancellationToken))
+            try
             {
-                try
-                {
-                    await callAsync(mergedCancellation.Token).ConfigureAwait(false);
-                }
-                catch (Exception ex) when (LogUnlessCanceled(ex, mergedCancellation.Token))
-                {
-                    // never reach
-                    return;
-                }
+                await callAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
+        [Obsolete("Use one with no CancellationToken given. underlying issue has been addressed", error: true)]
         protected T RunService<T>(Func<CancellationToken, T> call, CancellationToken cancellationToken)
         {
             AssetStorage.UpdateLastActivityTime();
 
-            // merge given cancellation token with shutdown cancellation token. it looks like if cancellation and disconnection happens
-            // almost same time, we might not get cancellation message back from stream json rpc and get disconnected
-            // https://github.com/Microsoft/vs-streamjsonrpc/issues/64
-            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ShutdownCancellationToken))
+            try
             {
-                try
-                {
-                    return call(mergedCancellation.Token);
-                }
-                catch (Exception ex) when (LogUnlessCanceled(ex, mergedCancellation.Token))
-                {
-                    // never reach
-                    return default;
-                }
+                return call(cancellationToken);
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
+        [Obsolete("Use one with no CancellationToken given. underlying issue has been addressed", error: true)]
         protected void RunService(Action<CancellationToken> call, CancellationToken cancellationToken)
         {
             AssetStorage.UpdateLastActivityTime();
 
-            // merge given cancellation token with shutdown cancellation token. it looks like if cancellation and disconnection happens
-            // almost same time, we might not get cancellation message back from stream json rpc and get disconnected
-            // https://github.com/Microsoft/vs-streamjsonrpc/issues/64
-            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ShutdownCancellationToken))
+            try
             {
-                try
-                {
-                    call(mergedCancellation.Token);
-                }
-                catch (Exception ex) when (LogUnlessCanceled(ex, mergedCancellation.Token))
-                {
-                    // never reach
-                }
+                call(cancellationToken);
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 

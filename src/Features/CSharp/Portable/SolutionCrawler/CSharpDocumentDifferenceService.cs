@@ -9,5 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SolutionCrawler
     [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.CSharp), Shared]
     internal class CSharpDocumentDifferenceService : AbstractDocumentDifferenceService
     {
+        [ImportingConstructor]
+        public CSharpDocumentDifferenceService()
+        {
+        }
     }
 }

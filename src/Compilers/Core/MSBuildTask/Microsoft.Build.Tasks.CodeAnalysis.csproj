@@ -8,6 +8,7 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
+    <AssemblyVersion/>
     <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
     <NoWarn>$(NoWarn);CA1819</NoWarn>
 

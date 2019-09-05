@@ -4,16 +4,15 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Reflection.PortableExecutable;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -88,6 +87,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         // Namespace names from module
         private ICollection<string> _lazyNamespaceNames;
+
+        private enum NullableMemberMetadata
+        {
+            Unknown = 0,
+            Public,
+            Internal,
+            All,
+        }
+
+        private NullableMemberMetadata _lazyNullableMemberMetadata;
 
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
             : this((AssemblySymbol)assemblySymbol, module, importOptions, ordinal)
@@ -372,7 +381,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return GetCustomAttributesForToken(token, out paramArrayAttribute, AttributeDescription.ParamArrayAttribute);
         }
 
-
         internal bool HasAnyCustomAttributes(EntityHandle token)
         {
             try
@@ -491,7 +499,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-
         internal NamedTypeSymbol EventRegistrationToken
         {
             get
@@ -508,7 +515,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _lazyEventRegistrationTokenSymbol;
             }
         }
-
 
         internal NamedTypeSymbol EventRegistrationTokenTable_T
         {
@@ -702,5 +708,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         public override ModuleMetadata GetMetadata() => _module.GetNonDisposableMetadata();
+
+        internal bool ShouldDecodeNullableAttributes(Symbol symbol)
+        {
+            Debug.Assert(symbol is object);
+            Debug.Assert(symbol.IsDefinition);
+            Debug.Assert((object)symbol.ContainingModule == this);
+
+            if (_lazyNullableMemberMetadata == NullableMemberMetadata.Unknown)
+            {
+                _lazyNullableMemberMetadata = _module.HasNullablePublicOnlyAttribute(Token, out bool includesInternals) ?
+                    (includesInternals ? NullableMemberMetadata.Internal : NullableMemberMetadata.Public) :
+                    NullableMemberMetadata.All;
+            }
+
+            NullableMemberMetadata nullableMemberMetadata = _lazyNullableMemberMetadata;
+            if (nullableMemberMetadata == NullableMemberMetadata.All)
+            {
+                return true;
+            }
+
+            if (AccessCheck.IsEffectivelyPublicOrInternal(symbol, out bool isInternal))
+            {
+                switch (nullableMemberMetadata)
+                {
+                    case NullableMemberMetadata.Public:
+                        return !isInternal;
+                    case NullableMemberMetadata.Internal:
+                        return true;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(nullableMemberMetadata);
+                }
+            }
+
+            return false;
+        }
     }
 }

@@ -15,6 +15,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc = CreateInProcComponent<Shell_InProc>(visualStudioInstance);
         }
 
+        public string GetVersion()
+            => _inProc.GetVersion();
+
         public string GetActiveWindowCaption()
             => _inProc.GetActiveWindowCaption();
 
@@ -23,5 +26,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public bool IsActiveTabProvisional()
             => _inProc.IsActiveTabProvisional();
+
+        public bool IsUIContextActive(Guid context)
+            => _inProc.IsUIContextActive(context);
     }
 }

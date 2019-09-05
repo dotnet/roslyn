@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
             Return _context.SemanticModel _
                 .LookupSymbols(_context.Position, container:=containingType) _
-                .WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso s.ContainingType Is containingType)
+                .WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso Equals(s.ContainingType, containingType))
         End Function
 
         Private Function GetUnqualifiedSymbolsForType() As ImmutableArray(Of ISymbol)
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
                         ' case:
                         '    MyBase.
-                        If parameter.IsMe AndAlso parameter.Type IsNot container Then
+                        If parameter.IsMe AndAlso Not Equals(parameter.Type, container) Then
                             useBaseReferenceAccessibility = True
                         End If
                 End Select
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 ' Check for color color
                 Dim speculativeTypeBinding = _context.SemanticModel.GetSpeculativeTypeInfo(_context.Position, leftExpression, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim speculativeAliasBinding = _context.SemanticModel.GetSpeculativeAliasInfo(_context.Position, leftExpression, SpeculativeBindingOption.BindAsTypeOrNamespace)
-                If TypeOf leftHandSymbolInfo.Symbol IsNot INamespaceOrTypeSymbol AndAlso speculativeAliasBinding Is Nothing AndAlso firstSymbol.GetSymbolType() Is speculativeTypeBinding.Type Then
+                If TypeOf leftHandSymbolInfo.Symbol IsNot INamespaceOrTypeSymbol AndAlso speculativeAliasBinding Is Nothing AndAlso Equals(firstSymbol.GetSymbolType(), speculativeTypeBinding.Type) Then
                     excludeShared = False
                     excludeInstance = False
                 End If
@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim type = TryCast(symbol, ITypeSymbol)
 
             If type IsNot Nothing Then
-                If type.TypeKind = TypeKind.Class AndAlso Not type.IsSealed AndAlso type IsNot within Then
+                If type.TypeKind = TypeKind.Class AndAlso Not type.IsSealed AndAlso Not Equals(type, within) Then
                     Return True
                 End If
 
@@ -491,7 +491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 Return False
             End If
 
-            If namedTypeSymbol.TypeKind = TypeKind.Class AndAlso Not namedTypeSymbol.IsSealed AndAlso namedTypeSymbol IsNot within Then
+            If namedTypeSymbol.TypeKind = TypeKind.Class AndAlso Not namedTypeSymbol.IsSealed AndAlso Not Equals(namedTypeSymbol, within) Then
                 Return True
             End If
 

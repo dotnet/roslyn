@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
     [ExportLanguageServiceFactory(typeof(IDecompiledSourceService), LanguageNames.CSharp), Shared]
     internal partial class CSharpDecompiledSourceServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpDecompiledSourceServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {
             return new CSharpDecompiledSourceService(provider);

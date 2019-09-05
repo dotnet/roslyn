@@ -25,15 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     result);
             }
 
-            private CSharpTriviaResult(SemanticDocument document, ITriviaSavedResult result) :
-                base(document, result, (int)SyntaxKind.EndOfLineTrivia, (int)SyntaxKind.WhitespaceTrivia)
+            private CSharpTriviaResult(SemanticDocument document, ITriviaSavedResult result)
+                : base(document, result, (int)SyntaxKind.EndOfLineTrivia, (int)SyntaxKind.WhitespaceTrivia)
             {
             }
 
             protected override AnnotationResolver GetAnnotationResolver(SyntaxNode callsite, SyntaxNode method)
             {
-                var methodDefinition = method as MethodDeclarationSyntax;
-                if (callsite == null || methodDefinition == null)
+                if (callsite == null || !(method is MethodDeclarationSyntax methodDefinition))
                 {
                     return null;
                 }
@@ -43,8 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override TriviaResolver GetTriviaResolver(SyntaxNode method)
             {
-                var methodDefinition = method as MethodDeclarationSyntax;
-                if (methodDefinition == null)
+                if (!(method is MethodDeclarationSyntax methodDefinition))
                 {
                     return null;
                 }
@@ -65,23 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return token;
                 }
 
-                switch (location)
+                return location switch
                 {
-                    case TriviaLocation.BeforeBeginningOfSpan:
-                        return callsite.GetFirstToken(includeZeroWidth: true).GetPreviousToken(includeZeroWidth: true);
-                    case TriviaLocation.AfterEndOfSpan:
-                        return callsite.GetLastToken(includeZeroWidth: true).GetNextToken(includeZeroWidth: true);
-                    case TriviaLocation.AfterBeginningOfSpan:
-                        return method.Body != null
-                            ? method.Body.OpenBraceToken.GetNextToken(includeZeroWidth: true)
-                            : method.ExpressionBody.ArrowToken.GetNextToken(includeZeroWidth: true);
-                    case TriviaLocation.BeforeEndOfSpan:
-                        return method.Body != null
-                            ? method.Body.CloseBraceToken.GetPreviousToken(includeZeroWidth: true)
-                            : method.SemicolonToken;
-                }
-
-                return Contract.FailWithReturn<SyntaxToken>("can't happen");
+                    TriviaLocation.BeforeBeginningOfSpan => callsite.GetFirstToken(includeZeroWidth: true).GetPreviousToken(includeZeroWidth: true),
+                    TriviaLocation.AfterEndOfSpan => callsite.GetLastToken(includeZeroWidth: true).GetNextToken(includeZeroWidth: true),
+                    TriviaLocation.AfterBeginningOfSpan => method.Body != null
+                        ? method.Body.OpenBraceToken.GetNextToken(includeZeroWidth: true)
+                        : method.ExpressionBody.ArrowToken.GetNextToken(includeZeroWidth: true),
+                    TriviaLocation.BeforeEndOfSpan => method.Body != null
+                        ? method.Body.CloseBraceToken.GetPreviousToken(includeZeroWidth: true)
+                        : method.SemicolonToken,
+                    _ => Contract.FailWithReturn<SyntaxToken>("can't happen"),
+                };
             }
 
             private IEnumerable<SyntaxTrivia> TriviaResolver(
@@ -124,19 +117,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 var list = trailingTrivia.Concat(leadingTrivia);
 
-                switch (location)
+                return location switch
                 {
-                    case TriviaLocation.BeforeBeginningOfSpan:
-                        return FilterBeforeBeginningOfSpan(tokenPair, list);
-                    case TriviaLocation.AfterEndOfSpan:
-                        return FilterTriviaList(list.Concat(tokenPair.NextToken.LeadingTrivia));
-                    case TriviaLocation.AfterBeginningOfSpan:
-                        return FilterTriviaList(AppendTrailingTrivia(tokenPair).Concat(list).Concat(tokenPair.NextToken.LeadingTrivia));
-                    case TriviaLocation.BeforeEndOfSpan:
-                        return FilterTriviaList(tokenPair.PreviousToken.TrailingTrivia.Concat(list).Concat(tokenPair.NextToken.LeadingTrivia));
-                }
-
-                return Contract.FailWithReturn<IEnumerable<SyntaxTrivia>>("Shouldn't reach here");
+                    TriviaLocation.BeforeBeginningOfSpan => FilterBeforeBeginningOfSpan(tokenPair, list),
+                    TriviaLocation.AfterEndOfSpan => FilterTriviaList(list.Concat(tokenPair.NextToken.LeadingTrivia)),
+                    TriviaLocation.AfterBeginningOfSpan => FilterTriviaList(AppendTrailingTrivia(tokenPair).Concat(list).Concat(tokenPair.NextToken.LeadingTrivia)),
+                    TriviaLocation.BeforeEndOfSpan => FilterTriviaList(tokenPair.PreviousToken.TrailingTrivia.Concat(list).Concat(tokenPair.NextToken.LeadingTrivia)),
+                    _ => Contract.FailWithReturn<IEnumerable<SyntaxTrivia>>("Shouldn't reach here"),
+                };
             }
 
             private IEnumerable<SyntaxTrivia> FilterBeforeBeginningOfSpan(PreviousNextTokenPair tokenPair, IEnumerable<SyntaxTrivia> list)

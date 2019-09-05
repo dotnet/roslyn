@@ -17,8 +17,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal partial class RemoteHostClientServiceFactory
     {
         public class RemoteHostClientService : ForegroundThreadAffinitizedObject, IRemoteHostClientService
@@ -282,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // s_lastRemoteClientTask info should be saved in the dump
                     // report NFW when connection is closed unless it is proper shutdown
-                    WatsonReporter.Report(new Exception("Connection to remote host closed"));
+                    WatsonReporter.Report(new Exception("Connection to remote host closed"), WatsonSeverity.Critical);
 
                     RemoteHostCrashInfoBar.ShowInfoBar(_workspace);
                 }

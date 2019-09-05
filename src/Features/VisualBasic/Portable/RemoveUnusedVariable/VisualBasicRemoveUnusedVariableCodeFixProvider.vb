@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
 
         Private Const BC42024 As String = NameOf(BC42024)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
             ImmutableArray.Create(BC42024)
 

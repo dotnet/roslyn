@@ -233,6 +233,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add null checks for all parameters.
+        /// </summary>
+        internal static string Add_null_checks_for_all_parameters {
+            get {
+                return ResourceManager.GetString("Add_null_checks_for_all_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameter to constructor.
         /// </summary>
         internal static string Add_optional_parameter_to_constructor {
@@ -393,6 +402,24 @@ namespace Microsoft.CodeAnalysis {
             get {
                 return ResourceManager.GetString("Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_s" +
                         "ession_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; into an interface method will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; into an interface will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
@@ -696,9 +723,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
         /// </summary>
-        internal static string Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names {
+        internal static string Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc {
             get {
-                return ResourceManager.GetString(@"Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names", resourceCulture);
+                return ResourceManager.GetString(@"Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc", resourceCulture);
             }
         }
         
@@ -803,6 +830,26 @@ namespace Microsoft.CodeAnalysis {
         internal static string Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime {
             get {
                 return ResourceManager.GetString("Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing &apos;{0}&apos; from asynchronous to synchronous will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_c" +
+                        "ontinuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing because it changes the shape of the state machine..
+        /// </summary>
+        internal static string Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine {
+            get {
+                return ResourceManager.GetString("Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes" +
+                        "_the_shape_of_the_state_machine", resourceCulture);
             }
         }
         
@@ -933,6 +980,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Computing_fix_all_occurrences_code_fix {
             get {
                 return ResourceManager.GetString("Computing_fix_all_occurrences_code_fix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure {0} code style.
+        /// </summary>
+        internal static string Configure_0_code_style {
+            get {
+                return ResourceManager.GetString("Configure_0_code_style", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure {0} severity.
+        /// </summary>
+        internal static string Configure_0_severity {
+            get {
+                return ResourceManager.GetString("Configure_0_severity", resourceCulture);
             }
         }
         
@@ -1179,6 +1244,51 @@ namespace Microsoft.CodeAnalysis {
         internal static string Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disposable field &apos;{0}&apos; is never disposed.
+        /// </summary>
+        internal static string Disposable_field_0_is_never_disposed {
+            get {
+                return ResourceManager.GetString("Disposable_field_0_is_never_disposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disposable fields should be disposed.
+        /// </summary>
+        internal static string Disposable_fields_should_be_disposed {
+            get {
+                return ResourceManager.GetString("Disposable_fields_should_be_disposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disposable object created by &apos;{0}&apos; is never disposed.
+        /// </summary>
+        internal static string Disposable_object_created_by_0_is_never_disposed {
+            get {
+                return ResourceManager.GetString("Disposable_object_created_by_0_is_never_disposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field..
+        /// </summary>
+        internal static string DisposableFieldsShouldBeDisposedDescription {
+            get {
+                return ResourceManager.GetString("DisposableFieldsShouldBeDisposedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dispose objects before losing scope.
+        /// </summary>
+        internal static string Dispose_objects_before_losing_scope {
+            get {
+                return ResourceManager.GetString("Dispose_objects_before_losing_scope", resourceCulture);
             }
         }
         
@@ -1692,6 +1802,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Generate_overrides {
             get {
                 return ResourceManager.GetString("Generate_overrides", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate parameter &apos;{0}&apos;.
+        /// </summary>
+        internal static string Generate_parameter_0 {
+            get {
+                return ResourceManager.GetString("Generate_parameter_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate parameter &apos;{0}&apos; (and overrides/implementations).
+        /// </summary>
+        internal static string Generate_parameter_0_and_overrides_implementations {
+            get {
+                return ResourceManager.GetString("Generate_parameter_0_and_overrides_implementations", resourceCulture);
             }
         }
         
@@ -2398,6 +2526,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} must return a stream that supports read and seek operations..
+        /// </summary>
+        internal static string MethodMustReturnStreamThatSupportsReadAndSeek {
+            get {
+                return ResourceManager.GetString("MethodMustReturnStreamThatSupportsReadAndSeek", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Methods.
         /// </summary>
         internal static string Methods {
@@ -2422,6 +2559,16 @@ namespace Microsoft.CodeAnalysis {
             get {
                 return ResourceManager.GetString("Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_" +
                         "continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a switch expression will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_fro" +
+                        "m_continuing", resourceCulture);
             }
         }
         
@@ -3492,6 +3639,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stream must support read and seek operations..
+        /// </summary>
+        internal static string StreamMustSupportReadAndSeek {
+            get {
+                return ResourceManager.GetString("StreamMustSupportReadAndSeek", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Structures.
         /// </summary>
         internal static string Structures {
@@ -3838,6 +3994,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unwrap call chain.
+        /// </summary>
+        internal static string Unwrap_call_chain {
+            get {
+                return ResourceManager.GetString("Unwrap_call_chain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unwrap expression.
         /// </summary>
         internal static string Unwrap_expression {
@@ -3865,12 +4030,12 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Updating a &apos;{0}&apos; statement around an active statement will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Updating a &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
         /// </summary>
-        internal static string Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
+        internal static string Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_" +
-                        "from_continuing", resourceCulture);
+                return ResourceManager.GetString("Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_conti" +
+                        "nuing", resourceCulture);
             }
         }
         
@@ -4380,6 +4545,25 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use recommended dispose pattern.
+        /// </summary>
+        internal static string Use_recommended_dispose_pattern {
+            get {
+                return ResourceManager.GetString("Use_recommended_dispose_pattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that object created by &apos;{0}&apos; is disposed on all paths: using statement/declaration or try/finally.
+        /// </summary>
+        internal static string Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally {
+            get {
+                return ResourceManager.GetString("Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on" +
+                        "_all_paths_using_statement_declaration_or_try_finally", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use simple &apos;using&apos; statement.
         /// </summary>
         internal static string Use_simple_using_statement {
@@ -4407,29 +4591,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using readonly references will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object  [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string Using_readonly_references_will_prevent_the_debug_session_from_continuing {
+        internal static string UseRecommendedDisposePatternDescription {
             get {
-                return ResourceManager.GetString("Using_readonly_references_will_prevent_the_debug_session_from_continuing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using readonly structs will prevent the debug session from continuing..
-        /// </summary>
-        internal static string Using_readonly_structs_will_prevent_the_debug_session_from_continuing {
-            get {
-                return ResourceManager.GetString("Using_readonly_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using ref structs will prevent the debug session from continuing..
-        /// </summary>
-        internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
-            get {
-                return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
+                return ResourceManager.GetString("UseRecommendedDisposePatternDescription", resourceCulture);
             }
         }
         
@@ -4516,6 +4682,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Semantics may change when converting statement..
+        /// </summary>
+        internal static string Warning_colon_semantics_may_change_when_converting_statement {
+            get {
+                return ResourceManager.GetString("Warning_colon_semantics_may_change_when_converting_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning: Method overrides symbol from metadata.
         /// </summary>
         internal static string Warning_Method_overrides_symbol_from_metadata {
@@ -4525,11 +4700,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Wrap and align call chain.
+        /// </summary>
+        internal static string Wrap_and_align_call_chain {
+            get {
+                return ResourceManager.GetString("Wrap_and_align_call_chain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wrap and align expression.
         /// </summary>
         internal static string Wrap_and_align_expression {
             get {
                 return ResourceManager.GetString("Wrap_and_align_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap and align long call chain.
+        /// </summary>
+        internal static string Wrap_and_align_long_call_chain {
+            get {
+                return ResourceManager.GetString("Wrap_and_align_long_call_chain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap call chain.
+        /// </summary>
+        internal static string Wrap_call_chain {
+            get {
+                return ResourceManager.GetString("Wrap_call_chain", resourceCulture);
             }
         }
         
@@ -4566,6 +4768,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Wrap_long_argument_list {
             get {
                 return ResourceManager.GetString("Wrap_long_argument_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap long call chain.
+        /// </summary>
+        internal static string Wrap_long_call_chain {
+            get {
+                return ResourceManager.GetString("Wrap_long_call_chain", resourceCulture);
             }
         }
         

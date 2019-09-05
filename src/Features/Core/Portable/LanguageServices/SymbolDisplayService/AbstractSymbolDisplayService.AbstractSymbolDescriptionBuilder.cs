@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 _displayService = displayService;
                 _anonymousTypeDisplayService = anonymousTypeDisplayService;
-                this.Workspace = workspace;
-                this.CancellationToken = cancellationToken;
+                Workspace = workspace;
+                CancellationToken = cancellationToken;
                 _semanticModel = semanticModel;
                 _position = position;
             }
@@ -152,6 +152,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return null;
             }
 
+            protected Compilation GetCompilation()
+                => _semanticModel.Compilation;
+
             private async Task AddPartsAsync(ImmutableArray<ISymbol> symbols)
             {
                 await AddDescriptionPartAsync(symbols[0]).ConfigureAwait(false);
@@ -164,7 +167,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void AddExceptions(ISymbol symbol)
             {
-                var exceptionTypes = symbol.GetDocumentationComment().ExceptionTypes;
+                var exceptionTypes = symbol.GetDocumentationComment(GetCompilation(), expandIncludes: true, expandInheritdoc: true).ExceptionTypes;
                 if (exceptionTypes.Any())
                 {
                     var parts = new List<SymbolDisplayPart>();
@@ -214,7 +217,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     var parts = new List<SymbolDisplayPart>();
                     parts.AddLineBreak();
                     parts.AddText(WorkspacesResources.Variables_captured_colon);
-                    bool first = true;
+                    var first = true;
                     foreach (var captured in captures)
                     {
                         if (!first)
@@ -242,7 +245,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 await AddPartsAsync(symbolGroup).ConfigureAwait(false);
 
-                return this.BuildDescription(groups);
+                return BuildDescription(groups);
             }
 
             public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>> BuildDescriptionSectionsAsync(ImmutableArray<ISymbol> symbolGroup)
@@ -251,7 +254,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 await AddPartsAsync(symbolGroup).ConfigureAwait(false);
 
-                return this.BuildDescriptionSections();
+                return BuildDescriptionSections();
             }
 
             private async Task AddDescriptionPartAsync(ISymbol symbol)
@@ -385,10 +388,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     AddAwaitablePrefix();
                 }
 
-                var token = await _semanticModel.SyntaxTree.GetTouchingTokenAsync(_position, this.CancellationToken).ConfigureAwait(false);
+                var token = await _semanticModel.SyntaxTree.GetTouchingTokenAsync(_position, CancellationToken).ConfigureAwait(false);
                 if (token != default)
                 {
-                    var syntaxFactsService = this.Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
+                    var syntaxFactsService = Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
                     if (syntaxFactsService.IsAwaitKeyword(token))
                     {
                         AddPrefixTextForAwaitKeyword();
@@ -426,7 +429,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var typeArguments = symbol.GetAllTypeArguments().ToList();
                 var typeParameters = symbol.GetAllTypeParameters().ToList();
 
-                for (int i = 0; i < typeArguments.Count; i++)
+                for (var i = 0; i < typeArguments.Count; i++)
                 {
                     var typeArgument = typeArguments[i];
                     var typeParameter = typeParameters[i];
@@ -652,7 +655,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var parts = new List<SymbolDisplayPart>();
 
                 var count = typeParameters.Count;
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     parts.AddRange(TypeParameterName(typeParameters[i].Name));
                     parts.AddRange(Space());
@@ -706,7 +709,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
             {
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     yield return new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
                 }
@@ -729,7 +732,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
             {
-                format = format ?? MinimallyQualifiedFormat;
+                format ??= MinimallyQualifiedFormat;
                 return _displayService.ToMinimalDisplayParts(_semanticModel, _position, symbol, format);
             }
 

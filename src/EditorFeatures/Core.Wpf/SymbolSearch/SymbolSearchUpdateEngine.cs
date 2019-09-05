@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// </summary>
     internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
     {
-        private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
+        private readonly ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
         public SymbolSearchUpdateEngine(

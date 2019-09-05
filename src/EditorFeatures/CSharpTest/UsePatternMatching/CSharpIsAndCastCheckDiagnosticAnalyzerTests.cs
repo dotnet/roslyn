@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -558,6 +562,32 @@ class C
         return null;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestSeverity()
+        {
+            var source =
+
+@"class C
+{
+    void M()
+    {
+        if (x is string)
+        {
+            [|var|] v = (string)x;
+        } 
+    }
+}";
+            var warningOption = new CodeStyleOption<bool>(true, NotificationOption.Warning);
+            var options = Option(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, warningOption);
+            var testParameters = new TestParameters(options: options, parseOptions: TestOptions.Regular8);
+
+            using var workspace = CreateWorkspaceFromOptions(source, testParameters);
+            var diag = (await GetDiagnosticsAsync(workspace, testParameters)).Single();
+            Assert.Equal(DiagnosticSeverity.Warning, diag.Severity);
+            Assert.Equal(IDEDiagnosticIds.InlineIsTypeCheckId, diag.Id);
+
         }
     }
 }

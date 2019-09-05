@@ -23,575 +23,548 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 {
     [UseExportProvider]
-    public class WorkCoordinatorTests
+    public class WorkCoordinatorTests : TestBase
     {
         private const string SolutionCrawler = nameof(SolutionCrawler);
 
         [Fact]
         public async Task RegisterService()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var registrationService = new SolutionCrawlerRegistrationService(
-                    SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
-                    AsynchronousOperationListenerProvider.NullProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var registrationService = new SolutionCrawlerRegistrationService(
+SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
+AsynchronousOperationListenerProvider.NullProvider);
 
-                // register and unregister workspace to the service
-                registrationService.Register(workspace);
-                registrationService.Unregister(workspace);
+            // register and unregister workspace to the service
+            registrationService.Register(workspace);
+            registrationService.Unregister(workspace);
 
-                // make sure we wait for all waiter. the test wrongly assumed there won't be
-                // any pending async event which is implementation detail when creating workspace
-                // and changing options.
-                await WaitWaiterAsync(workspace.ExportProvider);
-            }
+            // make sure we wait for all waiter. the test wrongly assumed there won't be
+            // any pending async event which is implementation detail when creating workspace
+            // and changing options.
+            await WaitWaiterAsync(workspace.ExportProvider);
         }
 
         [Fact]
         public async Task DynamicallyAddAnalyzer()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                // create solution and wait for it to settle
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            // create solution and wait for it to settle
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                // create solution crawler and add new analyzer provider dynamically
-                var service = new SolutionCrawlerRegistrationService(
-                    SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
-                    GetListenerProvider(workspace.ExportProvider));
+            // create solution crawler and add new analyzer provider dynamically
+            var service = new SolutionCrawlerRegistrationService(
+                SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
+                GetListenerProvider(workspace.ExportProvider));
 
-                service.Register(workspace);
+            service.Register(workspace);
 
-                var worker = new Analyzer();
-                var provider = new AnalyzerProvider(worker);
-                service.AddAnalyzerProvider(provider, Metadata.Crawler);
+            var worker = new Analyzer();
+            var provider = new AnalyzerProvider(worker);
+            service.AddAnalyzerProvider(provider, Metadata.Crawler);
 
-                // wait for everything to settle
-                await WaitAsync(service, workspace);
+            // wait for everything to settle
+            await WaitAsync(service, workspace);
 
-                service.Unregister(workspace);
+            service.Unregister(workspace);
 
-                // check whether everything ran as expected
-                Assert.Equal(10, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(10, worker.DocumentIds.Count);
-            }
+            // check whether everything ran as expected
+            Assert.Equal(10, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(10, worker.DocumentIds.Count);
         }
 
         [Fact, WorkItem(747226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747226")]
         public async Task SolutionAdded_Simple()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solutionId = SolutionId.CreateNewId();
-                var projectId = ProjectId.CreateNewId();
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solutionId = SolutionId.CreateNewId();
+            var projectId = ProjectId.CreateNewId();
 
-                var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create(),
-                        projects: new[]
-                        {
+            var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create(),
+                    projects: new[]
+                    {
                             ProjectInfo.Create(projectId, VersionStamp.Create(), "P1", "P1", LanguageNames.CSharp,
                                 documents: new[]
                                 {
                                     DocumentInfo.Create(DocumentId.CreateNewId(projectId), "D1")
                                 })
-                        });
+                    });
 
-                var worker = await ExecuteOperation(workspace, w => w.OnSolutionAdded(solutionInfo));
-                Assert.Equal(1, worker.SyntaxDocumentIds.Count);
-            }
+            var worker = await ExecuteOperation(workspace, w => w.OnSolutionAdded(solutionInfo));
+            Assert.Equal(1, worker.SyntaxDocumentIds.Count);
         }
 
         [Fact]
         public async Task SolutionAdded_Complex()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
 
-                var worker = await ExecuteOperation(workspace, w => w.OnSolutionAdded(solution));
-                Assert.Equal(10, worker.SyntaxDocumentIds.Count);
-            }
+            var worker = await ExecuteOperation(workspace, w => w.OnSolutionAdded(solution));
+            Assert.Equal(10, worker.SyntaxDocumentIds.Count);
         }
 
         [Fact]
         public async Task Solution_Remove()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var worker = await ExecuteOperation(workspace, w => w.OnSolutionRemoved());
-                Assert.Equal(10, worker.InvalidateDocumentIds.Count);
-            }
+            var worker = await ExecuteOperation(workspace, w => w.OnSolutionRemoved());
+            Assert.Equal(10, worker.InvalidateDocumentIds.Count);
         }
 
         [Fact]
         public async Task Solution_Clear()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var worker = await ExecuteOperation(workspace, w => w.ClearSolution());
-                Assert.Equal(10, worker.InvalidateDocumentIds.Count);
-            }
+            var worker = await ExecuteOperation(workspace, w => w.ClearSolution());
+            Assert.Equal(10, worker.InvalidateDocumentIds.Count);
         }
 
         [Fact]
         public async Task Solution_Reload()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var worker = await ExecuteOperation(workspace, w => w.OnSolutionReloaded(solution));
-                Assert.Equal(0, worker.SyntaxDocumentIds.Count);
-            }
+            var worker = await ExecuteOperation(workspace, w => w.OnSolutionReloaded(solution));
+            Assert.Equal(0, worker.SyntaxDocumentIds.Count);
         }
 
         [Fact]
         public async Task Solution_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solutionInfo);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solutionInfo);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var solution = workspace.CurrentSolution;
-                var documentId = solution.Projects.First().DocumentIds[0];
-                solution = solution.RemoveDocument(documentId);
+            var solution = workspace.CurrentSolution;
+            var documentId = solution.Projects.First().DocumentIds[0];
+            solution = solution.RemoveDocument(documentId);
 
-                var changedSolution = solution.AddProject("P3", "P3", LanguageNames.CSharp).AddDocument("D1", "").Project.Solution;
+            var changedSolution = solution.AddProject("P3", "P3", LanguageNames.CSharp).AddDocument("D1", "").Project.Solution;
 
-                var worker = await ExecuteOperation(workspace, w => w.ChangeSolution(changedSolution));
-                Assert.Equal(1, worker.SyntaxDocumentIds.Count);
-            }
+            var worker = await ExecuteOperation(workspace, w => w.ChangeSolution(changedSolution));
+            Assert.Equal(1, worker.SyntaxDocumentIds.Count);
         }
 
         [Fact]
         public async Task Project_Add()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var projectId = ProjectId.CreateNewId();
-                var projectInfo = ProjectInfo.Create(
-                    projectId, VersionStamp.Create(), "P3", "P3", LanguageNames.CSharp,
-                    documents: new List<DocumentInfo>
-                        {
+            var projectId = ProjectId.CreateNewId();
+            var projectInfo = ProjectInfo.Create(
+                projectId, VersionStamp.Create(), "P3", "P3", LanguageNames.CSharp,
+                documents: new List<DocumentInfo>
+                    {
                             DocumentInfo.Create(DocumentId.CreateNewId(projectId), "D1"),
                             DocumentInfo.Create(DocumentId.CreateNewId(projectId), "D2")
-                        });
+                    });
 
-                var worker = await ExecuteOperation(workspace, w => w.OnProjectAdded(projectInfo));
-                Assert.Equal(2, worker.SyntaxDocumentIds.Count);
-            }
+            var worker = await ExecuteOperation(workspace, w => w.OnProjectAdded(projectInfo));
+            Assert.Equal(2, worker.SyntaxDocumentIds.Count);
         }
 
         [Fact]
         public async Task Project_Remove()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var projectid = workspace.CurrentSolution.ProjectIds[0];
+            var projectid = workspace.CurrentSolution.ProjectIds[0];
 
-                var worker = await ExecuteOperation(workspace, w => w.OnProjectRemoved(projectid));
-                Assert.Equal(0, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(5, worker.InvalidateDocumentIds.Count);
-            }
+            var worker = await ExecuteOperation(workspace, w => w.OnProjectRemoved(projectid));
+            Assert.Equal(0, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.InvalidateDocumentIds.Count);
         }
 
         [Fact]
         public async Task Project_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solutionInfo);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solutionInfo);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var project = workspace.CurrentSolution.Projects.First();
-                var documentId = project.DocumentIds[0];
-                var solution = workspace.CurrentSolution.RemoveDocument(documentId);
+            var project = workspace.CurrentSolution.Projects.First();
+            var documentId = project.DocumentIds[0];
+            var solution = workspace.CurrentSolution.RemoveDocument(documentId);
 
-                var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, solution));
-                Assert.Equal(0, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(1, worker.InvalidateDocumentIds.Count);
-            }
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, solution));
+            Assert.Equal(0, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(1, worker.InvalidateDocumentIds.Count);
         }
 
         [Fact]
         public async Task Project_AssemblyName_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solutionInfo);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solutionInfo);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").WithAssemblyName("newName");
-                var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
+            var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").WithAssemblyName("newName");
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
 
-                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(5, worker.DocumentIds.Count);
-            }
+            Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.DocumentIds.Count);
         }
 
         [Fact]
         public async Task Project_DefaultNamespace_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solutionInfo);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solutionInfo);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").WithDefaultNamespace("newNamespace");
-                var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
+            var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").WithDefaultNamespace("newNamespace");
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
 
-                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(5, worker.DocumentIds.Count);
-            }
+            Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.DocumentIds.Count);
         }
 
         [Fact]
         public async Task Project_AnalyzerOptions_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solutionInfo);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solutionInfo);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").AddAdditionalDocument("a1", SourceText.From("")).Project;
-                var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
+            var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").AddAdditionalDocument("a1", SourceText.From("")).Project;
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
 
-                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(5, worker.DocumentIds.Count);
-            }
+            Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.DocumentIds.Count);
         }
 
         [Fact]
         public async Task Project_OutputFilePath_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solutionInfo);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solutionInfo);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var projectId = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").Id;
-                var newSolution = workspace.CurrentSolution.WithProjectOutputFilePath(projectId, "/newPath");
-                var worker = await ExecuteOperation(workspace, w => w.ChangeProject(projectId, newSolution));
+            var projectId = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").Id;
+            var newSolution = workspace.CurrentSolution.WithProjectOutputFilePath(projectId, "/newPath");
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(projectId, newSolution));
 
-                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(5, worker.DocumentIds.Count);
-            }
+            Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.DocumentIds.Count);
         }
 
         [Fact]
         public async Task Project_OutputRefFilePath_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solutionInfo);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solutionInfo);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var projectId = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").Id;
-                var newSolution = workspace.CurrentSolution.WithProjectOutputRefFilePath(projectId, "/newPath");
-                var worker = await ExecuteOperation(workspace, w => w.ChangeProject(projectId, newSolution));
+            var projectId = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").Id;
+            var newSolution = workspace.CurrentSolution.WithProjectOutputRefFilePath(projectId, "/newPath");
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(projectId, newSolution));
 
-                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(5, worker.DocumentIds.Count);
-            }
+            Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.DocumentIds.Count);
         }
 
         [Fact]
         public async Task Test_NeedsReanalysisOnOptionChanged()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solutionInfo);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solutionInfo);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var worker = await ExecuteOperation(workspace, w => w.Options = w.Options.WithChangedOption(Analyzer.TestOption, false));
+            var worker = await ExecuteOperation(workspace, w => w.Options = w.Options.WithChangedOption(Analyzer.TestOption, false));
 
-                Assert.Equal(10, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(10, worker.DocumentIds.Count);
-                Assert.Equal(2, worker.ProjectIds.Count);
-            }
+            Assert.Equal(10, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(10, worker.DocumentIds.Count);
+            Assert.Equal(2, worker.ProjectIds.Count);
         }
 
         [Fact]
         public async Task Project_Reload()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var project = solution.Projects[0];
-                var worker = await ExecuteOperation(workspace, w => w.OnProjectReloaded(project));
-                Assert.Equal(0, worker.SyntaxDocumentIds.Count);
-            }
+            var project = solution.Projects[0];
+            var worker = await ExecuteOperation(workspace, w => w.OnProjectReloaded(project));
+            Assert.Equal(0, worker.SyntaxDocumentIds.Count);
         }
 
         [Fact]
         public async Task Document_Add()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var project = solution.Projects[0];
-                var info = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "D6");
+            var project = solution.Projects[0];
+            var info = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "D6");
 
-                var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
-                Assert.Equal(1, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(6, worker.DocumentIds.Count);
-            }
+            var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
+            Assert.Equal(1, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(6, worker.DocumentIds.Count);
         }
 
         [Fact]
         public async Task Document_Remove()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
+            var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
 
-                var worker = await ExecuteOperation(workspace, w => w.OnDocumentRemoved(id));
+            var worker = await ExecuteOperation(workspace, w => w.OnDocumentRemoved(id));
 
-                Assert.Equal(0, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(4, worker.DocumentIds.Count);
-                Assert.Equal(1, worker.InvalidateDocumentIds.Count);
-            }
+            Assert.Equal(0, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(4, worker.DocumentIds.Count);
+            Assert.Equal(1, worker.InvalidateDocumentIds.Count);
         }
 
         [Fact]
         public async Task Document_Reload()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var id = solution.Projects[0].Documents[0];
+            var id = solution.Projects[0].Documents[0];
 
-                var worker = await ExecuteOperation(workspace, w => w.OnDocumentReloaded(id));
-                Assert.Equal(0, worker.SyntaxDocumentIds.Count);
-            }
+            var worker = await ExecuteOperation(workspace, w => w.OnDocumentReloaded(id));
+            Assert.Equal(0, worker.SyntaxDocumentIds.Count);
         }
 
         [Fact]
         public async Task Document_Reanalyze()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var info = solution.Projects[0].Documents[0];
+            var info = solution.Projects[0].Documents[0];
 
-                var worker = new Analyzer();
-                var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
-                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            var worker = new Analyzer();
+            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
+            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
 
-                service.Register(workspace);
+            service.Register(workspace);
 
-                // don't rely on background parser to have tree. explicitly do it here.
-                await TouchEverything(workspace.CurrentSolution);
+            // don't rely on background parser to have tree. explicitly do it here.
+            await TouchEverything(workspace.CurrentSolution);
 
-                service.Reanalyze(workspace, worker, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable<DocumentId>(info.Id), highPriority: false);
+            service.Reanalyze(workspace, worker, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable<DocumentId>(info.Id), highPriority: false);
 
-                await TouchEverything(workspace.CurrentSolution);
+            await TouchEverything(workspace.CurrentSolution);
 
-                await WaitAsync(service, workspace);
+            await WaitAsync(service, workspace);
 
-                service.Unregister(workspace);
+            service.Unregister(workspace);
 
-                Assert.Equal(1, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(1, worker.DocumentIds.Count);
-            }
+            Assert.Equal(1, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(1, worker.DocumentIds.Count);
         }
 
         [Fact, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
+            var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
 
-                var worker = await ExecuteOperation(workspace, w => w.ChangeDocument(id, SourceText.From("//")));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeDocument(id, SourceText.From("//")));
 
-                Assert.Equal(1, worker.SyntaxDocumentIds.Count);
-            }
+            Assert.Equal(1, worker.SyntaxDocumentIds.Count);
         }
 
         [Fact]
         public async Task Document_AdditionalFileChange()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var project = solution.Projects[0];
-                var ncfile = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "D6");
+            var project = solution.Projects[0];
+            var ncfile = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "D6");
 
-                var worker = await ExecuteOperation(workspace, w => w.OnAdditionalDocumentAdded(ncfile));
-                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(5, worker.DocumentIds.Count);
+            var worker = await ExecuteOperation(workspace, w => w.OnAdditionalDocumentAdded(ncfile));
+            Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.DocumentIds.Count);
 
-                worker = await ExecuteOperation(workspace, w => w.ChangeAdditionalDocument(ncfile.Id, SourceText.From("//")));
+            worker = await ExecuteOperation(workspace, w => w.ChangeAdditionalDocument(ncfile.Id, SourceText.From("//")));
 
-                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(5, worker.DocumentIds.Count);
+            Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.DocumentIds.Count);
 
-                worker = await ExecuteOperation(workspace, w => w.OnAdditionalDocumentRemoved(ncfile.Id));
+            worker = await ExecuteOperation(workspace, w => w.OnAdditionalDocumentRemoved(ncfile.Id));
 
-                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(5, worker.DocumentIds.Count);
-            }
+            Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.DocumentIds.Count);
+        }
+
+        [Fact]
+        public async Task Document_AnalyzerConfigFileChange()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var project = solution.Projects[0];
+            var analyzerConfigDocFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(Temp.CreateDirectory().Path, ".editorconfig");
+            var analyzerConfigFile = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), ".editorconfig", filePath: analyzerConfigDocFilePath);
+
+            var worker = await ExecuteOperation(workspace, w => w.OnAnalyzerConfigDocumentAdded(analyzerConfigFile));
+            Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.DocumentIds.Count);
+
+            worker = await ExecuteOperation(workspace, w => w.ChangeAnalyzerConfigDocument(analyzerConfigFile.Id, SourceText.From("//")));
+
+            Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.DocumentIds.Count);
+
+            worker = await ExecuteOperation(workspace, w => w.OnAnalyzerConfigDocumentRemoved(analyzerConfigFile.Id));
+
+            Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(5, worker.DocumentIds.Count);
         }
 
         [Fact, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_Cancellation()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
+            var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
 
-                var analyzer = new Analyzer(waitForCancellation: true);
-                var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            var analyzer = new Analyzer(waitForCancellation: true);
+            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
+            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
 
-                service.Register(workspace);
+            service.Register(workspace);
 
-                workspace.ChangeDocument(id, SourceText.From("//"));
-                analyzer.RunningEvent.Wait();
+            workspace.ChangeDocument(id, SourceText.From("//"));
+            analyzer.RunningEvent.Wait();
 
-                workspace.ChangeDocument(id, SourceText.From("// "));
-                await WaitAsync(service, workspace);
+            workspace.ChangeDocument(id, SourceText.From("// "));
+            await WaitAsync(service, workspace);
 
-                service.Unregister(workspace);
+            service.Unregister(workspace);
 
-                Assert.Equal(1, analyzer.SyntaxDocumentIds.Count);
-                Assert.Equal(5, analyzer.DocumentIds.Count);
-            }
+            Assert.Equal(1, analyzer.SyntaxDocumentIds.Count);
+            Assert.Equal(5, analyzer.DocumentIds.Count);
         }
 
         [Fact, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_Cancellation_MultipleTimes()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
+            var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
 
-                var analyzer = new Analyzer(waitForCancellation: true);
-                var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            var analyzer = new Analyzer(waitForCancellation: true);
+            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
+            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
 
-                service.Register(workspace);
+            service.Register(workspace);
 
-                workspace.ChangeDocument(id, SourceText.From("//"));
-                analyzer.RunningEvent.Wait();
-                analyzer.RunningEvent.Reset();
+            workspace.ChangeDocument(id, SourceText.From("//"));
+            analyzer.RunningEvent.Wait();
+            analyzer.RunningEvent.Reset();
 
-                workspace.ChangeDocument(id, SourceText.From("// "));
-                analyzer.RunningEvent.Wait();
+            workspace.ChangeDocument(id, SourceText.From("// "));
+            analyzer.RunningEvent.Wait();
 
-                workspace.ChangeDocument(id, SourceText.From("//  "));
-                await WaitAsync(service, workspace);
+            workspace.ChangeDocument(id, SourceText.From("//  "));
+            await WaitAsync(service, workspace);
 
-                service.Unregister(workspace);
+            service.Unregister(workspace);
 
-                Assert.Equal(1, analyzer.SyntaxDocumentIds.Count);
-                Assert.Equal(5, analyzer.DocumentIds.Count);
-            }
+            Assert.Equal(1, analyzer.SyntaxDocumentIds.Count);
+            Assert.Equal(5, analyzer.DocumentIds.Count);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21082"), WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_InvocationReasons()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
+            var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
 
-                var analyzer = new Analyzer(blockedRun: true);
-                var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            var analyzer = new Analyzer(blockedRun: true);
+            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
+            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
 
-                service.Register(workspace);
+            service.Register(workspace);
 
-                // first invocation will block worker
-                workspace.ChangeDocument(id, SourceText.From("//"));
-                analyzer.RunningEvent.Wait();
+            // first invocation will block worker
+            workspace.ChangeDocument(id, SourceText.From("//"));
+            analyzer.RunningEvent.Wait();
 
-                var openReady = new ManualResetEventSlim(initialState: false);
-                var closeReady = new ManualResetEventSlim(initialState: false);
+            var openReady = new ManualResetEventSlim(initialState: false);
+            var closeReady = new ManualResetEventSlim(initialState: false);
 
-                workspace.DocumentOpened += (o, e) => openReady.Set();
-                workspace.DocumentClosed += (o, e) => closeReady.Set();
+            workspace.DocumentOpened += (o, e) => openReady.Set();
+            workspace.DocumentClosed += (o, e) => closeReady.Set();
 
-                // cause several different request to queue up
-                workspace.ChangeDocument(id, SourceText.From("// "));
-                workspace.OpenDocument(id);
-                workspace.CloseDocument(id);
+            // cause several different request to queue up
+            workspace.ChangeDocument(id, SourceText.From("// "));
+            workspace.OpenDocument(id);
+            workspace.CloseDocument(id);
 
-                openReady.Set();
-                closeReady.Set();
-                analyzer.BlockEvent.Set();
+            openReady.Set();
+            closeReady.Set();
+            analyzer.BlockEvent.Set();
 
-                await WaitAsync(service, workspace);
+            await WaitAsync(service, workspace);
 
-                service.Unregister(workspace);
+            service.Unregister(workspace);
 
-                Assert.Equal(1, analyzer.SyntaxDocumentIds.Count);
-                Assert.Equal(5, analyzer.DocumentIds.Count);
-            }
+            Assert.Equal(1, analyzer.SyntaxDocumentIds.Count);
+            Assert.Equal(5, analyzer.DocumentIds.Count);
         }
 
         [Fact]
@@ -809,21 +782,19 @@ End Class";
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false);
 
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var id = solution.Projects[0].Id;
-                var info = DocumentInfo.Create(DocumentId.CreateNewId(id), "D6");
+            var id = solution.Projects[0].Id;
+            var info = DocumentInfo.Create(DocumentId.CreateNewId(id), "D6");
 
-                var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
+            var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
 
-                Assert.Equal(1, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(4, worker.DocumentIds.Count);
-            }
+            Assert.Equal(1, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(4, worker.DocumentIds.Count);
         }
 
         [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
@@ -831,21 +802,19 @@ End Class";
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
-            {
-                workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true);
 
-                workspace.OnSolutionAdded(solution);
-                await WaitWaiterAsync(workspace.ExportProvider);
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
 
-                var id = solution.Projects[0].Id;
-                var info = DocumentInfo.Create(DocumentId.CreateNewId(id), "D6");
+            var id = solution.Projects[0].Id;
+            var info = DocumentInfo.Create(DocumentId.CreateNewId(id), "D6");
 
-                var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
+            var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
 
-                Assert.Equal(1, worker.SyntaxDocumentIds.Count);
-                Assert.Equal(3, worker.DocumentIds.Count);
-            }
+            Assert.Equal(1, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(3, worker.DocumentIds.Count);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23657")]
@@ -853,55 +822,53 @@ End Class";
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var service = workspace.Services.GetService<ISolutionCrawlerService>();
+            var reporter = service.GetProgressReporter(workspace);
+            Assert.False(reporter.InProgress);
+
+            // set up events
+            var started = false;
+            var stopped = false;
+
+            reporter.ProgressChanged += (o, s) =>
             {
-                await WaitWaiterAsync(workspace.ExportProvider);
-
-                var service = workspace.Services.GetService<ISolutionCrawlerService>();
-                var reporter = service.GetProgressReporter(workspace);
-                Assert.False(reporter.InProgress);
-
-                // set up events
-                bool started = false;
-                bool stopped = false;
-
-                reporter.ProgressChanged += (o, s) =>
+                if (s.Status == ProgressStatus.Started)
                 {
-                    if (s.Status == ProgressStatus.Started)
-                    {
-                        started = true;
-                    }
-                    else if (s.Status == ProgressStatus.Stoped)
-                    {
-                        stopped = true;
-                    }
-                };
+                    started = true;
+                }
+                else if (s.Status == ProgressStatus.Stoped)
+                {
+                    stopped = true;
+                }
+            };
 
-                var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-                registrationService.Register(workspace);
+            var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+            registrationService.Register(workspace);
 
-                // first mutation
-                workspace.OnSolutionAdded(solution);
+            // first mutation
+            workspace.OnSolutionAdded(solution);
 
-                await WaitAsync((SolutionCrawlerRegistrationService)registrationService, workspace);
+            await WaitAsync((SolutionCrawlerRegistrationService)registrationService, workspace);
 
-                Assert.True(started);
-                Assert.True(stopped);
+            Assert.True(started);
+            Assert.True(stopped);
 
-                // reset
-                started = false;
-                stopped = false;
+            // reset
+            started = false;
+            stopped = false;
 
-                // second mutation
-                workspace.OnDocumentAdded(DocumentInfo.Create(DocumentId.CreateNewId(solution.Projects[0].Id), "D6"));
+            // second mutation
+            workspace.OnDocumentAdded(DocumentInfo.Create(DocumentId.CreateNewId(solution.Projects[0].Id), "D6"));
 
-                await WaitAsync((SolutionCrawlerRegistrationService)registrationService, workspace);
+            await WaitAsync((SolutionCrawlerRegistrationService)registrationService, workspace);
 
-                Assert.True(started);
-                Assert.True(stopped);
+            Assert.True(started);
+            Assert.True(stopped);
 
-                registrationService.Unregister(workspace);
-            }
+            registrationService.Unregister(workspace);
         }
 
         [Fact]
@@ -923,108 +890,104 @@ End Class";
                         documents: GetDocuments(projectId3, count: 5))
                 });
 
-            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            // add analyzer
+            var worker = new Analyzer2();
+            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
+
+            // enable solution crawler
+            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            service.Register(workspace);
+
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            // we want to test order items processed by solution crawler.
+            // but since everything async, lazy and cancellable, order is not 100% deterministic. an item might 
+            // start to be processed, and get cancelled due to newly enqueued item requiring current work to be re-processed 
+            // (ex, new file being added).
+            // this behavior is expected in real world, but it makes testing hard. so to make ordering deterministic
+            // here we first block solution crawler from processing any item using global operation.
+            // and then make sure all delayed work item enqueue to be done through waiters. work item enqueue is async
+            // and delayed since one of responsibility of solution cralwer is aggregating workspace events to fewer
+            // work items.
+            // once we are sure everything is stablized, we let solution crawler to process by releasing global operation.
+            // what this test is interested in is the order solution crawler process the pending works. so this should
+            // let the test not care about cancellation or work not enqueued yet.
+
+            // block solution cralwer from processing.
+            var globalOperation = workspace.Services.GetService<IGlobalOperationNotificationService>();
+            using (var operation = globalOperation.Start("Block SolutionCrawler"))
             {
-                await WaitWaiterAsync(workspace.ExportProvider);
+                // make sure global operaiton is actually started
+                // otherwise, solution crawler might processed event we are later waiting for
+                var operationWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.GlobalOperation);
+                await operationWaiter.CreateExpeditedWaitTask();
 
-                // add analyzer
-                var worker = new Analyzer2();
-                var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
+                // mutate solution
+                workspace.OnSolutionAdded(solution);
 
-                // enable solution crawler
-                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
-                service.Register(workspace);
+                // wait for workspace events to be all processed
+                var workspaceWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.Workspace);
+                await workspaceWaiter.CreateExpeditedWaitTask();
 
-                await WaitWaiterAsync(workspace.ExportProvider);
+                // now wait for semantic processor to finish
+                var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
 
-                // we want to test order items processed by solution crawler.
-                // but since everything async, lazy and cancellable, order is not 100% deterministic. an item might 
-                // start to be processed, and get cancelled due to newly enqueued item requiring current work to be re-processed 
-                // (ex, new file being added).
-                // this behavior is expected in real world, but it makes testing hard. so to make ordering deterministic
-                // here we first block solution crawler from processing any item using global operation.
-                // and then make sure all delayed work item enqueue to be done through waiters. work item enqueue is async
-                // and delayed since one of responsibility of solution cralwer is aggregating workspace events to fewer
-                // work items.
-                // once we are sure everything is stablized, we let solution crawler to process by releasing global operation.
-                // what this test is interested in is the order solution crawler process the pending works. so this should
-                // let the test not care about cancellation or work not enqueued yet.
+                // first, wait for first work to be queued.
+                //
+                // since asyncToken doesn't distinguish whether (1) certain event is happened but all processed or (2) it never happened yet,
+                // to check (1), we must wait for first item, and then wait for all items to be processed.
+                await crawlerListener.WaitUntilConditionIsMetAsync(
+                    pendingTokens => pendingTokens.Any(token => token.Tag == (object)SolutionCrawlerRegistrationService.EnqueueItem));
 
-                // block solution cralwer from processing.
-                var globalOperation = workspace.Services.GetService<IGlobalOperationNotificationService>();
-                using (var operation = globalOperation.Start("Block SolutionCrawler"))
-                {
-                    // make sure global operaiton is actually started
-                    // otherwise, solution crawler might processed event we are later waiting for
-                    var operationWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.GlobalOperation);
-                    await operationWaiter.CreateExpeditedWaitTask();
+                // and then wait them to be processed
+                await crawlerListener.WaitUntilConditionIsMetAsync(pendingTokens => pendingTokens.Where(token => token.Tag == workspace).IsEmpty());
 
-                    // mutate solution
-                    workspace.OnSolutionAdded(solution);
-
-                    // wait for workspace events to be all processed
-                    var workspaceWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.Workspace);
-                    await workspaceWaiter.CreateExpeditedWaitTask();
-
-                    // now wait for semantic processor to finish
-                    var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
-
-                    // first, wait for first work to be queued.
-                    //
-                    // since asyncToken doesn't distinguish whether (1) certain event is happened but all processed or (2) it never happened yet,
-                    // to check (1), we must wait for first item, and then wait for all items to be processed.
-                    await crawlerListener.WaitUntilConditionIsMetAsync(
-                        pendingTokens => pendingTokens.Any(token => token.Tag == (object)SolutionCrawlerRegistrationService.EnqueueItem));
-
-                    // and then wait them to be processed
-                    await crawlerListener.WaitUntilConditionIsMetAsync(pendingTokens => pendingTokens.Where(token => token.Tag == workspace).IsEmpty());
-
-                    // let analyzer to process
-                    operation.Done();
-                }
-
-                // wait analyzers to finish process
-                await WaitAsync(service, workspace);
-
-                Assert.Equal(1, worker.DocumentIds.Take(5).Select(d => d.ProjectId).Distinct().Count());
-                Assert.Equal(1, worker.DocumentIds.Skip(5).Take(5).Select(d => d.ProjectId).Distinct().Count());
-                Assert.Equal(1, worker.DocumentIds.Skip(10).Take(5).Select(d => d.ProjectId).Distinct().Count());
-
-                service.Unregister(workspace);
+                // let analyzer to process
+                operation.Done();
             }
+
+            // wait analyzers to finish process
+            await WaitAsync(service, workspace);
+
+            Assert.Equal(1, worker.DocumentIds.Take(5).Select(d => d.ProjectId).Distinct().Count());
+            Assert.Equal(1, worker.DocumentIds.Skip(5).Take(5).Select(d => d.ProjectId).Distinct().Count());
+            Assert.Equal(1, worker.DocumentIds.Skip(10).Take(5).Select(d => d.ProjectId).Distinct().Count());
+
+            service.Unregister(workspace);
         }
 
         private async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
-            using (var workspace = TestWorkspace.Create(
-                SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code, exportProvider: EditorServicesUtil.ExportProvider))
+            using var workspace = TestWorkspace.Create(
+                SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code, exportProvider: EditorServicesUtil.ExportProvider);
+            SetOptions(workspace);
+
+            var analyzer = new Analyzer();
+            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
+            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+
+            service.Register(workspace);
+
+            var testDocument = workspace.Documents.First();
+
+            var insertPosition = testDocument.CursorPosition;
+            var textBuffer = testDocument.GetTextBuffer();
+
+            using (var edit = textBuffer.CreateEdit())
             {
-                SetOptions(workspace);
-
-                var analyzer = new Analyzer();
-                var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
-
-                service.Register(workspace);
-
-                var testDocument = workspace.Documents.First();
-
-                var insertPosition = testDocument.CursorPosition;
-                var textBuffer = testDocument.GetTextBuffer();
-
-                using (var edit = textBuffer.CreateEdit())
-                {
-                    edit.Insert(insertPosition.Value, text);
-                    edit.Apply();
-                }
-
-                await WaitAsync(service, workspace);
-
-                service.Unregister(workspace);
-
-                Assert.Equal(1, analyzer.SyntaxDocumentIds.Count);
-                Assert.Equal(expectDocumentAnalysis ? 1 : 0, analyzer.DocumentIds.Count);
+                edit.Insert(insertPosition.Value, text);
+                edit.Apply();
             }
+
+            await WaitAsync(service, workspace);
+
+            service.Unregister(workspace);
+
+            Assert.Equal(1, analyzer.SyntaxDocumentIds.Count);
+            Assert.Equal(expectDocumentAnalysis ? 1 : 0, analyzer.DocumentIds.Count);
         }
 
         private async Task<Analyzer> ExecuteOperation(TestWorkspace workspace, Action<TestWorkspace> operation)

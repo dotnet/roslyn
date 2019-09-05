@@ -41,8 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         public Solution FinalSolution { get; private set; }
         public bool ShowCheckBoxes { get; private set; }
 
-        public PreviewEngine(IThreadingContext threadingContext, string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true) :
-            this(threadingContext, title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
+        public PreviewEngine(IThreadingContext threadingContext, string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true)
+            : this(threadingContext, title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
         {
         }
 
@@ -134,6 +134,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             allDocumentsWithChanges.AddRange(addedAdditionalDocuments);
             allDocumentsWithChanges.AddRange(removedAdditionalDocuments);
 
+            // AnalyzerConfig Documents
+            var changedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetChangedAnalyzerConfigDocuments());
+            var addedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetAddedAnalyzerConfigDocuments());
+            var removedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetRemovedAnalyzerConfigDocuments());
+
+            allDocumentsWithChanges.AddRange(changedAnalyzerConfigDocuments);
+            allDocumentsWithChanges.AddRange(addedAnalyzerConfigDocuments);
+            allDocumentsWithChanges.AddRange(removedAnalyzerConfigDocuments);
+
             AppendFileChanges(allDocumentsWithChanges, builder);
 
             // References (metadata/project/analyzer)
@@ -167,14 +176,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 var left = _oldSolution.GetTextDocument(documentId);
                 var right = _newSolution.GetTextDocument(documentId);
 
-                var leftDocument = left as Document;
-                var rightDocument = right as Document;
-
-                if (leftDocument != null)
+                if (left is Document leftDocument)
                 {
                     linkedDocumentIds.AddRange(leftDocument.GetLinkedDocumentIds());
                 }
-                else if (rightDocument != null)
+                else if (right is Document rightDocument)
                 {
                     // Added document.
                     linkedDocumentIds.AddRange(rightDocument.GetLinkedDocumentIds());

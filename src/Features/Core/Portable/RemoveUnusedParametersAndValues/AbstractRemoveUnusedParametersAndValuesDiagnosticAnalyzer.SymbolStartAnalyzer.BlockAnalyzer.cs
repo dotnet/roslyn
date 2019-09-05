@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 /// <summary>
                 /// Indicates if the operation block has an <see cref="IDelegateCreationOperation"/> or an <see cref="IAnonymousFunctionOperation"/>.
-                /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
+                /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol, ref bool)"/> to determine whether to bail from analysis or not.
                 /// </summary>
                 private bool _hasDelegateCreationOrAnonymousFunction;
 
@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 ///     2. Delegate passed as an argument to an invocation or object creation.
                 ///     3. Delegate added to an array or wrapped within a tuple.
                 ///     4. Delegate converted to a non-delegate type.
-                /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
+                /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol, ref bool)"/> to determine whether to bail from analysis or not.
                 /// </summary>
                 private bool _hasDelegateEscape;
 
                 /// <summary>
                 /// Indicates if the operation block has an <see cref="IInvalidOperation"/>.
-                /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
+                /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol, ref bool)"/> to determine whether to bail from analysis or not.
                 /// </summary>
                 private bool _hasInvalidOperation;
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// assignments of parameters/locals to other parameters/locals of delegate types,
                 /// and then delegate invocations through parameter/locals.
                 /// For the remaining unknown ones, we conservatively mark the operation as leading to
-                /// delegate escape, and corresponding bail out from flow analysis in <see cref="ShouldAnalyze(IOperation, ISymbol)"/>.
+                /// delegate escape, and corresponding bail out from flow analysis in <see cref="ShouldAnalyze(IOperation, ISymbol, ref bool)"/>.
                 /// This function checks the operation tree shape in context of
                 /// an <see cref="IDelegateCreationOperation"/> or an <see cref="IAnonymousFunctionOperation"/>.
                 /// </summary>
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// assignments of parameters/locals to other parameters/locals of delegate types,
                 /// and then delegate invocations through parameter/locals.
                 /// For the remaining unknown ones, we conservatively mark the operation as leading to
-                /// delegate escape, and corresponding bail out from flow analysis in <see cref="ShouldAnalyze(IOperation, ISymbol)"/>.
+                /// delegate escape, and corresponding bail out from flow analysis in <see cref="ShouldAnalyze(IOperation, ISymbol, ref bool)"/>.
                 /// This function checks the operation tree shape in context of
                 /// an <see cref="IParameterReferenceOperation"/> or an <see cref="ILocalReferenceOperation"/>
                 /// of delegate type.
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// Method invoked in <see cref="AnalyzeOperationBlockEnd(OperationBlockAnalysisContext)"/>
                 /// for each operation block to determine if we should analyze the operation block or bail out.
                 /// </summary>
-                private bool ShouldAnalyze(IOperation operationBlock, ISymbol owningSymbol)
+                private bool ShouldAnalyze(IOperation operationBlock, ISymbol owningSymbol, ref bool hasOperationNoneDescendant)
                 {
                     switch (operationBlock.Kind)
                     {
@@ -331,6 +331,32 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             // Skip blocks from attributes (which have OperationKind.None) and parameter initializers.
                             // We don't have any unused values in such operation blocks.
                             return false;
+
+                        default:
+                            foreach (var operation in operationBlock.Descendants())
+                            {
+                                switch (operation)
+                                {
+                                    // Workaround for https://github.com/dotnet/roslyn/issues/31007
+                                    // We cannot perform flow analysis correctly for a ref assignment operation or ref conditional operation until this compiler feature is implemented.
+                                    case IConditionalOperation conditional when conditional.IsRef:
+                                    case ISimpleAssignmentOperation assignment when assignment.IsRef:
+                                        return false;
+
+                                    default:
+                                        // Workaround for https://github.com/dotnet/roslyn/issues/32100
+                                        // Bail out in presence of OperationKind.None - not implemented IOperation.
+                                        if (operation.Kind == OperationKind.None)
+                                        {
+                                            hasOperationNoneDescendant = true;
+                                            return false;
+                                        }
+
+                                        break;
+                                }
+                            }
+
+                            break;
                     }
 
                     // We currently do not support points-to analysis, which is needed to accurately track locations of
@@ -404,11 +430,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     try
                     {
                         // Flag indicating if we found an operation block where all symbol writes were used. 
-                        bool hasBlockWithAllUsedWrites;
+                        AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out var hasBlockWithAllUsedWrites, out var hasOperationNoneDescendant);
 
-                        AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out hasBlockWithAllUsedWrites);
-
-                        AnalyzeUnusedParameters(context, isComputingUnusedParams, symbolUsageResultsBuilder, hasBlockWithAllUsedWrites);
+                        AnalyzeUnusedParameters(context, isComputingUnusedParams, symbolUsageResultsBuilder, hasBlockWithAllUsedWrites, hasOperationNoneDescendant);
                     }
                     finally
                     {
@@ -420,13 +444,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     OperationBlockAnalysisContext context,
                     bool isComputingUnusedParams,
                     PooledHashSet<SymbolUsageResult> symbolUsageResultsBuilder,
-                    out bool hasBlockWithAllUsedSymbolWrites)
+                    out bool hasBlockWithAllUsedSymbolWrites,
+                    out bool hasOperationNoneDescendant)
                 {
                     hasBlockWithAllUsedSymbolWrites = false;
+                    hasOperationNoneDescendant = false;
 
                     foreach (var operationBlock in context.OperationBlocks)
                     {
-                        if (!ShouldAnalyze(operationBlock, context.OwningSymbol))
+                        if (!ShouldAnalyze(operationBlock, context.OwningSymbol, ref hasOperationNoneDescendant))
                         {
                             continue;
                         }
@@ -590,7 +616,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return false;
                     }
 
-                    bool IsRemovableAssignmentValueWithoutSideEffects(IOperation assignmentValue)
+                    static bool IsRemovableAssignmentValueWithoutSideEffects(IOperation assignmentValue)
                     {
                         if (assignmentValue.ConstantValue.HasValue)
                         {
@@ -633,13 +659,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     OperationBlockAnalysisContext context,
                     bool isComputingUnusedParams,
                     PooledHashSet<SymbolUsageResult> symbolUsageResultsBuilder,
-                    bool hasBlockWithAllUsedSymbolWrites)
+                    bool hasBlockWithAllUsedSymbolWrites,
+                    bool hasOperationNoneDescendant)
                 {
                     // Process parameters for the context's OwningSymbol that are unused across all operation blocks.
 
                     // Bail out cases:
-                    //  1. Skip analysis if we are not computing unused parameters based on user's option preference.
-                    if (!isComputingUnusedParams)
+                    //  1. Skip analysis if we are not computing unused parameters based on user's option preference or have
+                    //     a descendant operation with OperatioKind.None (not yet implemented operation).
+                    if (!isComputingUnusedParams || hasOperationNoneDescendant)
                     {
                         return;
                     }
@@ -676,8 +704,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     foreach (var parameter in method.Parameters)
                     {
-                        bool isUsed = false;
-                        bool isSymbolRead = false;
+                        var isUsed = false;
+                        var isSymbolRead = false;
                         var isRefOrOutParam = parameter.IsRefOrOut();
 
                         // Iterate through symbol usage results for each operation block.

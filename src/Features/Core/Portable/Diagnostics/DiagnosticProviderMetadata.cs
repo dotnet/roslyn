@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public DiagnosticProviderMetadata(IDictionary<string, object> data)
         {
-            this.Name = (string)data.GetValueOrDefault("Name");
-            this.Language = (string)data.GetValueOrDefault("Language");
+            Name = (string)data.GetValueOrDefault("Name");
+            Language = (string)data.GetValueOrDefault("Language");
         }
     }
 }

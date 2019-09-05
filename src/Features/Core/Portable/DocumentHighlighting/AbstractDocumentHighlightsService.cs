@@ -95,12 +95,12 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var languagesProvider = document.GetLanguageService<IEmbeddedLanguageFeaturesProvider>();
+            var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
             if (languagesProvider != null)
             {
                 foreach (var language in languagesProvider.Languages)
                 {
-                    var highlighter = language.DocumentHighlightsService;
+                    var highlighter = (language as IEmbeddedLanguageFeatures)?.DocumentHighlightsService;
                     if (highlighter != null)
                     {
                         var highlights = await highlighter.GetDocumentHighlightsAsync(
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         {
             var spanSet = new HashSet<DocumentSpan>();
             var tagMap = new MultiDictionary<Document, HighlightSpan>();
-            bool addAllDefinitions = true;
+            var addAllDefinitions = true;
 
             // Add definitions
             // Filter out definitions that cannot be highlighted. e.g: alias symbols defined via project property pages.
@@ -288,19 +288,19 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 await AddLocationSpan(location, solution, spanSet, tagMap, HighlightSpanKind.Reference, cancellationToken).ConfigureAwait(false);
             }
 
-            var list = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count);
+            using var listDisposer = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count, out var list);
             foreach (var kvp in tagMap)
             {
-                var spans = ArrayBuilder<HighlightSpan>.GetInstance(kvp.Value.Count);
+                using var spansDisposer = ArrayBuilder<HighlightSpan>.GetInstance(kvp.Value.Count, out var spans);
                 foreach (var span in kvp.Value)
                 {
                     spans.Add(span);
                 }
 
-                list.Add(new DocumentHighlights(kvp.Key, spans.ToImmutableAndFree()));
+                list.Add(new DocumentHighlights(kvp.Key, spans.ToImmutable()));
             }
 
-            return list.ToImmutableAndFree();
+            return list.ToImmutable();
         }
 
         private static bool ShouldIncludeDefinition(ISymbol symbol)
@@ -314,11 +314,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     return !((INamedTypeSymbol)symbol).IsScriptClass;
 
                 case SymbolKind.Parameter:
-
                     // If it's an indexer parameter, we will have also cascaded to the accessor
                     // one that actually receives the references
-                    var containingProperty = symbol.ContainingSymbol as IPropertySymbol;
-                    if (containingProperty != null && containingProperty.IsIndexer)
+                    if (symbol.ContainingSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
                     {
                         return false;
                     }

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host;
@@ -15,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
     [ExportLanguageServiceFactory(typeof(ITodoCommentService), LanguageNames.CSharp), Shared]
     internal class CSharpTodoCommentServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpTodoCommentServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             => new CSharpTodoCommentService(languageServices.WorkspaceServices.Workspace);
     }

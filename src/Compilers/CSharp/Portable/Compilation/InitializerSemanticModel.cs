@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                      SyntaxTreeSemanticModel containingSemanticModelOpt = null,
                                      SyntaxTreeSemanticModel parentSemanticModelOpt = null,
                                      int speculatedPosition = 0) :
-            base(syntax, symbol, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, speculatedPosition)
+            base(syntax, symbol, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, snapshotManagerOpt: null, speculatedPosition)
         {
             Debug.Assert(!(syntax is ConstructorInitializerSyntax));
         }
@@ -258,9 +258,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        protected override BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics)
+        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager);
         }
     }
 }

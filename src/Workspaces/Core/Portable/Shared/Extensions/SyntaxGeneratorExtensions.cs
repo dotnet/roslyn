@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var parameter in parameters)
             {
                 var refKind = parameter.RefKind;
-                var parameterType = parameter.Type;
+                var parameterType = parameter.GetTypeWithAnnotatedNullability();
                 var parameterName = parameter.Name;
 
                 if (refKind != RefKind.Out)
@@ -258,7 +258,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // already declared as nullable to indicate that null is ok.  Adding a null check
             // just disallows something that should be allowed.
             var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck() && !parameter.Type.IsNullable();
-            if (shouldAddNullCheck && preferThrowExpression)
+
+            if (shouldAddNullCheck && preferThrowExpression && factory.SupportsThrowExpression())
             {
                 // Generate: this.x = x ?? throw ...
                 assignStatements.Add(CreateAssignWithNullCheckStatement(
@@ -425,6 +426,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessibility: overriddenProperty.ComputeResultantAccessibility(containingType),
                 modifiers: modifiers,
                 name: overriddenProperty.Name,
+                parameters: overriddenProperty.RemoveInaccessibleAttributesAndAttributesOfTypes(containingType).Parameters,
                 isIndexer: overriddenProperty.IsIndexer(),
                 getMethod: accessorGet,
                 setMethod: accessorSet);
@@ -523,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    method: overriddenMethod,
+                    method: overriddenMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(newContainingType),
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
                     statements: overriddenMethod.ReturnsVoid

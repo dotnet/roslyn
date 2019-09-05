@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 
         [ImportingConstructor]
         [Obsolete]
-        private EnhancedColorExperiment(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public EnhancedColorExperiment(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;

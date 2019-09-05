@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.NameTupleElement
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpNameTupleElementCodeRefactoringProvider)), Shared]
     internal class CSharpNameTupleElementCodeRefactoringProvider : AbstractNameTupleElementCodeRefactoringProvider<ArgumentSyntax, TupleExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpNameTupleElementCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsCloseParenOrComma(SyntaxToken token)
             => token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken);
 

@@ -61,6 +61,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetReplText()
             => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
 
+        protected override bool HasActiveTextView()
+            => _interactiveWindow.TextView is object;
+
         protected override IWpfTextView GetActiveTextView()
             => _interactiveWindow.TextView;
 

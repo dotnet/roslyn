@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
     internal sealed class CSharpSendToInteractiveSubmissionProvider
         : AbstractSendToInteractiveSubmissionProvider
     {
+        [ImportingConstructor]
+        public CSharpSendToInteractiveSubmissionProvider()
+        {
+        }
+
         protected override bool CanParseSubmission(string code)
         {
             ParseOptions options = CSharpParseOptions.Default.WithKind(SourceCodeKind.Script);
@@ -39,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         /// <param name="root">Root of the syntax tree.</param>
         private SyntaxNode GetSyntaxNodeForSubmission(TextSpan selectionSpan, SyntaxNode root)
         {
-            SyntaxToken startToken, endToken;
-            GetSelectedTokens(selectionSpan, root, out startToken, out endToken);
+            GetSelectedTokens(selectionSpan, root, out var startToken, out var endToken);
 
             // Ensure that the first token comes before the last token.
             // Otherwise selection did not contain any tokens.

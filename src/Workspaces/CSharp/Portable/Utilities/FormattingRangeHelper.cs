@@ -288,6 +288,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static bool AreTwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
         {
+            if (token1 == token2)
+            {
+                return true;
+            }
+
             var tree = token1.SyntaxTree;
             if (tree != null && tree.TryGetText(out var text))
             {
@@ -392,9 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static bool IsColonInSwitchLabel(SyntaxToken token)
         {
-            var switchLabel = token.Parent as SwitchLabelSyntax;
             return token.Kind() == SyntaxKind.ColonToken &&
-                switchLabel != null &&
+                token.Parent is SwitchLabelSyntax switchLabel &&
                 switchLabel.ColonToken == token;
         }
 

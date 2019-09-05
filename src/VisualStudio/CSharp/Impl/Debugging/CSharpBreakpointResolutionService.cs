@@ -18,6 +18,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
     [ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.CSharp), Shared]
     internal partial class CSharpBreakpointResolutionService : IBreakpointResolutionService
     {
+        [ImportingConstructor]
+        public CSharpBreakpointResolutionService()
+        {
+        }
+
         /// <summary>
         /// Returns null if a breakpoint can't be placed at the specified position.
         /// </summary>

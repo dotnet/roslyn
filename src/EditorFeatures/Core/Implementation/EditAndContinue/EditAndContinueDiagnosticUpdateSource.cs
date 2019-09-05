@@ -80,10 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             Debug.Assert(projectId != null);
 
             var updateEvent = DiagnosticsUpdated;
-            var documentIds = PooledHashSet<DocumentId>.GetInstance();
-            var documentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
-            var projectDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
-            var project = solution.GetProject(projectId);
+            using var documentIdsDisposer = PooledHashSet<DocumentId>.GetInstance(out var documentIds);
+            using var documentDiagnosticDataDisposer = ArrayBuilder<DiagnosticData>.GetInstance(out var documentDiagnosticData);
+            using var projectDiagnosticDataDisposer = ArrayBuilder<DiagnosticData>.GetInstance(out var projectDiagnosticData);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 }
                 else if (updateEvent != null)
                 {
-                    projectDiagnosticData.Add(DiagnosticData.Create(project, diagnostic));
+                    projectDiagnosticData.Add(DiagnosticData.Create(solution.Workspace, diagnostic, projectId));
                 }
             }
 
@@ -130,11 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     diagnostics: projectDiagnosticData.ToImmutable()));
             }
 
-            var result = documentIds.AsImmutableOrEmpty();
-            documentDiagnosticData.Free();
-            projectDiagnosticData.Free();
-            documentIds.Free();
-            return result;
+            return documentIds.AsImmutableOrEmpty();
         }
 
         internal ImmutableArray<DocumentId> ReportDiagnostics(DebuggingSession session, object errorId, ProjectId projectId, Solution solution, IEnumerable<Diagnostic> diagnostics)

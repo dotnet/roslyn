@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Notification
 {
@@ -17,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Notification
     [ExportIncrementalAnalyzerProvider(nameof(SemanticChangeNotificationService), workspaceKinds: null)]
     internal class SemanticChangeNotificationService : ISemanticChangeNotificationService, IIncrementalAnalyzerProvider
     {
+        [ImportingConstructor]
+        public SemanticChangeNotificationService()
+        {
+        }
+
         public event EventHandler<Document> OpenedDocumentSemanticChanged;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
@@ -26,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Notification
 
         private void RaiseOpenDocumentSemanticChangedEvent(Document document)
         {
-            this.OpenedDocumentSemanticChanged?.Invoke(this, document);
+            OpenedDocumentSemanticChanged?.Invoke(this, document);
         }
 
         private class NotificationService : IIncrementalAnalyzer

@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     [Order(After = PredefinedCommandHandlerNames.EventHookup)]
     internal class RenameTrackingCancellationCommandHandler : VSCommanding.ICommandHandler<EscapeKeyCommandArgs>
     {
+        [ImportingConstructor]
+        public RenameTrackingCancellationCommandHandler()
+        {
+        }
+
         public string DisplayName => EditorFeaturesResources.Rename_Tracking_Cancellation;
 
         public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)

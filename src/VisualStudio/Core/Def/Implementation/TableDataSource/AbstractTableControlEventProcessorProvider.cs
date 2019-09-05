@@ -5,7 +5,8 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal abstract class AbstractTableControlEventProcessorProvider<TData> : ITableControlEventProcessorProvider
+    internal abstract class AbstractTableControlEventProcessorProvider<TItem> : ITableControlEventProcessorProvider
+        where TItem : TableItem
     {
         public ITableControlEventProcessor GetAssociatedEventProcessor(IWpfTableControl tableControl)
         {
@@ -19,19 +20,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected class EventProcessor : TableControlEventProcessorBase
         {
-            protected static AbstractTableEntriesSnapshot<TData> GetEntriesSnapshot(ITableEntryHandle entryHandle)
+            protected static AbstractTableEntriesSnapshot<TItem> GetEntriesSnapshot(ITableEntryHandle entryHandle)
             {
                 return GetEntriesSnapshot(entryHandle, out var index);
             }
 
-            protected static AbstractTableEntriesSnapshot<TData> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
+            protected static AbstractTableEntriesSnapshot<TItem> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
             {
                 if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
                 {
                     return null;
                 }
 
-                return snapshot as AbstractTableEntriesSnapshot<TData>;
+                return snapshot as AbstractTableEntriesSnapshot<TItem>;
             }
 
             public override void PreprocessNavigate(ITableEntryHandle entryHandle, TableEntryNavigateEventArgs e)

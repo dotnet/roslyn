@@ -202,8 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 // if the method is defined with errors: void M(params int wrongDefined), paramter.IsParams == true but paramter.Type is not an array.
                 // In such cases is better to be conservative and opt out.
-                var parameterType = parameter.Type as IArrayTypeSymbol;
-                if (parameterType == null)
+                if (!(parameter.Type is IArrayTypeSymbol parameterType))
                 {
                     return true;
                 }
@@ -253,25 +252,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return conversion1.IsUserDefined
                 && conversion2.IsUserDefined
-                && conversion1.MethodSymbol == conversion2.MethodSymbol;
+                && Equals(conversion1.MethodSymbol, conversion2.MethodSymbol);
         }
 
         private static bool IsInDelegateCreationExpression(ExpressionSyntax expression, SemanticModel semanticModel)
         {
-            var argument = expression.WalkUpParentheses().Parent as ArgumentSyntax;
-            if (argument == null)
+            if (!(expression.WalkUpParentheses().Parent is ArgumentSyntax argument))
             {
                 return false;
             }
 
-            var argumentList = argument.Parent as ArgumentListSyntax;
-            if (argumentList == null)
+            if (!(argument.Parent is ArgumentListSyntax argumentList))
             {
                 return false;
             }
 
-            var objectCreation = argumentList.Parent as ObjectCreationExpressionSyntax;
-            if (objectCreation == null)
+            if (!(argumentList.Parent is ObjectCreationExpressionSyntax objectCreation))
             {
                 return false;
             }

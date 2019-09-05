@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     [Export(typeof(Workspace))]
     internal class MefTestWorkspace : Workspace
     {
+        [ImportingConstructor]
         public MefTestWorkspace()
             : base(Microsoft.CodeAnalysis.Host.Mef.MefHostServices.DefaultHost, "MefTest")
         {

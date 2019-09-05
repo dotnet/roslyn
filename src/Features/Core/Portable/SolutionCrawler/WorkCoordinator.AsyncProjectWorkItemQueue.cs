@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new Dictionary<ProjectId, WorkItem>();
 
-                public AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) :
-                    base(progressReporter, workspace)
+                public AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
+                    : base(progressReporter, workspace)
                 {
                 }
 

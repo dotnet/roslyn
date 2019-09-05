@@ -8169,6 +8169,64 @@ End Module
             Await VerifyItemIsAbsentAsync(source, "Target")
         End Function
 
+        <WorkItem(36029, "https://github.com/dotnet/roslyn/issues/36029")>
+        <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        Public Async Function CompletionInsideMethodWithParamsBeforeParams() As Task
+            Dim source =
+<code><![CDATA[
+Imports System
+Class C
+    Sub M()
+        Goo(Sub(b) b.$$)
+    End Sub
+
+    Sub Goo(action As Action(Of Builder), ParamArray otherActions() As Action(Of AnotherBuilder))
+    End Sub
+End Class
+
+Class Builder
+    Public Something As Integer
+End Class
+
+Class AnotherBuilder
+    Public AnotherSomething As Integer
+End Class
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "AnotherSomething")
+            Await VerifyItemIsAbsentAsync(source, "FirstOrDefault")
+            Await VerifyItemExistsAsync(source, "Something")
+        End Function
+
+        <WorkItem(36029, "https://github.com/dotnet/roslyn/issues/36029")>
+        <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        Public Async Function CompletionInsideMethodWithParamsInParams() As Task
+            Dim source =
+<code><![CDATA[
+Imports System
+Class C
+    Sub M()
+        Goo(Nothing, Nothing, Sub(b) b.$$)
+    End Sub
+
+    Sub Goo(action As Action(Of Builder), ParamArray otherActions() As Action(Of AnotherBuilder))
+    End Sub
+End Class
+
+Class Builder
+    Public Something As Integer
+End Class
+
+Class AnotherBuilder
+    Public AnotherSomething As Integer
+End Class
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "Something")
+            Await VerifyItemIsAbsentAsync(source, "FirstOrDefault")
+            Await VerifyItemExistsAsync(source, "AnotherSomething")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilterWithExperimentEnabled() As Task
             SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, True)

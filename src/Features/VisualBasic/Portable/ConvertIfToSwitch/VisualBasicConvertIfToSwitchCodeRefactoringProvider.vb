@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     Partial Friend NotInheritable Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
         Inherits AbstractConvertIfToSwitchCodeRefactoringProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel) As IAnalyzer
             Return New VisualBasicAnalyzer(syntaxFacts, semanticModel)
         End Function

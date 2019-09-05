@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CaseCorrection
     [ExportLanguageService(typeof(ICaseCorrectionService), LanguageNames.CSharp), Shared]
     internal class CSharpCaseCorrectionService : AbstractCaseCorrectionService
     {
+        [ImportingConstructor]
+        public CSharpCaseCorrectionService()
+        {
+        }
+
         protected override void AddReplacements(
             SemanticModel semanticModel,
             SyntaxNode root,

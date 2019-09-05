@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         public string DefaultNamespace = null;
         public bool IsCancelled = false;
 
+        [ImportingConstructor]
+        public TestGenerateTypeOptionsService()
+        {
+        }
+
         // Actual input
         public string ClassName { get; private set; }
         public GenerateTypeDialogOptions GenerateTypeDialogOptions { get; private set; }

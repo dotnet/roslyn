@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,6 +33,32 @@ namespace Microsoft.CodeAnalysis.Editor
         ResolvedNonReferenceConflict,
         UnresolvedConflict,
         Complexified,
+    }
+
+    internal enum InlineRenameFileRenameInfo
+    {
+        /// <summary>
+        /// This operation is not allowed
+        /// on the symbol being renamed
+        /// </summary>
+        NotAllowed,
+
+        /// <summary>
+        /// The type being renamed has multiple definition
+        /// locations which is not supported.
+        /// </summary>
+        TypeWithMultipleLocations,
+
+        /// <summary>
+        /// The type being renamed doesn't match the file
+        /// name prior to renaming
+        /// </summary>
+        TypeDoesNotMatchFileName,
+
+        /// <summary>
+        /// File rename is allowed
+        /// </summary>
+        Allowed
     }
 
     internal struct InlineRenameReplacement
@@ -203,6 +230,15 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <see langword="true"/> if this operation succeeded, or <see langword="false"/> if it failed.
         /// </summary>
         bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText);
+    }
+
+    internal interface IInlineRenameInfoWithFileRename : IInlineRenameInfo
+    {
+        /// <summary>
+        /// Returns information about the file rename capabilities of 
+        /// an inline rename
+        /// </summary>
+        InlineRenameFileRenameInfo GetFileRenameInfo();
     }
 
     /// <summary>

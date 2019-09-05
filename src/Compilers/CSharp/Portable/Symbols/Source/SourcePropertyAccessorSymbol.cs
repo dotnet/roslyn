@@ -368,6 +368,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations
+        {
+            get
+            {
+                if (MethodKind == MethodKind.PropertySet)
+                {
+                    return FlowAnalysisAnnotations.None;
+                }
+
+                var result = FlowAnalysisAnnotations.None;
+                if (_property.HasMaybeNull)
+                {
+                    result |= FlowAnalysisAnnotations.MaybeNull;
+                }
+                if (_property.HasNotNull)
+                {
+                    result |= FlowAnalysisAnnotations.NotNull;
+                }
+                return result;
+            }
+        }
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
         private TypeWithAnnotations ComputeReturnType(DiagnosticBag diagnostics)
         {
             if (this.MethodKind == MethodKind.PropertyGet)
@@ -561,6 +585,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
         }
 
+        internal override bool IsExplicitInterfaceImplementation
+        {
+            get
+            {
+                return _property.IsExplicitInterfaceImplementation;
+            }
+        }
+
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get
@@ -643,6 +675,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return parameters.ToImmutableAndFree();
+        }
+
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
+
+            var compilation = this.DeclaringCompilation;
+            var annotations = ReturnTypeFlowAnalysisAnnotations;
+            if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
+            {
+                AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(_property.MaybeNullAttributeIfExists));
+            }
+            if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
+            {
+                AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(_property.NotNullAttributeIfExists));
+            }
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)

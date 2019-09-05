@@ -29,28 +29,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ModuleSymbol _module;
 
         public SynthesizedEmbeddedAttributeSymbolBase(
-            AttributeDescription description,
-            CSharpCompilation compilation,
-            DiagnosticBag diagnostics)
+            string name,
+            NamespaceSymbol containingNamespace,
+            ModuleSymbol containingModule,
+            NamedTypeSymbol baseType)
         {
-            _name = description.Name;
-            _baseType = MakeBaseType(compilation, diagnostics);
-            _module = compilation.SourceModule;
+            Debug.Assert(name is object);
+            Debug.Assert(containingNamespace is object);
+            Debug.Assert(containingModule is object);
+            Debug.Assert(baseType is object);
 
-            _namespace = _module.GlobalNamespace;
-            foreach (var part in description.Namespace.Split('.'))
-            {
-                _namespace = new MissingNamespaceSymbol(_namespace, part);
-            }
-        }
-
-        private static NamedTypeSymbol MakeBaseType(CSharpCompilation compilation, DiagnosticBag diagnostics)
-        {
-            NamedTypeSymbol result = compilation.GetWellKnownType(WellKnownType.System_Attribute);
-
-            // Report errors in case base type was missing or bad
-            Binder.ReportUseSiteDiagnostics(result, diagnostics, Location.None);
-            return result;
+            _name = name;
+            _namespace = containingNamespace;
+            _module = containingModule;
+            _baseType = baseType;
         }
 
         public abstract new ImmutableArray<MethodSymbol> Constructors { get; }
@@ -113,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSerializable => false;
 
-        internal override TypeLayout Layout => default(TypeLayout);
+        internal override TypeLayout Layout => default;
 
         internal override CharSet MarshallingCharSet => DefaultMarshallingCharSet;
 
@@ -166,6 +158,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddSynthesizedAttribute(
                 ref attributes,
                 moduleBuilder.SynthesizeEmbeddedAttribute());
+
+            var usageInfo = GetAttributeUsageInfo();
+            if (usageInfo != AttributeUsageInfo.Default)
+            {
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    moduleBuilder.Compilation.SynthesizeAttributeUsageAttribute(usageInfo.ValidTargets, usageInfo.AllowMultiple, usageInfo.Inherited));
+            }
         }
     }
 
@@ -177,13 +177,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<MethodSymbol> _constructors;
 
         public SynthesizedEmbeddedAttributeSymbol(
-            AttributeDescription description,
-            CSharpCompilation compilation,
-            DiagnosticBag diagnostics)
-            : base(description, compilation, diagnostics)
+            string name,
+            NamespaceSymbol containingNamespace,
+            ModuleSymbol containingModule,
+            NamedTypeSymbol baseType)
+            : base(name, containingNamespace, containingModule, baseType)
         {
             _constructors = ImmutableArray.Create<MethodSymbol>(new SynthesizedEmbeddedAttributeConstructorSymbol(this, m => ImmutableArray<ParameterSymbol>.Empty));
-            Debug.Assert(_constructors.Length == description.Signatures.Length);
         }
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;

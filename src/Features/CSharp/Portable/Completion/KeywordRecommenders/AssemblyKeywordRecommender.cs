@@ -17,18 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var token = context.TargetToken;
 
-            if (token.Kind() != SyntaxKind.OpenBracketToken)
-            {
-                return false;
-            }
-
-            if (token.Parent.Kind() == SyntaxKind.AttributeList)
+            if (token.Kind() == SyntaxKind.OpenBracketToken &&
+                token.Parent.Kind() == SyntaxKind.AttributeList)
             {
                 var attributeList = token.Parent;
                 var parentSyntax = attributeList.Parent;
                 switch (parentSyntax)
                 {
                     case CompilationUnitSyntax _:
+                    case NamespaceDeclarationSyntax _:
                     // The case where the parent of attributeList is (Class/Interface/Enum/Struct)DeclarationSyntax, like:
                     // [$$
                     // class Goo {
@@ -39,16 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     // for that case is necessary check if they Parent is CompilationUnitSyntax
                     case IncompleteMemberSyntax incompleteMember when incompleteMember.Parent is CompilationUnitSyntax:
                         return true;
-                    default:
-                        return false;
                 }
             }
 
-            var skippedTokensTriviaSyntax = token.Parent;
-            // This case happens when:
-            // [$$
-            // namespace Goo {
-            return skippedTokensTriviaSyntax is SkippedTokensTriviaSyntax;
+            return false;
         }
     }
 }

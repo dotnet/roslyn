@@ -27,15 +27,27 @@
       <Name>CodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <NgenPriority>1</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj">
       <Name>CSharpCodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <NgenPriority>1</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj">
       <Name>BasicCodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\ExternalAccess\Apex\Microsoft.CodeAnalysis.ExternalAccess.Apex.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.Apex</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\ExternalAccess\CodeLens\Microsoft.CodeAnalysis.ExternalAccess.CodeLens.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.CodeLens</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\Tools\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj">
@@ -45,6 +57,21 @@
     </ProjectReference>
     <ProjectReference Include="..\..\Tools\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.FSharp</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\ExternalAccess\IntelliTrace\Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\ExternalAccess\LiveShare\Microsoft.CodeAnalysis.ExternalAccess.LiveShare.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.LiveShare</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\ExternalAccess\ProjectSystem\Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
@@ -108,6 +135,17 @@
       <Name>Features</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <NgenPriority>1</NgenPriority>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj">
+      <Name>LanguageServerProtocol</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualStudio\LiveShare\Impl\Microsoft.VisualStudio.LanguageServices.LiveShare.csproj">
+      <Name>LiveShareLanguageServices</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj">
       <Name>TextEditorFeatures</Name>
@@ -123,6 +161,7 @@
       <Name>Workspaces</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <NgenPriority>1</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj">
       <Name>Workspaces.MSBuild</Name>
@@ -143,6 +182,12 @@
     <ProjectReference Include="..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj">
       <Name>ServicesVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;VsdConfigOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <NgenPriority>1</NgenPriority>
+    </ProjectReference>
+    <ProjectReference Include="..\CodeLens\Microsoft.VisualStudio.LanguageServices.CodeLens.csproj" >
+      <Name>CodeAnalysisCodeLensVisualStudio</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj">
@@ -190,6 +235,7 @@
       <Name>ServiceHub</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <NgenPriority>1</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\Razor\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.csproj">
       <Name>RazorVisualStudio</Name>
@@ -225,6 +271,7 @@
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Humanizer.Core" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" Optimization="true"/>
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.bundle_green" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
     <!-- Visual Studio ships with some, but not all, of the assemblies in System.Composition, but we need them all -->
@@ -232,6 +279,8 @@
     <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" />
     <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol" />
+    <NugetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_green.dll" />
@@ -264,6 +313,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" Version="$(MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion)" PrivateAssets="all" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\GenerateServiceHubConfigurationFiles.targets" />
 </Project>

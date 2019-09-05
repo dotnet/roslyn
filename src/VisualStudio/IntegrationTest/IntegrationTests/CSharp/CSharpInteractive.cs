@@ -95,7 +95,8 @@ w.Content = g;");
             VisualStudio.InteractiveWindow.SubmitText("b = null; w.Close(); w = null;");
         }
 
-        [WpfFact]
+        // This test is flaky when legacy completion is enabled
+        [ConditionalWpfFact(typeof(AsyncCompletionCondition))]
         public void TypingHelpDirectiveWorks()
         {
             VisualStudio.InteractiveWindow.ShowWindow(waitForPrompt: true);

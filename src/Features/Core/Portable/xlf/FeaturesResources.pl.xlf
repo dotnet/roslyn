@@ -7,9 +7,14 @@
         <target state="translated">Dodaj nazwę składowej</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_null_checks_for_all_parameters">
+        <source>Add null checks for all parameters</source>
+        <target state="new">Add null checks for all parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
-        <target state="new">Add optional parameter to constructor</target>
+        <target state="translated">Dodaj opcjonalny parametr do konstruktora</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
@@ -19,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
         <source>Add parameter to constructor</source>
-        <target state="new">Add parameter to constructor</target>
+        <target state="translated">Dodaj parametr do konstruktora</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -42,6 +47,16 @@
         <target state="translated">Dodaj nazwę elementu krotki „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface method will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into an interface will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">Dodanie metody z jawnym specyfikatorem interfejsu uniemożliwi kontynuowanie sesji debugowania.</target>
@@ -57,14 +72,14 @@
         <target state="translated">Dopasuj opakowane parametry</target>
         <note />
       </trans-unit>
-      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names">
+      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">Unikaj niepotrzebnych przypisań wartości w kodzie, ponieważ mogą one wskazywać nadmiarowe obliczenia wartości. Jeśli obliczenie wartości nie jest nadmiarowe i zamierzasz zachować przypisanie, zmień wartość docelową przypisania na zmienną lokalną, której nazwa rozpoczyna się od znaku podkreślenia, a opcjonalnie następuje po niej liczba całkowita, taka jak „_”, „_1”, „_2” itp. Są one traktowane jako specjalne nazwy symboli odrzucenia.</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">Unikaj nieużywanych parametrów w kodzie. Jeśli nie można usunąć parametru, zmień jego nazwę, tak aby rozpoczynała się od znaku podkreślenia, a opcjonalnie następowała po niej liczba całkowita, taka jak „_”, „_1”, „_2” itp. Są one traktowane jako specjalne nazwy symboli odrzucenia.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -77,9 +92,29 @@
         <target state="translated">Zmień na globalną przestrzeń nazw</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
+        <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
+        <target state="new">Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
+        <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
+        <target state="new">Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
         <target state="translated">Jakość kodu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_code_style">
+        <source>Configure {0} code style</source>
+        <target state="new">Configure {0} code style</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_severity">
+        <source>Configure {0} severity</source>
+        <target state="new">Configure {0} severity</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -112,6 +147,31 @@
         <target state="translated">Konwertuj na spójną kolekcję</target>
         <note />
       </trans-unit>
+      <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
+        <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
+        <target state="translated">Typ zawierający implementację interfejsu System.IDisposable deklaruje pola, których typy także zawierają implementację interfejsu IDisposable. Metoda Dispose pola nie jest wywoływana przez metodę Dispose typu deklarującego. Aby naprawić naruszenie tej reguły, wywołaj metodę Dispose dla pól, których typy zawierają implementację interfejsu IDisposable, jeśli odpowiadasz za przydzielanie i zwalnianie niezarządzanych zasobów wstrzymywanych przez pole.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_field_0_is_never_disposed">
+        <source>Disposable field '{0}' is never disposed</source>
+        <target state="translated">Pole możliwe do likwidacji „{0}” nie jest nigdy likwidowane</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_fields_should_be_disposed">
+        <source>Disposable fields should be disposed</source>
+        <target state="translated">Pola możliwe do likwidacji powinny zostać zlikwidowane</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
+        <source>Disposable object created by '{0}' is never disposed</source>
+        <target state="translated">Obiekt możliwy do likwidacji utworzony przez element „{0}” nie jest nigdy likwidowany</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Dispose_objects_before_losing_scope">
+        <source>Dispose objects before losing scope</source>
+        <target state="translated">Likwiduj obiekty przed utratą zakresu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="translated">Wartość wyrażenia nie jest nigdy używana.</target>
@@ -135,6 +195,16 @@
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Trwa formatowanie dokumentu...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0">
+        <source>Generate parameter '{0}'</source>
+        <target state="translated">Generuj parametr „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
+        <source>Generate parameter '{0}' (and overrides/implementations)</source>
+        <target state="translated">Generowanie parametru „{0}” (i przesłonięć/implementacji)</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -184,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
         <source>Make readonly fields writable</source>
-        <target state="new">Make readonly fields writable</target>
+        <target state="translated">Ustaw możliwość zapisu dla pól z deklaracją readonly</target>
         <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -194,37 +264,47 @@
       </trans-unit>
       <trans-unit id="Local_function_can_be_made_static">
         <source>Local function can be made static</source>
-        <target state="new">Local function can be made static</target>
+        <target state="translated">Funkcję lokalną można ustawić jako statyczną</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_local_function_static">
         <source>Make local function 'static'</source>
-        <target state="new">Make local function 'static'</target>
+        <target state="translated">Ustaw funkcję lokalną jako „static”</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
         <source>Merge with nested '{0}' statement</source>
-        <target state="new">Merge with nested '{0}' statement</target>
+        <target state="translated">Scal z zagnieżdżoną instrukcją „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_next_0_statement">
         <source>Merge with next '{0}' statement</source>
-        <target state="new">Merge with next '{0}' statement</target>
+        <target state="translated">Scal z następną instrukcją „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_outer_0_statement">
         <source>Merge with outer '{0}' statement</source>
-        <target state="new">Merge with outer '{0}' statement</target>
+        <target state="translated">Scal z zewnętrzną instrukcją „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_previous_0_statement">
         <source>Merge with previous '{0}' statement</source>
-        <target state="new">Merge with previous '{0}' statement</target>
+        <target state="translated">Scal z poprzednią instrukcją „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
+        <source>{0} must return a stream that supports read and seek operations.</source>
+        <target state="translated">{0} musi zwrócić strumień, który obsługuje operacje odczytu i wyszukiwania.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
+        <target state="new">Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
-        <target state="new">Move contents to namespace...</target>
+        <target state="translated">Przenieś zawartość do przestrzeni nazw...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -239,7 +319,7 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
-        <target state="new">Move to namespace...</target>
+        <target state="translated">Przenieś do przestrzeni nazw...</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -264,7 +344,7 @@
       </trans-unit>
       <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
         <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
+        <target state="translated">Właściwość prywatną „{0}” można przekonwertować na metodę, ponieważ jej metoda dostępu get nie jest nigdy wywoływana.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -339,27 +419,37 @@
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
-        <target state="new">Split into consecutive '{0}' statements</target>
+        <target state="translated">Podziel na kolejne instrukcje „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
-        <target state="new">Split into nested '{0}' statements</target>
+        <target state="translated">Podziel na zagnieżdżone instrukcje „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="translated">Strumień musi obsługiwać operacje odczytu i wyszukiwania.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_0">
+        <source>Suppress {0}</source>
+        <target state="new">Suppress {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
-        <target state="new">Target type matches</target>
+        <target state="translated">Dopasowania typu docelowego</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
-        <target state="new">Unnecessary assignment of a value</target>
+        <target state="translated">Niepotrzebne przypisanie wartości</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
         <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="new">Unnecessary assignment of a value to '{0}'</target>
+        <target state="translated">Niepotrzebne przypisanie wartości do elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -387,6 +477,11 @@
         <target state="translated">Odpakuj listę argumentów</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_call_chain">
+        <source>Unwrap call chain</source>
+        <target state="new">Unwrap call chain</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Odpakuj wyrażenie</target>
@@ -395,6 +490,16 @@
       <trans-unit id="Unwrap_parameter_list">
         <source>Unwrap parameter list</source>
         <target state="translated">Odpakuj listę parametrów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
+        <target state="new">Updating a '{0}' around an active statement will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseRecommendedDisposePatternDescription">
+        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
+        <target state="translated">Użyj zalecanego wzorca dispose, aby upewnić się, że obiekty możliwe do likwidacji w lokalnym zakresie są likwidowane we wszystkich ścieżkach. Jeśli to możliwe, opakuj tworzenie w instrukcji „using” lub deklaracji „using”. W przeciwnym razie użyj wzorca try-finally, z dedykowaną zmienną lokalną zadeklarowaną przed regionem try i bezwarunkowym wywołaniem metody Dispose dla wartości innej niż null w regionie „finally”, na przykład „x?.Dispose()”. Jeśli obiekt jest jawnie likwidowany w regionie try lub własność dispose jest przenoszona do innego obiektu lub metody, przypisz wartość „null” do zmiennej lokalnej zaraz po takiej operacji, aby zapobiec podwójnemu wywołaniu dispose w regionie „finally”.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -447,9 +552,19 @@
         <target state="translated">Użyj operatora zakresu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_recommended_dispose_pattern">
+        <source>Use recommended dispose pattern</source>
+        <target state="translated">Użyj zalecanego wzorca dispose</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
+        <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
+        <target state="translated">Użyj zalecanego wzorca dispose, aby upewnić się, że obiekt utworzony przez element „{0}” jest likwidowany we wszystkich ścieżkach: instrukcja/deklaracja using lub try/finally</target>
+        <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Use_simple_using_statement">
         <source>Use simple 'using' statement</source>
-        <target state="new">Use simple 'using' statement</target>
+        <target state="translated">Użyj prostej instrukcji „using”</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -457,9 +572,29 @@
         <target state="translated">Ostrzeżenie: Zmiana przestrzeni nazw może skutkować nieprawidłowym kodem i zmianą jego znaczenia.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_and_align_call_chain">
+        <source>Wrap and align call chain</source>
+        <target state="new">Wrap and align call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
+        <source>Warning: Semantics may change when converting statement.</source>
+        <target state="new">Warning: Semantics may change when converting statement.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
-        <target state="new">Wrap and align expression</target>
+        <target state="translated">Zawiń i wyrównaj wyrażenie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_long_call_chain">
+        <source>Wrap and align long call chain</source>
+        <target state="new">Wrap and align long call chain</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_call_chain">
+        <source>Wrap call chain</source>
+        <target state="new">Wrap call chain</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -480,6 +615,11 @@
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">Opakuj długą listę argumentów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_call_chain">
+        <source>Wrap long call chain</source>
+        <target state="new">Wrap long call chain</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -509,7 +649,7 @@
       </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
-        <target state="new">in Source (attribute)</target>
+        <target state="translated">w źródle (atrybut)</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -1117,11 +1257,6 @@
         <target state="translated">Aktywna instrukcja została usunięta ze swojej oryginalnej metody. Musisz cofnąć zmiany, aby kontynuować, lub uruchomić ponownie sesję debugowania.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizacja instrukcji „{0}” w pobliżu aktywnej instrukcji uniemożliwi kontynuowanie sesji debugowania.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">Aktualizowanie modyfikatora asynchronicznego lub powiązanego z iteratorem w pobliżu aktywnej instrukcji uniemożliwi kontynuowanie sesji debugowania.</target>
@@ -1443,11 +1578,6 @@ Czy chcesz kontynuować?</target>
         <target state="translated">Styl</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppress_0">
-        <source>Suppress {0}</source>
-        <target state="translated">Pomiń element {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">
         <source>Re-triage {0}(currently '{1}')</source>
         <target state="translated">Sklasyfikuj ponownie element {0} (obecnie „{1}”)</target>
@@ -1530,12 +1660,12 @@ Czy chcesz kontynuować?</target>
       </trans-unit>
       <trans-unit id="enum_value">
         <source>enum value</source>
-        <target state="translated">wartość wyliczenia</target>
+        <target state="translated">wartość enum</target>
         <note>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="const_field">
         <source>const field</source>
-        <target state="translated">pole stałej</target>
+        <target state="translated">pole const</target>
         <note>{Locked="const"} "const" is a C#/VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="method">
@@ -2365,21 +2495,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Dodaj nazwę argumentu „{0}” (w tym końcowe argumenty)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">Używanie struktur tylko do odczytu uniemożliwi kontynuowanie sesji debugowania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">Używanie struktur ref uniemożliwi kontynuowanie sesji debugowania.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">Używanie odwołań tylko do odczytu uniemożliwi kontynuowanie sesji debugowania.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="local_function">
         <source>local function</source>
         <target state="translated">funkcja lokalna</target>
@@ -2467,7 +2582,7 @@ Ta wersja jest używana wersja: {2}</target>
       </trans-unit>
       <trans-unit id="using_statement_can_be_simplified">
         <source>'using' statement can be simplified</source>
-        <target state="new">'using' statement can be simplified</target>
+        <target state="translated">Instrukcję „using” można uprościć</target>
         <note />
       </trans-unit>
     </body>

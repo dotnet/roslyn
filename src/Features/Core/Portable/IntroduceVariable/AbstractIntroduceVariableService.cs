@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
+                var state = await State.GenerateAsync((TService)this, semanticDocument, textSpan, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
                     var (title, actions) = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 await CreateConstantFieldActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
 
-                var blocks = this.GetContainingExecutableBlocks(state.Expression);
+                var blocks = GetContainingExecutableBlocks(state.Expression);
                 var block = blocks.FirstOrDefault();
 
                 if (!BlockOverlapsHiddenPosition(block, cancellationToken))
@@ -197,12 +198,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         private async Task<bool> CanGenerateIntoContainerAsync(State state, CodeAction action, CancellationToken cancellationToken)
         {
-            var result = await this.IntroduceFieldAsync(
+            var result = await IntroduceFieldAsync(
                 state.Document, state.Expression,
                 allOccurrences: false, isConstant: state.IsConstant, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            SyntaxNode destination = result.Item2;
-            int insertionIndex = result.Item3;
+            var destination = result.Item2;
+            var insertionIndex = result.Item3;
 
             if (!destination.OverlapsHiddenPosition(cancellationToken))
             {
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             if (destination is TTypeDeclarationSyntax typeDecl)
             {
-                var insertionIndices = this.GetInsertionIndices(typeDecl, cancellationToken);
+                var insertionIndices = GetInsertionIndices(typeDecl, cancellationToken);
                 if (insertionIndices != null &&
                     insertionIndices.Count > insertionIndex &&
                     insertionIndices[insertionIndex])
@@ -306,7 +307,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return true;
             }
 
-            if (allOccurrences && this.CanReplace(nodeInCurrent))
+            if (allOccurrences && CanReplace(nodeInCurrent))
             {
                 // Original expression and current node being semantically equivalent isn't enough when the original expression 
                 // is a member access via instance reference (either implicit or explicit), the check only ensures that the expression
@@ -340,8 +341,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             return false;
-
-            bool IsInstanceMemberReference(IOperation operation)
+            static bool IsInstanceMemberReference(IOperation operation)
                 => operation is IMemberReferenceOperation memberReferenceOperation &&
                     memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
         }
@@ -386,17 +386,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             if (typeInfo.Type?.SpecialType == SpecialType.System_String &&
                 typeInfo.ConvertedType?.IsFormattableString() == true)
             {
-                return typeInfo.ConvertedType;
+                return typeInfo.GetConvertedTypeWithFlowNullability();
             }
 
             if (typeInfo.Type != null)
             {
-                return typeInfo.Type;
+                return typeInfo.GetTypeWithFlowNullability();
             }
 
             if (typeInfo.ConvertedType != null)
             {
-                return typeInfo.ConvertedType;
+                return typeInfo.GetConvertedTypeWithFlowNullability();
             }
 
             if (objectAsDefault)
@@ -447,8 +447,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                 newSemanticDocument.Document,
                                 expandInsideNode: node =>
                                 {
-                                    var expression = node as TExpressionSyntax;
-                                    return expression == null
+                                    return !(node is TExpressionSyntax expression)
                                         || !newMatches.Contains(expression);
                                 },
                                 cancellationToken: ct)

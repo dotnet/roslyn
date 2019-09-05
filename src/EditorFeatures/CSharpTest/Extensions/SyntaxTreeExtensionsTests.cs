@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Extensions
         private static void VerifyWholeLineIsActive(SyntaxTree tree, int lineNumber)
         {
             var line = tree.GetText().Lines[lineNumber];
-            for (int pos = line.Start; pos < line.EndIncludingLineBreak; pos++)
+            for (var pos = line.Start; pos < line.EndIncludingLineBreak; pos++)
             {
                 Assert.False(tree.IsInInactiveRegion(pos, CancellationToken.None));
             }
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Extensions
         private static void VerifyWholeLineIsInactive(SyntaxTree tree, int lineNumber)
         {
             var line = tree.GetText().Lines[lineNumber];
-            for (int pos = line.Start; pos < line.EndIncludingLineBreak; pos++)
+            for (var pos = line.Start; pos < line.EndIncludingLineBreak; pos++)
             {
                 Assert.True(tree.IsInInactiveRegion(pos, CancellationToken.None));
             }

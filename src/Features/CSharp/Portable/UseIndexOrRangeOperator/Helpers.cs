@@ -67,9 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             return false;
         }
 
-        private static bool IsConstantInt32(IOperation operation)
-            => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
-
         /// <summary>
         /// Look for methods like "SomeType MyType.Get(int)".  Also matches against the 'getter'
         /// of an indexer like 'SomeType MyType.this[int]`

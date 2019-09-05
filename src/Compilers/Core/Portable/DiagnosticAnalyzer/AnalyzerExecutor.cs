@@ -36,11 +36,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Diagnostic> _addNonCategorizedDiagnosticOpt;
         private readonly Action<Diagnostic, DiagnosticAnalyzer, bool> _addCategorizedLocalDiagnosticOpt;
         private readonly Action<Diagnostic, DiagnosticAnalyzer> _addCategorizedNonLocalDiagnosticOpt;
+        private readonly Action<Suppression> _addSuppressionOpt;
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
         private readonly Func<Exception, bool> _analyzerExceptionFilter;
         private readonly AnalyzerManager _analyzerManager;
         private readonly Func<DiagnosticAnalyzer, bool> _isCompilerAnalyzer;
         private readonly Func<DiagnosticAnalyzer, object> _getAnalyzerGateOpt;
+        private readonly Func<SyntaxTree, SemanticModel> _getSemanticModelOpt;
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
         private readonly Func<SyntaxTree, TextSpan, bool> _isGeneratedCodeLocation;
@@ -75,12 +77,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It should return a unique gate object for the given analyzer instance for non-concurrent analyzers, and null otherwise.
         /// All analyzer callbacks for non-concurrent analyzers will be guarded with a lock on the gate.
         /// </param>
+        /// <param name="getSemanticModel">Delegate to get a semantic model for the given syntax tree which can be shared across analyzers.</param>
         /// <param name="shouldSkipAnalysisOnGeneratedCode">Delegate to identify if analysis should be skipped on generated code.</param>
         /// <param name="shouldSuppressGeneratedCodeDiagnostic">Delegate to identify if diagnostic reported while analyzing generated code should be suppressed.</param>
         /// <param name="isGeneratedCodeLocation">Delegate to identify if the given location is in generated code.</param>
         /// <param name="logExecutionTime">Flag indicating whether we need to log analyzer execution time.</param>
         /// <param name="addCategorizedLocalDiagnosticOpt">Optional delegate to add categorized local analyzer diagnostics.</param>
         /// <param name="addCategorizedNonLocalDiagnosticOpt">Optional delegate to add categorized non-local analyzer diagnostics.</param>
+        /// <param name="addSuppressionOpt">Optional thread-safe delegate to add diagnostic suppressions from suppressors.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor Create(
             Compilation compilation,
@@ -94,9 +98,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
             Func<SyntaxTree, TextSpan, bool> isGeneratedCodeLocation,
             Func<DiagnosticAnalyzer, object> getAnalyzerGate,
+            Func<SyntaxTree, SemanticModel> getSemanticModel,
             bool logExecutionTime = false,
             Action<Diagnostic, DiagnosticAnalyzer, bool> addCategorizedLocalDiagnosticOpt = null,
             Action<Diagnostic, DiagnosticAnalyzer> addCategorizedNonLocalDiagnosticOpt = null,
+            Action<Suppression> addSuppressionOpt = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             // We can either report categorized (local/non-local) diagnostics or non-categorized diagnostics.
@@ -107,7 +113,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return new AnalyzerExecutor(compilation, analyzerOptions, addNonCategorizedDiagnosticOpt, onAnalyzerException, analyzerExceptionFilter,
                 isCompilerAnalyzer, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic, isGeneratedCodeLocation,
-                getAnalyzerGate, analyzerExecutionTimeMapOpt, addCategorizedLocalDiagnosticOpt, addCategorizedNonLocalDiagnosticOpt, cancellationToken);
+                getAnalyzerGate, getSemanticModel, analyzerExecutionTimeMapOpt, addCategorizedLocalDiagnosticOpt, addCategorizedNonLocalDiagnosticOpt,
+                addSuppressionOpt, cancellationToken);
         }
 
         /// <summary>
@@ -133,12 +140,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 shouldSuppressGeneratedCodeDiagnostic: (diagnostic, analyzer, compilation, ct) => false,
                 isGeneratedCodeLocation: (_1, _2) => false,
                 getAnalyzerGateOpt: null,
+                getSemanticModelOpt: null,
                 onAnalyzerException: onAnalyzerException,
                 analyzerExceptionFilter: null,
                 analyzerManager: analyzerManager,
                 analyzerExecutionTimeMapOpt: null,
                 addCategorizedLocalDiagnosticOpt: null,
                 addCategorizedNonLocalDiagnosticOpt: null,
+                addSuppressionOpt: null,
                 cancellationToken: cancellationToken);
         }
 
@@ -154,9 +163,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
             Func<SyntaxTree, TextSpan, bool> isGeneratedCodeLocation,
             Func<DiagnosticAnalyzer, object> getAnalyzerGateOpt,
+            Func<SyntaxTree, SemanticModel> getSemanticModelOpt,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>> analyzerExecutionTimeMapOpt,
             Action<Diagnostic, DiagnosticAnalyzer, bool> addCategorizedLocalDiagnosticOpt,
             Action<Diagnostic, DiagnosticAnalyzer> addCategorizedNonLocalDiagnosticOpt,
+            Action<Suppression> addSuppressionOpt,
             CancellationToken cancellationToken)
         {
             _compilation = compilation;
@@ -170,9 +181,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _shouldSuppressGeneratedCodeDiagnostic = shouldSuppressGeneratedCodeDiagnostic;
             _isGeneratedCodeLocation = isGeneratedCodeLocation;
             _getAnalyzerGateOpt = getAnalyzerGateOpt;
+            _getSemanticModelOpt = getSemanticModelOpt;
             _analyzerExecutionTimeMapOpt = analyzerExecutionTimeMapOpt;
             _addCategorizedLocalDiagnosticOpt = addCategorizedLocalDiagnosticOpt;
             _addCategorizedNonLocalDiagnosticOpt = addCategorizedNonLocalDiagnosticOpt;
+            _addSuppressionOpt = addSuppressionOpt;
             _cancellationToken = cancellationToken;
 
             _compilationAnalysisValueProviderFactory = new CompilationAnalysisValueProviderFactory();
@@ -187,7 +200,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return new AnalyzerExecutor(_compilation, _analyzerOptions, _addNonCategorizedDiagnosticOpt, _onAnalyzerException, _analyzerExceptionFilter,
                 _isCompilerAnalyzer, _analyzerManager, _shouldSkipAnalysisOnGeneratedCode, _shouldSuppressGeneratedCodeDiagnostic, _isGeneratedCodeLocation,
-                _getAnalyzerGateOpt, _analyzerExecutionTimeMapOpt, _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt, cancellationToken);
+                _getAnalyzerGateOpt, _getSemanticModelOpt, _analyzerExecutionTimeMapOpt, _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt,
+                _addSuppressionOpt, cancellationToken);
         }
 
         internal Compilation Compilation => _compilation;
@@ -264,6 +278,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     (action: startAction.Action, context: context),
                     new AnalysisContextInfo(_compilation, symbol));
             }
+        }
+
+        /// <summary>
+        /// Executes the given diagnostic suppressor.
+        /// </summary>
+        /// <param name="suppressor">Suppressor to be executed.</param>
+        /// <param name="reportedDiagnostics">Reported analyzer/compiler diagnostics that can be suppressed.</param>
+        public void ExecuteSuppressionAction(DiagnosticSuppressor suppressor, ImmutableArray<Diagnostic> reportedDiagnostics)
+        {
+            Debug.Assert(_addSuppressionOpt != null);
+
+            if (reportedDiagnostics.IsEmpty)
+            {
+                return;
+            }
+
+            _cancellationToken.ThrowIfCancellationRequested();
+
+            var supportedSuppressions = _analyzerManager.GetSupportedSuppressionDescriptors(suppressor, this);
+            Func<SuppressionDescriptor, bool> isSupportedSuppression = supportedSuppressions.Contains;
+            Action<SuppressionAnalysisContext> action = suppressor.ReportSuppressions;
+            var context = new SuppressionAnalysisContext(_compilation, _analyzerOptions,
+                reportedDiagnostics, _addSuppressionOpt, isSupportedSuppression, _getSemanticModelOpt, _cancellationToken);
+
+            ExecuteAndCatchIfThrows(
+                suppressor,
+                data => data.action(data.context),
+                (action, context),
+                new AnalysisContextInfo(_compilation));
         }
 
         /// <summary>

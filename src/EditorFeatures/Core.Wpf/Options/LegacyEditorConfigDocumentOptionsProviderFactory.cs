@@ -4,7 +4,6 @@ using System;
 using System.Composition;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.EditorConfig;
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
         public IDocumentOptionsProvider TryCreate(Workspace workspace)
         {
-            if (EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport)
+            if (EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(workspace))
             {
                 // If the native support exists, then we'll simply disable this one
                 return null;

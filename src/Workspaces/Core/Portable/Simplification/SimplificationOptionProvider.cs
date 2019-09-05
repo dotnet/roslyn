@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.Simplification
     [ExportOptionProvider, Shared]
     internal class SimplificationOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public SimplificationOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             SimplificationOptions.PreferAliasToQualification,
                 SimplificationOptions.PreferOmittingModuleNamesInQualification,

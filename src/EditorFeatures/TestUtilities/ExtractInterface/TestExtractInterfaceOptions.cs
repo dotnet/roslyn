@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
     [ExportWorkspaceService(typeof(IExtractInterfaceOptionsService), ServiceLayer.Default), Shared]
     internal class TestExtractInterfaceOptionsService : IExtractInterfaceOptionsService
     {
+        [ImportingConstructor]
+        public TestExtractInterfaceOptionsService()
+        {
+        }
+
         public IEnumerable<ISymbol> AllExtractableMembers { get; private set; }
         public string DefaultInterfaceName { get; private set; }
         public List<string> ConflictingTypeNames { get; private set; }

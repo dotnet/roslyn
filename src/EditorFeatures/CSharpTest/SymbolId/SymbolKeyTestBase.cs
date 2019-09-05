@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
 
             Assert.Equal(origlist.Count, newlist.Count);
 
-            for (int i = 0; i < newlist.Count; i++)
+            for (var i = 0; i < newlist.Count; i++)
             {
                 ResolveAndVerifySymbol(newlist[i], origlist[i], originalComp);
             }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             // NYI for local symbols
             var list = GetSourceSymbols(compilation, includeLocal: false);
 
-            List<SymbolKind> kinds = new List<SymbolKind>();
+            var kinds = new List<SymbolKind>();
             if ((category & SymbolCategory.DeclaredNamespace) != 0)
             {
                 kinds.Add(SymbolKind.Namespace);
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         internal static IList<ISymbol> GetSourceSymbols(CSharpCompilation compilation, bool includeLocal)
         {
             var list = new List<ISymbol>();
-            LocalSymbolDumper localDumper = includeLocal ? new LocalSymbolDumper(compilation) : null;
+            var localDumper = includeLocal ? new LocalSymbolDumper(compilation) : null;
             GetSourceMemberSymbols(compilation.SourceModule.GlobalNamespace, list, localDumper);
 
             // ??
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
 
         private class LocalSymbolDumper
         {
-            private CSharpCompilation _compilation;
+            private readonly CSharpCompilation _compilation;
             public LocalSymbolDumper(CSharpCompilation compilation)
             {
                 _compilation = compilation;

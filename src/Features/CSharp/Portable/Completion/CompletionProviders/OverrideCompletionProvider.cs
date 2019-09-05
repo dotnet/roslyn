@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             modifiers = new DeclarationModifiers();
             seenAccessibility = Accessibility.NotApplicable;
             var overrideToken = default(SyntaxToken);
-            bool isUnsafe = false;
-            bool isSealed = false;
-            bool isAbstract = false;
+            var isUnsafe = false;
+            var isSealed = false;
+            var isAbstract = false;
 
             while (IsOnStartLine(token.SpanStart, text, startLine) && !token.IsKind(SyntaxKind.None))
             {

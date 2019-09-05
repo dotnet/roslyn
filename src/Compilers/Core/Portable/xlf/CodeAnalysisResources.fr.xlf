@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
-        <target state="new">A language name cannot be specified for this option.</target>
+        <target state="translated">Impossible de spécifier un nom de langage pour cette option.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_must_be_specified_for_this_option">
         <source>A language name must be specified for this option.</source>
-        <target state="new">A language name must be specified for this option.</target>
+        <target state="translated">Un nom de langage doit être spécifié pour cette option.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
@@ -17,6 +17,11 @@
 '{1}'.</source>
         <target state="translated">L'analyseur '{0}' a levé l'exception suivante :
 '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="new">Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -32,6 +37,11 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">Le paramètre '{0}' doit être un symbole de cette compilation ou un assembly référencé.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="new">Non-reported diagnostic with ID '{0}' cannot be suppressed.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -72,6 +82,31 @@
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">L'analyseur '{0}' contient un descripteur null dans 'SupportedDiagnostics'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
+        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="new">Programmatic suppression of an analyzer diagnostic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="new">A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="new">If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -202,6 +237,11 @@
       <trans-unit id="GetMetadataMustReturnInstance">
         <source>{0}.GetMetadata() must return an instance of {1}.</source>
         <target state="translated">{0}.GetMetadata() doit retourner une instance de {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="new">Reported suppression with ID '{0}' is not supported by the suppressor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
@@ -481,12 +521,12 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
         <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
-        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <target state="translated">Le diagnostic '{0}' a reçu un niveau de gravité non valide '{1}' dans le fichier config de l'analyseur sur '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
         <source>Invalid severity in analyzer config file.</source>
-        <target state="new">Invalid severity in analyzer config file.</target>
+        <target state="translated">Niveau de gravité non valide dans le fichier config de l'analyseur.</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">

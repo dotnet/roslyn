@@ -20,6 +20,7 @@ Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.TextManager.Interop
+Imports Microsoft.VisualStudio.Utilities
 Imports Moq
 Imports MSXML
 
@@ -36,6 +37,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                        excludedTypes:={GetType(IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession))}.Concat(If(excludedTypes, {})).ToList())
 
             Workspace.Options = Workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)
+
+            Dim featureServiceFactory = GetExportedValue(Of IFeatureServiceFactory)()
+            featureServiceFactory.GlobalFeatureService.Disable(PredefinedEditorFeatureNames.AsyncCompletion, EmptyFeatureController.Instance)
 
             SessionTestState = Workspace.GetService(Of IIntelliSenseTestState)
 

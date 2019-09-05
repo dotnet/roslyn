@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="translated">将“{0}”设为可继承</target>
+        <target state="translated">使 "{0}" 可继承</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -95,6 +95,11 @@
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">删除不必要的导入</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">对导入项排序(&amp;S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -1398,7 +1403,7 @@ Try...[Catch]...{Catch | Finally}...End Try</target>
       <trans-unit id="A_Using_block_does_three_things_colon_it_creates_and_initializes_variables_in_the_resource_list_it_runs_the_code_in_the_block_and_it_disposes_of_the_variables_before_exiting_Resources_used_in_the_Using_block_must_implement_System_IDisposable_Using_resource1_bracket_resource2_bracket_End_Using">
         <source>A Using block does three things: it creates and initializes variables in the resource list, it runs the code in the block, and it disposes of the variables before exiting. Resources used in the Using block must implement System.IDisposable.
 Using &lt;resource1&gt;[, &lt;resource2&gt;]...End Using</source>
-        <target state="translated">Using 块用于执行下列三个操作: 在资源列表中创建并初始化变量、在块中运行代码并在退出之前释放变量。Using 块中使用的资源必须实现 System.Idisposable。
+        <target state="translated">Using 块用于执行下列三个操作: 在资源列表中创建并初始化变量、在块中运行代码并在退出之前释放变量。Using 块中使用的资源必须实现 System.IDisposable。
 Using &lt;resource1&gt;[, &lt;resource2&gt;]...End Using</target>
         <note />
       </trans-unit>
@@ -1689,7 +1694,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">联接条件</target>
+        <target state="translated">Join 条件</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">

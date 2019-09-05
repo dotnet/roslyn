@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -36,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string InsertionText = nameof(InsertionText);
         internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
         internal const string Description = nameof(Description);
-        internal const string InitialTriggerKind = nameof(InitialTriggerKind);
         internal const string PotentialCommitCharacters = nameof(PotentialCommitCharacters);
         internal const string ExcludedCommitCharacters = nameof(ExcludedCommitCharacters);
         internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
@@ -61,10 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly ITextView _textView;
         private readonly bool _isDebuggerTextView;
         private readonly ImmutableHashSet<string> _roles;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
-        internal CompletionSource(ITextView textView, IThreadingContext threadingContext) : base(threadingContext)
+        internal CompletionSource(ITextView textView, Lazy<IStreamingFindUsagesPresenter> streamingPresenter, IThreadingContext threadingContext)
+            : base(threadingContext)
         {
             _textView = textView;
+            _streamingPresenter = streamingPresenter;
             _isDebuggerTextView = textView is IDebuggerTextView;
             _roles = textView.Roles.ToImmutableHashSet();
         }
@@ -96,10 +100,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
-            if (!document.Project.Solution.Workspace.Options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language))
-            {
-                _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, true);
-            }
+            // The Editor supports the option per textView.
+            // There could be mixed desired behavior per textView and even per same completion session.
+            // The right fix would be to send this information as a result of the method. 
+            // Then, the Editor would choose the right behavior for mixed cases.
+            _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, !document.Project.Solution.Workspace.Options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language));
 
             // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
@@ -263,7 +268,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
             session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
 
-            session.Properties.AddProperty(InitialTriggerKind, roslynTrigger.Kind);
             var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
             if (excludedCommitCharacters.Length > 0)
             {
@@ -293,7 +297,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             var service = document.GetLanguageService<CompletionService>();
-
             if (service == null)
             {
                 return null;
@@ -301,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
-            var elements = IntelliSense.Helpers.BuildClassifiedTextElements(description.TaggedParts).ToArray();
+            var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, document, _streamingPresenter).ToArray();
             if (elements.Length == 0)
             {
                 return new ClassifiedTextElement();
@@ -394,6 +397,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 insertText: itemData.InsertionText,
                 sortText: roslynItem.SortText,
                 filterText: roslynItem.FilterText,
+                automationText: roslynItem.AutomationText ?? roslynItem.DisplayText,
                 attributeIcons: itemData.AttributeIcons);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);

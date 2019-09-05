@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
     internal class CSharpQualifyMemberAccessCodeFixProvider : AbstractQualifyMemberAccessCodeFixprovider<SimpleNameSyntax, InvocationExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpQualifyMemberAccessCodeFixProvider()
+        {
+        }
+
         protected override SimpleNameSyntax GetNode(Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public ITypeSymbol Construct(INamedTypeSymbol namedType, ITypeSymbol[] typeArguments)
             {
-                return namedType.Construct(typeArguments);
+                return namedType.ConstructWithNullability(typeArguments);
             }
         }
     }

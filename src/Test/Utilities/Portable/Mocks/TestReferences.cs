@@ -283,42 +283,62 @@ public static class TestReferences
         public static PortableExecutableReference MicrosoftVisualBasicRef => s_microsoftVisualBasic.Value;
     }
 
-    public static class NetStandard30
+    public static class NetCoreApp30
     {
         private static readonly Lazy<PortableExecutableReference> s_netstandard = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard30.netstandard).GetReference(display: "netstandard.dll (netstandard 3.0 ref)"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.netstandard).GetReference(display: "netstandard.dll (netcoreapp 3.0 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference NetStandard => s_netstandard.Value;
 
         private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard30.mscorlib).GetReference(display: "mscorlib.dll (netstandard 3.0 ref)"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.mscorlib).GetReference(display: "mscorlib.dll (netcoreapp 3.0 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference MscorlibRef => s_mscorlib.Value;
 
         private static readonly Lazy<PortableExecutableReference> s_systemRuntime = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard30.System_Runtime).GetReference(display: "System.Runtime.dll (netstandard 3.0 ref)"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Runtime).GetReference(display: "System.Runtime.dll (netcoreapp 3.0 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemRuntimeRef => s_systemRuntime.Value;
 
         private static readonly Lazy<PortableExecutableReference> s_systemCore = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard30.System_Core).GetReference(display: "System.Core.dll (netstandard 3.0 ref)"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Core).GetReference(display: "System.Core.dll (netcoreapp 3.0 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemCoreRef => s_systemCore.Value;
 
         private static readonly Lazy<PortableExecutableReference> s_systemDynamicRuntime = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard30.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 3.0 ref)"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netcoreapp 3.0 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemDynamicRuntimeRef => s_systemDynamicRuntime.Value;
 
+        private static readonly Lazy<PortableExecutableReference> s_systemCollections = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Collections).GetReference(display: "System.Collections.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemCollectionsRef => s_systemCollections.Value;
+
         private static readonly Lazy<PortableExecutableReference> s_systemConsole = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard30.System_Console).GetReference(display: "System.Console.dll (netstandard 3.0 ref)"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Console).GetReference(display: "System.Console.dll (netcoreapp 3.0 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemConsoleRef => s_systemConsole.Value;
 
         private static readonly Lazy<PortableExecutableReference> s_system_Threading_Tasks = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard30.System_Threading_Tasks).GetReference(display: "System.Threading.Tasks.dll (netstandard 3.0)"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Threading_Tasks).GetReference(display: "System.Threading.Tasks.dll (netcoreapp 3.0)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemThreadingTasksRef => s_system_Threading_Tasks.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemLinq = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Linq).GetReference(display: "System.Linq.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemLinqRef => s_systemLinq.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_systemLinqExpressions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Linq_Expressions).GetReference(display: "System.Linq.Expressions.dll (netcoreapp 3.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemLinqExpressionsRef => s_systemLinqExpressions.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_system_Runtime_InteropServices_WindowsRuntime = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Runtime_InteropServices_WindowsRuntime).GetReference(display: "System_Runtime_InteropServices_WindowsRuntime.dll (netcoreapp 3.0)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemRuntimeInteropServicesWindowsRuntimeRef => s_system_Runtime_InteropServices_WindowsRuntime.Value;
     }
 
     public static class Net461

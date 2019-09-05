@@ -15,15 +15,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         public const string SuppressMessageAttributeName = "System.Diagnostics.CodeAnalysis.SuppressMessage";
         private const string s_globalSuppressionsFileName = "GlobalSuppressions";
         private const string s_suppressionsFileCommentTemplate =
-@"
-{0} This file is used by Code Analysis to maintain SuppressMessage 
+@"{0} This file is used by Code Analysis to maintain SuppressMessage
 {0} attributes that are applied to this project.
-{0} Project-level suppressions either have no target or are given 
+{0} Project-level suppressions either have no target or are given
 {0} a specific target and scoped to a namespace, type, member, etc.
 
 ";
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return SuppressionFixAllProvider.Instance;
         }
 
-        public bool CanBeSuppressedOrUnsuppressed(Diagnostic diagnostic)
+        public bool IsFixableDiagnostic(Diagnostic diagnostic)
         {
             return SuppressionHelpers.CanBeSuppressed(diagnostic) || SuppressionHelpers.CanBeUnsuppressed(diagnostic);
         }
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             get
             {
-                return string.Format(s_suppressionsFileCommentTemplate, this.SingleLineCommentStart);
+                return string.Format(s_suppressionsFileCommentTemplate, SingleLineCommentStart);
             }
         }
 
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return token;
         }
 
-        public Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
+        public Task<ImmutableArray<CodeFix>> GetFixesAsync(
             Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             return GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 skipUnsuppress: skipUnsuppress, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
+        public async Task<ImmutableArray<CodeFix>> GetFixesAsync(
             Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
         {
             // We only care about diagnostics that can be suppressed/unsuppressed.
-            diagnostics = diagnostics.Where(CanBeSuppressedOrUnsuppressed);
+            diagnostics = diagnostics.Where(IsFixableDiagnostic);
             if (diagnostics.IsEmpty())
             {
                 return ImmutableArray<CodeFix>.Empty;

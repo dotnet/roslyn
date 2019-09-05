@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        private VisualStudioDocumentNavigationServiceFactory(
+        public VisualStudioDocumentNavigationServiceFactory(
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)

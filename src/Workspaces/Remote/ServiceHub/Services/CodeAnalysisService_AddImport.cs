@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentId documentId, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, IList<PackageSource> packageSources, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 using (UserOperationBooster.Boost())
                 {
-                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
                     var service = document.GetLanguageService<IAddImportFeatureService>();
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await service.GetFixesAsync(
                         document, span, diagnosticId, maxResults, placeSystemNamespaceFirst,
                         symbolSearchService, searchReferenceAssemblies,
-                        packageSources.ToImmutableArray(), token).ConfigureAwait(false);
+                        packageSources.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
 
                     return (IList<AddImportFixData>)result;
                 }

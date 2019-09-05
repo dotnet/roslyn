@@ -188,6 +188,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get

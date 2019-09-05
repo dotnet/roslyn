@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            string description = syntaxFactsService.GetDisplayName(node,
+            var description = syntaxFactsService.GetDisplayName(node,
                 DisplayNameOptions.IncludeMemberKeyword |
                 DisplayNameOptions.IncludeParameters |
                 DisplayNameOptions.IncludeType |

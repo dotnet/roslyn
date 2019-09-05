@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertLogical
     Friend Class VisualBasicInvertLogicalCodeRefactoringProvider
         Inherits AbstractInvertLogicalCodeRefactoringProvider(Of SyntaxKind, ExpressionSyntax, BinaryExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetKind(rawKind As Integer) As SyntaxKind
             Return CType(rawKind, SyntaxKind)
         End Function

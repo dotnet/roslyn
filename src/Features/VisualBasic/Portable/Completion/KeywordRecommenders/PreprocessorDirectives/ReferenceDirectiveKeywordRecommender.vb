@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
         Inherits AbstractKeywordRecommender
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
-            If context.IsPreprocessorStartContext AndAlso Not context.SyntaxTree.IsEnumMemberNameContext(context) Then
+            If context.IsPreprocessorStartContext AndAlso context.SyntaxTree.IsScript() AndAlso Not context.SyntaxTree.IsEnumMemberNameContext(context) Then
                 Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#R", VBFeaturesResources.Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll))
             End If
 

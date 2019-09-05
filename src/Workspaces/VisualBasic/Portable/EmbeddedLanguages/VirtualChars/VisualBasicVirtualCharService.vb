@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 
         Public Shared ReadOnly Instance As IVirtualCharService = New VisualBasicVirtualCharService()
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsStringLiteralToken(token As SyntaxToken) As Boolean
             Return token.Kind() = SyntaxKind.StringLiteralToken
         End Function

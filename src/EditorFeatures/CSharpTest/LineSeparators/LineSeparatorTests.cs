@@ -529,28 +529,26 @@ class Program
 
         private async Task AssertTagsOnBracesOrSemicolonsTokensAsync(string contents, int[] tokenIndices, CSharpParseOptions options = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(contents, options))
+            using var workspace = TestWorkspace.CreateCSharp(contents, options);
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var spans = await new CSharpLineSeparatorService().GetLineSeparatorsAsync(document, (await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None);
+            var tokens = (await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Where(t => t.Kind() == SyntaxKind.CloseBraceToken || t.Kind() == SyntaxKind.SemicolonToken);
+
+            Assert.Equal(tokenIndices.Length, spans.Count());
+
+            var i = 0;
+            foreach (var span in spans.OrderBy(t => t.Start))
             {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                var spans = await new CSharpLineSeparatorService().GetLineSeparatorsAsync(document, (await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None);
-                var tokens = (await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Where(t => t.Kind() == SyntaxKind.CloseBraceToken || t.Kind() == SyntaxKind.SemicolonToken);
+                var expectedToken = tokens.ElementAt(tokenIndices[i]);
 
-                Assert.Equal(tokenIndices.Length, spans.Count());
+                var expectedSpan = expectedToken.Span;
 
-                int i = 0;
-                foreach (var span in spans.OrderBy(t => t.Start))
-                {
-                    var expectedToken = tokens.ElementAt(tokenIndices[i]);
-
-                    var expectedSpan = expectedToken.Span;
-
-                    var message = string.Format("Expected to match curly {0} at span {1}.  Actual span {2}",
-                                                tokenIndices[i],
-                                                expectedSpan,
-                                                span);
-                    Assert.True(expectedSpan == span, message);
-                    ++i;
-                }
+                var message = string.Format("Expected to match curly {0} at span {1}.  Actual span {2}",
+                                            tokenIndices[i],
+                                            expectedSpan,
+                                            span);
+                Assert.True(expectedSpan == span, message);
+                ++i;
             }
         }
 

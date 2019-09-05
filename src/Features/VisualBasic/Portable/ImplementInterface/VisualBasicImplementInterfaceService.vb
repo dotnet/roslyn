@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
     Partial Friend Class VisualBasicImplementInterfaceService
         Inherits AbstractImplementInterfaceService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property CanImplementImplicitly As Boolean
             Get
                 Return False

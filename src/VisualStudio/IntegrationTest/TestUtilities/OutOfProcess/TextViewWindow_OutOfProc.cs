@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string[] GetLightBulbActions()
             => _textViewWindowInProc.GetLightBulbActions();
 
-        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
+        public bool ApplyLightBulbAction(string action, FixAllScope? fixAllScope, bool blockUntilComplete = true)
             => _textViewWindowInProc.ApplyLightBulbAction(action, fixAllScope, blockUntilComplete);
 
         public void InvokeCompletionList()

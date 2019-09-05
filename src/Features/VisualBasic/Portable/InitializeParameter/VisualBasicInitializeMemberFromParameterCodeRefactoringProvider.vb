@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             StatementSyntax,
             ExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsFunctionDeclaration(node As SyntaxNode) As Boolean
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
         End Function

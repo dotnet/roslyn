@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -20,6 +23,7 @@ namespace Roslyn.Utilities
             return value;
         }
 
+        [return: MaybeNull]
         public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
         {
             if (dictionary.TryGetValue(key, out var value))
@@ -27,7 +31,7 @@ namespace Roslyn.Utilities
                 return value;
             }
 
-            return default;
+            return default!;
         }
 
         public static void MultiAdd<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
@@ -42,6 +46,17 @@ namespace Roslyn.Utilities
             collection.Add(value);
         }
 
+        public static void MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value, ImmutableArray<TValue> defaultArray)
+            where TValue : IEquatable<TValue>
+        {
+            if (!dictionary.TryGetValue(key, out var collection))
+            {
+                collection = ImmutableArray<TValue>.Empty;
+            }
+
+            dictionary[key] = collection.IsEmpty && value.Equals(defaultArray[0]) ? defaultArray : collection.Add(value);
+        }
+
         public static void MultiRemove<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
             where TCollection : ICollection<TValue>
         {
@@ -52,6 +67,21 @@ namespace Roslyn.Utilities
                 if (collection.Count == 0)
                 {
                     dictionary.Remove(key);
+                }
+            }
+        }
+
+        public static void MultiRemove<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value)
+        {
+            if (dictionary.TryGetValue(key, out var collection))
+            {
+                if (collection.Length == 1)
+                {
+                    dictionary.Remove(key);
+                }
+                else
+                {
+                    dictionary[key] = collection.Remove(value);
                 }
             }
         }

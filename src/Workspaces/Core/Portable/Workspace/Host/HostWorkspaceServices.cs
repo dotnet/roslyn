@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -27,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// Gets a workspace specific service provided by the host identified by the service type. 
         /// If the host does not provide the service, this method returns null.
         /// </summary>
+        [return: MaybeNull]
         public abstract TWorkspaceService GetService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService;
 
         /// <summary>
@@ -34,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// If the host does not provide the service, this method throws <see cref="InvalidOperationException"/>.
         /// </summary>
         /// <exception cref="InvalidOperationException">The host does not provide the service.</exception>
+        [return: NotNull]
         public TWorkspaceService GetRequiredService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService
         {
             var service = GetService<TWorkspaceService>();
@@ -88,6 +93,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Gets the <see cref="HostLanguageServices"/> for the language name.
         /// </summary>
+        /// <exception cref="NotSupportedException">Thrown if the language isn't supported.</exception>
         public virtual HostLanguageServices GetLanguageServices(string languageName)
         {
             throw new NotSupportedException(string.Format(WorkspacesResources.The_language_0_is_not_supported, languageName));

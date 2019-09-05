@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
                 }
 
-                RemoteHostCrashInfoBar.ShowInfoBar(workspace);
+                RemoteHostCrashInfoBar.ShowInfoBar(workspace, lastException);
 
                 // raise soft crash exception rather than doing hard crash.
                 // we had enough feedback from users not to crash VS on servicehub failure

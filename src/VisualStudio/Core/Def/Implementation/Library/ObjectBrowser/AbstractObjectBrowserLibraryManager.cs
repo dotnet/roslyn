@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -40,9 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private ObjectListItem _activeListItem;
         private AbstractListItemFactory _listItemFactory;
-        private object _classMemberGate = new object();
+        private readonly object _classMemberGate = new object();
 
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
         private readonly IThreadingContext _threadingContext;
 
         protected AbstractObjectBrowserLibraryManager(
@@ -62,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
-            _streamingPresenters = componentModel.DefaultExportProvider.GetExports<IStreamingFindUsagesPresenter>();
+            _streamingPresenter = componentModel.DefaultExportProvider.GetExportedValue<IStreamingFindUsagesPresenter>();
             _threadingContext = componentModel.DefaultExportProvider.GetExportedValue<IThreadingContext>();
         }
 
@@ -502,10 +500,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 switch (commandId)
                 {
                     case (uint)VSConstants.VSStd97CmdID.FindReferences:
-                        var streamingPresenter = _streamingPresenters.FirstOrDefault()?.Value;
                         var symbolListItem = _activeListItem as SymbolListItem;
-
-                        if (streamingPresenter != null && symbolListItem?.ProjectId != null)
+                        if (symbolListItem?.ProjectId != null)
                         {
                             var project = this.Workspace.CurrentSolution.GetProject(symbolListItem.ProjectId);
                             if (project != null)
@@ -515,7 +511,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 // and the references will be asynchronously added to the FindReferences
                                 // window as they are computed.  The user also knows something is happening
                                 // as the window, with the progress-banner will pop up immediately.
-                                var task = FindReferencesAsync(streamingPresenter, symbolListItem, project);
+                                var task = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
                                 return true;
                             }
                         }

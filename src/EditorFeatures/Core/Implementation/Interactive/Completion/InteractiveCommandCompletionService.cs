@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion
     [ExportLanguageServiceFactory(typeof(CompletionService), InteractiveLanguageNames.InteractiveCommand), Shared]
     internal class InteractiveCommandCompletionServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public InteractiveCommandCompletionServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new InteractiveCommandCompletionService(languageServices.WorkspaceServices.Workspace);

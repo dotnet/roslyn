@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static readonly CSharpTypeInferenceService Instance = new CSharpTypeInferenceService();
 
+        [ImportingConstructor]
+        public CSharpTypeInferenceService()
+        {
+        }
+
         protected override AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             return new TypeInferrer(semanticModel, cancellationToken);

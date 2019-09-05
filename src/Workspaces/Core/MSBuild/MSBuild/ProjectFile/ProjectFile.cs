@@ -138,7 +138,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 .ToImmutableArray();
 
             var additionalDocs = project.GetAdditionalFiles()
-                .Select(MakeAdditionalDocumentFileInfo)
+                .Select(MakeNonSourceFileDocumentFileInfo)
+                .ToImmutableArray();
+
+            var analyzerConfigDocs = project.GetEditorConfigFiles()
+                .Select(MakeNonSourceFileDocumentFileInfo)
                 .ToImmutableArray();
 
             return ProjectFileInfo.Create(
@@ -151,6 +155,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 commandLineArgs,
                 docs,
                 additionalDocs,
+                analyzerConfigDocs,
                 project.GetProjectReferences().ToImmutableArray(),
                 Log);
         }
@@ -187,7 +192,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind);
         }
 
-        private DocumentFileInfo MakeAdditionalDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
+        private DocumentFileInfo MakeNonSourceFileDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
         {
             var filePath = GetDocumentFilePath(documentItem);
             var logicalPath = GetDocumentLogicalPath(documentItem, _projectDirectory);

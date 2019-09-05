@@ -34,6 +34,7 @@ usage()
   echo "  --skipAnalyzers            Do not run analyzers during build operations"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
+  echo "  --sourceBuild              Simulate building for source-build"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -68,6 +69,7 @@ prepare_machine=false
 warn_as_error=false
 properties=""
 disable_parallel_restore=false
+source_build=false
 
 docker=false
 args=""
@@ -141,6 +143,9 @@ while [[ $# > 0 ]]; do
       shift
       continue
       ;;
+    --sourcebuild)
+      source_build=true
+      ;;
     /p:*)
       properties="$properties $1"
       ;;
@@ -206,6 +211,9 @@ function MakeBootstrapBuild {
 
 function BuildSolution {
   local solution="Compilers.sln"
+  if [[ "$source_build" == true ]]; then
+    solution="SourceBuild.sln"
+  fi
   echo "$solution:"
 
   InitializeToolset
@@ -234,19 +242,19 @@ function BuildSolution {
   local test=false
   local test_runtime=""
   local mono_tool=""
+  local test_runtime_args=""
   if [[ "$test_mono" == true ]]; then
-    
-    mono_path="$scriptroot/invoke-mono.sh"
-    # Echo out the mono version to the comamnd line so it's visible in CI logs. It's not fixed
+    mono_path=`command -v mono`
+    # Echo out the mono version to the command line so it's visible in CI logs. It's not fixed
     # as we're using a feed vs. a hard coded package.
     if [[ "$ci" == true ]]; then
       mono --version
-      chmod +x "$mono_path"
     fi
 
     test=true
     test_runtime="/p:TestRuntime=Mono"
     mono_tool="/p:MonoTool=\"$mono_path\""
+    test_runtime_args="--debug"
   elif [[ "$test_core_clr" == true ]]; then
     test=true
     test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.0%3Bnetcoreapp2.1"
@@ -273,6 +281,8 @@ function BuildSolution {
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
     /p:RestoreDisableParallel=$disable_parallel_restore \
+    /p:TestRuntimeAdditionalArguments=$test_runtime_args \
+    /p:DotNetBuildFromSource=$source_build \
     $test_runtime \
     $mono_tool \
     $properties

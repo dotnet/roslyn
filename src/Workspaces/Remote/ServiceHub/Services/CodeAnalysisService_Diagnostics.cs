@@ -25,25 +25,25 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 // if this analysis is explicitly asked by user, boost priority of this request
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, token))
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
                 using (arguments.ForcedAnalysis ? UserOperationBooster.Boost() : default)
                 {
                     try
                     {
                         // entry point for diagnostic service
-                        var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+                        var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
 
-                        var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.OptionSetChecksum, token).ConfigureAwait(false);
+                        var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.OptionSetChecksum, cancellationToken).ConfigureAwait(false);
                         var projectId = arguments.ProjectId;
-                        var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(token);
+                        var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(cancellationToken);
 
                         var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
-                            analyzers, optionSet, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, token).ConfigureAwait(false);
+                            analyzers, optionSet, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
 
-                        await SerializeDiagnosticResultAsync(streamName, result, token).ConfigureAwait(false);
+                        await SerializeDiagnosticResultAsync(streamName, result, cancellationToken).ConfigureAwait(false);
                     }
                     catch (IOException)
                     {
@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void ReportAnalyzerPerformance(List<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken)
         {
-            RunService(token =>
+            RunService(() =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_ReportAnalyzerPerformance, token))
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_ReportAnalyzerPerformance, cancellationToken))
                 {
-                    token.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     var service = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
                     if (service == null)
@@ -80,11 +80,10 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (var writer = new ObjectWriter(stream))
                 {
-                    var info = DiagnosticResultSerializer.Serialize(writer, result, cancellationToken);
+                    var (diagnostics, telemetry, exceptions) = DiagnosticResultSerializer.Serialize(writer, result, cancellationToken);
 
                     // save log for debugging
-                    Log(TraceEventType.Information, $"diagnostics: {info.diagnostics}, telemetry: {info.telemetry}, exceptions: {info.exceptions}");
-
+                    Log(TraceEventType.Information, $"diagnostics: {diagnostics}, telemetry: {telemetry}, exceptions: {exceptions}");
                 }
 
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);

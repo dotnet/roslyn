@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 using static System.Linq.ImmutableArrayExtensions;
@@ -37,33 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsNestedType(this Symbol symbol)
         {
             return symbol is NamedTypeSymbol && (object)symbol.ContainingType != null;
-        }
-
-        public static bool Any<T>(this ImmutableArray<T> array, SymbolKind kind)
-            where T : Symbol
-        {
-            for (int i = 0, n = array.Length; i < n; i++)
-            {
-                var item = array[i];
-                if ((object)item != null && item.Kind == kind)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public static bool Any(this ImmutableArray<TypeWithAnnotations> array, SymbolKind kind)
-        {
-            for (int i = 0, n = array.Length; i < n; i++)
-            {
-                var item = array[i];
-                if (item.HasType && item.Type.Kind == kind)
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         /// <summary>
@@ -426,7 +398,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsImplementableInterfaceMember(this Symbol symbol)
         {
-            return !symbol.IsStatic && (symbol.IsAbstract || symbol.IsVirtual) && (symbol.ContainingType?.IsInterface ?? false);
+            return !symbol.IsStatic && !symbol.IsSealed && (symbol.IsAbstract || symbol.IsVirtual) && (symbol.ContainingType?.IsInterface ?? false);
+        }
+
+        internal static bool RequiresInstanceReceiver(this Symbol symbol)
+        {
+            return symbol.Kind switch
+            {
+                SymbolKind.Method => ((MethodSymbol)symbol).RequiresInstanceReceiver,
+                SymbolKind.Property => ((PropertySymbol)symbol).RequiresInstanceReceiver,
+                SymbolKind.Field => ((FieldSymbol)symbol).RequiresInstanceReceiver,
+                SymbolKind.Event => ((EventSymbol)symbol).RequiresInstanceReceiver,
+                _ => throw new ArgumentException("only methods, properties, fields and events can take a receiver", nameof(symbol)),
+            };
         }
     }
 }

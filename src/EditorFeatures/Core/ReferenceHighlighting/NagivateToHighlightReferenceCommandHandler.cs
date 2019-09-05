@@ -53,11 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 
         private VSCommanding.CommandState GetCommandStateImpl(EditorCommandArgs args)
         {
-            using (var tagAggregator = _tagAggregatorFactory.CreateTagAggregator<NavigableHighlightTag>(args.TextView))
-            {
-                var tagUnderCursor = FindTagUnderCaret(tagAggregator, args.TextView);
-                return tagUnderCursor == null ? VSCommanding.CommandState.Unavailable : VSCommanding.CommandState.Available;
-            }
+            using var tagAggregator = _tagAggregatorFactory.CreateTagAggregator<NavigableHighlightTag>(args.TextView);
+
+            var tagUnderCursor = FindTagUnderCaret(tagAggregator, args.TextView);
+            return tagUnderCursor == null ? VSCommanding.CommandState.Unavailable : VSCommanding.CommandState.Available;
         }
 
         public bool ExecuteCommand(NavigateToNextHighlightedReferenceCommandArgs args, CommandExecutionContext context)

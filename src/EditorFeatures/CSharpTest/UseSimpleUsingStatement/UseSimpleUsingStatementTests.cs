@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement
@@ -18,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new UseSimpleUsingStatementDiagnosticAnalyzer(), new UseSimpleUsingStatementCodeFixProvider());
 
-        private static ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
-        private static ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
+        private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
+        private static readonly ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
         public async Task TestAboveCSharp8()
@@ -645,6 +646,294 @@ class C
         label:
     }
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCollision1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        [||]using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+    }
+}",
+parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNoCollision1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        [||]using (Stream stream1 = File.OpenRead(""test""))
+        {
+        }
+    }
+}",
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        using Stream stream1 = File.OpenRead(""test"");
+    }
+}",
+parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCollision2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        [||]using (Stream stream1 = File.OpenRead(""test""))
+        {
+            Stream stream;
+        }
+    }
+}",
+parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNoCollision2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        [||]using (Stream stream1 = File.OpenRead(""test""))
+        {
+            Stream stream2;
+        }
+    }
+}",
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        using Stream stream1 = File.OpenRead(""test"");
+        Stream stream2;
+    }
+}",
+parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCollision3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        [||]using (Stream stream1 = File.OpenRead(""test""))
+        {
+            Goo(out var stream);
+        }
+    }
+}",
+parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNoCollision3()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        [||]using (Stream stream1 = File.OpenRead(""test""))
+        {
+            Goo(out var stream2);
+        }
+    }
+}",
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        using Stream stream1 = File.OpenRead(""test"");
+        Goo(out var stream2);
+    }
+}",
+parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCollision4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        [||]using (Stream stream1 = File.OpenRead(""test""))
+            Goo(out var stream);
+    }
+}",
+parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNoCollision4()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        [||]using (Stream stream1 = File.OpenRead(""test""))
+            Goo(out var stream2);
+    }
+}",
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+        }
+        using Stream stream1 = File.OpenRead(""test"");
+        Goo(out var stream2);
+    }
+}",
+parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCollision5()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+            Stream stream1;
+        }
+        [||]using (Stream stream1 = File.OpenRead(""test""))
+        {
+        }
+    }
+}",
+parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNoCollision5()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+            Stream stream1;
+        }
+        [||]using (Stream stream2 = File.OpenRead(""test""))
+        {
+        }
+    }
+}",
+@"using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        using (Stream stream = File.OpenRead(""test""))
+        {
+            Stream stream1;
+        }
+        using Stream stream2 = File.OpenRead(""test"");
+    }
+}",
+parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
     }
 }

@@ -3,12 +3,8 @@ trigger:
 - master
 - master-vs-deps
 - release/*
-- dev16.0
-- dev16.0-vs-deps
-- dev16.1-preview2
-- dev16.1-preview2-vs-deps
-- dev16.1-preview3
-- dev16.1-preview3-vs-deps
+- features/*
+- demos/*
 
 # Branches that trigger builds on PR
 pr:
@@ -17,10 +13,6 @@ pr:
 - release/*
 - features/*
 - demos/*
-- dev16.0
-- dev16.0-vs-deps
-- dev16.1-preview2
-- dev16.1-preview2-vs-deps
 
 jobs:
 - job: VS_Integration

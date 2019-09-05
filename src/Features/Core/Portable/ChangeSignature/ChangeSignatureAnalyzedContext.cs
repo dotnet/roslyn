@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public ChangeSignatureAnalyzedContext(
             Project project, ISymbol symbol, ParameterConfiguration parameterConfiguration)
         {
-            this.CanChangeSignature = true;
-            this.Project = project;
-            this.Symbol = symbol;
-            this.ParameterConfiguration = parameterConfiguration;
-            this.CannotChangeSignatureReason = CannotChangeSignatureReason.None;
+            CanChangeSignature = true;
+            Project = project;
+            Symbol = symbol;
+            ParameterConfiguration = parameterConfiguration;
+            CannotChangeSignatureReason = CannotChangeSignatureReason.None;
         }
 
         public ChangeSignatureAnalyzedContext(CannotChangeSignatureReason reason)
         {
-            this.CanChangeSignature = false;
-            this.CannotChangeSignatureReason = reason;
+            CanChangeSignature = false;
+            CannotChangeSignatureReason = reason;
         }
     }
 }

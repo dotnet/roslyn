@@ -43,6 +43,10 @@ Namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         Friend ReadOnly Id As ImmutableArray(Of String) = ImmutableArray.Create(BC42305, BC42306, BC42307, BC42313, BC42315, BC42317)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return Id

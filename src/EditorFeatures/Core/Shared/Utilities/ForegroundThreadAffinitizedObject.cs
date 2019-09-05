@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
             // The return value of GetQueueStatus is HIWORD:LOWORD.
             // A non-zero value in HIWORD indicates some input message in the queue.
-            uint result = NativeMethods.GetQueueStatus(NativeMethods.QS_INPUT);
+            var result = NativeMethods.GetQueueStatus(NativeMethods.QS_INPUT);
 
             const uint InputMask = NativeMethods.QS_INPUT | (NativeMethods.QS_INPUT << 16);
             return (result & InputMask) != 0;

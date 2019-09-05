@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis
     [ExportOptionProvider, Shared]
     internal class FileTextLoaderOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public FileTextLoaderOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             FileTextLoaderOptions.FileLengthThreshold);
     }
@@ -97,7 +102,7 @@ namespace Microsoft.CodeAnalysis
         {
             ValidateFileLength(workspace, _path);
 
-            DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
 
             TextAndVersion textAndVersion;
 
@@ -173,18 +178,16 @@ namespace Microsoft.CodeAnalysis
 
                 // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
                 // but probably not for command line case where it doesn't use more sophisticated services.
-                using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false))
-                {
-                    var text = CreateText(readStream, workspace);
-                    textAndVersion = TextAndVersion.Create(text, version, _path);
-                }
+                using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var text = CreateText(readStream, workspace);
+                textAndVersion = TextAndVersion.Create(text, version, _path);
             }
 
             // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
             // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
             // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
             // and reload the file.
-            DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
                 var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, _path);
@@ -203,7 +206,7 @@ namespace Microsoft.CodeAnalysis
         {
             ValidateFileLength(workspace, _path);
 
-            DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
 
             TextAndVersion textAndVersion;
 
@@ -219,7 +222,7 @@ namespace Microsoft.CodeAnalysis
             // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
             // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
             // and reload the file.
-            DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
                 var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, _path);

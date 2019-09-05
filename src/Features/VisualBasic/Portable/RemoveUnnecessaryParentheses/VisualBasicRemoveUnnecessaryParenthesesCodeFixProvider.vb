@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
     Friend Class VisualBasicRemoveUnnecessaryParenthesesCodeFixProvider
         Inherits AbstractRemoveUnnecessaryParenthesesCodeFixProvider(Of ParenthesizedExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function CanRemoveParentheses(current As ParenthesizedExpressionSyntax, semanticModel As SemanticModel) As Boolean
             Return VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(
                 current, semanticModel, precedence:=Nothing, clarifiesPrecedence:=Nothing)

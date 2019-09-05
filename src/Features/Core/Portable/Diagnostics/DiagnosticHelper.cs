@@ -145,13 +145,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    var argumentsBuilder = ArrayBuilder<string>.GetInstance(length);
+                    using var argumentsBuilderDisposer = ArrayBuilder<string>.GetInstance(length, out var argumentsBuilder);
                     for (var i = 0; i < length; i++)
                     {
                         argumentsBuilder.Add(reader.ReadString());
                     }
 
-                    _formatArguments = argumentsBuilder.ToArrayAndFree();
+                    _formatArguments = argumentsBuilder.ToArray();
                 }
             }
 
@@ -178,8 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             protected override bool AreEqual(object other)
             {
-                var otherResourceString = other as LocalizableStringWithArguments;
-                return otherResourceString != null &&
+                return other is LocalizableStringWithArguments otherResourceString &&
                     _messageFormat.Equals(otherResourceString._messageFormat) &&
                     _formatArguments.SequenceEqual(otherResourceString._formatArguments, (a, b) => a == b);
             }

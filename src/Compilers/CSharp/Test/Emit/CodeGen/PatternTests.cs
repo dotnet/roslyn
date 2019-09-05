@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class PatternTests : EmitMetadataTestBase
     {
+        #region Miscallaneous
+
         [Fact, WorkItem(18811, "https://github.com/dotnet/roslyn/issues/18811")]
         public void MissingNullable_01()
         {
@@ -568,34 +570,31 @@ public class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1",
 @"{
-  // Code size       39 (0x27)
+  // Code size       37 (0x25)
   .maxstack  6
   .locals init (bool V_0,
-                decimal V_1,
-                int V_2)
+                int V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       ""decimal C.M(decimal)""
-  IL_0007:  stloc.1
-  IL_0008:  ldloc.1
-  IL_0009:  ldc.i4.s   10
+  IL_0007:  ldc.i4.s   10
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
   IL_000b:  ldc.i4.0
-  IL_000c:  ldc.i4.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldc.i4.1
-  IL_000f:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
-  IL_0014:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_0019:  stloc.0
-  IL_001a:  ldloc.0
-  IL_001b:  brfalse.s  IL_0021
-  IL_001d:  ldc.i4.1
-  IL_001e:  stloc.2
-  IL_001f:  br.s       IL_0025
-  IL_0021:  ldc.i4.0
-  IL_0022:  stloc.2
-  IL_0023:  br.s       IL_0025
-  IL_0025:  ldloc.2
-  IL_0026:  ret
+  IL_000c:  ldc.i4.1
+  IL_000d:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0012:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  brfalse.s  IL_001f
+  IL_001b:  ldc.i4.1
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0023
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.1
+  IL_0021:  br.s       IL_0023
+  IL_0023:  ldloc.1
+  IL_0024:  ret
 }");
             compVerifier.VerifyIL("C.M2",
 @"{
@@ -932,6 +931,914 @@ public class C
   IL_0018:  box        ""T""
   IL_001d:  call       ""void System.Console.Write(object)""
   IL_0022:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead01()
+        {
+            var source = @"using System;
+
+public class Person {
+    public string Name { get; set; }
+}
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case { Name: ""Bill"" }:
+                Console.WriteLine(""Hey Bill!"");
+            break;
+            case { Name: ""Bob"" }:
+                Console.WriteLine(""Hey Bob!"");
+            break;
+            case { Name: var name }:
+                Console.WriteLine($""Hello {name}!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       85 (0x55)
+  .maxstack  3
+  .locals init (string V_0) //name
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0054
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_003f
+  IL_000d:  ldloc.0
+  IL_000e:  ldstr      ""Bill""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_0029
+  IL_001a:  ldloc.0
+  IL_001b:  ldstr      ""Bob""
+  IL_0020:  call       ""bool string.op_Equality(string, string)""
+  IL_0025:  brtrue.s   IL_0034
+  IL_0027:  br.s       IL_003f
+  IL_0029:  ldstr      ""Hey Bill!""
+  IL_002e:  call       ""void System.Console.WriteLine(string)""
+  IL_0033:  ret
+  IL_0034:  ldstr      ""Hey Bob!""
+  IL_0039:  call       ""void System.Console.WriteLine(string)""
+  IL_003e:  ret
+  IL_003f:  ldstr      ""Hello ""
+  IL_0044:  ldloc.0
+  IL_0045:  ldstr      ""!""
+  IL_004a:  call       ""string string.Concat(string, string, string)""
+  IL_004f:  call       ""void System.Console.WriteLine(string)""
+  IL_0054:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead02()
+        {
+            var source = @"using System;
+
+public class Person {
+    public string Name { get; set; }
+    public int Age;
+}
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case Person { Name: var name, Age: 0}:
+                Console.WriteLine($""Hello baby { name }!"");
+            break;
+            case Person { Name: var name }:
+                Console.WriteLine($""Hello { name }!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       64 (0x40)
+  .maxstack  3
+  .locals init (string V_0, //name
+                string V_1) //name
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_003f
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldarg.1
+  IL_000b:  ldfld      ""int Person.Age""
+  IL_0010:  brtrue.s   IL_0028
+  IL_0012:  ldstr      ""Hello baby ""
+  IL_0017:  ldloc.0
+  IL_0018:  ldstr      ""!""
+  IL_001d:  call       ""string string.Concat(string, string, string)""
+  IL_0022:  call       ""void System.Console.WriteLine(string)""
+  IL_0027:  ret
+  IL_0028:  ldloc.0
+  IL_0029:  stloc.1
+  IL_002a:  ldstr      ""Hello ""
+  IL_002f:  ldloc.1
+  IL_0030:  ldstr      ""!""
+  IL_0035:  call       ""string string.Concat(string, string, string)""
+  IL_003a:  call       ""void System.Console.WriteLine(string)""
+  IL_003f:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead03()
+        {
+            var source = @"using System;
+
+public class Person {
+    public string Name { get; set; }
+}
+
+public class Student : Person { }
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case { Name: ""Bill"" }:
+                Console.WriteLine(""Hey Bill!"");
+            break;
+            case Student { Name: var name }:
+                Console.WriteLine($""Hello student { name}!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       68 (0x44)
+  .maxstack  3
+  .locals init (string V_0) //name
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0043
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  ldloc.0
+  IL_000e:  ldstr      ""Bill""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_0023
+  IL_001a:  ldarg.1
+  IL_001b:  isinst     ""Student""
+  IL_0020:  brtrue.s   IL_002e
+  IL_0022:  ret
+  IL_0023:  ldstr      ""Hey Bill!""
+  IL_0028:  call       ""void System.Console.WriteLine(string)""
+  IL_002d:  ret
+  IL_002e:  ldstr      ""Hello student ""
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""!""
+  IL_0039:  call       ""string string.Concat(string, string, string)""
+  IL_003e:  call       ""void System.Console.WriteLine(string)""
+  IL_0043:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead04()
+        {
+            // Cannot combine the evaluations of name here, since we first check if p is Teacher,
+            // and only if that fails check if p is null. 
+            // Combining the evaluations would mean first checking if p is null, then evaluating name, then checking if p is Teacher.
+            // This would not necessarily be more performant.
+            var source = @"using System;
+
+public class Person {
+    public string Name { get; set; }
+}
+
+public class Teacher : Person { }
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case Teacher { Name: var name }:
+                Console.WriteLine($""Hello teacher { name}!"");
+            break;
+            case Person { Name: var name }:
+                Console.WriteLine($""Hello { name}!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"
+{
+  // Code size       77 (0x4d)
+  .maxstack  3
+  .locals init (string V_0, //name
+                string V_1, //name
+                Teacher V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  isinst     ""Teacher""
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  brfalse.s  IL_0013
+  IL_000a:  ldloc.2
+  IL_000b:  callvirt   ""string Person.Name.get""
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_001f
+  IL_0013:  ldarg.1
+  IL_0014:  brfalse.s  IL_004c
+  IL_0016:  ldarg.1
+  IL_0017:  callvirt   ""string Person.Name.get""
+  IL_001c:  stloc.0
+  IL_001d:  br.s       IL_0035
+  IL_001f:  ldstr      ""Hello teacher ""
+  IL_0024:  ldloc.0
+  IL_0025:  ldstr      ""!""
+  IL_002a:  call       ""string string.Concat(string, string, string)""
+  IL_002f:  call       ""void System.Console.WriteLine(string)""
+  IL_0034:  ret
+  IL_0035:  ldloc.0
+  IL_0036:  stloc.1
+  IL_0037:  ldstr      ""Hello ""
+  IL_003c:  ldloc.1
+  IL_003d:  ldstr      ""!""
+  IL_0042:  call       ""string string.Concat(string, string, string)""
+  IL_0047:  call       ""void System.Console.WriteLine(string)""
+  IL_004c:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead05()
+        {
+            // Cannot combine the evaluations of name here, since we first check if p is Teacher,
+            // and only if that fails check if p is Student. 
+            // Combining the evaluations would mean first checking if p is null, 
+            // then evaluating name, 
+            // then checking if p is Teacher, 
+            // then checking if p is Student.
+            // This would not necessarily be more performant.
+            var source = @"using System;
+
+public class Person {
+    public string Name { get; set; }
+}
+
+public class Student : Person { }
+
+public class Teacher : Person { }
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case Teacher { Name: var name }:
+                Console.WriteLine($""Hello teacher { name}!"");
+            break;
+            case Student { Name: var name }:
+                Console.WriteLine($""Hello student { name}!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"
+{
+  // Code size       84 (0x54)
+  .maxstack  3
+  .locals init (string V_0, //name
+                string V_1, //name
+                Teacher V_2,
+                Student V_3)
+  IL_0000:  ldarg.1
+  IL_0001:  isinst     ""Teacher""
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  brfalse.s  IL_0013
+  IL_000a:  ldloc.2
+  IL_000b:  callvirt   ""string Person.Name.get""
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_0026
+  IL_0013:  ldarg.1
+  IL_0014:  isinst     ""Student""
+  IL_0019:  stloc.3
+  IL_001a:  ldloc.3
+  IL_001b:  brfalse.s  IL_0053
+  IL_001d:  ldloc.3
+  IL_001e:  callvirt   ""string Person.Name.get""
+  IL_0023:  stloc.0
+  IL_0024:  br.s       IL_003c
+  IL_0026:  ldstr      ""Hello teacher ""
+  IL_002b:  ldloc.0
+  IL_002c:  ldstr      ""!""
+  IL_0031:  call       ""string string.Concat(string, string, string)""
+  IL_0036:  call       ""void System.Console.WriteLine(string)""
+  IL_003b:  ret
+  IL_003c:  ldloc.0
+  IL_003d:  stloc.1
+  IL_003e:  ldstr      ""Hello student ""
+  IL_0043:  ldloc.1
+  IL_0044:  ldstr      ""!""
+  IL_0049:  call       ""string string.Concat(string, string, string)""
+  IL_004e:  call       ""void System.Console.WriteLine(string)""
+  IL_0053:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead06()
+        {
+            var source = @"using System;
+
+public class Person {
+    public string Name { get; set; }
+}
+
+public class Student : Person { }
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case { Name: { Length: 0 } }:
+                Console.WriteLine(""Hello!"");
+            break;
+            case Student { Name: { Length : 1 } }:
+                Console.WriteLine($""Hello student!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (string V_0,
+                int V_1)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0039
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_0039
+  IL_000d:  ldloc.0
+  IL_000e:  callvirt   ""int string.Length.get""
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  brfalse.s  IL_0024
+  IL_0017:  ldarg.1
+  IL_0018:  isinst     ""Student""
+  IL_001d:  brfalse.s  IL_0039
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  beq.s      IL_002f
+  IL_0023:  ret
+  IL_0024:  ldstr      ""Hello!""
+  IL_0029:  call       ""void System.Console.WriteLine(string)""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""Hello student!""
+  IL_0034:  call       ""void System.Console.WriteLine(string)""
+  IL_0039:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead07()
+        {
+            // Cannot combine the evaluations of name here, since we first check if name is MemoryStream,
+            // and only if that fails check if name is null. 
+            // Combining the evaluations would mean first checking if name is null, then evaluating name, then checking if p is Teacher.
+            // This would not necessarily be more performant.
+            var source = @"using System;
+using System.IO;
+
+public class Person {
+    public Stream Name { get; set; }
+}
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case Person { Name: MemoryStream { Length: 1 } }:
+                Console.WriteLine(""Your Names A MemoryStream!"");
+            break;
+            case Person { Name: { Length : var x } }:
+                Console.WriteLine(""Your Names A Stream!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       66 (0x42)
+  .maxstack  2
+  .locals init (System.IO.Stream V_0,
+                System.IO.MemoryStream V_1)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0041
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""System.IO.Stream Person.Name.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  isinst     ""System.IO.MemoryStream""
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.1
+  IL_0012:  brfalse.s  IL_0020
+  IL_0014:  ldloc.1
+  IL_0015:  callvirt   ""long System.IO.Stream.Length.get""
+  IL_001a:  ldc.i4.1
+  IL_001b:  conv.i8
+  IL_001c:  beq.s      IL_002c
+  IL_001e:  br.s       IL_0023
+  IL_0020:  ldloc.0
+  IL_0021:  brfalse.s  IL_0041
+  IL_0023:  ldloc.0
+  IL_0024:  callvirt   ""long System.IO.Stream.Length.get""
+  IL_0029:  pop
+  IL_002a:  br.s       IL_0037
+  IL_002c:  ldstr      ""Your Names A MemoryStream!""
+  IL_0031:  call       ""void System.Console.WriteLine(string)""
+  IL_0036:  ret
+  IL_0037:  ldstr      ""Your Names A Stream!""
+  IL_003c:  call       ""void System.Console.WriteLine(string)""
+  IL_0041:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead08()
+        {
+            var source = @"
+public class Person {
+    public string Name { get; set; }
+}
+
+public class Student : Person { }
+
+public class C {
+    public string M(Person p) {
+        return p switch  {
+            { Name: ""Bill"" } => ""Hey Bill!"",
+            Student { Name: var name } => ""Hello student { name}!"",
+            _ => null,
+        };
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (string V_0, //name
+                string V_1)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0034
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  ldloc.0
+  IL_000e:  ldstr      ""Bill""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_0024
+  IL_001a:  ldarg.1
+  IL_001b:  isinst     ""Student""
+  IL_0020:  brtrue.s   IL_002c
+  IL_0022:  br.s       IL_0034
+  IL_0024:  ldstr      ""Hey Bill!""
+  IL_0029:  stloc.1
+  IL_002a:  br.s       IL_0036
+  IL_002c:  ldstr      ""Hello student { name}!""
+  IL_0031:  stloc.1
+  IL_0032:  br.s       IL_0036
+  IL_0034:  ldnull
+  IL_0035:  stloc.1
+  IL_0036:  ldloc.1
+  IL_0037:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead09()
+        {
+            var source = @"using System;
+
+public class Person {
+    public virtual string Name { get; set; }
+}
+
+public class Student : Person { }
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case { Name: ""Bill"" }:
+                Console.WriteLine(""Hey Bill!"");
+            break;
+            case Student { Name: var name }:
+                Console.WriteLine($""Hello student { name}!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       68 (0x44)
+  .maxstack  3
+  .locals init (string V_0) //name
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0043
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  ldloc.0
+  IL_000e:  ldstr      ""Bill""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_0023
+  IL_001a:  ldarg.1
+  IL_001b:  isinst     ""Student""
+  IL_0020:  brtrue.s   IL_002e
+  IL_0022:  ret
+  IL_0023:  ldstr      ""Hey Bill!""
+  IL_0028:  call       ""void System.Console.WriteLine(string)""
+  IL_002d:  ret
+  IL_002e:  ldstr      ""Hello student ""
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""!""
+  IL_0039:  call       ""string string.Concat(string, string, string)""
+  IL_003e:  call       ""void System.Console.WriteLine(string)""
+  IL_0043:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead10()
+        {
+            // Currently we don't combine these redundant property reads.
+            // However we could do so in the future.
+
+            var source = @"using System;
+
+public abstract class Person {
+    public abstract string Name { get; set; }
+}
+
+public class Student : Person { 
+    public override string Name { get; set; }
+}
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case { Name: ""Bill"" }:
+                Console.WriteLine(""Hey Bill!"");
+            break;
+            case Student { Name: var name }:
+                Console.WriteLine($""Hello student { name}!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       78 (0x4e)
+  .maxstack  3
+  .locals init (string V_0, //name
+                string V_1,
+                Student V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_004d
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  ldloc.1
+  IL_000e:  ldstr      ""Bill""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_002d
+  IL_001a:  ldarg.1
+  IL_001b:  isinst     ""Student""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.2
+  IL_0022:  brfalse.s  IL_004d
+  IL_0024:  ldloc.2
+  IL_0025:  callvirt   ""string Person.Name.get""
+  IL_002a:  stloc.0
+  IL_002b:  br.s       IL_0038
+  IL_002d:  ldstr      ""Hey Bill!""
+  IL_0032:  call       ""void System.Console.WriteLine(string)""
+  IL_0037:  ret
+  IL_0038:  ldstr      ""Hello student ""
+  IL_003d:  ldloc.0
+  IL_003e:  ldstr      ""!""
+  IL_0043:  call       ""string string.Concat(string, string, string)""
+  IL_0048:  call       ""void System.Console.WriteLine(string)""
+  IL_004d:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void CombiningRedundantPropertyReadsDoesNotChangeNullabilityAnalysis01()
+        {
+            // Currently we don't combine the redundant property reads at all.
+            // However this could be improved in the future so this test is important
+
+            var source = @"using System;
+
+#nullable enable
+
+public class Person {
+    public virtual string? Name { get; }
+}
+
+public class Student : Person {
+    public override string Name { get => base.Name ?? """"; }
+}
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case { Name: ""Bill""}:
+                Console.WriteLine(""Hey Bill!"");
+            break;
+            case Student { Name: var name }:
+                Console.WriteLine($""Student has name of length { name.Length }!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       83 (0x53)
+  .maxstack  2
+  .locals init (string V_0, //name
+                string V_1,
+                Student V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0052
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  ldloc.1
+  IL_000e:  ldstr      ""Bill""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_002d
+  IL_001a:  ldarg.1
+  IL_001b:  isinst     ""Student""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.2
+  IL_0022:  brfalse.s  IL_0052
+  IL_0024:  ldloc.2
+  IL_0025:  callvirt   ""string Person.Name.get""
+  IL_002a:  stloc.0
+  IL_002b:  br.s       IL_0038
+  IL_002d:  ldstr      ""Hey Bill!""
+  IL_0032:  call       ""void System.Console.WriteLine(string)""
+  IL_0037:  ret
+  IL_0038:  ldstr      ""Student has name of length {0}!""
+  IL_003d:  ldloc.0
+  IL_003e:  callvirt   ""int string.Length.get""
+  IL_0043:  box        ""int""
+  IL_0048:  call       ""string string.Format(string, object)""
+  IL_004d:  call       ""void System.Console.WriteLine(string)""
+  IL_0052:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void CombiningRedundantPropertyReadsDoesNotChangeNullabilityAnalysis02()
+        {
+            var source = @"using System;
+
+#nullable enable
+
+public class Person {
+    public string? Name { get;}
+}
+
+public class Student : Person {
+}
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case { Name: var name } when name is null:
+                Console.WriteLine($""Hey { name }"");
+            break;
+            case Student { Name: var name } when name != null:
+                Console.WriteLine($""Student has name of length { name.Length }!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       73 (0x49)
+  .maxstack  2
+  .locals init (string V_0, //name
+                string V_1) //name
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0048
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_0015
+  IL_000c:  ldarg.1
+  IL_000d:  isinst     ""Student""
+  IL_0012:  brtrue.s   IL_0029
+  IL_0014:  ret
+  IL_0015:  ldloc.0
+  IL_0016:  brtrue.s   IL_000c
+  IL_0018:  ldstr      ""Hey ""
+  IL_001d:  ldloc.0
+  IL_001e:  call       ""string string.Concat(string, string)""
+  IL_0023:  call       ""void System.Console.WriteLine(string)""
+  IL_0028:  ret
+  IL_0029:  ldloc.0
+  IL_002a:  stloc.1
+  IL_002b:  ldloc.1
+  IL_002c:  brfalse.s  IL_0048
+  IL_002e:  ldstr      ""Student has name of length {0}!""
+  IL_0033:  ldloc.1
+  IL_0034:  callvirt   ""int string.Length.get""
+  IL_0039:  box        ""int""
+  IL_003e:  call       ""string string.Format(string, object)""
+  IL_0043:  call       ""void System.Console.WriteLine(string)""
+  IL_0048:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void CombiningRedundantPropertyReadsDoesNotChangeNullabilityAnalysis03()
+        {
+            var source = @"using System;
+
+#nullable enable
+
+public class Person {
+    public string? Name { get; }
+}
+
+public class Student : Person {
+}
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case { Name: string name }:
+                Console.WriteLine($""Hey {name}"");
+            break;
+            case Student { Name: var name }:
+                Console.WriteLine($""Student has name of length { name.Length }!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (19,66): warning CS8602: Dereference of a possibly null reference.
+                //                 Console.WriteLine($"Student has name of length { name.Length }!");
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "name").WithLocation(19, 66));
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (string V_0, //name
+                string V_1) //name
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0043
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brtrue.s   IL_0016
+  IL_000d:  ldarg.1
+  IL_000e:  isinst     ""Student""
+  IL_0013:  brtrue.s   IL_0027
+  IL_0015:  ret
+  IL_0016:  ldstr      ""Hey ""
+  IL_001b:  ldloc.0
+  IL_001c:  call       ""string string.Concat(string, string)""
+  IL_0021:  call       ""void System.Console.WriteLine(string)""
+  IL_0026:  ret
+  IL_0027:  ldloc.0
+  IL_0028:  stloc.1
+  IL_0029:  ldstr      ""Student has name of length {0}!""
+  IL_002e:  ldloc.1
+  IL_002f:  callvirt   ""int string.Length.get""
+  IL_0034:  box        ""int""
+  IL_0039:  call       ""string string.Format(string, object)""
+  IL_003e:  call       ""void System.Console.WriteLine(string)""
+  IL_0043:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void DoNotCombineDifferentPropertyReadsWithSameName()
+        {
+            var source = @"using System;
+
+public class Person {
+    public string Name { get; set; }
+}
+
+public class Student : Person {
+    public new string Name { get; set; }
+}
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case { Name: ""Bill"" }:
+                Console.WriteLine(""Hey Bill!"");
+            break;
+            case Student { Name: var name }:
+                Console.WriteLine($""Hello student { name}!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       78 (0x4e)
+  .maxstack  3
+  .locals init (string V_0, //name
+                string V_1,
+                Student V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_004d
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  ldloc.1
+  IL_000e:  ldstr      ""Bill""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_002d
+  IL_001a:  ldarg.1
+  IL_001b:  isinst     ""Student""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.2
+  IL_0022:  brfalse.s  IL_004d
+  IL_0024:  ldloc.2
+  IL_0025:  callvirt   ""string Student.Name.get""
+  IL_002a:  stloc.0
+  IL_002b:  br.s       IL_0038
+  IL_002d:  ldstr      ""Hey Bill!""
+  IL_0032:  call       ""void System.Console.WriteLine(string)""
+  IL_0037:  ret
+  IL_0038:  ldstr      ""Hello student ""
+  IL_003d:  ldloc.0
+  IL_003e:  ldstr      ""!""
+  IL_0043:  call       ""string string.Concat(string, string, string)""
+  IL_0048:  call       ""void System.Console.WriteLine(string)""
+  IL_004d:  ret
 }");
         }
 
@@ -1974,7 +2881,6 @@ static class Program
 }");
         }
 
-        // https://github.com/dotnet/roslyn/issues/35010 Support deconstruction assignment
         [Fact]
         public void DoNotShareInputForMutatingWhenClause()
         {
@@ -2259,48 +3165,45 @@ public class Program
 }
 ";
             var v = CompileAndVerify(source, options: TestOptions.DebugExe);
-            v.VerifyIL(qualifiedMethodName: "Program.Main",
-@"{
-  // Code size       55 (0x37)
-  .maxstack  2
-  .locals init (int V_0, //i
-                Program V_1, //y
-                Program V_2,
-                Program V_3)
-  // sequence point: {
-  IL_0000:  nop
-  // sequence point: int i = 0;
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
-  // sequence point: var y = (i s ...   }).Chain()
-  IL_0003:  ldloc.0
-  IL_0004:  brfalse.s  IL_000e
-  IL_0006:  br.s       IL_0008
-  IL_0008:  ldloc.0
-  IL_0009:  ldc.i4.1
-  IL_000a:  beq.s      IL_0016
-  IL_000c:  br.s       IL_001e
-  IL_000e:  newobj     ""Program..ctor()""
-  IL_0013:  stloc.2
-  IL_0014:  br.s       IL_0026
-  IL_0016:  newobj     ""Program..ctor()""
-  IL_001b:  stloc.2
-  IL_001c:  br.s       IL_0026
-  IL_001e:  newobj     ""Program..ctor()""
-  IL_0023:  stloc.2
-  IL_0024:  br.s       IL_0026
-  IL_0026:  ldloc.2
-  IL_0027:  stloc.3
-  IL_0028:  ldloc.3
-  IL_0029:  callvirt   ""Program Program.Chain()""
-  IL_002e:  stloc.1
-  // sequence point: y.Chain2();
-  IL_002f:  ldloc.1
-  IL_0030:  callvirt   ""Program Program.Chain2()""
-  IL_0035:  pop
-  // sequence point: }
-  IL_0036:  ret
-}
+            v.VerifyIL(qualifiedMethodName: "Program.Main", @"
+    {
+      // Code size       53 (0x35)
+      .maxstack  2
+      .locals init (int V_0, //i
+                    Program V_1, //y
+                    Program V_2)
+      // sequence point: {
+      IL_0000:  nop
+      // sequence point: int i = 0;
+      IL_0001:  ldc.i4.0
+      IL_0002:  stloc.0
+      // sequence point: var y = (i s ...   }).Chain()
+      IL_0003:  ldloc.0
+      IL_0004:  brfalse.s  IL_000e
+      IL_0006:  br.s       IL_0008
+      IL_0008:  ldloc.0
+      IL_0009:  ldc.i4.1
+      IL_000a:  beq.s      IL_0016
+      IL_000c:  br.s       IL_001e
+      IL_000e:  newobj     ""Program..ctor()""
+      IL_0013:  stloc.2
+      IL_0014:  br.s       IL_0026
+      IL_0016:  newobj     ""Program..ctor()""
+      IL_001b:  stloc.2
+      IL_001c:  br.s       IL_0026
+      IL_001e:  newobj     ""Program..ctor()""
+      IL_0023:  stloc.2
+      IL_0024:  br.s       IL_0026
+      IL_0026:  ldloc.2
+      IL_0027:  callvirt   ""Program Program.Chain()""
+      IL_002c:  stloc.1
+      // sequence point: y.Chain2();
+      IL_002d:  ldloc.1
+      IL_002e:  callvirt   ""Program Program.Chain2()""
+      IL_0033:  pop
+      // sequence point: }
+      IL_0034:  ret
+    }
 ", sequencePoints: "Program.Main", source: source);
         }
 
@@ -2330,39 +3233,37 @@ public class Class1
                 var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
                 if (options.OptimizationLevel == OptimizationLevel.Debug)
                 {
-                    compVerifier.VerifyIL("Class1.M",
-@"{
-  // Code size       39 (0x27)
-  .maxstack  2
-  .locals init (bool V_0,
-                int V_1,
-                bool V_2,
-                bool V_3)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int""
-  IL_0007:  brfalse.s  IL_001b
-  IL_0009:  ldarg.0
-  IL_000a:  unbox.any  ""int""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
-  IL_0011:  ldc.i4.s   42
-  IL_0013:  beq.s      IL_0017
-  IL_0015:  br.s       IL_001b
-  IL_0017:  ldc.i4.1
-  IL_0018:  stloc.0
-  IL_0019:  br.s       IL_001f
-  IL_001b:  ldc.i4.0
-  IL_001c:  stloc.0
-  IL_001d:  br.s       IL_001f
-  IL_001f:  ldloc.0
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.2
-  IL_0022:  stloc.3
-  IL_0023:  br.s       IL_0025
-  IL_0025:  ldloc.3
-  IL_0026:  ret
-}");
+                    compVerifier.VerifyIL("Class1.M", @"
+{
+      // Code size       37 (0x25)
+      .maxstack  2
+      .locals init (bool V_0,
+                    int V_1,
+                    bool V_2)
+      IL_0000:  nop
+      IL_0001:  ldarg.0
+      IL_0002:  isinst     ""int""
+      IL_0007:  brfalse.s  IL_001b
+      IL_0009:  ldarg.0
+      IL_000a:  unbox.any  ""int""
+      IL_000f:  stloc.1
+      IL_0010:  ldloc.1
+      IL_0011:  ldc.i4.s   42
+      IL_0013:  beq.s      IL_0017
+      IL_0015:  br.s       IL_001b
+      IL_0017:  ldc.i4.1
+      IL_0018:  stloc.0
+      IL_0019:  br.s       IL_001f
+      IL_001b:  ldc.i4.0
+      IL_001c:  stloc.0
+      IL_001d:  br.s       IL_001f
+      IL_001f:  ldloc.0
+      IL_0020:  stloc.2
+      IL_0021:  br.s       IL_0023
+      IL_0023:  ldloc.2
+      IL_0024:  ret
+    }
+");
                 }
                 else
                 {
@@ -2596,5 +3497,654 @@ class Program
                 }
             }
         }
+
+        [Fact]
+        public void CompileTimeRuntimeInstanceofMismatch_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        M(new byte[1]);
+        M(new sbyte[1]);
+        M(new Ebyte[1]);
+        M(new Esbyte[1]);
+
+        M(new short[1]);
+        M(new ushort[1]);
+        M(new Eshort[1]);
+        M(new Eushort[1]);
+
+        M(new int[1]);
+        M(new uint[1]);
+        M(new Eint[1]);
+        M(new Euint[1]);
+
+        M(new int[1][]);
+        M(new uint[1][]);
+        M(new Eint[1][]);
+        M(new Euint[1][]);
+
+        M(new long[1]);
+        M(new ulong[1]);
+        M(new Elong[1]);
+        M(new Eulong[1]);
+
+        M(new IntPtr[1]);
+        M(new UIntPtr[1]);
+
+        M(new IntPtr[1][]);
+        M(new UIntPtr[1][]);
+    }
+
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case byte[] _ when o.GetType() == typeof(byte[]):
+                Console.WriteLine(""byte[]"");
+                break;
+            case sbyte[] _ when o.GetType() == typeof(sbyte[]):
+                Console.WriteLine(""sbyte[]"");
+                break;
+            case Ebyte[] _ when o.GetType() == typeof(Ebyte[]):
+                Console.WriteLine(""Ebyte[]"");
+                break;
+            case Esbyte[] _ when o.GetType() == typeof(Esbyte[]):
+                Console.WriteLine(""Esbyte[]"");
+                break;
+
+            case short[] _ when o.GetType() == typeof(short[]):
+                Console.WriteLine(""short[]"");
+                break;
+            case ushort[] _ when o.GetType() == typeof(ushort[]):
+                Console.WriteLine(""ushort[]"");
+                break;
+            case Eshort[] _ when o.GetType() == typeof(Eshort[]):
+                Console.WriteLine(""Eshort[]"");
+                break;
+            case Eushort[] _ when o.GetType() == typeof(Eushort[]):
+                Console.WriteLine(""Eushort[]"");
+                break;
+
+            case int[] _ when o.GetType() == typeof(int[]):
+                Console.WriteLine(""int[]"");
+                break;
+            case uint[] _ when o.GetType() == typeof(uint[]):
+                Console.WriteLine(""uint[]"");
+                break;
+            case Eint[] _ when o.GetType() == typeof(Eint[]):
+                Console.WriteLine(""Eint[]"");
+                break;
+            case Euint[] _ when o.GetType() == typeof(Euint[]):
+                Console.WriteLine(""Euint[]"");
+                break;
+
+            case int[][] _ when o.GetType() == typeof(int[][]):
+                Console.WriteLine(""int[][]"");
+                break;
+            case uint[][] _ when o.GetType() == typeof(uint[][]):
+                Console.WriteLine(""uint[][]"");
+                break;
+            case Eint[][] _ when o.GetType() == typeof(Eint[][]):
+                Console.WriteLine(""Eint[][]"");
+                break;
+            case Euint[][] _ when o.GetType() == typeof(Euint[][]):
+                Console.WriteLine(""Euint[][]"");
+                break;
+
+            case long[] _ when o.GetType() == typeof(long[]):
+                Console.WriteLine(""long[]"");
+                break;
+            case ulong[] _ when o.GetType() == typeof(ulong[]):
+                Console.WriteLine(""ulong[]"");
+                break;
+            case Elong[] _ when o.GetType() == typeof(Elong[]):
+                Console.WriteLine(""Elong[]"");
+                break;
+            case Eulong[] _ when o.GetType() == typeof(Eulong[]):
+                Console.WriteLine(""Eulong[]"");
+                break;
+
+            case IntPtr[] _ when o.GetType() == typeof(IntPtr[]):
+                Console.WriteLine(""IntPtr[]"");
+                break;
+            case UIntPtr[] _ when o.GetType() == typeof(UIntPtr[]):
+                Console.WriteLine(""UIntPtr[]"");
+                break;
+
+            case IntPtr[][] _ when o.GetType() == typeof(IntPtr[][]):
+                Console.WriteLine(""IntPtr[][]"");
+                break;
+            case UIntPtr[][] _ when o.GetType() == typeof(UIntPtr[][]):
+                Console.WriteLine(""UIntPtr[][]"");
+                break;
+
+            default:
+                Console.WriteLine(""oops: "" + o.GetType());
+                break;
+        }
+    }
+}
+enum Ebyte : byte {}
+enum Esbyte : sbyte {}
+enum Eshort : short {}
+enum Eushort : ushort {}
+enum Eint : int {}
+enum Euint : uint {}
+enum Elong : long {}
+enum Eulong : ulong {}
+";
+            var expectedOutput =
+@"byte[]
+sbyte[]
+Ebyte[]
+Esbyte[]
+short[]
+ushort[]
+Eshort[]
+Eushort[]
+int[]
+uint[]
+Eint[]
+Euint[]
+int[][]
+uint[][]
+Eint[][]
+Euint[][]
+long[]
+ulong[]
+Elong[]
+Eulong[]
+IntPtr[]
+UIntPtr[]
+IntPtr[][]
+UIntPtr[][]
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void CompileTimeRuntimeInstanceofMismatch_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        M(new byte[1]);
+        M(new sbyte[1]);
+    }
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case byte[] _:
+                Console.WriteLine(""byte[]"");
+                break;
+            case sbyte[] _: // not subsumed, even though it will never occur due to CLR behavior
+                Console.WriteLine(""sbyte[]"");
+                break;
+        }
+    }
+}
+";
+            var expectedOutput =
+@"byte[]
+byte[]
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(36496, "https://github.com/dotnet/roslyn/issues/36496")]
+        public void EmptyVarPatternVsDeconstruct()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(M(new C()));
+        Console.Write(M(null));
+    }
+    public static bool M(C c)
+    {
+        return c is var ();
+    }
+    public void Deconstruct() { }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "TrueFalse");
+            compVerifier.VerifyIL("C.M(C)",
+@"
+{
+    // Code size        5 (0x5)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldnull
+    IL_0002:  cgt.un
+    IL_0004:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(36496, "https://github.com/dotnet/roslyn/issues/36496")]
+        public void EmptyPositionalPatternVsDeconstruct()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(M(new C()));
+        Console.Write(M(null));
+    }
+    public static bool M(C c)
+    {
+        return c is ();
+    }
+    public void Deconstruct() { }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "TrueFalse");
+            compVerifier.VerifyIL("C.M(C)",
+@"
+{
+    // Code size        5 (0x5)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldnull
+    IL_0002:  cgt.un
+    IL_0004:  ret
+}
+");
+        }
+
+        #endregion Miscellaneous
+
+        #region Target Typed Switch
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M(false));
+        Console.Write(M(true));
+    }
+    static object M(bool b)
+    {
+        int result = b switch { false => new A(), true => new B() };
+        return result;
+    }
+}
+class A
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"42";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Return()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M(false));
+        Console.Write(M(true));
+    }
+    static long M(bool b)
+    {
+        return b switch { false => new A(), true => new B() };
+    }
+}
+class A
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"42";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Argument_01()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M1(false));
+        Console.Write(M1(true));
+    }
+    static object M1(bool b)
+    {
+        return M2(b switch { false => new A(), true => new B() });
+    }
+    static Exception M2(Exception ex) => ex;
+    static int M2(int i) => i;
+    static int M2(string s) => s.Length;
+}
+class A : Exception
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B : Exception
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                    // (12,16): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(Exception)' and 'Program.M2(int)'
+                    //         return M2(b switch { false => new A(), true => new B() });
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("Program.M2(System.Exception)", "Program.M2(int)").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Argument_02()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M1(false));
+        Console.Write(M1(true));
+    }
+    static object M1(bool b)
+    {
+        return M2(b switch { false => new A(), true => new B() });
+    }
+    // static Exception M2(Exception ex) => ex;
+    static int M2(int i) => i;
+    static int M2(string s) => s.Length;
+}
+class A : Exception
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B : Exception
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"42";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void TargetTypedSwitch_Arglist()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.WriteLine(M1(false));
+        Console.WriteLine(M1(true));
+    }
+    static object M1(bool b)
+    {
+        return M2(__arglist(b switch { false => new A(), true => new B() }));
+    }
+    static int M2(__arglist) => 1;
+}
+class A
+{
+    public A() { Console.Write(""new A; ""); }
+    public static implicit operator B(A a) { Console.Write(""A->""); return new B(); }
+}
+class B
+{
+    public B() { Console.Write(""new B; ""); }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"new A; A->new B; 1
+new B; 1";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_StackallocSize()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        M1(false);
+        M1(true);
+    }
+    static void M1(bool b)
+    {
+        Span<int> s = stackalloc int[b switch { false => new A(), true => new B() }];
+        Console.WriteLine(s.Length);
+    }
+}
+class A
+{
+    public A() { Console.Write(""new A; ""); }
+    public static implicit operator int(A a) { Console.Write(""A->int; ""); return 4; }
+}
+class B
+{
+    public B() { Console.Write(""new B; ""); }
+    public static implicit operator int(B b) { Console.Write(""B->int; ""); return 2; }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"new A; A->int; 4
+new B; B->int; 2";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Attribute()
+        {
+            var source = @"
+using System;
+class Program
+{
+    [My(1 switch { 1 => 1, _ => 2 })]
+    public static void M1() { }
+
+    [My(1 switch { 1 => new A(), _ => new B() })]
+    public static void M2() { }
+
+    [My(1 switch { 1 => 1, _ => string.Empty })]
+    public static void M3() { }
+}
+public class MyAttribute : Attribute
+{
+    public MyAttribute(int Value) { }
+}
+public class A
+{
+    public static implicit operator int(A a) => 4;
+}
+public class B
+{
+    public static implicit operator int(B b) => 2;
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (5,9): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                    //     [My(1 switch { 1 => 1, _ => 2 })]
+                    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => 1, _ => 2 }").WithLocation(5, 9),
+                    // (8,9): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                    //     [My(1 switch { 1 => new A(), _ => new B() })]
+                    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => new A(), _ => new B() }").WithLocation(8, 9),
+                    // (11,9): error CS1503: Argument 1: cannot convert from '<switch expression>' to 'int'
+                    //     [My(1 switch { 1 => 1, _ => string.Empty })]
+                    Diagnostic(ErrorCode.ERR_BadArgType, "1 switch { 1 => 1, _ => string.Empty }").WithArguments("1", "<switch expression>", "int").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_As()
+        {
+            var source = @"
+class Program
+{
+    public static void M(int i, string s)
+    {
+        // we do not target-type the left-hand-side of an as expression
+        _ = i switch { 1 => i, _ => s } as object;
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,15): error CS8506: No best type was found for the switch expression.
+                //         _ = i switch { 1 => i, _ => s } as object;
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_DoubleConversion()
+        {
+            var source = @"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        M(false);
+        M(true);
+    }
+    public static void M(bool b)
+    {
+        C c = b switch { false => new A(), true => new B() };
+        Console.WriteLine(""."");
+    }
+}
+class A
+{
+    public A()
+    {
+        Console.Write(""new A; "");
+    }
+    public static implicit operator B(A a)
+    {
+        Console.Write(""A->"");
+        return new B();
+    }
+}
+class B
+{
+    public B()
+    {
+        Console.Write(""new B; "");
+    }
+    public static implicit operator C(B a)
+    {
+        Console.Write(""B->"");
+        return new C();
+    }
+}
+class C
+{
+    public C()
+    {
+        Console.Write(""new C; "");
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"new A; A->new B; B->new C; .
+new B; B->new C; .";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_StringInsert()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write($""{false switch { false => new A(), true => new B() }}"");
+        Console.Write($""{true switch { false => new A(), true => new B() }}"");
+    }
+}
+class A
+{
+}
+class B
+{
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "AB");
+        }
+
+        #endregion Target Typed Switch
     }
 }

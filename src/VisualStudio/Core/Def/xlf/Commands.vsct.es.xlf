@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../Commands.vsct">
     <body>
+      <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
+        <source>Sort &amp;Usings</source>
+        <target state="new">Sort &amp;Usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidCSharpOrganizeSortUsings|LocCanonicalName">
+        <source>SortUsings</source>
+        <target state="new">SortUsings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|ButtonText">
         <source>Remove &amp;and Sort</source>
         <target state="translated">&amp;Quitar y ordenar</target>

@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared ReadOnly Instance As New VisualBasicPrecedenceService()
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Function GetOperatorPrecedence(expression As ExpressionSyntax) As OperatorPrecedence
             Return expression.GetOperatorPrecedence()
         End Function

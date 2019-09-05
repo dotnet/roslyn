@@ -13,13 +13,6 @@
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
 
-    <!-- 
-      Reference ILAsm deploy project to make sure it's built since we need its outputs, but not reference the outputs themselves.
-      Note SkipGetTargetFrameworkProperties makes it possible to reference project with incompatible TFM.
-      GlobalPropertiesToRemove makes sure TargetFramework isn't set as a global property for the target project.
-    -->
-    <ProjectReference Include="..\..\..\Tools\ILTools\ILTools.proj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" GlobalPropertiesToRemove="TargetFramework" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
-
   </ItemGroup>
   <ItemGroup>
     <!-- Needed to find the Unsafe.dll binary to lay out at runtime for the compiler when testing analyzers. -->
@@ -37,7 +30,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.EnC.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35071" />
     <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.IOperation.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests" />
@@ -64,6 +56,8 @@
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Shared\CoreClrAnalyzerAssemblyLoader.cs" />
@@ -96,5 +90,6 @@
     <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" Version="$(MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion)" />
   </ItemGroup>
 </Project>

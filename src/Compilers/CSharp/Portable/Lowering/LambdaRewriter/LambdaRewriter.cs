@@ -938,12 +938,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 do
                 {
                     oldTypeArg = newTypeArg;
-                    newTypeArg = this.TypeMap.SubstituteType(typeArg);
-
-                    // When type substitution does not change the type, it is expected to return the very same object.
-                    // Therefore the loop is terminated when that type (as an object) does not change.
+                    newTypeArg = this.TypeMap.SubstituteType(oldTypeArg);
                 }
-                while ((object)oldTypeArg.Type != newTypeArg.Type);
+                while (!TypeSymbol.Equals(oldTypeArg.Type, newTypeArg.Type, TypeCompareKind.ConsiderEverything));
+
+                // When type substitution does not change the type, it is expected to return the very same object.
+                // Therefore the loop is terminated when that type (as an object) does not change.
+                Debug.Assert((object)oldTypeArg.Type == newTypeArg.Type);
 
                 // The types are the same, so the last pass performed no substitutions.
                 // Therefore the annotations ought to be the same too.
@@ -1388,7 +1389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaId = new DebugId(_lambdaDebugInfoBuilder.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
             }
 
-            int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree);
+            int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(lambdaOrLambdaBodySyntax), lambdaOrLambdaBodySyntax.SyntaxTree);
             _lambdaDebugInfoBuilder.Add(new LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal));
             return lambdaId;
         }

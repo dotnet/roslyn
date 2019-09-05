@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -49,6 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             else if (typeParameter.HasValueTypeConstraint)
             {
                 constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint));
+            }
+            else if (typeParameter.HasNotNullConstraint)
+            {
+                constraints.Add(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("notnull")));
             }
 
             var constraintTypes =

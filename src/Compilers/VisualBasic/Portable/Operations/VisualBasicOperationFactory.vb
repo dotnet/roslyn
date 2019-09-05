@@ -342,14 +342,14 @@ Namespace Microsoft.CodeAnalysis.Operations
 
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
                     Dim isImplicit As Boolean = boundNode.WasCompilerGenerated
-                    Return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode), isImplicit)
+                    Return New VisualBasicLazyNoneOperation(Me, boundNode, _semanticModel, boundNode.Syntax, constantValue, isImplicit)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(boundNode.Kind)
             End Select
         End Function
 
-        Private Function GetIOperationChildren(boundNode As BoundNode) As ImmutableArray(Of IOperation)
+        Friend Function GetIOperationChildren(boundNode As BoundNode) As ImmutableArray(Of IOperation)
             Dim boundNodeWithChildren = DirectCast(boundNode, IBoundNodeWithIOperationChildren)
             If boundNodeWithChildren.Children.IsDefaultOrEmpty Then
                 Return ImmutableArray(Of IOperation).Empty
@@ -374,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 ' https://github.com/dotnet/roslyn/issues/23109
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
                 Dim isImplicit As Boolean = boundAssignmentOperator.WasCompilerGenerated
-                Return Operation.CreateOperationNone(_semanticModel, boundAssignmentOperator.Syntax, constantValue, Function() GetIOperationChildren(boundAssignmentOperator), isImplicit)
+                Return New VisualBasicLazyNoneOperation(Me, boundAssignmentOperator, _semanticModel, boundAssignmentOperator.Syntax, constantValue, isImplicit)
             ElseIf boundAssignmentOperator.LeftOnTheRightOpt IsNot Nothing Then
                 Return CreateCompoundAssignment(boundAssignmentOperator)
             Else
@@ -1167,6 +1167,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                      statementInfo.GetEnumeratorMethod,
                                                      statementInfo.CurrentProperty,
                                                      statementInfo.MoveNextMethod,
+                                                     isAsynchronous:=False,
                                                      boundForEachStatement.EnumeratorInfo.NeedToDispose,
                                                      knownToImplementIDisposable:=boundForEachStatement.EnumeratorInfo.NeedToDispose AndAlso
                                                                                   boundForEachStatement.EnumeratorInfo.IsOrInheritsFromOrImplementsIDisposable,
@@ -1581,7 +1582,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAnonymousTypePropertyAccess.WasCompilerGenerated
-            Return New PropertyReferenceOperation([property], instance, arguments, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New PropertyReferenceOperation([property], arguments, instance, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateAnonymousTypePropertyAccessImplicitReceiverOperation(propertySym As IPropertySymbol, syntax As SyntaxNode) As InstanceReferenceOperation

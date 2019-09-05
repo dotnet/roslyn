@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -23,8 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpAsAndNullCheckCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineAsTypeCheckId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -84,18 +89,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var asExpressionLocation = diagnostic.AdditionalLocations[2];
 
             var declarator = (VariableDeclaratorSyntax)declaratorLocation.FindNode(cancellationToken);
-            var comparison = (BinaryExpressionSyntax)comparisonLocation.FindNode(cancellationToken);
+            var comparison = (ExpressionSyntax)comparisonLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
+
+            var rightSideOfComparison = comparison is BinaryExpressionSyntax binaryExpression
+                ? (SyntaxNode)binaryExpression.Right
+                : ((IsPatternExpressionSyntax)comparison).Pattern;
             var newIdentifier = declarator.Identifier
-                .WithoutTrivia().WithTrailingTrivia(comparison.Right.GetTrailingTrivia());
+                .WithoutTrivia().WithTrailingTrivia(rightSideOfComparison.GetTrailingTrivia());
 
             ExpressionSyntax isExpression = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
                     SyntaxFactory.SingleVariableDesignation(newIdentifier)));
 
-            // We should negate the is-expression if we have something like "x == null"
-            if (comparison.IsKind(SyntaxKind.EqualsExpression))
+            // We should negate the is-expression if we have something like "x == null" or "x is null"
+            if (comparison.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.IsPatternExpression))
             {
                 isExpression = SyntaxFactory.PrefixUnaryExpression(
                     SyntaxKind.LogicalNotExpression,

@@ -140,6 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             isNoLocationDiagnosticEntry = !entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out string filePath) ||
                 string.IsNullOrEmpty(filePath);
+
             var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
             if (roslynSnapshot == null)
             {
@@ -148,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return IsNonRoslynEntrySupportingSuppressionState(entryHandle, out isSuppressedEntry);
             }
 
-            var diagnosticData = roslynSnapshot?.GetItem(index)?.Primary;
+            var diagnosticData = roslynSnapshot?.GetItem(index)?.Data;
             if (!IsEntryWithConfigurableSuppressionState(diagnosticData))
             {
                 isRoslynEntry = false;
@@ -188,19 +189,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 !entry.IsBuildDiagnostic();
         }
 
-        private static AbstractTableEntriesSnapshot<DiagnosticData> GetEntriesSnapshot(ITableEntryHandle entryHandle)
-        {
-            return GetEntriesSnapshot(entryHandle, out var index);
-        }
-
-        private static AbstractTableEntriesSnapshot<DiagnosticData> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
+        private static AbstractTableEntriesSnapshot<DiagnosticTableItem> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
         {
             if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
             {
                 return null;
             }
 
-            return snapshot as AbstractTableEntriesSnapshot<DiagnosticData>;
+            return snapshot as AbstractTableEntriesSnapshot<DiagnosticTableItem>;
         }
 
         /// <summary>
@@ -222,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
                 if (roslynSnapshot != null)
                 {
-                    diagnosticData = roslynSnapshot.GetItem(index)?.Primary;
+                    diagnosticData = roslynSnapshot.GetItem(index)?.Data;
                 }
                 else if (!isAddSuppression)
                 {
@@ -234,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
 
                     string filePath = null;
-                    int line = -1; // FxCop only supports line, not column.
+                    var line = -1; // FxCop only supports line, not column.
                     DiagnosticDataLocation location = null;
 
                     if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out string errorCode) && !string.IsNullOrEmpty(errorCode) &&
@@ -269,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 continue;
                             }
 
-                            filePathToDocumentMapOpt = filePathToDocumentMapOpt ?? new Dictionary<Project, ImmutableDictionary<string, Document>>();
+                            filePathToDocumentMapOpt ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
                             if (!filePathToDocumentMapOpt.TryGetValue(project, out var filePathMap))
                             {
                                 filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
@@ -310,7 +306,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             location: location,
                             customTags: SuppressionHelpers.SynthesizedExternalSourceDiagnosticCustomTags,
                             properties: ImmutableDictionary<string, string>.Empty,
-                            workspace: _workspace,
                             projectId: project.Id);
                     }
                 }

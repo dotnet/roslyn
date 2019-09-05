@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateDefaultConst
     Partial Friend Class VisualBasicGenerateDefaultConstructorsService
         Inherits AbstractGenerateDefaultConstructorsService(Of VisualBasicGenerateDefaultConstructorsService)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function TryInitializeState(
                 semanticDocument As SemanticDocument, textSpan As TextSpan, cancellationToken As CancellationToken,
                 ByRef classType As INamedTypeSymbol) As Boolean
@@ -23,9 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateDefaultConst
             ' first base-type of a class.
 
             Dim syntaxFacts = semanticDocument.Document.GetLanguageService(Of ISyntaxFactsService)()
-            If syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start) Then
-                classType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                    semanticDocument.SemanticModel, semanticDocument.Root, textSpan.Start, cancellationToken)
+            Dim typeDecl As SyntaxNode = Nothing
+            If syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, typeDecl) Then
+                classType = TryCast(semanticDocument.SemanticModel.GetDeclaredSymbol(typeDecl), INamedTypeSymbol)
                 Return classType IsNot Nothing AndAlso classType.TypeKind = TypeKind.Class
             End If
 

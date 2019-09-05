@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
             TupleExpressionSyntax,
             AnonymousObjectCreationExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function ConvertToTuple(anonCreation As AnonymousObjectCreationExpressionSyntax) As TupleExpressionSyntax
             Return SyntaxFactory.TupleExpression(
                 SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTriviaFrom(anonCreation.Initializer.OpenBraceToken),

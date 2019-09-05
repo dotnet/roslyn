@@ -195,29 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function SpansPreprocessorDirective(tokens As IEnumerable(Of SyntaxToken)) As Boolean
-            ' we want to check all leading trivia of all tokens (except the 
-            ' first one), and all trailing trivia of all tokens (except the
-            ' last one).
-
-            Dim first As Boolean = True
-            Dim previousToken As SyntaxToken = Nothing
-
-            For Each token In tokens
-                If first Then
-                    first = False
-                Else
-                    ' check the leading trivia of this token, and the trailing trivia
-                    ' of the previous token.
-                    If token.LeadingTrivia.ContainsPreprocessorDirective() OrElse
-                       previousToken.TrailingTrivia.ContainsPreprocessorDirective() Then
-                        Return True
-                    End If
-                End If
-
-                previousToken = token
-            Next token
-
-            Return False
+            Return VisualBasicSyntaxFactsService.Instance.SpansPreprocessorDirective(tokens)
         End Function
 
         <Extension()>

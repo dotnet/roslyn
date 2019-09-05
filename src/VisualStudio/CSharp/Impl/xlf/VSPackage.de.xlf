@@ -79,47 +79,52 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;</source>
-        <target state="needs-review-translation">Diagnose für geschlossene Dateien anzeigen; 
+        <target state="translated">Diagnoseinformationen für geschlossene Dateien anzeigen;
 Reguläre Ausdrücke farbig hervorheben; 
 Zugehörige Komponenten unter dem Cursor markieren; 
-Ungültige reguläre Ausdrücke melden; 
-Analyse von Editor-Features in externem Prozess durchführen; 
-Using-Anweisungen; 
-Systemanweisungen beim Sortieren von using-Anweisungen zuerst platzieren; 
-Using-Anweisungsgruppen trennen; 
-Using-Anweisungen für Typen in Verweisassemblys vorschlagen; 
-Using-Anweisungen für Typen in NuGet-Paketen vorschlagen, 
-Hervorheben, 
-Verweise auf Symbole unter dem Cursor markieren; 
-Zugehörige Schlüsselwörter unter dem Cursor markieren; 
-Gliedern; 
-Beim Öffnen von Dateien in Gliederungsmodus wechseln; 
-Zeilentrennzeichen zwischen Prozeduren anzeigen; 
-Gliederung für Konstrukte auf Deklarationsebene anzeigen; 
-Gliederung für Konstrukte auf Codeebene anzeigen; 
-Gliederung für Kommentare und Präprozessorregionen anzeigen; 
-#regions beim Reduzieren auf Definitionen zuklappen; 
-Ausblenden; 
-Nicht verwendete Zeichenfolgen ausblenden; 
-Nicht erreichbaren Code ausblenden; 
-Führungslinien für Blockstruktur; 
-Führungslinien für Konstrukte auf Deklarationsebene anzeigen; 
-Führungslinien für Konstrukte auf Codeebene anzeigen; 
-Editor-Hilfe; 
-XML-Dokumentationskommentare generieren für ///; 
-* beim Schreiben von /* */-Kommentaren am Anfang neuer Zeilen einfügen; 
-Vorschau für die Nachverfolgung von Umbenennungen anzeigen; 
-Zeichenfolgenliterale bei Eingabe teilen; 
-Ungültige Platzhaler in string.Format-Aufrufen melden; 
-Methode extrahieren; 
-Nicht ref oder out auf benutzerdefinierte Struktur legen; 
-Schnittstelle oder abstrakte Klasse implementieren; 
-Eigenschaften, Ereignisse und Methoden bei der Eingabe:;
-mit anderen Membern der gleichen Art platzieren; 
-am Ende platzieren; 
-Beim Generieren von Eigenschaften:; 
+Ungültige reguläre Ausdrücke melden;
+Vollständige Lösungsanalyse aktivieren;
+Editor-Funktionsanalyse in externem Prozess ausführen ;
+Navigation zu dekompilierten Quellen aktivieren;
+Using-Anweisungen;
+Systemanweisungen beim Sortieren von Using-Anweisungen an erster Stelle platzieren;
+Using-Anweisungsgruppen trennen;
+Using-Anweisungen für Typen in Verweisassemblys vorschlagen;
+Using-Anweisungen für Typen in NuGet-Paketen vorschlagen;
+Hervorhebung;
+Verweise auf Symbol unter Cursor hervorheben;
+Verwandte Schlüsselbegriffe unter Cursor anzeigen;
+Gliederung;
+Gliederungsmodus beim Öffnen von Dateien starten;
+Zeilentrennzeichen in Prozeduren anzeigen;
+Gliederung für Konstrukte auf Deklarationsebene anzeigen;
+Gliederung für Konstrukte auf Codeebene anzeigen;
+Gliederung für Kommentare und Präprozessorregionen anzeigen;
+#regions beim Reduzieren auf Definitionen zuklappen;
+Ausblenden;
+Nicht verwendete Using-Anweisungen ausblenden;
+Unerreichbaren Code ausblenden;
+Führungslinien für Blockstruktur;
+Führungslinien für Konstrukte auf Deklarationsebene anzeigen;
+Führungslinien für Konstrukte auf Codeebene anzeigen;
+Editor-Hilfe;
+XML-Dokumentationskommentare für /// eingeben;
+Beim Schreiben von Kommentaren (/* */) * am Beginn neuer Zeilen einfügen;
+Vorschau für Nachverfolgung beim Umbenennen anzeigen;
+Zeichenfolgenliterale bei Eingabe teilen;
+Ungültige Platzhalter in string.Format-Aufrufen melden;
+Methode extrahieren;
+ref oder out nicht auf benutzerdefinierte Struktur legen;
+Schnittstelle oder abstrakte Klasse implementieren;
+Eingefügte Eigenschaften, Ereignisse und Methoden hier ablegen;
+bei anderen Membern derselben Art;
+am Ende;
+Beim Generieren von Eigenschaften;
 ausgelöste Eigenschaften bevorzugen;
-automatische Eigenschaften bevorzugen;</target>
+automatische Eigenschaften bevorzugen;
+regex;
+regulärer Ausdruck;
+Erweiterte Farben verwenden;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -128,10 +133,10 @@ Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
 Automatically format on paste;</source>
-        <target state="translated">Bei Eingabe automatisch formatieren;
+        <target state="translated">Automatisch während der Eingabe formatieren;
 Anweisung bei Semikolon automatisch formatieren;
 Block bei schließender geschweifter Klammer automatisch formatieren;
-Bei Verwendung der EINGABETASTE automatisch formatieren;
+Bei Verwendung der EINGABETASTE automatisch formatieren
 Beim Einfügen automatisch formatieren;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
@@ -145,13 +150,14 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="translated">Blockinhalt einziehen;
-Öffnende und schließende geschweifte Klammern einziehen;
+        <target state="translated">Blockinhalte einziehen; 
+Öffnende und schließende geschweifte Klammern einziehen; 
+case-Inhalte einziehen; 
 case-Inhalte einziehen (bei Block); 
-case-Bezeichnungen einziehen;
-Bezeichnungseinzug;
-goto-Bezeichnungen in Spalte ganz links platzieren;
-Bezeichnungen normal einziehen;
+case-Bezeichnungen einziehen; 
+Bezeichnungseinzug; 
+goto-Bezeichnungen in Spalte ganz links platzieren; 
+Bezeichnungen normal einziehen; 
 goto-Bezeichnungen um eine Einzugsebene weiter links als die aktuelle Position platzieren;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
@@ -173,24 +179,23 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="translated">Zeilenwechsel-Formatierungsoption für geschweifte Klammern; 
-Zeilenwechsel-Formatierungsoptionen für Schlüsselwörter; 
+        <target state="translated">Zeilenwechsel-Formatierungsoption für geschweifte Klammern;Zeilenwechsel-Formatierungsoptionen für Schlüsselwörter;Zeilenwechseloptionen für geschweifte Klammern;
 Öffnende geschweifte Klammer für Typen in neuer Zeile platzieren;
 Öffnende geschweifte Klammer in neuer Zeile für Methoden und lokale Funktionen einfügen;
-Fügt eine öffnende geschweifte Klammer für Eigenschaften, Indexer und Ereignisse in einer neuen Zeile ein.;
-Fügt eine öffnende geschweifte Klammer für eine Eigenschaft, den Indexer und Ereignisaccessor in einer neuen Zeile ein.;
+Öffnende geschweifte Klammer für Eigenschaften, Indexer und Ereignisse in einer neuen Zeile einfügen;
+Öffnende geschweifte Klammer für eine Eigenschaft, den Indexer und Ereignisaccessor in einer neuen Zeile einfügen;
 Öffnende geschweifte Klammer für anonyme Methoden in neuer Zeile platzieren;
 Öffnende geschweifte Klammer für Kontrollblöcke in neuer Zeile platzieren;
 Öffnende geschweifte Klammer für anonyme Typen in neuer Zeile platzieren;
 Öffnende geschweifte Klammer für Objekt-, Sammlungs- und Arrayinitialisierer in neue Zeile einfügen;
 Zeilenwechseloptionen für Schlüsselwörter;
-else-Anweisung in neuer Zeile platzieren;
-catch-Anweisung in neuer Zeile platzieren;
-finally-Anweisung in neuer Zeile platzieren;
+else-Anweisung in neue Zeile setzen;
+catch-Anweisung in neue Zeile setzen;
+finally-Anweisung in neue Zeile setzen;
 Zeilenwechseloptionen für Ausdrücke;
-Member in Objektinitialisierern in neuer Zeile platzieren;
-Member in anonymen Typen in neuer Zeile platzieren;
-Abfrageausdrucksklauseln in neuer Zeile platzieren;</target>
+Member in Objektinitialisierern in neue Zeile setzen;
+Member in anonymen Typen in neue Zeile setzen;
+Klauseln von Abfrageausdrücken in neuer Zeile platzieren;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -225,34 +230,34 @@ Set spacing for operators;
 Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
-        <target state="translated">Abstand für Methodendeklaration festlegen;
+        <target state="translated">Abstände für Methodendeklarationen festlegen;
 Leerzeichen zwischen Methodenname und öffnender runder Klammer einfügen;
-Leerzeichen innerhalb der runden Klammern einer Parameterliste einfügen;
-Leerzeichen innerhalb der runden Klammern einer leeren Parameterliste einfügen;
-Abstand für Methodenaufrufe festlegen;
+Leerzeichen zwischen runden Klammern in Parameterliste einfügen;
+Leerzeichen zwischen runden Klammern in leere Parameterliste einfügen;
+Abstände für Methodenaufrufe festlegen;
 Leerzeichen zwischen runden Klammern um Argumentliste einfügen;
 Leerzeichen zwischen runden Klammern um leere Argumentliste einfügen;
-Andere Optionen für Abstände festlegen;
+Weitere Abstandsoptionen festlegen;
 Leerzeichen nach Schlüsselwörtern in Anweisungen für die Ablaufsteuerung einfügen;
 Leerzeichen zwischen runden Klammern von Ausdrücken einfügen;
-Leerzeichen zwischen runden Klammern für Typumwandlungen einfügen;
-Leerzeichen zwischen runden Klammern für Ablaufsteuerungsanweisungen einfügen;
+Leerzeichen zwischen runde Klammern für Typumwandlungen einfügen;
+Leerzeichen zwischen den Klammern von Ablaufsteuerungsanweisungen einfügen;
 Leerzeichen nach Umwandlung einfügen;
 Leerzeichen um Deklarationsanweisungen ignorieren;
 Abstände für eckige Klammern festlegen;
 Leerzeichen vor öffnender eckiger Klammer einfügen;
 Leerzeichen zwischen leeren eckigen Klammern einfügen;
 Leerzeichen zwischen eckigen Klammern einfügen;
-Abstand für Trennzeichen festlegen;
+Abstand für Trennzeichen;
 In Typdeklarationen Leerzeichen nach Doppelpunkt für Basis oder Schnittstelle einfügen;
 Leerzeichen nach Komma einfügen;
 Leerzeichen nach Punkt einfügen;
-Leerzeichen nach Semikolon in der „for“-Anweisung einfügen;
-In Typdeklarationen Leerzeichen vor Doppelpunkt für Basis einfügen;
+In for-Anweisung Leerzeichen nach Semikolon einfügen;
+In Typdeklarationen Leerzeichen vor Doppelpunkt für Basis oder Schnittstelle einfügen;
 Leerzeichen vor Komma einfügen;
 Leerzeichen vor Punkt einfügen;
-Leerzeichen vor Semikolon in der „for“-Anweisung einfügen;
-Abstand für Operatoren festlegen;
+In for-Anweisung Leerzeichen vor Semikolon einfügen;
+Abstände für Operatoren festlegen;
 Leerzeichen um binäre Operatoren ignorieren;
 Leerzeichen vor und nach binären Operatoren entfernen;
 Leerzeichen vor und nach binären Operatoren einfügen;</target>
@@ -278,17 +283,15 @@ Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;</source>
-        <target state="translated">Einstellungen der Vervollständigungsliste ändern;
-Vorauswahl des zuletzt verwendeten Members;
-Vervollständigungslisten;
-Vervollständigungsliste nach Eingabe eines Zeichens anzeigen;
+        <target state="translated">Einstellungen der Vervollständigungsliste ändern;Vorauswahl des zuletzt verwendeten Members; Vervollständigungslisten;
+Vervoll­ständigungsliste nach Eingabe eines Zeichens anzeigen;
 Vervollständigungsliste nach Löschen eines Zeichens anzeigen;
-Übereinstimmende Teile der Vervollständigungslistenelemente hervorheben;
+Übereinstimmende Teile der Vervollständigungslistenelemente anzeigen;
 Vervollständigungselementfilter anzeigen;
-Codeausschnittverhalten;
-Codeausschnitte nie einschließen;
-Codeausschnitte immer einschließen;
-Codeausschnitte einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird;
+Ausschnittverhalten;
+Ausschnitte nie einschließen;
+Ausschnitte immer einschließen;
+Ausschnitte einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird;
 Verhalten der EINGABETASTE;
 Nie neue Zeile beim Drücken der EINGABETASTE einfügen;
 Neue Zeile beim Drücken der EINGABETASTE nur nach einem vollständig eingegebenen Wort einfügen;
@@ -327,13 +330,13 @@ Namensvorschläge anzeigen;</target>
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">CSharp-Editor</target>
+        <source>C# Editor</source>
+        <target state="needs-review-translation">CSharp-Editor</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">CSharp-Editor mit Codierung</target>
+        <source>C# Editor with Encoding</source>
+        <target state="needs-review-translation">CSharp-Editor mit Codierung</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -373,12 +376,12 @@ Namensvorschläge anzeigen;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Eine leere C#-Skriptdatei.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Visual C#-Skript</target>
         <note />
       </trans-unit>
     </body>

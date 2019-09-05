@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Shell;
@@ -34,21 +35,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             return true;
         }
 
-        public static Uri CreateBingQueryUri(DiagnosticData diagnostic)
+        public static Uri CreateBingQueryUri(Workspace workspace, DiagnosticData diagnostic)
         {
             var errorCode = diagnostic.Id;
             var title = diagnostic.ENUMessageForBingSearch;
-            diagnostic.Workspace.GetLanguageAndProjectType(diagnostic.ProjectId, out var language, out var projectType);
+            workspace.GetLanguageAndProjectType(diagnostic.ProjectId, out var language, out var projectType);
 
             return CreateBingQueryUri(errorCode, title, language, projectType);
         }
 
         public static Uri CreateBingQueryUri(string errorCode, string title, string language, string projectType)
         {
-            errorCode = errorCode ?? string.Empty;
-            title = title ?? string.Empty;
-            language = language ?? string.Empty;
-            projectType = projectType ?? string.Empty;
+            errorCode ??= string.Empty;
+            title ??= string.Empty;
+            language ??= string.Empty;
+            projectType ??= string.Empty;
 
             var url = string.Format(BingSearchString, Uri.EscapeDataString(title), Uri.EscapeDataString(language), Uri.EscapeDataString(projectType), Uri.EscapeDataString(s_requestId), Uri.EscapeDataString(string.Empty), Uri.EscapeDataString(errorCode));
             return new Uri(url);

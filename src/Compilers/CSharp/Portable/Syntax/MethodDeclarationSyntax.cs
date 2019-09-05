@@ -34,7 +34,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BlockSyntax body,
             SyntaxToken semicolonToken)
         {
-            return SyntaxFactory.MethodDeclaration(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses, body, null, default(SyntaxToken));
+            return SyntaxFactory.MethodDeclaration(
+                attributeLists,
+                modifiers,
+                returnType,
+                explicitInterfaceSpecifier,
+                identifier,
+                typeParameterList,
+                parameterList,
+                constraintClauses,
+                body,
+                null,
+                semicolonToken);
         }
     }
 }

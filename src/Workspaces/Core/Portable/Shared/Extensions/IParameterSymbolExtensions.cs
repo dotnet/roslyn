@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -31,6 +33,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         parameter.IsParams,
                         parameter.Type,
                         parameterName,
+                        parameter.IsOptional,
+                        parameter.HasExplicitDefaultValue,
+                        parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);
+        }
+
+        public static IParameterSymbol WithAttributes(this IParameterSymbol parameter, ImmutableArray<AttributeData> attributes)
+        {
+            return parameter.GetAttributes() == attributes
+                ? parameter
+                : CodeGenerationSymbolFactory.CreateParameterSymbol(
+                        attributes,
+                        parameter.RefKind,
+                        parameter.IsParams,
+                        parameter.Type,
+                        parameter.Name,
                         parameter.IsOptional,
                         parameter.HasExplicitDefaultValue,
                         parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);

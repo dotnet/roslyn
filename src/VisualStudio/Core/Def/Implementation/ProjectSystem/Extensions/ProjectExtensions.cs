@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
         private static ProjectItem CreateFolder(ProjectItems currentItems, string container)
         {
             var folderName = container;
-            int index = 1;
+            var index = 1;
 
             // Keep looking for a unique name as long as we collide with some item.
 

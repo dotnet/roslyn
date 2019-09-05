@@ -212,19 +212,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         private EnvDTE.CodeElement GetParameterElementForCodeModelEvent(CodeModelEvent codeModelEvent, object parentElement)
-        {
-            switch (parentElement)
+            => parentElement switch
             {
-                case EnvDTE.CodeDelegate parentDelegate:
-                    return GetParameterElementForCodeModelEvent(codeModelEvent, parentDelegate.Parameters, parentElement);
-                case EnvDTE.CodeFunction parentFunction:
-                    return GetParameterElementForCodeModelEvent(codeModelEvent, parentFunction.Parameters, parentElement);
-                case EnvDTE80.CodeProperty2 parentProperty:
-                    return GetParameterElementForCodeModelEvent(codeModelEvent, parentProperty.Parameters, parentElement);
-            }
-
-            return null;
-        }
+                EnvDTE.CodeDelegate parentDelegate => GetParameterElementForCodeModelEvent(codeModelEvent, parentDelegate.Parameters, parentElement),
+                EnvDTE.CodeFunction parentFunction => GetParameterElementForCodeModelEvent(codeModelEvent, parentFunction.Parameters, parentElement),
+                EnvDTE80.CodeProperty2 parentProperty => GetParameterElementForCodeModelEvent(codeModelEvent, parentProperty.Parameters, parentElement),
+                _ => null,
+            };
 
         private EnvDTE.CodeElement GetParameterElementForCodeModelEvent(CodeModelEvent codeModelEvent, EnvDTE.CodeElements parentParameters, object parentElement)
         {
@@ -310,7 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                int testOrdinal = 0;
+                var testOrdinal = 0;
                 foreach (EnvDTE.CodeElement element in elementsToSearch)
                 {
                     if (element.Kind != EnvDTE.vsCMElement.vsCMElementAttribute)
@@ -350,7 +344,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return null;
             }
 
-            CodeModelService.GetAttributeArgumentParentAndIndex(codeModelEvent.Node, out var attributeNode, out var ordinal);
+            CodeModelService.GetAttributeArgumentParentAndIndex(codeModelEvent.Node, out _, out var ordinal);
 
             if (codeModelEvent.Type == CodeModelEventType.Remove)
             {

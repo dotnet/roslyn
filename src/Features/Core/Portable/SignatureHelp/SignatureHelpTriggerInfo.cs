@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             : this()
         {
             Contract.ThrowIfTrue(triggerReason == SignatureHelpTriggerReason.TypeCharCommand && triggerCharacter == null);
-            this.TriggerReason = triggerReason;
-            this.TriggerCharacter = triggerCharacter;
+            TriggerReason = triggerReason;
+            TriggerCharacter = triggerCharacter;
         }
     }
 }

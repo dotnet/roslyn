@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
@@ -48,9 +47,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public sealed override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxNodeKind());
 
@@ -89,7 +85,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 case PrecedenceKind.Shift:
                 case PrecedenceKind.Bitwise:
                 case PrecedenceKind.Coalesce:
-                    var syntaxFacts = this.GetSyntaxFactsService();
+                    var syntaxFacts = GetSyntaxFactsService();
                     var child = syntaxFacts.GetExpressionOfParenthesizedExpression(parenthesizedExpression);
 
                     var parentKind = parenthesizedExpression.Parent.RawKind;

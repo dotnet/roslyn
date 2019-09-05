@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -71,8 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static bool IsPartialTypeDeclaration(SyntaxNode syntax)
         {
-            var declarationSyntax = syntax as BaseTypeDeclarationSyntax;
-            return declarationSyntax != null && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
+            return syntax is BaseTypeDeclarationSyntax declarationSyntax && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
         }
 
         protected override ImmutableDictionary<string, string> GetProperties(

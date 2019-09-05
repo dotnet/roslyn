@@ -1278,4 +1278,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_0_inheritable" xml:space="preserve">
     <value>Make '{0}' inheritable</value>
   </data>
+  <data name="Sort_Imports" xml:space="preserve">
+    <value>&amp;Sort Imports</value>
+  </data>
 </root>

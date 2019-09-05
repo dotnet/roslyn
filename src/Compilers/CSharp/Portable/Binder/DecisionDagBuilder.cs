@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the state transitions (including the test to perform at each node and the successor nodes) but
     /// not the state descriptions. A <see cref="BoundDecisionDag"/> containing this
     /// set of nodes becomes part of the bound nodes (e.g. in <see cref="BoundSwitchStatement"/> and
-    /// <see cref="BoundSwitchExpression"/>) and is used for semantic analysis and lowering.
+    /// <see cref="BoundUnconvertedSwitchExpression"/>) and is used for semantic analysis and lowering.
     /// </para>
     /// </summary>
     internal class DecisionDagBuilder
@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagTypeTest t2:
                             {
                                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                                bool? matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t1.Type, t2.Type, ref useSiteDiagnostics, out _);
+                                bool? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteDiagnostics);
                                 if (matches == false)
                                 {
                                     // If T1 could never be T2
@@ -917,7 +917,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 // If every T2 is a T1, then failure of T1 implies failure of T2.
-
                                 matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t2.Type, t1.Type, ref useSiteDiagnostics, out _);
                                 _diagnostics.Add(syntax, useSiteDiagnostics);
                                 if (matches == true)
@@ -1004,6 +1003,90 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Determine what we can learn from one successful runtime type test about another planned
+        /// runtime type test for the purpose of building the decision tree.
+        /// We accomodate a special behavior of the runtime here, which does not match the language rules.
+        /// A value of type `int[]` is an "instanceof" (i.e. result of the `isinst` instruction) the type
+        /// `uint[]` and vice versa.  It is similarly so for every pair of same-sized numeric types, and
+        /// arrays of enums are considered to be their underlying type.  We need the dag construction to
+        /// recognize this runtime behavior, so we pretend that matching one of them gives no information
+        /// on whether the other will be matched.  That isn't quite correct (nothing reasonable we do
+        /// could be), but it comes closest to preserving the existing C#7 behavior without undesirable
+        /// side-effects, and permits the code-gen strategy to preserve the dynamic semantic equivalence
+        /// of a switch (on the one hand) and a series of if-then-else statements (on the other).
+        /// See, for example, https://github.com/dotnet/roslyn/issues/35661
+        /// </summary>
+        private bool? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
+            TypeSymbol expressionType,
+            TypeSymbol patternType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            bool? result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteDiagnostics, out Conversion conversion);
+            return (!conversion.Exists && isRuntimeSimilar(expressionType, patternType))
+                ? null // runtime and compile-time test behavior differ. Pretend we don't know what happens.
+                : result;
+
+            static bool isRuntimeSimilar(TypeSymbol expressionType, TypeSymbol patternType)
+            {
+                while (expressionType is ArrayTypeSymbol { ElementType: var e1, IsSZArray: var sz1, Rank: var r1 } &&
+                       patternType is ArrayTypeSymbol { ElementType: var e2, IsSZArray: var sz2, Rank: var r2 } &&
+                       sz1 == sz2 && r1 == r2)
+                {
+                    e1 = e1.EnumUnderlyingType();
+                    e2 = e2.EnumUnderlyingType();
+                    switch (e1.SpecialType, e2.SpecialType)
+                    {
+                        // The following support CLR behavior that is required by
+                        // the CLI specification but violates the C# language behavior.
+                        // See ECMA-335's definition of *array-element-compatible-with*.
+                        case var (s1, s2) when s1 == s2:
+                        case (SpecialType.System_SByte, SpecialType.System_Byte):
+                        case (SpecialType.System_Byte, SpecialType.System_SByte):
+                        case (SpecialType.System_Int16, SpecialType.System_UInt16):
+                        case (SpecialType.System_UInt16, SpecialType.System_Int16):
+                        case (SpecialType.System_Int32, SpecialType.System_UInt32):
+                        case (SpecialType.System_UInt32, SpecialType.System_Int32):
+                        case (SpecialType.System_Int64, SpecialType.System_UInt64):
+                        case (SpecialType.System_UInt64, SpecialType.System_Int64):
+                        case (SpecialType.System_IntPtr, SpecialType.System_UIntPtr):
+                        case (SpecialType.System_UIntPtr, SpecialType.System_IntPtr):
+
+                        // The following support behavior of the CLR that violates the CLI
+                        // and C# specifications, but we implement them because that is the
+                        // behavior on 32-bit runtimes.
+                        case (SpecialType.System_Int32, SpecialType.System_IntPtr):
+                        case (SpecialType.System_Int32, SpecialType.System_UIntPtr):
+                        case (SpecialType.System_UInt32, SpecialType.System_IntPtr):
+                        case (SpecialType.System_UInt32, SpecialType.System_UIntPtr):
+                        case (SpecialType.System_IntPtr, SpecialType.System_Int32):
+                        case (SpecialType.System_IntPtr, SpecialType.System_UInt32):
+                        case (SpecialType.System_UIntPtr, SpecialType.System_Int32):
+                        case (SpecialType.System_UIntPtr, SpecialType.System_UInt32):
+
+                        // The following support behavior of the CLR that violates the CLI
+                        // and C# specifications, but we implement them because that is the
+                        // behavior on 64-bit runtimes.
+                        case (SpecialType.System_Int64, SpecialType.System_IntPtr):
+                        case (SpecialType.System_Int64, SpecialType.System_UIntPtr):
+                        case (SpecialType.System_UInt64, SpecialType.System_IntPtr):
+                        case (SpecialType.System_UInt64, SpecialType.System_UIntPtr):
+                        case (SpecialType.System_IntPtr, SpecialType.System_Int64):
+                        case (SpecialType.System_IntPtr, SpecialType.System_UInt64):
+                        case (SpecialType.System_UIntPtr, SpecialType.System_Int64):
+                        case (SpecialType.System_UIntPtr, SpecialType.System_UInt64):
+                            return true;
+
+                        default:
+                            (expressionType, patternType) = (e1, e2);
+                            break;
+                    }
+                }
+
+                return false;
             }
         }
 

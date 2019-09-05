@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed class VisualStudioProject
     {
+        private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
+
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
@@ -59,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string _outputRefFilePath;
         private string _defaultNamespace;
 
-        private readonly Dictionary<string, List<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, List<MetadataReferenceProperties>>();
+        private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, ImmutableArray<MetadataReferenceProperties>>();
 
         /// <summary>
         /// The file watching tokens for the documents in this project. We get the tokens even when we're in a batch, so the files here
@@ -233,6 +235,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             get => _intermediateOutputFilePath;
             set
             {
+                // The Project System doesn't always indicate whether we emit PDB, what kind of PDB we emit nor the path of the PDB.
+                // To work around we look for the PDB on the path specified in the PDB debug directory.
+                // https://github.com/dotnet/roslyn/issues/35065
+                _workspace.SetCompilationOutputs(Id, new CompilationOutputFilesWithImplicitPdbPath(value));
+
                 // Unlike OutputFilePath and OutputRefFilePath, the intermediate output path isn't represented in the workspace anywhere;
                 // thus, we won't mutate the solution. We'll still call ChangeProjectOutputPath so we have the rest of the output path tracking
                 // for any P2P reference conversion.
@@ -305,6 +312,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        value,
                        s => s.WithProjectDefaultNamespace(Id, value),
                        w => w.OnDefaultNamespaceChanged(Id, value));
+        }
+
+        /// <summary>
+        /// The max language version supported for this project, if applicable. Useful to help indicate what 
+        /// language version features should be suggested to a user, as well as if they can be upgraded. 
+        /// </summary>
+        internal string MaxLangVersion
+        {
+            set => _workspace.SetMaxLanguageVersion(Id, value);
         }
 
 
@@ -421,9 +437,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         var projectReferencesCreated = new List<ProjectReference>();
                         var metadataReferencesCreated = new List<MetadataReference>();
 
-                        foreach (var metadataReferenceAddedInBatch in _metadataReferencesAddedInBatch)
+                        foreach (var (path, properties) in _metadataReferencesAddedInBatch)
                         {
-                            var projectReference = _workspace.TryCreateConvertedProjectReference(Id, metadataReferenceAddedInBatch.path, metadataReferenceAddedInBatch.properties);
+                            var projectReference = _workspace.TryCreateConvertedProjectReference(Id, path, properties);
 
                             if (projectReference != null)
                             {
@@ -431,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             }
                             else
                             {
-                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(metadataReferenceAddedInBatch.path, metadataReferenceAddedInBatch.properties);
+                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(path, properties);
                                 metadataReferencesCreated.Add(metadataReference);
                             }
                         }
@@ -445,9 +461,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     // Metadata reference removing...
-                    foreach (var metadataReferenceRemovedInBatch in _metadataReferencesRemovedInBatch)
+                    foreach (var (path, properties) in _metadataReferencesRemovedInBatch)
                     {
-                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, metadataReferenceRemovedInBatch.path, metadataReferenceRemovedInBatch.properties);
+                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, path, properties);
 
                         if (projectReference != null)
                         {
@@ -459,7 +475,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         {
                             // TODO: find a cleaner way to fetch this
                             var metadataReference = _workspace.CurrentSolution.GetProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                    .Single(m => m.FilePath == metadataReferenceRemovedInBatch.path && m.Properties == metadataReferenceRemovedInBatch.properties);
+                                                                                    .Single(m => m.FilePath == path && m.Properties == properties);
 
                             _workspace.FileWatchedReferenceFactory.StopWatchingReference(metadataReference);
 
@@ -524,6 +540,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 foreach (var (documentId, textContainer) in additionalDocumentsToOpen)
                 {
                     _workspace.ApplyChangeToWorkspace(w => w.OnAdditionalDocumentOpened(documentId, textContainer));
+                }
+
+                foreach (var (documentId, textContainer) in analyzerConfigDocumentsToOpen)
+                {
+                    _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerConfigDocumentOpened(documentId, textContainer));
                 }
 
                 // Check for those files being opened to start wire-up if necessary
@@ -769,7 +790,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new InvalidOperationException("The metadata reference has already been added to the project.");
                 }
 
-                _allMetadataReferences.MultiAdd(fullPath, properties);
+                _allMetadataReferences.MultiAdd(fullPath, properties, s_defaultMetadataReferenceProperties);
 
                 if (_activeBatchScopes > 0)
                 {
@@ -814,10 +835,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                _allMetadataReferences.TryGetValue(fullPath, out var list);
-
-                // Note: AsImmutableOrEmpty accepts null recievers and treats that as an empty array
-                return list.AsImmutableOrEmpty();
+                return _allMetadataReferences.TryGetValue(fullPath, out var list) ? list : ImmutableArray<MetadataReferenceProperties>.Empty;
             }
         }
 
@@ -1312,7 +1330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
                 else
                 {
-                    for (int i = 0; i < _documentsAddedInBatch.Count; i++)
+                    for (var i = 0; i < _documentsAddedInBatch.Count; i++)
                     {
                         if (_documentsAddedInBatch[i].Id == documentId)
                         {
@@ -1369,7 +1387,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        for (int i = 0; i < _documentsAddedInBatch.Count; i++)
+                        for (var i = 0; i < _documentsAddedInBatch.Count; i++)
                         {
                             if (_documentsAddedInBatch[i].Id == documentId)
                             {

@@ -702,6 +702,12 @@ Additional information: {1}</value>
   <data name="Learn_more" xml:space="preserve">
     <value>Learn more</value>
   </data>
+  <data name="Build_plus_live_analysis_NuGet_package" xml:space="preserve">
+    <value>Build + live analysis (NuGet package)</value>
+  </data>
+  <data name="Live_analysis_VSIX_extension" xml:space="preserve">
+    <value>Live analysis (VSIX extension)</value>
+  </data>
   <data name="Prefer_framework_type" xml:space="preserve">
     <value>Prefer framework type</value>
   </data>
@@ -924,8 +930,8 @@ Additional information: {1}</value>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
   </data>
-  <data name="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues" xml:space="preserve">
-    <value>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</value>
+  <data name="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues" xml:space="preserve">
+    <value>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</value>
   </data>
   <data name="Never_show_this_again" xml:space="preserve">
     <value>Never show this again</value>
@@ -1043,7 +1049,7 @@ I agree to all of the foregoing:</value>
     <value>Report invalid regular expressions</value>
   </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
-    <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
+    <value>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</value>
   </data>
   <data name="Modifier_preferences_colon" xml:space="preserve">
     <value>Modifier preferences:</value>
@@ -1053,9 +1059,6 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Analyzing_0" xml:space="preserve">
     <value>Analyzing '{0}'</value>
-  </data>
-  <data name="Live_analysis" xml:space="preserve">
-    <value>Live analysis</value>
   </data>
   <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
     <value>Prefer conditional expression over 'if' with assignments</value>
@@ -1221,5 +1224,129 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Rename_0_to_1" xml:space="preserve">
     <value>Rename {0} to {1}</value>
+  </data>
+  <data name="NamingSpecification_CSharp_Class" xml:space="preserve">
+    <value>class</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Delegate" xml:space="preserve">
+    <value>delegate</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Enum" xml:space="preserve">
+    <value>enum</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Event" xml:space="preserve">
+    <value>event</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Field" xml:space="preserve">
+    <value>field</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Interface" xml:space="preserve">
+    <value>interface</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Local" xml:space="preserve">
+    <value>local</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_LocalFunction" xml:space="preserve">
+    <value>local function</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Method" xml:space="preserve">
+    <value>method</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Namespace" xml:space="preserve">
+    <value>namespace</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Parameter" xml:space="preserve">
+    <value>parameter</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Property" xml:space="preserve">
+    <value>property</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_Struct" xml:space="preserve">
+    <value>struct</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_CSharp_TypeParameter" xml:space="preserve">
+    <value>type parameter</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Class" xml:space="preserve">
+    <value>Class</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Delegate" xml:space="preserve">
+    <value>Delegate</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Enum" xml:space="preserve">
+    <value>Enum</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Event" xml:space="preserve">
+    <value>Event</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Field" xml:space="preserve">
+    <value>Field</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Interface" xml:space="preserve">
+    <value>Interface</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Local" xml:space="preserve">
+    <value>Local</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Method" xml:space="preserve">
+    <value>Method</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Module" xml:space="preserve">
+    <value>Module</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Namespace" xml:space="preserve">
+    <value>Namespace</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Parameter" xml:space="preserve">
+    <value>Parameter</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Property" xml:space="preserve">
+    <value>Property</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_Structure" xml:space="preserve">
+    <value>Structure</value>
+    <comment>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
+  </data>
+  <data name="NamingSpecification_VisualBasic_TypeParameter" xml:space="preserve">
+    <value>Type Parameter</value>
+    <comment>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</comment>
+  </data>
+  <data name="Use_editorconfig_compatibility_mode" xml:space="preserve">
+    <value>Use .editorconfig compatibility mode (requires restart)</value>
+  </data>
+  <data name="Running_low_priority_background_processes" xml:space="preserve">
+    <value>Running low priority background processes</value>
+  </data>
+  <data name="Evaluating_0_tasks_in_queue" xml:space="preserve">
+    <value>Evaluating ({0} tasks in queue)</value>
+  </data>
+  <data name="Paused_0_tasks_in_queue" xml:space="preserve">
+    <value>Paused ({0} tasks in queue)</value>
   </data>
 </root>

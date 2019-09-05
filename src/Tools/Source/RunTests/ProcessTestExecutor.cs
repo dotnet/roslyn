@@ -70,6 +70,19 @@ namespace RunTests
 
         public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
         {
+            var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
+
+            // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
+            if (Options.TestVsi && !Options.UseHtml && !result.Succeeded)
+            {
+                return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
+            }
+
+            return result;
+        }
+
+        private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)
+        {
             try
             {
                 var commandLineArguments = GetCommandLineArguments(assemblyInfo);
@@ -81,13 +94,25 @@ namespace RunTests
                 // NOTE: xUnit doesn't always create the log directory
                 Directory.CreateDirectory(resultsDir);
 
-                // NOTE: xUnit seems to have an occasional issue creating logs create
-                // an empty log just in case, so our runner will still fail.
-                File.Create(resultsFilePath).Close();
-
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
                 Options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
+
+                if (retry)
+                {
+                    // Copy the results file path, since the new xunit run will overwrite it
+                    var backupResultsFilePath = Path.ChangeExtension(resultsFilePath, ".old");
+                    File.Copy(resultsFilePath, backupResultsFilePath, overwrite: true);
+
+                    ConsoleUtil.WriteLine("Starting a retry. It will run once again tests failed.");
+                    // If running the process with this varialbe added, we assume that this file contains 
+                    // xml logs from the first attempt.
+                    environmentVariables.Add("OutputXmlFilePath", backupResultsFilePath);
+                }
+
+                // NOTE: xUnit seems to have an occasional issue creating logs create
+                // an empty log just in case, so our runner will still fail.
+                File.Create(resultsFilePath).Close();
 
                 var start = DateTime.UtcNow;
                 var xunitProcessInfo = ProcessRunner.CreateProcess(

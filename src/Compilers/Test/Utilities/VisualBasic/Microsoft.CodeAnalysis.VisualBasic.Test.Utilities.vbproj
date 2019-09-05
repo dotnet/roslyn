@@ -27,7 +27,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.EnC.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35071" />
     <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.IOperation.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests" />

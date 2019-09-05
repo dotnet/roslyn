@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
 
         private readonly NoOpGlobalUndoService _singleton = new NoOpGlobalUndoService();
 
+        [ImportingConstructor]
+        public NoOpGlobalUndoServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return _singleton;

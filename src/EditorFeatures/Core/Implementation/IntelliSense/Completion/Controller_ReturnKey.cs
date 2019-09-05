@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            CommitOnEnter(out var sendThrough, out var committed);
+            CommitOnEnter(out var sendThrough, out _);
 
             // Always stop completion after enter has been typed.
             DismissSessionIfActive();

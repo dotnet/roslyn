@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         public const string LanguageName = "Dummy";
 
+        [ImportingConstructor]
+        public DummyLanguageService()
+        {
+        }
+
         // do nothing
     }
 }

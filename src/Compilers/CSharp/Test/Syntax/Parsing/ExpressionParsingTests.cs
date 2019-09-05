@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAltInterpolatedVerbatimString_CSharp73()
         {
             UsingExpression(@"@$""hello""", TestOptions.Regular7_3,
-                // (1,1): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version 'preview' or greater.
+                // (1,1): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '8.0' or greater.
                 // @$"hello"
-                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("preview").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(1, 1)
                 );
 
             N(SyntaxKind.InterpolatedStringExpression);
@@ -4008,9 +4008,9 @@ select t";
         public void NullCoalescingAssignmentCSharp7_3()
         {
             UsingExpression("a ??= b", TestOptions.Regular7_3,
-                // (1,3): error CS8652: The feature 'coalescing assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,3): error CS8652: The feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // a ??= b
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "??=").WithArguments("coalescing assignment").WithLocation(1, 3));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 3));
 
             N(SyntaxKind.CoalesceAssignmentExpression);
             {
@@ -4136,7 +4136,7 @@ select t";
         public void RangeExpression_Binary_WithAHigherPrecedenceOperator()
         {
             UsingExpression("1+2..3-4");
-            N(SyntaxKind.RangeExpression);
+            N(SyntaxKind.SubtractExpression);
             {
                 N(SyntaxKind.AddExpression);
                 {
@@ -4145,23 +4145,301 @@ select t";
                         N(SyntaxKind.NumericLiteralToken, "1");
                     }
                     N(SyntaxKind.PlusToken);
-                    N(SyntaxKind.NumericLiteralExpression);
+                    N(SyntaxKind.RangeExpression);
                     {
-                        N(SyntaxKind.NumericLiteralToken, "2");
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
                     }
                 }
-                N(SyntaxKind.DotDotToken);
-                N(SyntaxKind.SubtractExpression);
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.NumericLiteralExpression);
                 {
-                    N(SyntaxKind.NumericLiteralExpression);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryBadLeft()
+        {
+            UsingExpression("a*..b");
+            N(SyntaxKind.MultiplyExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.AsteriskToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.NumericLiteralToken, "3");
+                        N(SyntaxKind.IdentifierToken, "b");
                     }
-                    N(SyntaxKind.MinusToken);
-                    N(SyntaxKind.NumericLiteralExpression);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_BinaryLeftPlus()
+        {
+            UsingExpression("a + b..c");
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.NumericLiteralToken, "4");
+                        N(SyntaxKind.IdentifierToken, "b");
                     }
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryLeftPlus()
+        {
+            UsingExpression("a + b..");
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryRightMult()
+        {
+            UsingExpression("a.. && b");
+            N(SyntaxKind.LogicalAndExpression);
+            {
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+                N(SyntaxKind.AmpersandAmpersandToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_UnaryRightMult2()
+        {
+            UsingExpression("..a && b");
+            N(SyntaxKind.LogicalAndExpression);
+            {
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                }
+                N(SyntaxKind.AmpersandAmpersandToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Ambiguity1()
+        {
+            UsingExpression(".. ..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Ambiguity2()
+        {
+            UsingExpression(".. .. e");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36514")]
+        public void RangeExpression_Ambiguity3()
+        {
+            UsingExpression(".. e ..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Ambiguity4()
+        {
+            UsingExpression("a .. .. b");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36514")]
+        public void RangeExpression_Ambiguity5()
+        {
+            UsingExpression("a .. b ..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36514")]
+        public void RangeExpression_Ambiguity6()
+        {
+            UsingExpression("a .. b .. c");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(36122, "https://github.com/dotnet/roslyn/issues/36122")]
+        public void RangeExpression_NotCast()
+        {
+            UsingExpression("(Offset)..(Offset + Count)");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Offset");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Offset");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Count");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
                 }
             }
             EOF();

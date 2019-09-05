@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 else
                 {
                     // Add Separate suppression for each Label and for the last label, add the <> 
-                    for (int i = 0; i < switchSection.Labels.Count - 1; ++i)
+                    for (var i = 0; i < switchSection.Labels.Count - 1; ++i)
                     {
                         if (switchSection.Labels[i] != null)
                         {
@@ -275,8 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            var statementNode = node as StatementSyntax;
-            if (statementNode == null || statementNode.Kind() == SyntaxKind.Block)
+            if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
             {
                 return;
             }
@@ -330,18 +329,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case ObjectCreationExpressionSyntax objectCreationNode:
-                    return objectCreationNode.Initializer;
-                case ArrayCreationExpressionSyntax arrayCreationNode:
-                    return arrayCreationNode.Initializer;
-                case ImplicitArrayCreationExpressionSyntax implicitArrayNode:
-                    return implicitArrayNode.Initializer;
-            }
-
-            return null;
-        }
+                ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.Initializer,
+                ArrayCreationExpressionSyntax arrayCreationNode => arrayCreationNode.Initializer,
+                ImplicitArrayCreationExpressionSyntax implicitArrayNode => implicitArrayNode.Initializer,
+                _ => null,
+            };
     }
 }

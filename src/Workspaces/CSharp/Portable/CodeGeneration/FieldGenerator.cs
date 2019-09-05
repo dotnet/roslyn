@@ -92,9 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
-            var initializerNode = CodeGenerationFieldInfo.GetInitializer(field) as ExpressionSyntax;
 
-            var initializer = initializerNode != null
+            var initializer = CodeGenerationFieldInfo.GetInitializer(field) is ExpressionSyntax initializerNode
                 ? SyntaxFactory.EqualsValueClause(initializerNode)
                 : GenerateEqualsValue(field);
 
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AttributeGenerator.GenerateAttributeLists(field.GetAttributes(), options),
                 GenerateModifiers(field, options),
                 SyntaxFactory.VariableDeclaration(
-                    field.Type.GenerateTypeSyntax(),
+                    field.Type.WithNullability(field.NullableAnnotation).GenerateTypeSyntax(),
                     SyntaxFactory.SingletonSeparatedList(
                         AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
 

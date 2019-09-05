@@ -94,11 +94,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode);
-            var results = initialContextFinder.Do(startToken, endToken);
+            var (indentOperations, suppressOperations) = initialContextFinder.Do(startToken, endToken);
 
-            if (results.indentOperations != null)
+            if (indentOperations != null)
             {
-                var indentationOperations = results.indentOperations;
+                var indentationOperations = indentOperations;
 
                 var initialOperation = indentationOperations[0];
                 var baseIndentationFinder = new BottomUpBaseIndentationFinder(
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _initialIndentBlockOperations = indentationOperations;
             }
 
-            results.suppressOperations?.Do(o => this.AddInitialSuppressOperation(o));
+            suppressOperations?.Do(o => this.AddInitialSuppressOperation(o));
         }
 
         public void AddIndentBlockOperations(
@@ -151,12 +151,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             var mergedList = new List<IndentBlockOperation>(count);
 
             // initial operations are already sorted, just add, no need to filter
-            for (int i = 1; i < _initialIndentBlockOperations.Count; i++)
+            for (var i = 1; i < _initialIndentBlockOperations.Count; i++)
             {
                 mergedList.Add(_initialIndentBlockOperations[i]);
             }
 
-            for (int i = 0; i < operations.Count; i++)
+            for (var i = 0; i < operations.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
-                valuePairs[i] = (operation, shouldSuppress: true, onSameLine: onSameLine);
+                valuePairs[i] = (operation, shouldSuppress: true, onSameLine);
             }
 
             valuePairs.Do(v =>

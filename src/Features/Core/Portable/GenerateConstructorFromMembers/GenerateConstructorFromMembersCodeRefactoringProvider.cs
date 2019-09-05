@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private readonly IPickMembersService _pickMembersService_forTesting;
 
+        [ImportingConstructor]
         public GenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
         {
         }
@@ -53,16 +54,13 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
-            var actions = await this.GenerateConstructorFromMembersAsync(
+            var actions = await GenerateConstructorFromMembersAsync(
                 document, textSpan, addNullChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
 
@@ -74,9 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private async Task HandleNonSelectionAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
+            var (document, textSpan, cancellationToken) = context;
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -84,8 +80,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start) &&
-                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start))
+            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
+                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
                 return;
             }
@@ -93,7 +89,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only supported on classes/structs.
-            var containingType = GetEnclosingNamedType(semanticModel, root, textSpan.Start, cancellationToken);
+            var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration) as INamedTypeSymbol;
             if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
             {
                 return;
@@ -132,7 +128,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             context.RegisterRefactoring(
                 new GenerateConstructorWithDialogCodeAction(
                     this, document, textSpan, containingType, viableMembers,
-                    pickMemberOptions.ToImmutableAndFree()));
+                    pickMemberOptions.ToImmutableAndFree()),
+                typeDeclaration.Span);
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
@@ -143,7 +140,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
-                    var state = State.TryGenerate(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken);
+                    var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
                     if (state != null && state.MatchingConstructor == null)
                     {
                         return GetCodeActions(document, state, addNullChecks);

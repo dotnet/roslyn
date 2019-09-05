@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     {
         protected AbstractUseCoalesceExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
+                   CodeStyleOptions.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
-            var syntaxFacts = this.GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFactsService();
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNodeHigh, out var whenFalseNodeHigh);
 
@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             var whenTrueNodeLow = syntaxFacts.WalkDownParentheses(whenTrueNodeHigh);
             var whenFalseNodeLow = syntaxFacts.WalkDownParentheses(whenFalseNodeHigh);
 
-            var condition = conditionNode as TBinaryExpressionSyntax;
-            if (condition == null)
+            if (!(conditionNode is TBinaryExpressionSyntax condition))
             {
                 return;
             }

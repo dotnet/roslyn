@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     [ExportOptionProvider, Shared]
     internal sealed class CodeStyleOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public CodeStyleOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = CodeStyleOptions.AllOptions;
     }
 }

@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
     Friend Class VisualBasicQuickInfoServiceFactory
         Implements ILanguageServiceFactory
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicQuickInfoService(languageServices.WorkspaceServices.Workspace)
         End Function

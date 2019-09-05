@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
     internal sealed class CSharpGenerateDeconstructMethodService :
         AbstractGenerateDeconstructMethodService<CSharpGenerateDeconstructMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpGenerateDeconstructMethodService()
+        {
+        }
+
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
             => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
 

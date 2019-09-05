@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     internal sealed class CSharpMergeNestedIfStatementsCodeRefactoringProvider
         : AbstractMergeNestedIfStatementsCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public CSharpMergeNestedIfStatementsCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifOrElseIf)
         {
             if (node is IfStatementSyntax ifStatement)

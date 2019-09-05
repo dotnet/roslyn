@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
     {
         private const string CS0534 = nameof(CS0534); // 'Program' does not implement inherited abstract member 'Goo.bar()'
 
+        [ImportingConstructor]
         public CSharpImplementAbstractClassCodeFixProvider()
             : base(CS0534)
         {

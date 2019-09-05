@@ -405,32 +405,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // if T happens to be a value type, it could be a target of mutating calls.
                     receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
 
-                    // unconstrained case needs to handle case where T is actually a struct.
-                    // such values are never nulls
-                    // we will emit a check for such case, but the check is really a JIT-time 
-                    // constant since JIT will know if T is a struct or not.
+                    if (receiverTemp is null)
+                    {
+                        // unconstrained case needs to handle case where T is actually a struct.
+                        // such values are never nulls
+                        // we will emit a check for such case, but the check is really a JIT-time 
+                        // constant since JIT will know if T is a struct or not.
 
-                    // if ((object)default(T) != null) 
-                    // {
-                    //     goto whenNotNull
-                    // }
-                    // else
-                    // {
-                    //     temp = receiverRef
-                    //     receiverRef = ref temp
-                    // }
-                    EmitDefaultValue(receiverType, true, receiver.Syntax);
-                    EmitBox(receiverType, receiver.Syntax);
-                    _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
-                    EmitLoadIndirect(receiverType, receiver.Syntax);
+                        // if ((object)default(T) != null) 
+                        // {
+                        //     goto whenNotNull
+                        // }
+                        // else
+                        // {
+                        //     temp = receiverRef
+                        //     receiverRef = ref temp
+                        // }
+                        EmitDefaultValue(receiverType, true, receiver.Syntax);
+                        EmitBox(receiverType, receiver.Syntax);
+                        _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
+                        EmitLoadIndirect(receiverType, receiver.Syntax);
 
-                    cloneTemp = AllocateTemp(receiverType, receiver.Syntax);
-                    _builder.EmitLocalStore(cloneTemp);
-                    _builder.EmitLocalAddress(cloneTemp);
-                    _builder.EmitLocalLoad(cloneTemp);
-                    EmitBox(receiver.Type, receiver.Syntax);
+                        cloneTemp = AllocateTemp(receiverType, receiver.Syntax);
+                        _builder.EmitLocalStore(cloneTemp);
+                        _builder.EmitLocalAddress(cloneTemp);
+                        _builder.EmitLocalLoad(cloneTemp);
+                        EmitBox(receiverType, receiver.Syntax);
 
-                    // here we have loaded a ref to a temp and its boxed value { &T, O }
+                        // here we have loaded a ref to a temp and its boxed value { &T, O }
+                    }
+                    else
+                    {
+                        // we are calling the expression on a copy of the target anyway, 
+                        // so even if T is a struct, we don't need to make sure we call the expression on the original target.
+
+                        _builder.EmitLocalLoad(receiverTemp);
+                        EmitBox(receiverType, receiver.Syntax);
+                    }
                 }
                 else
                 {
@@ -1479,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             CallKind callKind;
 
-            if (method.IsStatic)
+            if (!method.RequiresInstanceReceiver)
             {
                 callKind = CallKind.Call;
             }
@@ -1520,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             //       otherwise we should not use direct 'call' and must use constrained call;
 
                             // calling a method defined in a value type
-                            Debug.Assert(TypeSymbol.Equals(receiverType, methodContainingType, TypeCompareKind.ConsiderEverything2));
+                            Debug.Assert(TypeSymbol.Equals(receiverType, methodContainingType, TypeCompareKind.ObliviousNullableModifierMatchesAny));
                             tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
                             callKind = CallKind.Call;
                         }
@@ -1748,7 +1759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack += 1;
             }
 
-            if (!call.Method.IsStatic)
+            if (call.Method.RequiresInstanceReceiver)
             {
                 // The call pops the receiver off the stack.
                 stack -= 1;
@@ -2104,14 +2115,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
 
-            if (right.Kind == BoundKind.ObjectCreationExpression)
+            if (right is BoundObjectCreationExpression objCreation)
             {
+                // If we are creating a Span<T> from a stackalloc, which is a particular pattern of code
+                // produced by lowering, we must use the constructor in its standard form because the stack
+                // is required to contain nothing more than stackalloc's argument.
+                if (objCreation.Arguments.Length > 0 && objCreation.Arguments[0].Kind == BoundKind.ConvertedStackAllocExpression)
+                {
+                    return false;
+                }
+
                 // It is desirable to do in-place ctor call if possible.
                 // we could do newobj/stloc, but in-place call 
                 // produces the same or better code in current JITs 
                 if (PartialCtorResultCannotEscape(left))
                 {
-                    var objCreation = (BoundObjectCreationExpression)right;
                     var ctor = objCreation.Constructor;
 
                     // ctor can possibly see its own assignments indirectly if there are ref parameters or __arglist
@@ -3277,11 +3295,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
                     var conversionKind = conversion.ConversionKind;
-                    Debug.Assert(conversionKind != ConversionKind.DefaultOrNullLiteral);
+                    Debug.Assert(conversionKind != ConversionKind.NullLiteral && conversionKind != ConversionKind.DefaultLiteral);
 
                     if (conversionKind.IsImplicitConversion() &&
                         conversionKind != ConversionKind.MethodGroup &&
-                        conversionKind != ConversionKind.DefaultOrNullLiteral)
+                        conversionKind != ConversionKind.NullLiteral &&
+                        conversionKind != ConversionKind.DefaultLiteral)
                     {
                         return StackMergeType(conversion.Operand);
                     }

@@ -16,14 +16,22 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
-        protected static readonly IOperation s_unset = new EmptyOperation(null, null, null, default, isImplicit: true);
-        protected static readonly IBlockOperation s_unsetBlock = new BlockOperation(ImmutableArray<IOperation>.Empty, default, null, null, null, default, isImplicit: true);
-        protected static readonly IArrayInitializerOperation s_unsetArrayInitializer = new ArrayInitializerOperation(ImmutableArray<IOperation>.Empty, null, null, default, isImplicit: true);
-        protected static readonly IEventReferenceOperation s_unsetEventReference = new EventReferenceOperation(null, null, null, null, null, default, isImplicit: true);
-        protected static readonly IObjectOrCollectionInitializerOperation s_unsetObjectOrCollectionInitializer = new ObjectOrCollectionInitializerOperation(ImmutableArray<IOperation>.Empty, null, null, null, default, isImplicit: true);
-        protected static readonly IPatternOperation s_unsetPattern = new ConstantPatternOperation(null, null, null, null, isImplicit: true);
-        protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(ImmutableArray<IVariableDeclarationOperation>.Empty, null, null, null, default, isImplicit: true);
-        protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(null, null, null, null, default, isImplicit: true);
+        protected static readonly IOperation s_unset = new EmptyOperation(
+            semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IBlockOperation s_unsetBlock = new BlockOperation(
+            operations: ImmutableArray<IOperation>.Empty, locals: default, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IArrayInitializerOperation s_unsetArrayInitializer = new ArrayInitializerOperation(
+            elementValues: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IEventReferenceOperation s_unsetEventReference = new EventReferenceOperation(
+            @event: null, instance: null, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IObjectOrCollectionInitializerOperation s_unsetObjectOrCollectionInitializer = new ObjectOrCollectionInitializerOperation(
+            initializers: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IPatternOperation s_unsetPattern = new ConstantPatternOperation(
+            value: null, inputType: null, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(
+            declarations: ImmutableArray<IVariableDeclarationOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(
+            locals: ImmutableArray<ILocalSymbol>.Empty, value: null, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         private readonly SemanticModel _owningSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once
@@ -142,21 +150,6 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(result == s_unset || result == parent);
         }
 
-        /// <summary>
-        /// Create <see cref="IOperation"/> of <see cref="OperationKind.None"/> with explicit children
-        ///
-        /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
-        /// </summary>
-        public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit)
-        {
-            return new LazyNoneOperation(getChildren, semanticModel, node, constantValue, isImplicit);
-        }
-
-        public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, ImmutableArray<IOperation> children, bool isImplicit)
-        {
-            return new NoneOperation(children, semanticModel, node, constantValue, isImplicit);
-        }
-
         public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation
         {
             // explicit cast is not allowed, so using "as" instead
@@ -196,7 +189,7 @@ namespace Microsoft.CodeAnalysis
         [Conditional("DEBUG")]
         internal static void VerifyParentOperation(IOperation parent, IOperation child)
         {
-            if (!(child is null))
+            if (child is object)
             {
                 Debug.Assert((object)child.Parent == parent);
             }
@@ -210,48 +203,6 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifyParentOperation(parent, child);
             }
-        }
-
-        private abstract class BaseNoneOperation : Operation
-        {
-            protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
-                base(OperationKind.None, semanticModel, syntax, type: null, constantValue, isImplicit)
-            {
-            }
-
-            public override void Accept(OperationVisitor visitor)
-            {
-                visitor.VisitNoneOperation(this);
-            }
-
-            public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-            {
-                return visitor.VisitNoneOperation(this, argument);
-            }
-        }
-
-        private class NoneOperation : BaseNoneOperation
-        {
-            public NoneOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
-                base(semanticModel, syntax, constantValue, isImplicit)
-            {
-                Children = SetParentOperation(children, this);
-            }
-
-            public override IEnumerable<IOperation> Children { get; }
-        }
-
-        private class LazyNoneOperation : BaseNoneOperation
-        {
-            private readonly Lazy<ImmutableArray<IOperation>> _lazyChildren;
-
-            public LazyNoneOperation(Func<ImmutableArray<IOperation>> getChildren, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
-                base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
-            {
-                _lazyChildren = new Lazy<ImmutableArray<IOperation>>(getChildren);
-            }
-
-            public override IEnumerable<IOperation> Children => SetParentOperation(_lazyChildren.Value, this);
         }
 
         private static readonly ObjectPool<Queue<IOperation>> s_queuePool =

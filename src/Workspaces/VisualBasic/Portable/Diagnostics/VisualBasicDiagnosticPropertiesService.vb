@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
         Private Shared ReadOnly s_compilation As Compilation = VisualBasicCompilation.Create("empty")
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetCompilation() As Compilation
             Return s_compilation
         End Function

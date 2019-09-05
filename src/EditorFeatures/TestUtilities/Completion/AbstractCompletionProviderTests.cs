@@ -252,9 +252,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected virtual bool CompareItems(string actualItem, string expectedItem)
+        protected bool CompareItems(string actualItem, string expectedItem)
         {
-            return actualItem.Equals(expectedItem);
+            return GetStringComparer().Equals(actualItem, expectedItem);
+        }
+
+        protected virtual IEqualityComparer<string> GetStringComparer()
+        {
+            return StringComparer.Ordinal;
         }
 
         private protected async Task VerifyItemExistsAsync(
@@ -404,6 +409,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var service = GetCompletionService(workspace);
             var completionLlist = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
             var items = completionLlist.Items;
+
+            Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
@@ -453,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
 
-            string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
+            var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition != null ? commit.NewPosition.Value : textView.Caret.Position.BufferPosition.Position;
 
             Assert.Equal(actualExpectedCode, actualCodeAfterCommit);
@@ -482,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             customCommitCompletionProvider.Commit(completionItem, textView, textBuffer, textView.TextSnapshot, commitChar);
 
-            string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
+            var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = textView.Caret.Position.BufferPosition.Position;
 
             Assert.Equal(actualExpectedCode, actualCodeAfterCommit);

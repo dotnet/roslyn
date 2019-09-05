@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddMissingImports
     [ExportLanguageService(typeof(IAddMissingImportsFeatureService), LanguageNames.CSharp), Shared]
     internal class CSharpAddMissingImportsFeatureService : AbstractAddMissingImportsFeatureService
     {
+        [ImportingConstructor]
+        public CSharpAddMissingImportsFeatureService()
+        {
+        }
+
         protected sealed override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
     }
 }

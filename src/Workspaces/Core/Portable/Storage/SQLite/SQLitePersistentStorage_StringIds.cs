@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             try
             {
-                using (var resettableStatement = connection.GetResettableStatement(
-                    $@"select * from ""{StringInfoTableName}"""))
+                using (var resettableStatement = connection.GetResettableStatement(_select_star_from_0))
                 {
                     var statement = resettableStatement.Statement;
                     while (statement.Step() == Result.ROW)
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
-            if (_stringToIdMap.TryGetValue(value, out int existingId))
+            if (_stringToIdMap.TryGetValue(value, out var existingId))
             {
                 return existingId;
             }
@@ -86,10 +85,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             // values.
             try
             {
-                connection.RunInTransaction(() =>
-                {
-                    stringId = InsertStringIntoDatabase_MustRunInTransaction(connection, value);
-                });
+                stringId = connection.RunInTransaction(
+                    state => InsertStringIntoDatabase_MustRunInTransaction(state.connection, state.value),
+                    (connection, value));
 
                 Contract.ThrowIfTrue(stringId == null);
                 return stringId;
@@ -110,17 +108,16 @@ namespace Microsoft.CodeAnalysis.SQLite
             return null;
         }
 
-        private static int InsertStringIntoDatabase_MustRunInTransaction(SqlConnection connection, string value)
+        private int InsertStringIntoDatabase_MustRunInTransaction(SqlConnection connection, string value)
         {
             if (!connection.IsInTransaction)
             {
                 throw new InvalidOperationException("Must call this while connection has transaction open");
             }
 
-            int id = -1;
+            var id = -1;
 
-            using (var resettableStatement = connection.GetResettableStatement(
-                $@"insert into ""{StringInfoTableName}""(""{DataColumnName}"") values (?)"))
+            using (var resettableStatement = connection.GetResettableStatement(_insert_into_0_1_values))
             {
                 var statement = resettableStatement.Statement;
 
@@ -146,19 +143,16 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             try
             {
-                using (var resettableStatement = connection.GetResettableStatement(
-                    $@"select * from ""{StringInfoTableName}"" where (""{DataColumnName}"" = ?) limit 1"))
+                using var resettableStatement = connection.GetResettableStatement(_select_star_from_0_where_1_limit_one);
+                var statement = resettableStatement.Statement;
+
+                // SQLite's binding indices are 1-based. 
+                statement.BindStringParameter(parameterIndex: 1, value: value);
+
+                var stepResult = statement.Step();
+                if (stepResult == Result.ROW)
                 {
-                    var statement = resettableStatement.Statement;
-
-                    // SQLite's binding indices are 1-based. 
-                    statement.BindStringParameter(parameterIndex: 1, value: value);
-
-                    var stepResult = statement.Step();
-                    if (stepResult == Result.ROW)
-                    {
-                        return statement.GetInt32At(columnIndex: 0);
-                    }
+                    return statement.GetInt32At(columnIndex: 0);
                 }
             }
             catch (Exception ex)

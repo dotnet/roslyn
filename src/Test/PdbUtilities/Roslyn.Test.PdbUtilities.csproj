@@ -20,7 +20,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.EnC.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35071" />
     <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.IOperation.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests" />
@@ -34,7 +33,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.Converter" Version="$(MicrosoftDiaSymReaderConverterVersion)" />
@@ -65,4 +63,5 @@
       </ReferencePath>
     </ItemGroup>
   </Target>
+  <Import Project="$(RepositoryEngineeringDir)targets\DiaSymReaderNative.targets" />
 </Project>

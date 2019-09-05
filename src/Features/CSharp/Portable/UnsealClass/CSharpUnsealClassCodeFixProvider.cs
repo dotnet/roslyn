@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnsealClass
     {
         private const string CS0509 = nameof(CS0509); // 'D': cannot derive from sealed type 'C'
 
+        [ImportingConstructor]
+        public CSharpUnsealClassCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS0509);
 

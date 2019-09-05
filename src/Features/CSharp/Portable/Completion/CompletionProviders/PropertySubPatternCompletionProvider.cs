@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, type);
             members = members.Where(m => m.CanBeReferencedByName &&
                 IsFieldOrReadableProperty(m) &&
-                !m.IsImplicitlyDeclared && 
+                !m.IsImplicitlyDeclared &&
                 !m.IsStatic);
 
             // Filter out those members that have already been typed

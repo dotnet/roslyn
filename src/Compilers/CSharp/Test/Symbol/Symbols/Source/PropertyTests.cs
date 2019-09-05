@@ -262,9 +262,9 @@ struct S
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-                // (3,9): error CS8035: Auto-implemented properties inside interfaces cannot have initializers.
+                // (3,9): error CS8050: Only auto-implemented properties can have initializers.
                 //     int P { get; } = 0;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P").WithArguments("I.P").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("I.P").WithLocation(3, 9));
         }
 
         [Fact]
@@ -2943,6 +2943,32 @@ interface I1
     //     public string Prop1 { get; }
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Prop1").WithArguments("readonly automatically implemented properties", "6").WithLocation(9, 19)
                 );
+        }
+
+        [Fact]
+        public void StaticPropertyDoesNotRequireInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public static int P { get; }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var property = compilation.GetMember<PropertySymbol>("C.P");
+            Assert.False(property.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstancePropertyRequiresInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public int P { get; }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var property = compilation.GetMember<PropertySymbol>("C.P");
+            Assert.True(property.RequiresInstanceReceiver);
         }
     }
 }

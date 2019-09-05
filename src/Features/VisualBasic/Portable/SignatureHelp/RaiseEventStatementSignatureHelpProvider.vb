@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Friend Class RaiseEventStatementSignatureHelpProvider
         Inherits AbstractVisualBasicSignatureHelpProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
             Return ch = "("c OrElse ch = ","c
         End Function
@@ -76,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 semanticModel.LookupSymbols(raiseEventStatement.SpanStart, containingType, raiseEventStatement.Name.Identifier.ValueText))
 
             Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
-            Dim allowedEvents = events.WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso s.ContainingType Is containingType).
+            Dim allowedEvents = events.WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso Equals(s.ContainingType, containingType)).
                                        OfType(Of IEventSymbol)().
                                        ToImmutableArrayOrEmpty().
                                        FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).

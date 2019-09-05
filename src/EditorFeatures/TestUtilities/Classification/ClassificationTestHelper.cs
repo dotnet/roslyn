@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 actualClassificationList.Sort((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
 
                 var max = Math.Max(expectedClassificationList.Count, actualClassificationList.Count);
-                for (int i = 0; i < max; i++)
+                for (var i = 0; i < max; i++)
                 {
                     if (i >= expectedClassificationList.Count)
                     {

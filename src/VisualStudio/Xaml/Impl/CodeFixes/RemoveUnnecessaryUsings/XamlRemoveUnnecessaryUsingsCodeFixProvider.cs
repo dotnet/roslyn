@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
     internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
     {
+        [ImportingConstructor]
+        public RemoveUnnecessaryUsingsCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(XamlDiagnosticIds.UnnecessaryNamespacesId); }
@@ -48,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(Resources.RemoveUnnecessaryNamespaces, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(Resources.RemoveUnnecessaryNamespaces, createChangedDocument)
             {
             }
         }

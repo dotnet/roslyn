@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild: false);
 
+        [ImportingConstructor]
+        public CSharpCompilationFactoryService()
+        {
+        }
+
         Compilation ICompilationFactoryService.CreateCompilation(string assemblyName, CompilationOptions options)
         {
             return CSharpCompilation.Create(
@@ -32,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Compilation ICompilationFactoryService.GetCompilationFromCompilationReference(MetadataReference reference)
         {
             var compilationRef = reference as CompilationReference;
-            return (compilationRef != null) ? compilationRef.Compilation : null;
+            return compilationRef?.Compilation;
         }
 
         bool ICompilationFactoryService.IsCompilationReference(MetadataReference reference)

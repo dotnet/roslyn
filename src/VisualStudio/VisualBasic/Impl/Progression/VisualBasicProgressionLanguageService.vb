@@ -14,6 +14,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
     Partial Friend Class VisualBasicProgressionLanguageService
         Implements IProgressionLanguageService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function GetTopLevelNodesFromDocument(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode) Implements IProgressionLanguageService.GetTopLevelNodesFromDocument
             ' TODO: Implement this lazily like in C#?
             Dim nodes = New Stack(Of SyntaxNode)()

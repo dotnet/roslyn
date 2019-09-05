@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     public sealed partial class AnalyzerConfig
     {
-        public readonly struct SectionNameMatcher
+        internal readonly struct SectionNameMatcher
         {
             private readonly ImmutableArray<(int minValue, int maxValue)> _numberRangePairs;
             // internal for testing
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
         /// matches the the given language. Returns null if the section name is
         /// invalid.
         /// </summary>
-        public static SectionNameMatcher? TryCreateSectionNameMatcher(string sectionName)
+        internal static SectionNameMatcher? TryCreateSectionNameMatcher(string sectionName)
         {
             // An editorconfig section name is a language for recognizing file paths
             // defined by the following grammar:

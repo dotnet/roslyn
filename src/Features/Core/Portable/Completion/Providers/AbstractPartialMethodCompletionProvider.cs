@@ -80,10 +80,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Document document, int position, TextSpan span, DeclarationModifiers modifiers, SyntaxToken token, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var enclosingSymbol = semanticModel.GetEnclosingSymbol(position, cancellationToken) as INamedTypeSymbol;
 
             // Only inside classes and structs
-            if (enclosingSymbol == null || !(enclosingSymbol.TypeKind == TypeKind.Struct || enclosingSymbol.TypeKind == TypeKind.Class))
+            if (!(semanticModel.GetEnclosingSymbol(position, cancellationToken) is INamedTypeSymbol enclosingSymbol) || !(enclosingSymbol.TypeKind == TypeKind.Struct || enclosingSymbol.TypeKind == TypeKind.Class))
             {
                 return null;
             }
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 method,
                 token,
                 span.Start,
-                rules: this.GetRules());
+                rules: GetRules());
         }
     }
 }

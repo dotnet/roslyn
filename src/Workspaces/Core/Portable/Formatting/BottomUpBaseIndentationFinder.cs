@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var list = GetParentIndentBlockOperations(token);
 
             // remove one that is smaller than current one
-            for (int i = list.Count - 1; i >= 0; i--)
+            for (var i = list.Count - 1; i >= 0; i--)
             {
                 if (CommonFormattingHelpers.IndentBlockOperationComparer(startingOperation, list[i]) < 0)
                 {
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var map = new HashSet<TextSpan>();
 
             // iterate backward
-            for (int i = list.Count - 1; i >= 0; i--)
+            for (var i = list.Count - 1; i >= 0; i--)
             {
                 var operation = list[i];
                 if (map.Contains(operation.TextSpan))

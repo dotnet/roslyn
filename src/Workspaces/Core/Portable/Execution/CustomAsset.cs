@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private readonly Action<ObjectWriter, CancellationToken> _writer;
 
-        public SimpleCustomAsset(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer) :
-            base(CreateChecksumFromStreamWriter(kind, writer), kind)
+        public SimpleCustomAsset(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer)
+            : base(CreateChecksumFromStreamWriter(kind, writer), kind)
         {
             // unlike SolutionAsset which gets checksum from solution states, this one build one by itself.
             _writer = writer;
@@ -41,13 +41,12 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private static Checksum CreateChecksumFromStreamWriter(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer)
         {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var objectWriter = new ObjectWriter(stream))
-            {
-                objectWriter.WriteInt32((int)kind);
-                writer(objectWriter, CancellationToken.None);
-                return Checksum.Create(stream);
-            }
+            using var stream = SerializableBytes.CreateWritableStream();
+            using var objectWriter = new ObjectWriter(stream);
+
+            objectWriter.WriteInt32((int)kind);
+            writer(objectWriter, CancellationToken.None);
+            return Checksum.Create(stream);
         }
     }
 
@@ -82,8 +81,8 @@ namespace Microsoft.CodeAnalysis.Execution
             return new WorkspaceAnalyzerReferenceAsset(reference, serializer, checksum);
         }
 
-        private WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, ISerializerService serializer, Checksum checksum) :
-            base(checksum, WellKnownSynchronizationKind.AnalyzerReference)
+        private WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, ISerializerService serializer, Checksum checksum)
+            : base(checksum, WellKnownSynchronizationKind.AnalyzerReference)
         {
             _reference = reference;
             _serializer = serializer;

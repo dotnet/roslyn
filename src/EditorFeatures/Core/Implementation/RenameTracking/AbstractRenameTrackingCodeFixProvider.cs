@@ -13,16 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     internal abstract class AbstractRenameTrackingCodeFixProvider : CodeFixProvider
     {
-        private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         protected AbstractRenameTrackingCodeFixProvider(
-            IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices)
         {
-            _waitIndicator = waitIndicator;
             _undoHistoryRegistry = undoHistoryRegistry;
             _refactorNotifyServices = refactorNotifyServices;
         }
@@ -43,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             // any fixes.
             if (RenameTrackingTaggerProvider.CanInvokeRename(document))
             {
-                var action = RenameTrackingTaggerProvider.CreateCodeAction(document, diagnostic, _waitIndicator, _refactorNotifyServices, _undoHistoryRegistry);
+                var action = RenameTrackingTaggerProvider.CreateCodeAction(document, diagnostic, _refactorNotifyServices, _undoHistoryRegistry);
                 context.RegisterCodeFix(action, diagnostic);
             }
 

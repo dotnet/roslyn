@@ -362,8 +362,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal EnvDTE.CodeProperty AddProperty(SyntaxNode containerNode, string getterName, string putterName, object type, object position, EnvDTE.vsCMAccess access)
         {
-            bool isGetterPresent = !string.IsNullOrEmpty(getterName);
-            bool isPutterPresent = !string.IsNullOrEmpty(putterName);
+            var isGetterPresent = !string.IsNullOrEmpty(getterName);
+            var isPutterPresent = !string.IsNullOrEmpty(putterName);
 
             if ((!isGetterPresent && !isPutterPresent) ||
                 (isGetterPresent && isPutterPresent && getterName != putterName))
@@ -681,7 +681,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            int? realPosition = GetRealPosition(position);
+            var realPosition = GetRealPosition(position);
 
             var updatedNode = CodeModelService.AddBase(node, typeSymbol, semanticModel, realPosition);
 
@@ -717,7 +717,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            int? realPosition = GetRealPosition(position);
+            var realPosition = GetRealPosition(position);
 
             var updatedNode = CodeModelService.AddImplementedInterface(node, typeSymbol, semanticModel, realPosition);
 

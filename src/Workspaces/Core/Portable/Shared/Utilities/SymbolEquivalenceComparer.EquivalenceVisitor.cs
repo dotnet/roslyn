@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return false;
                 }
 
-                for (int i = 0; i < x.Length; i++)
+                for (var i = 0; i < x.Length; i++)
                 {
                     if (!AreEquivalent(x[i], y[i], equivalentTypesWithDifferingAssemblies))
                     {
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         return false;
                     }
 
-                    for (int i = 0; i < xElements.Length; i++)
+                    for (var i = 0; i < xElements.Length; i++)
                     {
                         if (!AreEquivalent(xElements[i].Type, yElements[i].Type, equivalentTypesWithDifferingAssemblies))
                         {
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return false;
                 }
 
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     if (!_symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(xParameters[i], yParameters[i], equivalentTypesWithDifferingAssemblies, compareParameterName, isParameterNameCaseSensitive))
                     {
@@ -447,13 +447,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private bool TypeArgumentsAreEquivalent(ImmutableArray<ITypeSymbol> xTypeArguments, ImmutableArray<ITypeSymbol> yTypeArguments, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
-                int count = xTypeArguments.Length;
+                var count = xTypeArguments.Length;
                 if (yTypeArguments.Length != count)
                 {
                     return false;
                 }
 
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     if (!AreEquivalent(xTypeArguments[i], yTypeArguments[i], equivalentTypesWithDifferingAssemblies))
                     {

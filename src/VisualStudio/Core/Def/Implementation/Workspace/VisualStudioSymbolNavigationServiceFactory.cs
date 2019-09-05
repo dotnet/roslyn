@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ISymbolNavigationService _singleton;
 
         [ImportingConstructor]
-        private VisualStudioSymbolNavigationServiceFactory(
+        public VisualStudioSymbolNavigationServiceFactory(
             SVsServiceProvider serviceProvider,
             [Import] VisualStudio14StructureTaggerProvider outliningTaggerProvider)
         {

@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             s_enableDiagnosticTokens = diagnostics;
         }
 
+        [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AsynchronousOperationListenerProvider()
         {

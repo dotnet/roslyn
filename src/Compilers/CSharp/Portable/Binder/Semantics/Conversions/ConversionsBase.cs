@@ -110,6 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            conversion = GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
+            if (conversion.Exists)
+            {
+                return conversion;
+            }
+
             return GetImplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteDiagnostics);
         }
 
@@ -519,7 +525,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // "S s = null;" should be allowed. 
             // 
             // We extend the definition of standard implicit conversions to include
-            // all of the implicit conversions that are allowed based on an expression.
+            // all of the implicit conversions that are allowed based on an expression,
+            // with the exception of the switch expression conversion.
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteDiagnostics);
             if (conversion.Exists)
@@ -862,13 +869,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.DefaultExpression:
-                    var defaultExpression = (BoundDefaultExpression)sourceExpression;
-                    if ((object)defaultExpression.Type == null)
-                    {
-                        return Conversion.DefaultOrNullLiteral;
-                    }
-                    break;
+                case BoundKind.DefaultLiteral:
+                    return Conversion.DefaultLiteral;
 
                 case BoundKind.ExpressionWithNullability:
                     {
@@ -926,6 +928,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
+        private Conversion GetSwitchExpressionConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            switch (source)
+            {
+                case BoundConvertedSwitchExpression _:
+                    // It has already been subjected to a switch expression conversion.
+                    return Conversion.NoConversion;
+                case BoundUnconvertedSwitchExpression switchExpression:
+                    foreach (var arm in switchExpression.SwitchArms)
+                    {
+                        if (!this.ClassifyConversionFromExpression(arm.Value, destination, ref useSiteDiagnostics).IsImplicit)
+                        {
+                            return Conversion.NoConversion;
+                        }
+                    }
+
+                    return Conversion.SwitchExpression;
+                default:
+                    return Conversion.NoConversion;
+            }
+        }
+
         private static Conversion ClassifyNullLiteralConversion(BoundExpression source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
@@ -941,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // The spec defines a "null literal conversion" specifically as a conversion from
                 // null to nullable type.
-                return Conversion.DefaultOrNullLiteral;
+                return Conversion.NullLiteral;
             }
 
             // SPEC: An implicit conversion exists from the null literal to any reference type. 
@@ -2683,6 +2707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source.GetAllTypeArguments(sourceTypeArguments, ref useSiteDiagnostics);
                 destination.GetAllTypeArguments(destinationTypeArguments, ref useSiteDiagnostics);
 
+                Debug.Assert(TypeSymbol.Equals(source.OriginalDefinition, destination.OriginalDefinition, TypeCompareKind.AllIgnoreOptions));
                 Debug.Assert(typeParameters.Count == sourceTypeArguments.Count);
                 Debug.Assert(typeParameters.Count == destinationTypeArguments.Count);
 
@@ -2703,6 +2728,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (typeParameterSymbol.Variance)
                     {
                         case VarianceKind.None:
+                            // System.IEquatable<T> is invariant for back compat reasons (dynamic type checks could start
+                            // to succeed where they previously failed, creating different runtime behavior), but the uses
+                            // require treatment specifically of nullability as contravariant, so we special case the
+                            // behavior here. Normally we use GetWellKnownType for these kinds of checks, but in this
+                            // case we don't want just the canonical IEquatable to be special-cased, we want all definitions
+                            // to be treated as contravariant, in case there are other definitions in metadata that were
+                            // compiled with that expectation.
+                            if (isTypeIEquatable(destination.OriginalDefinition) &&
+                                TypeSymbol.Equals(destinationTypeArgument.Type, sourceTypeArgument.Type, TypeCompareKind.AllNullableIgnoreOptions) &&
+                                HasAnyNullabilityImplicitConversion(destinationTypeArgument, sourceTypeArgument))
+                            {
+                                return true;
+                            }
                             return false;
 
                         case VarianceKind.Out:
@@ -2732,6 +2770,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+
+            static bool isTypeIEquatable(NamedTypeSymbol type)
+            {
+                return type is
+                {
+                    IsInterface: true,
+                    Name: "IEquatable",
+                    ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                    ContainingSymbol: { Kind: SymbolKind.Namespace },
+                    TypeParameters: { Length: 1 }
+                };
+            }
+
         }
 
         // Spec 6.1.10

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return results.ToImmutableAndFree();
         }
 
-        private static bool IsOverride(
+        internal static bool IsOverride(
             Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
         {
             for (var current = member; current != null; current = current.OverriddenMember())
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                     var bestMethod = sourceMethod.Symbol != null ? sourceMethod : m;
 
                                     var implementations = await type.FindImplementationsForInterfaceMemberAsync(
-                                        bestMethod.Symbol, solution, cancellationToken).ConfigureAwait(false);
+                                        bestMethod, solution, cancellationToken).ConfigureAwait(false);
                                     foreach (var implementation in implementations)
                                     {
                                         if (implementation.Symbol != null &&
@@ -249,14 +249,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ImmutableArray<SymbolAndProjectId>.Builder results = null;
                 foreach (var t in allTypes.Convert<INamedTypeSymbol, ITypeSymbol>())
                 {
-                    var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbolAndProjectId.Symbol, solution, cancellationToken).ConfigureAwait(false);
+                    var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
                     foreach (var implementation in implementations)
                     {
                         var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);
                         var bestDef = sourceDef.Symbol != null ? sourceDef : implementation;
                         if (IsAccessible(bestDef))
                         {
-                            results = results ?? ImmutableArray.CreateBuilder<SymbolAndProjectId>();
+                            results ??= ImmutableArray.CreateBuilder<SymbolAndProjectId>();
                             results.Add(bestDef.WithSymbol(bestDef.Symbol.OriginalDefinition));
                         }
                     }
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 foreach (var kvp in await directReferences.Locations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    results = results ?? new List<SymbolCallerInfo>();
+                    results ??= new List<SymbolCallerInfo>();
                     results.Add(new SymbolCallerInfo(kvp.Key, symbol, kvp.Value, isDirect: true));
                 }
             }
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var indirectLocations = indirectReferences.SelectMany(r => r.Locations);
                 foreach (var kvp in await indirectLocations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    results = results ?? new List<SymbolCallerInfo>();
+                    results ??= new List<SymbolCallerInfo>();
                     results.Add(new SymbolCallerInfo(kvp.Key, symbol, kvp.Value, isDirect: false));
                 }
             }
@@ -459,26 +459,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //          forwarded from reference assembly A (version v2) to assembly B in compilation C2.
             //      (b) Otherwise, if no such named type pairs were encountered, symbols ARE equivalent.
 
-            using (var equivalentTypesWithDifferingAssemblies = SharedPools.Default<Dictionary<INamedTypeSymbol, INamedTypeSymbol>>().GetPooledObject())
+            using var equivalentTypesWithDifferingAssemblies = SharedPools.Default<Dictionary<INamedTypeSymbol, INamedTypeSymbol>>().GetPooledObject();
+
+            // 1) Compare searchSymbol and symbolToMatch using SymbolEquivalenceComparer.IgnoreAssembliesInstance
+            if (!SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(searchSymbol, symbolToMatch, equivalentTypesWithDifferingAssemblies.Object))
             {
-                // 1) Compare searchSymbol and symbolToMatch using SymbolEquivalenceComparer.IgnoreAssembliesInstance
-                if (!SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(searchSymbol, symbolToMatch, equivalentTypesWithDifferingAssemblies.Object))
-                {
-                    // 2) If the symbols are NOT equivalent ignoring assemblies, then they cannot be equivalent.
-                    return false;
-                }
-
-                // 3) If the symbols ARE equivalent ignoring assemblies, they may or may not be equivalent if containing assemblies are NOT ignored.
-                if (equivalentTypesWithDifferingAssemblies.Object.Count > 0)
-                {
-                    // Step 3a) Ensure that all pairs of named types in equivalentTypesWithDifferingAssemblies are indeed equivalent types.
-                    return VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies.Object, searchSymbol, symbolToMatch,
-                        solution, searchSymbolCompilation, symbolToMatchCompilation, cancellationToken);
-                }
-
-                // 3b) If no such named type pairs were encountered, symbols ARE equivalent.
-                return true;
+                // 2) If the symbols are NOT equivalent ignoring assemblies, then they cannot be equivalent.
+                return false;
             }
+
+            // 3) If the symbols ARE equivalent ignoring assemblies, they may or may not be equivalent if containing assemblies are NOT ignored.
+            if (equivalentTypesWithDifferingAssemblies.Object.Count > 0)
+            {
+                // Step 3a) Ensure that all pairs of named types in equivalentTypesWithDifferingAssemblies are indeed equivalent types.
+                return VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies.Object, searchSymbol, symbolToMatch,
+                    solution, searchSymbolCompilation, symbolToMatchCompilation, cancellationToken);
+            }
+
+            // 3b) If no such named type pairs were encountered, symbols ARE equivalent.
+            return true;
         }
 
         private static bool NamespaceSymbolsMatch(
@@ -502,7 +501,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var verifiedKeys = new HashSet<INamedTypeSymbol>();
             var count = equivalentTypesWithDifferingAssemblies.Count;
-            int verifiedCount = 0;
+            var verifiedCount = 0;
 
             // First check forwarded types in searchSymbolCompilation.
             if (searchSymbolCompilation != null || TryGetCompilation(searchSymbol, solution, out searchSymbolCompilation, cancellationToken))
@@ -515,8 +514,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            // Now check forwarded types in symbolToMatchCompilation.
-            verifiedCount += VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies, symbolToMatchCompilation, verifiedKeys, isSearchSymbolCompilation: false);
+            if (symbolToMatchCompilation != null || TryGetCompilation(symbolToMatch, solution, out symbolToMatchCompilation, cancellationToken))
+            {
+                // Now check forwarded types in symbolToMatchCompilation.
+                verifiedCount += VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies, symbolToMatchCompilation, verifiedKeys, isSearchSymbolCompilation: false);
+            }
+
             return verifiedCount == count;
         }
 
@@ -543,7 +546,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 referencedAssemblies.Add(assembly.Name, assembly);
             }
 
-            int verifiedCount = 0;
+            var verifiedCount = 0;
             foreach (var kvp in equivalentTypesWithDifferingAssemblies)
             {
                 if (!verifiedKeys.Contains(kvp.Key))
@@ -571,7 +574,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         // Resolve forwarded type and verify that the types from different assembly are indeed equivalent.
                         var forwardedType = referencedAssembly.ResolveForwardedType(fullyQualifiedTypeName);
-                        if (forwardedType == expectedForwardedType)
+                        if (Equals(forwardedType, expectedForwardedType))
                         {
                             verifiedKeys.Add(kvp.Key);
                             verifiedCount++;

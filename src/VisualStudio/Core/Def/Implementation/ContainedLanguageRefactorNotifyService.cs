@@ -20,6 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
+        [ImportingConstructor]
+        public ContainedLanguageRefactorNotifyService()
+        {
+        }
+
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
             return true;

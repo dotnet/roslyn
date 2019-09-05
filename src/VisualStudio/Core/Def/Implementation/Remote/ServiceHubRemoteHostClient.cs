@@ -87,18 +87,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
 
                 var hostGroup = new HostGroup(current);
-                var remoteHostStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
+                // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
                 var remotableDataRpc = new RemotableDataJsonRpc(
                                           workspace, primary.Logger,
                                           await Connections.RequestServiceAsync(workspace, primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
+
+                var remoteHostStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
                 var enableConnectionPool = workspace.Options.GetOption(RemoteHostOptions.EnableConnectionPool);
                 var maxConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);
 
                 var connectionManager = new ConnectionManager(primary, hostGroup, enableConnectionPool, maxConnection, timeout, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
 
-                client = new ServiceHubRemoteHostClient(workspace, connectionManager, remoteHostStream);
+                client = new ServiceHubRemoteHostClient(workspace, primary.Logger, connectionManager, remoteHostStream);
 
                 var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
                 var cultureLCID = CultureInfo.CurrentCulture.LCID;
@@ -109,7 +111,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 return client;
             }
+            catch (ConnectionLostException ex)
+            {
+                RemoteHostCrashInfoBar.ShowInfoBar(workspace, ex);
+
+                Shutdown(client, ex, cancellationToken);
+
+                // dont crash VS because OOP is failed to start. we will show info bar telling users to restart
+                // but never physically crash VS.
+                throw new SoftCrashException("Connection Lost", ex, cancellationToken);
+            }
             catch (Exception ex)
+            {
+                Shutdown(client, ex, cancellationToken);
+                throw;
+            }
+
+            static void Shutdown(ServiceHubRemoteHostClient client, Exception ex, CancellationToken cancellationToken)
             {
                 // make sure we shutdown client if initializing client has failed.
                 client?.Shutdown();
@@ -117,14 +135,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // translate to our own cancellation if it is raised.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // otherwise, report watson and throw original exception
+                // otherwise, report watson
                 ex.ReportServiceHubNFW("ServiceHub creation failed");
-                throw;
             }
         }
 
         private ServiceHubRemoteHostClient(
             Workspace workspace,
+            TraceSource logger,
             ConnectionManager connectionManager,
             Stream stream)
             : base(workspace)
@@ -133,8 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             _connectionManager = connectionManager;
 
-            _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: this);
-            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+            _rpc = stream.CreateStreamJsonRpc(target: this, logger);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
@@ -227,13 +244,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // after shutdown.
             try
             {
-                await _rpc.InvokeWithCancellationAsync(targetName, arguments, _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex))
             {
                 if (!_shutdownCancellationTokenSource.IsCancellationRequested)
                 {
-                    RemoteHostCrashInfoBar.ShowInfoBar(Workspace);
+                    RemoteHostCrashInfoBar.ShowInfoBar(Workspace, ex);
                 }
             }
         }
@@ -341,7 +358,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return true;
             }
 
-            return FatalError.ReportWithoutCrash(ex);
+            ex.ReportServiceHubNFW("JsonRpc invoke Failed");
+            return true;
         }
     }
 }

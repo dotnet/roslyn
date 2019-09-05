@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), WorkspaceKind.Test), Shared]
     internal sealed class TestFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
         public TestFormattingRuleFactoryServiceFactory()
         {
         }
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public sealed class Factory : IHostDependentFormattingRuleFactoryService
         {
             public int BaseIndentation = 0;
-            public TextSpan TextSpan = default(TextSpan);
+            public TextSpan TextSpan = default;
             public bool UseBaseIndentation = false;
 
             public bool ShouldUseBaseIndentation(Document document)
