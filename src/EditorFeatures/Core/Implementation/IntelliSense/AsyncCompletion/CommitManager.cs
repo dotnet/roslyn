@@ -165,16 +165,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             var commitChar = typeChar == '\0' ? null : (char?)typeChar;
-            var commitBehavior = Commit(
+            return Commit(
                 triggerDocument, completionService, session.TextView, subjectBuffer,
                 roslynItem, completionListSpan, commitChar, triggerSnapshot, serviceRules,
                 filterText, cancellationToken);
-
-            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
-            return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
         }
 
-        private AsyncCompletionData.CommitBehavior Commit(
+        private AsyncCompletionData.CommitResult Commit(
             Document document,
             CompletionService completionService,
             ITextView view,
@@ -194,13 +191,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 // We are on the wrong thread.
                 FatalError.ReportWithoutCrash(new InvalidOperationException("Subject buffer did not provide Edit Access"));
-                return AsyncCompletionData.CommitBehavior.None;
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
             if (subjectBuffer.EditInProgress)
             {
                 FatalError.ReportWithoutCrash(new InvalidOperationException("Subject buffer is editing by someone else."));
-                return AsyncCompletionData.CommitBehavior.None;
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
+            }
+
+            CompletionChange change;
+
+            // We do not know if the completion service or the corresponding provider request the cancellation or throw an exception.
+            // The completion service requests the token to be cancelled if the exception is thrown.
+            // Therefore, it is just safer to handle both exception and token on the Roslyn side.
+            try
+            {
+                change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return CommitResultUnhandled;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return CommitResultUnhandled;
             }
 
             if (GetCompletionProvider(completionService, roslynItem) is ICustomCommitCompletionProvider provider)
@@ -268,17 +284,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
+            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
+
             if (includesCommitCharacter)
             {
-                return AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers;
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
             }
 
             if (commitCharacter == '\n' && SendEnterThroughToEditor(rules, roslynItem, filterText))
             {
-                return AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers;
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers);
             }
 
-            return AsyncCompletionData.CommitBehavior.None;
+            return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
         }
 
         internal static bool IsCommitCharacter(CompletionRules completionRules, CompletionItem item, char ch, string textTypedSoFar)
