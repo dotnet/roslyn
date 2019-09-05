@@ -19,14 +19,11 @@ using Xunit;
 using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
 using WorkItemAttribute = PortableTestUtils::Roslyn.Test.Utilities.WorkItemAttribute;
+using static Microsoft.CodeAnalysis.Scripting.TestCompilationFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {
-    using static TestCompilationFactory;
-    using DiagnosticExtensions = PortableTestUtils::Microsoft.CodeAnalysis.DiagnosticExtensions;
-    using TestReferences = PortableTestUtils::TestReferences;
-
-    public class InteractiveSessionTests : TestBase
+    public class InteractiveSessionReferencesTests : TestBase
     {
         private static readonly CSharpCompilationOptions s_signedDll =
            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_ce65828c82a341f2);
@@ -235,7 +232,7 @@ System.Diagnostics.Process.GetCurrentProcess()
             Assert.NotNull(process);
         }
 
-        private static Lazy<bool> s_isSystemV2AndV4Available = new Lazy<bool>(() =>
+        private static readonly Lazy<bool> s_isSystemV2AndV4Available = new Lazy<bool>(() =>
         {
             string path;
             return GlobalAssemblyCache.Instance.ResolvePartialName("System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", out path) != null &&
@@ -1117,7 +1114,7 @@ public class C
             var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());
 
             var s0 = await CSharpScript.RunAsync("C c;", ScriptOptions.Default.WithReferences(libFile.Path));
-            var s1 = await s0.ContinueWithAsync("c = new C()");
+            await s0.ContinueWithAsync("c = new C()");
         }
     }
 }
