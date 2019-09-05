@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Information decoded from well-known custom attributes applied on a type.
     /// </summary>
-    internal sealed class TypeWellKnownAttributeData : CommonTypeWellKnownAttributeData
+    internal sealed class TypeWellKnownAttributeData : CommonTypeWellKnownAttributeData, ISkipLocalsInitAttributeTarget
     {
         #region CoClassAttribute
 

@@ -1252,7 +1252,7 @@ done:
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
             {
-                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSkipLocalsInitAttribute = true;
+                attribute.DecodeSkipLocalsInitAttribute<MethodWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnAttribute))
             {

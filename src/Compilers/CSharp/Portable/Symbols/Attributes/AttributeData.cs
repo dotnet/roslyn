@@ -234,6 +234,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal void DecodeSkipLocalsInitAttribute<T>(CSharpCompilation compilation, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            where T : WellKnownAttributeData, ISkipLocalsInitAttributeTarget, new()
+        {
+            arguments.GetOrCreateData<T>().HasSkipLocalsInitAttribute = true;
+            if (!compilation.Options.AllowUnsafe)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, arguments.AttributeSyntaxOpt.Location);
+            }
+        }
+
         private DeclarativeSecurityAction DecodeSecurityAttributeAction(Symbol targetSymbol, CSharpCompilation compilation, AttributeSyntax nodeOpt, out bool hasErrors, DiagnosticBag diagnostics)
         {
             Debug.Assert((object)targetSymbol != null);
@@ -664,6 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return true;
         }
+
     }
 
     internal static class AttributeDataExtensions
