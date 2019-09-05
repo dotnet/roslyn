@@ -11180,7 +11180,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
         public void TestSuppression_AnalyzerWarning()
         {
             string source = @"
