@@ -2770,6 +2770,32 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                     HandleEnterLockOperation(arguments[0].Value);
                 }
+                else if (targetMethod.ContainingType.OriginalDefinition.Equals(WellKnownTypeProvider.Interlocked))
+                {
+                    ProcessInterlockedOperation(targetMethod, arguments);
+                }
+            }
+
+            void ProcessInterlockedOperation(IMethodSymbol targetMethod, ImmutableArray<IArgumentOperation> arguments)
+            {
+                var isExchangeMethod = targetMethod.IsInterlockedExchangeMethod(WellKnownTypeProvider.Interlocked);
+                var isCompareExchangeMethod = targetMethod.IsInterlockedCompareExchangeMethod(WellKnownTypeProvider.Interlocked);
+
+                if (isExchangeMethod || isCompareExchangeMethod)
+                {
+                    // "System.Threading.Interlocked.Exchange(ref T, T)" OR "System.Threading.Interlocked.CompareExchange(ref T, T, T)"
+                    Debug.Assert(arguments.Length >= 2);
+
+                    SetAbstractValueForAssignment(
+                        target: arguments[0].Value,
+                        assignedValueOperation: arguments[1].Value,
+                        assignedValue: GetCachedAbstractValue(arguments[1].Value),
+                        mayBeAssignment: isCompareExchangeMethod);
+                    foreach (var argument in arguments)
+                    {
+                        _pendingArgumentsToReset.Remove(argument);
+                    }
+                }
             }
         }
 
