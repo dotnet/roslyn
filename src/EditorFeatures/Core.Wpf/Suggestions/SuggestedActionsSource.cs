@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var map = ImmutableDictionary.CreateBuilder<CodeFixGroupKey, IList<SuggestedAction>>();
                 using var orderDisposer = ArrayBuilder<CodeFixGroupKey>.GetInstance(out var order);
 
-                // First group fixes by diagnostic and priority.
+                // First group fixes by diagnostic.
                 GroupFixes(workspace, fixCollections, map, order, includeSuppressionFixes);
 
                 // Then prioritize between the groups.
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             /// <summary>
-            /// Return prioritized set of fix groups such that fix group for suppression always show up at the bottom of the list.
+            /// Return prioritized set of fix groups such that combined fix group for suppression always show up at the bottom of the list.
             /// </summary>
             /// <remarks>
             /// Fix groups are returned in priority order determined based on <see cref="ExtensionOrderAttribute"/>.
@@ -557,6 +557,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using var nonSuppressionSetsDisposer = ArrayBuilder<SuggestedActionSet>.GetInstance(out var nonSuppressionSets);
                 using var suppressionSetsDisposer = ArrayBuilder<SuggestedActionSet>.GetInstance(out var suppressionSets);
 
+                // Separate CodeActions for individual refactorings to nonSuppressionSets & suppressionSets
                 foreach (var diag in order)
                 {
                     var actions = map[diag];
@@ -568,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     AddSuggestedActionsSet(suppressionActions, diag, suppressionSets);
                 }
 
-                var sets = nonSuppressionSets.ToImmutable();
+                var resultSets = nonSuppressionSets;
 
                 if (suppressionSets.Count > 0)
                 {
@@ -588,10 +589,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         title: EditorFeaturesWpfResources.Configure_or_Suppress_issues,
                         priority: SuggestedActionSetPriority.None,
                         applicableToSpan: span);
-                    sets = sets.Add(wrappingSet);
+
+                    resultSets.Add(wrappingSet);
                 }
 
-                return sets;
+                return resultSets.ToImmutable();
 
                 // Local functions
                 static (Span? span, string category) CombineSpansAndCategory(IEnumerable<SuggestedActionSet> sets)
