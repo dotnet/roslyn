@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,9 +12,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -43,9 +47,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly HashSet<DocumentId> _documentsWithReportedDiagnosticsDuringRunMode;
         private readonly object _documentsWithReportedDiagnosticsDuringRunModeGuard = new object();
 
-        private DebuggingSession _debuggingSession;
-        private EditSession _editSession;
-        private PendingSolutionUpdate _pendingUpdate;
+        private DebuggingSession? _debuggingSession;
+        private EditSession? _editSession;
+        private PendingSolutionUpdate? _pendingUpdate;
 
         internal EditAndContinueWorkspaceService(
             Workspace workspace,
@@ -55,16 +59,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
             IActiveStatementProvider activeStatementProvider,
             IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
-            Action<DebuggingSessionTelemetry.Data> reportTelemetry = null)
+            Action<DebuggingSessionTelemetry.Data>? reportTelemetry = null)
         {
-            Debug.Assert(workspace != null);
-            Debug.Assert(activeStatementTrackingService != null);
-            Debug.Assert(diagnosticService != null);
-            Debug.Assert(diagnosticUpdateSource != null);
-            Debug.Assert(activeStatementProvider != null);
-            Debug.Assert(debugeeModuleMetadataProvider != null);
-            Debug.Assert(compilationOutputsProvider != null);
-
             _workspace = workspace;
             _diagnosticService = diagnosticService;
             _emitDiagnosticsUpdateSource = diagnosticUpdateSource;
@@ -79,8 +75,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         // test only:
-        internal EditSession Test_GetEditSession() => _editSession;
-        internal PendingSolutionUpdate Test_GetPendingSolutionUpdate() => _pendingUpdate;
+        internal EditSession? Test_GetEditSession() => _editSession;
+        internal PendingSolutionUpdate? Test_GetPendingSolutionUpdate() => _pendingUpdate;
 
         public bool IsDebuggingSessionInProgress
             => _debuggingSession != null;
@@ -154,6 +150,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             debuggingSession.Dispose();
         }
 
+        internal static bool SupportsEditAndContinue(Project project)
+            => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
+
+        internal static bool IsDesignTimeOnlyDocument(Document document)
+            => document.Services.GetService<DocumentPropertiesService>()?.DesignTimeOnly == true;
+
         public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
             try
@@ -172,9 +174,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                // Not a C# or VB project:
+                // Not a C# or VB project.
                 var project = document.Project;
-                if (!EditSession.SupportsEditAndContinue(project))
+                if (!SupportsEditAndContinue(project))
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                // Document does not compile to the assembly (e.g. cshtml files, .g.cs files generated for completion only)
+                if (IsDesignTimeOnlyDocument(document))
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -192,10 +200,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (editSession == null)
                 {
                     // Any changes made in loaded, built projects outside of edit session are rude edits (the application is running):
-                    var oldSyntaxTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     var newSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    var textChanges = await GetDocumentTextChangesAsync(oldSyntaxTree, newSyntaxTree, cancellationToken).ConfigureAwait(false);
-                    return GetRunModeDocumentDiagnostics(document, newSyntaxTree, textChanges);
+                    var changedSpans = await GetChangedSpansAsync(oldDocument, newSyntaxTree, cancellationToken).ConfigureAwait(false);
+                    return GetRunModeDocumentDiagnostics(document, newSyntaxTree, changedSpans);
                 }
 
                 // No changes made in the entire workspace since the edit session started:
@@ -220,12 +227,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // track the document, so that we can refresh or clean diagnostics at the end of edit session:
                         editSession.TrackDocumentWithReportedDiagnostics(document.Id);
 
-                        var oldSyntaxTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                         var newSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        var textChanges = await GetDocumentTextChangesAsync(oldSyntaxTree, newSyntaxTree, cancellationToken).ConfigureAwait(false);
+                        var changedSpans = await GetChangedSpansAsync(oldDocument, newSyntaxTree, cancellationToken).ConfigureAwait(false);
 
                         var diagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
-                        foreach (var span in GetSpansInNewDocument(textChanges))
+                        foreach (var span in changedSpans)
                         {
                             var location = Location.Create(newSyntaxTree, span);
 
@@ -258,8 +264,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private ImmutableArray<Diagnostic> GetRunModeDocumentDiagnostics(Document newDocument, SyntaxTree newSyntaxTree, IEnumerable<TextChange> changes)
+        private static async Task<IEnumerable<TextSpan>> GetChangedSpansAsync(Document? oldDocument, SyntaxTree newSyntaxTree, CancellationToken cancellationToken)
         {
+            if (oldDocument != null)
+            {
+                var oldSyntaxTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                return GetSpansInNewDocument(await GetDocumentTextChangesAsync(oldSyntaxTree, newSyntaxTree, cancellationToken).ConfigureAwait(false));
+            }
+
+            var newRoot = await newSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            return SpecializedCollections.SingletonEnumerable(newRoot.FullSpan);
+        }
+
+        private ImmutableArray<Diagnostic> GetRunModeDocumentDiagnostics(Document newDocument, SyntaxTree newSyntaxTree, IEnumerable<TextSpan> changedSpans)
+        {
+            if (!changedSpans.Any())
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
             lock (_documentsWithReportedDiagnosticsDuringRunModeGuard)
             {
                 _documentsWithReportedDiagnosticsDuringRunMode.Add(newDocument.Id);
@@ -267,8 +290,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ChangesNotAppliedWhileRunning);
             var args = new[] { newDocument.Project.Name };
-            var result = GetSpansInNewDocument(changes).SelectAsArray(span => Diagnostic.Create(descriptor, Location.Create(newSyntaxTree, span), args));
-            return result.IsEmpty ? ImmutableArray.Create(Diagnostic.Create(descriptor, Location.Create(newSyntaxTree, default), args)) : result;
+            return changedSpans.SelectAsArray(span => Diagnostic.Create(descriptor, Location.Create(newSyntaxTree, span), args));
         }
 
         // internal for testing
