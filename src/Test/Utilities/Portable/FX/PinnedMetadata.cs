@@ -1,32 +1,30 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
-    internal class PinnedMetadata : IDisposable
+    internal unsafe class PinnedMetadata : IDisposable
     {
-        private GCHandle _bytes; // non-readonly as Free() mutates to prevent double-free.
+        private MemoryHandle _handle;
+
+        public IntPtr Pointer => (IntPtr)_handle.Pointer;
         public readonly MetadataReader Reader;
-        public readonly IntPtr Pointer;
         public readonly int Size;
 
         public unsafe PinnedMetadata(ImmutableArray<byte> metadata)
         {
-            _bytes = GCHandle.Alloc(metadata.DangerousGetUnderlyingArray(), GCHandleType.Pinned);
-            this.Pointer = _bytes.AddrOfPinnedObject();
+            _handle = metadata.AsMemory().Pin();
             this.Size = metadata.Length;
-            this.Reader = new MetadataReader((byte*)this.Pointer, this.Size, MetadataReaderOptions.None, null);
+            this.Reader = new MetadataReader((byte*)_handle.Pointer, Size, MetadataReaderOptions.None, null);
         }
 
         public void Dispose()
         {
-            _bytes.Free();
+            _handle.Dispose();
         }
     }
 }

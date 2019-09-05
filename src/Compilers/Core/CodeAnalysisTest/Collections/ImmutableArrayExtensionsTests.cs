@@ -377,17 +377,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         [Fact]
-        public void DangerousCreateFromUnderlyingArray()
-        {
-            var array = new[] { 1, 2, 3, 4 };
-            var copy = array;
-            var immutable = ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref copy);
-            Assert.Null(copy);
-            AssertEx.Equal(array, immutable);
-            Assert.Same(array, ImmutableArrayExtensions.DangerousGetUnderlyingArray(immutable));
-        }
-
-        [Fact]
         public void ZipAsArray()
         {
             var empty = ImmutableArray.Create<object>();
