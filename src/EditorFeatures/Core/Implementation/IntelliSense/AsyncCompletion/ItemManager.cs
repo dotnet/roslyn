@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var completionRules = completionService?.GetRules() ?? CompletionRules.Default;
             var completionHelper = document != null ? CompletionHelper.GetHelper(document) : _defaultCompletionHelper;
 
-            var initialListOfItemsToBeIncludedBuilder = ArrayBuilder<ExtendedFilterResult>.GetInstance();
+            var builder = ArrayBuilder<ExtendedFilterResult>.GetInstance();
             foreach (var item in data.InitialSortedList)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 if (MatchesFilterText(completionHelper, roslynItem, filterText, initialRoslynTriggerKind, filterReason, _recentItemsManager.RecentItems, out var patternMatch))
                 {
-                    initialListOfItemsToBeIncludedBuilder.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: true, patternMatch)));
+                    builder.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: true, patternMatch)));
                 }
                 else
                 {
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         initialRoslynTriggerKind == CompletionTriggerKind.Invoke ||
                         filterText.Length <= 1)
                     {
-                        initialListOfItemsToBeIncludedBuilder.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: false, patternMatch)));
+                        builder.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: false, patternMatch)));
                     }
                 }
             }
@@ -212,18 +212,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            if (initialListOfItemsToBeIncludedBuilder.Count == 0)
+            if (builder.Count == 0)
             {
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
             }
 
+            var initialListOfItemsToBeIncluded = builder.ToImmutableArray();
+
             var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
             if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SortCompletionListByMatch))
             {
-                initialListOfItemsToBeIncludedBuilder.Sort(new NullablePatternMatchComparer());
+                // Need a stable sorting algorithm to preserve the original order for items with same pattern match score.
+                initialListOfItemsToBeIncluded = initialListOfItemsToBeIncluded.OrderBy(new NullablePatternMatchComparer()).ToImmutableArray();
             }
-
-            var initialListOfItemsToBeIncluded = initialListOfItemsToBeIncludedBuilder.ToImmutableAndFree();
 
             var options = document?.Project.Solution.Options;
             var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? true;
