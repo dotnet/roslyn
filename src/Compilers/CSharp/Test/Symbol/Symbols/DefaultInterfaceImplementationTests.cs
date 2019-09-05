@@ -54684,5 +54684,355 @@ class C1 : I1, Interface
             CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
         }
 
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_11()
+        {
+            var source1 =
+@"
+interface A : A.B
+{
+    public interface B { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'A.B' causes a cycle in the interface hierarchy of 'A'
+                // interface A : A.B
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "A").WithArguments("A", "A.B").WithLocation(2, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_12()
+        {
+            var source1 =
+@"
+interface A : A.B.I
+{
+    public interface B : A
+    {
+        public interface I { }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'A.B.I' causes a cycle in the interface hierarchy of 'A'
+                // interface A : A.B.I
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "A").WithArguments("A", "A.B.I").WithLocation(2, 11),
+                // (4,22): error CS0529: Inherited interface 'A' causes a cycle in the interface hierarchy of 'A.B'
+                //     public interface B : A
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "B").WithArguments("A.B", "A").WithLocation(4, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_13()
+        {
+            var source1 =
+@"
+interface IA : IB.IQ
+{
+}
+
+interface IB : IA
+{
+    interface IQ { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'IB.IQ' causes a cycle in the interface hierarchy of 'IA'
+                // interface IA : IB.IQ
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IA").WithArguments("IA", "IB.IQ").WithLocation(2, 11),
+                // (6,11): error CS0529: Inherited interface 'IA' causes a cycle in the interface hierarchy of 'IB'
+                // interface IB : IA
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB", "IA").WithLocation(6, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_14()
+        {
+            var source1 =
+@"
+interface IB : IA
+{
+    interface IQ { }
+}
+
+interface IA : IB.IQ
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'IA' causes a cycle in the interface hierarchy of 'IB'
+                // interface IB : IA
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB", "IA").WithLocation(2, 11),
+                // (7,11): error CS0529: Inherited interface 'IB.IQ' causes a cycle in the interface hierarchy of 'IA'
+                // interface IA : IB.IQ
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IA").WithArguments("IA", "IB.IQ").WithLocation(7, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_15()
+        {
+            var source1 =
+@"
+class B : IA
+{
+    public interface IQ { }
+}
+
+interface IA : B.IQ
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_16()
+        {
+            var source1 =
+@"
+interface I1
+{
+    class C : I1 { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_17()
+        {
+            var source1 =
+@"
+class C : C.I1
+{
+    interface I1 { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_18()
+        {
+            var source1 =
+@"
+public class CB : CB.CCB.IB, CB.ICB.IB
+{
+    public class CCB
+    {
+        public interface IB { }
+    }
+    public interface ICB
+    {
+        public interface IB { }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_19()
+        {
+            var source1 =
+@"
+public class CD : CD.ICD.CB
+{
+    public interface ICD
+    {
+        public class CB { }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,14): error CS0146: Circular base class dependency involving 'CD.ICD.CB' and 'CD'
+                // public class CD : CD.ICD.CB
+                Diagnostic(ErrorCode.ERR_CircularBase, "CD").WithArguments("CD.ICD.CB", "CD").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_20()
+        {
+            var source1 =
+@"
+public interface IE : IE.CIE.IB, IE.IIE.IB
+{
+    public class CIE
+    {
+        public interface IB { }
+    }
+    public interface IIE
+    {
+        public interface IB { }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,18): error CS0529: Inherited interface 'IE.CIE.IB' causes a cycle in the interface hierarchy of 'IE'
+                // public interface IE : IE.CIE.IB, IE.IIE.IB
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IE").WithArguments("IE", "IE.CIE.IB").WithLocation(2, 18),
+                // (2,18): error CS0529: Inherited interface 'IE.IIE.IB' causes a cycle in the interface hierarchy of 'IE'
+                // public interface IE : IE.CIE.IB, IE.IIE.IB
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IE").WithArguments("IE", "IE.IIE.IB").WithLocation(2, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_21()
+        {
+            var source1 =
+@"
+class C1 : C1.C2.I3
+{
+    public class C2
+    {
+        public interface I3
+        {
+
+        }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_22()
+        {
+            var source1 =
+@"
+class CA : IB.CQ
+{
+    public interface I1
+    { }
+}
+
+interface IB : CA.I1
+{
+    public class CQ
+    { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,7): error CS0146: Circular base class dependency involving 'IB.CQ' and 'CA'
+                // class CA : IB.CQ
+                Diagnostic(ErrorCode.ERR_CircularBase, "CA").WithArguments("IB.CQ", "CA").WithLocation(2, 7),
+                // (8,11): error CS0529: Inherited interface 'CA.I1' causes a cycle in the interface hierarchy of 'IB'
+                // interface IB : CA.I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB", "CA.I1").WithLocation(8, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_23()
+        {
+            var source1 =
+@"
+interface IB : CA.I1
+{
+    public class CQ
+    { }
+}
+
+class CA : IB.CQ
+{
+    public interface I1
+    { }
+}
+
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'CA.I1' causes a cycle in the interface hierarchy of 'IB'
+                // interface IB : CA.I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB", "CA.I1").WithLocation(2, 11),
+                // (8,7): error CS0146: Circular base class dependency involving 'IB.CQ' and 'CA'
+                // class CA : IB.CQ
+                Diagnostic(ErrorCode.ERR_CircularBase, "CA").WithArguments("IB.CQ", "CA").WithLocation(8, 7)
+                );
+        }
+
     }
 }
