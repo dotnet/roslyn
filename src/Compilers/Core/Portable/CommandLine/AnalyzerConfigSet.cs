@@ -30,6 +30,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly ImmutableArray<ImmutableArray<SectionNameMatcher?>> _analyzerMatchers;
 
+        // PERF: diagnostic IDs will appear in the output options for every syntax tree in
+        // the solution. We share string instances for each diagnostic ID to avoid creating
+        // excess strings
+        private readonly SmallDictionary<ReadOnlyMemory<char>, string> _diagnosticIdCache =
+            new SmallDictionary<ReadOnlyMemory<char>, string>(CharMemoryEqualityComparer.Instance);
+
         private readonly static DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
             = new DiagnosticDescriptor(
                 "InvalidSeverityInAnalyzerConfig",
@@ -128,7 +134,13 @@ namespace Microsoft.CodeAnalysis
                         if (matchers[sectionIndex]?.IsMatch(relativePath) == true)
                         {
                             var section = config.NamedSections[sectionIndex];
-                            addOptions(section, treeOptionsBuilder, analyzerOptionsBuilder, diagnosticBuilder, config.PathToFile);
+                            addOptions(
+                                section,
+                                treeOptionsBuilder,
+                                analyzerOptionsBuilder,
+                                diagnosticBuilder,
+                                config.PathToFile,
+                                _diagnosticIdCache);
                         }
                     }
                 }
@@ -144,7 +156,8 @@ namespace Microsoft.CodeAnalysis
                 TreeOptions.Builder treeBuilder,
                 AnalyzerOptions.Builder analyzerBuilder,
                 ArrayBuilder<Diagnostic> diagnosticBuilder,
-                string analyzerConfigPath)
+                string analyzerConfigPath,
+                SmallDictionary<ReadOnlyMemory<char>, string> diagIdCache)
             {
                 const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
                 const string DiagnosticOptionSuffix = ".severity";
@@ -161,9 +174,12 @@ namespace Microsoft.CodeAnalysis
 
                     if (diagIdLength >= 0)
                     {
-                        var diagId = key.Substring(
-                            DiagnosticOptionPrefix.Length,
-                            diagIdLength);
+                        ReadOnlyMemory<char> idSlice = key.AsMemory().Slice(DiagnosticOptionPrefix.Length, diagIdLength);
+                        if (!diagIdCache.TryGetValue(idSlice, out var diagId))
+                        {
+                            diagId = idSlice.ToString();
+                            diagIdCache.Add(diagId.AsMemory(), diagId);
+                        }
 
                         ReportDiagnostic? severity;
                         var comparer = StringComparer.OrdinalIgnoreCase;
