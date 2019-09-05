@@ -8215,7 +8215,8 @@ class Program
 
             var symbolInfo = semanticModel.GetSymbolInfo(selectClauseNode);
 
-            Assert.NotEqual(default, symbolInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, symbolInfo);
             Assert.Null(symbolInfo.Symbol);
         }
 

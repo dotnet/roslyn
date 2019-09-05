@@ -1068,7 +1068,8 @@ class F
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotEqual(default, parentInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
@@ -1113,7 +1114,8 @@ class F
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotEqual(default, parentInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
@@ -1281,7 +1283,8 @@ enum Color
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotEqual(default, parentInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
