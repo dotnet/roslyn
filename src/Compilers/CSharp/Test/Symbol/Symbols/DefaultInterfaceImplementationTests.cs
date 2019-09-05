@@ -20694,6 +20694,372 @@ class Test2 : I1, I2, I3
         }
 
         [Fact]
+        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        public void InconsistentAccessibility_01()
+        {
+            var source1 =
+@"
+    interface I1
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    class C1
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    interface I3 : I1
+    {
+        protected I1.I2 M1();
+
+        protected interface I5
+        {
+            I1.I2 M5();
+        }
+    }
+
+    class CI3 : I3
+    {
+        I1.I2 I3.M1() => null;
+
+        class CI5 : I3.I5
+        {
+            I1.I2 I3.I5.M5() => null;
+        }
+    }
+
+    class C3 : I1
+    {
+        protected virtual void M1(I1.I2 x) { }
+
+        protected interface I7
+        {
+            I1.I2 M7();
+        }
+    }
+
+    class CC3 : C3
+    {
+        protected override void M1(I1.I2 x) { }
+
+        class CI7 : C3.I7
+        {
+            I1.I2 C3.I7.M7() => null;
+        }
+    }
+
+    class C33 : C1
+    {
+        protected virtual void M1(C1.I2 x) { }
+
+        protected class C55
+        {
+            public virtual C1.I2 M55() => null;
+        }
+    }
+
+    class CC33 : C33
+    {
+        protected override void M1(C1.I2 x) { }
+
+        class CC55 : C33.C55
+        {
+            public override C1.I2 M55() => null;
+        }
+    }
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        public void InconsistentAccessibility_02()
+        {
+            var source1 =
+@"
+    interface I1
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    class C1
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    interface I3 : I1
+    {
+        interface I4
+        {
+            protected I1.I2 M4();
+        }
+    }
+
+    class CI4 : I3.I4
+    {
+        I1.I2 I3.I4.M4() => null;
+    }
+
+    class C3 : I1
+    {
+        public interface I6
+        {
+            protected I1.I2 M6();
+        }
+    }
+
+    class CI6 : C3.I6
+    {
+        I1.I2 C3.I6.M6() => null;
+    }
+
+    class C33 : C1
+    {
+        public class C44
+        {
+            protected virtual C1.I2 M44() => null;
+        }
+    }
+
+    class CC44 : C33.C44
+    {
+        protected override C1.I2 M44() => null;
+    }
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (20,29): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'I3.I4.M4()'
+                //             protected I1.I2 M4();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M4").WithArguments("I3.I4.M4()", "I1.I2").WithLocation(20, 29),
+                // (24,17): error CS0535: 'CI4' does not implement interface member 'I3.I4.M4()'
+                //     class CI4 : I3.I4
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3.I4").WithArguments("CI4", "I3.I4.M4()").WithLocation(24, 17),
+                // (26,12): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                //         I1.I2 I3.I4.M4() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(26, 12),
+                // (26,21): error CS0539: 'CI4.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //         I1.I2 I3.I4.M4() => null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("CI4.M4()").WithLocation(26, 21),
+                // (33,29): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'C3.I6.M6()'
+                //             protected I1.I2 M6();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M6").WithArguments("C3.I6.M6()", "I1.I2").WithLocation(33, 29),
+                // (37,17): error CS0535: 'CI6' does not implement interface member 'C3.I6.M6()'
+                //     class CI6 : C3.I6
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C3.I6").WithArguments("CI6", "C3.I6.M6()").WithLocation(37, 17),
+                // (39,12): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                //         I1.I2 C3.I6.M6() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(39, 12),
+                // (39,21): error CS0539: 'CI6.M6()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //         I1.I2 C3.I6.M6() => null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M6").WithArguments("CI6.M6()").WithLocation(39, 21),
+                // (46,37): error CS0050: Inconsistent accessibility: return type 'C1.I2' is less accessible than method 'C33.C44.M44()'
+                //             protected virtual C1.I2 M44() => null;
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M44").WithArguments("C33.C44.M44()", "C1.I2").WithLocation(46, 37),
+                // (52,31): error CS0122: 'C1.I2' is inaccessible due to its protection level
+                //         protected override C1.I2 M44() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("C1.I2").WithLocation(52, 31)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        public void InconsistentAccessibility_03()
+        {
+            var source1 =
+@"
+    interface I1<T>
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    class C1<T>
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    interface I3 : I1<int>
+    {
+        protected I1<string>.I2 M1();
+
+        protected interface I5
+        {
+            I1<string>.I2 M5();
+        }
+    }
+
+    class CI3 : I3
+    {
+        I1<string>.I2 I3.M1() => null;
+
+        class CI5 : I3.I5
+        {
+            I1<string>.I2 I3.I5.M5() => null;
+        }
+    }
+
+    class C3 : I1<int>
+    {
+        protected virtual void M1(I1<string>.I2 x) { }
+
+        protected interface I7
+        {
+            I1<string>.I2 M7();
+        }
+    }
+
+    class CC3 : C3
+    {
+        protected override void M1(I1<string>.I2 x) { }
+
+        class CI7 : C3.I7
+        {
+            I1<string>.I2 C3.I7.M7() => null;
+        }
+    }
+
+    class C33 : C1<int>
+    {
+        protected virtual void M1(C1<string>.I2 x) { }
+
+        protected class C55
+        {
+            public virtual C1<string>.I2 M55() => null;
+        }
+    }
+
+    class CC33 : C33
+    {
+        protected override void M1(C1<string>.I2 x) { }
+
+        class CC55 : C33.C55
+        {
+            public override C1<string>.I2 M55() => null;
+        }
+    }
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")]
+        public void InconsistentAccessibility_04()
+        {
+            var source1 =
+@"
+    interface I1<T>
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    class C1<T>
+    {
+        protected interface I2
+        {
+        }
+    }
+
+    interface I3 : I1<int>
+    {
+        interface I4
+        {
+            protected I1<string>.I2 M4();
+        }
+    }
+
+    class CI4 : I3.I4
+    {
+        I1<string>.I2 I3.I4.M4() => null;
+    }
+
+    class C3 : I1<int>
+    {
+        public interface I6
+        {
+            protected I1<string>.I2 M6();
+        }
+    }
+
+    class CI6 : C3.I6
+    {
+        I1<string>.I2 C3.I6.M6() => null;
+    }
+
+    class C33 : C1<int>
+    {
+        public class C44
+        {
+            protected virtual C1<string>.I2 M44() => null;
+        }
+    }
+
+    class CC44 : C33.C44
+    {
+        protected override C1<string>.I2 M44() => null;
+    }
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (20,37): error CS0050: Inconsistent accessibility: return type 'I1<string>.I2' is less accessible than method 'I3.I4.M4()'
+                //             protected I1<string>.I2 M4();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M4").WithArguments("I3.I4.M4()", "I1<string>.I2").WithLocation(20, 37),
+                // (24,17): error CS0535: 'CI4' does not implement interface member 'I3.I4.M4()'
+                //     class CI4 : I3.I4
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3.I4").WithArguments("CI4", "I3.I4.M4()").WithLocation(24, 17),
+                // (26,20): error CS0122: 'I1<string>.I2' is inaccessible due to its protection level
+                //         I1<string>.I2 I3.I4.M4() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1<string>.I2").WithLocation(26, 20),
+                // (26,29): error CS0539: 'CI4.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //         I1<string>.I2 I3.I4.M4() => null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("CI4.M4()").WithLocation(26, 29),
+                // (33,37): error CS0050: Inconsistent accessibility: return type 'I1<string>.I2' is less accessible than method 'C3.I6.M6()'
+                //             protected I1<string>.I2 M6();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M6").WithArguments("C3.I6.M6()", "I1<string>.I2").WithLocation(33, 37),
+                // (37,17): error CS0535: 'CI6' does not implement interface member 'C3.I6.M6()'
+                //     class CI6 : C3.I6
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "C3.I6").WithArguments("CI6", "C3.I6.M6()").WithLocation(37, 17),
+                // (39,20): error CS0122: 'I1<string>.I2' is inaccessible due to its protection level
+                //         I1<string>.I2 C3.I6.M6() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1<string>.I2").WithLocation(39, 20),
+                // (39,29): error CS0539: 'CI6.M6()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //         I1<string>.I2 C3.I6.M6() => null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M6").WithArguments("CI6.M6()").WithLocation(39, 29),
+                // (46,45): error CS0050: Inconsistent accessibility: return type 'C1<string>.I2' is less accessible than method 'C33.C44.M44()'
+                //             protected virtual C1<string>.I2 M44() => null;
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M44").WithArguments("C33.C44.M44()", "C1<string>.I2").WithLocation(46, 45),
+                // (52,39): error CS0122: 'C1<string>.I2' is inaccessible due to its protection level
+                //         protected override C1<string>.I2 M44() => null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("C1<string>.I2").WithLocation(52, 39)
+                );
+        }
+
+        [Fact]
         public void IndexerModifiers_15()
         {
             var source1 =
@@ -28960,6 +29326,190 @@ class Test1
 
                 compilation5.VerifyDiagnostics(expected);
             }
+        }
+
+        [Fact]
+        [WorkItem(34704, "https://github.com/dotnet/roslyn/issues/34704")]
+        public void NestedTypes_10()
+        {
+            var source1 =
+@"
+interface I1
+{
+    protected interface I2
+    {
+    }
+}
+
+class C1
+{
+    protected interface I2
+    {
+    }
+}
+
+interface I3 : I1, I1.I2
+{
+    private void M1(I1.I2 x) { }
+}
+
+interface I4 : I1, I2
+{
+    I2 MI4();
+}
+
+interface I5 : I1.I2, I1
+{
+    private void M1(I1.I2 x) { }
+}
+
+interface I6 : I2, I1
+{
+    I2 MI6();
+}
+
+class C3 : I1, I1.I2
+{
+    private void M1(I1.I2 x) { }
+}
+
+class C4 : I1, I2
+{
+    void MC4(I2 x) { }
+}
+
+class C5 : I1.I2, I1
+{
+    private void M1(I1.I2 x) { }
+}
+
+class C6 : I2, I1
+{
+    void MC6(I2 x) { }
+}
+
+class C33 : C1, C1.I2
+{
+    protected void M1(C1.I2 x) { }
+}
+
+class C44 : C1, I2
+{
+    void M1(I2 x) { }
+}
+
+interface I7 : I8
+{
+    public interface I8 : I7
+    {
+    }
+}
+
+class C7 : I8
+{
+    public interface I8
+    {
+    }
+}
+
+interface I9 : I9.I10
+{
+    public interface I10 : I9
+    {
+    }
+}
+
+interface I11
+{
+    public interface I12 : I13
+    {
+    }
+
+    public interface I13
+    {
+    }
+
+    public interface I14 : I11.I13
+    {
+    }
+}
+
+class C11
+{
+    public interface I12 : I13
+    {
+    }
+
+    public interface I13
+    {
+    }
+
+    public interface I14 : I11.I13
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (16,23): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                // interface I3 : I1, I1.I2
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(16, 23),
+                // (21,20): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // interface I4 : I1, I2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(21, 20),
+                // (23,5): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                //     I2 MI4();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(23, 5),
+                // (26,19): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                // interface I5 : I1.I2, I1
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(26, 19),
+                // (31,16): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // interface I6 : I2, I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(31, 16),
+                // (33,5): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                //     I2 MI6();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(33, 5),
+                // (36,19): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                // class C3 : I1, I1.I2
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(36, 19),
+                // (41,16): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // class C4 : I1, I2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(41, 16),
+                // (43,14): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                //     void MC4(I2 x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(43, 14),
+                // (46,15): error CS0122: 'I1.I2' is inaccessible due to its protection level
+                // class C5 : I1.I2, I1
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(46, 15),
+                // (51,12): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // class C6 : I2, I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(51, 12),
+                // (53,14): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                //     void MC6(I2 x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(53, 14),
+                // (56,20): error CS0122: 'C1.I2' is inaccessible due to its protection level
+                // class C33 : C1, C1.I2
+                Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("C1.I2").WithLocation(56, 20),
+                // (61,17): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // class C44 : C1, I2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(61, 17),
+                // (66,16): error CS0246: The type or namespace name 'I8' could not be found (are you missing a using directive or an assembly reference?)
+                // interface I7 : I8
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I8").WithArguments("I8").WithLocation(66, 16),
+                // (73,12): error CS0246: The type or namespace name 'I8' could not be found (are you missing a using directive or an assembly reference?)
+                // class C7 : I8
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I8").WithArguments("I8").WithLocation(73, 12),
+                // (80,11): error CS0529: Inherited interface 'I9.I10' causes a cycle in the interface hierarchy of 'I9'
+                // interface I9 : I9.I10
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I9").WithArguments("I9", "I9.I10").WithLocation(80, 11),
+                // (82,22): error CS0529: Inherited interface 'I9' causes a cycle in the interface hierarchy of 'I9.I10'
+                //     public interface I10 : I9
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I10").WithArguments("I9.I10", "I9").WithLocation(82, 22)
+                );
         }
 
         [Fact]
