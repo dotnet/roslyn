@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var ((expr, originalSymbol), updatedSymbol) in updatedMethodSymbols)
                 {
                     Debug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {expr.Syntax}");
+                    Debug.Assert(originalSymbol is object, $"Recorded null original symbol for {expr.Syntax}");
+                    Debug.Assert(updatedSymbol is object, $"Recorded null updated symbol for {expr.Syntax}");
                     Debug.Assert(areSymbolsIdentical(originalSymbol, updatedSymbol), @$"Symbol for `{expr.Syntax}` changed:
 Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
 Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
