@@ -144,13 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         return;
                     }
 
-                    var notification = status as INotifyPropertyChanged;
-                    if (notification == null)
-                    {
-
-                    }
-
-                    notification.PropertyChanged += (_, e) => this.StatusChanged?.Invoke(this, EventArgs.Empty);
+                    status.PropertyChanged += (_, e) => this.StatusChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
         }
