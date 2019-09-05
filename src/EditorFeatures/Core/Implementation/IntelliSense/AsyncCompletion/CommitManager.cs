@@ -202,22 +202,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             CompletionChange change;
 
-            // We do not know if the completion service or the corresponding provider request the cancellation or throw an exception.
-            // The completion service requests the token to be cancelled if the exception is thrown.
-            // Therefore, it is just safer to handle both exception and token on the Roslyn side.
+            // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not cancelled.
+            // Catching this scenario for further investigations.
             try
             {
                 change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken)
             {
+                FatalError.ReportWithoutCrash(e);
                 return CommitResultUnhandled;
             }
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return CommitResultUnhandled;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (GetCompletionProvider(completionService, roslynItem) is ICustomCommitCompletionProvider provider)
             {
