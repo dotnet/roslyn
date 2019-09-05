@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -143,7 +144,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         return;
                     }
 
-                    status.PropertyChanged += (_, e) => this.StatusChanged?.Invoke(this, EventArgs.Empty);
+                    var notification = status as INotifyPropertyChanged;
+                    if (notification == null)
+                    {
+
+                    }
+
+                    notification.PropertyChanged += (_, e) => this.StatusChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
         }
