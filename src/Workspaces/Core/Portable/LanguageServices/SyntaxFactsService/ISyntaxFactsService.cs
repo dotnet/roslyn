@@ -106,8 +106,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTrueLiteralExpression(SyntaxNode node);
         bool IsThisExpression(SyntaxNode node);
         bool IsBaseExpression(SyntaxNode node);
-        bool IsExpressionStatement(SyntaxNode node);
-
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -288,7 +286,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// functions.
         /// </summary>
         bool IsMethodBody(SyntaxNode node);
-
+        bool IsExpressionStatement(SyntaxNode node);
         bool IsReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 
