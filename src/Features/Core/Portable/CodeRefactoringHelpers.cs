@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -22,9 +24,17 @@ namespace Microsoft.CodeAnalysis
         /// that, for non-empty selections, returns the smallest encompassing node. A node that can, for certain refactorings, be too large given user-selection even though
         /// it is the smallest that can be retrieved.
         /// </para>
+        /// <para>
+        /// Null node is always considered underselected.
+        /// </para>
         /// </summary>
-        public static bool IsNodeUnderselected(SyntaxNode node, TextSpan selection)
+        public static bool IsNodeUnderselected(SyntaxNode? node, TextSpan selection)
         {
+            if (node == null)
+            {
+                return true;
+            }
+
             if (selection.IsEmpty || node.Span.IsEmpty)
             {
                 return false;

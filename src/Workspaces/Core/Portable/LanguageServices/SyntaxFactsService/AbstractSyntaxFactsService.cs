@@ -571,12 +571,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
 
         public bool IsUsingStatement(SyntaxNode node)
-            => node.RawKind == SyntaxKinds.UsingStatement;
+            => node?.RawKind == SyntaxKinds.UsingStatement;
 
         public bool IsReturnStatement(SyntaxNode node)
-            => node.RawKind == SyntaxKinds.ReturnStatement;
+            => node?.RawKind == SyntaxKinds.ReturnStatement;
 
         public bool IsExpressionStatement(SyntaxNode node)
-            => node.RawKind == SyntaxKinds.ExpressionStatement;
+            => node?.RawKind == SyntaxKinds.ExpressionStatement;
     }
 }
