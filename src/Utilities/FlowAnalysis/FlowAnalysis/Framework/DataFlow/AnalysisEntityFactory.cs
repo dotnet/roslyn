@@ -188,11 +188,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                     break;
 
-                case IInvocationOperation invocation:
-                    symbolOpt = invocation.TargetMethod;
-                    instanceOpt = invocation.Instance;
-                    break;
-
                 case IConversionOperation conversion:
                     return TryCreate(conversion.Operand, out analysisEntity);
 

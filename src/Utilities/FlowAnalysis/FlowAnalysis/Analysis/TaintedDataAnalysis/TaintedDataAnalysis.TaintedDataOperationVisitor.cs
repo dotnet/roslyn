@@ -249,8 +249,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             if (taintedTarget != TaintedTargetValue.Return)
                             {
                                 IArgumentOperation argumentOperation = visitedArguments.FirstOrDefault(o => o.Parameter.Name == taintedTarget);
-                                Debug.Assert(argumentOperation != null, "Are the tainted data sources misconfigured?");
-                                this.CacheAbstractValue(argumentOperation, TaintedDataAbstractValue.CreateTainted(argumentOperation.Parameter, argumentOperation.Syntax, method));
+                                if (argumentOperation != null)
+                                {
+                                    this.CacheAbstractValue(argumentOperation, TaintedDataAbstractValue.CreateTainted(argumentOperation.Parameter, argumentOperation.Syntax, method));
+                                }
+                                else
+                                {
+                                    Debug.Fail("Are the tainted data sources misconfigured?");
+                                }
                             }
                             else
                             {
@@ -271,11 +277,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         foreach ((string source, string end) in taintedParameterPairs)
                         {
                             IArgumentOperation endArgumentOperation = visitedArguments.FirstOrDefault(o => o.Parameter.Name == end);
-                            Debug.Assert(endArgumentOperation != null, "Are the tainted data sources misconfigured?");
-                            SetTaintedForEntity(
-                                endArgumentOperation,
-                                this.GetCachedAbstractValue(
-                                    visitedArguments.FirstOrDefault(o => o.Parameter.Name == source)));
+                            if (endArgumentOperation != null)
+                            {
+                                SetTaintedForEntity(
+                                    endArgumentOperation,
+                                    this.GetCachedAbstractValue(
+                                        visitedArguments.FirstOrDefault(o => o.Parameter.Name == source)));
+                            }
+                            else
+                            {
+                                Debug.Fail("Are the tainted data sources misconfigured?");
+                            }
                         }
                     }
                 }
