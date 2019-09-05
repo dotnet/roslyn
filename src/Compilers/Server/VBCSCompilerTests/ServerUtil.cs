@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
+using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -31,15 +32,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         internal CancellationTokenSource CancellationTokenSource { get; }
         internal Task<ServerStats> ServerTask { get; }
+        internal BlockingCollection<CompletionReason> ConnectionCompletionCollection { get; }
         internal Task ListenTask { get; }
         internal string PipeName { get; }
 
-        internal ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, Task<ServerStats> serverTask, Task listenTask)
+        internal ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, Task<ServerStats> serverTask, Task listenTask, BlockingCollection<CompletionReason> connectionCompletionCollection)
         {
             CancellationTokenSource = cancellationTokenSource;
             PipeName = pipeName;
             ServerTask = serverTask;
             ListenTask = listenTask;
+            ConnectionCompletionCollection = connectionCompletionCollection;
         }
 
         internal async Task<ServerStats> Complete()
@@ -101,9 +104,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var serverListenSource = new TaskCompletionSource<bool>();
             var cts = new CancellationTokenSource();
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
+            var listener = new TestableDiagnosticListener();
             var task = Task.Run(() =>
             {
-                var listener = new TestableDiagnosticListener();
                 listener.Listening += (sender, e) => { serverListenSource.TrySetResult(true); };
                 try
                 {
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 throw task.Exception;
             }
 
-            return new ServerData(cts, pipeName, serverStatsSource.Task, serverListenSource.Task);
+            return new ServerData(cts, pipeName, serverStatsSource.Task, serverListenSource.Task, listener.ConnectionCompletedCollection);
         }
 
         /// <summary>
