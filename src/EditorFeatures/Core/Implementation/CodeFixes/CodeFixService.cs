@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // sometimes way more than it is needed. (compilation)
 
             // group diagnostics by their diagnostics span
-            // invariant: later code gathers & runs CodeFixProviders for diagnostics with one identical diagnostics span (that get's later set as CodeFixCollection's TextSpan)
+            // invariant: later code gathers & runs CodeFixProviders for diagnostics with one identical diagnostics span (that gets set later as CodeFixCollection's TextSpan)
             Dictionary<TextSpan, List<DiagnosticData>> aggregatedDiagnostics = null;
             foreach (var diagnostic in await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticIdOpt: null, includeConfigurationFixes, cancellationToken).ConfigureAwait(false))
             {
