@@ -5,16 +5,11 @@ namespace Test.Utilities.MinimalImplementations
     public static class SystemNetHttpApis
     {
         public const string CSharp = @"
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
 namespace System.Net.Http
 {
-    namespace Unix
-    {
-        public class CurlHandler : HttpMessageHandler
-        {
-            public bool CheckCertificateRevocationList { get; set; }
-        }
-    }
-
     public class HttpClient
     {
         public HttpClient ()
@@ -34,14 +29,29 @@ namespace System.Net.Http
     {
     }
 
+    public class HttpRequestMessage
+    {
+    }
+
     public class WinHttpHandler : HttpMessageHandler
     {
         public bool CheckCertificateRevocationList { get; set; }
+
+        public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors,bool> ServerCertificateValidationCallback { get; set; }
     }
 
     public class HttpClientHandler : HttpMessageHandler
     {
         public bool CheckCertificateRevocationList { get; set; }
+
+        public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateCustomValidationCallback { get; set; }
+    }
+
+    public class CurlHandler : HttpMessageHandler
+    {
+        public bool CheckCertificateRevocationList { get; set; }
+
+        internal Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateCustomValidationCallback { get; set; }
     }
 }";
     }

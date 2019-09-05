@@ -5,7 +5,7 @@
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecPackageId>Microsoft.CodeAnalysis.Analyzers</NuspecPackageId>
-    <Description>Guidelines for using .NET Compiler Platform ("Roslyn") APIs.</Description>
+    <Description>Analyzers for consumers of "Microsoft.CodeAnalysis" NuGet package, i.e. extensions and applications built on top of .NET Compiler Platform ("Roslyn"). This package is included as a development dependency of "Microsoft.CodeAnalysis" NuGet package and does not need to be installed separately if you are referencing "Microsoft.CodeAnalysis" NuGet package.</Description>
     <Summary>Analyzers for .NET Compiler Platform ("Roslyn")</Summary>
     <ReleaseNotes>Diagnostic analyzers for the Microsoft .NET Compiler Platform (Roslyn)</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>

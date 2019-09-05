@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -415,8 +414,8 @@ namespace Analyzer.Utilities.Extensions
         /// across analyzers and analyzer callbacks to re-use the control flow graph.
         /// </summary>
         /// <remarks>Also see <see cref="IMethodSymbolExtensions.s_methodToTopmostOperationBlockCache"/></remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>> s_operationToCfgCache
-            = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>>();
+        private static readonly BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>> s_operationToCfgCache
+            = new BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>>();
 
         public static bool TryGetEnclosingControlFlowGraph(this IOperation operation, out ControlFlowGraph cfg)
         {
@@ -633,6 +632,80 @@ namespace Analyzer.Utilities.Extensions
                 default:
                     return null;
             }
+        }
+
+        /// <summary>
+        /// Walks down consequtive parenthesized operations until an operand is reached that isn't a parenthesized operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
+        public static IOperation WalkDownParenthesis(this IOperation operation)
+        {
+            while (operation is IParenthesizedOperation parenthesizedOperation)
+            {
+                operation = parenthesizedOperation.Operand;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks up consequtive parenthesized operations until a parent is reached that isn't a parenthesized operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The outer non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
+        public static IOperation WalkUpParenthesis(this IOperation operation)
+        {
+            while (operation is IParenthesizedOperation parenthesizedOperation)
+            {
+                operation = parenthesizedOperation.Parent;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks down consequtive conversion operations until an operand is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        public static IOperation WalkDownConversion(this IOperation operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks up consequtive conversion operations until a parent is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The outer non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        public static IOperation WalkUpConversion(this IOperation operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Parent;
+            }
+
+            return operation;
+        }
+
+        public static ITypeSymbol GetThrownExceptionType(this IThrowOperation operation)
+        {
+            var thrownObject = operation.Exception;
+
+            // Starting C# 8.0, C# compiler wraps the thrown operation within an implicit conversion to System.Exception type.
+            if (thrownObject is IConversionOperation conversion &&
+                conversion.IsImplicit)
+            {
+                thrownObject = conversion.Operand;
+            }
+
+            return thrownObject?.Type;
         }
     }
 }

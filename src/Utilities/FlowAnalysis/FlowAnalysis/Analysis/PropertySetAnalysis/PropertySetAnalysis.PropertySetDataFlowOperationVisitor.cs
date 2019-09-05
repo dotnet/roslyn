@@ -385,16 +385,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                             {
                                 foreach (AbstractLocation abstractLocation in pointsToAbstractValue.Locations)
                                 {
+                                    if (abstractLocation.IsNull || abstractLocation.IsAnalysisEntityDefaultLocation)
+                                    {
+                                        continue;
+                                    }
+
                                     if (!kvp.Value.AbstractLocationsToAssignments.TryGetValue(
                                             abstractLocation,
                                             out PooledHashSet<IAssignmentOperation> assignments))
                                     {
                                         Debug.Fail("Expected to have tracked assignment operations for a given location");
-                                        continue;
-                                    }
-
-                                    if (abstractLocation.IsNull)
-                                    {
                                         continue;
                                     }
 

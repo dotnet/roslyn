@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -40,15 +41,8 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
-        public static ITypeSymbol GetThrowExceptionType(this IOperation thrownOperation, BasicBlock currentBlock)
-        {
-            if (thrownOperation?.Type != null)
-            {
-                return thrownOperation.Type;
-            }
-
-            // rethrow or throw with no argument.
-            return currentBlock.GetEnclosingRegionExceptionType();
-        }
+        public static bool IsLValueFlowCaptureReference(this IFlowCaptureReferenceOperation flowCaptureReference)
+            => flowCaptureReference.Parent is IAssignmentOperation assignment &&
+               assignment.Target == flowCaptureReference;
     }
 }
