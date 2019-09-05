@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -39,5 +40,9 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
         }
+
+        public static bool IsLValueFlowCaptureReference(this IFlowCaptureReferenceOperation flowCaptureReference)
+            => flowCaptureReference.Parent is IAssignmentOperation assignment &&
+               assignment.Target == flowCaptureReference;
     }
 }
