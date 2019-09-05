@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
@@ -34,7 +35,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
 
-        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
+        protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
+        }
+
+        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {

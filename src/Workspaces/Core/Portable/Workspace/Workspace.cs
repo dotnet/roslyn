@@ -764,7 +764,10 @@ namespace Microsoft.CodeAnalysis
 
                 if (oldAttributes.FilePath != newInfo.FilePath)
                 {
-                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath);
+                    // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
+                    // filePath is null, but it's odd because we *do* support null file paths. The suppression here is to silence it
+                    // but should be removed when the bug is fixed.
+                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath!);
                 }
 
                 if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)
@@ -1215,7 +1218,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             if (!this.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo)
-                && projectChanges.GetChangedDocuments().Any(id => projectChanges.NewProject.GetDocument(id)!.HasInfoChanged(projectChanges.OldProject.GetDocument(id))))
+                && projectChanges.GetChangedDocuments().Any(id => projectChanges.NewProject.GetDocument(id)!.HasInfoChanged(projectChanges.OldProject.GetDocument(id)!)))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_document_property_is_not_supported);
             }

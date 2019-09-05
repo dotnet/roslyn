@@ -890,6 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode DefaultVisit(BoundNode node)
         {
             Debug.Assert(false, $"Should Visit{node.Kind} be overridden in {this.GetType().Name}?");
+            Diagnostics.Add(ErrorCode.ERR_InternalError, node.Syntax.Location);
             return null;
         }
 
@@ -2646,6 +2647,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node.Expression);
             PendingBranches.Add(new PendingBranch(node, this.State, null));
+            return null;
+        }
+
+        public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
             return null;
         }
 

@@ -16,12 +16,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.AnalyzerConfig;
-using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct BuildPaths
+    internal readonly struct BuildPaths
     {
         /// <summary>
         /// The path which contains the compiler binaries and response files.
@@ -564,11 +562,8 @@ namespace Microsoft.CodeAnalysis
         /// are guaranteed to break the build.
         /// Only diagnostics which have default severity error and are tagged as NotConfigurable fall in this bucket.
         /// This includes all compiler error diagnostics and specific analyzer error diagnostics that are marked as not configurable by the analyzer author.
-        /// Note: does NOT do filtering, so it may return false if a
-        /// non-error diagnostic were later elevated to an error through filtering (e.g., through
-        /// warn-as-error).
         /// </summary>
-        internal static bool HasUnsuppressedErrors(DiagnosticBag diagnostics)
+        internal static bool HasUnsuppressableErrors(DiagnosticBag diagnostics)
         {
             foreach (var diag in diagnostics.AsEnumerable())
             {
@@ -577,6 +572,23 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
             }
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the bag has any diagnostics with effective Severity=Error. Also returns true for warnings or informationals
+        /// or warnings promoted to error via /warnaserror which are not suppressed.
+        /// </summary>
+        internal static bool HasUnsuppressedErrors(DiagnosticBag diagnostics)
+        {
+            foreach (Diagnostic diagnostic in diagnostics.AsEnumerable())
+            {
+                if (diagnostic.IsUnsuppressedError)
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -843,7 +855,7 @@ namespace Microsoft.CodeAnalysis
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (HasUnsuppressedErrors(diagnostics))
+            if (HasUnsuppressableErrors(diagnostics))
             {
                 return;
             }
@@ -891,7 +903,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (HasUnsuppressedErrors(diagnostics))
+            if (HasUnsuppressableErrors(diagnostics))
             {
                 return;
             }
@@ -964,6 +976,22 @@ namespace Microsoft.CodeAnalysis
                             filterOpt: null,
                             cancellationToken: cancellationToken);
 
+                        // Prior to generating the xml documentation file,
+                        // we apply programmatic suppressions for compiler warnings from diagnostic suppressors.
+                        // If there are still any unsuppressed errors or warnings escalated to errors
+                        // then we bail out from generating the documentation file.
+                        // This maintains the compiler invariant that xml documentation file should not be
+                        // generated in presence of diagnostics that break the build.
+                        if (analyzerDriver != null && !diagnostics.IsEmptyWithoutResolution)
+                        {
+                            analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                        }
+
+                        if (HasUnsuppressedErrors(diagnostics))
+                        {
+                            success = false;
+                        }
+
                         if (success)
                         {
                             // NOTE: as native compiler does, we generate the documentation file
@@ -1003,7 +1031,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 using (var win32ResourceStreamOpt = GetWin32Resources(MessageProvider, Arguments, compilation, diagnostics))
                                 {
-                                    if (HasUnsuppressedErrors(diagnostics))
+                                    if (HasUnsuppressableErrors(diagnostics))
                                     {
                                         return;
                                     }
@@ -1044,17 +1072,17 @@ namespace Microsoft.CodeAnalysis
                             {
                                 // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
                                 analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
-
-                                if (HasUnsuppressedErrors(diagnostics))
-                                {
-                                    success = false;
-                                }
                             }
                         }
                     }
                     finally
                     {
                         moduleBeingBuilt.CompilationFinished();
+                    }
+
+                    if (HasUnsuppressedErrors(diagnostics))
+                    {
+                        success = false;
                     }
 
                     if (success)
@@ -1104,7 +1132,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (HasUnsuppressedErrors(diagnostics))
+                if (HasUnsuppressableErrors(diagnostics))
                 {
                     return;
                 }
@@ -1124,7 +1152,7 @@ namespace Microsoft.CodeAnalysis
             if (analyzerExceptionDiagnostics != null)
             {
                 diagnostics.AddRange(analyzerExceptionDiagnostics);
-                if (HasUnsuppressedErrors(analyzerExceptionDiagnostics))
+                if (HasUnsuppressableErrors(analyzerExceptionDiagnostics))
                 {
                     return;
                 }

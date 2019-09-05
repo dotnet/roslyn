@@ -367,6 +367,62 @@ namespace B { }";
             await CheckAsync(initial, final);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
+        public async Task DoNotTouchCommentsAtBeginningOfFile4()
+        {
+            var initial =
+@"/// Copyright (c) Microsoft Corporation.  All rights reserved.
+
+using B;
+/// I like namespace A
+using A;
+
+namespace A { }
+namespace B { }";
+
+            var final =
+@"/// Copyright (c) Microsoft Corporation.  All rights reserved.
+
+/// I like namespace A
+using A;
+using B;
+
+namespace A { }
+namespace B { }";
+
+            await CheckAsync(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
+        public async Task DoNotTouchCommentsAtBeginningOfFile5()
+        {
+            var initial =
+@"/** Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
+
+using B;
+/// I like namespace A
+using A;
+
+namespace A { }
+namespace B { }";
+
+            var final =
+@"/** Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
+
+/// I like namespace A
+using A;
+using B;
+
+namespace A { }
+namespace B { }";
+
+            await CheckAsync(initial, final);
+        }
+
         [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task DoTouchCommentsAtBeginningOfFile1()

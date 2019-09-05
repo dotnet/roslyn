@@ -152,11 +152,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, hostDiagnosticUpdateSource?.Workspace, projectIdOpt);
             }
-
-            if (IsBuiltInAnalyzer(analyzer))
-            {
-                FatalError.ReportWithoutCrashUnlessCanceled(ex);
-            }
         }
 
         internal static void OnAnalyzerExceptionForSupportedDiagnostics(DiagnosticAnalyzer analyzer, Exception exception, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)

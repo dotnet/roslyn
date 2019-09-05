@@ -5216,9 +5216,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PatternDynamicType" xml:space="preserve">
     <value>It is not legal to use the type 'dynamic' in a pattern.</value>
   </data>
-  <data name="ERR_BadDynamicMethodArgDefaultLiteral" xml:space="preserve">
-    <value>Cannot use a default literal as an argument to a dynamically dispatched operation.</value>
-  </data>
   <data name="ERR_BadDocumentationMode" xml:space="preserve">
     <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
   </data>
@@ -5272,9 +5269,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_AttributesOnBackingFieldsNotAvailable_Title" xml:space="preserve">
     <value>Field-targeted attributes on auto-properties are not supported in this version of the language.</value>
-  </data>
-  <data name="ERR_DefaultInSwitch" xml:space="preserve">
-    <value>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</value>
   </data>
   <data name="ERR_VoidInTuple" xml:space="preserve">
     <value>A tuple may not contain a value of type 'void'.</value>
@@ -5654,6 +5648,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SwitchExpressionNoBestType" xml:space="preserve">
     <value>No best type was found for the switch expression.</value>
   </data>
+  <data name="ERR_DefaultLiteralNoTargetType" xml:space="preserve">
+    <value>There is no target type for the default literal.</value>
+  </data>
   <data name="ERR_SingleElementPositionalPatternRequiresDisambiguation" xml:space="preserve">
     <value>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</value>
   </data>
@@ -5932,5 +5929,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
     <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>
+  </data>
+  <data name="ERR_InternalError" xml:space="preserve">
+    <value>Internal error in the C# compiler.</value>
   </data>
 </root>

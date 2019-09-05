@@ -7,9 +7,14 @@
         <target state="translated">メンバー名を追加します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_null_checks_for_all_parameters">
+        <source>Add null checks for all parameters</source>
+        <target state="new">Add null checks for all parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
-        <target state="new">Add optional parameter to constructor</target>
+        <target state="translated">省略可能なパラメーターをコンストラクターに追加する</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
@@ -19,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
         <source>Add parameter to constructor</source>
-        <target state="new">Add parameter to constructor</target>
+        <target state="translated">パラメーターをコンストラクターに追加する</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -69,12 +74,12 @@
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">コード内における不必要な値割り当ては、値計算が重複する原因になり得るため、避けてください。値計算が重複しておらず、割り当てを保持する場合は、割り当て先をアンダースコアの後にオプションで整数が続く名前 ('_'、'_1'、'_2' など) のローカル変数に変更してください。これらは、特別なディスカード シンボル名として扱われます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">コード内に使用されないパラメーターを指定しないでください。パラメーターを削除できない場合は、パラメーターの名前をアンダースコアの後にオプションで整数が続く名前 ('_'、'_1'、'_2' など) に変更してください。これらは、特別なディスカード シンボル名として扱われます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -144,27 +149,27 @@
       </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
-        <target state="new">A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</target>
+        <target state="translated">System.IDisposable を実装する型は、IDisposable も実装する型のフィールドを宣言します。フィールドの Dispose メソッドは、宣言する型の Dispose メソッドによって呼び出されません。フィールドが保持する管理されていないリソースの割り当てと解放を自分が担当している場合、このルールの違反を修正するには、IDisposable を実装する型のフィールドに Dispose を呼び出します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_field_0_is_never_disposed">
         <source>Disposable field '{0}' is never disposed</source>
-        <target state="new">Disposable field '{0}' is never disposed</target>
+        <target state="translated">破棄可能なフィールド '{0}' が破棄されることはありません</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_fields_should_be_disposed">
         <source>Disposable fields should be disposed</source>
-        <target state="new">Disposable fields should be disposed</target>
+        <target state="translated">破棄可能なフィールドは破棄しなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
         <source>Disposable object created by '{0}' is never disposed</source>
-        <target state="new">Disposable object created by '{0}' is never disposed</target>
+        <target state="translated">'{0}' が作成した破棄可能なオブジェクトが破棄されることはありません</target>
         <note />
       </trans-unit>
       <trans-unit id="Dispose_objects_before_losing_scope">
         <source>Dispose objects before losing scope</source>
-        <target state="new">Dispose objects before losing scope</target>
+        <target state="translated">スコープを失う前にオブジェクトを破棄</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -194,12 +199,12 @@
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
         <source>Generate parameter '{0}'</source>
-        <target state="new">Generate parameter '{0}'</target>
+        <target state="translated">パラメーター '{0}' の生成</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="new">Generate parameter '{0}' (and overrides/implementations)</target>
+        <target state="translated">パラメーター '{0}' の生成 (およびオーバーライド/実装)</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -249,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
         <source>Make readonly fields writable</source>
-        <target state="new">Make readonly fields writable</target>
+        <target state="translated">readonly フィールドを書き込み可能にします</target>
         <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -259,37 +264,37 @@
       </trans-unit>
       <trans-unit id="Local_function_can_be_made_static">
         <source>Local function can be made static</source>
-        <target state="new">Local function can be made static</target>
+        <target state="translated">ローカル関数を静的にすることができます</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_local_function_static">
         <source>Make local function 'static'</source>
-        <target state="new">Make local function 'static'</target>
+        <target state="translated">ローカル関数を 'static' にします</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
         <source>Merge with nested '{0}' statement</source>
-        <target state="new">Merge with nested '{0}' statement</target>
+        <target state="translated">入れ子になった '{0}' ステートメントとマージします</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_next_0_statement">
         <source>Merge with next '{0}' statement</source>
-        <target state="new">Merge with next '{0}' statement</target>
+        <target state="translated">次の '{0}' ステートメントとマージします</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_outer_0_statement">
         <source>Merge with outer '{0}' statement</source>
-        <target state="new">Merge with outer '{0}' statement</target>
+        <target state="translated">外部の '{0}' ステートメントとマージします</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_previous_0_statement">
         <source>Merge with previous '{0}' statement</source>
-        <target state="new">Merge with previous '{0}' statement</target>
+        <target state="translated">前の '{0}' ステートメントとマージします</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
         <source>{0} must return a stream that supports read and seek operations.</source>
-        <target state="new">{0} must return a stream that supports read and seek operations.</target>
+        <target state="translated">{0} は、読み取りとシーク操作をサポートするストリームを返す必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
@@ -299,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
-        <target state="new">Move contents to namespace...</target>
+        <target state="translated">名前空間へのコンテンツの移動...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -314,7 +319,7 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
-        <target state="new">Move to namespace...</target>
+        <target state="translated">名前空間に移動します...</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -339,7 +344,7 @@
       </trans-unit>
       <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
         <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
+        <target state="translated">プライベート プロパティ '{0}' は、その get アクセサーが呼び出されることがないため、メソッドに変換できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -414,17 +419,17 @@
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
-        <target state="new">Split into consecutive '{0}' statements</target>
+        <target state="translated">連続する '{0}' ステートメントに分割</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
-        <target state="new">Split into nested '{0}' statements</target>
+        <target state="translated">入れ子になった '{0}' ステートメントに分割</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportReadAndSeek">
         <source>Stream must support read and seek operations.</source>
-        <target state="new">Stream must support read and seek operations.</target>
+        <target state="translated">ストリームは、読み取りとシーク操作をサポートする必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_0">
@@ -434,17 +439,17 @@
       </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
-        <target state="new">Target type matches</target>
+        <target state="translated">ターゲットの種類が一致します</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
-        <target state="new">Unnecessary assignment of a value</target>
+        <target state="translated">値の不必要な割り当て</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
         <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="new">Unnecessary assignment of a value to '{0}'</target>
+        <target state="translated">値の '{0}' への不必要な割り当て</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -494,7 +499,7 @@
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
         <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="new">Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</target>
+        <target state="translated">推奨される dispose パターンを使用して、ローカル スコープの破棄可能なオブジェクトがすべてのパスで破棄されるようにします。可能なら、'using' ステートメントまたは 'using' 宣言内で作成をラップします。または、try-finally パターンを、try 領域の前で宣言された専用のローカル変数と、'finally' 領域の非 null 値での条件なしの Dispose の呼び出し (例: 'x?.Dispose()') とともに使用します。オブジェクトが try 領域内で明示的に破棄されるか、dispose の所有権が他のオブジェクトまたはメソッドに移される場合、その操作のすぐ後で 'null' をローカル変数に割り当てて、'finally' 内での dispose の重複を回避します</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -549,17 +554,17 @@
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
         <source>Use recommended dispose pattern</source>
-        <target state="new">Use recommended dispose pattern</target>
+        <target state="translated">推奨される dispose パターンを使用する</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="new">Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</target>
+        <target state="translated">推奨された dispose パターンを使用して、'{0}' が作成したオブジェクトがすべてのパスで破棄されるようにします: using ステートメント/宣言または try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
         <source>Use simple 'using' statement</source>
-        <target state="new">Use simple 'using' statement</target>
+        <target state="translated">単純な 'using' ステートメントを使用する</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -579,7 +584,7 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
-        <target state="new">Wrap and align expression</target>
+        <target state="translated">式を折り返して整列する</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_long_call_chain">
@@ -644,7 +649,7 @@
       </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
-        <target state="new">in Source (attribute)</target>
+        <target state="translated">ソース内 (属性)</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -1655,7 +1660,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="enum_value">
         <source>enum value</source>
-        <target state="translated">列挙値</target>
+        <target state="translated">enum 値</target>
         <note>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="const_field">
@@ -2577,7 +2582,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="using_statement_can_be_simplified">
         <source>'using' statement can be simplified</source>
-        <target state="new">'using' statement can be simplified</target>
+        <target state="translated">'using' ステートメントは単純にできます</target>
         <note />
       </trans-unit>
     </body>

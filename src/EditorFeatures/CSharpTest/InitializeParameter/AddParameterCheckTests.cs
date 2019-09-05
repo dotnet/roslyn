@@ -304,6 +304,248 @@ class C
 }");
         }
 
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableParameters()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]string a, string b, string c)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string a, string b, string c)
+    {
+        if (string.IsNullOrEmpty(a))
+        {
+            throw new ArgumentException(""message"", nameof(a));
+        }
+
+        if (string.IsNullOrEmpty(b))
+        {
+            throw new ArgumentException(""message"", nameof(b));
+        }
+
+        if (string.IsNullOrEmpty(c))
+        {
+            throw new ArgumentException(""message"", nameof(c));
+        }
+    }
+}", index: 3);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCursorNotOnParameters()
+        {
+            await TestMissingInRegularAndScriptAsync(
+
+@"
+using System;
+
+class C
+{
+    public C(string a[|,|] string b, string c)
+    {
+    }
+}"
+);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableWithCursorOnNonNullable()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C(string a, [||]bool b, string c)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string a, bool b, string c)
+    {
+        if (string.IsNullOrEmpty(a))
+        {
+            throw new ArgumentException(""message"", nameof(a));
+        }
+
+        if (string.IsNullOrEmpty(c))
+        {
+            throw new ArgumentException(""message"", nameof(c));
+        }
+    }
+}", index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableNonNullable()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]string a, bool b, string c)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string a, bool b, string c)
+    {
+        if (string.IsNullOrEmpty(a))
+        {
+            throw new ArgumentException(""message"", nameof(a));
+        }
+
+        if (string.IsNullOrEmpty(c))
+        {
+            throw new ArgumentException(""message"", nameof(c));
+        }
+    }
+}", index: 3);
+
+        }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableStringsAndObjects()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]string a, object b, string c)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string a, object b, string c)
+    {
+        if (string.IsNullOrEmpty(a))
+        {
+            throw new ArgumentException(""message"", nameof(a));
+        }
+
+        if (b is null)
+        {
+            throw new ArgumentNullException(nameof(b));
+        }
+
+        if (string.IsNullOrEmpty(c))
+        {
+            throw new ArgumentException(""message"", nameof(c));
+        }
+    }
+}", index: 3);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableObjects()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]object a, object b, object c)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(object a, object b, object c)
+    {
+        if (a is null)
+        {
+            throw new ArgumentNullException(nameof(a));
+        }
+
+        if (b is null)
+        {
+            throw new ArgumentNullException(nameof(b));
+        }
+
+        if (c is null)
+        {
+            throw new ArgumentNullException(nameof(c));
+        }
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableStructs()
+        {
+            await TestInRegularAndScript1Async(
+
+@"
+using System;
+
+class C
+{
+    public C([||]int ? a, bool ? b, double ? c)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(int ? a, bool ? b, double ? c)
+    {
+        if (a is null)
+        {
+            throw new ArgumentNullException(nameof(a));
+        }
+
+        if (b is null)
+        {
+            throw new ArgumentNullException(nameof(b));
+        }
+
+        if (c is null)
+        {
+            throw new ArgumentNullException(nameof(c));
+        }
+    }
+}", index: 1);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateExistingPropertyAssignment()
         {
@@ -1109,6 +1351,22 @@ class C
 class C
 {
     int this[[||]string s]
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}");
+        }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnIndexerParameters()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int this[[|object a|], object b, object c]
     {
         get
         {

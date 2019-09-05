@@ -3641,7 +3641,9 @@ oneMoreTime:
         {
             StartVisitingStatement(operation);
 
-            ITypeSymbol iDisposable = _compilation.GetSpecialType(SpecialType.System_IDisposable);
+            ITypeSymbol iDisposable = operation.IsAsynchronous
+                ? _compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable)
+                : _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
             var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals);
             EnterRegion(usingRegion);
@@ -3762,7 +3764,7 @@ oneMoreTime:
 
                 LeaveRegion();
 
-                AddDisposingFinally(resource, knownToImplementIDisposable: true, iDisposable);
+                AddDisposingFinally(resource, knownToImplementIDisposable: true, iDisposable, operation.IsAsynchronous);
 
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();
@@ -3777,7 +3779,7 @@ oneMoreTime:
             }
         }
 
-        private void AddDisposingFinally(IOperation resource, bool knownToImplementIDisposable, ITypeSymbol iDisposable)
+        private void AddDisposingFinally(IOperation resource, bool knownToImplementIDisposable, ITypeSymbol iDisposable, bool isAsynchronous)
         {
             Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
 
@@ -3822,12 +3824,21 @@ oneMoreTime:
             {
                 Debug.Assert(value.Type == iDisposable);
 
-                var method = (IMethodSymbol)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
+                var method = isAsynchronous
+                    ? (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
+                    : (IMethodSymbol)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
                 if (method != null)
                 {
-                    return new InvocationOperation(method, value, isVirtual: true,
+                    var invocation = new InvocationOperation(method, value, isVirtual: true,
                                                     ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, value.Syntax,
                                                     method.ReturnType, constantValue: default, isImplicit: true);
+
+                    if (isAsynchronous)
+                    {
+                        return new AwaitOperation(invocation, semanticModel: null, value.Syntax, _compilation.GetSpecialType(SpecialType.System_Void), constantValue: default, isImplicit: true);
+                    }
+
+                    return invocation;
                 }
 
                 return null;
@@ -3841,7 +3852,8 @@ oneMoreTime:
 
         private IOperation ConvertToIDisposable(IOperation operand, ITypeSymbol iDisposable, bool isTryCast = false)
         {
-            Debug.Assert(iDisposable.SpecialType == SpecialType.System_IDisposable);
+            Debug.Assert(iDisposable.SpecialType == SpecialType.System_IDisposable ||
+                iDisposable.Equals(_compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable)));
             return new ConversionOperation(operand, _compilation.ClassifyConvertibleConversion(operand, iDisposable, out var constantValue), isTryCast, isChecked: false,
                                            semanticModel: null, operand.Syntax, iDisposable, constantValue, isImplicit: true);
         }
@@ -4110,9 +4122,15 @@ oneMoreTime:
 
                 LeaveRegion();
 
+                bool isAsynchronous = info.IsAsynchronous;
+                var iDisposable = isAsynchronous
+                    ? _compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable)
+                    : _compilation.GetSpecialType(SpecialType.System_IDisposable);
+
                 AddDisposingFinally(OperationCloner.CloneOperation(enumerator),
                                     info.KnownToImplementIDisposable,
-                                    _compilation.GetSpecialType(SpecialType.System_IDisposable));
+                                    iDisposable,
+                                    isAsynchronous);
 
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();
@@ -4169,7 +4187,12 @@ oneMoreTime:
             {
                 if (info?.MoveNextMethod != null)
                 {
-                    return makeInvocationDroppingInstanceForStaticMethods(info.MoveNextMethod, enumeratorRef, info.MoveNextArguments);
+                    var moveNext = makeInvocationDroppingInstanceForStaticMethods(info.MoveNextMethod, enumeratorRef, info.MoveNextArguments);
+                    if (operation.IsAsynchronous)
+                    {
+                        return new AwaitOperation(moveNext, semanticModel: null, operation.Syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), constantValue: default, isImplicit: true);
+                    }
+                    return moveNext;
                 }
                 else
                 {

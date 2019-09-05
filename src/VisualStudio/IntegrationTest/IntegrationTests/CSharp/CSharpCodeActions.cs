@@ -492,13 +492,12 @@ public class P2 { }");
                 "Generate new type...",
                 "Remove unused variable",
                 "Configure or Suppress issues",
-                // https://github.com/dotnet/roslyn/issues/36330
-                //"Configure CS0168 severity",
-                //"None",
-                //"Silent",
-                //"Suggestion",
-                //"Warning",
-                //"Error",
+                "Configure CS0168 severity",
+                "None",
+                "Silent",
+                "Suggestion",
+                "Warning",
+                "Error",
                 "Suppress CS0168",
                 "in Source"
             };
@@ -540,13 +539,12 @@ namespace NS
                 "Generate new type...",
                 "Goober - using N;",
                 "Configure or Suppress issues",
-                // https://github.com/dotnet/roslyn/issues/36330
-                //"Configure CS0168 severity",
-                //"None",
-                //"Silent",
-                //"Suggestion",
-                //"Warning",
-                //"Error",
+                "Configure CS0168 severity",
+                "None",
+                "Silent",
+                "Suggestion",
+                "Warning",
+                "Error",
                 "Suppress CS0168",
                 "in Source",
             };
@@ -583,13 +581,12 @@ class Program
                 "Extract Method",
                 generateImplicitTitle,
                 "Configure or Suppress issues",
-                // https://github.com/dotnet/roslyn/issues/36330
-                //"Configure CS0612 severity",
-                //"None",
-                //"Silent",
-                //"Suggestion",
-                //"Warning",
-                //"Error",
+                "Configure CS0612 severity",
+                "None",
+                "Silent",
+                "Suggestion",
+                "Warning",
+                "Error",
                 "Suppress CS0612",
                 "in Source",
             };
@@ -647,7 +644,7 @@ public class Program
 
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36330"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38198"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public void ConfigureCodeStyleOptionValueAndSeverity()
         {
             SetUpEditor(@"

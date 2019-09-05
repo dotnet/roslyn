@@ -224,10 +224,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                Contract.ThrowIfNull(_workspace);
-
                 if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
                 {
+                    Contract.ThrowIfNull(_workspace);
                     Contract.ThrowIfTrue(_openedDocumentIds.ContainsKey(fileInfo));
 
                     // We do own the file, so let's open it up in our workspace

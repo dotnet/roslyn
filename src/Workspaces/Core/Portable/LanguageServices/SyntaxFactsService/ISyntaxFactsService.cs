@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsVerbatimStringLiteral(SyntaxToken token);
         bool IsInterpolatedStringTextToken(SyntaxToken token);
         bool IsStringLiteralExpression(SyntaxNode node);
+        bool IsCharacterLiteralExpression(SyntaxNode node);
 
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
@@ -138,6 +139,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsAwaitExpression(SyntaxNode node);
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
+        bool IsExpressionOfForeach(SyntaxNode node);
 
         bool IsLogicalAndExpression(SyntaxNode node);
         bool IsLogicalOrExpression(SyntaxNode node);

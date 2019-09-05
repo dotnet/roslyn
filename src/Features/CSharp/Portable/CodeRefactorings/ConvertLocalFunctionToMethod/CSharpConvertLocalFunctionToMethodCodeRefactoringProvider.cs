@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             }
 
             var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
-            if (localFunction == default)
+            if (localFunction == null)
             {
                 return;
             }

@@ -364,6 +364,20 @@ DoneWithErrorReporting:
                             If Not binder.IsAccessible(foundMember, useSiteDiagnostics) Then
                                 resultKind = LookupResult.WorseResultKind(resultKind, LookupResultKind.Inaccessible) ' we specified IgnoreAccessibility above.
                                 Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, binder.GetInaccessibleErrorInfo(foundMember))
+                            ElseIf foundMember.Kind = SymbolKind.Property Then
+                                Dim [property] = DirectCast(DirectCast(foundMember, Symbol), PropertySymbol)
+                                Dim accessorToCheck As MethodSymbol = [property].GetMethod
+                                If accessorToCheck Is Nothing OrElse
+                                   accessorToCheck.DeclaredAccessibility = [property].DeclaredAccessibility OrElse
+                                   Not accessorToCheck.RequiresImplementation() Then
+                                    accessorToCheck = [property].SetMethod
+                                End If
+                                If accessorToCheck IsNot Nothing AndAlso
+                                   accessorToCheck.DeclaredAccessibility <> [property].DeclaredAccessibility AndAlso
+                                   accessorToCheck.RequiresImplementation() AndAlso
+                                   Not binder.IsAccessible(accessorToCheck, useSiteDiagnostics) Then
+                                    Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, binder.GetInaccessibleErrorInfo(accessorToCheck))
+                                End If
                             End If
                         End If
                     End If
