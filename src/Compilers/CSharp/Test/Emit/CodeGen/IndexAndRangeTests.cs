@@ -271,6 +271,138 @@ Slice 1
         }
 
         [Fact]
+        [WorkItem(37789, "https://github.com/dotnet/roslyn/issues/37789")]
+        public void PatternindexNullableCoalescingAssignment()
+        {
+            var src = @"
+using System;
+struct S
+{
+    private readonly int?[] _array;
+
+    private int _counter;
+
+    public S(int?[] a)
+    {
+        _array = a;
+        _counter = 0;
+    }
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Length "" + _counter++);
+            return _array.Length;
+        }
+    }
+    public int? this[int index] 
+    {
+        get
+        {
+            Console.WriteLine(""Get "" + _counter++);
+            return _array[index];
+        }
+        set
+        {
+            Console.WriteLine(""Set "" + _counter++);
+            _array[index] = value;
+        }
+    }
+
+}
+class C
+{
+    static void Main(string[] args)
+    {
+        var array = new int?[2];
+        array[0] = 1;
+        Console.WriteLine(array[1] is null);
+        var s = new S(array);
+        s[^1] ??= s[^2];
+        Console.WriteLine(array[1]);
+    }
+}";
+            var comp = CreateCompilationWithIndex(src, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+True
+Length 0
+Get 1
+Length 2
+Get 3
+Set 4
+1");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size      135 (0x87)
+  .maxstack  5
+  .locals init (int?[] V_0, //array
+                S V_1, //s
+                int? V_2,
+                S& V_3,
+                S& V_4,
+                int V_5,
+                int? V_6,
+                int V_7)
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""int?""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  newobj     ""int?..ctor(int)""
+  IL_000f:  stelem     ""int?""
+  IL_0014:  ldloc.0
+  IL_0015:  ldc.i4.1
+  IL_0016:  ldelem     ""int?""
+  IL_001b:  stloc.2
+  IL_001c:  ldloca.s   V_2
+  IL_001e:  call       ""bool int?.HasValue.get""
+  IL_0023:  ldc.i4.0
+  IL_0024:  ceq
+  IL_0026:  call       ""void System.Console.WriteLine(bool)""
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  ldloc.0
+  IL_002e:  call       ""S..ctor(int?[])""
+  IL_0033:  ldloca.s   V_1
+  IL_0035:  stloc.3
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""int S.Length.get""
+  IL_003c:  ldc.i4.1
+  IL_003d:  sub
+  IL_003e:  ldloc.3
+  IL_003f:  stloc.s    V_4
+  IL_0041:  stloc.s    V_5
+  IL_0043:  ldloc.s    V_4
+  IL_0045:  ldloc.s    V_5
+  IL_0047:  call       ""int? S.this[int].get""
+  IL_004c:  stloc.2
+  IL_004d:  ldloca.s   V_2
+  IL_004f:  call       ""bool int?.HasValue.get""
+  IL_0054:  brtrue.s   IL_0075
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  ldloc.s    V_5
+  IL_005a:  ldloca.s   V_1
+  IL_005c:  dup
+  IL_005d:  call       ""int S.Length.get""
+  IL_0062:  ldc.i4.2
+  IL_0063:  sub
+  IL_0064:  stloc.s    V_7
+  IL_0066:  ldloc.s    V_7
+  IL_0068:  call       ""int? S.this[int].get""
+  IL_006d:  dup
+  IL_006e:  stloc.s    V_6
+  IL_0070:  call       ""void S.this[int].set""
+  IL_0075:  ldloc.0
+  IL_0076:  ldc.i4.1
+  IL_0077:  ldelem     ""int?""
+  IL_007c:  box        ""int?""
+  IL_0081:  call       ""void System.Console.WriteLine(object)""
+  IL_0086:  ret
+}");
+        }
+
+
+        [Fact]
         public void StringAndSpanPatternRangeOpenEnd()
         {
             var src = @"
