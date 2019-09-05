@@ -57,6 +57,26 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void RenameAdditionalFile_CPS()
+        {
+            using var environment = new TestEnvironment();
+            using var project = CreateCSharpCPSProject(environment, "project1");
+            IEnumerable<TextDocument> GetCurrentAdditionalDocuments() => environment.Workspace.CurrentSolution.Projects.Single().AdditionalDocuments;
+            Assert.Empty(GetCurrentAdditionalDocuments());
+
+            // Add additional file
+            var additionalFileFullPath = @"c:\source.cs";
+            project.AddAdditionalFile(additionalFileFullPath);
+            Assert.True(GetCurrentAdditionalDocuments().Any(s => s.FilePath == additionalFileFullPath));
+
+            // Remove additional file
+            var newFileFullPath = @"c:\newsource.cs";
+            project.RenameAdditionalFile(additionalFileFullPath, newFileFullPath);
+            Assert.True(GetCurrentAdditionalDocuments().Any(s => s.FilePath == newFileFullPath));
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void ReorderSourceFiles_CPS()
         {
             using var environment = new TestEnvironment();
