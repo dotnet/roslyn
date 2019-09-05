@@ -5618,7 +5618,9 @@ class C
         [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
         public async Task TestFieldName_QualifiedWithType_TinySelection1()
         {
-            await TestMissingAsync(
+            // While one might argue that offering the refactoring in this case is not strictly correct the selection expression is
+            // unambiguous and there will be no other refactorings offered. Thus the cost of offering it very virtually non-existent.
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -5626,6 +5628,16 @@ class C
     void M()
     {
         System.Console.Write(C[|.|]a);
+    }
+}",
+@"
+class C
+{
+    static int a;
+    void M()
+    {
+        int {|Rename:a1|} = C.a;
+        System.Console.Write(a1);
     }
 }");
         }
