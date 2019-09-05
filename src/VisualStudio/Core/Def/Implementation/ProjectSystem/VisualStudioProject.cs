@@ -387,6 +387,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         documentsToOpen,
                         (s, documents) => s.AddDocuments(documents),
                         WorkspaceChangeKind.DocumentAdded,
+                        (s, id, newPath) => s.WithDocumentFilePath(id, newPath),
+                        WorkspaceChangeKind.DocumentChanged,
                         (s, id) =>
                         {
                             // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveDocument directly this is
@@ -410,6 +412,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             return s;
                         },
                         WorkspaceChangeKind.AdditionalDocumentAdded,
+                        (s, id, newPath) => s.WithAdditionalDocumentFilePath(id, newPath),
+                        WorkspaceChangeKind.AdditionalDocumentChanged,
                         (s, id) =>
                         {
                             // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveDocument directly this is
@@ -425,6 +429,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         analyzerConfigDocumentsToOpen,
                         (s, documents) => s.AddAnalyzerConfigDocuments(documents),
                         WorkspaceChangeKind.AnalyzerConfigDocumentAdded,
+                        (s, id, newPath) => throw new InvalidOperationException(),
+                        WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
                         (s, id) =>
                         {
                             // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveAnalyzerConfigDocument directly this is
@@ -1122,7 +1128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// The current list of documents that are to be renamed in this batch.
             /// </summary>
-            private readonly ImmutableDictionary<DocumentId, string>.Builder _documentsRenamedInbatch = ImmutableDictionary.CreateBuilder<DocumentId, string>();
+            private readonly List<(DocumentId, string, string)> _documentsRenamedInbatch = new List<(DocumentId, string, string)>();
 
             /// <summary>
             /// The current list of document file paths that will be ordered in a batch.
@@ -1224,7 +1230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         if (_project._activeBatchScopes > 0)
                         {
-                            _documentsRenamedInbatch.Add(documentId, newFilePath);
+                            _documentsRenamedInbatch.Add((documentId, originalFilePath, newFilePath));
                         }
                         else
                         {
@@ -1612,6 +1618,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 List<(DocumentId documentId, SourceTextContainer textContainer)> documentsToOpen,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 WorkspaceChangeKind addDocumentChangeKind,
+                Func<Solution, DocumentId, string, Solution> renameDocument,
+                WorkspaceChangeKind renameChangeKind,
                 Func<Solution, DocumentId, Solution> removeDocument,
                 WorkspaceChangeKind removeDocumentChangeKind)
             {
@@ -1632,6 +1640,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 ClearAndZeroCapacity(_documentsAddedInBatch);
+
+                // Document renaming...
+                foreach (var (documentId, oldPath, newPath) in _documentsRenamedInbatch)
+                {
+                    if (documentFileNamesAdded.Contains(oldPath))
+                    {
+                        documentFileNamesAdded.Remove(oldPath);
+                        documentFileNamesAdded.Add(newPath);
+                    }
+
+                    solutionChanges.UpdateSolutionForDocumentAction(
+                        newSolution: renameDocument(solutionChanges.Solution, documentId, newPath),
+                        changeKind: renameChangeKind,
+                        SpecializedCollections.SingletonEnumerable(documentId));
+                }
+
+                ClearAndZeroCapacity(_documentsRenamedInbatch);
 
                 // Document removing...
                 foreach (var documentId in _documentsRemovedInBatch)

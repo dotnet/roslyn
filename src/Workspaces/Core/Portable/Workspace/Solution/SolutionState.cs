@@ -605,6 +605,53 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutable();
         }
 
+        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRenamedDocuments(TextDocumentState originalState, TextDocumentState newState)
+        => CreateFilePathToDocumentIdsMapWithRenamedDocuments(SpecializedCollections.SingletonEnumerable((originalState, newState)));
+
+        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRenamedDocuments(IEnumerable<(TextDocumentState originalState, TextDocumentState newState)> documentStates)
+        {
+            var builder = _filePathToDocumentIdsMap.ToBuilder();
+
+            foreach (var (originalState, newState) in documentStates)
+            {
+                if (originalState.FilePath == newState.FilePath)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(originalState.FilePath))
+                {
+                    if (!builder.TryGetValue(originalState.FilePath!, out var documentIdsWithPath) || !documentIdsWithPath.Contains(originalState.Id))
+                    {
+                        throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
+                    }
+
+                    if (documentIdsWithPath.Length == 1)
+                    {
+                        builder.Remove(originalState.FilePath!);
+                    }
+                    else
+                    {
+                        builder[originalState.FilePath!] = documentIdsWithPath.Remove(originalState.Id);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(newState.FilePath))
+                {
+                    if (!builder.TryGetValue(newState.FilePath!, out var documentIdsWithPath))
+                    {
+                        builder[newState.FilePath!] = ImmutableArray.Create(newState.Id);
+                    }
+                    else if (!documentIdsWithPath.Contains(newState.Id))
+                    {
+                        builder[newState.FilePath!] = documentIdsWithPath.Add(newState.Id);
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the new
         /// assembly name.
@@ -1337,8 +1384,8 @@ namespace Microsoft.CodeAnalysis
 
             var oldDocument = this.GetDocumentState(documentId)!;
             var newDocument = (DocumentState)oldDocument.UpdateFilePath(filePath);
-
-            return this.WithDocumentState(newDocument);
+            var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRenamedDocuments(oldDocument, newDocument);
+            return this.WithDocumentState(newDocument, newFilePathToDocumentIdsMap);
         }
 
         /// <summary>
@@ -1359,7 +1406,8 @@ namespace Microsoft.CodeAnalysis
 
             var oldDocument = this.GetAdditionalDocumentState(documentId)!;
             var newDocument = oldDocument.UpdateFilePath(filePath);
-            return this.WithAdditionalDocumentStateAndPathChange(newDocument, oldDocument.FilePath, newDocument.FilePath);
+            var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRenamedDocuments(oldDocument, newDocument);
+            return this.WithAdditionalDocumentState(newDocument, newFilePathToDocumentIdsMap);
         }
 
         /// <summary>
@@ -1618,6 +1666,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         private SolutionState WithDocumentState(DocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        => WithDocumentState(newDocument, _filePathToDocumentIdsMap, textChanged, recalculateDependentVersions);
+
+        private SolutionState WithDocumentState(DocumentState newDocument, ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathsToDocumentIds, bool textChanged = false, bool recalculateDependentVersions = false)
         {
             if (newDocument == null)
             {
@@ -1632,10 +1683,13 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.TouchDocument(newDocument.Id, p => p.UpdateDocument(newDocument, textChanged, recalculateDependentVersions));
+            return this.TouchDocument(newDocument.Id, filePathsToDocumentIds, p => p.UpdateDocument(newDocument, textChanged, recalculateDependentVersions));
         }
 
         private SolutionState TouchDocument(DocumentId documentId, Func<ProjectState, ProjectState> touchProject)
+        => TouchDocument(documentId, _filePathToDocumentIdsMap, touchProject);
+
+        private SolutionState TouchDocument(DocumentId documentId, ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathsToDocumentIds, Func<ProjectState, ProjectState> touchProject)
         {
             Debug.Assert(this.ContainsDocument(documentId));
 
@@ -1651,10 +1705,13 @@ namespace Microsoft.CodeAnalysis
             var oldDocument = oldProject.GetDocumentState(documentId);
             var newDocument = newProject.GetDocumentState(documentId);
 
-            return this.ForkProject(newProject, new CompilationTranslationAction.TouchDocumentAction(oldDocument, newDocument));
+            return this.ForkProject(newProject, new CompilationTranslationAction.TouchDocumentAction(oldDocument, newDocument), newFilePathToDocumentIdsMap: filePathsToDocumentIds);
         }
 
         private SolutionState WithAdditionalDocumentState(TextDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        => WithAdditionalDocumentState(newDocument, _filePathToDocumentIdsMap, textChanged, recalculateDependentVersions);
+
+        private SolutionState WithAdditionalDocumentState(TextDocumentState newDocument, ImmutableDictionary<string, ImmutableArray<DocumentId>> fileToDocumentIdsMap, bool textChanged = false, bool recalculateDependentVersions = false)
         {
             if (newDocument == null)
             {
@@ -1678,63 +1735,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.ForkProject(newProject);
-        }
-
-        private SolutionState WithAdditionalDocumentStateAndPathChange(TextDocumentState newDocument, string? oldName, string? newName, bool textChanged = false, bool recalculateDependentVersions = false)
-        {
-            if (newDocument == null)
-            {
-                throw new ArgumentNullException(nameof(newDocument));
-            }
-
-            CheckContainsAdditionalDocument(newDocument.Id);
-
-            if (newDocument == this.GetAdditionalDocumentState(newDocument.Id))
-            {
-                // old and new documents are the same instance
-                return this;
-            }
-
-            var oldProject = this.GetProjectState(newDocument.Id.ProjectId)!;
-            var newProject = oldProject.UpdateAdditionalDocument(newDocument, textChanged, recalculateDependentVersions);
-
-            if (oldProject == newProject)
-            {
-                // old and new projects are the same instance
-                return this;
-            }
-
-            if (oldName == newName)
-            {
-                return this.ForkProject(newProject);
-            }
-
-            var mapBuilder = _filePathToDocumentIdsMap.ToBuilder();
-
-            if (oldName is object && mapBuilder.ContainsKey(oldName))
-            {
-                var arrayBuilder = mapBuilder[oldName].ToBuilder();
-                arrayBuilder.Remove(newDocument.Id);
-
-                mapBuilder[oldName] = arrayBuilder.ToImmutableArray();
-            }
-
-            if (newName is object)
-            {
-                if (mapBuilder.TryGetValue(newName, out var newNameArray))
-                {
-                    var newArrayBuilder = newNameArray.ToBuilder();
-                    newArrayBuilder.Add(newDocument.Id);
-                    mapBuilder[newName] = newArrayBuilder.ToImmutableArray();
-                }
-                else
-                {
-                    mapBuilder[newName] = new[] { newDocument.Id }.ToImmutableArray();
-                }
-            }
-
-            return this.ForkProject(newProject, newFilePathToDocumentIdsMap: mapBuilder.ToImmutableDictionary());
+            return this.ForkProject(newProject, newFilePathToDocumentIdsMap: fileToDocumentIdsMap);
         }
 
         private SolutionState WithAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
