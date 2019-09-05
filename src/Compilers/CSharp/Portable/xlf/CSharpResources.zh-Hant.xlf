@@ -107,6 +107,11 @@
         <target state="translated">因為類型 '{0}' 有非抽象成員，所以無法內嵌。請考慮將 [內嵌 Interop 類型] 屬性設為 false。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">預設常值 'default' 作為模式無效。請使用另一個適當的常值 (例如 '0' 或 'null')。若要比對所有項目，請使用捨棄模式 '_'。</target>
@@ -220,6 +225,11 @@
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">因為介面成員 '{1}' 包含 __arglist 參數，所以 '{0}' 無法在類型 '{2}' 中實作此介面成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InternalError">
+        <source>Internal error in the C# compiler.</source>
+        <target state="new">Internal error in the C# compiler.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -9460,11 +9470,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">在模式中使用類型 'dynamic' 不合法。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">無法將預設常值用作為動態分派作業的引數。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">提供的文件模式不受支援或無效: '{0}'。</target>
@@ -9663,11 +9668,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_ConditionalInInterpolation">
         <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
         <target state="translated">因為內插補點的結尾是 ':'，所以無法直接在字串內插補點使用條件式運算式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">預設常值 'default' 為無效的 case 常數。請使用另一個適當的常值 (例如 '0' 或 'null')。如果您想要寫入預設標籤，請使用無 'case' 的 'default:'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">

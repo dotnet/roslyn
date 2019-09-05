@@ -107,6 +107,11 @@
         <target state="translated">Не удается внедрить тип "{0}", так как он имеет неабстрактный член. Попробуйте задать для свойства "Внедрить типы взаимодействия" значение false.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">Литерал по умолчанию "default" недопустимо использовать в качестве шаблона. Используйте другой литерал (например, "0" или "null") по мере необходимости. Чтобы задать полное совпадение, используйте шаблон отмены "_".</target>
@@ -220,6 +225,11 @@
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">"{0}" не может реализовать член интерфейса "{1}" в типе "{2}" из-за наличия параметра __arglist</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InternalError">
+        <source>Internal error in the C# compiler.</source>
+        <target state="new">Internal error in the C# compiler.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -9460,11 +9470,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">Запрещено использовать тип dynamic в шаблоне.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">Невозможно использовать литерал по умолчанию как аргумент для динамически отправляемой операции.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">Указанный режим документации не поддерживается или недопустим: "{0}".</target>
@@ -9663,11 +9668,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_ConditionalInInterpolation">
         <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
         <target state="translated">Условное выражение не может использоваться напрямую в интерполяции строк, так как интерполяция заканчивается на ":". Заключите условное выражение в скобки.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">Литерал по умолчанию "default" недопустимо использовать в качестве константы оператора case. Используйте другой литерал (например, "0" или "null") по мере необходимости. Если вы хотите создать метку по умолчанию, используйте "default:" без "case".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">

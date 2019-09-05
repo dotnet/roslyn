@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out _) &&
-                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start))
+            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
+                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
                 return;
             }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only supported on classes/structs.
-            var containingType = GetEnclosingNamedType(semanticModel, root, textSpan.Start);
+            var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration) as INamedTypeSymbol;
             if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
             {
                 return;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 new GenerateConstructorWithDialogCodeAction(
                     this, document, textSpan, containingType, viableMembers,
                     pickMemberOptions.ToImmutableAndFree()),
-                textSpan);
+                typeDeclaration.Span);
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(

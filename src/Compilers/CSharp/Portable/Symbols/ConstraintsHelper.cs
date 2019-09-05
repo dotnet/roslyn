@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool includeNullability,
             SyntaxNode typeSyntax,
             ImmutableArray<Location> elementLocations,
-            Compilation currentCompilation,
+            CSharpCompilation currentCompilation,
             DiagnosticBag diagnosticsOpt,
             DiagnosticBag nullabilityDiagnosticsOpt)
         {
@@ -509,13 +509,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool includeNullability,
             SyntaxNode typeSyntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, // may be omitted in synthesized invocations
-            Compilation currentCompilation,
+            CSharpCompilation currentCompilation,
             ConsList<TypeSymbol> basesBeingResolved,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(!type.IsTupleType);
             Debug.Assert(typeArgumentsSyntax.Count == 0 /*omitted*/ || typeArgumentsSyntax.Count == type.Arity);
-            Debug.Assert(currentCompilation is object);
 
             if (!RequiresChecking(type))
             {
@@ -650,7 +649,7 @@ hasRelatedInterfaces:
             this MethodSymbol method,
             ConversionsBase conversions,
             SyntaxNode syntaxNode,
-            Compilation currentCompilation,
+            CSharpCompilation currentCompilation,
             DiagnosticBag diagnostics)
         {
             if (!RequiresChecking(method))
@@ -681,7 +680,7 @@ hasRelatedInterfaces:
             this MethodSymbol method,
             ConversionsBase conversions,
             Location location,
-            Compilation currentCompilation,
+            CSharpCompilation currentCompilation,
             DiagnosticBag diagnostics)
         {
             if (!RequiresChecking(method))
@@ -711,7 +710,7 @@ hasRelatedInterfaces:
             NamedTypeSymbol type,
             ConversionsBase conversions,
             bool includeNullability,
-            Compilation currentCompilation,
+            CSharpCompilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
@@ -733,7 +732,7 @@ hasRelatedInterfaces:
             MethodSymbol method,
             ConversionsBase conversions,
             bool includeNullability,
-            Compilation currentCompilation,
+            CSharpCompilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
@@ -761,7 +760,7 @@ hasRelatedInterfaces:
         /// <param name="substitution">The map from type parameters to type arguments.</param>
         /// <param name="typeParameters">Containing symbol type parameters.</param>
         /// <param name="typeArguments">Containing symbol type arguments.</param>
-        /// <param name="currentCompilation">Improves error message detail.</param>
+        /// <param name="currentCompilation">Used to check availability of unmanaged constraint, and improves error message detail.</param>
         /// <param name="diagnosticsBuilder">Diagnostics.</param>
         /// <param name="nullabilityDiagnosticsBuilderOpt">Nullability warnings.</param>
         /// <param name="skipParameters">Parameters to skip.</param>
@@ -776,7 +775,7 @@ hasRelatedInterfaces:
             TypeMap substitution,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<TypeWithAnnotations> typeArguments,
-            Compilation currentCompilation,
+            CSharpCompilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
@@ -818,14 +817,13 @@ hasRelatedInterfaces:
             TypeMap substitution,
             TypeParameterSymbol typeParameter,
             TypeWithAnnotations typeArgument,
-            Compilation currentCompilation,
+            CSharpCompilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
             HashSet<TypeParameterSymbol> ignoreTypeConstraintsDependentOnTypeParametersOpt)
         {
             Debug.Assert(substitution != null);
-            Debug.Assert(currentCompilation is object);
 
             // The type parameters must be original definitions of type parameters from the containing symbol.
             Debug.Assert(ReferenceEquals(typeParameter.ContainingSymbol, containingSymbol.OriginalDefinition));
@@ -884,13 +882,19 @@ hasRelatedInterfaces:
                 }
                 else if (managedKind == ManagedKind.UnmanagedWithGenerics)
                 {
-                    var csDiagnosticInfo = MessageID.IDS_FeatureUnmanagedConstructedTypes
-                        .GetFeatureAvailabilityDiagnosticInfoOpt((CSharpCompilation)currentCompilation);
-                    if (csDiagnosticInfo != null)
+                    // When there is no compilation, we are being invoked through the API IMethodSymbol.ReduceExtensionMethod(...).
+                    // In that case we consider the unmanaged constraint to be satisfied as if we were compiling with the latest
+                    // language version.  The net effect of this is that in some IDE scenarios completion might consider an
+                    // extension method to be applicable, but then when you try to use it the IDE tells you to upgrade your language version.
+                    if (!(currentCompilation is null))
                     {
-                        var typeParameterDiagnosticInfo = new TypeParameterDiagnosticInfo(typeParameter, csDiagnosticInfo);
-                        diagnosticsBuilder.Add(typeParameterDiagnosticInfo);
-                        return false;
+                        var csDiagnosticInfo = MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfoOpt(currentCompilation);
+                        if (csDiagnosticInfo != null)
+                        {
+                            var typeParameterDiagnosticInfo = new TypeParameterDiagnosticInfo(typeParameter, csDiagnosticInfo);
+                            diagnosticsBuilder.Add(typeParameterDiagnosticInfo);
+                            return false;
+                        }
                     }
                 }
             }

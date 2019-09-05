@@ -107,6 +107,11 @@
         <target state="translated">Nie można osadzić typu „{0}”, ponieważ ma nieabstrakcyjną składową. Rozważ ustawienie wartości false dla właściwości „Osadź typy międzyoperacyjne”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">Domyślny literał „default” nie jest prawidłowy jako wzorzec. Użyj innego odpowiedniego literału (np. „0” lub „null”). Aby dopasować wszystko, użyj wzorca odrzucania „_”.</target>
@@ -220,6 +225,11 @@
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">Obiekt „{0}” nie może implementować elementu członkowskiego interfejsu „{1}” w ramach typu „{2}”, ponieważ zawiera on parametr __arglist</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InternalError">
+        <source>Internal error in the C# compiler.</source>
+        <target state="new">Internal error in the C# compiler.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -9460,11 +9470,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Używanie typu „dynamic” we wzorcu nie jest dozwolone.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">Nie można użyć domyślnego literału jako argumentu operacji wysyłanej dynamicznie.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">Podany tryb dokumentacji jest nieobsługiwany lub nieprawidłowy: „{0}”.</target>
@@ -9663,11 +9668,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_ConditionalInInterpolation">
         <source>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</source>
         <target state="translated">Wyrażenie warunkowe nie może być używane bezpośrednio w interpolacji ciągu, ponieważ znak „:” kończy interpolację. Umieść wyrażenie warunkowe w nawiasie.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">Domyślny literał „default” nie jest prawidłowy jako stała case. Użyj innego odpowiedniego literału (np. „0” lub „null”). Jeśli chodziło Ci o napisanie etykiety domyślnej, użyj zapisu „default:”, bez „case”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">

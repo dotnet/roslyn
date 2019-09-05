@@ -76,8 +76,8 @@ static class S2
             CheckTypes(sourceType, retargetingType);
 
             CheckMethods(sourceMethod, retargetingMethod);
-            var sourceReduced = sourceMethod.ReduceExtensionMethod(sourceType);
-            var retargetingReduced = retargetingMethod.ReduceExtensionMethod(retargetingType);
+            var sourceReduced = sourceMethod.ReduceExtensionMethod(sourceType, null!);
+            var retargetingReduced = retargetingMethod.ReduceExtensionMethod(retargetingType, null!);
             CheckReducedExtensionMethods(sourceReduced, retargetingReduced);
         }
 

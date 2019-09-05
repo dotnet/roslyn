@@ -142,8 +142,7 @@ class C
         End Sub
 #End If
 
-        ' https://github.com/dotnet/roslyn/issues/33564: Was <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(529101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529101")>
         Public Sub TestLocalConstantsTypes()

@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNullOrDefault, TypeSymbol rightType, bool rightIsNullOrDefault, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNull, TypeSymbol rightType, bool rightIsNull, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: The predefined reference type equality operators require one of the following:
 
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (((object)leftType != null) && leftType.IsTypeParameter())
             {
-                if (leftType.IsValueType || (!leftType.IsReferenceType && !rightIsNullOrDefault))
+                if (leftType.IsValueType || (!leftType.IsReferenceType && !rightIsNull))
                 {
                     return false;
                 }
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (((object)rightType != null) && rightType.IsTypeParameter())
             {
-                if (rightType.IsValueType || (!rightType.IsReferenceType && !leftIsNullOrDefault))
+                if (rightType.IsValueType || (!rightType.IsReferenceType && !leftIsNull))
                 {
                     return false;
                 }
@@ -741,19 +741,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var leftIsReferenceType = ((object)leftType != null) && leftType.IsReferenceType;
-            if (!leftIsReferenceType && !leftIsNullOrDefault)
+            if (!leftIsReferenceType && !leftIsNull)
             {
                 return false;
             }
 
             var rightIsReferenceType = ((object)rightType != null) && rightType.IsReferenceType;
-            if (!rightIsReferenceType && !rightIsNullOrDefault)
+            if (!rightIsReferenceType && !rightIsNull)
             {
                 return false;
             }
 
             // If at least one side is null then clearly a conversion exists.
-            if (leftIsNullOrDefault || rightIsNullOrDefault)
+            if (leftIsNull || rightIsNull)
             {
                 return true;
             }

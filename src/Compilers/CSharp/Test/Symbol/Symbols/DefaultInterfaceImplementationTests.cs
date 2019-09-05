@@ -8700,7 +8700,7 @@ class Test2 : I1
             Assert.Null(test2.FindImplementationForInterfaceMember(m5));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34658")]
+        [Fact]
         [WorkItem(34658, "https://github.com/dotnet/roslyn/issues/34658")]
         public void MethodModifiers_18()
         {
@@ -29715,8 +29715,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest,
-                                                 references: new[] { TestReferences.NetCoreApp30.SystemThreadingTasksRef });
+                                                 targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -54399,6 +54398,290 @@ class Test : C0, I1
                 // public class C0 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("C0", "I1.M()", "C0.M()").WithLocation(15, 19)
                 );
+        }
+
+        [Fact]
+        [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
+        public void WindowsRuntimeEvent_01()
+        {
+            AssemblyIdentity systemRuntimeIdentity = ((AssemblyMetadata)TestReferences.NetCoreApp30.SystemRuntimeRef.GetMetadata()).GetAssembly().Identity;
+            AssemblyIdentity systemRuntimeInteropServicesWindowsRuntimeIdentity = ((AssemblyMetadata)TestReferences.NetCoreApp30.SystemRuntimeInteropServicesWindowsRuntimeRef.GetMetadata()).GetAssembly().Identity;
+            Version systemRuntimeVersion = systemRuntimeIdentity.Version;
+            Version systemRuntimeInteropServicesWindowsRuntimeVersion = systemRuntimeInteropServicesWindowsRuntimeIdentity.Version;
+            var systemRuntimePublicKeyToken = systemRuntimeIdentity.PublicKeyToken;
+            var systemRuntimeInteropServicesWindowsRuntimePublicKeyToken = systemRuntimeInteropServicesWindowsRuntimeIdentity.PublicKeyToken;
+
+            var ilSource = @"
+.assembly extern System.Runtime
+{
+  .publickeytoken = (" +
+  systemRuntimePublicKeyToken[0].ToString("X2") +
+  systemRuntimePublicKeyToken[1].ToString("X2") +
+  systemRuntimePublicKeyToken[2].ToString("X2") +
+  systemRuntimePublicKeyToken[3].ToString("X2") +
+  systemRuntimePublicKeyToken[4].ToString("X2") +
+  systemRuntimePublicKeyToken[5].ToString("X2") +
+  systemRuntimePublicKeyToken[6].ToString("X2") +
+  systemRuntimePublicKeyToken[7].ToString("X2") +
+@" )
+  .ver " + $"{systemRuntimeVersion.Major}:{systemRuntimeVersion.Minor}:{systemRuntimeVersion.Build}:{systemRuntimeVersion.Revision}" + @"
+}
+
+.assembly extern System.Runtime.InteropServices.WindowsRuntime
+{
+  .publickeytoken = (" +
+  systemRuntimeInteropServicesWindowsRuntimePublicKeyToken[0].ToString("X2") +
+  systemRuntimeInteropServicesWindowsRuntimePublicKeyToken[1].ToString("X2") +
+  systemRuntimeInteropServicesWindowsRuntimePublicKeyToken[2].ToString("X2") +
+  systemRuntimeInteropServicesWindowsRuntimePublicKeyToken[3].ToString("X2") +
+  systemRuntimeInteropServicesWindowsRuntimePublicKeyToken[4].ToString("X2") +
+  systemRuntimeInteropServicesWindowsRuntimePublicKeyToken[5].ToString("X2") +
+  systemRuntimeInteropServicesWindowsRuntimePublicKeyToken[6].ToString("X2") +
+  systemRuntimeInteropServicesWindowsRuntimePublicKeyToken[7].ToString("X2") +
+@" )
+  .ver " + $"{systemRuntimeInteropServicesWindowsRuntimeVersion.Major}:{systemRuntimeInteropServicesWindowsRuntimeVersion.Minor}:{systemRuntimeInteropServicesWindowsRuntimeVersion.Build}:{systemRuntimeInteropServicesWindowsRuntimeVersion.Revision}" + @"
+}
+
+.class public auto ansi sealed Event
+       extends [System.Runtime]System.MulticastDelegate
+{
+  .method private hidebysig specialname rtspecialname 
+          instance void  .ctor(object 'object',
+                               native int 'method') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot specialname virtual 
+          instance void  Invoke() runtime managed
+  {
+  }
+
+} // end of class Event
+
+.class interface public abstract auto ansi Interface`1<T>
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  add_Normal(class Event 'value') cil managed
+  {
+  }
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  remove_Normal(class Event 'value') cil managed
+  {
+  }
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 
+          add_WinRT([in] class Event 'value') cil managed
+  {
+  }
+
+  .method public hidebysig newslot specialname abstract virtual 
+          instance void  remove_WinRT([in] valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 'value') cil managed
+  {
+  }
+
+  .event Event Normal
+  {
+    .addon instance void Interface`1::add_Normal(class Event)
+    .removeon instance void Interface`1::remove_Normal(class Event)
+  } // end of event I`1::Normal
+
+  .event Event WinRT
+  {
+    .addon instance valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken Interface`1::add_WinRT(class Event)
+    .removeon instance void Interface`1::remove_WinRT(valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)
+  }
+} // end of class Interface
+";
+
+            var source = @"
+interface I1 : Interface<int>
+{
+    event Event Interface<int>.Normal 
+    { 
+        add { throw null; }
+        remove { throw null; }
+    }
+
+    event Event Interface<int>.WinRT 
+    { 
+        add 
+        {
+            return new System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken();
+        }
+        remove 
+        {
+            System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken x = value;
+            x.ToString();
+        }
+    }
+}
+
+class C1 : I1, Interface<int>
+{}
+";
+            foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebugWinMD })
+            {
+                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.NetStandardLatest);
+
+                void Validate(ModuleSymbol m)
+                {
+                    var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                    var c1 = m.GlobalNamespace.GetTypeMember("C1");
+                    var baseInterface = i1.Interfaces().Single();
+
+                    Assert.True(baseInterface.IsInterface);
+                    Assert.True(i1.IsInterface);
+
+                    var i1Normal = i1.GetMember<EventSymbol>("Interface<System.Int32>.Normal");
+                    var i1WinRT = i1.GetMember<EventSymbol>("Interface<System.Int32>.WinRT");
+
+                    var baseInterfaceNormal = baseInterface.GetMember<EventSymbol>("Normal");
+                    var baseInterfaceWinRT = baseInterface.GetMember<EventSymbol>("WinRT");
+
+                    Assert.False(baseInterfaceNormal.IsWindowsRuntimeEvent);
+                    Assert.False(i1Normal.IsWindowsRuntimeEvent);
+                    Assert.True(baseInterfaceWinRT.IsWindowsRuntimeEvent);
+                    Assert.True(i1WinRT.IsWindowsRuntimeEvent);
+
+                    Assert.Same(i1Normal, i1.FindImplementationForInterfaceMember(baseInterfaceNormal));
+                    Assert.Same(i1Normal.AddMethod, i1.FindImplementationForInterfaceMember(baseInterfaceNormal.AddMethod));
+                    Assert.Same(i1Normal.RemoveMethod, i1.FindImplementationForInterfaceMember(baseInterfaceNormal.RemoveMethod));
+                    Assert.Same(i1WinRT, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT));
+                    Assert.Same(i1WinRT.AddMethod, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT.AddMethod));
+                    Assert.Same(i1WinRT.RemoveMethod, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT.RemoveMethod));
+
+                    Assert.Same(i1Normal, c1.FindImplementationForInterfaceMember(baseInterfaceNormal));
+                    Assert.Same(i1Normal.AddMethod, c1.FindImplementationForInterfaceMember(baseInterfaceNormal.AddMethod));
+                    Assert.Same(i1Normal.RemoveMethod, c1.FindImplementationForInterfaceMember(baseInterfaceNormal.RemoveMethod));
+                    Assert.Same(i1WinRT, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT));
+                    Assert.Same(i1WinRT.AddMethod, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT.AddMethod));
+                    Assert.Same(i1WinRT.RemoveMethod, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT.RemoveMethod));
+
+                    Assert.Equal("void I1.Interface<System.Int32>.Normal.add", i1Normal.AddMethod.ToTestDisplayString());
+                    Assert.Equal("void I1.Interface<System.Int32>.Normal.remove", i1Normal.RemoveMethod.ToTestDisplayString());
+                    Assert.Equal("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken I1.Interface<System.Int32>.WinRT.add", i1WinRT.AddMethod.ToTestDisplayString());
+                    Assert.Equal("void I1.Interface<System.Int32>.WinRT.remove", i1WinRT.RemoveMethod.ToTestDisplayString());
+                }
+
+                Validate(comp.SourceModule);
+
+                CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+            }
+        }
+
+        [Fact]
+        [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
+        public void WindowsRuntimeEvent_02()
+        {
+            var source = @"
+interface I1
+{
+    event System.Action WinRT 
+    { 
+        add 
+        {
+            return new System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken();
+        }
+        remove 
+        {
+            System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken x = value;
+            x.ToString();
+        }
+    }
+}
+
+class C1 : I1
+{
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetStandardLatest);
+
+            void Validate(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var c1 = m.GlobalNamespace.GetTypeMember("C1");
+
+                var i1WinRT = i1.GetMember<EventSymbol>("WinRT");
+
+                Assert.True(i1WinRT.IsWindowsRuntimeEvent);
+
+                Assert.Same(i1WinRT, c1.FindImplementationForInterfaceMember(i1WinRT));
+                Assert.Same(i1WinRT.AddMethod, c1.FindImplementationForInterfaceMember(i1WinRT.AddMethod));
+                Assert.Same(i1WinRT.RemoveMethod, c1.FindImplementationForInterfaceMember(i1WinRT.RemoveMethod));
+
+                Assert.Equal("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken I1.WinRT.add", i1WinRT.AddMethod.ToTestDisplayString());
+                Assert.Equal("void I1.WinRT.remove", i1WinRT.RemoveMethod.ToTestDisplayString());
+            }
+
+            Validate(comp.SourceModule);
+
+            CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+        }
+
+        [Fact]
+        [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
+        public void WindowsRuntimeEvent_03()
+        {
+            var source = @"
+interface Interface
+{
+    event System.Action WinRT; 
+}
+
+interface I1 : Interface
+{
+    event System.Action Interface.WinRT 
+    { 
+        add 
+        {
+            return new System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken();
+        }
+        remove 
+        {
+            System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken x = value;
+            x.ToString();
+        }
+    }
+}
+
+class C1 : I1, Interface
+{}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetStandardLatest);
+
+            void Validate(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var c1 = m.GlobalNamespace.GetTypeMember("C1");
+                var baseInterface = i1.Interfaces().Single();
+
+                Assert.True(baseInterface.IsInterface);
+                Assert.True(i1.IsInterface);
+
+                var i1WinRT = i1.GetMember<EventSymbol>("Interface.WinRT");
+
+                var baseInterfaceWinRT = baseInterface.GetMember<EventSymbol>("WinRT");
+
+                Assert.True(baseInterfaceWinRT.IsWindowsRuntimeEvent);
+                Assert.True(i1WinRT.IsWindowsRuntimeEvent);
+
+                Assert.Same(i1WinRT, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT));
+                Assert.Same(i1WinRT.AddMethod, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT.AddMethod));
+                Assert.Same(i1WinRT.RemoveMethod, i1.FindImplementationForInterfaceMember(baseInterfaceWinRT.RemoveMethod));
+
+                Assert.Same(i1WinRT, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT));
+                Assert.Same(i1WinRT.AddMethod, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT.AddMethod));
+                Assert.Same(i1WinRT.RemoveMethod, c1.FindImplementationForInterfaceMember(baseInterfaceWinRT.RemoveMethod));
+
+                Assert.Equal("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken I1.Interface.WinRT.add", i1WinRT.AddMethod.ToTestDisplayString());
+                Assert.Equal("void I1.Interface.WinRT.remove", i1WinRT.RemoveMethod.ToTestDisplayString());
+            }
+
+            Validate(comp.SourceModule);
+
+            CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
         }
 
     }

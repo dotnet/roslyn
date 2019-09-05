@@ -575,5 +575,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool IsReturnStatement(SyntaxNode node)
             => node.RawKind == SyntaxKinds.ReturnStatement;
+
+        public bool IsExpressionStatement(SyntaxNode node)
+            => node.RawKind == SyntaxKinds.ExpressionStatement;
     }
 }

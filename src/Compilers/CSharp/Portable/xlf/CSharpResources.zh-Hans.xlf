@@ -109,7 +109,17 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
-        <target state="translated">默认文本 "default" 作为模式无效。请相应使用其他文本(例如 "0" 或 "null")。若要匹配一切项，请使用放弃模式 "_"。</target>
+        <target state="needs-review-translation">默认文本 "default" 作为模式无效。请相应使用其他文本(例如 "0" 或 "null")。若要匹配一切项，请使用放弃模式 "_"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="translated">修饰符“{0}”对 C# {1} 中的此项无效。请使用语言版本“{2}”或更高版本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -220,6 +230,11 @@
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">“{0}”无法在类型“{2}”中实现接口成员“{1}”，因为它具有 __arglist 参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InternalError">
+        <source>Internal error in the C# compiler.</source>
+        <target state="new">Internal error in the C# compiler.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -9455,11 +9470,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">在模式中使用类型“动态”是不合法的。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">不能将默认文本用作动态分配操作的自变量。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">提供的文档模式不受支持或无效:“{0}”。</target>
@@ -9660,11 +9670,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">不可在字符串内插中直接使用条件表达式，因为内插已 “:” 结尾。请用括号将条件表达式括起来。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">默认文本 "default" 作为 case 常量无效。请相应使用其他文本(例如 "0" 或 "null")。若要编写默认标签，请使用不含 "case" 的 "default:"。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
         <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
         <target state="translated">请不要使用属性的 "System.Runtime.CompilerServices.FixedBuffer" 特性</target>
@@ -9723,11 +9728,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
         <target state="translated">“{0}”无法在类型 "{2}" 中实现接口成员 "{1}"，因为目标运行时不支持默认接口实现。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">在 C# {1} 中，修饰符 "{0}" 对此项无效。请使用语言版本 "{2}" 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">

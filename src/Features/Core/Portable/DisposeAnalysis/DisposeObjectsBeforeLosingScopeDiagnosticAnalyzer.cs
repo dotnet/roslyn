@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 try
                 {
                     // Compute diagnostics for undisposed objects at exit block.
-                    var exitBlock = disposeAnalysisResult.ControlFlowGraph.GetExit();
+                    var exitBlock = disposeAnalysisResult.ControlFlowGraph.ExitBlock();
                     var disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
                     ComputeDiagnostics(disposeDataAtExit, notDisposedDiagnostics, mayBeNotDisposedDiagnostics,
                         disposeAnalysisResult, pointsToAnalysisResult);

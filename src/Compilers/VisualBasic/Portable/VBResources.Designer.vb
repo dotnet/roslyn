@@ -9946,6 +9946,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Target runtime doesn&apos;t support default interface implementation..
+        '''</summary>
+        Friend ReadOnly Property ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation() As String
+            Get
+                Return ResourceManager.GetString("ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Target runtime doesn&apos;t support &apos;Protected&apos;, &apos;Protected Friend&apos;, or &apos;Private Protected&apos; accessibility for a member of an interface..
+        '''</summary>
+        Friend ReadOnly Property ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember() As String
+            Get
+                Return ResourceManager.GetString("ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Member &apos;{0}&apos; cannot be found in class &apos;{1}&apos;. This condition is usually the result of a mismatched &apos;Microsoft.VisualBasic.dll&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_RuntimeMemberNotFound2() As String
