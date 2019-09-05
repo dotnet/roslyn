@@ -3266,12 +3266,6 @@ public class C1
             Dim source1 =
 <compilation>
     <file name="c.vb"><![CDATA[
-interface I3 
-    Inherits I1
-
-    Function M1() As I1.I2
-End Interface
-
 Class C3
     Implements I1
 
@@ -3302,12 +3296,6 @@ class C33
     protected overridable Sub M1(x As C1.I2)
     End Sub
 
-    public class C44
-        protected overridable Function M44() As C1.I2
-            Return Nothing
-        End Function
-    End Class
-
     protected class C55
         public overridable Function M55() As C1.I2
             Return Nothing
@@ -3325,6 +3313,54 @@ class CC33
         Inherits C33.C55
     
         public overrides Function M55() As C1.I2
+            Return Nothing
+        End Function
+    End Class
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+
+            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")>
+        Public Sub InconsistentAccessibility_02()
+
+            Dim csSource =
+"
+public interface I1
+{
+    protected interface I2
+    {
+    }
+}
+
+public class C1
+{
+    protected interface I2
+    {
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+interface I3 
+    Inherits I1
+
+    Function M1() As I1.I2
+End Interface
+
+class C33 
+    Inherits C1
+
+    public class C44
+        protected overridable Function M44() As C1.I2
             Return Nothing
         End Function
     End Class
@@ -3361,7 +3397,7 @@ BC30389: 'C1.I2' is not accessible in this context because it is 'Protected'.
 
         <Fact>
         <WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")>
-        Public Sub InconsistentAccessibility_02()
+        Public Sub InconsistentAccessibility_03()
 
             Dim csSource =
 "
@@ -3384,12 +3420,6 @@ public class C1<T>
             Dim source1 =
 <compilation>
     <file name="c.vb"><![CDATA[
-interface I3 
-    Inherits I1(Of Integer)
-
-    Function M1() As I1(Of String).I2
-End Interface
-
 Class C3
     Implements I1(Of Integer)
 
@@ -3420,12 +3450,6 @@ class C33
     protected overridable Sub M1(x As C1(Of String).I2)
     End Sub
 
-    public class C44
-        protected overridable Function M44() As C1(Of String).I2
-            Return Nothing
-        End Function
-    End Class
-
     protected class C55
         public overridable Function M55() As C1(Of String).I2
             Return Nothing
@@ -3443,6 +3467,54 @@ class CC33
         Inherits C33.C55
     
         public overrides Function M55() As C1(Of String).I2
+            Return Nothing
+        End Function
+    End Class
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+
+            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")>
+        Public Sub InconsistentAccessibility_04()
+
+            Dim csSource =
+"
+public interface I1<T>
+{
+    protected interface I2
+    {
+    }
+}
+
+public class C1<T>
+{
+    protected interface I2
+    {
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+interface I3 
+    Inherits I1(Of Integer)
+
+    Function M1() As I1(Of String).I2
+End Interface
+
+class C33 
+    Inherits C1(Of Integer)
+
+    public class C44
+        protected overridable Function M44() As C1(Of String).I2
             Return Nothing
         End Function
     End Class
