@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -405,10 +406,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     foreach (var column in customColumns)
                     {
-                        if (column != null)
-                        {
-                            builder.Add(column.Label, column.Value);
-                        }
+                        builder.Add(column.Label, column.Value);
                     }
                 }
 

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.VisualBasic.LanguageService.FindUsages
 {
-    internal class AdditionalProperty
+    internal struct AdditionalProperty
     {
         public string Label { get; }
         public string Value { get; }
