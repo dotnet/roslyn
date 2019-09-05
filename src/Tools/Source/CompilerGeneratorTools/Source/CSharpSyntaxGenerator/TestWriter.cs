@@ -263,12 +263,16 @@ namespace CSharpSyntaxGenerator
                     }
                     else
                     {
-                        if (field.Type == "SyntaxToken" ||
+                        if (field.Type == "SyntaxToken")
+                        {
+                            WriteLine("Assert.NotEqual(default, node.{0});", field.Name);
+                        }
+                        else if (
                             field.Type == "SyntaxTokenList" ||
                             field.Type.StartsWith("SyntaxList<") ||
                             field.Type.StartsWith("SeparatedSyntaxList<"))
                         {
-                            WriteLine("Assert.NotEqual(default, node.{0});", field.Name);
+                            WriteLine("Assert.Equal(default, node.{0});", field.Name);
                         }
                         else
                         {
