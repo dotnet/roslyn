@@ -272,7 +272,185 @@ Slice 1
 
         [Fact]
         [WorkItem(37789, "https://github.com/dotnet/roslyn/issues/37789")]
-        public void PatternindexNullableCoalescingAssignment()
+        public void PatternindexNullableCoalescingAssignmentClass()
+        {
+            var src = @"
+using System;
+struct S
+{
+    private readonly string[] _array;
+
+    private int _counter;
+
+    public S(string[] a)
+    {
+        _array = a;
+        _counter = 0;
+    }
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Length "" + _counter++);
+            return _array.Length;
+        }
+    }
+    public string this[int index] 
+    {
+        get
+        {
+            Console.WriteLine(""Get "" + _counter++);
+            return _array[index];
+        }
+        set
+        {
+            Console.WriteLine(""Set "" + _counter++);
+            _array[index] = value;
+        }
+    }
+
+}
+class C
+{
+    static void Main(string[] args)
+    {
+        var array = new string[2];
+        array[0] = ""abc"";
+        Console.WriteLine(array[1] is null);
+        var s = new S(array);
+        s[^1] ??= s[^2];
+        s[^1] ??= s[^2];
+        Console.WriteLine(s[^1] ??= ""def"");
+        Console.WriteLine(array[1]);
+    }
+}";
+            var comp = CreateCompilationWithIndex(src, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+True
+Length 0
+Get 1
+Length 2
+Get 3
+Set 4
+Length 5
+Get 6
+Length 7
+Get 8
+abc
+abc");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size      203 (0xcb)
+  .maxstack  5
+  .locals init (string[] V_0, //array
+                S V_1, //s
+                S& V_2,
+                S& V_3,
+                int V_4,
+                string V_5,
+                int V_6)
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""string""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldstr      ""abc""
+  IL_000e:  stelem.ref
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  ldelem.ref
+  IL_0012:  ldnull
+  IL_0013:  ceq
+  IL_0015:  call       ""void System.Console.WriteLine(bool)""
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  ldloc.0
+  IL_001d:  call       ""S..ctor(string[])""
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.2
+  IL_0026:  call       ""int S.Length.get""
+  IL_002b:  ldc.i4.1
+  IL_002c:  sub
+  IL_002d:  ldloc.2
+  IL_002e:  stloc.3
+  IL_002f:  stloc.s    V_4
+  IL_0031:  ldloc.3
+  IL_0032:  ldloc.s    V_4
+  IL_0034:  call       ""string S.this[int].get""
+  IL_0039:  brtrue.s   IL_0059
+  IL_003b:  ldloc.3
+  IL_003c:  ldloc.s    V_4
+  IL_003e:  ldloca.s   V_1
+  IL_0040:  dup
+  IL_0041:  call       ""int S.Length.get""
+  IL_0046:  ldc.i4.2
+  IL_0047:  sub
+  IL_0048:  stloc.s    V_6
+  IL_004a:  ldloc.s    V_6
+  IL_004c:  call       ""string S.this[int].get""
+  IL_0051:  dup
+  IL_0052:  stloc.s    V_5
+  IL_0054:  call       ""void S.this[int].set""
+  IL_0059:  ldloca.s   V_1
+  IL_005b:  stloc.3
+  IL_005c:  ldloc.3
+  IL_005d:  call       ""int S.Length.get""
+  IL_0062:  ldc.i4.1
+  IL_0063:  sub
+  IL_0064:  ldloc.3
+  IL_0065:  stloc.2
+  IL_0066:  stloc.s    V_4
+  IL_0068:  ldloc.2
+  IL_0069:  ldloc.s    V_4
+  IL_006b:  call       ""string S.this[int].get""
+  IL_0070:  brtrue.s   IL_0090
+  IL_0072:  ldloc.2
+  IL_0073:  ldloc.s    V_4
+  IL_0075:  ldloca.s   V_1
+  IL_0077:  dup
+  IL_0078:  call       ""int S.Length.get""
+  IL_007d:  ldc.i4.2
+  IL_007e:  sub
+  IL_007f:  stloc.s    V_6
+  IL_0081:  ldloc.s    V_6
+  IL_0083:  call       ""string S.this[int].get""
+  IL_0088:  dup
+  IL_0089:  stloc.s    V_5
+  IL_008b:  call       ""void S.this[int].set""
+  IL_0090:  ldloca.s   V_1
+  IL_0092:  stloc.2
+  IL_0093:  ldloc.2
+  IL_0094:  call       ""int S.Length.get""
+  IL_0099:  ldc.i4.1
+  IL_009a:  sub
+  IL_009b:  ldloc.2
+  IL_009c:  stloc.3
+  IL_009d:  stloc.s    V_4
+  IL_009f:  ldloc.3
+  IL_00a0:  ldloc.s    V_4
+  IL_00a2:  call       ""string S.this[int].get""
+  IL_00a7:  dup
+  IL_00a8:  brtrue.s   IL_00bd
+  IL_00aa:  pop
+  IL_00ab:  ldloc.3
+  IL_00ac:  ldloc.s    V_4
+  IL_00ae:  ldstr      ""def""
+  IL_00b3:  dup
+  IL_00b4:  stloc.s    V_5
+  IL_00b6:  call       ""void S.this[int].set""
+  IL_00bb:  ldloc.s    V_5
+  IL_00bd:  call       ""void System.Console.WriteLine(string)""
+  IL_00c2:  ldloc.0
+  IL_00c3:  ldc.i4.1
+  IL_00c4:  ldelem.ref
+  IL_00c5:  call       ""void System.Console.WriteLine(string)""
+  IL_00ca:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(37789, "https://github.com/dotnet/roslyn/issues/37789")]
+        public void PatternindexNullableCoalescingAssignmentStruct()
         {
             var src = @"
 using System;
@@ -320,6 +498,7 @@ class C
         var s = new S(array);
         s[^1] ??= s[^2];
         s[^1] ??= s[^2];
+        Console.WriteLine(s[^1] ??= 0);
         Console.WriteLine(array[1]);
     }
 }";
@@ -333,10 +512,13 @@ Get 3
 Set 4
 Length 5
 Get 6
+Length 7
+Get 8
+1
 1");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size      201 (0xc9)
+  // Code size      279 (0x117)
   .maxstack  5
   .locals init (int?[] V_0, //array
                 S V_1, //s
@@ -424,12 +606,44 @@ Get 6
   IL_00af:  dup
   IL_00b0:  stloc.s    V_6
   IL_00b2:  call       ""void S.this[int].set""
-  IL_00b7:  ldloc.0
-  IL_00b8:  ldc.i4.1
-  IL_00b9:  ldelem     ""int?""
-  IL_00be:  box        ""int?""
-  IL_00c3:  call       ""void System.Console.WriteLine(object)""
-  IL_00c8:  ret
+  IL_00b7:  ldloca.s   V_1
+  IL_00b9:  stloc.3
+  IL_00ba:  ldloc.3
+  IL_00bb:  call       ""int S.Length.get""
+  IL_00c0:  ldc.i4.1
+  IL_00c1:  sub
+  IL_00c2:  ldloc.3
+  IL_00c3:  stloc.s    V_4
+  IL_00c5:  stloc.s    V_5
+  IL_00c7:  ldloc.s    V_4
+  IL_00c9:  ldloc.s    V_5
+  IL_00cb:  call       ""int? S.this[int].get""
+  IL_00d0:  stloc.2
+  IL_00d1:  ldloca.s   V_2
+  IL_00d3:  call       ""int int?.GetValueOrDefault()""
+  IL_00d8:  stloc.s    V_7
+  IL_00da:  ldloca.s   V_2
+  IL_00dc:  call       ""bool int?.HasValue.get""
+  IL_00e1:  brtrue.s   IL_00fe
+  IL_00e3:  ldc.i4.0
+  IL_00e4:  stloc.s    V_7
+  IL_00e6:  ldloc.s    V_4
+  IL_00e8:  ldloc.s    V_5
+  IL_00ea:  ldloca.s   V_6
+  IL_00ec:  ldloc.s    V_7
+  IL_00ee:  call       ""int?..ctor(int)""
+  IL_00f3:  ldloc.s    V_6
+  IL_00f5:  call       ""void S.this[int].set""
+  IL_00fa:  ldloc.s    V_7
+  IL_00fc:  br.s       IL_0100
+  IL_00fe:  ldloc.s    V_7
+  IL_0100:  call       ""void System.Console.WriteLine(int)""
+  IL_0105:  ldloc.0
+  IL_0106:  ldc.i4.1
+  IL_0107:  ldelem     ""int?""
+  IL_010c:  box        ""int?""
+  IL_0111:  call       ""void System.Console.WriteLine(object)""
+  IL_0116:  ret
 }");
         }
 
