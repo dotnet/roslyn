@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private SuggestedActionSet OrganizeRefactorings(
                 Workspace workspace, CodeRefactoring refactoring)
             {
-                var refactoringSuggestedActionsDisposer = ArrayBuilder<SuggestedAction>.GetInstance(out var refactoringSuggestedActions);
+                using var refactoringSuggestedActionsDisposer = ArrayBuilder<SuggestedAction>.GetInstance(out var refactoringSuggestedActions);
 
                 foreach (var codeAction in refactoring.CodeActions)
                 {
