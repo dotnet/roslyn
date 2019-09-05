@@ -319,6 +319,7 @@ class C
         Console.WriteLine(array[1] is null);
         var s = new S(array);
         s[^1] ??= s[^2];
+        s[^1] ??= s[^2];
         Console.WriteLine(array[1]);
     }
 }";
@@ -330,10 +331,12 @@ Get 1
 Length 2
 Get 3
 Set 4
+Length 5
+Get 6
 1");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size      135 (0x87)
+  // Code size      201 (0xc9)
   .maxstack  5
   .locals init (int?[] V_0, //array
                 S V_1, //s
@@ -392,12 +395,41 @@ Set 4
   IL_006d:  dup
   IL_006e:  stloc.s    V_6
   IL_0070:  call       ""void S.this[int].set""
-  IL_0075:  ldloc.0
-  IL_0076:  ldc.i4.1
-  IL_0077:  ldelem     ""int?""
-  IL_007c:  box        ""int?""
-  IL_0081:  call       ""void System.Console.WriteLine(object)""
-  IL_0086:  ret
+  IL_0075:  ldloca.s   V_1
+  IL_0077:  stloc.s    V_4
+  IL_0079:  ldloc.s    V_4
+  IL_007b:  call       ""int S.Length.get""
+  IL_0080:  ldc.i4.1
+  IL_0081:  sub
+  IL_0082:  ldloc.s    V_4
+  IL_0084:  stloc.3
+  IL_0085:  stloc.s    V_5
+  IL_0087:  ldloc.3
+  IL_0088:  ldloc.s    V_5
+  IL_008a:  call       ""int? S.this[int].get""
+  IL_008f:  stloc.2
+  IL_0090:  ldloca.s   V_2
+  IL_0092:  call       ""bool int?.HasValue.get""
+  IL_0097:  brtrue.s   IL_00b7
+  IL_0099:  ldloc.3
+  IL_009a:  ldloc.s    V_5
+  IL_009c:  ldloca.s   V_1
+  IL_009e:  dup
+  IL_009f:  call       ""int S.Length.get""
+  IL_00a4:  ldc.i4.2
+  IL_00a5:  sub
+  IL_00a6:  stloc.s    V_7
+  IL_00a8:  ldloc.s    V_7
+  IL_00aa:  call       ""int? S.this[int].get""
+  IL_00af:  dup
+  IL_00b0:  stloc.s    V_6
+  IL_00b2:  call       ""void S.this[int].set""
+  IL_00b7:  ldloc.0
+  IL_00b8:  ldc.i4.1
+  IL_00b9:  ldelem     ""int?""
+  IL_00be:  box        ""int?""
+  IL_00c3:  call       ""void System.Console.WriteLine(object)""
+  IL_00c8:  ret
 }");
         }
 
