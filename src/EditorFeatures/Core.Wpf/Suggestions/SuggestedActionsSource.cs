@@ -640,17 +640,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private static void AddSuggestedActionsSet(
                 IEnumerable<SuggestedAction> actions,
-                CodeFixGroupKey diag,
+                CodeFixGroupKey diagKey,
                 ArrayBuilder<SuggestedActionSet> sets)
             {
                 foreach (var group in actions.GroupBy(a => a.Priority))
                 {
                     var priority = GetSuggestedActionSetPriority(group.Key);
 
-                    // diagnostic from things like build shouldn't reach here since we don't support LB for those diagnostics
-                    Debug.Assert(diag.Item1.HasTextSpan);
-                    var category = GetFixCategory(diag.Item1.Severity);
-                    sets.Add(new SuggestedActionSet(category, group, priority: priority, applicableToSpan: diag.Item1.TextSpan.ToSpan()));
+                    // diagnostic from things like build shouldn't reach here since we don't support LightBulb for those diagnostics
+                    var diagnostics = diagKey.Item1;
+                    Debug.Assert(diagnostics.HasTextSpan);
+
+                    var category = GetFixCategory(diagnostics.Severity);
+                    sets.Add(new SuggestedActionSet(category, group, priority: priority, applicableToSpan: diagnostics.TextSpan.ToSpan()));
                 }
             }
 
