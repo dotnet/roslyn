@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return implementedIEnumerable;
         }
 
-        private static void GetIEnumerableOfT(IEnumerable<NamedTypeSymbol> interfaces, bool isAsync, CSharpCompilation compilation, ref NamedTypeSymbol result, ref bool foundMultiple)
+        private static void GetIEnumerableOfT(ImmutableArray<NamedTypeSymbol> interfaces, bool isAsync, CSharpCompilation compilation, ref NamedTypeSymbol result, ref bool foundMultiple)
         {
             if (foundMultiple)
             {

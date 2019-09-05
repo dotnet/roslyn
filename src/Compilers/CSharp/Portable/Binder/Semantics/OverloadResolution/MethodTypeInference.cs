@@ -1981,7 +1981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal static ImmutableArray<NamedTypeSymbol> ModuloReferenceTypeNullabilityDifferences(IEnumerable<NamedTypeSymbol> interfaces, VarianceKind variance)
+        internal static ImmutableArray<NamedTypeSymbol> ModuloReferenceTypeNullabilityDifferences(ImmutableArray<NamedTypeSymbol> interfaces, VarianceKind variance)
         {
             var dictionary = PooledDictionaryIgnoringNullableModifiersForReferenceTypes.GetInstance();
 
@@ -1998,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var result = dictionary.Values.ToImmutableArray();
+            var result = dictionary.Count != interfaces.Count() ? dictionary.Values.ToImmutableArray() : interfaces;
             dictionary.Free();
             return result;
         }
