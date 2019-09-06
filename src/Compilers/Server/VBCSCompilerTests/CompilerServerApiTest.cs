@@ -303,6 +303,32 @@ class Hello
         }
 
         [Fact]
+        public async Task ClientDisconnectDuringBuild()
+        {
+            using var buildStartedMre = new ManualResetEvent(initialState: false);
+            using var clientClosedMre = new ManualResetEvent(initialState: false);
+            var host = new TestableCompilerServerHost(runCompilation: (request, cancellationToken) =>
+            {
+                buildStartedMre.Set();
+                clientClosedMre.WaitOne();
+                return new CompletedBuildResponse(0, utf8output: false, "");
+            });
+
+            using var serverData = await ServerUtil.CreateServer(compilerServerHost: host).ConfigureAwait(false);
+
+            // Create a short lived client that send a request but does not wait for the 
+            using (var client = await BuildServerConnection.TryConnectToServerAsync(serverData.PipeName, Timeout.Infinite, cancellationToken: default).ConfigureAwait(false))
+            {
+                await s_emptyCSharpBuildRequest.WriteAsync(client).ConfigureAwait(false);
+                await buildStartedMre.WaitOneAsync().ConfigureAwait(false);
+            }
+
+            clientClosedMre.Set();
+            var reason = await serverData.ConnectionCompletionCollection.TakeAsync().ConfigureAwait(false);
+            Assert.Equal(CompletionReason.ClientDisconnect, reason);
+        }
+
+        [Fact]
         public void MutexStopsServerStarting()
         {
             var pipeName = Guid.NewGuid().ToString("N");

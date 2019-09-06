@@ -18,19 +18,15 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     /// <summary>
-    /// Handler for a goto defintion request. This can return files outside the shared
-    /// folder cone. The HostProtocolConverter handles converting files outside the shared
-    /// cone to the vslsexternal scheme.
-    /// This lives in external access because it has a dependency on FAR, which requires the UI thread.
+    /// Typescript uses FAR for goto def as they do not implement the definition service.
+    /// So implement goto def for typescript using FAR.
+    /// FAR has a UI thread dependency.
     /// </summary>
-    internal class GotoDefinitionHandler : ILspRequestHandler<LSP.TextDocumentPositionParams, object, Solution>
+    internal abstract class AbstractGoToDefinitionWithFindUsagesServiceHandler : ILspRequestHandler<LSP.TextDocumentPositionParams, object, Solution>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
 
-        // These languages don't provide an IGoToDefinitionService implementation that will return definitions. We'll use IFindUsagesService instead.
-        private static readonly string[] s_findUsagesServiceLanguages = new string[] { LiveShareConstants.TypeScriptLanguageName };
-
-        public GotoDefinitionHandler([Import(AllowDefault = true)] IMetadataAsSourceFileService metadataAsSourceService)
+        public AbstractGoToDefinitionWithFindUsagesServiceHandler(IMetadataAsSourceFileService metadataAsSourceService)
         {
             this._metadataAsSourceService = metadataAsSourceService;
         }
@@ -46,9 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-            var locations = await (s_findUsagesServiceLanguages.Contains(document.Project.Language)
-                                                                        ? GetDefinitionsWithFindUsagesService(document, position, cancellationToken).ConfigureAwait(false)
-                                                                        : GetDefinitionsWithDefinitionsService(document, position, cancellationToken).ConfigureAwait(false));
+            var locations = await GetDefinitionsWithFindUsagesService(document, position, cancellationToken).ConfigureAwait(false);
 
             // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
             if ((locations.Count == 0) && document.SupportsSemanticModel && this._metadataAsSourceService != null)
@@ -70,32 +64,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             return locations.ToArray();
         }
 
-        private async Task<List<LSP.Location>> GetDefinitionsWithDefinitionsService(Document document, int pos, CancellationToken cancellationToken)
-        {
-            var definitionService = document.Project.LanguageServices.GetService<IGoToDefinitionService>();
-
-            var definitions = await definitionService.FindDefinitionsAsync(document, pos, cancellationToken).ConfigureAwait(false);
-            var locations = new List<LSP.Location>();
-
-            if (definitions != null && definitions.Count() > 0)
-            {
-                foreach (var definition in definitions)
-                {
-                    var definitionText = await definition.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    locations.Add(new LSP.Location
-                    {
-                        Uri = definition.Document.GetURI(),
-                        Range = ProtocolConversions.TextSpanToRange(definition.SourceSpan, definitionText)
-                    });
-                }
-            }
-
-            return locations;
-        }
-
         /// <summary>
-        ///  Using the find usages service is more expensive than using the definitions service because a lot of unnecessary information is computed. However, some languages
-        /// don't provide an <see cref="IGoToDefinitionService"/> implementation that will return definitions so we must use <see cref="IFindUsagesService"/>.
+        ///  Using the find usages service is more expensive than using the definitions service because a lot of unnecessary information is computed. However,
+        ///  TypeScript doesn't provide an <see cref="IGoToDefinitionService"/> implementation that will return definitions so we must use <see cref="IFindUsagesService"/>.
         /// </summary>
         private async Task<List<LSP.Location>> GetDefinitionsWithFindUsagesService(Document document, int pos, CancellationToken cancellationToken)
         {

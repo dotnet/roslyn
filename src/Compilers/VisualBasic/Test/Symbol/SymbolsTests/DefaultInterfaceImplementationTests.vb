@@ -3242,6 +3242,314 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")>
+        Public Sub InconsistentAccessibility_01()
+
+            Dim csSource =
+"
+public interface I1
+{
+    protected interface I2
+    {
+    }
+}
+
+public class C1
+{
+    protected interface I2
+    {
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Class C3
+    Implements I1
+
+    protected overridable Sub M1(x As I1.I2)
+    End Sub
+
+    protected interface I7
+        Function M7() As I1.I2
+    End Interface
+End Class
+
+class CC3 
+    Inherits C3
+
+    protected overrides Sub M1(x As I1.I2)
+    End Sub
+
+    class CI7 
+        Implements C3.I7
+        Private Function M7() As I1.I2 Implements C3.I7.M7
+            Return Nothing
+        End Function
+    End Class
+End Class
+
+class C33 
+    Inherits C1
+    protected overridable Sub M1(x As C1.I2)
+    End Sub
+
+    protected class C55
+        public overridable Function M55() As C1.I2
+            Return Nothing
+        End Function
+    End Class
+End Class
+
+class CC33
+    Inherits C33
+
+    protected overrides Sub M1(x As C1.I2)
+    End Sub
+
+    private class CC55
+        Inherits C33.C55
+    
+        public overrides Function M55() As C1.I2
+            Return Nothing
+        End Function
+    End Class
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+
+            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")>
+        Public Sub InconsistentAccessibility_02()
+
+            Dim csSource =
+"
+public interface I1
+{
+    protected interface I2
+    {
+    }
+}
+
+public class C1
+{
+    protected interface I2
+    {
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+interface I3 
+    Inherits I1
+
+    Function M1() As I1.I2
+End Interface
+
+class C33 
+    Inherits C1
+
+    public class C44
+        protected overridable Function M44() As C1.I2
+            Return Nothing
+        End Function
+    End Class
+End Class
+
+class CC44 
+    Inherits C33.C44
+
+    protected overrides Function M44() As C1.I2
+        Return Nothing
+    End Function
+End Class
+
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<error><![CDATA[
+BC30508: 'M1' cannot expose type 'I1.I2' in namespace '<Default>' through interface 'I3'.
+    Function M1() As I1.I2
+                     ~~~~~
+BC30508: 'M44' cannot expose type 'C1.I2' in namespace '<Default>' through class 'C44'.
+        protected overridable Function M44() As C1.I2
+                                                ~~~~~
+BC30437: 'Protected Overrides Function M44() As C1.I2' cannot override 'Protected Overridable Function M44() As C1.I2' because they differ by their return types.
+    protected overrides Function M44() As C1.I2
+                                 ~~~
+BC30389: 'C1.I2' is not accessible in this context because it is 'Protected'.
+    protected overrides Function M44() As C1.I2
+                                          ~~~~~
+]]></error>)
+        End Sub
+
+        <Fact>
+        <WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")>
+        Public Sub InconsistentAccessibility_03()
+
+            Dim csSource =
+"
+public interface I1<T>
+{
+    protected interface I2
+    {
+    }
+}
+
+public class C1<T>
+{
+    protected interface I2
+    {
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Class C3
+    Implements I1(Of Integer)
+
+    protected overridable Sub M1(x As I1(Of String).I2)
+    End Sub
+
+    protected interface I7
+        Function M7() As I1(Of String).I2
+    End Interface
+End Class
+
+class CC3 
+    Inherits C3
+
+    protected overrides Sub M1(x As I1(Of String).I2)
+    End Sub
+
+    class CI7 
+        Implements C3.I7
+        Private Function M7() As I1(Of String).I2 Implements C3.I7.M7
+            Return Nothing
+        End Function
+    End Class
+End Class
+
+class C33 
+    Inherits C1(Of Integer)
+    protected overridable Sub M1(x As C1(Of String).I2)
+    End Sub
+
+    protected class C55
+        public overridable Function M55() As C1(Of String).I2
+            Return Nothing
+        End Function
+    End Class
+End Class
+
+class CC33
+    Inherits C33
+
+    protected overrides Sub M1(x As C1(Of String).I2)
+    End Sub
+
+    private class CC55
+        Inherits C33.C55
+    
+        public overrides Function M55() As C1(Of String).I2
+            Return Nothing
+        End Function
+    End Class
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+
+            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem(38398, "https://github.com/dotnet/roslyn/issues/38398")>
+        Public Sub InconsistentAccessibility_04()
+
+            Dim csSource =
+"
+public interface I1<T>
+{
+    protected interface I2
+    {
+    }
+}
+
+public class C1<T>
+{
+    protected interface I2
+    {
+    }
+}
+"
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+interface I3 
+    Inherits I1(Of Integer)
+
+    Function M1() As I1(Of String).I2
+End Interface
+
+class C33 
+    Inherits C1(Of Integer)
+
+    public class C44
+        protected overridable Function M44() As C1(Of String).I2
+            Return Nothing
+        End Function
+    End Class
+End Class
+
+class CC44 
+    Inherits C33.C44
+
+    protected overrides Function M44() As C1(Of String).I2
+        Return Nothing
+    End Function
+End Class
+
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<error><![CDATA[
+BC30508: 'M1' cannot expose type 'I1(Of String).I2' in namespace '<Default>' through interface 'I3'.
+    Function M1() As I1(Of String).I2
+                     ~~~~~~~~~~~~~~~~
+BC30508: 'M44' cannot expose type 'C1(Of String).I2' in namespace '<Default>' through class 'C44'.
+        protected overridable Function M44() As C1(Of String).I2
+                                                ~~~~~~~~~~~~~~~~
+BC30437: 'Protected Overrides Function M44() As C1.I2' cannot override 'Protected Overridable Function M44() As C1(Of String).I2' because they differ by their return types.
+    protected overrides Function M44() As C1(Of String).I2
+                                 ~~~
+BC30389: 'C1(Of String).I2' is not accessible in this context because it is 'Protected'.
+    protected overrides Function M44() As C1(Of String).I2
+                                          ~~~~~~~~~~~~~~~~
+]]></error>)
+        End Sub
+
+        <Fact>
         <WorkItem(35820, "https://github.com/dotnet/roslyn/issues/35820")>
         Public Sub PropertyImplementation_001()
 
