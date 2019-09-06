@@ -5825,11 +5825,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInInterfaceImplementedByBase_Title" xml:space="preserve">
     <value>Type does not implement interface member. Nullability of reference types in interface implemented by the base type doesn't match.</value>
   </data>
-  <data name="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList" xml:space="preserve">
+  <data name="ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList" xml:space="preserve">
     <value>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</value>
-  </data>
-  <data name="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title" xml:space="preserve">
-    <value>Interface is already listed in the interface list with different nullability of reference types.</value>
   </data>
   <data name="ERR_DuplicateExplicitImpl" xml:space="preserve">
     <value>'{0}' is explicitly implemented more than once.</value>

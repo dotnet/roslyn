@@ -1679,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
         WRN_NullabilityMismatchInExplicitlyImplementedInterface = 8643,
         WRN_NullabilityMismatchInInterfaceImplementedByBase = 8644,
-        WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList = 8645,
+        ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList = 8645,
         ERR_DuplicateExplicitImpl = 8646,
         ERR_UsingVarInSwitchCase = 8647,
         ERR_GoToForwardJumpOverUsingVar = 8648,

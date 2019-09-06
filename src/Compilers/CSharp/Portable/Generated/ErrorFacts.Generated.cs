@@ -222,7 +222,6 @@
                 case ErrorCode.WRN_ConditionalAccessMayReturnNull:
                 case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
                 case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
-                case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
                 case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
                 case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
