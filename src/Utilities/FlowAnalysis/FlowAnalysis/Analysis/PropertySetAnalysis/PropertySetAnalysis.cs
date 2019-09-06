@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
@@ -31,12 +32,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
         /// <summary>
-        /// Analyzers should use <see cref="BatchGetOrComputeHazardousUsages"/> instead.  Gets hazardous usages of an object based on a set of its properties.
+        /// Analyzers should use BatchGetOrComputeHazardousUsages instead. Gets hazardous usages of an object based on a set of its properties.
         /// </summary>
         /// <param name="cfg">Control flow graph of the code.</param>
         /// <param name="compilation">Compilation containing the code.</param>
         /// <param name="owningSymbol">Symbol of the code to examine.</param>
-        /// <param name="typeToTrackMetadataName">Name of the type to track.</param>
+        /// <param name="typeToTrackMetadataNames">Names of the types to track.</param>
         /// <param name="constructorMapper">How constructor invocations map to <see cref="PropertySetAbstractValueKind"/>s.</param>
         /// <param name="propertyMappers">How property assignments map to <see cref="PropertySetAbstractValueKind"/>.</param>
         /// <param name="hazardousUsageEvaluators">When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.</param>
@@ -48,7 +49,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             Compilation compilation,
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
-            string typeToTrackMetadataName,
+            ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
             HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
@@ -123,14 +124,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 pointsToAnalysisResult,
                 valueContentAnalysisResultOpt,
                 TryGetOrComputeResultForAnalysisContext,
-                typeToTrackMetadataName,
+                typeToTrackMetadataNames,
                 constructorMapper,
                 propertyMappers,
                 hazardousUsageEvaluators);
             var result = TryGetOrComputeResultForAnalysisContext(analysisContext);
             return result;
         }
-
         /// <summary>
         /// Gets hazardous usages of an object based on a set of its properties.
         /// </summary>
@@ -149,6 +149,42 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
             AnalyzerOptions analyzerOptions,
             string typeToTrackMetadataName,
+            ConstructorMapper constructorMapper,
+            PropertyMapperCollection propertyMappers,
+            HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
+            bool pessimisticAnalysis = false)
+        {
+            return BatchGetOrComputeHazardousUsages(
+                compilation,
+                rootOperationsNeedingAnalysis,
+                analyzerOptions,
+                new string[] { typeToTrackMetadataName }.ToImmutableHashSet(),
+                constructorMapper,
+                propertyMappers,
+                hazardousUsageEvaluators,
+                interproceduralAnalysisConfig,
+                pessimisticAnalysis);
+        }
+
+        /// <summary>
+        /// Gets hazardous usages of an object based on a set of its properties.
+        /// </summary>
+        /// <param name="compilation">Compilation containing the code.</param>
+        /// <param name="rootOperationsNeedingAnalysis">Root operations of code blocks to analyze.</param>
+        /// <param name="typeToTrackMetadataNames">Names of the types to track.</param>
+        /// <param name="constructorMapper">How constructor invocations map to <see cref="PropertySetAbstractValueKind"/>s.</param>
+        /// <param name="propertyMappers">How property assignments map to <see cref="PropertySetAbstractValueKind"/>.</param>
+        /// <param name="hazardousUsageEvaluators">When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.</param>
+        /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
+        /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
+        /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).  The method in the key is null for return/initialization statements.</returns>
+        /// <remarks>Unlike <see cref="GetOrComputeResult"/>, this overload also performs DFA on all descendant local and anonymous functions.</remarks>
+        public static PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> BatchGetOrComputeHazardousUsages(
+            Compilation compilation,
+            IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
+            AnalyzerOptions analyzerOptions,
+            ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
             HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
@@ -209,7 +245,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         compilation,
                         owningSymbol,
                         analyzerOptions,
-                        typeToTrackMetadataName,
+                        typeToTrackMetadataNames,
                         constructorMapper,
                         propertyMappers,
                         hazardousUsageEvaluators,

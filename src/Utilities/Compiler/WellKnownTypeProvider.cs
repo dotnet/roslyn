@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Contract = GetTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticContractsContract);
             IDisposable = GetTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             Monitor = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingMonitor);
+            Interlocked = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingInterlocked);
             Task = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
             GenericTask = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksGenericTask);
             CollectionTypes = GetWellKnownCollectionTypes();
@@ -72,6 +73,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Monitor"/>
         /// </summary>
         public INamedTypeSymbol Monitor { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Interlocked"/>
+        /// </summary>
+        public INamedTypeSymbol Interlocked { get; }
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for 'System.Runtime.Serialization.SerializationInfo' type />

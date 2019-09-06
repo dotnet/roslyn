@@ -27,6 +27,13 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.ApiSurface, rule, defaultValue, cancellationToken);
 
+        public static SymbolModifiers GetRequiredModifiersOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            SymbolModifiers defaultValue,
+            CancellationToken cancellationToken)
+            => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.RequiredModifiers, rule, defaultValue, cancellationToken);
+
         public static ImmutableHashSet<OutputKind> GetOutputKindsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
@@ -120,6 +127,13 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetSymbolNamesOption(EditorConfigOptionNames.NullCheckValidationMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
 
+        public static SymbolNamesOption GetAdditionalStringFormattingMethodsOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalStringFormattingMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
+
         public static SymbolNamesOption GetExcludedSymbolNamesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
@@ -133,6 +147,13 @@ namespace Analyzer.Utilities
             Compilation compilation,
             CancellationToken cancellationToken)
             => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, namePrefixOpt: "T:", rule, compilation, cancellationToken);
+
+        public static SymbolNamesOption GetDisallowedSymbolNamesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.DisallowedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
 
         private static SymbolNamesOption GetSymbolNamesOption(
             this AnalyzerOptions options,

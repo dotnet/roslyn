@@ -328,10 +328,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         }
                     }
                 }
-                else if (operation.Parameter.RefKind == RefKind.Ref)
+                else if (operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out)
                 {
-                    // By-ref argument is considered escaped in non-interprocedural analysis case.
-                    HandleEscapingOperation(operation, operation.Value);
+                    if (operation.Parameter.RefKind == RefKind.Ref)
+                    {
+                        // Input by-ref argument passed to invoked method is considered escaped in non-interprocedural analysis case.
+                        HandleEscapingOperation(operation, operation.Value);
+                    }
+
+                    // Output by-ref or out argument might be escaped if assigned to a field.
+                    HandlePossibleEscapingForAssignment(target: operation.Value, value: operation, operation: operation);
                 }
             }
 
