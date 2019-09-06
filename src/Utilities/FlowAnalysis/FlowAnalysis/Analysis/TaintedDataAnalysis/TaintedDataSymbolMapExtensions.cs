@@ -121,7 +121,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <param name="taintedParameterNames"></param>
         /// <param name="taintedParameterPairs">The set of parameter pairs (tainted source parameter name, tainted end parameter name).</param>
         /// <returns></returns>
-        public static bool IsSourcePasserMethod(
+        public static bool IsSourceTransferMethod(
             this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
             IMethodSymbol method,
             ImmutableArray<IArgumentOperation> arguments,

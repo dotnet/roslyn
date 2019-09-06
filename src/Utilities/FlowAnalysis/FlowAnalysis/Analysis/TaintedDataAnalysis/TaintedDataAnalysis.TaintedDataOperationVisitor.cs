@@ -265,7 +265,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         }
                     }
 
-                    if (this.DataFlowAnalysisContext.SourceInfos.IsSourcePasserMethod(
+                    if (this.DataFlowAnalysisContext.SourceInfos.IsSourceTransferMethod(
                         method,
                         visitedArguments,
                         visitedArguments
@@ -274,15 +274,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             .ToImmutableArray(),
                         out taintedParameterPairs))
                     {
-                        foreach ((string source, string end) in taintedParameterPairs)
+                        foreach ((string ifTaintedParameter, string thenTaintedTarget) in taintedParameterPairs)
                         {
-                            IArgumentOperation endArgumentOperation = visitedArguments.FirstOrDefault(o => o.Parameter.Name == end);
-                            if (endArgumentOperation != null)
+                            IArgumentOperation thenTaintedTargetOperation = visitedArguments.FirstOrDefault(o => o.Parameter.Name == thenTaintedTarget);
+                            if (thenTaintedTargetOperation != null)
                             {
                                 SetTaintedForEntity(
-                                    endArgumentOperation,
+                                    thenTaintedTargetOperation,
                                     this.GetCachedAbstractValue(
-                                        visitedArguments.FirstOrDefault(o => o.Parameter.Name == source)));
+                                        visitedArguments.FirstOrDefault(o => o.Parameter.Name == ifTaintedParameter)));
                             }
                             else
                             {
