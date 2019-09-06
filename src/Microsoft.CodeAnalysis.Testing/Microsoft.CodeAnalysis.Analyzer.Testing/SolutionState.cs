@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Testing
             return result;
         }
 
-        private (DiagnosticResult[], (string filename, SourceText content)[]) ProcessMarkupSources(
+        private (DiagnosticResult[] expectedDiagnostics, (string filename, SourceText content)[] sources) ProcessMarkupSources(
             IEnumerable<(string filename, SourceText content)> sources,
             IEnumerable<DiagnosticResult> explicitDiagnostics,
             MarkupOptions markupOptions,
