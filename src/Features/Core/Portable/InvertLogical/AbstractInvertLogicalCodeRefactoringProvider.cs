@@ -57,6 +57,18 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                     expression = expression.Parent;
                 }
             }
+            else
+            {
+                // When selection is non-empty -> allow only top-level full selections.
+                // Currently the refactoring can't handle invert of arbitrary nodes but only whole subtrees
+                // and allowing it just for selection of those nodes that - by chance - form a full subtree
+                // would produce only confusion.
+                if (CodeRefactoringHelpers.IsNodeUnderselected(expression, span) ||
+                    syntaxFacts.IsLogicalAndExpression(expression.Parent) || syntaxFacts.IsLogicalOrExpression(expression.Parent))
+                {
+                    return;
+                }
+            }
 
             context.RegisterRefactoring(
                 new MyCodeAction(

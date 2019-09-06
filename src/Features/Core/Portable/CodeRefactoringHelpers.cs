@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -18,6 +19,10 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// Underselection is defined as omitting whole nodes from either the beginning or the end. It can be used e.g. to detect that
         /// following selection `1 + [|2 + 3|]` is underselecting the whole expression node tree.
+        /// </para>
+        /// <para>
+        /// Returns false if only and precisely one <see cref="SyntaxToken"/> is selected. In that case the <paramref name="selection"/> 
+        /// is treated more as a caret location.
         /// </para>
         /// <para>
         /// It's intended to be used in conjunction with <see cref="IRefactoringHelpersService.GetRelevantNodesAsync{TSyntaxNode}(Document, TextSpan, CancellationToken)"/>
@@ -42,6 +47,16 @@ namespace Microsoft.CodeAnalysis
 
             // If selection is larger than node.Span -> can't be underselecting
             if (selection.Contains(node.Span))
+            {
+                return false;
+            }
+
+            // Only precisely one token is selected -> treat is as empty selection -> not under-selected.
+            // The rationale is that if a only one Token is selected then the selection wasn't about
+            // precisely getting the one node and nothing else & therefore we should treat it as empty
+            // selection.
+            var selectionStartToken = node.FindToken(selection.Start);
+            if (selection.IsAround(selectionStartToken))
             {
                 return false;
             }
