@@ -32,13 +32,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             public PropertySetAnalysisParameters(string typeToTrack, ConstructorMapper constructorMapper, PropertyMapperCollection propertyMapperCollection, HazardousUsageEvaluatorCollection hazardousUsageEvaluatorCollection)
             {
-                TypeToTrack = typeToTrack ?? throw new ArgumentNullException(nameof(typeToTrack));
+                TypesToTrack = new string[] { typeToTrack }.ToImmutableHashSet() ?? throw new ArgumentNullException(nameof(typeToTrack));
                 ConstructorMapper = constructorMapper ?? throw new ArgumentNullException(nameof(constructorMapper));
                 PropertyMapperCollection = propertyMapperCollection ?? throw new ArgumentNullException(nameof(propertyMapperCollection));
                 HazardousUsageEvaluatorCollection = hazardousUsageEvaluatorCollection ?? throw new ArgumentNullException(nameof(hazardousUsageEvaluatorCollection));
             }
 
-            public string TypeToTrack { get; }
+            public ImmutableHashSet<string> TypesToTrack { get; }
             public ConstructorMapper ConstructorMapper { get; }
             public PropertyMapperCollection PropertyMapperCollection { get; }
             public HazardousUsageEvaluatorCollection HazardousUsageEvaluatorCollection { get; }
@@ -83,7 +83,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         compilation,
                         symbol,
                         new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
-                        propertySetAnalysisParameters.TypeToTrack,
+                        propertySetAnalysisParameters.TypesToTrack,
                         propertySetAnalysisParameters.ConstructorMapper,
                         propertySetAnalysisParameters.PropertyMapperCollection,
                         propertySetAnalysisParameters.HazardousUsageEvaluatorCollection,

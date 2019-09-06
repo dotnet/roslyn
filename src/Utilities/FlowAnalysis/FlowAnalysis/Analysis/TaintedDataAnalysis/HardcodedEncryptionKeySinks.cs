@@ -28,6 +28,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "CreateEncryptor", new[] { "rgbKey" }),
                     ( "CreateDecryptor", new[] { "rgbKey" }),
                 });
+            builder.AddSinkInfo(
+                WellKnownTypeNames.SystemSecurityCryptographyAesGcm,
+                SinkKind.HardcodedEncryptionKey,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( ".ctor", new[] { "key" }),
+                });
+            builder.AddSinkInfo(
+                WellKnownTypeNames.SystemSecurityCryptographyAesCcm,
+                SinkKind.HardcodedEncryptionKey,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( ".ctor", new[] { "key" }),
+                });
 
             SinkInfos = builder.ToImmutableAndFree();
         }

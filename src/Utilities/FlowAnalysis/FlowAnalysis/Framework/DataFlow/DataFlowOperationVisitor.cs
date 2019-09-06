@@ -1969,7 +1969,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Check if we are already at the maximum allowed interprocedural call chain length.
-            int currentMethodCallCount = currentMethodsBeingAnalyzed.Where(m => !((IMethodSymbol)m.OwningSymbol).IsLambdaOrLocalFunctionOrDelegate()).Count();
+            int currentMethodCallCount = currentMethodsBeingAnalyzed.Where(m => !(m.OwningSymbol is IMethodSymbol ms && ms.IsLambdaOrLocalFunctionOrDelegate())).Count();
             int currentLambdaOrLocalFunctionCallCount = currentMethodsBeingAnalyzed.Count - currentMethodCallCount;
 
             if (currentMethodCallCount >= MaxInterproceduralMethodCallChain ||
@@ -2788,6 +2788,32 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     Debug.Assert(arguments.Length >= 1);
 
                     HandleEnterLockOperation(arguments[0].Value);
+                }
+                else if (targetMethod.ContainingType.OriginalDefinition.Equals(WellKnownTypeProvider.Interlocked))
+                {
+                    ProcessInterlockedOperation(targetMethod, arguments);
+                }
+            }
+
+            void ProcessInterlockedOperation(IMethodSymbol targetMethod, ImmutableArray<IArgumentOperation> arguments)
+            {
+                var isExchangeMethod = targetMethod.IsInterlockedExchangeMethod(WellKnownTypeProvider.Interlocked);
+                var isCompareExchangeMethod = targetMethod.IsInterlockedCompareExchangeMethod(WellKnownTypeProvider.Interlocked);
+
+                if (isExchangeMethod || isCompareExchangeMethod)
+                {
+                    // "System.Threading.Interlocked.Exchange(ref T, T)" OR "System.Threading.Interlocked.CompareExchange(ref T, T, T)"
+                    Debug.Assert(arguments.Length >= 2);
+
+                    SetAbstractValueForAssignment(
+                        target: arguments[0].Value,
+                        assignedValueOperation: arguments[1].Value,
+                        assignedValue: GetCachedAbstractValue(arguments[1].Value),
+                        mayBeAssignment: isCompareExchangeMethod);
+                    foreach (var argument in arguments)
+                    {
+                        _pendingArgumentsToReset.Remove(argument);
+                    }
                 }
             }
         }
