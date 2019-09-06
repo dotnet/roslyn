@@ -154,11 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             Debug.Assert(!other.Equals(@interface, TypeCompareKind.ConsiderEverything));
 
-                            if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) && !other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                            if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
+                                if (!other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
+                                }
                             }
-                            else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames))
+                            else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
                             }
