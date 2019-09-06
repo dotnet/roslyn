@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Testing
             spans.GetOrAdd(spanStartTuple.Item2, () => new List<TextSpan>()).Add(span);
         }
 
-        private static void AddMatch(string input, string value, int currentIndex, List<(int, string)> matches)
+        private static void AddMatch(string input, string value, int currentIndex, List<(int index, string value)> matches)
         {
             var index = input.IndexOf(value, currentIndex);
             if (index >= 0)
