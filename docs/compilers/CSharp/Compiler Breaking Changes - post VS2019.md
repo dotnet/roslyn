@@ -49,3 +49,8 @@ Each entry should include a short description of the break, followed by either a
     Such code will produce an error in version 16.4.
 
 6. https://github.com/dotnet/roslyn/issues/37527 The constant folding behavior of the compiler differed depending on your host architecture when converting a floating-point constant to an integral type where that conversion would be a compile-time error if not in an `unchecked` context.  We now yield a zero result for such conversions on all host architectures.
+
+7. https://github.com/dotnet/roslyn/issues/38469 While looking for a name in an interface in context where only types are allowed,
+compiler didn't look for the name in base interfaces of the interface. Lookup could succeed by finding a type up the containership
+hierarchy or through usings. We now look in base interfaces and find types declared within them, if any match the name. The type
+could be different than the one that compiler used to find.

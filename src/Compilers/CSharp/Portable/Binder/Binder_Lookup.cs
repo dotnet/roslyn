@@ -924,9 +924,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type.IsInterface);
 
             LookupMembersWithoutInheritance(current, type, name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics, basesBeingResolved);
-            if ((options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly)) == 0 && !originalBinder.InCrefButNotParameterOrReturnType)
+            if ((options & LookupOptions.NamespaceAliasesOnly) == 0 && !originalBinder.InCrefButNotParameterOrReturnType)
             {
-                LookupMembersInInterfacesWithoutInheritance(current, type.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), name, arity, basesBeingResolved, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics);
+                ImmutableArray<NamedTypeSymbol> baseInterfaces;
+
+                if (basesBeingResolved?.Any() != true)
+                {
+                    baseInterfaces = type.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                }
+                else
+                {
+                    var interfacesLookedAt = PooledHashSet<NamedTypeSymbol>.GetInstance();
+                    var baseInterfacesBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+
+                    getBaseInterfaces(type, baseInterfacesBuilder, interfacesLookedAt, basesBeingResolved);
+
+                    for (int i = 0; i < baseInterfacesBuilder.Count; i++)
+                    {
+                        getBaseInterfaces(baseInterfacesBuilder[i], baseInterfacesBuilder, interfacesLookedAt, basesBeingResolved);
+                    }
+
+                    interfacesLookedAt.Free();
+                    baseInterfaces = baseInterfacesBuilder.ToImmutableAndFree();
+
+                    foreach (var candidate in baseInterfaces)
+                    {
+                        candidate.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                    }
+                }
+
+                LookupMembersInInterfacesWithoutInheritance(current, baseInterfaces, name, arity, basesBeingResolved, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics);
+            }
+
+            static void getBaseInterfaces(NamedTypeSymbol derived, ArrayBuilder<NamedTypeSymbol> baseInterfaces, PooledHashSet<NamedTypeSymbol> interfacesLookedAt, ConsList<TypeSymbol> basesBeingResolved)
+            {
+                if (basesBeingResolved.ContainsReference(derived.OriginalDefinition))
+                {
+                    return;
+                }
+
+                foreach (var @interface in derived.GetDeclaredInterfaces(basesBeingResolved))
+                {
+                    if (@interface.IsInterface && interfacesLookedAt.Add(@interface))
+                    {
+                        baseInterfaces.Add(@interface);
+                    }
+                }
             }
         }
 

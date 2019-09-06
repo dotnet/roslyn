@@ -29461,18 +29461,18 @@ class C11
                 // (21,20): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
                 // interface I4 : I1, I2
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(21, 20),
-                // (23,5): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // (23,8): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'I4.MI4()'
                 //     I2 MI4();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(23, 5),
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "MI4").WithArguments("I4.MI4()", "I1.I2").WithLocation(23, 8),
                 // (26,19): error CS0122: 'I1.I2' is inaccessible due to its protection level
                 // interface I5 : I1.I2, I1
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(26, 19),
                 // (31,16): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
                 // interface I6 : I2, I1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(31, 16),
-                // (33,5): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // (33,8): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'I6.MI6()'
                 //     I2 MI6();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(33, 5),
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "MI6").WithArguments("I6.MI6()", "I1.I2").WithLocation(33, 8),
                 // (36,19): error CS0122: 'I1.I2' is inaccessible due to its protection level
                 // class C3 : I1, I1.I2
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(36, 19),
@@ -55584,5 +55584,236 @@ class CA : IB.CQ
                 );
         }
 
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_24()
+        {
+            var source1 =
+@"
+interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+
+        public static void Test2()
+        {
+            System.Console.WriteLine(""I100.C100.Test2"");
+        }
+    }
+}
+
+interface I101 : I100
+{
+    private static C100 Test1() => new C100();
+
+    static void Main()
+    {
+        Test1().Test1();
+        C100.Test2();
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I100.C100.Test1
+I100.C100.Test2",
+                             verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_25()
+        {
+            var source1 =
+@"
+interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+
+        public static void Test2()
+        {
+            System.Console.WriteLine(""I100.C100.Test2"");
+        }
+    }
+}
+
+interface I101 : I100
+{
+    private static I100.C100 Test1() => new I100.C100();
+
+    static void Main()
+    {
+        Test1().Test1();
+        I100.C100.Test2();
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I100.C100.Test1
+I100.C100.Test2",
+                             verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_26()
+        {
+            var source1 =
+@"
+interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+
+        public static void Test2()
+        {
+            System.Console.WriteLine(""I100.C100.Test2"");
+        }
+    }
+}
+
+interface I101 : I100
+{
+    private static I101.C100 Test1() => new I101.C100();
+
+    static void Main()
+    {
+        Test1().Test1();
+        I101.C100.Test2();
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I100.C100.Test1
+I100.C100.Test2",
+                             verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_27()
+        {
+            var source1 =
+@"
+public interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+    }
+}
+
+public class C100
+{
+    public void Test1()
+    {
+        System.Console.WriteLine(""C100.Test1"");
+    }
+}
+
+public interface I101 : I100
+{
+    C100 Test1();
+}
+
+class Test : I101
+{
+    public virtual C100 Test1() => new C100();
+
+    static void Main()
+    {
+        I101 x = new Test();
+        x.Test1().Test1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (26,14): error CS0738: 'Test' does not implement interface member 'I101.Test1()'. 'Test.Test1()' cannot implement 'I101.Test1()' because it does not have the matching return type of 'I100.C100'.
+                // class Test : I101
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I101").WithArguments("Test", "I101.Test1()", "Test.Test1()", "I100.C100").WithLocation(26, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_28()
+        {
+            var source1 =
+@"
+public interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+    }
+}
+
+public class C100
+{
+    public void Test1()
+    {
+        System.Console.WriteLine(""C100.Test1"");
+    }
+}
+
+public interface I101 : I100
+{
+    C100 Test1();
+}
+
+class Test : I101
+{
+    public virtual I100.C100 Test1() => new I100.C100();
+
+    static void Main()
+    {
+        I101 x = new Test();
+        x.Test1().Test1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1, expectedOutput: "I100.C100.Test1");
+        }
     }
 }
