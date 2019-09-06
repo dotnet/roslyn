@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             EqualityTesting.AssertEqual(new TypeInfo(obj, int32, nullable, notNullable),
                                         new TypeInfo(obj, int32, nullable, notNullable));
 
-#pragma warning disable IDE0055 // Fix formatting: spacing is intentional to allow for visual field comparison
             EqualityTesting.AssertNotEqual(new TypeInfo(obj, obj, nullable, nullable),
                                            new TypeInfo(obj, int32, nullable, nullable));
 
@@ -34,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             EqualityTesting.AssertNotEqual(new TypeInfo(obj, int32, nullable, nullable),
                                            new TypeInfo(obj, int32, nullable, notNullable));
-#pragma warning restore IDE0055 // Fix formatting
 
             EqualityTesting.AssertEqual(new TypeInfo(int32, int32, default, default),
                                         new TypeInfo(int32, int32, default, default));

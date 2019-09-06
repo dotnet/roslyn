@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var right = (BoundExpression)Visit(currentBinary.Right);
                 var type = foundInfo ? infoAndType.Type : currentBinary.Type;
 
-#pragma warning disable IDE0055 // Fix formatting
                 // https://github.com/dotnet/roslyn/issues/35031: We'll need to update the symbols for the internal methods/operators used in the binary operators
                 currentBinary = currentBinary switch
                 {
@@ -59,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
                     _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
                 };
-#pragma warning restore IDE0055 // Fix formatting
 
                 if (foundInfo)
                 {
