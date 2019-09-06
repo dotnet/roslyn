@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // Get the initial set of action sets, with refactorings and fixes appropriately
                     // ordered against each other.
-                    var result = refactorings.Concat(fixes);
+                    var result = fixes.Concat(refactorings);
                     if (result.IsEmpty)
                     {
                         return null;
@@ -209,11 +209,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private ImmutableArray<SuggestedActionSet> OrderActionSets(
-                ImmutableArray<SuggestedActionSet> actionSets, TextSpan? selectionOpt)
+                ImmutableArray<(SuggestedActionSet actionSet, SuggestedActionSetPriorityBoost priorityBoost)> actionSets, TextSpan? selectionOpt)
             {
-                return actionSets.OrderByDescending(s => s.Priority)
-                                 .ThenBy(s => s, new SuggestedActionSetComparer(selectionOpt))
-                                 .ToImmutableArray();
+                return actionSets.OrderByDescending(s => s.actionSet.Priority)
+                    .ThenByDescending(s => s.priorityBoost)
+                    .ThenBy(s => s.actionSet, new SuggestedActionSetComparer(selectionOpt))
+                    .SelectAsArray(s => s.actionSet);
             }
 
             private ImmutableArray<SuggestedActionSet> FilterActionSetsByTitle(ImmutableArray<SuggestedActionSet> allActionSets)
@@ -250,12 +251,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     : new SuggestedActionSet(set.CategoryName, actions.ToImmutable(), set.Title, set.Priority, set.ApplicableToSpan);
             }
 
-            private ImmutableArray<SuggestedActionSet> InlineActionSetsIfDesirable(ImmutableArray<SuggestedActionSet> allActionSets)
+            private ImmutableArray<(SuggestedActionSet, SuggestedActionSetPriorityBoost)> InlineActionSetsIfDesirable(
+                ImmutableArray<(SuggestedActionSet actionSet, SuggestedActionSetPriorityBoost priorityBoost)> allActionSets)
             {
                 // If we only have a single set of items, and that set only has three max suggestion 
                 // offered.  Then we can consider inlining any nested actions into the top level list.
                 // (but we only do this if the parent of the nested actions isn't invokable itself).
-                if (allActionSets.Sum(a => a.Actions.Count()) <= 3)
+                if (allActionSets.Sum(a => a.actionSet.Actions.Count()) <= 3)
                 {
                     return allActionSets.SelectAsArray(InlineActions);
                 }
@@ -263,10 +265,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return allActionSets;
             }
 
-            private SuggestedActionSet InlineActions(SuggestedActionSet actionSet)
+            private (SuggestedActionSet, SuggestedActionSetPriorityBoost) InlineActions((SuggestedActionSet actionSet, SuggestedActionSetPriorityBoost priorityBoost) actionSetBundle)
             {
+                var actionSet = actionSetBundle.actionSet;
                 using var newActionsDisposer = ArrayBuilder<ISuggestedAction>.GetInstance(out var newActions);
-                foreach (var action in actionSet.Actions)
+
+                foreach (var action in actionSetBundle.actionSet.Actions)
                 {
                     var actionWithNestedActions = action as SuggestedActionWithNestedActions;
 
@@ -281,15 +285,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
                 }
 
-                return new SuggestedActionSet(
-                    actionSet.CategoryName,
-                    newActions.ToImmutable(),
-                    actionSet.Title,
-                    actionSet.Priority,
-                    actionSet.ApplicableToSpan);
+                return (new SuggestedActionSet(
+                            actionSet.CategoryName,
+                            newActions.ToImmutable(),
+                            actionSet.Title,
+                            actionSet.Priority,
+                            actionSet.ApplicableToSpan),
+                        actionSetBundle.priorityBoost);
             }
 
-            private ImmutableArray<SuggestedActionSet> GetCodeFixes(
+            private ImmutableArray<(SuggestedActionSet actionSet, SuggestedActionSetPriorityBoost priorityBoost)> GetCodeFixes(
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
@@ -317,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return OrganizeFixes(workspace, filteredFixes, includeSuppressionFixes);
                 }
 
-                return ImmutableArray<SuggestedActionSet>.Empty;
+                return ImmutableArray<(SuggestedActionSet actionSet, SuggestedActionSetPriorityBoost priorityBoost)>.Empty;
             }
 
             private ImmutableArray<CodeFixCollection> FilterOnUIThread(
@@ -376,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// <summary>
             /// Arrange fixes into groups based on the issue (diagnostic being fixed) and prioritize these groups.
             /// </summary>
-            private ImmutableArray<SuggestedActionSet> OrganizeFixes(
+            private ImmutableArray<(SuggestedActionSet actionSet, SuggestedActionSetPriorityBoost priorityBoost)> OrganizeFixes(
                 Workspace workspace, ImmutableArray<CodeFixCollection> fixCollections,
                 bool includeSuppressionFixes)
             {
@@ -549,13 +554,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// the priority of such <see cref="SuggestedActionSet"/>s is set to <see cref="SuggestedActionSetPriority.None"/> so that suppression fixes
             /// always show up last after all other fixes (and refactorings) for the selected line of code.
             /// </remarks>
-            private ImmutableArray<SuggestedActionSet> PrioritizeFixGroups(
+            /// <remarks>
+            /// The <see cref="SuggestedActionSetPriorityBoost"/> <c>priorityBoost</c> is set based on the diagnostic that was source of <see cref="CodeFix"/> 
+            /// for given <see cref="SuggestedAction"/>.
+            /// </remarks>
+            private ImmutableArray<(SuggestedActionSet actionSet, SuggestedActionSetPriorityBoost priorityBoost)> PrioritizeFixGroups(
                 ImmutableDictionary<CodeFixGroupKey, IList<SuggestedAction>> map,
                 ImmutableArray<CodeFixGroupKey> order,
                 Workspace workspace)
             {
-                using var nonSuppressionSetsDisposer = ArrayBuilder<SuggestedActionSet>.GetInstance(out var nonSuppressionSets);
-                using var suppressionSetsDisposer = ArrayBuilder<SuggestedActionSet>.GetInstance(out var suppressionSets);
+                using var nonSuppressionSetsDisposer = ArrayBuilder<(SuggestedActionSet actionSet, SuggestedActionSetPriorityBoost priorityBoost)>.GetInstance(out var nonSuppressionSets);
+                using var suppressionSetsDisposer = ArrayBuilder<(SuggestedActionSet actionSet, SuggestedActionSetPriorityBoost priorityBoost)>.GetInstance(out var suppressionSets);
 
                 // Separate CodeActions for individual refactorings to nonSuppressionSets & suppressionSets
                 foreach (var diag in order)
@@ -578,11 +587,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var wrappingSuggestedAction = new SuggestedActionWithNestedActions(
                         ThreadingContext, _owner, workspace, _subjectBuffer, this,
                         codeAction: new SolutionChangeAction(EditorFeaturesWpfResources.Configure_or_Suppress_issues, createChangedSolution: _ => null),
-                        nestedActionSets: suppressionSets.ToImmutable());
+                        nestedActionSets: suppressionSets.Select(t => t.actionSet).AsImmutable());
 
                     // Combine the spans and the category of each of the nested suggested actions
                     // to get the span and category for the new top level suggested action.
-                    var (span, category) = CombineSpansAndCategory(suppressionSets);
+                    var (span, category) = CombineSpansAndCategory(suppressionSets.Select(t => t.actionSet));
                     var wrappingSet = new SuggestedActionSet(
                         category,
                         actions: SpecializedCollections.SingletonEnumerable(wrappingSuggestedAction),
@@ -590,7 +599,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         priority: SuggestedActionSetPriority.None,
                         applicableToSpan: span);
 
-                    resultSets.Add(wrappingSet);
+                    // Suppressions have to be on bottom -> no priority boost regardless of their severity source.
+                    resultSets.Add((wrappingSet, SuggestedActionSetPriorityBoost.None));
                 }
 
                 return resultSets.ToImmutable();
@@ -641,7 +651,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private static void AddSuggestedActionsSet(
                 IEnumerable<SuggestedAction> actions,
                 CodeFixGroupKey diagKey,
-                ArrayBuilder<SuggestedActionSet> sets)
+                ArrayBuilder<(SuggestedActionSet actionSet, SuggestedActionSetPriorityBoost priorityBoost)> sets)
             {
                 foreach (var group in actions.GroupBy(a => a.Priority))
                 {
@@ -651,8 +661,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var diagnostics = diagKey.Item1;
                     Debug.Assert(diagnostics.HasTextSpan);
 
+                    // priorityBoost of returned SuggestedActionSet is based on diagnostics' severity
                     var category = GetFixCategory(diagnostics.Severity);
-                    sets.Add(new SuggestedActionSet(category, group, priority: priority, applicableToSpan: diagnostics.TextSpan.ToSpan()));
+                    var suggestedActionSetBundle = (
+                        new SuggestedActionSet(category, group, priority: priority, applicableToSpan: diagnostics.TextSpan.ToSpan()),
+                        SuggestedActionSetPriorityBoostHelper.GetSuggestedActionSetPriorityBoost(diagnostics));
+
+                    sets.Add(suggestedActionSetBundle);
                 }
             }
 
@@ -681,7 +696,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     _ => throw new InvalidOperationException(),
                 };
 
-            private ImmutableArray<SuggestedActionSet> GetRefactorings(
+            private ImmutableArray<(SuggestedActionSet actionSet, SuggestedActionSetPriorityBoost priorityBoost)> GetRefactorings(
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
@@ -695,7 +710,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     // this is here to fail test and see why it is failed.
                     Trace.WriteLine("given range is not current");
-                    return ImmutableArray<SuggestedActionSet>.Empty;
+                    return ImmutableArray<(SuggestedActionSet, SuggestedActionSetPriorityBoost)>.Empty;
                 }
 
                 var selection = selectionOpt.Value;
@@ -716,11 +731,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
 
+                    // Refactorings are never explicitely offered -> SuggestedActionSetPriorityBoost.None
                     return filteredRefactorings.SelectAsArray(
-                        r => OrganizeRefactorings(workspace, r));
+                        r => (OrganizeRefactorings(workspace, r), SuggestedActionSetPriorityBoost.None));
                 }
 
-                return ImmutableArray<SuggestedActionSet>.Empty;
+                return ImmutableArray<(SuggestedActionSet, SuggestedActionSetPriorityBoost)>.Empty;
             }
 
             /// <summary>
