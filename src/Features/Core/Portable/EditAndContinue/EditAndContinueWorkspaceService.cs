@@ -273,6 +273,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (oldDocument != null)
             {
                 var oldSyntaxTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(oldSyntaxTree);
+
                 return GetSpansInNewDocument(await GetDocumentTextChangesAsync(oldSyntaxTree, newSyntaxTree, cancellationToken).ConfigureAwait(false));
             }
 
