@@ -7,13 +7,13 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
     public class EqualWithMessageException : EqualException
     {
-        public EqualWithMessageException(object expected, object actual, string userMessage)
+        public EqualWithMessageException(object? expected, object? actual, string userMessage)
             : base(expected, actual)
         {
             UserMessage = userMessage;
         }
 
-        public EqualWithMessageException(string expected, string actual, int expectedIndex, int actualIndex, string userMessage)
+        public EqualWithMessageException(string? expected, string? actual, int expectedIndex, int actualIndex, string userMessage)
             : base(expected, actual, expectedIndex, actualIndex)
         {
             UserMessage = userMessage;
