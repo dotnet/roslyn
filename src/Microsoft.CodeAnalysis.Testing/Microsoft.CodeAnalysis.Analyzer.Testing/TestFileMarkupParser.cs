@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Testing
             GetPositionAndSpans(input, out output, out int? cursorPositionOpt, out spans);
             if (cursorPositionOpt is null)
             {
-                throw new InvalidOperationException();
+                throw new ArgumentException("The input did not include a marked cursor position", nameof(input));
             }
 
             cursorPosition = cursorPositionOpt.Value;
