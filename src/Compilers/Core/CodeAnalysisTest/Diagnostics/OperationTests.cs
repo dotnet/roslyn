@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             try
             {
                 IFieldInitializerOperation initializer = new FieldInitializerOperation(
-                    ImmutableArray<ILocalSymbol>.Empty, ImmutableArray<IFieldSymbol>.Empty,
-                    value: null, kind: OperationKind.FieldInitializer,
-                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                    ImmutableArray<IFieldSymbol>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    value: null, semanticModel: null,
+                    syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
                 _ = ControlFlowGraph.Create(initializer);
             }
@@ -178,9 +178,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             try
             {
                 IPropertyInitializerOperation initializer = new PropertyInitializerOperation(
-                    ImmutableArray<ILocalSymbol>.Empty, ImmutableArray<IPropertySymbol>.Empty,
-                    value: null, kind: OperationKind.PropertyInitializer,
-                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                    ImmutableArray<IPropertySymbol>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    value: null, semanticModel: null,
+                    syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
                 _ = ControlFlowGraph.Create(initializer);
             }
@@ -196,9 +196,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             try
             {
                 IParameterInitializerOperation initializer = new ParameterInitializerOperation(
-                                    ImmutableArray<ILocalSymbol>.Empty, parameter: null,
-                                    value: null, kind: OperationKind.ParameterInitializer,
-                                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                                    parameter: null, locals: ImmutableArray<ILocalSymbol>.Empty,
+                    value: null, semanticModel: null,
+                    syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
                 _ = ControlFlowGraph.Create(initializer);
             }

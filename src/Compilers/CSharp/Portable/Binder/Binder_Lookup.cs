@@ -1465,7 +1465,7 @@ symIsHidden:;
                 case SymbolKind.Property:
                 case SymbolKind.Method:
                 case SymbolKind.Event:
-                    return !symbol.IsStatic;
+                    return symbol.RequiresInstanceReceiver();
                 default:
                     return false;
             }

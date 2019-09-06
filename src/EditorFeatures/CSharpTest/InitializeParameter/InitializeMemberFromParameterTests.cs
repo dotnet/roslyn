@@ -1465,5 +1465,55 @@ class C
         private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning));
         private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning));
         private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCreateFieldWithTopLevelNullability()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+#nullable enable
+class C
+{
+    public C([||]string? s)
+    {
+    }
+}",
+    @"
+#nullable enable
+class C
+{
+    private readonly string? _s;
+
+    public C(string? s)
+    {
+        _s = s;
+    }
+}", index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCreatePropertyWithTopLevelNullability()
+        {
+            await TestInRegularAndScript1Async(
+    @"
+#nullable enable
+class C
+{
+    public C([||]string? s)
+    {
+    }
+}",
+    @"
+#nullable enable
+class C
+{
+    public C(string? s)
+    {
+        S = s;
+    }
+
+    public string? S { get; }
+}", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+        }
     }
 }

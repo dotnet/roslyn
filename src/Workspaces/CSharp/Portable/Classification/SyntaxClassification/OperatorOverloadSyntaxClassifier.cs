@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -39,20 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private static TextSpan GetOperatorTokenSpan(SyntaxNode syntax)
-        {
-            switch (syntax)
+            => syntax switch
             {
-                case AssignmentExpressionSyntax assignmentExpression:
-                    return assignmentExpression.OperatorToken.Span;
-                case BinaryExpressionSyntax binaryExpression:
-                    return binaryExpression.OperatorToken.Span;
-                case PrefixUnaryExpressionSyntax prefixUnaryExpression:
-                    return prefixUnaryExpression.OperatorToken.Span;
-                case PostfixUnaryExpressionSyntax postfixUnaryExpression:
-                    return postfixUnaryExpression.OperatorToken.Span;
-            }
-
-            return default;
-        }
+                AssignmentExpressionSyntax assignmentExpression => assignmentExpression.OperatorToken.Span,
+                BinaryExpressionSyntax binaryExpression => binaryExpression.OperatorToken.Span,
+                PrefixUnaryExpressionSyntax prefixUnaryExpression => prefixUnaryExpression.OperatorToken.Span,
+                PostfixUnaryExpressionSyntax postfixUnaryExpression => postfixUnaryExpression.OperatorToken.Span,
+                _ => default,
+            };
     }
 }

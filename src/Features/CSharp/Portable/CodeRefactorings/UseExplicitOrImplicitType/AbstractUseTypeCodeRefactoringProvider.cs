@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -26,11 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
-
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
@@ -51,16 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 return;
             }
 
-            if (declaredType.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
-            if (!declaredType.Span.IntersectsWith(textSpan.Start))
-            {
-                return;
-            }
-
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var typeStyle = AnalyzeTypeName(declaredType, semanticModel, optionSet, cancellationToken);
             if (typeStyle.IsStylePreferred && typeStyle.Severity != ReportDiagnostic.Suppress)
@@ -77,7 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             context.RegisterRefactoring(
                 new MyCodeAction(
                     Title,
-                    c => UpdateDocumentAsync(document, declaredType, c)));
+                    c => UpdateDocumentAsync(document, declaredType, c)),
+                declaredType.Span);
         }
 
         private static async Task<SyntaxNode> GetDeclarationAsync(CodeRefactoringContext context)
@@ -90,28 +77,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             // In addition to providing the refactoring when the whole node (i.e. the node that introduces the new variable) in question is selected 
             // we also want to enable it when only the type node is selected because this refactoring changes the type. We still have to make sure 
             // we're only working on TypeNodes for in above-mentioned situations.
+            //
+            // For foreach we need to guard against selecting just the expression because it is also of type `TypeSyntax`.
 
-            var declNode = await context.TryGetSelectedNodeAsync<DeclarationExpressionSyntax>().ConfigureAwait(false);
+            var declNode = await context.TryGetRelevantNodeAsync<DeclarationExpressionSyntax>().ConfigureAwait(false);
             if (declNode != null)
             {
                 return declNode;
             }
 
-            var variableNode = await context.TryGetSelectedNodeAsync<VariableDeclarationSyntax>().ConfigureAwait(false);
+            var variableNode = await context.TryGetRelevantNodeAsync<VariableDeclarationSyntax>().ConfigureAwait(false);
             if (variableNode != null)
             {
                 return variableNode;
             }
 
-            var foreachStatement = await context.TryGetSelectedNodeAsync<ForEachStatementSyntax>().ConfigureAwait(false);
+            var foreachStatement = await context.TryGetRelevantNodeAsync<ForEachStatementSyntax>().ConfigureAwait(false);
             if (foreachStatement != null)
             {
                 return foreachStatement;
             }
 
-            var typeNode = await context.TryGetSelectedNodeAsync<TypeSyntax>().ConfigureAwait(false);
+            var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
+
+            var typeNode = await context.TryGetRelevantNodeAsync<TypeSyntax>().ConfigureAwait(false);
             var typeNodeParent = typeNode?.Parent;
-            if (typeNodeParent != null && typeNodeParent.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement))
+            if (typeNodeParent != null &&
+                (typeNodeParent.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.VariableDeclaration) ||
+                (typeNodeParent.IsKind(SyntaxKind.ForEachStatement) && !syntaxFacts.IsExpressionOfForeach(typeNode))))
             {
                 return typeNodeParent;
             }

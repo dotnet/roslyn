@@ -636,13 +636,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool ComputeIsWindowsRuntimeEvent()
         {
-            // Interface events don't override or implement other events, so they only
-            // depend the output kind.
-            if (this.containingType.IsInterfaceType())
-            {
-                return this.IsCompilationOutputWinMdObj();
-            }
-
             // If you explicitly implement an event, then you're a WinRT event if and only if it's a WinRT event.
             ImmutableArray<EventSymbol> explicitInterfaceImplementations = this.ExplicitInterfaceImplementations;
             if (!explicitInterfaceImplementations.IsEmpty)
@@ -653,6 +646,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((object)this.OverriddenEvent == null);
 
                 return explicitInterfaceImplementations[0].IsWindowsRuntimeEvent;
+            }
+
+            // Interface events don't override or implicitly implement other events, so they only
+            // depend on the output kind at this point.
+            if (this.containingType.IsInterfaceType())
+            {
+                return this.IsCompilationOutputWinMdObj();
             }
 
             // If you override an event, then you're a WinRT event if and only if it's a WinRT event.
@@ -674,8 +674,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (Symbol interfaceMember in @interface.GetMembers(this.Name))
                 {
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     if (interfaceMember.Kind == SymbolKind.Event && //quick check (necessary, not sufficient)
-                        this == this.containingType.FindImplementationForInterfaceMember(interfaceMember)) //slow check (necessary and sufficient)
+                        this == this.containingType.FindImplementationForInterfaceMember(interfaceMember, ref useSiteDiagnostics)) //slow check (necessary and sufficient)
                     {
                         sawImplicitImplementation = true;
 

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// be short as it will show up in the UI.  Display will present this in a way to distinguish
         /// this from the normal text (for example, by fading out and right-aligning).
         /// </summary>
-        internal string InlineDescription { get; }
+        public string InlineDescription { get; }
 
         /// <summary>
         /// The span of the syntax element associated with this item.
@@ -83,6 +83,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// and making additional change during commit.
         /// </summary>
         internal string ProviderName { get; set; }
+
+        /// <summary>
+        /// The automation text to use when narrating the completion item. If set to
+        /// null, narration will use the <see cref="DisplayText"/> instead.
+        /// </summary>
+        internal string AutomationText { get; set; }
 
         /// <summary>
         /// Indicate whether this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
@@ -252,6 +258,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayTextSuffix: newDisplayTextSuffix,
                 inlineDescription: newInlineDescription)
             {
+                AutomationText = AutomationText,
                 ProviderName = ProviderName
             };
         }

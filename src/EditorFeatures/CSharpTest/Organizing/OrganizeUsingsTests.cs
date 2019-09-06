@@ -23,15 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             bool separateImportGroups = false,
             CSharpParseOptions options = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(initial))
-            {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
-                workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
+            using var workspace = TestWorkspace.CreateCSharp(initial);
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
+            workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
 
-                var newRoot = await (await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
-                Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
-            }
+            var newRoot = await (await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
+            Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
@@ -358,6 +356,62 @@ namespace B { }";
 
             var final =
 @"// Copyright (c) Microsoft Corporation.  All rights reserved.
+
+/// I like namespace A
+using A;
+using B;
+
+namespace A { }
+namespace B { }";
+
+            await CheckAsync(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
+        public async Task DoNotTouchCommentsAtBeginningOfFile4()
+        {
+            var initial =
+@"/// Copyright (c) Microsoft Corporation.  All rights reserved.
+
+using B;
+/// I like namespace A
+using A;
+
+namespace A { }
+namespace B { }";
+
+            var final =
+@"/// Copyright (c) Microsoft Corporation.  All rights reserved.
+
+/// I like namespace A
+using A;
+using B;
+
+namespace A { }
+namespace B { }";
+
+            await CheckAsync(initial, final);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WorkItem(33251, "https://github.com/dotnet/roslyn/issues/33251")]
+        public async Task DoNotTouchCommentsAtBeginningOfFile5()
+        {
+            var initial =
+@"/** Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
+
+using B;
+/// I like namespace A
+using A;
+
+namespace A { }
+namespace B { }";
+
+            var final =
+@"/** Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
 
 /// I like namespace A
 using A;

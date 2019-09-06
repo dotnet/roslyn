@@ -83,19 +83,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper,
-                        useExpressionBody: true, cancellationToken: c)));
+                        document, root, declaration, helper,
+                        useExpressionBody: true, cancellationToken: c)),
+                    declaration.Span);
                 succeeded = true;
             }
 
             var (canOffer, _) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false);
             if (canOffer)
             {
-                context.RegisterRefactoring(new MyCodeAction(
-                    helper.UseBlockBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper,
-                        useExpressionBody: false, cancellationToken: c)));
+                context.RegisterRefactoring(
+                    new MyCodeAction(
+                        helper.UseBlockBodyTitle.ToString(),
+                        c => UpdateDocumentAsync(
+                            document, root, declaration, helper,
+                            useExpressionBody: false, cancellationToken: c)),
+                    declaration.Span);
                 succeeded = true;
             }
 
@@ -117,12 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, SyntaxNode declaration,
-            OptionSet options, UseExpressionBodyHelper helper, bool useExpressionBody,
+            UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)
         {
-            var parseOptions = root.SyntaxTree.Options;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var updatedDeclaration = helper.Update(semanticModel, declaration, options, parseOptions, useExpressionBody);
+            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
 
             var parent = declaration is AccessorDeclarationSyntax
                 ? declaration.Parent

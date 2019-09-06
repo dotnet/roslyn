@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface
 {
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var updatedProperty = property.RenameParameters(parameterNames);
 
-                updatedProperty = updatedProperty.RemoveAttributeFromParameters(attributesToRemove);
+                updatedProperty = updatedProperty.RemoveInaccessibleAttributesAndAttributesOfTypes(compilation.Assembly, attributesToRemove);
 
                 // TODO(cyrusn): Delegate through throughMember if it's non-null.
                 return CodeGenerationSymbolFactory.CreatePropertySymbol(
@@ -66,10 +69,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private INamedTypeSymbol[] AttributesToRemove(Compilation compilation)
             {
                 return new[] { compilation.ComAliasNameAttributeType(), compilation.TupleElementNamesAttributeType(),
-                    compilation.DynamicAttributeType() };
+                    compilation.DynamicAttributeType() }.WhereNotNull().ToArray()!;
             }
 
-            private IMethodSymbol GenerateSetAccessor(
+            private IMethodSymbol? GenerateSetAccessor(
                 Compilation compilation,
                 IPropertySymbol property,
                 Accessibility accessibility,
@@ -100,10 +103,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     accessibility: accessibility,
                     explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.SetMethod) : default,
                     statements: GetSetAccessorStatements(
-                        compilation, property, generateAbstractly, propertyGenerationBehavior, cancellationToken));
+                        compilation, property, generateAbstractly, propertyGenerationBehavior));
             }
 
-            private IMethodSymbol GenerateGetAccessor(
+            private IMethodSymbol? GenerateGetAccessor(
                 Compilation compilation,
                 IPropertySymbol property,
                 Accessibility accessibility,
@@ -128,15 +131,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     accessibility: accessibility,
                     explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.GetMethod) : default,
                     statements: GetGetAccessorStatements(
-                        compilation, property, generateAbstractly, propertyGenerationBehavior, cancellationToken));
+                        compilation, property, generateAbstractly, propertyGenerationBehavior));
             }
 
             private ImmutableArray<SyntaxNode> GetSetAccessorStatements(
                 Compilation compilation,
                 IPropertySymbol property,
                 bool generateAbstractly,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (generateAbstractly)
                 {
@@ -179,8 +181,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Compilation compilation,
                 IPropertySymbol property,
                 bool generateAbstractly,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 if (generateAbstractly)
                 {

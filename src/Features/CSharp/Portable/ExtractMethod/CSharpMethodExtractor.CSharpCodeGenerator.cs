@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
-                    typeParameters: CreateMethodTypeParameters(cancellationToken),
+                    typeParameters: CreateMethodTypeParameters(),
                     parameters: CreateMethodParameters(),
                     statements: result.Data);
 
@@ -150,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 statements = postProcessor.MergeDeclarationStatements(statements);
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken);
                 statements = await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
-                statements = AddReturnIfUnreachable(statements, cancellationToken);
+                statements = AddReturnIfUnreachable(statements);
 
                 return statements;
             }
@@ -202,11 +204,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var isUnsafe = this.CSharpSelectionResult.ShouldPutUnsafeModifier();
                 var isAsync = this.CSharpSelectionResult.ShouldPutAsyncModifier();
+                var isStatic = !this.AnalyzerResult.UseInstanceMember;
+                var isReadOnly = this.AnalyzerResult.ShouldBeReadOnly;
 
                 return new DeclarationModifiers(
                     isUnsafe: isUnsafe,
                     isAsync: isAsync,
-                    isStatic: !this.AnalyzerResult.UseInstanceMember);
+                    isStatic: isStatic,
+                    isReadOnly: isReadOnly);
             }
 
             private static SyntaxKind GetParameterRefSyntaxKind(ParameterBehavior parameterBehavior)
@@ -283,10 +288,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 foreach (var statement in statements)
                 {
-                    var declStatement = statement as LocalDeclarationStatementSyntax;
-                    if (declStatement == null)
+                    if (!(statement is LocalDeclarationStatementSyntax declStatement))
                     {
-                        // found one
                         return OperationStatus.Succeeded;
                     }
 
@@ -452,8 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 // We don't have a good refactoring for this, so we just annotate the conflict
                                 // For instance, when a local declared by a pattern declaration (`3 is int i`) is
                                 // used outside the block we're trying to extract.
-                                var designation = pattern.Designation as SingleVariableDesignationSyntax;
-                                if (designation == null)
+                                if (!(pattern.Designation is SingleVariableDesignationSyntax designation))
                                 {
                                     break;
                                 }
@@ -651,6 +653,69 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 return SyntaxFactory.ExpressionStatement(callSignature);
+            }
+
+            protected override async Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
+                SemanticDocument originalDocument,
+                OperationStatus<IMethodSymbol> methodSymbolResult,
+                CancellationToken cancellationToken)
+            {
+                // Only need to update for nullable reference types in return
+                if (methodSymbolResult.Data.ReturnType.GetNullability() != NullableAnnotation.Annotated)
+                {
+                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                }
+
+                var syntaxNode = originalDocument.Root.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault().AsNode();
+                if (syntaxNode == null || !(syntaxNode is MethodDeclarationSyntax methodDeclaration))
+                {
+                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                }
+
+                var semanticModel = originalDocument.SemanticModel;
+                var methodOperation = semanticModel.GetOperation(methodDeclaration, cancellationToken);
+
+                var returnOperations = methodOperation.DescendantsAndSelf().OfType<IReturnOperation>();
+
+                foreach (var returnOperation in returnOperations)
+                {
+                    // If thereturn statement is located in a nested local function or lambda it
+                    // shouldn't contribute to the nullability of the extracted method's return type
+                    if (!ReturnOperationBelongsToMethod(returnOperation.Syntax, methodOperation.Syntax))
+                    {
+                        continue;
+                    }
+
+                    var syntax = returnOperation.ReturnedValue?.Syntax ?? returnOperation.Syntax;
+                    var returnTypeInfo = semanticModel.GetTypeInfo(syntax, cancellationToken);
+                    if (returnTypeInfo.Nullability.FlowState == NullableFlowState.MaybeNull)
+                    {
+                        // Flow state shows that return is correctly nullable
+                        return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
+                // Return type can be updated to not be null
+                var newType = methodSymbolResult.Data.ReturnType.WithNullability(NullableAnnotation.NotAnnotated);
+
+                var oldRoot = await originalDocument.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var newRoot = oldRoot.ReplaceNode(methodDeclaration.ReturnType, newType.GenerateTypeSyntax());
+
+                var newDocument = originalDocument.Document.WithSyntaxRoot(newRoot);
+                return await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+
+                static bool ReturnOperationBelongsToMethod(SyntaxNode returnOperationSyntax, SyntaxNode methodSyntax)
+                {
+                    var enclosingMethod = returnOperationSyntax.FirstAncestorOrSelf<SyntaxNode>(n => n switch
+                    {
+                        BaseMethodDeclarationSyntax _ => true,
+                        AnonymousFunctionExpressionSyntax _ => true,
+                        LocalFunctionStatementSyntax _ => true,
+                        _ => false
+                    });
+
+                    return enclosingMethod == methodSyntax;
+                }
             }
         }
     }

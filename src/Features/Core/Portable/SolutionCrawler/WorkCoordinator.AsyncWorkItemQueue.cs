@@ -47,13 +47,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService service, out WorkItem workItem);
 
+                public int WorkItemCount
+                {
+                    get
+                    {
+                        lock (_gate)
+                        {
+                            return WorkItemCount_NoLock;
+                        }
+                    }
+                }
+
                 public bool HasAnyWork
                 {
                     get
                     {
                         lock (_gate)
                         {
-                            return HasAnyWork_NoLock;
+                            return WorkItemCount_NoLock > 0;
                         }
                     }
                 }
@@ -137,7 +148,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     RaiseCancellation_NoLock(cancellations);
                 }
 
-                private bool HasAnyWork_NoLock => WorkItemCount_NoLock > 0;
                 protected Workspace Workspace => _workspace;
 
                 private static void RaiseCancellation_NoLock(List<CancellationTokenSource> cancellations)

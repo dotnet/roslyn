@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return await GetAnalyzerSemanticDiagnosticsCoreAsync(model, filterSpan, analyzers, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken, bool forceCompletePartialTrees = true)
         {
             try
             {
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         cancellationToken.ThrowIfCancellationRequested();
 
                         (ImmutableArray<CompilationEvent> compilationEvents, bool hasSymbolStartActions) = await ComputeAnalyzerDiagnosticsAsync(pendingAnalysisScope, getPendingEvents, taskToken, cancellationToken).ConfigureAwait(false);
-                        if (hasSymbolStartActions)
+                        if (hasSymbolStartActions && forceCompletePartialTrees)
                         {
                             await processPartialSymbolLocationsAsync(compilationEvents, analysisScope).ConfigureAwait(false);
                         }
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             Task.Run(() =>
                             {
                                 var treeModel = _compilationData.GetOrCreateCachedSemanticModel(tree, _compilation, cancellationToken);
-                                return GetAnalyzerSemanticDiagnosticsCoreAsync(treeModel, filterSpan: null, analysisScope.Analyzers, cancellationToken);
+                                return GetAnalyzerSemanticDiagnosticsCoreAsync(treeModel, filterSpan: null, analysisScope.Analyzers, cancellationToken, forceCompletePartialTrees: false);
                             }, cancellationToken))).ConfigureAwait(false);
                     }
                     else
@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             var treeModel = _compilationData.GetOrCreateCachedSemanticModel(tree, _compilation, cancellationToken);
-                            await GetAnalyzerSemanticDiagnosticsCoreAsync(treeModel, filterSpan: null, analysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                            await GetAnalyzerSemanticDiagnosticsCoreAsync(treeModel, filterSpan: null, analysisScope.Analyzers, cancellationToken, forceCompletePartialTrees: false).ConfigureAwait(false);
                         }
                     }
                 }
@@ -780,12 +780,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task GenerateCompilationEventsAndPopulateEventsCacheAsync(AnalysisScope analysisScope, AnalyzerDriver driver, CancellationToken cancellationToken)
         {
-#if SIMULATED_EVENT_QUEUE
-            await _analysisState.GenerateSimulatedCompilationEventsAsync(analysisScope, _compilation, _compilationData.GetOrCreateCachedSemanticModel, driver, cancellationToken).ConfigureAwait(false);
-#else
             GenerateCompilationEvents(analysisScope, cancellationToken);
             await PopulateEventsCacheAsync(cancellationToken).ConfigureAwait(false);
-#endif
         }
 
         private void GenerateCompilationEvents(AnalysisScope analysisScope, CancellationToken cancellationToken)

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static bool IsEffectivelyPublicOrInternal(Symbol symbol, out bool isInternal)
         {
-            Debug.Assert(!(symbol is null));
+            Debug.Assert(symbol is object);
 
             switch (symbol.Kind)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 symbol = symbol.ContainingType;
             }
-            while (!(symbol is null));
+            while (symbol is object);
 
             return true;
         }
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return IsSymbolAccessibleCore(((AliasSymbol)symbol).Target, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.Discard:
-                    return IsSymbolAccessibleCore(((DiscardSymbol)symbol).Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((DiscardSymbol)symbol).TypeWithAnnotations.Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.ErrorType:
                     // Always assume that error types are accessible.

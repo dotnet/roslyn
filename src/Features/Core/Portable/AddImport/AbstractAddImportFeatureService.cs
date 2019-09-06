@@ -355,13 +355,15 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         /// <summary>
-        /// We ignore references that are in a directory that contains the names "Packages".
+        /// We ignore references that are in a directory that contains the names
+        /// "Packages", "packs", "NuGetFallbackFolder", or "NuGetPackages"
         /// These directories are most likely the ones produced by NuGet, and we don't want
         /// to offer to add .dll reference manually for dlls that are part of NuGet packages.
         /// 
         /// Note that this is only a heuristic (though a good one), and we should remove this
         /// when we can get an API from NuGet that tells us if a reference is actually provided
         /// by a nuget packages.
+        /// Tracking issue: https://github.com/dotnet/project-system/issues/5275
         /// 
         /// This heuristic will do the right thing in practically all cases for all. It 
         /// prevents the very unpleasant experience of us offering to add a direct metadata 
@@ -379,7 +381,13 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private bool IsInPackagesDirectory(PortableExecutableReference reference)
         {
-            return PathUtilities.ContainsPathComponent(reference.FilePath, "packages", ignoreCase: true);
+            return ContainsPathComponent(reference, "packages")
+                || ContainsPathComponent(reference, "packs")
+                || ContainsPathComponent(reference, "NuGetFallbackFolder")
+                || ContainsPathComponent(reference, "NuGetPackages");
+
+            static bool ContainsPathComponent(PortableExecutableReference reference, string pathComponent)
+                => PathUtilities.ContainsPathComponent(reference.FilePath, pathComponent, ignoreCase: true);
         }
 
         /// <summary>
@@ -516,26 +524,16 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService)
-        {
-            switch (fixData.Kind)
+            => fixData.Kind switch
             {
-                case AddImportFixKind.ProjectSymbol:
-                    return new ProjectSymbolReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.MetadataSymbol:
-                    return new MetadataSymbolReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.ReferenceAssemblySymbol:
-                    return new AssemblyReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.PackageSymbol:
-                    return !installerService.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
-                        ? new ParentInstallPackageCodeAction(document, fixData, installerService)
-                        : null;
-            }
-
-            throw ExceptionUtilities.Unreachable;
-        }
+                AddImportFixKind.ProjectSymbol => new ProjectSymbolReferenceCodeAction(document, fixData),
+                AddImportFixKind.MetadataSymbol => new MetadataSymbolReferenceCodeAction(document, fixData),
+                AddImportFixKind.ReferenceAssemblySymbol => new AssemblyReferenceCodeAction(document, fixData),
+                AddImportFixKind.PackageSymbol => !installerService.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
+                    ? new ParentInstallPackageCodeAction(document, fixData, installerService)
+                    : default(CodeAction),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
 
         private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService, SyntaxNode node)
         {

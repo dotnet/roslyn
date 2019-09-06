@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
     {
         public abstract string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics);
         public abstract Solution UpgradeProject(Project project, string version);
-        public abstract bool IsUpgrade(ParseOptions projectOptions, string newVersion);
+        public abstract bool IsUpgrade(Project project, string newVersion);
         public abstract string UpgradeThisProjectResource { get; }
         public abstract string UpgradeAllProjectsResource { get; }
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
         private bool CanUpgrade(Project project, string language, string version)
         {
-            return project.Language == language && IsUpgrade(project.ParseOptions, version);
+            return project.Language == language && IsUpgrade(project, version);
         }
     }
 

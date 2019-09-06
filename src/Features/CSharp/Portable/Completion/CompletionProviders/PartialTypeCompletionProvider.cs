@@ -70,8 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static bool IsPartialTypeDeclaration(SyntaxNode syntax)
         {
-            var declarationSyntax = syntax as BaseTypeDeclarationSyntax;
-            return declarationSyntax != null && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
+            return syntax is BaseTypeDeclarationSyntax declarationSyntax && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
         }
 
         protected override ImmutableDictionary<string, string> GetProperties(

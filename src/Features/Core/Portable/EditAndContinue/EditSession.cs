@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var instructionMap = baseActiveStatements.InstructionMap;
-                var builder = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count);
+                using var builderDisposer = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count, out var builder);
                 builder.Count = instructionMap.Count;
 
                 foreach (var activeStatement in instructionMap.Values)
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     builder[activeStatement.Ordinal] = new ActiveStatementExceptionRegions(exceptionRegions, isCovered);
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -252,8 +252,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal CancellationTokenSource Cancellation => _cancellation;
 
         internal Solution BaseSolution => _baseSolution;
-
-        private Solution CurrentSolution => _baseSolution.Workspace.CurrentSolution;
 
         public bool StoppedAtException => _stoppedAtException;
 
@@ -510,43 +508,41 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var pdbStream = new MemoryStream();
                 var updatedMethods = new List<MethodDefinitionHandle>();
 
-                using (var metadataStream = SerializableBytes.CreateWritableStream())
-                using (var ilStream = SerializableBytes.CreateWritableStream())
-                {
-                    var result = currentCompilation.EmitDifference(
-                        baseline,
-                        projectChanges.SemanticEdits,
-                        s => allAddedSymbols?.Contains(s) ?? false,
-                        metadataStream,
-                        ilStream,
-                        pdbStream,
-                        updatedMethods,
-                        cancellationToken);
+                using var metadataStream = SerializableBytes.CreateWritableStream();
+                using var ilStream = SerializableBytes.CreateWritableStream();
+                var result = currentCompilation.EmitDifference(
+                    baseline,
+                    projectChanges.SemanticEdits,
+                    s => allAddedSymbols?.Contains(s) ?? false,
+                    metadataStream,
+                    ilStream,
+                    pdbStream,
+                    updatedMethods,
+                    cancellationToken);
 
-                    var updatedMethodTokens = updatedMethods.Select(h => MetadataTokens.GetToken(h)).ToArray();
+                var updatedMethodTokens = updatedMethods.Select(h => MetadataTokens.GetToken(h)).ToArray();
 
-                    // Determine all active statements whose span changed and exception region span deltas.
+                // Determine all active statements whose span changed and exception region span deltas.
 
-                    GetActiveStatementAndExceptionRegionSpans(
-                        baseline.OriginalMetadata.GetModuleVersionId(),
-                        baseActiveStatements,
-                        baseActiveExceptionRegions,
-                        updatedMethodTokens,
-                        _nonRemappableRegions,
-                        projectChanges.NewActiveStatements,
-                        out var activeStatementsInUpdatedMethods,
-                        out var nonRemappableRegions);
+                GetActiveStatementAndExceptionRegionSpans(
+                    baseline.OriginalMetadata.GetModuleVersionId(),
+                    baseActiveStatements,
+                    baseActiveExceptionRegions,
+                    updatedMethodTokens,
+                    _nonRemappableRegions,
+                    projectChanges.NewActiveStatements,
+                    out var activeStatementsInUpdatedMethods,
+                    out var nonRemappableRegions);
 
-                    return new Deltas(
-                        ilStream.ToArray(),
-                        metadataStream.ToArray(),
-                        pdbStream,
-                        updatedMethodTokens,
-                        projectChanges.LineChanges,
-                        nonRemappableRegions,
-                        activeStatementsInUpdatedMethods,
-                        result);
-                }
+                return new Deltas(
+                    ilStream.ToArray(),
+                    metadataStream.ToArray(),
+                    pdbStream,
+                    updatedMethodTokens,
+                    projectChanges.LineChanges,
+                    nonRemappableRegions,
+                    activeStatementsInUpdatedMethods,
+                    result);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashAndPropagate(e))
             {

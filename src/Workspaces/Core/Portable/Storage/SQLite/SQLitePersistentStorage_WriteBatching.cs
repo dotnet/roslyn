@@ -98,10 +98,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // would be losing data.
                 Debug.Assert(taskCompletionSource != null);
 
-                using (var pooledConnection = GetPooledConnection())
-                {
-                    ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
-                }
+                using var pooledConnection = GetPooledConnection();
+                ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
             }
             catch (OperationCanceledException ex)
             {
@@ -195,10 +193,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                     // a second max, this should not be an area of contention.
                     if (writesToProcess.Count > 0)
                     {
-                        using (var pooledConnection = GetPooledConnection())
-                        {
-                            ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
-                        }
+                        using var pooledConnection = GetPooledConnection();
+                        ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
                     }
                 }
             }

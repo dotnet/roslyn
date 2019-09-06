@@ -2,6 +2,8 @@
 
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
 {
@@ -35,6 +37,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
             }
 
             return false;
+        }
+
+        public static bool TryParseJson<T>(object json, out T t)
+        {
+            t = default;
+            if (json == null)
+            {
+                return true;
+            }
+            try
+            {
+                t = ((JObject)json).ToObject<T>();
+                return true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
         }
     }
 }

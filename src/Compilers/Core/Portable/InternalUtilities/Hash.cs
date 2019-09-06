@@ -223,22 +223,32 @@ namespace Roslyn.Utilities
         /// fit into 8-bits and, therefore, the algorithm will retain its desirable traits
         /// for generating hash codes.
         /// </summary>
+        internal static int GetFNVHashCode(ReadOnlySpan<char> data)
+        {
+            int hashCode = Hash.FnvOffsetBias;
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                hashCode = unchecked((hashCode ^ data[i]) * Hash.FnvPrime);
+            }
+
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Compute the hashcode of a sub-string using FNV-1a
+        /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+        /// Note: FNV-1a was developed and tuned for 8-bit sequences. We're using it here
+        /// for 16-bit Unicode chars on the understanding that the majority of chars will
+        /// fit into 8-bits and, therefore, the algorithm will retain its desirable traits
+        /// for generating hash codes.
+        /// </summary>
         /// <param name="text">The input string</param>
         /// <param name="start">The start index of the first character to hash</param>
         /// <param name="length">The number of characters, beginning with <paramref name="start"/> to hash</param>
         /// <returns>The FNV-1a hash code of the substring beginning at <paramref name="start"/> and ending after <paramref name="length"/> characters.</returns>
         internal static int GetFNVHashCode(string text, int start, int length)
-        {
-            int hashCode = Hash.FnvOffsetBias;
-            int end = start + length;
-
-            for (int i = start; i < end; i++)
-            {
-                hashCode = unchecked((hashCode ^ text[i]) * Hash.FnvPrime);
-            }
-
-            return hashCode;
-        }
+            => GetFNVHashCode(text.AsSpan(start, length));
 
         internal static int GetCaseInsensitiveFNVHashCode(string text)
         {

@@ -200,7 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = (MethodSymbol)this.ContainingMemberOrLambda;
             if (method.IsAsync)
             {
-                MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(diagnostics, method.Locations[0]);
+                MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(
+                    diagnostics,
+                    method.DeclaringCompilation,
+                    method.Locations[0]);
             }
         }
 
@@ -371,6 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // produce a null reference exception.
                 if (!boundExpr.IsLiteralNull())
                 {
+                    boundExpr = BindToNaturalType(boundExpr, diagnostics);
                     var type = boundExpr.Type;
 
                     // If the expression is a lambda, anonymous method, or method group then it will
@@ -383,8 +387,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                         diagnostics.Add(exprSyntax, useSiteDiagnostics);
                     }
-
-                    boundExpr = BindToNaturalType(boundExpr, diagnostics);
                 }
             }
             else
@@ -689,8 +691,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The <see cref="MethodSymbol"/> of the Dispose method if one is found, otherwise null.</returns>
         internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, bool hasAwait, DiagnosticBag diagnostics)
         {
-            Debug.Assert(!(expr is null));
-            Debug.Assert(!(expr.Type is null));
+            Debug.Assert(expr is object);
+            Debug.Assert(expr.Type is object);
             Debug.Assert(expr.Type.IsRefLikeType || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
 
             // Don't try and lookup if we're not enabled
@@ -1259,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            if (CheckManagedAddr(elementType, initializerSyntax, diagnostics))
+            if (CheckManagedAddr(Compilation, elementType, initializerSyntax.Location, diagnostics))
             {
                 hasErrors = true;
             }
@@ -1965,6 +1967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: LambdaConversionResult.VoidExpressionLambdaMustBeStatementExpression:
 
             Debug.Assert(false, "Missing case in lambda conversion error reporting");
+            diagnostics.Add(ErrorCode.ERR_InternalError, syntax.Location);
         }
 
         protected static void GenerateImplicitConversionError(DiagnosticBag diagnostics, Compilation compilation, SyntaxNode syntax,
@@ -3066,6 +3069,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckForUnobservedAwaitable(expression, diagnostics);
                     statement = expressionStatement;
                 }
+                else if (IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ReturnInIterator, syntax);
+                    statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
+                }
                 else
                 {
                     expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
@@ -3078,7 +3086,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                statement = new BoundReturnStatement(syntax, refKind, BindToNaturalType(expression, diagnostics)) { WasCompilerGenerated = true };
+                // When binding for purpose of inferring the return type of a lambda, we do not require returned expressions (such as `default` or switch expressions) to have a natural type
+                var inferringLambda = this.ContainingMemberOrLambda is MethodSymbol method && (object)method.ReturnType == LambdaSymbol.ReturnTypeIsBeingInferred;
+                if (!inferringLambda)
+                {
+                    expression = BindToNaturalType(expression, diagnostics);
+                }
+                statement = new BoundReturnStatement(syntax, refKind, expression) { WasCompilerGenerated = true };
             }
 
             // Need to attach the tree for when we generate sequence points.

@@ -33,6 +33,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
@@ -58,6 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ITextBufferCloneService _textBufferCloneService;
 
+        private readonly object _gate = new object();
+
         /// <summary>
         /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
         /// </summary>
@@ -65,6 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
+        private readonly Dictionary<ProjectId, string> _projectToMaxSupportedLangVersionMap = new Dictionary<ProjectId, string>();
 
         /// <summary>
         /// A map to fetch the path to a rule set file for a project. This right now is only used to implement
@@ -74,6 +78,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<ProjectId, Func<string>> _projectToRuleSetFilePath = new Dictionary<ProjectId, Func<string>>();
 
         private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new Dictionary<string, List<VisualStudioProject>>();
+
+#nullable enable
+
+        private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new Dictionary<string, UIContext?>();
+        private readonly JoinableTaskCollection _deferredJoinableTasks;
+
+#nullable restore
 
         /// <summary>
         /// A set of documents that were added by <see cref="VisualStudioProject.AddSourceTextContainer"/>, and aren't otherwise
@@ -99,6 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
+            _deferredJoinableTasks = new JoinableTaskCollection(_threadingContext.JoinableTaskContext);
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
@@ -422,9 +434,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return project.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
         }
 
-        protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
+        public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
         {
-            return project.LanguageServices.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
+            _projectToMaxSupportedLangVersionMap.TryGetValue(project.Id, out var maxSupportLangVersion);
+
+            return project.LanguageServices.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions, maxSupportLangVersion);
         }
 
         private void AddTextBufferCloneServiceToBuffer(object sender, TextBufferCreatedEventArgs e)
@@ -912,10 +926,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (initialText != null)
             {
-                using (var writer = new StreamWriter(filePath, append: false, encoding: initialText.Encoding ?? Encoding.UTF8))
-                {
-                    initialText.Write(writer);
-                }
+                using var writer = new StreamWriter(filePath, append: false, encoding: initialText.Encoding ?? Encoding.UTF8);
+                initialText.Write(writer);
             }
 
             // TODO: restore document ID hinting -- we previously ensured that the AddFromFile will introduce the document ID being used here.
@@ -1077,8 +1089,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // OpenDocumentViaProject itself relies upon this QI working, so it should be OK to
                 // use here.
 
-                var vsProject = hierarchy as IVsProject;
-                return vsProject != null &&
+                return hierarchy is IVsProject vsProject &&
                     ErrorHandler.Succeeded(vsProject.OpenItem(itemId, VSConstants.LOGVIEWID.TextView_guid, s_docDataExisting_Unknown, out frame));
             }
         }
@@ -1143,10 +1154,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // The document wasn't open in a normal way, so invisible editor time
-                using (var invisibleEditor = OpenInvisibleEditor(documentId))
-                {
-                    TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
-                }
+                using var invisibleEditor = OpenInvisibleEditor(documentId);
+                TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
             }
         }
 
@@ -1231,19 +1240,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string GetPreferredExtension(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
             // No extension was provided.  Pick a good one based on the type of host project.
-            switch (CurrentSolution.GetProject(documentId.ProjectId).Language)
+            return CurrentSolution.GetProject(documentId.ProjectId).Language switch
             {
-                case LanguageNames.CSharp:
-                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
-                    //return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
-                    return ".cs";
-                case LanguageNames.VisualBasic:
-                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
-                    //return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
-                    return ".vb";
-                default:
-                    throw new InvalidOperationException();
-            }
+                // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                //return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
+                LanguageNames.CSharp => ".cs",
+
+                // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                //return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
+                LanguageNames.VisualBasic => ".vb",
+                _ => throw new InvalidOperationException(),
+            };
         }
 
         public override IVsHierarchy GetHierarchy(ProjectId projectId)
@@ -1335,6 +1342,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
+
+                _deferredJoinableTasks.Join();
             }
 
             base.Dispose(finalize);
@@ -1448,8 +1457,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return result != (uint)__VSREFERENCEQUERYRESULT.REFERENCE_DENY;
         }
 
-        private readonly object _gate = new object();
-
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
@@ -1488,7 +1495,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
+        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
@@ -1499,6 +1506,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
+                string languageName = CurrentSolution.GetProject(projectId).Language;
+
                 if (_projectReferenceInfoMap.TryGetValue(projectId, out var projectReferenceInfo))
                 {
                     // If we still had any output paths, we'll want to remove them to cause conversion back to metadata references.
@@ -1513,6 +1522,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
+                _projectToMaxSupportedLangVersionMap.Remove(projectId);
                 _projectToRuleSetFilePath.Remove(projectId);
                 _projectCompilationOutputs.Remove(projectId);
 
@@ -1530,6 +1540,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 base.OnProjectRemoved(projectId);
+
+                _deferredJoinableTasks.Add(_threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    RefreshProjectExistsUIContextForLanguage(languageName);
+                }));
             }
         }
 
@@ -1884,5 +1900,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
         }
+
+        internal void SetMaxLanguageVersion(ProjectId projectId, string maxLanguageVersion)
+        {
+            lock (_gate)
+            {
+                _projectToMaxSupportedLangVersionMap[projectId] = maxLanguageVersion;
+            }
+        }
+
+#nullable enable
+
+        internal void RefreshProjectExistsUIContextForLanguage(string language)
+        {
+            // We must assert the call is on the foreground as setting UIContext.IsActive would otherwise do a COM RPC.
+            _foregroundObject.AssertIsForeground();
+
+            lock (_gate)
+            {
+                var uiContext =
+                    _languageToProjectExistsUIContext.GetOrAdd(
+                        language,
+                        l => Services.GetLanguageServices(l).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
+
+                if (uiContext != null)
+                {
+                    uiContext.IsActive = CurrentSolution.Projects.Any(p => p.Language == language);
+                }
+            }
+        }
+
+#nullable restore
     }
 }

@@ -42,7 +42,6 @@ End Namespace
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
                 state.SendTypeChars("Curr")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="CurrentDomain")
                 state.SendTab()
                 Assert.Contains("__o = AppDomain.CurrentDomain", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
@@ -82,7 +81,6 @@ End Class
                 Await state.AssertCompletionSession(view)
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Console", projectionsView:=view)
             End Using
         End Function
@@ -120,7 +118,6 @@ End Class
                 Await state.AssertCompletionSession(view)
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Str", view, buffer)
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="String", isHardSelected:=True, projectionsView:=view)
             End Using
         End Function

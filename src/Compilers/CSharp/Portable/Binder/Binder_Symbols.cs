@@ -537,9 +537,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                     Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
                 }
-                else
+                else if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
                 {
-                    CheckManagedAddr(elementType.Type, node, diagnostics);
+                    CheckManagedAddr(Compilation, elementType.Type, node.Location, diagnostics);
                 }
 
                 return TypeWithAnnotations.Create(new PointerTypeSymbol(elementType));
@@ -2315,6 +2315,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
-            => feature.CheckFeatureAvailability(diagnostics, location);
+        {
+            if (feature.GetFeatureAvailabilityDiagnosticInfoOpt((CSharpParseOptions)tree.Options) is { } diagInfo)
+            {
+                diagnostics.Add(diagInfo, location);
+                return false;
+            }
+            return true;
+        }
     }
 }

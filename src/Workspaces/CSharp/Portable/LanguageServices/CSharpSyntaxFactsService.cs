@@ -1142,8 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // If this node is not parented by a name, we're done.
-                var name = parent as NameSyntax;
-                if (name == null)
+                if (!(parent is NameSyntax name))
                 {
                     break;
                 }
@@ -1310,6 +1309,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsStringLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.StringLiteralExpression;
+
+        public bool IsCharacterLiteralExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.CharacterLiteralExpression;
 
         public bool IsVerbatimStringLiteral(SyntaxToken token)
             => token.IsVerbatimStringLiteral();
@@ -1518,6 +1520,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
             => ((AwaitExpressionSyntax)node).Expression;
 
+        public bool IsExpressionOfForeach(SyntaxNode node)
+            => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
+
         public bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
@@ -1605,6 +1610,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool IsMultiLineCommentTrivia(SyntaxTrivia trivia)
             => trivia.IsMultiLineComment();
+
+        public override bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsSingleLineDocComment();
+
+        public override bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsMultiLineDocComment();
 
         public override bool IsShebangDirectiveTrivia(SyntaxTrivia trivia)
             => trivia.IsShebangDirective();
@@ -1781,45 +1792,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsOnHeader(position, node, node.CloseParenToken);
         }
 
-        public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)
+        public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, out SyntaxNode typeDeclaration)
         {
             var token = root.FindToken(position);
             var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
-            if (typeDecl != null)
+            typeDeclaration = typeDecl;
+
+            if (typeDecl == null)
             {
-                if (position >= typeDecl.OpenBraceToken.Span.End &&
-                    position <= typeDecl.CloseBraceToken.Span.Start)
+                return false;
+            }
+
+            if (position < typeDecl.OpenBraceToken.Span.End ||
+                position > typeDecl.CloseBraceToken.Span.Start)
+            {
+                return false;
+            }
+
+            var line = sourceText.Lines.GetLineFromPosition(position);
+            if (!line.IsEmptyOrWhitespace())
+            {
+                return false;
+            }
+
+            var member = typeDecl.Members.FirstOrDefault(d => d.FullSpan.Contains(position));
+            if (member == null)
+            {
+                // There are no members, or we're after the last member.
+                return true;
+            }
+            else
+            {
+                // We're within a member.  Make sure we're in the leading whitespace of
+                // the member.
+                if (position < member.SpanStart)
                 {
-                    var line = sourceText.Lines.GetLineFromPosition(position);
-                    if (!line.IsEmptyOrWhitespace())
+                    foreach (var trivia in member.GetLeadingTrivia())
                     {
-                        return false;
-                    }
-
-                    var member = typeDecl.Members.FirstOrDefault(d => d.FullSpan.Contains(position));
-                    if (member == null)
-                    {
-                        // There are no members, or we're after the last member.
-                        return true;
-                    }
-                    else
-                    {
-                        // We're within a member.  Make sure we're in the leading whitespace of
-                        // the member.
-                        if (position < member.SpanStart)
+                        if (!trivia.IsWhitespaceOrEndOfLine())
                         {
-                            foreach (var trivia in member.GetLeadingTrivia())
-                            {
-                                if (!trivia.IsWhitespaceOrEndOfLine())
-                                {
-                                    return false;
-                                }
+                            return false;
+                        }
 
-                                if (trivia.FullSpan.Contains(position))
-                                {
-                                    return true;
-                                }
-                            }
+                        if (trivia.FullSpan.Contains(position))
+                        {
+                            return true;
                         }
                     }
                 }

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
             _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
 
-            _progressReporter = new SolutionCrawlerProgressReporter(_listener);
+            _progressReporter = new SolutionCrawlerProgressReporter();
         }
 
         public void Register(Workspace workspace)

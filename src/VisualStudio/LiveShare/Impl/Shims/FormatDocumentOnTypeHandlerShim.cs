@@ -3,9 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -13,27 +10,27 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
+    /// <summary>
+    /// Typescript format expects to be called from the main thread.
+    /// </summary>
+    internal class FormatDocumentOnTypeHandlerOnMainThreadShim : AbstractLiveShareHandlerOnMainThreadShim<DocumentOnTypeFormattingParams, TextEdit[]>
+    {
+        public FormatDocumentOnTypeHandlerOnMainThreadShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext)
+            : base(requestHandlers, Methods.TextDocumentOnTypeFormattingName, threadingContext)
+        {
+        }
+    }
+
     internal class FormatDocumentOnTypeHandlerShim : AbstractLiveShareHandlerShim<DocumentOnTypeFormattingParams, TextEdit[]>
     {
-        private readonly IThreadingContext _threadingContext;
-
-        public FormatDocumentOnTypeHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext)
-            : base(requestHandlers, Methods.TextDocumentOnTypeFormattingName)
+        public FormatDocumentOnTypeHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers, Methods.TextDocumentOnTypeFormattingName)
         {
-            _threadingContext = threadingContext;
-        }
-
-        public override async Task<TextEdit[]> HandleAsync(DocumentOnTypeFormattingParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-        {
-            // To get the formatting options, TypeScript expects to be called on the UI thread.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return await base.HandleAsync(param, requestContext, cancellationToken).ConfigureAwait(false);
         }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentOnTypeFormattingName)]
     [Obsolete("Used for backwards compatibility with old liveshare clients.")]
-    internal class RoslynFormatDocumentOnTypeHandlerShim : FormatDocumentOnTypeHandlerShim
+    internal class RoslynFormatDocumentOnTypeHandlerShim : FormatDocumentOnTypeHandlerOnMainThreadShim
     {
         [ImportingConstructor]
         public RoslynFormatDocumentOnTypeHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
@@ -45,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class CSharpFormatDocumentOnTypeHandlerShim : FormatDocumentOnTypeHandlerShim
     {
         [ImportingConstructor]
-        public CSharpFormatDocumentOnTypeHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
+        public CSharpFormatDocumentOnTypeHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }
     }
@@ -54,13 +51,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class VisualBasicFormatDocumentOnTypeHandlerShim : FormatDocumentOnTypeHandlerShim
     {
         [ImportingConstructor]
-        public VisualBasicFormatDocumentOnTypeHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
+        public VisualBasicFormatDocumentOnTypeHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentOnTypeFormattingName)]
-    internal class TypeScriptFormatDocumentOnTypeHandlerShim : FormatDocumentOnTypeHandlerShim
+    internal class TypeScriptFormatDocumentOnTypeHandlerShim : FormatDocumentOnTypeHandlerOnMainThreadShim
     {
         [ImportingConstructor]
         public TypeScriptFormatDocumentOnTypeHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, IThreadingContext threadingContext) : base(requestHandlers, threadingContext)
