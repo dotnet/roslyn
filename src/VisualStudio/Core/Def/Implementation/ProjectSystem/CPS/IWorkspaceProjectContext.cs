@@ -43,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         void RenameAdditionalFile(string originalFilePath, string newFilePath);
         void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null);
         void RemoveDynamicFile(string filePath);
-        void RenameDynamicFile(string originalFilePath, string newFilePath);
 
         /// <summary>
         /// Adds a file (like a .editorconfig) used to configure analyzers.

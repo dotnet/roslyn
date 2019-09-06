@@ -254,11 +254,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _visualStudioProject.RemoveDynamicSourceFile(filePath);
         }
 
-        public void RenameDynamicFile(string originalFilePath, string newFilePath)
-        {
-            _visualStudioProject.RenameDynamicSourceFile(originalFilePath, newFilePath);
-        }
-
         public void SetRuleSetFile(string filePath)
         {
             // This is now a no-op: we also recieve the rule set file through SetOptions, and we'll just use that one
