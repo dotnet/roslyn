@@ -228,14 +228,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
             }
 
-            var initialListOfItemsToBeIncluded = builder.ToImmutableArray();
-
             var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
-            if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SortCompletionListByMatch))
-            {
+
+            var initialListOfItemsToBeIncluded = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SortCompletionListByMatch)
                 // Need a stable sorting algorithm to preserve the original order for items with same pattern match score.
-                initialListOfItemsToBeIncluded = initialListOfItemsToBeIncluded.OrderBy(new NullablePatternMatchComparer()).ToImmutableArray();
-            }
+                ? builder.OrderBy(new NullablePatternMatchComparer()).ToImmutableArray()
+                : builder.ToImmutable();
+
+            builder.Free();
 
             var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
 
@@ -320,14 +320,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var highlightedItems = ArrayBuilder<CompletionItemWithHighlight>.GetInstance(filterResults.Length);
                 foreach (var extendedResult in filterResults)
                 {
-                    // The PatternMatch in FilterResult is calculated based on Roslyn item's FilterText, 
-                    // which can be used to calculate highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
-                    // However, if the PatternMatch is null or the Roslyn item's FilterText is different from its DisplayText,
-                    // we need to do the match against the display text of the VS item directly to get the highlighted spans.
+                    ImmutableArray<Span> highlightedSpans;
                     var filterResult = extendedResult.FilterResult;
-                    var highlightedSpans = filterResult.PatternMatch.HasValue && !filterResult.CompletionItem.HasDifferentFilterText
-                        ? filterResult.PatternMatch.Value.MatchedSpans.SelectAsArray(s => s.ToSpan(filterResult.CompletionItem.DisplayTextPrefix?.Length ?? 0))
-                        : completionHelper.GetHighlightedSpans(extendedResult.VSCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
+
+                    if (filterResult.CompletionItem.HasDifferentFilterText)
+                    {
+                        // The PatternMatch in FilterResult is calculated based on Roslyn item's FilterText, 
+                        // which can be used to calculate highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
+                        // However, if the Roslyn item's FilterText is different from its DisplayText,
+                        // we need to do the match against the display text of the VS item directly to get the highlighted spans.
+                        highlightedSpans = completionHelper.GetHighlightedSpans(extendedResult.VSCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
+                    }
+                    else if (filterResult.PatternMatch.HasValue)
+                    {
+                        // Since VS item's display text is created as Prefix + DisplayText + Suffix, we can calculate the highlighted span by adding an offset that is the length of the Prefix.
+                        highlightedSpans = filterResult.PatternMatch.Value.MatchedSpans.SelectAsArray(s => s.ToSpan(filterResult.CompletionItem.DisplayTextPrefix?.Length ?? 0));
+                    }
+                    else
+                    {
+                        // If there's no match for Roslyn item's filter text which is identical to its display text,
+                        // then we can safely assume there'd be no matching to VS item's display text.
+                        highlightedSpans = ImmutableArray<Span>.Empty;
+                    }
 
                     highlightedItems.Add(new CompletionItemWithHighlight(extendedResult.VSCompletionItem, highlightedSpans));
                 }
