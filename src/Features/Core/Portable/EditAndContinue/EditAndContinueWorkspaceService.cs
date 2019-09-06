@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 // Document does not compile to the assembly (e.g. cshtml files, .g.cs files generated for completion only)
-                if (IsDesignTimeOnlyDocument(document))
+                if (IsDesignTimeOnlyDocument(document) || !document.SupportsSyntaxTree)
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -201,6 +201,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     // Any changes made in loaded, built projects outside of edit session are rude edits (the application is running):
                     var newSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(newSyntaxTree);
+
                     var changedSpans = await GetChangedSpansAsync(oldDocument, newSyntaxTree, cancellationToken).ConfigureAwait(false);
                     return GetRunModeDocumentDiagnostics(document, newSyntaxTree, changedSpans);
                 }
@@ -228,6 +230,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         editSession.TrackDocumentWithReportedDiagnostics(document.Id);
 
                         var newSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        Contract.ThrowIfNull(newSyntaxTree);
+
                         var changedSpans = await GetChangedSpansAsync(oldDocument, newSyntaxTree, cancellationToken).ConfigureAwait(false);
 
                         var diagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
