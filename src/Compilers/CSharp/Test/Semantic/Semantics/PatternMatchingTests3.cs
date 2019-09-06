@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static void AssertEmpty(SymbolInfo info)
         {
-            Assert.Equal(default, info);
+            Assert.NotEqual(default, info);
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.None, info.CandidateReason);
         }

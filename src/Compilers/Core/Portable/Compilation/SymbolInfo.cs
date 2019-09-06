@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis
         public bool Equals(SymbolInfo other)
         {
             if (!object.Equals(this.Symbol, other.Symbol) ||
-                _candidateSymbols.IsDefault != _candidateSymbols.IsDefault ||
+                _candidateSymbols.IsDefault != other._candidateSymbols.IsDefault ||
                 this.CandidateReason != other.CandidateReason)
             {
                 return false;
