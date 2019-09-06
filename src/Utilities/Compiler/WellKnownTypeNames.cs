@@ -350,6 +350,9 @@ namespace Analyzer.Utilities
         public const string SystemRandom = "System.Random";
         public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
         public const string MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute = "Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute";
+        public const string SystemTextEncoding = "System.Text.Encoding";
+        public const string SystemSecurityCryptographyAesGcm = "System.Security.Cryptography.AesGcm";
+        public const string SystemSecurityCryptographyAesCcm = "System.Security.Cryptography.AesCcm";
         public const string SystemThreadingInterlocked = "System.Threading.Interlocked";
     }
 }
