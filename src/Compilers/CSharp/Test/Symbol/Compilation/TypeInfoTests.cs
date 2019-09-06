@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         new TypeInfo(obj, int32, nullable, notNullable));
 
 #pragma warning disable IDE0055 // Fix formatting: spacing is intentional to allow for visual field comparison
-            EqualityTesting.AssertNotEqual(new TypeInfo(obj, obj,   nullable, nullable),
+            EqualityTesting.AssertNotEqual(new TypeInfo(obj, obj, nullable, nullable),
                                            new TypeInfo(obj, int32, nullable, nullable));
 
             EqualityTesting.AssertNotEqual(new TypeInfo(int32, obj, nullable, nullable),
-                                           new TypeInfo(obj,   obj, nullable, nullable));
+                                           new TypeInfo(obj, obj, nullable, nullable));
 
-            EqualityTesting.AssertNotEqual(new TypeInfo(obj, int32, nullable,    nullable),
+            EqualityTesting.AssertNotEqual(new TypeInfo(obj, int32, nullable, nullable),
                                            new TypeInfo(obj, int32, notNullable, nullable));
 
             EqualityTesting.AssertNotEqual(new TypeInfo(obj, int32, nullable, nullable),

@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable IDE0055 // Fix formatting
                 // https://github.com/dotnet/roslyn/issues/35031: We'll need to update the symbols for the internal methods/operators used in the binary operators
                 currentBinary = currentBinary switch
-                    {
-                        BoundBinaryOperator binary => binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
-                        BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
-                        _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
-                    };
+                {
+                    BoundBinaryOperator binary => binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
+                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
+                    _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
+                };
 #pragma warning restore IDE0055 // Fix formatting
 
                 if (foundInfo)

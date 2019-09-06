@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
                                     equal: true);
 
 #pragma warning disable IDE0055 // Fix formatting: spacing is intentional to allow for visual field comparison
-            assertEqualsAndHashCode(new NullabilityInfo(NullableAnnotation.Annotated,    NullableFlowState.NotNull),
+            assertEqualsAndHashCode(new NullabilityInfo(NullableAnnotation.Annotated, NullableFlowState.NotNull),
                                     new NullabilityInfo(NullableAnnotation.NotAnnotated, NullableFlowState.NotNull),
                                     equal: false);
 
