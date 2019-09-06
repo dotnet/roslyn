@@ -171,9 +171,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             memberContainingDocument = await Formatter.FormatAsync(memberContainingDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var root = await memberContainingDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var members = root.GetAnnotatedNodesAndTokens(_annotation).AsImmutable().Select(nOrT => nOrT.AsNode().ToString().Trim());
-
-            return string.Join("\r\n", members);
+            return root.GetAnnotatedNodesAndTokens(_annotation).Single().AsNode().ToString().Trim();
         }
 
         private async Task<SyntaxNode> GetTreeWithAddedSyntaxNodeRemoved(
