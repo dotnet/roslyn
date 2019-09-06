@@ -204,6 +204,10 @@ namespace Microsoft.CodeAnalysis.Testing
         public static void GetPositionAndSpans(string input, out string output, out int cursorPosition, out IDictionary<string, IList<TextSpan>> spans)
         {
             GetPositionAndSpans(input, out output, out int? cursorPositionOpt, out spans);
+            if (cursorPositionOpt is null)
+            {
+                throw new InvalidOperationException();
+            }
 
             cursorPosition = cursorPositionOpt.Value;
         }
@@ -259,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public static string CreateTestFile(string code, int cursor)
         {
-            return CreateTestFile(code, (IDictionary<string, IList<TextSpan>>)null, cursor);
+            return CreateTestFile(code, new Dictionary<string, IList<TextSpan>>(), cursor);
         }
 
         public static string CreateTestFile(string code, IList<TextSpan> spans, int? cursor)

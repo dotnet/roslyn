@@ -23,7 +23,12 @@
 
     <When Condition="'$(Language)' == 'C#'">
       <PropertyGroup>
-        <LangVersion>7.3</LangVersion>
+        <LangVersion>8</LangVersion>
+      </PropertyGroup>
+
+      <!-- Nullable reference types -->
+      <PropertyGroup>
+        <Nullable>enable</Nullable>
       </PropertyGroup>
     </When>
   </Choose>

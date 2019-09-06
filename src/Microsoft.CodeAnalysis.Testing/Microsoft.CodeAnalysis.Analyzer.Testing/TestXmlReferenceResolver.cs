@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Testing
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        public override Stream OpenRead(string resolvedPath)
+        public override Stream? OpenRead(string resolvedPath)
         {
             if (!XmlReferences.TryGetValue(resolvedPath, out var content))
             {

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>A new <see cref="SolutionState"/> representing the current state with inherited values applied
         /// where appropriate. The <see cref="InheritanceMode"/> of the result is
         /// <see cref="StateInheritanceMode.Explicit"/>.</returns>
-        public SolutionState WithInheritedValuesApplied(SolutionState baseState, ImmutableArray<string> fixableDiagnostics)
+        public SolutionState WithInheritedValuesApplied(SolutionState? baseState, ImmutableArray<string> fixableDiagnostics)
         {
             var inheritanceMode = InheritanceMode;
             var markupHandling = MarkupHandling;
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <see cref="MarkupMode.None"/>.</returns>
         /// <exception cref="InvalidOperationException">If <see cref="InheritanceMode"/> is not
         /// <see cref="StateInheritanceMode.Explicit"/>.</exception>
-        public SolutionState WithProcessedMarkup(MarkupOptions markupOptions, DiagnosticDescriptor defaultDiagnostic, ImmutableArray<DiagnosticDescriptor> supportedDiagnostics, ImmutableArray<string> fixableDiagnostics, string defaultPath)
+        public SolutionState WithProcessedMarkup(MarkupOptions markupOptions, DiagnosticDescriptor? defaultDiagnostic, ImmutableArray<DiagnosticDescriptor> supportedDiagnostics, ImmutableArray<string> fixableDiagnostics, string defaultPath)
         {
             if (InheritanceMode != StateInheritanceMode.Explicit)
             {
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Testing
             IEnumerable<(string filename, SourceText content)> sources,
             IEnumerable<DiagnosticResult> explicitDiagnostics,
             MarkupOptions markupOptions,
-            DiagnosticDescriptor defaultDiagnostic,
+            DiagnosticDescriptor? defaultDiagnostic,
             ImmutableArray<DiagnosticDescriptor> supportedDiagnostics,
             ImmutableArray<string> fixableDiagnostics,
             string defaultPath)
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private DiagnosticResult? CreateDiagnosticForPosition(
             MarkupOptions markupOptions,
-            DiagnosticDescriptor defaultDiagnostic,
+            DiagnosticDescriptor? defaultDiagnostic,
             ImmutableArray<DiagnosticDescriptor> supportedDiagnostics,
             ImmutableArray<string> fixableDiagnostics,
             string diagnosticId,
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private DiagnosticResult? CreateDiagnosticForSpan(
             MarkupOptions markupOptions,
-            DiagnosticDescriptor defaultDiagnostic,
+            DiagnosticDescriptor? defaultDiagnostic,
             ImmutableArray<DiagnosticDescriptor> supportedDiagnostics,
             ImmutableArray<string> fixableDiagnostics,
             string diagnosticId,
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private DiagnosticResult? CreateDiagnostic(
             MarkupOptions markupOptions,
-            DiagnosticDescriptor defaultDiagnostic,
+            DiagnosticDescriptor? defaultDiagnostic,
             ImmutableArray<DiagnosticDescriptor> supportedDiagnostics,
             ImmutableArray<string> fixableDiagnostics,
             string diagnosticId)
