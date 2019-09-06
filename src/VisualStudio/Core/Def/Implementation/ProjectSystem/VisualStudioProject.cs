@@ -1223,7 +1223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _documentPathsToDocumentIds.Remove(originalFilePath);
                     _documentPathsToDocumentIds.Add(newFilePath, documentId);
 
-                    documentId.DebugName = newFilePath;
+                    documentId = documentId.WithDebugName(newFilePath);
 
                     // Document is already in the workspace and needs to be renamed
                     if (_documentAlreadyInWorkspace(_project._workspace.CurrentSolution, documentId))

@@ -13,11 +13,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     using System.Collections.Generic;
     using static CSharpHelpers;
 
-
     [UseExportProvider]
     public class SourceFileHandlingTests
     {
-
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddRemoveSourceFile_CPS()
