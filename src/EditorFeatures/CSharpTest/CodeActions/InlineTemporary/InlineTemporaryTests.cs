@@ -4770,11 +4770,31 @@ System.Diagnostics.Debug.Assert(x == true); }",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task DoNotWarnOnInlineIntoMultipleLocationsEvenIfConditional()
+        public async Task WarnOnInlineIntoMultipleConditionalLocations()
         {
-            // If we are inlining an expression into multiple locations,
-            // then it is unlikely that the number of times the expression is called matters,
-            // so the fact that some/all of those calls are conditional shouldn't warn.
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        var [|x = true|];
+        System.Diagnostics.Debug.Assert(x);
+        System.Diagnostics.Debug.Assert(x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task OnlyWarnOnConditionalLocations()
+        {
             await TestInRegularAndScriptAsync(
 @"using System;
 
@@ -4784,7 +4804,7 @@ class C
     {
         var [|x = true|];
         System.Diagnostics.Debug.Assert(x);
-        System.Diagnostics.Debug.Assert(x);
+        Console.Writeline(x);
     }
 }",
 @"using System;
@@ -4793,8 +4813,8 @@ class C
 {
     void M()
     {
-        System.Diagnostics.Debug.Assert(true);
-        System.Diagnostics.Debug.Assert(true);
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+        Console.Writeline(true);
     }
 }");
         }

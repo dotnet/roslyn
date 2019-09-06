@@ -210,11 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             {
                 var node = Simplifier.Expand(n, semanticModel, workspace, cancellationToken: cancellationToken);
 
-                // If we are inlining an expression into a single location and that single location is inside a conditional method call,
-                // then it is likely that the number of times the expression is called matters,
-                // and that the user hasn't realised that the expression won't be called unless the correct conditional symbol is defined.
-                if (topmostParentingExpressions.Count == 1
-                    && semanticModel.GetSymbolInfo(o).Symbol is IMethodSymbol { IsConditional: true })
+                // warn when inlining into a conditional expression, as the inlined expression will not be executed.
+                if (semanticModel.GetSymbolInfo(o).Symbol is IMethodSymbol { IsConditional: true })
                 {
                     node = node.WithAdditionalAnnotations(
                         WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_into_conditional_method_call));
