@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -74,6 +75,27 @@ namespace Microsoft.CodeAnalysis
 
             // initialize with empty solution
             _latestSolution = CreateSolution(SolutionId.CreateNewId());
+
+            RegisterDocumentOptionsProviders();
+        }
+
+        /// <summary>
+        /// Register the exported <see cref="IDocumentOptionsProvider"/>s with the <see cref="IOptionService"/>.
+        /// </summary>
+        internal void RegisterDocumentOptionsProviders()
+        {
+            var optionsService = _services.GetRequiredService<IOptionService>();
+            var exportProvider = (IMefHostExportProvider)_services.HostServices;
+
+            foreach (var providerFactory in exportProvider.GetExports<IDocumentOptionsProviderFactory>())
+            {
+                var optionsProvider = providerFactory.Value.TryCreate(this);
+
+                if (optionsProvider != null)
+                {
+                    optionsService.RegisterDocumentOptionsProvider(optionsProvider);
+                }
+            }
         }
 
         internal void LogTestMessage(string message)
