@@ -163,6 +163,7 @@
     <!-- https://github.com/Microsoft/VSSDK-Analyzers/blob/master/doc/index.md -->
     <Rule Id="VSSDK001" Action="Warning" /> <!-- Derive from AsyncPackage -->
     <Rule Id="VSSDK003" Action="Warning" /> <!-- Support async tool windows -->
+    <Rule Id="VSSDK006" Action="None" /> <!-- Remove suppression. https://github.com/dotnet/roslyn/issues/38471 -->
   </Rules>
   <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers">
     <Rule Id="VSTHRD002" Action="None" /> <!-- Avoid problematic synchronous waits -->
