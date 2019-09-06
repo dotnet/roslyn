@@ -68,15 +68,15 @@ Each entry should include a short description of the break, followed by either a
     }
     ```
 
-9. https://github.com/dotnet/roslyn/issues/38168 Visual Studio 2019 version 16.3 incorrectly allowed direct implementation of duplicate interfaces differing only by nullability annotations. In *Visual Studio 2019 version 16.4* we will make it an error instead of just a warning.
+9. https://github.com/dotnet/roslyn/issues/38427 Visual Studio 2017 version 15.0 incorrectly allowed duplicate type constraints with tuple name differences. In *Visual Studio 2019 version 16.4* we will make it an error. The same applies to duplicate type constraints with nullability differences.
 For example:
     ```C#
-    class C : I<object>, I<object?> { } // error
+    class C<T> where T : I<(int a, int b)>, I<(int c, int d)> { } // error
     ```
 
     ```C#
-    partial class C : I<object> { }
-    partial class C : I<object?> { } // error
+    #nullable enable
+    class C<T> where T : I<object>, I<object?> { } // error
     ```
 
 10. https://github.com/dotnet/roslyn/issues/38469 While looking for a name in an interface in context where only types are allowed,
