@@ -44,12 +44,12 @@
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into an interface method will prevent the debug session from continuing.</target>
+        <target state="translated">Přidání prvku {0} do metody rozhraní zabrání v pokračování relace ladění.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into an interface will prevent the debug session from continuing.</target>
+        <target state="translated">Přidání prvku {0} do rozhraní zabrání v pokračování relace ladění.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
-        <target state="new">Cannot apply changes -- unexpected error: '{0}'</target>
+        <target state="translated">Změny se nedají použít – neočekávaná chyba: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -94,22 +94,22 @@
       </trans-unit>
       <trans-unit id="ChangesDisallowedWhileStoppedAtException">
         <source>Changes are not allowed while stopped at exception</source>
-        <target state="new">Changes are not allowed while stopped at exception</target>
+        <target state="translated">Když se běh zastaví na výjimce, změny se nepovolují.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangesNotAppliedWhileRunning">
         <source>Changes made in project '{0}' will not be applied while the application is running</source>
-        <target state="new">Changes made in project '{0}' will not be applied while the application is running</target>
+        <target state="translated">Změny provedené v projektu {0} se nepoužijí, dokud je aplikace spuštěná.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
         <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
-        <target state="new">Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</target>
+        <target state="translated">Pokud se změní {0} z asynchronního na synchronní, relace ladění nebude moct pokračovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
-        <target state="new">Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</target>
+        <target state="translated">Pokud se změní {0} na {1}, relace ladění nebude moct pokračovat, protože dojde ke změně tvaru stavového počítače.</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Quality">
@@ -119,12 +119,12 @@
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
-        <target state="new">Configure {0} code style</target>
+        <target state="translated">Nakonfigurovat styl kódu {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
-        <target state="new">Configure {0} severity</target>
+        <target state="translated">Nakonfigurovat závažnost {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -184,22 +184,22 @@
       </trans-unit>
       <trans-unit id="EditAndContinue">
         <source>Edit and Continue</source>
-        <target state="new">Edit and Continue</target>
+        <target state="translated">Upravit a pokračovat</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByModule">
         <source>Edit and Continue disallowed by module</source>
-        <target state="new">Edit and Continue disallowed by module</target>
+        <target state="translated">Modul zakázal funkci Upravit a pokračovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
-        <target state="new">Changes made in project '{0}' will prevent the debug session from continuing: {1}</target>
+        <target state="translated">Změny provedené v projektu {0} znemožní relaci ladění pokračovat dále: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
-        <target state="new">Error while reading file '{0}': {1}</target>
+        <target state="translated">Při čtení souboru {0} došlo k chybě: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -329,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="new">Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</target>
+        <target state="translated">Pokud se změní {0} obsahující výraz switch, relace ladění nebude moct pokračovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -449,7 +449,7 @@
       </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
-        <target state="new">Rude edit</target>
+        <target state="translated">Hrubá úprava</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -469,7 +469,7 @@
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
-        <target state="new">Suppress {0}</target>
+        <target state="translated">Potlačit {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -514,7 +514,7 @@
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
-        <target state="new">Unwrap call chain</target>
+        <target state="translated">Nezalamovat posloupnost volání</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -529,7 +529,7 @@
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="new">Updating a '{0}' around an active statement will prevent the debug session from continuing.</target>
+        <target state="translated">Pokud se aktualizuje {0} v okolí aktivního příkazu, relace ladění nebude moct pokračovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
@@ -607,14 +607,14 @@
         <target state="translated">Upozornění: Změna oboru názvů může vést k vytvoření neplatného kódu a změnit význam kódu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_and_align_call_chain">
-        <source>Wrap and align call chain</source>
-        <target state="new">Wrap and align call chain</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
         <source>Warning: Semantics may change when converting statement.</source>
-        <target state="new">Warning: Semantics may change when converting statement.</target>
+        <target state="translated">Upozornění: Při převodu příkazu se může změnit sémantika.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_call_chain">
+        <source>Wrap and align call chain</source>
+        <target state="translated">Zalomit a zarovnat posloupnost volání</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
@@ -624,12 +624,12 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_long_call_chain">
         <source>Wrap and align long call chain</source>
-        <target state="new">Wrap and align long call chain</target>
+        <target state="translated">Zalomit a zarovnat dlouhou posloupnost volání</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_call_chain">
         <source>Wrap call chain</source>
-        <target state="new">Wrap call chain</target>
+        <target state="translated">Zalomit posloupnost volání</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -654,7 +654,7 @@
       </trans-unit>
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
-        <target state="new">Wrap long call chain</target>
+        <target state="translated">Zalomit dlouhou posloupnost volání</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

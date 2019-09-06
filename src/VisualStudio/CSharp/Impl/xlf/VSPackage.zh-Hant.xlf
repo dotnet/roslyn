@@ -331,12 +331,12 @@ Show name suggestions;</source>
       </trans-unit>
       <trans-unit id="2358">
         <source>C# Editor</source>
-        <target state="needs-review-translation">CSharp 編輯器</target>
+        <target state="translated">C# 編輯器</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
         <source>C# Editor with Encoding</source>
-        <target state="needs-review-translation">具備編碼功能的 CSharp 編輯器</target>
+        <target state="translated">具備編碼功能的 C# 編輯器</target>
         <note />
       </trans-unit>
       <trans-unit id="113">

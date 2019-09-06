@@ -9461,7 +9461,7 @@ End Class"
         End Sub
 
         <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
         Public Sub TestSuppression_AnalyzerWarning()
             Dim source = "
 Class C
