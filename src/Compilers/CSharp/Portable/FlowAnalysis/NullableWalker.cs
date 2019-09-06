@@ -1865,14 +1865,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private new void VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
             // Note: we analyze even omitted calls
-            (var reinferedMethod, _, _) = VisitArguments(node, node.Arguments, refKindsOpt: default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod);
+            (var reinferredMethod, _, _) = VisitArguments(node, node.Arguments, refKindsOpt: default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod);
             if (node.ImplicitReceiverOpt != null)
             {
                 Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ImplicitReceiver);
                 SetAnalyzedNullability(node.ImplicitReceiverOpt, new VisitResult(node.ImplicitReceiverOpt.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
             }
             SetUnknownResultNullability(node);
-            SetUpdatedSymbol(node, node.AddMethod, reinferedMethod);
+            SetUpdatedSymbol(node, node.AddMethod, reinferredMethod);
         }
 
         private void SetNotNullResult(BoundExpression node)
@@ -3882,18 +3882,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return node switch
             {
-                BoundCall call => InferMethodTypeArguments(call.BinderOpt,
-                                                           method,
-                                                           arguments,
-                                                           call.ArgumentRefKindsOpt,
-                                                           call.ArgsToParamsOpt,
-                                                           call.Expanded),
-                BoundCollectionElementInitializer initializer => InferMethodTypeArguments(initializer.BinderOpt,
-                                                                                          method,
-                                                                                          arguments,
-                                                                                          argumentRefKindsOpt: default,
-                                                                                          initializer.ArgsToParamsOpt,
-                                                                                          initializer.Expanded),
+                BoundCall call => InferMethodTypeArguments(
+                    call.BinderOpt,
+                    method,
+                    arguments,
+                    call.ArgumentRefKindsOpt,
+                    call.ArgsToParamsOpt,
+                    call.Expanded),
+                BoundCollectionElementInitializer initializer => InferMethodTypeArguments(
+                    initializer.BinderOpt,
+                    method,
+                    arguments,
+                    argumentRefKindsOpt: default,
+                    initializer.ArgsToParamsOpt,
+                    initializer.Expanded),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind)
             };
         }
