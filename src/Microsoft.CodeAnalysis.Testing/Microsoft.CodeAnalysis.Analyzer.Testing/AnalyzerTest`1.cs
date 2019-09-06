@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <param name="analyzers">The analyzers to consider.</param>
         /// <returns>The default diagnostic to use during markup processing.</returns>
-        protected internal virtual DiagnosticDescriptor GetDefaultDiagnostic(DiagnosticAnalyzer[] analyzers)
+        protected internal virtual DiagnosticDescriptor? GetDefaultDiagnostic(DiagnosticAnalyzer[] analyzers)
         {
             if (analyzers.Length == 0)
             {
@@ -588,7 +588,6 @@ namespace Microsoft.CodeAnalysis.Testing
         /// strings.</returns>
         protected Project CreateProject((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, string language)
         {
-            language = language ?? language;
             var project = CreateProjectImpl(sources, additionalFiles, additionalProjects, additionalMetadataReferences, language);
             return ApplyCompilationOptions(project);
         }

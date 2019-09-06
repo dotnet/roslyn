@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public virtual void Equal<T>(T expected, T actual, string message = null)
+        public virtual void Equal<T>(T expected, T actual, string? message = null)
         {
             if (!EqualityComparer<T>.Default.Equals(expected, actual))
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public virtual void True(bool assert, string message = null)
+        public virtual void True(bool assert, string? message = null)
         {
             if (!assert)
             {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public virtual void False(bool assert, string message = null)
+        public virtual void False(bool assert, string? message = null)
         {
             if (assert)
             {
@@ -69,12 +69,12 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public virtual void Fail(string message = null)
+        public virtual void Fail(string? message = null)
         {
             throw new InvalidOperationException(CreateMessage(message ?? "Verification failed for an unspecified reason."));
         }
 
-        public virtual void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> equalityComparer = null, string message = null)
+        public virtual void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? equalityComparer = null, string? message = null)
         {
             var comparer = new SequenceEqualEnumerableEqualityComparer<T>(equalityComparer);
             var areEqual = comparer.Equals(expected, actual);
@@ -104,16 +104,16 @@ namespace Microsoft.CodeAnalysis.Testing
             return message;
         }
 
-        private sealed class SequenceEqualEnumerableEqualityComparer<T> : IEqualityComparer<IEnumerable<T>>
+        private sealed class SequenceEqualEnumerableEqualityComparer<T> : IEqualityComparer<IEnumerable<T>?>
         {
             private readonly IEqualityComparer<T> _itemEqualityComparer;
 
-            public SequenceEqualEnumerableEqualityComparer(IEqualityComparer<T> itemEqualityComparer)
+            public SequenceEqualEnumerableEqualityComparer(IEqualityComparer<T>? itemEqualityComparer)
             {
                 _itemEqualityComparer = itemEqualityComparer ?? EqualityComparer<T>.Default;
             }
 
-            public bool Equals(IEnumerable<T> x, IEnumerable<T> y)
+            public bool Equals(IEnumerable<T>? x, IEnumerable<T>? y)
             {
                 if (ReferenceEquals(x, y)) { return true; }
                 if (x is null || y is null) { return false; }
@@ -121,8 +121,13 @@ namespace Microsoft.CodeAnalysis.Testing
                 return x.SequenceEqual(y, _itemEqualityComparer);
             }
 
-            public int GetHashCode(IEnumerable<T> obj)
+            public int GetHashCode(IEnumerable<T>? obj)
             {
+                if (obj is null)
+                {
+                    return 0;
+                }
+
                 // From System.Tuple
                 return obj
                     .Select(item => _itemEqualityComparer.GetHashCode(item))

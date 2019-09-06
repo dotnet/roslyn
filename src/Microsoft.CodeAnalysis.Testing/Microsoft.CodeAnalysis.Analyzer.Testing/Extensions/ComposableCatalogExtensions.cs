@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Testing
             // If IDocumentTextDifferencingService is not exported by default, export it manually
             var manualExportDefinition = new ExportDefinition(
                 typeof(IWorkspaceService).FullName,
-                metadata: new Dictionary<string, object>
+                metadata: new Dictionary<string, object?>
                 {
                     { "ExportTypeIdentity", typeof(IWorkspaceService).FullName },
                     { nameof(ExportWorkspaceServiceAttribute.ServiceType), assemblyQualifiedServiceTypeName },
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Testing
             var serviceImplType = typeof(Workspace).GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.DefaultDocumentTextDifferencingService");
             return catalog.AddPart(new ComposablePartDefinition(
                 TypeRef.Get(serviceImplType, Resolver.DefaultInstance),
-                new Dictionary<string, object> { { "SharingBoundary", null } },
+                new Dictionary<string, object?> { { "SharingBoundary", null } },
                 new[] { manualExportDefinition },
                 new Dictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>(),
                 Enumerable.Empty<ImportDefinitionBinding>(),

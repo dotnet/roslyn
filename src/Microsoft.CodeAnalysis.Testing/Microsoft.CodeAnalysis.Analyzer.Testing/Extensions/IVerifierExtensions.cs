@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="expected">The expected string. This is presented as the "baseline/before" side in the diff.</param>
         /// <param name="actual">The actual string. This is presented as the changed or "after" side in the diff.</param>
         /// <param name="message">The message to precede the diff, if the values are not equal.</param>
-        public static void EqualOrDiff(this IVerifier verifier, string expected, string actual, string message = null)
+        public static void EqualOrDiff(this IVerifier verifier, string expected, string actual, string? message = null)
         {
             Requires.NotNull(verifier, nameof(verifier));
 
