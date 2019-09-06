@@ -53,6 +53,7 @@
     <Rule Id="CA1822" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25132: Enable rule CA1822 (Mark members as static) on Roslyn.sln -->
     <Rule Id="CA1823" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/20404: Enable rule CA1823 (remove unused field) once we have a fixer for it -->
     <Rule Id="CA1824" Action="None" /> <!-- mark assemblies with NeutralResourcesLanguageAttribute -->
+    <Rule Id="CA1827" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/37959: DoNotUseCountWhenAnyCanBeUsed -->
     <Rule Id="CA2000" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25880 -->
     <Rule Id="CA2007" Action="Warning" />
     <Rule Id="CA2211" Action="None" />
@@ -163,6 +164,7 @@
     <!-- https://github.com/Microsoft/VSSDK-Analyzers/blob/master/doc/index.md -->
     <Rule Id="VSSDK001" Action="Warning" /> <!-- Derive from AsyncPackage -->
     <Rule Id="VSSDK003" Action="Warning" /> <!-- Support async tool windows -->
+    <Rule Id="VSSDK006" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/38545 -->
   </Rules>
   <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers">
     <Rule Id="VSTHRD002" Action="None" /> <!-- Avoid problematic synchronous waits -->

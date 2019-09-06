@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 OnSuggestedActionsChanged(e.Workspace, e.DocumentId, e.Solution.WorkspaceVersion);
             }
 
-            private void OnWorkspaceStatusChanged(object sender, bool fullyLoaded)
+            private void OnWorkspaceStatusChanged(object sender, EventArgs args)
             {
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
                 if (document == null)

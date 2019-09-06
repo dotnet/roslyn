@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private bool _initialized = false;
 
-            public event EventHandler<bool> StatusChanged;
+            public event EventHandler StatusChanged;
 
             public Service(IAsyncServiceProvider2 serviceProvider, IAsynchronousOperationListener listener)
             {
@@ -113,15 +114,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return false;
                 }
 
-                return !status.Status.IsInProgress;
+                return !status.IsInProgress;
             }
 
-            private async Task<IVsOperationProgressStageStatus> GetProgressStageStatusAsync(CancellationToken cancellationToken)
+            private async Task<IVsOperationProgressStageStatusForSolutionLoad> GetProgressStageStatusAsync(CancellationToken cancellationToken)
             {
                 var service = await _serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(throwOnFailure: false)
                                                     .WithCancellation(cancellationToken).ConfigureAwait(false);
 
-                return service?.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
+                return service?.GetStageStatusForSolutionLoad(CommonOperationProgressStageIds.Intellisense);
             }
 
             private async Task EnsureInitializationAsync(CancellationToken cancellationToken)
@@ -143,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         return;
                     }
 
-                    status.InProgressChanged += (_, e) => this.StatusChanged?.Invoke(this, !e.Status.IsInProgress);
+                    status.PropertyChanged += (_, e) => this.StatusChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
         }
