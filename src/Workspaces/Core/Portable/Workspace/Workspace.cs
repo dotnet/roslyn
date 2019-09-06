@@ -1036,7 +1036,7 @@ namespace Microsoft.CodeAnalysis
             {
                 CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
                 var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(this.CurrentSolution.WithDocumentName(documentId, newName));
+                var newSolution = this.SetCurrentSolution(this.CurrentSolution.WithAnalyzerConfigDocumentFilePath(documentId, newName));
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
         }

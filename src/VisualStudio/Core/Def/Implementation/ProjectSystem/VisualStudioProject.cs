@@ -429,7 +429,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         analyzerConfigDocumentsToOpen,
                         (s, documents) => s.AddAnalyzerConfigDocuments(documents),
                         WorkspaceChangeKind.AnalyzerConfigDocumentAdded,
-                        (s, id, newPath) => throw new InvalidOperationException(),
+                        (s, id, newPath) => s.WithAnalyzerConfigDocumentFilePath(id, newPath),
                         WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
                         (s, id) =>
                         {
@@ -643,6 +643,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void RemoveAnalyzerConfigFile(string fullPath)
         {
             _analyzerConfigFiles.RemoveFile(fullPath);
+        }
+
+        internal void RenameAnalyzerConfigFile(string originalFilePath, string newFilePath)
+        {
+            _analyzerConfigFiles.RenameFile(originalFilePath, newFilePath);
         }
 
         #endregion

@@ -1411,6 +1411,28 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the document specified updated to have the specified file path.
+        /// </summary>
+        public SolutionState WithAnalyzerConfigDocumentFilePath(DocumentId documentId, string filePath)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            // TODO: why? we support nullable file paths
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            var oldDocument = this.GetAnalyzerConfigDocumentState(documentId)!;
+            var newDocument = (AnalyzerConfigDocumentState)oldDocument.UpdateFilePath(filePath);
+            var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRenamedDocuments(oldDocument, newDocument);
+            return this.WithAnalyzerConfigDocumentState(newDocument, newFilePathToDocumentIdsMap);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>
@@ -1739,6 +1761,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         private SolutionState WithAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+            => WithAnalyzerConfigDocumentState(newDocument, _filePathToDocumentIdsMap, textChanged, recalculateDependentVersions);
+
+        private SolutionState WithAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument, ImmutableDictionary<string, ImmutableArray<DocumentId>> fileToDocumentIdsMap, bool textChanged = false, bool recalculateDependentVersions = false)
         {
             if (newDocument == null)
             {
@@ -1762,7 +1787,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return this.ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject), newFilePathToDocumentIdsMap: fileToDocumentIdsMap);
         }
 
         /// <summary>

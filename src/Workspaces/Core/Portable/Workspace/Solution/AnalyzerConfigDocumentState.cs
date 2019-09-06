@@ -67,5 +67,16 @@ namespace Microsoft.CodeAnalysis
                 this.sourceText,
                 newTextSource);
         }
+
+        public override TextDocumentState UpdateFilePath(string filePath)
+        {
+            var newAttributes = this.Attributes.With(filePath: filePath);
+            return new AnalyzerConfigDocumentState(
+                this.solutionServices,
+                this.Services,
+                newAttributes,
+                this.sourceText,
+                this.TextAndVersionSource);
+        }
     }
 }

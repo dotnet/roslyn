@@ -337,6 +337,144 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void RenameAnalyzerConfigFile_CPS()
+        {
+            using var environment = new TestEnvironment();
+            using var project = CreateCSharpCPSProject(environment, "project1");
+            AnalyzerConfigDocument GetSingleDocument() => environment.Workspace.CurrentSolution.Projects.Single().AnalyzerConfigDocuments.SingleOrDefault();
+
+            Assert.Null(GetSingleDocument());
+
+            // Add source file
+            var sourceFileFullPath = @"c:\source.cs";
+            project.AddAnalyzerConfigFile(sourceFileFullPath);
+            Assert.Equal(sourceFileFullPath, GetSingleDocument().FilePath);
+
+            // Rename source file
+            var newFileFullPath = @"c:\newsource.cs";
+            project.RenameAnalyzerConfigFile(sourceFileFullPath, newFileFullPath);
+            Assert.Equal(newFileFullPath, GetSingleDocument().FilePath);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void RenameAnalyzerConfigInvalidFileThrowsException_CPS()
+        {
+            using var environment = new TestEnvironment();
+            using var project = CreateCSharpCPSProject(environment, "project1");
+            AnalyzerConfigDocument GetSingleDocument() => environment.Workspace.CurrentSolution.Projects.Single().AnalyzerConfigDocuments.SingleOrDefault();
+
+            Assert.Null(GetSingleDocument());
+
+            // Add source file
+            var sourceFileFullPath = @"c:\source.cs";
+            project.AddAnalyzerConfigFile(sourceFileFullPath);
+            Assert.Equal(sourceFileFullPath, GetSingleDocument().FilePath);
+
+            // Rename source file
+            var newFileFullPath = @"c:\newsource.cs";
+            Assert.Throws<ArgumentException>(() => project.RenameAnalyzerConfigFile(@"does not exist", newFileFullPath));
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void RenameAnalyzerConfigFilesBatch_CPS()
+        {
+            using var environment = new TestEnvironment();
+            using var project = CreateCSharpCPSProject(environment, "project1");
+            AnalyzerConfigDocument GetSingleDocument() => environment.Workspace.CurrentSolution.Projects.Single().AnalyzerConfigDocuments.SingleOrDefault();
+
+            Assert.Null(GetSingleDocument());
+
+            var sourceFileFullPath = @"c:\source.cs";
+            var newFileFullPath = @"c:\newsource.cs";
+
+            // Add source file
+            project.AddAnalyzerConfigFile(sourceFileFullPath);
+
+
+            // Batched actions
+            project.StartBatch();
+            {
+                // Rename source file
+                project.RenameAnalyzerConfigFile(sourceFileFullPath, newFileFullPath);
+            }
+            project.EndBatch();
+
+            Assert.NotNull(GetSingleDocument());
+            Assert.Equal(newFileFullPath, GetSingleDocument().FilePath);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void RenameAnalyzerConfigFilesBatchWithAdd_CPS()
+        {
+            using var environment = new TestEnvironment();
+            using var project = CreateCSharpCPSProject(environment, "project1");
+            AnalyzerConfigDocument GetSingleDocument() => environment.Workspace.CurrentSolution.Projects.Single().AnalyzerConfigDocuments.SingleOrDefault();
+
+            Assert.Null(GetSingleDocument());
+
+            var sourceFileFullPath = @"c:\source.cs";
+            var newFileFullPath1 = @"c:\newsource1.cs";
+            var newFileFullPath2 = @"c:\newsource2.cs";
+            var newFileFullPath3 = @"c:\newsource2.cs";
+
+
+            // Batched actions
+            project.StartBatch();
+            {
+                // Add source file
+                project.AddAnalyzerConfigFile(sourceFileFullPath);
+
+                // Rename source file multiple times
+                project.RenameAnalyzerConfigFile(sourceFileFullPath, newFileFullPath1);
+                project.RenameAnalyzerConfigFile(newFileFullPath1, newFileFullPath2);
+                project.RenameAnalyzerConfigFile(newFileFullPath2, newFileFullPath3);
+            }
+            project.EndBatch();
+
+            Assert.NotNull(GetSingleDocument());
+            Assert.Equal(newFileFullPath3, GetSingleDocument().FilePath);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void RenameAnalyzerConfigFilesBatchWithAddRemove_CPS()
+        {
+            using var environment = new TestEnvironment();
+            using var project = CreateCSharpCPSProject(environment, "project1");
+            AnalyzerConfigDocument GetSingleDocument() => environment.Workspace.CurrentSolution.Projects.Single().AnalyzerConfigDocuments.SingleOrDefault();
+
+            Assert.Null(GetSingleDocument());
+
+            var sourceFileFullPath = @"c:\source.cs";
+            var newFileFullPath1 = @"c:\newsource1.cs";
+            var newFileFullPath2 = @"c:\newsource2.cs";
+            var newFileFullPath3 = @"c:\newsource2.cs";
+
+
+            // Batched actions
+            project.StartBatch();
+            {
+                // Add source file
+                project.AddAnalyzerConfigFile(sourceFileFullPath);
+
+                // Rename source file multiple times
+                project.RenameAnalyzerConfigFile(sourceFileFullPath, newFileFullPath1);
+                project.RenameAnalyzerConfigFile(newFileFullPath1, newFileFullPath2);
+                project.RenameAnalyzerConfigFile(newFileFullPath2, newFileFullPath3);
+
+                // Remove source file
+                project.RemoveAnalyzerConfigFile(newFileFullPath3);
+            }
+            project.EndBatch();
+
+            Assert.Null(GetSingleDocument());
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void ReorderSourceFiles_CPS()
         {
             using var environment = new TestEnvironment();

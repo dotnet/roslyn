@@ -55,6 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// </summary>
         void RemoveAnalyzerConfigFile(string filePath);
 
+        /// <summary>
+        /// Renames a file (like a .editorconfig) used to configure analyzers.
+        /// </summary>
+        void RenameAnalyzerConfigFile(string originalFilePath, string newFilePath);
+
         void SetRuleSetFile(string filePath);
 
         void StartBatch();

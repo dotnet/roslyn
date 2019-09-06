@@ -972,6 +972,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the specified file path.
+        /// </summary>
+        // TODO (https://github.com/dotnet/roslyn/issues/37125): SolutionState.WithDocumentFilePath will throw if
+        // filePath is null, but it's odd because we *do* support null file paths. Why can't you switch a
+        // document back to null?
+        public Solution WithAnalyzerConfigDocumentFilePath(DocumentId documentId, string filePath)
+        {
+            var newState = _state.WithAnalyzerConfigDocumentFilePath(documentId, filePath);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the document specified updated to have the text
         /// specified.
         /// </summary>

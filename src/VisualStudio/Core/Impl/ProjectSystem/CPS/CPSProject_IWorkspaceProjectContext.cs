@@ -296,5 +296,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
         }
+
+        public void RenameAnalyzerConfigFile(string originalFilePath, string newFilePath)
+        {
+            _visualStudioProject.RenameAnalyzerConfigFile(originalFilePath, newFilePath);
+        }
     }
 }
