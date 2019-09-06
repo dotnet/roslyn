@@ -126,6 +126,15 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
 
+  <!-- Nullable reference types -->
+  <PropertyGroup>
+    <!-- Do not automatically include NullableAttributes.cs/vb by default -->
+    <GenerateNullableAttributes>false</GenerateNullableAttributes>
+
+    <!-- Specify reference assembly version for the annotator -->
+    <AnnotatedReferenceAssemblyVersion>$(MicrosoftNETCoreAppRefVersion)</AnnotatedReferenceAssemblyVersion>
+  </PropertyGroup>
+
   <!-- Language-specific analyzer packages -->
   <Choose>
     <When Condition="'$(Language)' == 'VB' and '$(RoslynEnforceCodeStyle)' == 'true'">
