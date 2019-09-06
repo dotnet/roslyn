@@ -5,6 +5,7 @@
     <DisplayName>Roslyn Interactive Components</DisplayName>
     <Description>Dummy VSIX</Description>
     <PackageId>Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents</PackageId>
+    <License>Eula.rtf</License>
   </Metadata>
   <Installation Experimental="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,]" />

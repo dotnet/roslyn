@@ -4,6 +4,7 @@
     <Identity Id="49e24138-9ee3-49e0-8ede-6b39f49303bf" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>Roslyn Diagnostics</DisplayName>
     <Description xml:space="preserve">Roslyn Diagnostics Window</Description>
+    <License>Eula.rtf</License>
   </Metadata>
   <Installation Experimental="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,]" />

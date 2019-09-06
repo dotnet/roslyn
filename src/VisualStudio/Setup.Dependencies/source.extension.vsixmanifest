@@ -5,6 +5,7 @@
     <DisplayName>Roslyn Dependencies</DisplayName>
     <Description>Roslyn dependencies for developer deployment.</Description>
     <PackageId>Microsoft.CodeAnalysis.VisualStudio.Setup.Dependencies</PackageId>
+    <License>Eula.rtf</License>
   </Metadata>
   <Installation Experimental="true">
     <InstallationTarget Version="[15.0,]" Id="Microsoft.VisualStudio.Pro" />

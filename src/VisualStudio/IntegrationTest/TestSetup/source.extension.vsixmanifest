@@ -6,6 +6,7 @@
     <Identity Id="d0122878-51f1-4b36-95ec-dec2079a2a84" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>Visual Studio Integration Test Support</DisplayName>
     <Description xml:space="preserve">Support for running Visual Studio integration tests.</Description>
+    <License>Eula.rtf</License>
   </Metadata>
   <Installation Experimental="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,]" />
