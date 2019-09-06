@@ -37,6 +37,7 @@ Microsoft.CodeAnalysis.IEventSymbol.NullableAnnotation.get -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.IFieldSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.ILocalSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IMethodSymbol.Construct(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> typeArguments, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations) -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.IMethodSymbol.IsConditional.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.ReceiverNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentNullableAnnotations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.NullableAnnotation>
@@ -129,17 +130,6 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.GetAsyncEnumeratorMethodName =
 const Microsoft.CodeAnalysis.WellKnownMemberNames.LengthPropertyName = "Length" -> string
 const Microsoft.CodeAnalysis.WellKnownMemberNames.MoveNextAsyncMethodName = "MoveNextAsync" -> string
 Microsoft.CodeAnalysis.AnalyzerConfig
-Microsoft.CodeAnalysis.AnalyzerConfig.GlobalSection.get -> Microsoft.CodeAnalysis.AnalyzerConfig.Section
-Microsoft.CodeAnalysis.AnalyzerConfig.IsRoot.get -> bool
-Microsoft.CodeAnalysis.AnalyzerConfig.NamedSections.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AnalyzerConfig.Section>
-Microsoft.CodeAnalysis.AnalyzerConfig.NormalizedDirectory.get -> string
-Microsoft.CodeAnalysis.AnalyzerConfig.PathToFile.get -> string
-Microsoft.CodeAnalysis.AnalyzerConfig.Section
-Microsoft.CodeAnalysis.AnalyzerConfig.Section.Name.get -> string
-Microsoft.CodeAnalysis.AnalyzerConfig.Section.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
-Microsoft.CodeAnalysis.AnalyzerConfig.Section.Section(string name, System.Collections.Immutable.ImmutableDictionary<string, string> properties) -> void
-Microsoft.CodeAnalysis.AnalyzerConfig.SectionNameMatcher
-Microsoft.CodeAnalysis.AnalyzerConfig.SectionNameMatcher.IsMatch(string s) -> bool
 Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult
 Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult.AnalyzerOptions.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
@@ -337,11 +327,6 @@ override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor.Initiali
 override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor>
 static Microsoft.CodeAnalysis.AnalyzerConfig.Parse(Microsoft.CodeAnalysis.Text.SourceText text, string pathToFile) -> Microsoft.CodeAnalysis.AnalyzerConfig
 static Microsoft.CodeAnalysis.AnalyzerConfig.Parse(string text, string pathToFile) -> Microsoft.CodeAnalysis.AnalyzerConfig
-static Microsoft.CodeAnalysis.AnalyzerConfig.ReservedKeys.get -> System.Collections.Immutable.ImmutableHashSet<string>
-static Microsoft.CodeAnalysis.AnalyzerConfig.ReservedValues.get -> System.Collections.Immutable.ImmutableHashSet<string>
-static Microsoft.CodeAnalysis.AnalyzerConfig.Section.NameComparer.get -> System.StringComparison
-static Microsoft.CodeAnalysis.AnalyzerConfig.Section.PropertiesKeyComparer.get -> System.StringComparer
-static Microsoft.CodeAnalysis.AnalyzerConfig.TryCreateSectionNameMatcher(string sectionName) -> Microsoft.CodeAnalysis.AnalyzerConfig.SectionNameMatcher?
 static Microsoft.CodeAnalysis.AnalyzerConfigSet.Create<TList>(TList analyzerConfigs) -> Microsoft.CodeAnalysis.AnalyzerConfigSet
 static Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.KeyComparer.get -> System.StringComparer
 override Microsoft.CodeAnalysis.NullabilityInfo.Equals(object other) -> bool

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root == null)
+            {
+                return ImmutableArray<TSyntaxNode>.Empty;
+            }
+
             var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpan(document, selectionRaw, cancellationToken).ConfigureAwait(false);
 
             // If user selected only whitespace we don't want to return anything. We could do following:
@@ -302,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <remark>
         /// Should also return given node. 
         /// </remark>
-        protected virtual IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected virtual IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode? node, ISyntaxFactsService syntaxFacts)
         {
             if (node == null)
             {
@@ -380,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             // `a()`;
             // -> `a();`
-            if (node.Parent != null && syntaxFacts.IsExpressionStatement(node.Parent))
+            if (syntaxFacts.IsExpressionStatement(node.Parent))
             {
                 yield return node.Parent;
             }

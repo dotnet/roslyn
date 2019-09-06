@@ -231,6 +231,23 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        public async Task MissingOnAssignmentExpressionStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        int a = 42;
+        [||]a = 42;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
         public async Task IntroduceLocal_Space()
         {
             await TestInRegularAndScriptAsync(

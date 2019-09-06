@@ -8,10 +8,11 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
+using System.IO.Pipes;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal struct ConnectionData
+    internal readonly struct ConnectionData
     {
         public readonly CompletionReason CompletionReason;
         public readonly TimeSpan? KeepAlive;
@@ -58,15 +59,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// from when the client connects to it, until the request is finished or abandoned.
     /// A new task is created to actually service the connection and do the operation.
     /// </summary>
-    internal abstract class ClientConnection : IClientConnection
+    internal sealed class NamedPipeClientConnection : IClientConnection
     {
         private readonly ICompilerServerHost _compilerServerHost;
         private readonly string _loggingIdentifier;
-        private readonly Stream _stream;
+        private readonly NamedPipeServerStream _stream;
 
         public string LoggingIdentifier => _loggingIdentifier;
 
-        public ClientConnection(ICompilerServerHost compilerServerHost, string loggingIdentifier, Stream stream)
+        public NamedPipeClientConnection(ICompilerServerHost compilerServerHost, string loggingIdentifier, NamedPipeServerStream stream)
         {
             _compilerServerHost = compilerServerHost;
             _loggingIdentifier = loggingIdentifier;
@@ -74,18 +75,45 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Returns a Task that resolves if the client stream gets disconnected.
+        /// The IsConnected property on named pipes does not detect when the client has disconnected
+        /// if we don't attempt any new I/O after the client disconnects. We start an async I/O here
+        /// which serves to check the pipe for disconnection. 
+        ///
+        /// This will return true if the pipe was disconnected.
         /// </summary>
-        protected abstract Task CreateMonitorDisconnectTask(CancellationToken cancellationToken);
-
-        protected virtual void ValidateBuildRequest(BuildRequest request)
+        private Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
         {
+            return BuildServerConnection.CreateMonitorDisconnectTask(_stream, LoggingIdentifier, cancellationToken);
+        }
+
+        private void ValidateBuildRequest(BuildRequest request)
+        {
+            // Now that we've read data from the stream we can validate the identity.
+            if (!NamedPipeUtil.CheckClientElevationMatches(_stream))
+            {
+                throw new Exception("Client identity does not match server identity.");
+            }
         }
 
         /// <summary>
         /// Close the connection.  Can be called multiple times.
         /// </summary>
-        public abstract void Close();
+        public void Close()
+        {
+            CompilerServerLogger.Log($"Pipe {LoggingIdentifier}: Closing.");
+            try
+            {
+                _stream.Close();
+            }
+            catch (Exception e)
+            {
+                // The client connection failing to close isn't fatal to the server process.  It is simply a client
+                // for which we can no longer communicate and that's okay because the Close method indicates we are
+                // done with the client already.
+                var msg = string.Format($"Pipe {LoggingIdentifier}: Error closing pipe.");
+                CompilerServerLogger.LogException(e, msg);
+            }
+        }
 
         public async Task<ConnectionData> HandleConnection(bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -232,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return request.Arguments.Count == 1 && request.Arguments[0].ArgumentId == BuildProtocolConstants.ArgumentId.Shutdown;
         }
 
-        protected virtual Task<BuildResponse> ServeBuildRequest(BuildRequest buildRequest, CancellationToken cancellationToken)
+        private Task<BuildResponse> ServeBuildRequest(BuildRequest buildRequest, CancellationToken cancellationToken)
         {
             Func<BuildResponse> func = () =>
             {

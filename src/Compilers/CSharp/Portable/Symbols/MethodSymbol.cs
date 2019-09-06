@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal bool IsConditional
+        public bool IsConditional
         {
             get
             {

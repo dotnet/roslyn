@@ -11,6 +11,7 @@ resources:
 #  IbcSourceBranchName: 'default'
 #  IbcDropId: 'default'
 
+# The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
   - name: _DotNetArtifactsCategory
     value: .NETCore
