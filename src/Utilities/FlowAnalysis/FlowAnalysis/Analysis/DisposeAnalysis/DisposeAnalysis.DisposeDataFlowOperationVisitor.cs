@@ -338,6 +338,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     {
                         var pointsToValue = GetPointsToAbstractValue(operation.Value);
                         HandlePossibleEscapingOperation(operation, pointsToValue.Locations);
+                        return;
                     }
                     else if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse &&
                         operation.Parameter.RefKind == RefKind.Out &&
@@ -362,9 +363,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                         //      obj.Dispose();
 
                         HandlePossibleInvalidatingOperation(operation);
+                        return;
                     }
                 }
-                else if (operation.Parameter.RefKind == RefKind.Out || operation.Parameter.RefKind == RefKind.Ref)
+
+                // Ref or out argument values from callee might be escaped by assigning to field.
+                if (operation.Parameter.RefKind == RefKind.Out || operation.Parameter.RefKind == RefKind.Ref)
                 {
                     HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
                 }
