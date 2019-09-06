@@ -23,6 +23,7 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Utilities
 Imports Moq
 Imports MSXML
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Friend NotInheritable Class SnippetTestState
@@ -55,7 +56,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Dim completionService = DirectCast(Workspace.Services.GetLanguageServices(languageName).GetService(Of CompletionService), CommonCompletionService)
                 completionService.SetTestProviders({snippetProvider})
 
-                _completionCommandHandler = Workspace.GetService(Of CompletionCommandHandler)
+                _completionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
+                    Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandler")
             End If
 
             SnippetExpansionClient = New MockSnippetExpansionClient(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), startActiveSession)
@@ -67,7 +69,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         End Sub
 
         Public ReadOnly SnippetCommandHandler As AbstractSnippetCommandHandler
-        Private ReadOnly _completionCommandHandler As CompletionCommandHandler
+        Private ReadOnly _completionCommandHandler As VSCommanding.ICommandHandler
         Private _currentCompletionPresenterSession As TestCompletionPresenterSession
         Private ReadOnly SessionTestState As IIntelliSenseTestState
 

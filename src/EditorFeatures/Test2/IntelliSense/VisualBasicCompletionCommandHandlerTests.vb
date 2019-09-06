@@ -470,14 +470,8 @@ End Class
                 ' allow the provider to continue
                 e.Set()
 
-                If completionImplementation = CompletionImplementation.Legacy Then
-                    ' We should not have a session since we tear things down if we see a caret move
-                    ' before the providers have returned.
-                    Await state.AssertNoCompletionSession()
-                Else
-                    ' Async provider can handle keys pressed while waiting for providers.
-                    Await state.AssertCompletionSession()
-                End If
+                ' Async provider can handle keys pressed while waiting for providers.
+                Await state.AssertCompletionSession()
             End Using
         End Function
 
@@ -587,36 +581,6 @@ End Class
                 Await state.AssertSelectedCompletionItem(displayText:="A", isHardSelected:=True)
                 state.SendDownKey()
                 Await state.AssertSelectedCompletionItem(displayText:="B", isHardSelected:=True)
-                state.SendTab()
-                Assert.Contains(".B", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-            End Using
-        End Function
-
-        <InlineData(CompletionImplementation.Legacy)> 'Presenter session is a part of the legacy API. Not available in the modern one.
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSelectCompletionItemThroughPresenter(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
-                              <document>
-Namespace N
-    Class A
-    End Class
-    Class B
-    End Class
-    Class C
-    End Class
-End Namespace
-Class Program
-    Sub Main(args As String())
-        N$$
-    End Sub
-End Class
-                              </document>)
-                state.SendTypeChars(".A")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(displayText:="A", isHardSelected:=True)
-                Await state.WaitForAsynchronousOperationsAsync()
-                state.SendSelectCompletionItemThroughPresenterSession(state.GetCompletionItems().First(
-                                                           Function(i) i.DisplayText = "B"))
                 state.SendTab()
                 Assert.Contains(".B", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -1258,7 +1222,6 @@ End Module
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
         <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/27446")>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestProjections(completionImplementation As CompletionImplementation) As Task
@@ -1303,15 +1266,8 @@ End Module|}          </Document>)
                 ' unmap our source spans without changing the top buffer
                 projection.ReplaceSpans(0, sourceSpans.Count, {subjectBuffer.CurrentSnapshot.CreateTrackingSpan(0, subjectBuffer.CurrentSnapshot.Length, SpanTrackingMode.EdgeInclusive)}, EditOptions.DefaultMinimalChange, editTag:=Nothing)
 
-                If completionImplementation = CompletionImplementation.Legacy Then
-                    ' Make sure completionImplementation updates even though the subject buffer is not connected.
-                    Dim editorOperations = state.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                    editorOperations.Backspace()
-                    editorOperations.InsertText("b")
-                Else
-                    state.SendBackspace()
-                    state.SendTypeChars("b")
-                End If
+                state.SendBackspace()
+                state.SendTypeChars("b")
 
                 Await state.AssertSelectedCompletionItem(displayText:="bbb")
 

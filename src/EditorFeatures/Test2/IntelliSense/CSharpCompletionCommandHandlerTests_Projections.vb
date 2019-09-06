@@ -117,7 +117,6 @@ class C
 
         <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
         <InlineData(CompletionImplementation.Modern)>
-        <InlineData(CompletionImplementation.Legacy, Skip:="https://github.com/dotnet/roslyn/issues/24846")>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRegionCompletionCommitFormatting(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,

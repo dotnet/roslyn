@@ -1,17 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -22,24 +18,21 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSe
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.BraceCompletion
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.TextManager
 Imports Microsoft.VisualStudio.Utilities
 Imports CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem
-Imports IAsyncCompletionService = Microsoft.CodeAnalysis.Editor.IAsyncCompletionService
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
     Friend Class TestState
         Inherits AbstractCommandHandlerTestState
 
-        Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
         Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpBeforeCompletionCommandHandler
-        Friend ReadOnly CompletionCommandHandler As CompletionCommandHandler
+        Friend ReadOnly CompletionCommandHandler As VSCommanding.ICommandHandler
 
         Private _context As AbstractDebuggerIntelliSenseContext
         Private ReadOnly SessionTestState As IIntelliSenseTestState
@@ -76,9 +69,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()
 
-            Me.AsyncCompletionService = Workspace.GetService(Of IAsyncCompletionService)
-
-            Me.CompletionCommandHandler = Workspace.GetService(Of CompletionCommandHandler)
+            Me.CompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
+                Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandler")
 
             Me.SignatureHelpCommandHandler = Workspace.GetService(Of SignatureHelpBeforeCompletionCommandHandler)
 

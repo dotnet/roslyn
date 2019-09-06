@@ -60,9 +60,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                 workspaceKind As String) As TestStateBase
 
             Select Case completionImplementation
-                Case CompletionImplementation.Legacy
-                    Return New LegacyTestState(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes,
-                                         includeFormatCommandHandler, workspaceKind)
                 Case CompletionImplementation.Modern
                     Return New ModernCompletionTestState(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes,
                                                          includeFormatCommandHandler, workspaceKind)
@@ -72,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Shared Function GetAllCompletionImplementations() As IEnumerable(Of Object())
-            Return {New Object() {CompletionImplementation.Legacy}, New Object() {CompletionImplementation.Modern}}
+            Return {New Object() {CompletionImplementation.Modern}}
         End Function
     End Class
 End Namespace
