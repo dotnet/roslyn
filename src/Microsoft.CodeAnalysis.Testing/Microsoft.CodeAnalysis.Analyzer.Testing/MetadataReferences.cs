@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Testing
         public static readonly MetadataReference SystemCollectionsImmutableReference = MetadataReference.CreateFromFile(typeof(ImmutableArray).GetTypeInfo().Assembly.Location);
         public static readonly MetadataReference MicrosoftVisualBasicReference = MetadataReference.CreateFromFile(typeof(Microsoft.VisualBasic.Strings).GetTypeInfo().Assembly.Location);
 
-        internal static readonly MetadataReference MscorlibFacadeReference;
-        internal static readonly MetadataReference SystemRuntimeReference;
-        internal static readonly MetadataReference SystemValueTupleReference;
+        internal static readonly MetadataReference? MscorlibFacadeReference;
+        internal static readonly MetadataReference? SystemRuntimeReference;
+        internal static readonly MetadataReference? SystemValueTupleReference;
 
         static MetadataReferences()
         {

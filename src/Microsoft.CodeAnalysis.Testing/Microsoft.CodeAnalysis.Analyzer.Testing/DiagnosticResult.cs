@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private readonly ImmutableArray<DiagnosticLocation> _spans;
         private readonly bool _suppressMessage;
-        private readonly string _message;
+        private readonly string? _message;
 
         public DiagnosticResult(string id, DiagnosticSeverity severity)
             : this()
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Testing
         private DiagnosticResult(
             ImmutableArray<DiagnosticLocation> spans,
             bool suppressMessage,
-            string message,
+            string? message,
             DiagnosticSeverity severity,
             string id,
             LocalizableString messageFormat,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public string Id { get; }
 
-        public string Message
+        public string? Message
         {
             get
             {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 messageArguments: arguments);
         }
 
-        public DiagnosticResult WithMessage(string message)
+        public DiagnosticResult WithMessage(string? message)
         {
             return new DiagnosticResult(
                 spans: _spans,
