@@ -228,9 +228,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
             }
 
-            var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
+            var experimentationService = document?.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
 
-            var initialListOfItemsToBeIncluded = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SortCompletionListByMatch)
+            var initialListOfItemsToBeIncluded = experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SortCompletionListByMatch) == true
                 // Need a stable sorting algorithm to preserve the original order for items with same pattern match score.
                 ? builder.OrderBy(new NullablePatternMatchComparer()).ToImmutableArray()
                 : builder.ToImmutable();
