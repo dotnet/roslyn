@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractOverrideCompletionProvider : AbstractMemberInsertingCompletionProvider
     {
-        private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
-
         public AbstractOverrideCompletionProvider()
         {
         }
