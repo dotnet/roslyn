@@ -636,7 +636,7 @@ class C
             var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
 
             // This should not throw an exception.
-            Assert.NotNull(SymbolKey.Create(xSymbol));
+            Assert.NotEqual(default, SymbolKey.Create(xSymbol));
         }
 
         [Fact]

@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateTypeArgumentList();
             
             Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind);
-            Assert.NotNull(node.Arguments);
+            Assert.Equal(default, node.Arguments);
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateArrayType();
             
             Assert.NotNull(node.ElementType);
-            Assert.NotNull(node.RankSpecifiers);
+            Assert.Equal(default, node.RankSpecifiers);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateArrayRankSpecifier();
             
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
-            Assert.NotNull(node.Sizes);
+            Assert.Equal(default, node.Sizes);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateTupleType();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
-            Assert.NotNull(node.Elements);
+            Assert.Equal(default, node.Elements);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateTupleExpression();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
-            Assert.NotNull(node.Arguments);
+            Assert.Equal(default, node.Arguments);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -1128,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateArgumentList();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
-            Assert.NotNull(node.Arguments);
+            Assert.Equal(default, node.Arguments);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBracketedArgumentList();
             
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
-            Assert.NotNull(node.Arguments);
+            Assert.Equal(default, node.Arguments);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateInitializerExpression();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Expressions);
+            Assert.Equal(default, node.Expressions);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -1289,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.NewKeyword, node.NewKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Initializers);
+            Assert.Equal(default, node.Initializers);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -1314,7 +1314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.NewKeyword, node.NewKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
-            Assert.NotNull(node.Commas);
+            Assert.Equal(default, node.Commas);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
             Assert.NotNull(node.Initializer);
             
@@ -1362,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateQueryBody();
             
-            Assert.NotNull(node.Clauses);
+            Assert.Equal(default, node.Clauses);
             Assert.NotNull(node.SelectOrGroup);
             Assert.Null(node.Continuation);
             
@@ -1443,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateOrderByClause();
             
             Assert.Equal(SyntaxKind.OrderByKeyword, node.OrderByKeyword.Kind);
-            Assert.NotNull(node.Orderings);
+            Assert.Equal(default, node.Orderings);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateInterpolatedStringExpression();
             
             Assert.Equal(SyntaxKind.InterpolatedStringStartToken, node.StringStartToken.Kind);
-            Assert.NotNull(node.Contents);
+            Assert.Equal(default, node.Contents);
             Assert.Equal(SyntaxKind.InterpolatedStringEndToken, node.StringEndToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -1602,7 +1602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GeneratePositionalPatternClause();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
-            Assert.NotNull(node.Subpatterns);
+            Assert.Equal(default, node.Subpatterns);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -1614,7 +1614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GeneratePropertyPatternClause();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Subpatterns);
+            Assert.Equal(default, node.Subpatterns);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -1692,8 +1692,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateGlobalStatement();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Statement);
             
             AttachAndCheckDiagnostics(node);
@@ -1705,7 +1705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBlock();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Statements);
+            Assert.Equal(default, node.Statements);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -1716,12 +1716,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateLocalFunctionStatement();
             
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.ReturnType);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.TypeParameterList);
             Assert.NotNull(node.ParameterList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Null(node.Body);
             Assert.Null(node.ExpressionBody);
             Assert.Null(node.SemicolonToken);
@@ -1736,7 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Null(node.AwaitKeyword);
             Assert.Null(node.UsingKeyword);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Declaration);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
             
@@ -1749,7 +1749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateVariableDeclaration();
             
             Assert.NotNull(node.Type);
-            Assert.NotNull(node.Variables);
+            Assert.Equal(default, node.Variables);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -1803,7 +1803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateParenthesizedVariableDesignation();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
-            Assert.NotNull(node.Variables);
+            Assert.Equal(default, node.Variables);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -1952,11 +1952,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ForKeyword, node.ForKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
             Assert.Null(node.Declaration);
-            Assert.NotNull(node.Initializers);
+            Assert.Equal(default, node.Initializers);
             Assert.Equal(SyntaxKind.SemicolonToken, node.FirstSemicolonToken.Kind);
             Assert.Null(node.Condition);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SecondSemicolonToken.Kind);
-            Assert.NotNull(node.Incrementors);
+            Assert.Equal(default, node.Incrementors);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
             Assert.NotNull(node.Statement);
             
@@ -2100,7 +2100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             Assert.Null(node.CloseParenToken);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Sections);
+            Assert.Equal(default, node.Sections);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2111,8 +2111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateSwitchSection();
             
-            Assert.NotNull(node.Labels);
-            Assert.NotNull(node.Statements);
+            Assert.Equal(default, node.Labels);
+            Assert.Equal(default, node.Statements);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -2161,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.GoverningExpression);
             Assert.Equal(SyntaxKind.SwitchKeyword, node.SwitchKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Arms);
+            Assert.Equal(default, node.Arms);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2187,7 +2187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.TryKeyword, node.TryKeyword.Kind);
             Assert.NotNull(node.Block);
-            Assert.NotNull(node.Catches);
+            Assert.Equal(default, node.Catches);
             Assert.Null(node.Finally);
             
             AttachAndCheckDiagnostics(node);
@@ -2248,10 +2248,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateCompilationUnit();
             
-            Assert.NotNull(node.Externs);
-            Assert.NotNull(node.Usings);
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Externs);
+            Assert.Equal(default, node.Usings);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.EndOfFileToken, node.EndOfFileToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2289,14 +2289,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateNamespaceDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.NamespaceKeyword, node.NamespaceKeyword.Kind);
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Externs);
-            Assert.NotNull(node.Usings);
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Externs);
+            Assert.Equal(default, node.Usings);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             Assert.Null(node.SemicolonToken);
             
@@ -2310,7 +2310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
             Assert.Null(node.Target);
-            Assert.NotNull(node.Attributes);
+            Assert.Equal(default, node.Attributes);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2344,7 +2344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateAttributeArgumentList();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
-            Assert.NotNull(node.Arguments);
+            Assert.Equal(default, node.Arguments);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2379,7 +2379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateTypeParameterList();
             
             Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind);
-            Assert.NotNull(node.Parameters);
+            Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2390,7 +2390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateTypeParameter();
             
-            Assert.NotNull(node.AttributeLists);
+            Assert.Equal(default, node.AttributeLists);
             Assert.Null(node.VarianceKeyword);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             
@@ -2402,15 +2402,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateClassDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.ClassKeyword, node.Keyword.Kind);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.TypeParameterList);
             Assert.Null(node.BaseList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             Assert.Null(node.SemicolonToken);
             
@@ -2422,15 +2422,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateStructDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.StructKeyword, node.Keyword.Kind);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.TypeParameterList);
             Assert.Null(node.BaseList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             Assert.Null(node.SemicolonToken);
             
@@ -2442,15 +2442,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateInterfaceDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.InterfaceKeyword, node.Keyword.Kind);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.TypeParameterList);
             Assert.Null(node.BaseList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             Assert.Null(node.SemicolonToken);
             
@@ -2462,13 +2462,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateEnumDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.EnumKeyword, node.EnumKeyword.Kind);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.BaseList);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             Assert.Null(node.SemicolonToken);
             
@@ -2480,14 +2480,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateDelegateDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.DelegateKeyword, node.DelegateKeyword.Kind);
             Assert.NotNull(node.ReturnType);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.TypeParameterList);
             Assert.NotNull(node.ParameterList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2498,8 +2498,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateEnumMemberDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.EqualsValue);
             
@@ -2512,7 +2512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBaseList();
             
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind);
-            Assert.NotNull(node.Types);
+            Assert.Equal(default, node.Types);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -2535,7 +2535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.WhereKeyword, node.WhereKeyword.Kind);
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind);
-            Assert.NotNull(node.Constraints);
+            Assert.Equal(default, node.Constraints);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -2578,8 +2578,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateFieldDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Declaration);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
             
@@ -2591,8 +2591,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateEventFieldDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.EventKeyword, node.EventKeyword.Kind);
             Assert.NotNull(node.Declaration);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
@@ -2616,14 +2616,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateMethodDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.ReturnType);
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.TypeParameterList);
             Assert.NotNull(node.ParameterList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Null(node.Body);
             Assert.Null(node.ExpressionBody);
             Assert.Null(node.SemicolonToken);
@@ -2636,8 +2636,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateOperatorDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.ReturnType);
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind);
             Assert.Equal(SyntaxKind.PlusToken, node.OperatorToken.Kind);
@@ -2654,8 +2654,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateConversionOperatorDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.ImplicitKeyword, node.ImplicitOrExplicitKeyword.Kind);
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind);
             Assert.NotNull(node.Type);
@@ -2672,8 +2672,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateConstructorDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.NotNull(node.ParameterList);
             Assert.Null(node.Initializer);
@@ -2701,8 +2701,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateDestructorDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.TildeToken, node.TildeToken.Kind);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.NotNull(node.ParameterList);
@@ -2718,8 +2718,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GeneratePropertyDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Type);
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
@@ -2747,8 +2747,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateEventDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.EventKeyword, node.EventKeyword.Kind);
             Assert.NotNull(node.Type);
             Assert.Null(node.ExplicitInterfaceSpecifier);
@@ -2764,8 +2764,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateIndexerDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Type);
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.ThisKeyword, node.ThisKeyword.Kind);
@@ -2783,7 +2783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateAccessorList();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.Accessors);
+            Assert.Equal(default, node.Accessors);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2794,8 +2794,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateAccessorDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.GetKeyword, node.Keyword.Kind);
             Assert.Null(node.Body);
             Assert.Null(node.ExpressionBody);
@@ -2810,7 +2810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateParameterList();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
-            Assert.NotNull(node.Parameters);
+            Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2822,7 +2822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBracketedParameterList();
             
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
-            Assert.NotNull(node.Parameters);
+            Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2833,8 +2833,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateParameter();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Null(node.Type);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.Default);
@@ -2847,8 +2847,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateIncompleteMember();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Null(node.Type);
             
             AttachAndCheckDiagnostics(node);
@@ -2859,7 +2859,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateSkippedTokensTrivia();
             
-            Assert.NotNull(node.Tokens);
+            Assert.Equal(default, node.Tokens);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -2869,7 +2869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateDocumentationCommentTrivia();
             
-            Assert.NotNull(node.Content);
+            Assert.Equal(default, node.Content);
             Assert.Equal(SyntaxKind.EndOfDocumentationCommentToken, node.EndOfComment.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2950,7 +2950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCrefParameterList();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
-            Assert.NotNull(node.Parameters);
+            Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2962,7 +2962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCrefBracketedParameterList();
             
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
-            Assert.NotNull(node.Parameters);
+            Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -2985,7 +2985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateXmlElement();
             
             Assert.NotNull(node.StartTag);
-            Assert.NotNull(node.Content);
+            Assert.Equal(default, node.Content);
             Assert.NotNull(node.EndTag);
             
             AttachAndCheckDiagnostics(node);
@@ -2998,7 +2998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind);
             Assert.NotNull(node.Name);
-            Assert.NotNull(node.Attributes);
+            Assert.Equal(default, node.Attributes);
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -3023,7 +3023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind);
             Assert.NotNull(node.Name);
-            Assert.NotNull(node.Attributes);
+            Assert.Equal(default, node.Attributes);
             Assert.Equal(SyntaxKind.SlashGreaterThanToken, node.SlashGreaterThanToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -3059,7 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.EqualsToken, node.EqualsToken.Kind);
             Assert.Equal(SyntaxKind.SingleQuoteToken, node.StartQuoteToken.Kind);
-            Assert.NotNull(node.TextTokens);
+            Assert.Equal(default, node.TextTokens);
             Assert.Equal(SyntaxKind.SingleQuoteToken, node.EndQuoteToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -3098,7 +3098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateXmlText();
             
-            Assert.NotNull(node.TextTokens);
+            Assert.Equal(default, node.TextTokens);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -3109,7 +3109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateXmlCDataSection();
             
             Assert.Equal(SyntaxKind.XmlCDataStartToken, node.StartCDataToken.Kind);
-            Assert.NotNull(node.TextTokens);
+            Assert.Equal(default, node.TextTokens);
             Assert.Equal(SyntaxKind.XmlCDataEndToken, node.EndCDataToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -3122,7 +3122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.XmlProcessingInstructionStartToken, node.StartProcessingInstructionToken.Kind);
             Assert.NotNull(node.Name);
-            Assert.NotNull(node.TextTokens);
+            Assert.Equal(default, node.TextTokens);
             Assert.Equal(SyntaxKind.XmlProcessingInstructionEndToken, node.EndProcessingInstructionToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -3134,7 +3134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateXmlComment();
             
             Assert.Equal(SyntaxKind.XmlCommentStartToken, node.LessThanExclamationMinusMinusToken.Kind);
-            Assert.NotNull(node.TextTokens);
+            Assert.Equal(default, node.TextTokens);
             Assert.Equal(SyntaxKind.XmlCommentEndToken, node.MinusMinusGreaterThanToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -3316,7 +3316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.PragmaKeyword, node.PragmaKeyword.Kind);
             Assert.Equal(SyntaxKind.WarningKeyword, node.WarningKeyword.Kind);
             Assert.Equal(SyntaxKind.DisableKeyword, node.DisableOrRestoreKeyword.Kind);
-            Assert.NotNull(node.ErrorCodes);
+            Assert.Equal(default, node.ErrorCodes);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
             Assert.Equal(new bool(), node.IsActive);
             
@@ -9679,7 +9679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateTypeArgumentList();
             
             Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind());
-            Assert.NotNull(node.Arguments);
+            Assert.Equal(default, node.Arguments);
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind());
             var newNode = node.WithLessThanToken(node.LessThanToken).WithArguments(node.Arguments).WithGreaterThanToken(node.GreaterThanToken);
             Assert.Equal(node, newNode);
@@ -9713,7 +9713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateArrayType();
             
             Assert.NotNull(node.ElementType);
-            Assert.NotNull(node.RankSpecifiers);
+            Assert.Equal(default, node.RankSpecifiers);
             var newNode = node.WithElementType(node.ElementType).WithRankSpecifiers(node.RankSpecifiers);
             Assert.Equal(node, newNode);
         }
@@ -9724,7 +9724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateArrayRankSpecifier();
             
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
-            Assert.NotNull(node.Sizes);
+            Assert.Equal(default, node.Sizes);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithSizes(node.Sizes).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
@@ -9758,7 +9758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateTupleType();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
-            Assert.NotNull(node.Elements);
+            Assert.Equal(default, node.Elements);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithElements(node.Elements).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
@@ -9815,7 +9815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateTupleExpression();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
-            Assert.NotNull(node.Arguments);
+            Assert.Equal(default, node.Arguments);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithArguments(node.Arguments).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
@@ -10110,7 +10110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateArgumentList();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
-            Assert.NotNull(node.Arguments);
+            Assert.Equal(default, node.Arguments);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithArguments(node.Arguments).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
@@ -10122,7 +10122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBracketedArgumentList();
             
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
-            Assert.NotNull(node.Arguments);
+            Assert.Equal(default, node.Arguments);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithArguments(node.Arguments).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
@@ -10234,7 +10234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateInitializerExpression();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Expressions);
+            Assert.Equal(default, node.Expressions);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithExpressions(node.Expressions).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
@@ -10271,7 +10271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.NewKeyword, node.NewKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Initializers);
+            Assert.Equal(default, node.Initializers);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithNewKeyword(node.NewKeyword).WithOpenBraceToken(node.OpenBraceToken).WithInitializers(node.Initializers).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
@@ -10296,7 +10296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.NewKeyword, node.NewKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
-            Assert.NotNull(node.Commas);
+            Assert.Equal(default, node.Commas);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             Assert.NotNull(node.Initializer);
             var newNode = node.WithNewKeyword(node.NewKeyword).WithOpenBracketToken(node.OpenBracketToken).WithCommas(node.Commas).WithCloseBracketToken(node.CloseBracketToken).WithInitializer(node.Initializer);
@@ -10344,7 +10344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateQueryBody();
             
-            Assert.NotNull(node.Clauses);
+            Assert.Equal(default, node.Clauses);
             Assert.NotNull(node.SelectOrGroup);
             Assert.Null(node.Continuation);
             var newNode = node.WithClauses(node.Clauses).WithSelectOrGroup(node.SelectOrGroup).WithContinuation(node.Continuation);
@@ -10425,7 +10425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateOrderByClause();
             
             Assert.Equal(SyntaxKind.OrderByKeyword, node.OrderByKeyword.Kind());
-            Assert.NotNull(node.Orderings);
+            Assert.Equal(default, node.Orderings);
             var newNode = node.WithOrderByKeyword(node.OrderByKeyword).WithOrderings(node.Orderings);
             Assert.Equal(node, newNode);
         }
@@ -10493,7 +10493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateInterpolatedStringExpression();
             
             Assert.Equal(SyntaxKind.InterpolatedStringStartToken, node.StringStartToken.Kind());
-            Assert.NotNull(node.Contents);
+            Assert.Equal(default, node.Contents);
             Assert.Equal(SyntaxKind.InterpolatedStringEndToken, node.StringEndToken.Kind());
             var newNode = node.WithStringStartToken(node.StringStartToken).WithContents(node.Contents).WithStringEndToken(node.StringEndToken);
             Assert.Equal(node, newNode);
@@ -10584,7 +10584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GeneratePositionalPatternClause();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
-            Assert.NotNull(node.Subpatterns);
+            Assert.Equal(default, node.Subpatterns);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithSubpatterns(node.Subpatterns).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
@@ -10596,7 +10596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GeneratePropertyPatternClause();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Subpatterns);
+            Assert.Equal(default, node.Subpatterns);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithSubpatterns(node.Subpatterns).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
@@ -10674,8 +10674,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateGlobalStatement();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Statement);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
@@ -10687,7 +10687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBlock();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Statements);
+            Assert.Equal(default, node.Statements);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithStatements(node.Statements).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
@@ -10698,12 +10698,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateLocalFunctionStatement();
             
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.ReturnType);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.TypeParameterList);
             Assert.NotNull(node.ParameterList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Null(node.Body);
             Assert.Null(node.ExpressionBody);
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
@@ -10718,7 +10718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.None, node.AwaitKeyword.Kind());
             Assert.Equal(SyntaxKind.None, node.UsingKeyword.Kind());
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Declaration);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAwaitKeyword(node.AwaitKeyword).WithUsingKeyword(node.UsingKeyword).WithModifiers(node.Modifiers).WithDeclaration(node.Declaration).WithSemicolonToken(node.SemicolonToken);
@@ -10731,7 +10731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateVariableDeclaration();
             
             Assert.NotNull(node.Type);
-            Assert.NotNull(node.Variables);
+            Assert.Equal(default, node.Variables);
             var newNode = node.WithType(node.Type).WithVariables(node.Variables);
             Assert.Equal(node, newNode);
         }
@@ -10785,7 +10785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateParenthesizedVariableDesignation();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
-            Assert.NotNull(node.Variables);
+            Assert.Equal(default, node.Variables);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithVariables(node.Variables).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
@@ -10934,11 +10934,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ForKeyword, node.ForKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
             Assert.Null(node.Declaration);
-            Assert.NotNull(node.Initializers);
+            Assert.Equal(default, node.Initializers);
             Assert.Equal(SyntaxKind.SemicolonToken, node.FirstSemicolonToken.Kind());
             Assert.Null(node.Condition);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SecondSemicolonToken.Kind());
-            Assert.NotNull(node.Incrementors);
+            Assert.Equal(default, node.Incrementors);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             Assert.NotNull(node.Statement);
             var newNode = node.WithForKeyword(node.ForKeyword).WithOpenParenToken(node.OpenParenToken).WithDeclaration(node.Declaration).WithInitializers(node.Initializers).WithFirstSemicolonToken(node.FirstSemicolonToken).WithCondition(node.Condition).WithSecondSemicolonToken(node.SecondSemicolonToken).WithIncrementors(node.Incrementors).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
@@ -11082,7 +11082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.None, node.CloseParenToken.Kind());
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Sections);
+            Assert.Equal(default, node.Sections);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithSwitchKeyword(node.SwitchKeyword).WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithOpenBraceToken(node.OpenBraceToken).WithSections(node.Sections).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
@@ -11093,8 +11093,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateSwitchSection();
             
-            Assert.NotNull(node.Labels);
-            Assert.NotNull(node.Statements);
+            Assert.Equal(default, node.Labels);
+            Assert.Equal(default, node.Statements);
             var newNode = node.WithLabels(node.Labels).WithStatements(node.Statements);
             Assert.Equal(node, newNode);
         }
@@ -11143,7 +11143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.GoverningExpression);
             Assert.Equal(SyntaxKind.SwitchKeyword, node.SwitchKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Arms);
+            Assert.Equal(default, node.Arms);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithGoverningExpression(node.GoverningExpression).WithSwitchKeyword(node.SwitchKeyword).WithOpenBraceToken(node.OpenBraceToken).WithArms(node.Arms).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
@@ -11169,7 +11169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.TryKeyword, node.TryKeyword.Kind());
             Assert.NotNull(node.Block);
-            Assert.NotNull(node.Catches);
+            Assert.Equal(default, node.Catches);
             Assert.Null(node.Finally);
             var newNode = node.WithTryKeyword(node.TryKeyword).WithBlock(node.Block).WithCatches(node.Catches).WithFinally(node.Finally);
             Assert.Equal(node, newNode);
@@ -11230,10 +11230,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateCompilationUnit();
             
-            Assert.NotNull(node.Externs);
-            Assert.NotNull(node.Usings);
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Externs);
+            Assert.Equal(default, node.Usings);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.EndOfFileToken, node.EndOfFileToken.Kind());
             var newNode = node.WithExterns(node.Externs).WithUsings(node.Usings).WithAttributeLists(node.AttributeLists).WithMembers(node.Members).WithEndOfFileToken(node.EndOfFileToken);
             Assert.Equal(node, newNode);
@@ -11271,14 +11271,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateNamespaceDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.NamespaceKeyword, node.NamespaceKeyword.Kind());
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Externs);
-            Assert.NotNull(node.Usings);
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Externs);
+            Assert.Equal(default, node.Usings);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithNamespaceKeyword(node.NamespaceKeyword).WithName(node.Name).WithOpenBraceToken(node.OpenBraceToken).WithExterns(node.Externs).WithUsings(node.Usings).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
@@ -11292,7 +11292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
             Assert.Null(node.Target);
-            Assert.NotNull(node.Attributes);
+            Assert.Equal(default, node.Attributes);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithTarget(node.Target).WithAttributes(node.Attributes).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
@@ -11326,7 +11326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateAttributeArgumentList();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
-            Assert.NotNull(node.Arguments);
+            Assert.Equal(default, node.Arguments);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithArguments(node.Arguments).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
@@ -11361,7 +11361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateTypeParameterList();
             
             Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind());
-            Assert.NotNull(node.Parameters);
+            Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind());
             var newNode = node.WithLessThanToken(node.LessThanToken).WithParameters(node.Parameters).WithGreaterThanToken(node.GreaterThanToken);
             Assert.Equal(node, newNode);
@@ -11372,7 +11372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateTypeParameter();
             
-            Assert.NotNull(node.AttributeLists);
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.None, node.VarianceKeyword.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithVarianceKeyword(node.VarianceKeyword).WithIdentifier(node.Identifier);
@@ -11384,15 +11384,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateClassDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.ClassKeyword, node.Keyword.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.TypeParameterList);
             Assert.Null(node.BaseList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithKeyword(node.Keyword).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithBaseList(node.BaseList).WithConstraintClauses(node.ConstraintClauses).WithOpenBraceToken(node.OpenBraceToken).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
@@ -11404,15 +11404,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateStructDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.StructKeyword, node.Keyword.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.TypeParameterList);
             Assert.Null(node.BaseList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithKeyword(node.Keyword).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithBaseList(node.BaseList).WithConstraintClauses(node.ConstraintClauses).WithOpenBraceToken(node.OpenBraceToken).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
@@ -11424,15 +11424,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateInterfaceDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.InterfaceKeyword, node.Keyword.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.TypeParameterList);
             Assert.Null(node.BaseList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithKeyword(node.Keyword).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithBaseList(node.BaseList).WithConstraintClauses(node.ConstraintClauses).WithOpenBraceToken(node.OpenBraceToken).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
@@ -11444,13 +11444,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateEnumDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.EnumKeyword, node.EnumKeyword.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.BaseList);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Members);
+            Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithEnumKeyword(node.EnumKeyword).WithIdentifier(node.Identifier).WithBaseList(node.BaseList).WithOpenBraceToken(node.OpenBraceToken).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
@@ -11462,14 +11462,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateDelegateDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.DelegateKeyword, node.DelegateKeyword.Kind());
             Assert.NotNull(node.ReturnType);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.TypeParameterList);
             Assert.NotNull(node.ParameterList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithDelegateKeyword(node.DelegateKeyword).WithReturnType(node.ReturnType).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithParameterList(node.ParameterList).WithConstraintClauses(node.ConstraintClauses).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
@@ -11480,8 +11480,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateEnumMemberDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.EqualsValue);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithIdentifier(node.Identifier).WithEqualsValue(node.EqualsValue);
@@ -11494,7 +11494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBaseList();
             
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
-            Assert.NotNull(node.Types);
+            Assert.Equal(default, node.Types);
             var newNode = node.WithColonToken(node.ColonToken).WithTypes(node.Types);
             Assert.Equal(node, newNode);
         }
@@ -11517,7 +11517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.WhereKeyword, node.WhereKeyword.Kind());
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
-            Assert.NotNull(node.Constraints);
+            Assert.Equal(default, node.Constraints);
             var newNode = node.WithWhereKeyword(node.WhereKeyword).WithName(node.Name).WithColonToken(node.ColonToken).WithConstraints(node.Constraints);
             Assert.Equal(node, newNode);
         }
@@ -11560,8 +11560,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateFieldDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Declaration);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithDeclaration(node.Declaration).WithSemicolonToken(node.SemicolonToken);
@@ -11573,8 +11573,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateEventFieldDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.EventKeyword, node.EventKeyword.Kind());
             Assert.NotNull(node.Declaration);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
@@ -11598,14 +11598,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateMethodDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.ReturnType);
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.TypeParameterList);
             Assert.NotNull(node.ParameterList);
-            Assert.NotNull(node.ConstraintClauses);
+            Assert.Equal(default, node.ConstraintClauses);
             Assert.Null(node.Body);
             Assert.Null(node.ExpressionBody);
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
@@ -11618,8 +11618,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateOperatorDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.ReturnType);
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind());
             Assert.Equal(SyntaxKind.PlusToken, node.OperatorToken.Kind());
@@ -11636,8 +11636,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateConversionOperatorDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.ImplicitKeyword, node.ImplicitOrExplicitKeyword.Kind());
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind());
             Assert.NotNull(node.Type);
@@ -11654,8 +11654,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateConstructorDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.NotNull(node.ParameterList);
             Assert.Null(node.Initializer);
@@ -11683,8 +11683,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateDestructorDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.TildeToken, node.TildeToken.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.NotNull(node.ParameterList);
@@ -11700,8 +11700,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GeneratePropertyDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Type);
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
@@ -11729,8 +11729,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateEventDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.EventKeyword, node.EventKeyword.Kind());
             Assert.NotNull(node.Type);
             Assert.Null(node.ExplicitInterfaceSpecifier);
@@ -11746,8 +11746,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateIndexerDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.Type);
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.ThisKeyword, node.ThisKeyword.Kind());
@@ -11765,7 +11765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateAccessorList();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.Accessors);
+            Assert.Equal(default, node.Accessors);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithAccessors(node.Accessors).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
@@ -11776,8 +11776,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateAccessorDeclaration();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Equal(SyntaxKind.GetKeyword, node.Keyword.Kind());
             Assert.Null(node.Body);
             Assert.Null(node.ExpressionBody);
@@ -11792,7 +11792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateParameterList();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
-            Assert.NotNull(node.Parameters);
+            Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithParameters(node.Parameters).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
@@ -11804,7 +11804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBracketedParameterList();
             
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
-            Assert.NotNull(node.Parameters);
+            Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithParameters(node.Parameters).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
@@ -11815,8 +11815,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateParameter();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Null(node.Type);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.Default);
@@ -11829,8 +11829,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateIncompleteMember();
             
-            Assert.NotNull(node.AttributeLists);
-            Assert.NotNull(node.Modifiers);
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
             Assert.Null(node.Type);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithType(node.Type);
             Assert.Equal(node, newNode);
@@ -11841,7 +11841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateSkippedTokensTrivia();
             
-            Assert.NotNull(node.Tokens);
+            Assert.Equal(default, node.Tokens);
             var newNode = node.WithTokens(node.Tokens);
             Assert.Equal(node, newNode);
         }
@@ -11851,7 +11851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateDocumentationCommentTrivia();
             
-            Assert.NotNull(node.Content);
+            Assert.Equal(default, node.Content);
             Assert.Equal(SyntaxKind.EndOfDocumentationCommentToken, node.EndOfComment.Kind());
             var newNode = node.WithContent(node.Content).WithEndOfComment(node.EndOfComment);
             Assert.Equal(node, newNode);
@@ -11932,7 +11932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCrefParameterList();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
-            Assert.NotNull(node.Parameters);
+            Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithParameters(node.Parameters).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
@@ -11944,7 +11944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCrefBracketedParameterList();
             
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
-            Assert.NotNull(node.Parameters);
+            Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithParameters(node.Parameters).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
@@ -11967,7 +11967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateXmlElement();
             
             Assert.NotNull(node.StartTag);
-            Assert.NotNull(node.Content);
+            Assert.Equal(default, node.Content);
             Assert.NotNull(node.EndTag);
             var newNode = node.WithStartTag(node.StartTag).WithContent(node.Content).WithEndTag(node.EndTag);
             Assert.Equal(node, newNode);
@@ -11980,7 +11980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind());
             Assert.NotNull(node.Name);
-            Assert.NotNull(node.Attributes);
+            Assert.Equal(default, node.Attributes);
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind());
             var newNode = node.WithLessThanToken(node.LessThanToken).WithName(node.Name).WithAttributes(node.Attributes).WithGreaterThanToken(node.GreaterThanToken);
             Assert.Equal(node, newNode);
@@ -12005,7 +12005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind());
             Assert.NotNull(node.Name);
-            Assert.NotNull(node.Attributes);
+            Assert.Equal(default, node.Attributes);
             Assert.Equal(SyntaxKind.SlashGreaterThanToken, node.SlashGreaterThanToken.Kind());
             var newNode = node.WithLessThanToken(node.LessThanToken).WithName(node.Name).WithAttributes(node.Attributes).WithSlashGreaterThanToken(node.SlashGreaterThanToken);
             Assert.Equal(node, newNode);
@@ -12041,7 +12041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.EqualsToken, node.EqualsToken.Kind());
             Assert.Equal(SyntaxKind.SingleQuoteToken, node.StartQuoteToken.Kind());
-            Assert.NotNull(node.TextTokens);
+            Assert.Equal(default, node.TextTokens);
             Assert.Equal(SyntaxKind.SingleQuoteToken, node.EndQuoteToken.Kind());
             var newNode = node.WithName(node.Name).WithEqualsToken(node.EqualsToken).WithStartQuoteToken(node.StartQuoteToken).WithTextTokens(node.TextTokens).WithEndQuoteToken(node.EndQuoteToken);
             Assert.Equal(node, newNode);
@@ -12080,7 +12080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateXmlText();
             
-            Assert.NotNull(node.TextTokens);
+            Assert.Equal(default, node.TextTokens);
             var newNode = node.WithTextTokens(node.TextTokens);
             Assert.Equal(node, newNode);
         }
@@ -12091,7 +12091,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateXmlCDataSection();
             
             Assert.Equal(SyntaxKind.XmlCDataStartToken, node.StartCDataToken.Kind());
-            Assert.NotNull(node.TextTokens);
+            Assert.Equal(default, node.TextTokens);
             Assert.Equal(SyntaxKind.XmlCDataEndToken, node.EndCDataToken.Kind());
             var newNode = node.WithStartCDataToken(node.StartCDataToken).WithTextTokens(node.TextTokens).WithEndCDataToken(node.EndCDataToken);
             Assert.Equal(node, newNode);
@@ -12104,7 +12104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.XmlProcessingInstructionStartToken, node.StartProcessingInstructionToken.Kind());
             Assert.NotNull(node.Name);
-            Assert.NotNull(node.TextTokens);
+            Assert.Equal(default, node.TextTokens);
             Assert.Equal(SyntaxKind.XmlProcessingInstructionEndToken, node.EndProcessingInstructionToken.Kind());
             var newNode = node.WithStartProcessingInstructionToken(node.StartProcessingInstructionToken).WithName(node.Name).WithTextTokens(node.TextTokens).WithEndProcessingInstructionToken(node.EndProcessingInstructionToken);
             Assert.Equal(node, newNode);
@@ -12116,7 +12116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateXmlComment();
             
             Assert.Equal(SyntaxKind.XmlCommentStartToken, node.LessThanExclamationMinusMinusToken.Kind());
-            Assert.NotNull(node.TextTokens);
+            Assert.Equal(default, node.TextTokens);
             Assert.Equal(SyntaxKind.XmlCommentEndToken, node.MinusMinusGreaterThanToken.Kind());
             var newNode = node.WithLessThanExclamationMinusMinusToken(node.LessThanExclamationMinusMinusToken).WithTextTokens(node.TextTokens).WithMinusMinusGreaterThanToken(node.MinusMinusGreaterThanToken);
             Assert.Equal(node, newNode);
@@ -12298,7 +12298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.PragmaKeyword, node.PragmaKeyword.Kind());
             Assert.Equal(SyntaxKind.WarningKeyword, node.WarningKeyword.Kind());
             Assert.Equal(SyntaxKind.DisableKeyword, node.DisableOrRestoreKeyword.Kind());
-            Assert.NotNull(node.ErrorCodes);
+            Assert.Equal(default, node.ErrorCodes);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithPragmaKeyword(node.PragmaKeyword).WithWarningKeyword(node.WarningKeyword).WithDisableOrRestoreKeyword(node.DisableOrRestoreKeyword).WithErrorCodes(node.ErrorCodes).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);

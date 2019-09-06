@@ -39,7 +39,7 @@ class C
             void assertTypeInfo(SyntaxNode syntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
-                Assert.NotNull(typeInfo);
+                Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
                 Assert.Equal(cType, typeInfo.Type);
                 Assert.Equal(cType, typeInfo.ConvertedType);
@@ -74,14 +74,14 @@ class D : C {}";
             assertTypeInfo(coalesceAssignment.Left);
 
             var whenNullTypeInfo = semanticModel.GetTypeInfo(coalesceAssignment.Right);
-            Assert.NotNull(whenNullTypeInfo);
+            Assert.NotEqual(default, whenNullTypeInfo);
             Assert.Equal(dType, whenNullTypeInfo.Type);
             Assert.Equal(cType, whenNullTypeInfo.ConvertedType);
 
             void assertTypeInfo(SyntaxNode syntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
-                Assert.NotNull(typeInfo);
+                Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
                 Assert.Equal(cType, typeInfo.Type);
                 Assert.Equal(cType, typeInfo.ConvertedType);
@@ -114,7 +114,7 @@ class D : C {}";
             var coalesceAssignment = syntaxRoot.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
 
             var whenNullTypeInfo = semanticModel.GetTypeInfo(coalesceAssignment);
-            Assert.NotNull(whenNullTypeInfo);
+            Assert.NotEqual(default, whenNullTypeInfo);
             Assert.Equal(dType, whenNullTypeInfo.Type);
             Assert.Equal(cType, whenNullTypeInfo.ConvertedType);
 
@@ -124,7 +124,7 @@ class D : C {}";
             void assertTypeInfo(SyntaxNode syntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
-                Assert.NotNull(typeInfo);
+                Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
                 Assert.Equal(dType, typeInfo.Type);
                 Assert.Equal(dType, typeInfo.ConvertedType);

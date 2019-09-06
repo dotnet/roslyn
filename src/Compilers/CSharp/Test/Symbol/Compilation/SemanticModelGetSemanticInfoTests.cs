@@ -8215,7 +8215,8 @@ class Program
 
             var symbolInfo = semanticModel.GetSymbolInfo(selectClauseNode);
 
-            Assert.NotNull(symbolInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, symbolInfo);
             Assert.Null(symbolInfo.Symbol);
         }
 
@@ -14399,7 +14400,7 @@ class A
             var model = compilation.GetSemanticModel(tree);
             var typeInfo = model.GetTypeInfo(node); // Ensure that this doesn't throw.
 
-            Assert.NotNull(typeInfo);
+            Assert.NotEqual(default, typeInfo);
         }
 
         [WorkItem(11451, "DevDiv_Projects/Roslyn")]
@@ -14653,7 +14654,7 @@ class C2
 
                 var info1 = model.GetTypeInfo(syntaxToBind);
 
-                Assert.NotNull(info1);
+                Assert.NotEqual(default, info1);
                 Assert.Equal("System.Int32", info1.Type.ToTestDisplayString());
             }
         }
