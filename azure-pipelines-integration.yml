@@ -38,7 +38,7 @@ jobs:
         testRunner: XUnit
         testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml
         mergeTestResults: true
-        testRunTitle: '$(System.JobAttempt)-Integration $(_configuration)
+        testRunTitle: '$(System.JobAttempt)-Integration $(_configuration)'
       condition: always()
 
     - task: PublishBuildArtifacts@1

@@ -1,10 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -15,6 +15,7 @@ Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Language.Intellisense
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
@@ -23,11 +24,14 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Utilities
 Imports Moq
 Imports MSXML
+Imports Task = System.Threading.Tasks.Task
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Friend NotInheritable Class SnippetTestState
         Inherits AbstractCommandHandlerTestState
+
+        Friend Const RoslynItem = "RoslynItem"
 
         Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), excludedTypes As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
             ' Remove the default completion presenters to prevent them from conflicting with the test one
@@ -41,8 +45,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             Dim featureServiceFactory = GetExportedValue(Of IFeatureServiceFactory)()
             featureServiceFactory.GlobalFeatureService.Disable(PredefinedEditorFeatureNames.AsyncCompletion, EmptyFeatureController.Instance)
-
-            SessionTestState = Workspace.GetService(Of IIntelliSenseTestState)
 
             Dim mockEditorAdaptersFactoryService = New Mock(Of IVsEditorAdaptersFactoryService)
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)
@@ -70,26 +72,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
         Public ReadOnly SnippetCommandHandler As AbstractSnippetCommandHandler
         Private ReadOnly _completionCommandHandler As VSCommanding.ICommandHandler
-        Private _currentCompletionPresenterSession As TestCompletionPresenterSession
-        Private ReadOnly SessionTestState As IIntelliSenseTestState
 
         Public Property SnippetExpansionClient As MockSnippetExpansionClient
 
         Private Shared Function CreatePartCatalog(types As IEnumerable(Of Type)) As ComposableCatalog
             Return ExportProviderCache.CreateTypeCatalog(types).WithParts(GetType(TestCompletionPresenter), GetType(IntelliSenseTestState))
         End Function
-
-        Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
-            Get
-                Return SessionTestState.CurrentSignatureHelpPresenterSession
-            End Get
-        End Property
-
-        Friend ReadOnly Property CurrentCompletionPresenterSession As TestCompletionPresenterSession
-            Get
-                Return SessionTestState.CurrentCompletionPresenterSession
-            End Get
-        End Property
 
         Public Shared Function CreateTestState(markup As String, languageName As String, Optional startActiveSession As Boolean = False, Optional extraParts As IEnumerable(Of Type) = Nothing) As SnippetTestState
             extraParts = If(extraParts, Type.EmptyTypes)
@@ -149,6 +137,58 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Dim handler = DirectCast(_completionCommandHandler, IChainedCommandHandler(Of TypeCharCommandArgs))
             MyBase.SendTypeChars(typeChars, AddressOf handler.ExecuteCommand)
         End Sub
+
+        Public Async Function AssertNoCompletionSession() As Task
+            Await WaitForAsynchronousOperationsAsync()
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            If session Is Nothing Then
+                Return
+            End If
+
+            If session.IsDismissed Then
+                Return
+            End If
+
+            Dim completionItems = session.GetComputedItems(CancellationToken.None)
+            ' During the computation we can explicitly dismiss the session or we can return no items.
+            ' Each of these conditions mean that there is no active completion.
+            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0, "AssertNoCompletionSession")
+        End Function
+
+        Public Async Function AssertSelectedCompletionItem(
+                                                    Optional displayText As String = Nothing,
+                                                    Optional description As String = Nothing) As Task
+            Await WaitForAsynchronousOperationsAsync()
+            Dim view = TextView
+
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
+            Assert.NotNull(session)
+            Dim items = session.GetComputedItems(CancellationToken.None)
+
+            If displayText IsNot Nothing Then
+                Assert.NotNull(items.SelectedItem)
+                Assert.Equal(displayText, items.SelectedItem.DisplayText)
+            End If
+
+            If description IsNot Nothing Then
+                Dim document = Workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim service = CompletionService.GetService(document)
+                Dim roslynItem = GetRoslynCompletionItem(items.SelectedItem)
+                Dim itemDescription = Await service.GetDescriptionAsync(document, roslynItem)
+                Assert.Equal(description, itemDescription.Text)
+            End If
+        End Function
+
+        Public Function GetSelectedItem() As CompletionItem
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim items = session.GetComputedItems(CancellationToken.None)
+            Return GetRoslynCompletionItem(items.SelectedItem)
+        End Function
+
+        Private Shared Function GetRoslynCompletionItem(item As Data.CompletionItem) As CompletionItem
+            Return If(item IsNot Nothing, DirectCast(item.Properties(RoslynItem), CompletionItem), Nothing)
+        End Function
 
         Private Class MockOrderableContentTypeMetadata
             Inherits OrderableContentTypeMetadata
