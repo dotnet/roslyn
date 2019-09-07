@@ -1574,14 +1574,6 @@ class Test1 : I2, I1<string?>
                     // class Test1 : I2, I1<string?>
                     Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
                     );
-
-                CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-I1.M1
-I1.M1
-",
-                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -1644,14 +1636,6 @@ class Test1 : I1<string?>, I2
                     // class Test1 : I1<string?>, I2
                     Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
                     );
-
-                CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-I1.M1
-I1.M1
-",
-                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -1717,14 +1701,6 @@ class Test1 : I2, I3
                     // class Test1 : I2, I3
                     Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
                     );
-
-                CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-I1.M1
-I1.M1
-",
-                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -1790,14 +1766,6 @@ class Test1 : I3, I2
                     // class Test1 : I3, I2
                     Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
                     );
-
-                CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-I1.M1
-I1.M1
-",
-                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -31251,9 +31219,6 @@ class Test1 : I2, I3, I1<string>
                 // (2,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
-                // (2,7): error CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(2, 7),
                 // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 15),
@@ -31282,9 +31247,6 @@ class Test1 : I2, I3, I1<string>
                 // (2,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
-                // (2,7): error CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(2, 7),
                 // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 15),
@@ -31351,12 +31313,6 @@ class Test1 : I2, I3, I1<string>
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation2.VerifyDiagnostics(
-                // (3,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(3, 7),
-                // (3,7): error CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(3, 7),
                 // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(3, 15),
@@ -31382,12 +31338,6 @@ class Test1 : I2, I3, I1<string>
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation3.VerifyDiagnostics(
-                // (3,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(3, 7),
-                // (3,7): error CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
-                // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(3, 7),
                 // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(3, 15),
@@ -31645,14 +31595,6 @@ class Test1 : I2, I3
                     // class Test1 : I2, I3
                     Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 15)
                     );
-
-                CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-I3.M1
-I3.M1
-",
-                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -31725,14 +31667,6 @@ class Test1 : I3, I2
                     // class Test1 : I3, I2
                     Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 19)
                     );
-
-                CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-I3.M1
-I3.M1
-",
-                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -31809,14 +31743,6 @@ class Test1 : I3, I4
                     // class Test1 : I3, I4
                     Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
                     );
-
-                CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-I2.M1
-I2.M1
-",
-                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -31893,14 +31819,6 @@ class Test1 : I4, I3
                     // class Test1 : I4, I3
                     Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
                     );
-
-                CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-I2.M1
-I2.M1
-",
-                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -32027,14 +31945,6 @@ class Test1 : I2, I1<string?>
                     // class Test1 : I2, I1<string?>
                     Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I1<string?>").WithArguments("Test1", "I1<string?>.M1()").WithLocation(4, 19)
                     );
-
-                CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-I2.M1
-I2.M1
-",
-                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -32184,14 +32094,6 @@ class Test1 : I2<string>, I3<string>, I4
                     // class Test1 : I2<string>, I3<string>, I4
                     Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2<string>").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 15)
                     );
-
-                CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-I4.M1
-I4.M1
-",
-                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
