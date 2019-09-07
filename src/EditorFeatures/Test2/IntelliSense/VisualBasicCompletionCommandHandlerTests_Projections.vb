@@ -7,15 +7,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests_Projections
 
-        Public Shared ReadOnly Property AllCompletionImplementations() As IEnumerable(Of Object())
-            Get
-                Return TestStateFactory.GetAllCompletionImplementations()
-            End Get
-        End Property
-
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSimpleWithJustSubjectBuffer(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSimpleWithJustSubjectBuffer() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Option Strict Off
 Option Explicit On
@@ -47,10 +41,9 @@ End Namespace
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAfterDot(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAfterDot() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 {|S2:
 Class C
@@ -72,7 +65,6 @@ End Class
 {|S2:&lt;/html&gt;|}
                               </Document>.NormalizedValue, {firstProjection}, LanguageNames.VisualBasic, options:=ProjectionBufferOptions.WritableLiteralSpans)
 
-
                 Dim view = topProjectionBuffer.GetTextView()
                 Dim buffer = subjectDocument.GetTextBuffer()
 
@@ -84,10 +76,9 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestInObjectCreationExpression(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInObjectCreationExpression() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 {|S2:
 Class C
@@ -108,7 +99,6 @@ End Class
 {|S1:|}
 {|S2:&lt;/html&gt;|}
                               </Document>.NormalizedValue, {firstProjection}, LanguageNames.CSharp, options:=ProjectionBufferOptions.WritableLiteralSpans)
-
 
                 Dim view = topProjectionBuffer.GetTextView()
                 Dim buffer = subjectDocument.GetTextBuffer()

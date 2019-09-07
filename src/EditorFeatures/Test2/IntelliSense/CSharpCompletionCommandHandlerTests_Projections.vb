@@ -7,16 +7,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_Projections
 
-        Public Shared ReadOnly Property AllCompletionImplementations() As IEnumerable(Of Object())
-            Get
-                Return TestStateFactory.GetAllCompletionImplementations()
-            End Get
-        End Property
-
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSimpleWithJustSubjectBuffer(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSimpleWithJustSubjectBuffer() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
 
@@ -40,10 +33,9 @@ public override void Execute() {
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAfterDot(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAfterDot() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 {|S2:
 class C
@@ -67,7 +59,6 @@ class C
 {|S2:&lt;/html&gt;|}
                               </Document>.NormalizedValue, {firstProjection}, LanguageNames.CSharp, options:=ProjectionBufferOptions.WritableLiteralSpans)
 
-
                 Dim view = topProjectionBuffer.GetTextView()
                 Dim buffer = subjectDocument.GetTextBuffer()
 
@@ -79,10 +70,9 @@ class C
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestInObjectCreationExpression(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInObjectCreationExpression() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 {|S2:
 class C
@@ -106,7 +96,6 @@ class C
 {|S2:&lt;/html&gt;|}
                               </Document>.NormalizedValue, {firstProjection}, LanguageNames.CSharp, options:=ProjectionBufferOptions.WritableLiteralSpans)
 
-
                 Dim view = topProjectionBuffer.GetTextView()
                 Dim buffer = subjectDocument.GetTextBuffer()
 
@@ -116,10 +105,9 @@ class C
         End Function
 
         <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
-        <InlineData(CompletionImplementation.Modern)>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestRegionCompletionCommitFormatting(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRegionCompletionCommitFormatting() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 {|S2:
 class C
@@ -142,7 +130,6 @@ class C
 {|S1:|}
 {|S2:&lt;/html&gt;|}
                               </Document>.NormalizedValue, {firstProjection}, LanguageNames.CSharp, options:=ProjectionBufferOptions.WritableLiteralSpans)
-
 
                 Dim view = topProjectionBuffer.GetTextView()
                 Dim buffer = subjectDocument.GetTextBuffer()

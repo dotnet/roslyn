@@ -3,16 +3,10 @@
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests_Regex
-        Public Shared ReadOnly Property AllCompletionImplementations() As IEnumerable(Of Object())
-            Get
-                Return TestStateFactory.GetAllCompletionImplementations()
-            End Get
-        End Property
 
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function ExplicitInvoke(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ExplicitInvoke() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Imports System.Text.RegularExpressions
 class c
@@ -30,10 +24,9 @@ end class
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/35631"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCaretPlacement(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/35631"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCaretPlacement() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Imports System.Text.RegularExpressions
 class c
@@ -58,10 +51,9 @@ end class
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function OnlyEscapes(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function OnlyEscapes() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Imports System.Text.RegularExpressions
 class c
@@ -83,10 +75,9 @@ end class
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function OnlyClasses(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function OnlyClasses() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Imports System.Text.RegularExpressions
 class c
@@ -108,10 +99,9 @@ end class
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function OnlyGroups(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function OnlyGroups() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Imports System.Text.RegularExpressions
 class c
