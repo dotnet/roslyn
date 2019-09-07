@@ -4,7 +4,7 @@
     <Identity Id="B638595A-7BED-4441-8CE0-6E13EE806D67" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>Roslyn RemoteHostClient Mock</DisplayName>
     <Description xml:space="preserve">Roslyn RemoteHostClient Mock</Description>
-    <License>Eula.rtf</License>
+    <License>EULA.rtf</License>
   </Metadata>
   <Installation Experimental="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,]" />

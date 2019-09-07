@@ -129,7 +129,7 @@
   <!-- Add License and Third Party Notices files into each VSIX. -->
   <ItemGroup Condition="'$(CreateVsixContainer)' == 'true'">
     <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.VsixLicense\EULA.rtf">
-      <Link>Eula.rtf</Link>
+      <Link>EULA.rtf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.ThirdPartyNotices\ThirdPartyNotices.rtf">
