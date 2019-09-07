@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
-using static Microsoft.CodeAnalysis.Formatting.Rules.AdjustSpacesOption;
-
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     // Review: this doesn't have any state. should this be a static class and remove
@@ -139,11 +137,11 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         public static AdjustSpacesOperation CreateAdjustSpacesOperation(int space, AdjustSpacesOption option) =>
             (space, option) switch
             {
-                (1, DefaultSpacesIfOnSingleLine) => s_defaultOneSpaceIfOnSingleLine,
-                (0, ForceSpacesIfOnSingleLine) => s_forceZeroSpaceIfOnSingleLine,
-                (1, ForceSpacesIfOnSingleLine) => s_forceOneSpaceIfOnSingleLine,
-                (0, ForceSpaces) => s_forceZeroSpaces,
-                (1, ForceSpaces) => s_forceZeroLineUsingSpaceForce,
+                (1, AdjustSpacesOption.DefaultSpacesIfOnSingleLine) => s_defaultOneSpaceIfOnSingleLine,
+                (0, AdjustSpacesOption.ForceSpacesIfOnSingleLine) => s_forceZeroSpaceIfOnSingleLine,
+                (1, AdjustSpacesOption.ForceSpacesIfOnSingleLine) => s_forceOneSpaceIfOnSingleLine,
+                (0, AdjustSpacesOption.ForceSpaces) => s_forceZeroSpaces,
+                (1, AdjustSpacesOption.ForceSpaces) => s_forceZeroLineUsingSpaceForce,
                 _ => new AdjustSpacesOperation(space, option)
             };
 
