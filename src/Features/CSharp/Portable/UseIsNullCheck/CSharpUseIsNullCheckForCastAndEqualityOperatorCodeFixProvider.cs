@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        public const string RemoveObjectCast = nameof(RemoveObjectCast);
+
         [ImportingConstructor]
         public CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider()
         {

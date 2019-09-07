@@ -12,9 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private static readonly ImmutableDictionary<string, string> s_properties =
-            ImmutableDictionary<string, string>.Empty.Add(UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
-
         public CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
                    CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod,
@@ -54,43 +51,77 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             }
 
             var binaryExpression = (BinaryExpressionSyntax)context.Node;
-
-            if (!IsObjectCastAndNullCheck(semanticModel, binaryExpression.Left, binaryExpression.Right) &&
-                !IsObjectCastAndNullCheck(semanticModel, binaryExpression.Right, binaryExpression.Left))
+            if (semanticModel.GetSymbolInfo(binaryExpression).Symbol?.ContainingType?.SpecialType != SpecialType.System_Object)
             {
                 return;
+            }
+
+            ExpressionSyntax notNull;
+            if (binaryExpression.Left.IsKind(SyntaxKind.NullLiteralExpression))
+            {
+                notNull = binaryExpression.Right;
+            }
+            else if (binaryExpression.Right.IsKind(SyntaxKind.NullLiteralExpression))
+            {
+                notNull = binaryExpression.Left;
+            }
+            else
+            {
+                return;
+            }
+            if (notNull.IsKind(SyntaxKind.NullLiteralExpression))
+            {
+                return;
+            }
+
+            var hasCast = false;
+            if (notNull is CastExpressionSyntax castExpression)
+            {
+                if (semanticModel.GetTypeInfo(castExpression.Type).Type?.SpecialType != SpecialType.System_Object)
+                {
+                    return;
+                }
+
+                hasCast = true;
+                notNull = castExpression.Expression;
+            }
+
+            if (semanticModel.GetTypeInfo(notNull).Type is ITypeParameterSymbol { HasReferenceTypeConstraint: false } typeParameter)
+            {
+                if (typeParameter.HasValueTypeConstraint)
+                {
+                    // `t == null` can't happen.
+                    // `(object)t == null` can be safely converted to `(object)t is null`.
+                    // `t is null` won't be permited.
+                    hasCast = false;
+                }
+                else
+                {
+                    // Check 8.0 if https://github.com/dotnet/csharplang/issues/1284 is considered implemented.
+                    if (hasCast)
+                    {
+                        // if (<8.0)
+                        hasCast = false;
+                    }
+                    else
+                    {
+                        // if (<8.0)
+                        return;
+                    }
+                }
+            }
+
+            var properties = ImmutableDictionary<string, string>.Empty.Add(
+                UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
+            if (hasCast)
+            {
+                properties = properties.Add(CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider.RemoveObjectCast, "");
             }
 
             var severity = option.Notification.Severity;
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
-                    Descriptor, binaryExpression.GetLocation(), severity, additionalLocations: null, s_properties));
-        }
-
-        private static bool IsObjectCastAndNullCheck(
-            SemanticModel semanticModel, ExpressionSyntax left, ExpressionSyntax right)
-        {
-            if (left is CastExpressionSyntax castExpression &&
-                right.IsKind(SyntaxKind.NullLiteralExpression))
-            {
-                // make sure it's a cast to object, and that the thing we're casting actually has a type.
-                if (semanticModel.GetTypeInfo(castExpression.Type).Type?.SpecialType == SpecialType.System_Object)
-                {
-                    var expressionType = semanticModel.GetTypeInfo(castExpression.Expression).Type;
-                    if (expressionType != null)
-                    {
-                        if (expressionType is ITypeParameterSymbol typeParameter &&
-                            !typeParameter.HasReferenceTypeConstraint)
-                        {
-                            return false;
-                        }
-
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+                    Descriptor, binaryExpression.GetLocation(), severity, additionalLocations: null, properties));
         }
     }
 }
