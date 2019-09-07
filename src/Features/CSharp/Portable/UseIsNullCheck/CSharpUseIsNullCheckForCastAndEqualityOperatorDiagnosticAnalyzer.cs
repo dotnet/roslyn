@@ -82,28 +82,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 notNull = castExpression.Expression;
             }
 
-            if (semanticModel.GetTypeInfo(notNull).Type is ITypeParameterSymbol { HasReferenceTypeConstraint: false } typeParameter)
+            var exprType = semanticModel.GetTypeInfo(notNull).Type;
+            if (exprType.IsValueType)
             {
-                if (typeParameter.HasValueTypeConstraint)
+                // `t == null` can't happen.
+                // `(object)t == null` can be safely converted to `(object)t is null`.
+                // `t is null` won't be permited.
+                hasCast = false;
+            }
+            else if (!exprType.IsReferenceType) // Unconstrained type parameter
+            {
+                // Check 8.0 if https://github.com/dotnet/csharplang/issues/1284 is considered implemented.
+                if (hasCast)
                 {
-                    // `t == null` can't happen.
-                    // `(object)t == null` can be safely converted to `(object)t is null`.
-                    // `t is null` won't be permited.
+                    // if (<8.0)
                     hasCast = false;
                 }
                 else
                 {
-                    // Check 8.0 if https://github.com/dotnet/csharplang/issues/1284 is considered implemented.
-                    if (hasCast)
-                    {
-                        // if (<8.0)
-                        hasCast = false;
-                    }
-                    else
-                    {
-                        // if (<8.0)
-                        return;
-                    }
+                    // if (<8.0)
+                    return;
                 }
             }
 

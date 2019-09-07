@@ -207,7 +207,7 @@ class C
 {
     void M(string s2)
     {
-        if ((s2 is null) is null))
+        if ((object)(s2 is null) is null))
             return;
     }
 }");
@@ -458,6 +458,58 @@ class C
 
     public static explicit operator C(int i)
         => new C();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueTypeConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M<T>(T t) where T : struct
+    {
+        if ([||](object)t == null)
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M<T>(T t) where T : struct
+    {
+        if ((object)t is null)
+            return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(int i)
+    {
+        if ([||](object)i == null)
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(int i)
+    {
+        if ((object)i is null)
+            return;
+    }
 }");
         }
     }
