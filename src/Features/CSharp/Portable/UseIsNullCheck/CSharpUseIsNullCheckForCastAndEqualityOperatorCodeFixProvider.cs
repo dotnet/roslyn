@@ -61,45 +61,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 }
 
                 var binary = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
-
+                var removeObjectCast = diagnostic.Properties.ContainsKey(RemoveObjectCast);
                 editor.ReplaceNode(
                     binary,
-                    (current, g) => Rewrite((BinaryExpressionSyntax)current));
+                    (current, g, p) => Rewrite((BinaryExpressionSyntax)current, p),
+                    removeObjectCast);
             }
 
             return Task.CompletedTask;
         }
 
-        private static ExpressionSyntax Rewrite(BinaryExpressionSyntax binary)
+        private static ExpressionSyntax Rewrite(BinaryExpressionSyntax binary, bool removeObjectCast)
         {
-            var isPattern = RewriteWorker(binary);
-            if (binary.IsKind(SyntaxKind.EqualsExpression))
-            {
-                return isPattern;
-            }
-
-            // convert:  (object)expr != null   to    expr is object
-            return SyntaxFactory
-                .BinaryExpression(
-                    SyntaxKind.IsExpression,
-                    isPattern.Expression,
-                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
-                .WithTriviaFrom(isPattern);
+            var negate = !binary.IsKind(SyntaxKind.EqualsExpression);
+            return binary.Right.IsKind(SyntaxKind.NullLiteralExpression)
+                ? Rewrite(binary, binary.Left, binary.Right, negate, removeObjectCast)
+                : Rewrite(binary, binary.Right, binary.Left, negate, removeObjectCast);
         }
 
-        private static IsPatternExpressionSyntax RewriteWorker(BinaryExpressionSyntax binary)
-            => binary.Right.IsKind(SyntaxKind.NullLiteralExpression)
-                ? Rewrite(binary, binary.Left, binary.Right)
-                : Rewrite(binary, binary.Right, binary.Left);
-
         private static IsPatternExpressionSyntax Rewrite(
-            BinaryExpressionSyntax binary, ExpressionSyntax expr, ExpressionSyntax nullLiteral)
+            BinaryExpressionSyntax binary, ExpressionSyntax expr, ExpressionSyntax nullLiteral,
+            bool negate, bool removeObjectCast)
         {
-            var castExpr = (CastExpressionSyntax)expr;
+            var coreExpr = removeObjectCast ? ((CastExpressionSyntax)expr).Expression : expr;
+            var constant = negate ?
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)) :
+                nullLiteral;
             return SyntaxFactory.IsPatternExpression(
-                castExpr.Expression.WithTriviaFrom(binary.Left),
+                coreExpr.WithTriviaFrom(binary.Left),
                 SyntaxFactory.Token(SyntaxKind.IsKeyword).WithTriviaFrom(binary.OperatorToken),
-                SyntaxFactory.ConstantPattern(nullLiteral).WithTriviaFrom(binary.Right));
+                SyntaxFactory.ConstantPattern(constant).WithTriviaFrom(binary.Right));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
