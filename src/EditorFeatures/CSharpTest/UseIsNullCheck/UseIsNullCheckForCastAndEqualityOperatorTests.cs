@@ -294,7 +294,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestUnconstrainedTypeParameter()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -302,6 +302,16 @@ class C
     void M<T>(T s)
     {
         if ([||](object)s == null)
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M<T>(T s)
+    {
+        if ((object)s is null)
             return;
     }
 }");
@@ -346,6 +356,108 @@ class C
         if ([||](object)s[0] == default)
             return;
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNoCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(C s)
+    {
+        if ([||]s == null)
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(C s)
+    {
+        if (s is null)
+            return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNoCastReversed()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(C s)
+    {
+        if ([||]s != null)
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(C s)
+    {
+        if (s is object)
+            return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestOnlyForObjectOperator()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if ([||]s == null)
+            return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestPreserveNonObjectCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+
+    void M(int i)
+    {
+        if ([||](C)i == null)
+            return;
+    }
+
+    public static explicit operator C(int i)
+        => new C();
+}",
+@"using System;
+
+class C
+{
+
+    void M(int i)
+    {
+        if ((C)i is null)
+            return;
+    }
+
+    public static explicit operator C(int i)
+        => new C();
 }");
         }
     }

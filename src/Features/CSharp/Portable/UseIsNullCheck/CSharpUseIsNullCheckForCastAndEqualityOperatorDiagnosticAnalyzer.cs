@@ -75,13 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             }
 
             var hasCast = false;
-            if (notNull is CastExpressionSyntax castExpression)
+            if (notNull is CastExpressionSyntax castExpression &&
+                semanticModel.GetTypeInfo(castExpression.Type).Type?.SpecialType == SpecialType.System_Object)
             {
-                if (semanticModel.GetTypeInfo(castExpression.Type).Type?.SpecialType != SpecialType.System_Object)
-                {
-                    return;
-                }
-
                 hasCast = true;
                 notNull = castExpression.Expression;
             }
