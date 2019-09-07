@@ -9,10 +9,10 @@ using Microsoft.CodeAnalysis.UseIsNullCheck;
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer
+    internal class CSharpUseIsNullCheckForEqualityOperatorDiagnosticAnalyzer
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer()
+        public CSharpUseIsNullCheckForEqualityOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
                    CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod,
                    CSharpFeaturesResources.Use_is_null_check,
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
             if (hasCast)
             {
-                properties = properties.Add(CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider.RemoveObjectCast, "");
+                properties = properties.Add(CSharpUseIsNullCheckForEqualityOperatorCodeFixProvider.RemoveObjectCast, "");
             }
 
             var severity = option.Notification.Severity;

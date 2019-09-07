@@ -18,12 +18,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal class CSharpUseIsNullCheckForEqualityOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public const string RemoveObjectCast = nameof(RemoveObjectCast);
 
         [ImportingConstructor]
-        public CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider()
+        public CSharpUseIsNullCheckForEqualityOperatorCodeFixProvider()
         {
         }
 
