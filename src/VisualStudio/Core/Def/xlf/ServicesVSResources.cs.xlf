@@ -1868,30 +1868,6 @@ Další informace: {1}</target>
         <target state="translated">Zesvětlení</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="translated">Změny nejsou povolené, pokud sestavení nebylo načteno.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="translated">Změny nejsou povolené, pokud projekt nebyl sestaven při zahájení ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="translated">Změny nejsou povolené, pokud projekt nebyl načten a sestaven při zahájení ladění.
-
-Pro aktuální řešení je povolené zjednodušené načtení řešení. Jeho zakázáním zajistíte, aby se všechny projekty načetly při zahájení ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="translated">Změny nejsou povolené, pokud je spuštěný kód.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
         <target state="translated">Preferovat lokální funkci před anonymní funkcí</target>
@@ -1927,19 +1903,9 @@ Pro aktuální řešení je povolené zjednodušené načtení řešení. Jeho z
         <target state="translated">preferovat automatické vlastnosti</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading file '{0}': {1}</source>
-        <target state="translated">Při čtení souboru {0} došlo k chybě: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
         <source>Module has been unloaded.</source>
         <target state="translated">Modul byl uvolněn.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="translated">Změny nelze aplikovat – modul {0} byl uvolněn.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1981,11 +1947,6 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">Synchronizovat Zobrazení tříd</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="translated">Změny nelze použít – neočekávaná chyba: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
