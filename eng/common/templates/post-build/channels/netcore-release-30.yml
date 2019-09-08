@@ -1,5 +1,4 @@
 parameters:
-  enableSymbolValidation: true
   symbolPublishingAdditionalParameters: ''
   artifactsPublishingAdditionalParameters: ''
 
@@ -124,27 +123,6 @@ stages:
     - template: ../common-variables.yml
   jobs:
   - template: ../setup-maestro-vars.yml
-
-  - ${{ if eq(parameters.enableSymbolValidation, 'true') }}:
-    - job:
-      displayName: Symbol Availability
-      dependsOn: setupMaestroVars
-      condition: or(contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.PublicRelease_30_Channel_Id)),
-                    contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.PublicRelease_31_Channel_Id)))
-      pool:
-        vmImage: 'windows-2019'
-      steps:
-        - task: DownloadBuildArtifacts@0
-          displayName: Download Package Artifacts
-          inputs:
-            buildType: current
-            artifactName: PackageArtifacts
-
-        - task: PowerShell@2
-          displayName: Check Symbol Availability
-          inputs:
-            filePath: $(Build.SourcesDirectory)/eng/common/post-build/symbols-validation.ps1
-            arguments: -InputPath $(Build.ArtifactStagingDirectory)/PackageArtifacts/ -ExtractPath $(Agent.BuildDirectory)/Temp/ -DotnetSymbolVersion $(SymbolToolVersion)
 
   - template: ../promote-build.yml
     parameters:
