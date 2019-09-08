@@ -3869,6 +3869,24 @@ public       void       Method      (       )           {
         }
 
         [Fact]
+        [WorkItem(538743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538743")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task BugFix4442()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        string str = ""ab,die|wo"";
+        string[] a = str.Split(new char[] { ',', '|' })
+            ;
+    }
+}";
+
+            await AssertFormatAsync(code, code);
+        }
+
+        [Fact]
         [WorkItem(538658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538658")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task BugFix4328()
@@ -9386,28 +9404,5 @@ enum TestEnum
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        [WorkItem(38066, "https://github.com/dotnet/roslyn/issues/38066")]
-        public async Task NewlineBeforeSemicolon()
-        {
-            await AssertFormatAsync(
-                @"
-class C
-{
-    void M()
-    {
-        Console.WriteLine();
-    }
-}",
-                @"
-class C
-{
-    void M()
-    {
-        Console.WriteLine()
-;
-    }
-}");
-        }
     }
 }

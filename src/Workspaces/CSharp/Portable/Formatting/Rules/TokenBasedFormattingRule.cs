@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // * ;
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // omitted tokens case
