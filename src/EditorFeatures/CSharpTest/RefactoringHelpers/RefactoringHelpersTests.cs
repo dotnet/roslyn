@@ -528,6 +528,32 @@ public class Class1
         }
 
         [Fact]
+        [WorkItem(38502, "https://github.com/dotnet/roslyn/issues/38502")]
+        public async Task TestIncompleteAttribute()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    {|result:void foo([[||]bar) {}|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38502, "https://github.com/dotnet/roslyn/issues/38502")]
+        public async Task TestIncompleteAttribute2()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    {|result:void foo([[||]Class1 arg1) {}|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
         [WorkItem(37837, "https://github.com/dotnet/roslyn/issues/37837")]
         public async Task TestEmptyParameter()
         {

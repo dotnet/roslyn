@@ -659,6 +659,9 @@
     <value>Assign 'out' parameters (at start)</value>
     <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Warning_Inlining_temporary_into_conditional_method_call" xml:space="preserve">
+    <value>Warning: Inlining temporary into conditional method call.</value>
+  </data>
   <data name="local_variable_declaration" xml:space="preserve">
     <value>local variable declaration</value>
   </data>

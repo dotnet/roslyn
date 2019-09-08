@@ -157,6 +157,11 @@
         <target state="translated">Usa l'espressione 'switch'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
+        <source>Warning: Inlining temporary into conditional method call.</source>
+        <target state="new">Warning: Inlining temporary into conditional method call.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="new">'{0}' is not null here.</target>

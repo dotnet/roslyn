@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static void AssertEmpty(SymbolInfo info)
         {
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.None, info.CandidateReason);
         }
@@ -64,7 +64,7 @@ class Point
             AssertEmpty(model.GetSymbolInfo(subpatterns[1].NameColon));
             var y = subpatterns[1].NameColon.Name;
             var ySymbol = model.GetSymbolInfo(y);
-            Assert.NotNull(ySymbol);
+            Assert.NotEqual(default, ySymbol);
             Assert.Equal(CandidateReason.None, ySymbol.CandidateReason);
             Assert.Equal("System.Int32 Point.Y { get; }", ySymbol.Symbol.ToTestDisplayString());
         }

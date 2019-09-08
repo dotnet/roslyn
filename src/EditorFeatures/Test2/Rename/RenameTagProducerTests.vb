@@ -699,7 +699,7 @@ class C
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/38555")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NonReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1355,7 +1355,7 @@ namespace N
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/38555")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans() As Task
