@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var types = new[]
             {
                 // ROSLYN
-                typeof(Workspaces.NoCompilationLanguageServiceFactory),
+                typeof(CodeAnalysis.UnitTests.NoCompilationLanguageServiceFactory),
                 typeof(Workspaces.NoCompilationContentTypeDefinitions),
                 typeof(Workspaces.NoCompilationContentTypeLanguageService),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),

@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         public static ExpressionSyntax GetUnparenthesizedExpression(this SyntaxNode node)
         {
-            var parenthesizedExpression = node as ParenthesizedExpressionSyntax;
-            if (parenthesizedExpression == null)
+            if (!(node is ParenthesizedExpressionSyntax parenthesizedExpression))
             {
                 return node as ExpressionSyntax;
             }
@@ -146,8 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     continue;
                 }
 
-                var throwStatement = token.Parent as ThrowStatementSyntax;
-                if (throwStatement == null || throwStatement.Expression != null)
+                if (!(token.Parent is ThrowStatementSyntax throwStatement) || throwStatement.Expression != null)
                 {
                     continue;
                 }

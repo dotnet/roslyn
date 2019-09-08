@@ -129,28 +129,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
     [|void Method() {}|]
 }";
 
-            using (var workspace = TestWorkspace.CreateCSharp(markupCode))
-            {
-                var testDocument = workspace.Documents.Single();
-                var container = testDocument.GetOpenTextContainer();
+            using var workspace = TestWorkspace.CreateCSharp(markupCode);
+            var testDocument = workspace.Documents.Single();
+            var container = testDocument.GetOpenTextContainer();
 
-                var view = testDocument.GetTextView();
-                view.Selection.Select(new SnapshotSpan(
-                    view.TextBuffer.CurrentSnapshot, testDocument.SelectedSpans[0].Start, testDocument.SelectedSpans[0].Length), isReversed: false);
+            var view = testDocument.GetTextView();
+            view.Selection.Select(new SnapshotSpan(
+                view.TextBuffer.CurrentSnapshot, testDocument.SelectedSpans[0].Start, testDocument.SelectedSpans[0].Length), isReversed: false);
 
-                var callBackService = workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
-                var called = false;
-                callBackService.NotificationCallback = (t, m, s) => called = true;
+            var callBackService = workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
+            var called = false;
+            callBackService.NotificationCallback = (t, m, s) => called = true;
 
-                var handler = new ExtractMethodCommandHandler(
-                    workspace.GetService<IThreadingContext>(),
-                    workspace.GetService<ITextBufferUndoManagerProvider>(),
-                    workspace.GetService<IInlineRenameService>());
+            var handler = new ExtractMethodCommandHandler(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ITextBufferUndoManagerProvider>(),
+                workspace.GetService<IInlineRenameService>());
 
-                handler.ExecuteCommand(new ExtractMethodCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create());
+            handler.ExecuteCommand(new ExtractMethodCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create());
 
-                Assert.True(called);
-            }
+            Assert.True(called);
         }
 
         /// <summary>

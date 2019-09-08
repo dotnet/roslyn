@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override AnnotationResolver GetAnnotationResolver(SyntaxNode callsite, SyntaxNode method)
             {
-                var methodDefinition = method as MethodDeclarationSyntax;
-                if (callsite == null || methodDefinition == null)
+                if (callsite == null || !(method is MethodDeclarationSyntax methodDefinition))
                 {
                     return null;
                 }

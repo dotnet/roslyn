@@ -420,7 +420,7 @@ class C
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(13589, "https://github.com/dotnet/roslyn/issues/13589")]
-        public void Alias()
+        public void AliasElement()
         {
             var source =
 @"class C

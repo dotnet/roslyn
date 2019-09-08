@@ -152,6 +152,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             //
             // this design's weakness is that each side don't have enough information to narrow down works to do. it will most likely always do more works than needed.
             // sometimes way more than it is needed. (compilation)
+
+            // group diagnostics by their diagnostics span
+            // invariant: later code gathers & runs CodeFixProviders for diagnostics with one identical diagnostics span (that gets set later as CodeFixCollection's TextSpan)
             Dictionary<TextSpan, List<DiagnosticData>> aggregatedDiagnostics = null;
             foreach (var diagnostic in await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticIdOpt: null, includeConfigurationFixes, cancellationToken).ConfigureAwait(false))
             {
@@ -171,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<CodeFixCollection>.Empty;
             }
 
+            // append fixes for all diagnostics with the same diagnostics span
             using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
             foreach (var spanAndDiagnostic in aggregatedDiagnostics)
             {
@@ -183,24 +187,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 // sort the result to the order defined by the fixers
                 var priorityMap = _fixerPriorityMap[document.Project.Language].Value;
-                result.Sort((d1, d2) =>
-                {
-                    if (priorityMap.TryGetValue((CodeFixProvider)d1.Provider, out var priority1))
-                    {
-                        if (priorityMap.TryGetValue((CodeFixProvider)d2.Provider, out var priority2))
-                        {
-                            return priority1 - priority2;
-                        }
-                        else
-                        {
-                            return -1;
-                        }
-                    }
-                    else
-                    {
-                        return 1;
-                    }
-                });
+                result.Sort((d1, d2) => GetValue(d1).CompareTo(GetValue(d2)));
+
+                int GetValue(CodeFixCollection c)
+                    => priorityMap.TryGetValue((CodeFixProvider)c.Provider, out var value) ? value : int.MaxValue;
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
@@ -277,6 +267,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
             var isInteractive = document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive;
 
+            // gather CodeFixProviders for all distinct diagnostics found for current span
             foreach (var diagnosticId in diagnostics.Select(d => d.Id).Distinct())
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -302,6 +293,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
+            // run each CodeFixProvider to gather individual CodeFixes for reported diagnostics
             foreach (var fixer in allFixers.Distinct())
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -354,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private async Task AppendConfigurationsAsync(
-            Document document, TextSpan span, IEnumerable<DiagnosticData> diagnostics,
+            Document document, TextSpan diagnosticsSpan, IEnumerable<DiagnosticData> diagnostics,
             ArrayBuilder<CodeFixCollection> result, CancellationToken cancellationToken)
         {
             if (!_configurationProvidersMap.TryGetValue(document.Project.Language, out var lazyConfigurationProviders) || lazyConfigurationProviders.Value == null)
@@ -362,20 +354,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return;
             }
 
+            // append CodeFixCollection for each CodeFixProvider
             foreach (var provider in lazyConfigurationProviders.Value)
             {
                 await AppendFixesOrConfigurationsAsync(
-                    document, span, diagnostics, fixAllForInSpan: false, result, provider,
+                    document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, result, provider,
                     hasFix: d => provider.IsFixableDiagnostic(d),
                     getFixes: dxs => provider.GetFixesAsync(
-                        document, span, dxs, cancellationToken),
+                        document, diagnosticsSpan, dxs, cancellationToken),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task AppendFixesOrConfigurationsAsync<TCodeFixProvider>(
             Document document,
-            TextSpan span,
+            TextSpan fixesSpan,
             IEnumerable<DiagnosticData> diagnosticsWithSameSpan,
             bool fixAllForInSpan,
             ArrayBuilder<CodeFixCollection> result,
@@ -434,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var codeFix = new CodeFixCollection(
-                fixer, span, fixes, fixAllState,
+                fixer, fixesSpan, fixes, fixAllState,
                 supportedScopes, diagnostics.First());
             result.Add(codeFix);
         }

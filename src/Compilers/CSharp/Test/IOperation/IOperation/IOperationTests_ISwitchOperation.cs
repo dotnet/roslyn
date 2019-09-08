@@ -1600,6 +1600,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
+                // file.cs(6,13): error CS8716: There is no target type for the default literal.
+                //             default:
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 13),
                 // file.cs(6,20): error CS1002: ; expected
                 //             default:
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(6, 20),
@@ -1620,8 +1623,7 @@ Block[B1] - Block
     Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'default')
           Expression: 
-            IDefaultValueOperation (OperationKind.DefaultValue, Type: null, IsInvalid) (Syntax: 'default')
-
+            IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
@@ -1629,7 +1631,6 @@ Block[B1] - Block
                 IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
-
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
@@ -1734,7 +1735,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     CaptureIds: [0]
@@ -1744,7 +1744,6 @@ Block[B0] - Entry
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
               Value: 
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
-
         Jump if False (Regular) to Block[B3]
             IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'null')
               Left: 
@@ -1752,11 +1751,10 @@ Block[B0] - Entry
               Right: 
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, Constant: null, IsImplicit) (Syntax: 'null')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (DefaultOrNullLiteral)
+                    (NullLiteral)
                   Operand: 
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
             Leaving: {R1}
-
         Next (Regular) Block[B2]
     Block[B2] - Block
         Predecessors: [B1]
@@ -1768,11 +1766,9 @@ Block[B0] - Entry
                     IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
-
         Next (Regular) Block[B3]
             Leaving: {R1}
 }
-
 Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)

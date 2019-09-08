@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 if (syntaxFactsService == null || semanticFactsService == null)
                 {
                     // it only works if we can track member
-                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                 }
 
                 if (IsPrimaryBranch(document) && !document.IsOpen())
                 {
                     // for ones in primary branch, we only support opened documents (mostly to help typing scenario)
-                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                 }
 
                 var versionMap = GetVersionMapFromBranchOrPrimary(document.Project.Solution.Workspace, document.Project.Solution.BranchId);
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     await AddVersionCacheAsync(document.Project, version, cancellationToken).ConfigureAwait(false);
 
                     // get the base one
-                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                 }
 
                 // we have compilation set check whether it is something we can use
@@ -88,22 +88,23 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         await AddVersionCacheAsync(document.Project, version, cancellationToken).ConfigureAwait(false);
 
                         // get the base one
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
                     // first check whether the set has this document
                     if (!compilationSet.Trees.TryGetValue(document.Id, out var oldTree))
                     {
                         // noop.
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
 
                     // Yes, we have compilation we might be able to re-use
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(root, "We should support syntax trees if we're this far.");
                     if (root.SyntaxTree == oldTree)
                     {
                         // the one we have and the one in the document is same one. but tree in other file might
                         // have changed (no top level change). in that case, just use one from the document.
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
 
                     // let's track member that we can re-use
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     if (!syntaxFactsService.IsMethodLevelMember(member))
                     {
                         // oops, given node is not something we can support
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
 
                     // check whether we already have speculative semantic model for this
@@ -135,13 +136,13 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         // sources get changed without proper version changes in some rare situations,
                         // so in those rare cases which we can't control until we move to content based versioning,
                         // just bail out and use full semantic model
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
 
                     var oldModel = oldCompilation.GetSemanticModel(oldTree);
                     if (!semanticFactsService.TryGetSpeculativeSemanticModel(oldModel, oldMember, member, out var model))
                     {
-                        return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
                     }
 
                     // cache the new speculative semantic model for the given node
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 await UpdateVersionCacheAsync(document.Project, version, compilationSet, cancellationToken).ConfigureAwait(false);
 
                 // get the base one
-                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
             }
 
             private bool IsPrimaryBranch(Document document)
@@ -366,17 +367,15 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
                 using (_gate.DisposableWrite())
                 {
-                    using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
+                    using var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                    var set = pooledObject.Object;
+
+                    set.UnionWith(versionMap.Keys);
+                    set.ExceptWith(projectIds);
+
+                    foreach (var projectId in set)
                     {
-                        var set = pooledObject.Object;
-
-                        set.UnionWith(versionMap.Keys);
-                        set.ExceptWith(projectIds);
-
-                        foreach (var projectId in set)
-                        {
-                            versionMap.Remove(projectId);
-                        }
+                        versionMap.Remove(projectId);
                     }
                 }
             }

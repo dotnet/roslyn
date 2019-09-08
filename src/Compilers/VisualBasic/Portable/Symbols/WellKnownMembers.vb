@@ -338,6 +338,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetWellKnownTypeMember(member)
         End Function
 
+        Friend Overrides Function CommonGetWellKnownType(wellknownType As WellKnownType) As ITypeSymbol
+            Return GetWellKnownType(wellknownType)
+        End Function
+
         Friend Overrides Function IsAttributeType(type As ITypeSymbol) As Boolean
             If type.Kind <> SymbolKind.NamedType Then
                 Return False

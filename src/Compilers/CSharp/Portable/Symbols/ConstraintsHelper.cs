@@ -426,6 +426,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ((NamedTypeSymbol)type).CheckConstraints(args.CurrentCompilation, args.Conversions, args.IncludeNullability, args.Location, args.Diagnostics);
             }
+            else if (type.Kind == SymbolKind.PointerType)
+            {
+                Binder.CheckManagedAddr(args.CurrentCompilation, ((PointerTypeSymbol)type).PointedAtType, args.Location, args.Diagnostics);
+            }
             return false; // continue walking types
         }
 

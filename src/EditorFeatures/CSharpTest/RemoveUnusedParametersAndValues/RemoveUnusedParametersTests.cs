@@ -1040,21 +1040,19 @@ internal sealed class CustomSerializingType : ISerializable
     }|]
 }";
             var testParameters = new TestParameters(retainNonFixableDiagnostics: true);
-            using (var workspace = CreateWorkspaceFromOptions(source, testParameters))
-            {
-                var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
-                diagnostics.Verify(
-                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p1").WithLocation(5, 15),
-                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p2").WithLocation(5, 23),
-                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p3").WithLocation(13, 23),
-                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p4").WithLocation(13, 31));
-                var sortedDiagnostics = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
+            using var workspace = CreateWorkspaceFromOptions(source, testParameters);
+            var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
+            diagnostics.Verify(
+                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p1").WithLocation(5, 15),
+                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p2").WithLocation(5, 23),
+                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p3").WithLocation(13, 23),
+                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p4").WithLocation(13, 31));
+            var sortedDiagnostics = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
 
-                Assert.Equal("Remove unused parameter 'p1'", sortedDiagnostics[0].GetMessage());
-                Assert.Equal("Remove unused parameter 'p2', its initial value is never used", sortedDiagnostics[1].GetMessage());
-                Assert.Equal("Remove unused parameter 'p3' if it is not part of a shipped public API", sortedDiagnostics[2].GetMessage());
-                Assert.Equal("Remove unused parameter 'p4' if it is not part of a shipped public API, its initial value is never used", sortedDiagnostics[3].GetMessage());
-            }
+            Assert.Equal("Remove unused parameter 'p1'", sortedDiagnostics[0].GetMessage());
+            Assert.Equal("Remove unused parameter 'p2', its initial value is never used", sortedDiagnostics[1].GetMessage());
+            Assert.Equal("Remove unused parameter 'p3' if it is not part of a shipped public API", sortedDiagnostics[2].GetMessage());
+            Assert.Equal("Remove unused parameter 'p4' if it is not part of a shipped public API, its initial value is never used", sortedDiagnostics[3].GetMessage());
         }
 
         [WorkItem(32287, "https://github.com/dotnet/roslyn/issues/32287")]
@@ -1333,6 +1331,46 @@ public sealed class C : IDisposable
 
     public void Dispose() => task.Result.MyAction -= myAction;
 }", options);
+        }
+
+        [WorkItem(37483, "https://github.com/dotnet/roslyn/issues/37483")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task MethodUsedAsDelegateInGeneratedCode_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+public partial class C
+{
+    private void M(int [|x|])
+    {
+    }
+}
+
+public partial class C
+{
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("""", """")]
+    public void M2(out Action<int> a)
+    {
+        a = M;
+    }
+}  
+");
+        }
+
+        [WorkItem(37483, "https://github.com/dotnet/roslyn/issues/37483")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedParameterInGeneratedCode_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"public partial class C
+{
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("""", """")]
+    private void M(int [|x|])
+    {
+    }
+}
+");
         }
 
         [WorkItem(36817, "https://github.com/dotnet/roslyn/issues/36817")]
