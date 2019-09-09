@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             var options = document?.Project.Solution.Options;
-            var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? true;
+            var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? false;
             // Nothing to highlight if user hasn't typed anything yet.
             highlightMatchingPortions = highlightMatchingPortions && filterText.Length > 0;
 
@@ -232,9 +232,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var experimentationService = document?.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
 
+            // Sort the items by pattern matching results.
+            // Need a stable sorting algorithm to preserve the original alphabetical order for items with same pattern match score.
             var initialListOfItemsToBeIncluded = experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SortCompletionListByMatch) == true
-                // Need a stable sorting algorithm to preserve the original order for items with same pattern match score.
-                ? builder.OrderBy(new NullablePatternMatchComparer()).ToImmutableArray()
+                ? builder.OrderBy(ExtendedFilterResultComparer.Instance).ToImmutableArray()
                 : builder.ToImmutable();
 
             builder.Free();
@@ -332,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     else if (filterResult.PatternMatch.HasValue)
                     {
                         // Since VS item's display text is created as Prefix + DisplayText + Suffix, we can calculate the highlighted span by adding an offset that is the length of the Prefix.
-                        highlightedSpans = filterResult.PatternMatch.Value.MatchedSpans.SelectAsArray(s => s.ToSpan(filterResult.CompletionItem.DisplayTextPrefix?.Length ?? 0));
+                        highlightedSpans = filterResult.PatternMatch.Value.MatchedSpans.SelectAsArray(s => s.MoveTo(filterResult.CompletionItem.DisplayTextPrefix?.Length ?? 0).ToSpan());
                     }
                     else
                     {
@@ -786,8 +787,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        private class NullablePatternMatchComparer : IComparer<ExtendedFilterResult>
+        private class ExtendedFilterResultComparer : IComparer<ExtendedFilterResult>
         {
+            public static ExtendedFilterResultComparer Instance { get; } = new ExtendedFilterResultComparer();
+
             public int Compare(ExtendedFilterResult x, ExtendedFilterResult y)
             {
                 var matchX = x.FilterResult.PatternMatch;

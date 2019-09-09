@@ -281,6 +281,22 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // If neither of the items is an exact match, or both are exact matches,
             // then we prefer non-expanded item over expanded one.
+            // 
+            // For example, suppose we have two types `Namespace1.Cafe` and `Namespace2.Cafe`, and import completion is enabled.
+            // In the scenarios below, `Namespace1.Cafe` would be selected over `Namespace2.Cafe`
+
+            //  using Namespace1;
+            //  class C
+            //  {
+            //      cafe$$
+            //  }
+
+            //  using Namespace1;
+            //  class C
+            //  {
+            //      caf$$
+            //  }
+
             if (!isItem1ExactMatch && !isItem2ExactMatch
                 || match1.Kind == match2.Kind)
             {
@@ -289,6 +305,15 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // We prefer expanded item over non-expanded one iff the expanded item 
             // is an exact match whereas the non-expanded one isn't.
+            // 
+            // For example, suppose we have two types `Namespace1.Cafe1` and `Namespace2.Cafe`, and import completion is enabled.
+            // In the scenarios below, `Namespace2.Cafe` would be selected over `Namespace1.Cafe1`
+
+            //  using Namespace1;
+            //  class C
+            //  {
+            //      cafe$$
+            //  }
             if (isItem1Expanded && isItem1ExactMatch)
             {
                 return -1;
@@ -298,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return 1;
             }
 
-            // Non-expanded item is an exact match, so we definitely prefer it.
+            // Non-expanded item is the only exact match, so we definitely prefer it.
             return isItem1Expanded ? 1 : -1;
         }
     }

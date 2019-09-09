@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public readonly CompletionItem CompletionItem;
         public readonly bool MatchedFilterText;
         public readonly string FilterText;
+
+        // In certain cases, there'd be no match but we'd still set `MatchedFilterText` to true,
+        // e.g. when the item is in MRU list. Therefore making this nullable.
         public readonly PatternMatch? PatternMatch;
 
         public FilterResult(CompletionItem completionItem, string filterText, bool matchedFilterText, PatternMatch? patternMatch)
