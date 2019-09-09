@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
             }
 
-            protected override bool UnderAsyncAnonymousMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
+            protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
             {
                 throw new InvalidOperationException();
             }
@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public override ITypeSymbol GetContainingScopeType()
+            {
+                throw new InvalidOperationException();
+            }
+
+            protected override bool IsConfigureAwaitFalse(SyntaxNode node)
             {
                 throw new InvalidOperationException();
             }
