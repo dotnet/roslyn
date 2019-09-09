@@ -5,10 +5,9 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -66,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             sourceSpan,
                             HighlightSpanKind.Definition,
                             customColumnsDataOpt: null,
-                            additionalProperties: ImmutableArray<CodeAnalysis.FindSymbols.AdditionalProperty>.Empty)
+                            additionalProperties: ImmutableArray<AdditionalProperty>.Empty)
                                 .ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
                     }

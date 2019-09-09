@@ -10,12 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -328,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
                 ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt,
-                ImmutableArray<CodeAnalysis.FindSymbols.AdditionalProperty> additionalProperties)
+                ImmutableArray<AdditionalProperty> additionalProperties)
             {
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
@@ -371,7 +370,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            private ImmutableDictionary<string, string> GetCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsWithMultipleValuesOpt, ImmutableArray<CodeAnalysis.FindSymbols.AdditionalProperty> customColumns)
+            private ImmutableDictionary<string, string> GetCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsWithMultipleValuesOpt, ImmutableArray<AdditionalProperty> customColumns)
             {
                 var builder = ImmutableDictionary.CreateBuilder<string, string>();
 

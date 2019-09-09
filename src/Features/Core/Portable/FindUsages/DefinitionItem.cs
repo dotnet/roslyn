@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 

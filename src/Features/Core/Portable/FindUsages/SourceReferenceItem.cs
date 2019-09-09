@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
