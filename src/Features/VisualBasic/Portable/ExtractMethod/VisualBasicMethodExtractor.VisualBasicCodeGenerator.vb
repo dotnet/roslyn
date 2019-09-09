@@ -356,11 +356,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                 invocation,
                                 SyntaxFactory.Token(SyntaxKind.DotToken),
                                 SyntaxFactory.IdentifierName("ConfigureAwait")),
-                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                                New ArgumentSyntax() {SyntaxFactory.SimpleArgument(
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(Of ArgumentSyntax)(
+                                SyntaxFactory.SimpleArgument(
                                     SyntaxFactory.LiteralExpression(
                                         SyntaxKind.FalseLiteralExpression,
-                                        SyntaxFactory.Token(SyntaxKind.FalseKeyword)))})))
+                                        SyntaxFactory.Token(SyntaxKind.FalseKeyword))))))
                         End If
                     End If
                     Return SyntaxFactory.AwaitExpression(invocation)
