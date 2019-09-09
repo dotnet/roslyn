@@ -93,22 +93,28 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         private static bool CanConvertToSwitchExpression(ImmutableArray<AnalyzedSwitchSection> sections)
         {
             return
+                // There must be a default case for an exhaustive switch expression
                 sections.Any(section => section.Labels.IsDefault) &&
+                // All arms must have a single label
                 sections.All(section => section.Labels.IsDefault || section.Labels.Length == 1) &&
-                sections.Any(section => section.Body.Kind == OperationKind.Return) &&
-                sections.All(section => CanConvertToSwitchArm(section.Body));
+                // There must be at least one return statement
+                sections.Any(section => GetSwitchArmKind(section.Body) == OperationKind.Return) &&
+                // All arms must be convertible to a switch arm
+                sections.All(section => GetSwitchArmKind(section.Body) != default);
 
-            static bool CanConvertToSwitchArm(IOperation op)
+            static OperationKind GetSwitchArmKind(IOperation op)
             {
                 switch (op)
                 {
                     case IReturnOperation { ReturnedValue: { } }:
                     case IThrowOperation { Exception: { } }:
-                    case IBlockOperation { Operations: { Length: 1 } statements } when CanConvertToSwitchArm(statements[0]):
-                        return true;
+                        return op.Kind;
+
+                    case IBlockOperation { Operations: { Length: 1 } statements }:
+                        return GetSwitchArmKind(statements[0]);
                 }
 
-                return false;
+                return default;
             }
         }
 
