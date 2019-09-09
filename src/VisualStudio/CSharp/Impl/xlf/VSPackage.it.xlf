@@ -265,7 +265,7 @@ Inserisci spazio prima e dopo gli operatori binari;</target>
       </trans-unit>
       <trans-unit id="311">
         <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
-        <target state="translated">Modifica opzioni di formattazione per wrapping;Lascia blocco su una sola riga;Lascia istruzioni e dichiarazioni di membri sulla stessa riga</target>
+        <target state="translated">Modifica opzioni di formattazione per ritorno a capo;Lascia blocco su una sola riga;Lascia istruzioni e dichiarazioni di membri sulla stessa riga</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
@@ -331,12 +331,12 @@ Mostra suggerimenti per nomi;</target>
       </trans-unit>
       <trans-unit id="2358">
         <source>C# Editor</source>
-        <target state="needs-review-translation">Editor CSharp</target>
+        <target state="translated">Editor C#</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
         <source>C# Editor with Encoding</source>
-        <target state="needs-review-translation">Editor CSharp con codifica</target>
+        <target state="translated">Editor C# con codifica</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
