@@ -11,7 +11,7 @@ namespace Text.Analyzers
     /// </summary>
     public abstract class IdentifiersShouldBeSpelledCorrectlyFixer : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IdentifiersShouldBeSpelledCorrectlyAnalyzer.RuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray<string>.Empty;
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
