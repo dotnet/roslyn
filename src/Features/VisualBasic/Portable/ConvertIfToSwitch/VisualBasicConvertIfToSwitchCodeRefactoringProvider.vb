@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.ConvertIfToSwitch
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertIfToSwitchCodeRefactoringProvider)), [Shared]>
     Partial Friend NotInheritable Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
-        Inherits AbstractConvertIfToSwitchCodeRefactoringProvider(Of ExecutableStatementSyntax,ExpressionSyntax,SyntaxNode,SyntaxNode)
+        Inherits AbstractConvertIfToSwitchCodeRefactoringProvider(Of ExecutableStatementSyntax, ExpressionSyntax, SyntaxNode, SyntaxNode)
 
         <ImportingConstructor>
         Public Sub New()

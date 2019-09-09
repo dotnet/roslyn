@@ -12,41 +12,40 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
     internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider<
         TIfStatementSyntax, TExpressionSyntax, TIsExpressionSyntax, TPatternSyntax> : CodeRefactoringProvider
     {
+        public abstract string GetTitle(bool forSwitchExpression);
+        public abstract Analyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts);
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, _, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
             var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
-            if (ifStatement == null || ifStatement.ContainsDiagnostics)
+            if (ifStatement == null || ifStatement.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             {
                 return;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(semanticModel);
             var ifOperation = semanticModel.GetOperation(ifStatement);
-            if (!(ifOperation is IConditionalOperation { Parent: IBlockOperation { Operations: var operations } }))
+            if (!(ifOperation is IConditionalOperation { Parent: IBlockOperation parentBlock }))
             {
                 return;
             }
 
+            var operations = parentBlock.Operations;
             var index = operations.IndexOf(ifOperation);
-            if (index == -1)
-            {
-                return;
-            }
-
             var analyzer = CreateAnalyzer(document.GetLanguageService<ISyntaxFactsService>());
             var (sections, target) = analyzer.AnalyzeIfStatementSequence(operations.AsSpan().Slice(index));
             if (sections.IsDefaultOrEmpty)
@@ -87,9 +86,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             }
         }
 
-        public abstract string GetTitle(bool forSwitchExpression);
-        public abstract Analyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts);
-
         private static bool CanConvertToSwitchExpression(ImmutableArray<AnalyzedSwitchSection> sections)
         {
             return
@@ -118,7 +114,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             }
         }
 
-        public sealed class MyCodeAction : CodeAction.DocumentChangeAction
+        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)

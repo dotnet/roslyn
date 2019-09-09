@@ -9,12 +9,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
     internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider<
         TIfStatementSyntax, TExpressionSyntax, TIsExpressionSyntax, TPatternSyntax>
     {
+        public abstract SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections);
+        public abstract SyntaxNode CreateSwitchStatement(TIfStatementSyntax ifStatement, SyntaxNode target, IEnumerable<SyntaxNode> sectionList);
+        public abstract IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation);
+        public abstract SyntaxNode AsSwitchLabelSyntax(AnalyzedSwitchLabel label);
+
         private async Task<Document> UpdateDocumentAsync(
             Document document,
             SyntaxNode target,
@@ -24,8 +30,9 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var generator = SyntaxGenerator.GetGenerator(document);
+            Contract.ThrowIfNull(root);
 
+            var generator = SyntaxGenerator.GetGenerator(document);
             var ifSpan = ifStatement.Span;
 
             SyntaxNode @switch;
@@ -55,10 +62,5 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     : generator.SwitchSectionFromLabels(section.Labels.Select(AsSwitchLabelSyntax), statements);
             }
         }
-
-        public abstract SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections);
-        public abstract SyntaxNode CreateSwitchStatement(TIfStatementSyntax ifStatement, SyntaxNode target, IEnumerable<SyntaxNode> sectionList);
-        public abstract IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation);
-        public abstract SyntaxNode AsSwitchLabelSyntax(AnalyzedSwitchLabel label);
     }
 }

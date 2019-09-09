@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -25,26 +26,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 
         private static SwitchExpressionArmSyntax AsSwitchExpressionArmSyntax(AnalyzedSwitchSection section)
         {
+            // In a switch expression, we expect only a single label
+            Debug.Assert(section.Labels.IsDefault || section.Labels.Length == 1);
+            var (pattern, whenClause) = section.Labels.IsDefault
+                ? (DiscardPattern(), null)
+                : (AsPatternSyntax(section.Labels[0].Pattern), AsWhenClause(section.Labels[0]));
             return SwitchExpressionArm(
-                pattern: section.Labels.IsDefault
-                    ? DiscardPattern()
-                    : AsPatternSyntax(section.Labels[0].Pattern),
-                whenClause: section.Labels.IsDefault // TODO
-                    ? null
-                    : AsWhenClause(section.Labels[0]),
+                pattern,
+                whenClause,
                 expression: AsExpressionSyntax(section.Body));
         }
 
         private static ExpressionSyntax AsExpressionSyntax(IOperation operation)
-        {
-            return operation switch
+            => operation switch
             {
                 IReturnOperation op => (ExpressionSyntax)op.ReturnedValue.Syntax,
                 IThrowOperation op => ThrowExpression((ExpressionSyntax)op.Exception.Syntax),
                 IBlockOperation op => AsExpressionSyntax(op.Operations.Single()),
                 var v => throw ExceptionUtilities.UnexpectedValue(v.Kind)
             };
-        }
 
         public override SyntaxNode CreateSwitchStatement(IfStatementSyntax ifStatement, SyntaxNode expression, IEnumerable<SyntaxNode> sectionList)
         {
@@ -63,7 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             => AsWhenClause(label.Guards
                 .Select(e => e.WalkUpParentheses())
                 .AggregateOrDefault((prev, current) => BinaryExpression(SyntaxKind.LogicalAndExpression, current, prev)));
-
 
         private static WhenClauseSyntax? AsWhenClause(ExpressionSyntax? expression)
             => expression is null ? null : WhenClause(expression);

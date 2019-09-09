@@ -47,6 +47,17 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         //
         internal abstract class Analyzer
         {
+            public abstract bool CanConvert(IConditionalOperation operation);
+            public abstract bool HasUnreachableEndPoint(IOperation operation);
+
+            public abstract bool SupportsSwitchExpression { get; }
+            public abstract bool SupportsRelationalPattern { get; }
+            public abstract bool SupportsSourcePattern { get; }
+            public abstract bool SupportsRangePattern { get; }
+            public abstract bool SupportsTypePattern { get; }
+            public abstract bool SupportsCaseGuard { get; }
+
+            // Holds the expression determined to be used as the target expression of the switch
             private SyntaxNode? _switchTargetExpression;
             private readonly ISyntaxFactsService _syntaxFacts;
 
@@ -69,9 +80,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     sections.Add(new AnalyzedSwitchSection(labels: default, defaultBodyOpt, defaultBodyOpt.Syntax));
                 }
 
-                Debug.Assert(_switchTargetExpression is object);
-                // UNDONE: Null-suppression should be removed once Assert is annotated
-                return (sections.ToImmutableAndFree(), _switchTargetExpression!);
+                Contract.ThrowIfNull(_switchTargetExpression);
+                return (sections.ToImmutableAndFree(), _switchTargetExpression);
             }
 
             // Tree to parse:
@@ -211,8 +221,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             private enum ConstantResult
             {
                 None,
-                Left,
-                Right,
+                Left, // Signifies that the left operand is the constant
+                Right, // Signifies that the right operand is the constant
             }
 
             private ConstantResult DetermineConstant(IBinaryOperation op)
@@ -265,7 +275,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                         return DetermineConstant(op) switch
                         {
                             ConstantResult.Left when op.LeftOperand.Syntax is TExpressionSyntax left
-                                => new AnalyzedPattern.Relational(Negate(op.OperatorKind), left),
+                                => new AnalyzedPattern.Relational(Flip(op.OperatorKind), left),
                             ConstantResult.Right when op.RightOperand.Syntax is TExpressionSyntax right
                                 => new AnalyzedPattern.Relational(op.OperatorKind, right),
                             _ => null
@@ -289,8 +299,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             private enum BoundKind
             {
                 None,
-                Lower,
-                Higher,
+                Lower, // Signifies the lower-bound of a range pattern
+                Higher, // Signifies the higher-bound of a range pattern
             }
 
             private (SyntaxNode Lower, SyntaxNode Higher) GetRangeBounds(IBinaryOperation op)
@@ -329,7 +339,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 };
             }
 
-            private static BinaryOperatorKind Negate(BinaryOperatorKind operatorKind)
+            private static BinaryOperatorKind Flip(BinaryOperatorKind operatorKind)
             {
                 return operatorKind switch
                 {
@@ -382,16 +392,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 return _syntaxFacts.AreEquivalent(expression, _switchTargetExpression);
             }
-
-            public abstract bool CanConvert(IConditionalOperation operation);
-            public abstract bool HasUnreachableEndPoint(IOperation operation);
-
-            public abstract bool SupportsSwitchExpression { get; }
-            public abstract bool SupportsRelationalPattern { get; }
-            public abstract bool SupportsSourcePattern { get; }
-            public abstract bool SupportsRangePattern { get; }
-            public abstract bool SupportsTypePattern { get; }
-            public abstract bool SupportsCaseGuard { get; }
         }
     }
 }
