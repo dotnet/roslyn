@@ -164,11 +164,11 @@ class InputParameter
 class Program
 {
     static void Main(string[] args)
-        {
-            InputParameter i1 = new InputParameter();
-            InputParameter i2 = new InputParameter();
-            bool b = i1 || i2;
-        }
+    {
+        InputParameter i1 = new InputParameter();
+        InputParameter i2 = new InputParameter();
+        bool b = i1 || i2;
+    }
 }
 ```
 
@@ -185,11 +185,11 @@ As per the specification, new expressions of enum types cannot have a constant v
 ### C# spec deviation: New Int32() treated as constant 0
 
 ```c#
-            // DELIBERATE SPEC VIOLATION:
-            // The spec does not allow "new int()" to be treated as a constant 
-            // The native compiler treats "new int()" (and so on) as a "zero" constant expression, 
-            // despite the fact that the specification does not include object creation expressions on the
-            // list of legal constant expressions.
+// DELIBERATE SPEC VIOLATION:
+// The spec does not allow "new int()" to be treated as a constant
+// The native compiler treats "new int()" (and so on) as a "zero" constant expression,
+// despite the fact that the specification does not include object creation expressions on the
+// list of legal constant expressions.
 ```
 
 ### C# spec deviation: Parameterless Constructor
@@ -238,40 +238,40 @@ Roslyn uses the property and ignores the method (thus giving a type error in thi
 Do you think we should make all three (spec, Dev10, and Roslyn) behave the same?
 
 ``` cs
-    delegate void MyAction<T>(T x);
+delegate void MyAction<T>(T x);
 
-    interface I1
-    {
-        object Y { get; }
-    }
+interface I1
+{
+    object Y { get; }
+}
 
-    interface I2
-    {
-        void Y(long l);
-    }
+interface I2
+{
+    void Y(long l);
+}
 
-    interface I3 : I1, I2 { }
+interface I3 : I1, I2 { }
 
-    public class Program : I3
-    {
-        object I1.Y
-        {
-            get
-            {
-                return null;
-            }
-        }
+public class Program : I3
+{
+    object I1.Y
+    {
+        get
+        {
+            return null;
+        }
+    }
 
-        void I2.Y(long l) { }
+    void I2.Y(long l) { }
 
-        public static void Main(string[] args)
-        {
-            I3 p = new Program();
-            MyAction<long> o = p.Y; // lookup is ambiguous?
-            long l = 12;
-            o(l);
-        }
-    }
+    public static void Main(string[] args)
+    {
+        I3 p = new Program();
+        MyAction<long> o = p.Y; // lookup is ambiguous?
+        long l = 12;
+        o(l);
+    }
+}
 ```
 
 ### C# spec deviation: Dev10 will not report unreachable empty statements (C#)
@@ -301,12 +301,12 @@ We follow suit in Roslyn so as not to break compatibility with (probably useless
 ### C# spec deviation: null??null and other null expressions
 
 ``` cs
-            // NOTE: We extend the specification here. The C# 3.0 spec does not describe
-            // a "null type". Rather, it says that the null literal is typeless, and is
-            // convertible to any reference or nullable type. However, the C# 2.0 and 3.0
-            // implementations have a "null type" which some expressions other than the
-            // null literal may have. (For example, (null??null), which is also an
-            // extension to the specification.)
+// NOTE: We extend the specification here. The C# 3.0 spec does not describe
+// a "null type". Rather, it says that the null literal is typeless, and is
+// convertible to any reference or nullable type. However, the C# 2.0 and 3.0
+// implementations have a "null type" which some expressions other than the
+// null literal may have. (For example, (null??null), which is also an
+// extension to the specification.)
 ```
 
 ### C# Spec Deviation: parenthesized lambda expression
@@ -322,27 +322,27 @@ var tmp = (Func<int,int>)( x => x+1 );
 The C# language spec says that hidden methods are removed early in the overload resolution process.  However, that is false.  The enclosed program (which works in Dev11 and Roslyn) demonstrates that methods with the same signature are not hidden.
 
 ``` cs
-    using System;
+using System;
 
-    class Base
-    {
-        public void M(int x) { Console.WriteLine("Base.M(x:" + x + ")"); }
-    }
+class Base
+{
+    public void M(int x) { Console.WriteLine("Base.M(x:" + x + ")"); }
+}
 
-    class Derived : Base
-    {
-        public new void M(int y) { Console.WriteLine("Derived.M(y:" + y + ")"); }
-    }
+class Derived : Base
+{
+    public new void M(int y) { Console.WriteLine("Derived.M(y:" + y + ")"); }
+}
 
-    public class Test
-    {
-        public static void Main()
-        {
-            Derived d = new Derived();
-            d.M(x: 1);
-            d.M(y: 2);
-        }
-    }
+public class Test
+{
+    public static void Main()
+    {
+        Derived d = new Derived();
+        d.M(x: 1);
+        d.M(y: 2);
+    }
+}
 ```
 
 Clearly this behavior does not agree with the specification, and has been in the product long enough that it probably makes more sense to adjust the specification.
@@ -354,10 +354,10 @@ This is related to Roslyn bug 12989.
 The native compiler (improperly) extended the C# language concept of reserved members to type parameters.  For example, the following code is rejected by the native compiler:
 
 ``` cs
-        public abstract class Foo<Item>
-        {
-            public Item this[int arg] { get { return default(Item); } }
-        }
+public abstract class Foo<Item>
+{
+    public Item this[int arg] { get { return default(Item); } }
+}
 ```
 
 > Error: The type 'Foo\<Item>' already contains a definition for 'Item'
@@ -375,17 +375,17 @@ Same for other primitive types.
 The following test case should “pass” to match Dev10 behavior:
 
 ``` cs
-    using System;
-    static class Program
-    {
-        static void Main()
-        {
-            const string x = "pass";
-            string y;
-            string z = x ?? y;
-            Console.WriteLine(z);
-        }
-    }
+using System;
+static class Program
+{
+    static void Main()
+    {
+        const string x = "pass";
+        string y;
+        string z = x ?? y;
+        Console.WriteLine(z);
+    }
+}
 ```
 
 However, this is not justified by the current language specification.  Since Dev10 accepts this code, I recommend we modify the specification to allow this.
@@ -397,4 +397,3 @@ Roslyn does not ignore method overloads that reference symbols from assemblies t
 ### Roslyn sometimes requires the use of the index operator when accessing a VB indexed property
 
 While the Roslyn C# compiler permits the elision of the index operator of an indexed property (declared, for example, in VB) when the property can be invoked with no parameters (e.g., it has a parameter with a default value), the C# compiler will not permit a (second) indexing of the result unless the first index operation was explicit. This is a breaking change from C# 5, which permitted the elision of the indexer that had default parameters. See [#17045](https://github.com/dotnet/roslyn/issues/17045).
-
