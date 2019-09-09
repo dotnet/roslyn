@@ -198,31 +198,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return If(info.Type.IsObjectType(), info.ConvertedType, info.Type)
         End Function
 
-        Protected Overrides Function IsConfigureAwaitFalse(node As SyntaxNode) As Boolean
-            Dim invocation = TryCast(node, InvocationExpressionSyntax)
-            Dim memberAccess = TryCast(invocation?.Expression, MemberAccessExpressionSyntax)
-
-            If memberAccess Is Nothing Then
-                Return False
-            End If
-
-            If Not CaseInsensitiveComparison.Equals(memberAccess?.Name.Identifier.ValueText, "ConfigureAwait") Then
-                Return False
-            End If
-
-            If invocation.ArgumentList.Arguments.Count <> 1 Then
-                Return False
-            End If
-
-            Dim argument = TryCast(invocation.ArgumentList.Arguments(0), SimpleArgumentSyntax)
-
-            If argument Is Nothing Then
-                Return False
-            End If
-
-            Return argument.Expression.Kind() = SyntaxKind.FalseLiteralExpression
-        End Function
-
         Private Shared Function IsCoClassImplicitConversion(info As TypeInfo, conversion As Conversion, coclassSymbol As ISymbol) As Boolean
             If Not conversion.IsWidening OrElse
                  info.ConvertedType Is Nothing OrElse

@@ -582,22 +582,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     if (this.AnalyzerResult.ReturnType.GetMembers().Any(x => x is IMethodSymbol
                     {
-                        Name: "ConfigureAwait",
-                        Parameters:
-                        {
-                            Length: 1
-                        } parameters
+                        Name: nameof(Task.ConfigureAwait),
+                        Parameters: { Length: 1 } parameters
                     } && parameters[0].Type is { SpecialType: SpecialType.System_Boolean }))
                     {
                         invocation = SyntaxFactory.InvocationExpression(
                             SyntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,
                                 invocation,
-                                SyntaxFactory.IdentifierName("ConfigureAwait")),
-                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[]
-                            {
-                                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))
-                            })));
+                                SyntaxFactory.IdentifierName(nameof(Task.ConfigureAwait))),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))));
                     }
                 }
 

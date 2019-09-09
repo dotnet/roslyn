@@ -38,11 +38,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 throw new InvalidOperationException();
             }
-
-            protected override bool IsConfigureAwaitFalse(SyntaxNode node)
-            {
-                throw new InvalidOperationException();
-            }
         }
 
         protected class ErrorSelectionResult : NullSelectionResult

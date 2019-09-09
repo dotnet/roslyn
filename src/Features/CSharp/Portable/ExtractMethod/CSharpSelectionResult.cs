@@ -97,37 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                    current.GetLastToken().Span.End <= lastToken.Span.End;
         }
 
-        protected sealed override bool IsConfigureAwaitFalse(SyntaxNode node)
-        {
-            if (node is InvocationExpressionSyntax
-            {
-                Expression: MemberAccessExpressionSyntax
-                {
-                    Name:
-                    {
-                        Identifier:
-                        {
-                            ValueText: "ConfigureAwait"
-                        }
-                    }
-                },
-                ArgumentList:
-                {
-                    Arguments:
-                    {
-                        Count: 1
-                    } arguments
-                }
-            })
-            {
-                if (arguments[0].Expression is LiteralExpressionSyntax literalExpression
-                    && literalExpression.Kind() == SyntaxKind.FalseLiteralExpression)
-                    return true;
-            }
-
-            return false;
-        }
-
         public StatementSyntax GetFirstStatement()
         {
             return GetFirstStatement<StatementSyntax>();

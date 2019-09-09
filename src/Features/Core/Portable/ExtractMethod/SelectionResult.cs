@@ -149,9 +149,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             foreach (var node in SemanticDocument.Root.DescendantNodesAndSelf())
             {
                 if (!node.Span.OverlapsWith(span))
+                {
                     continue;
+                }
 
-                else if (IsConfigureAwaitFalse(node) && !UnderAnonymousOrLocalMethod(node.GetFirstToken(), firstToken, lastToken))
+                if (IsConfigureAwaitFalse(node) && !UnderAnonymousOrLocalMethod(node.GetFirstToken(), firstToken, lastToken))
                 {
                     return true;
                 }
@@ -160,7 +162,44 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return false;
         }
 
-        protected abstract bool IsConfigureAwaitFalse(SyntaxNode node);
+        private bool IsConfigureAwaitFalse(SyntaxNode node)
+        {
+            var syntaxFacts = SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+
+            if (!syntaxFacts.IsInvocationExpression(node))
+            {
+                return false;
+            }
+
+            var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(node);
+
+            if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
+            {
+                return false;
+            }
+
+            var name = syntaxFacts.GetNameOfMemberAccessExpression(invokedExpression);
+
+            var identifier = syntaxFacts.GetIdentifierOfSimpleName(name);
+
+            if (identifier.ValueText != nameof(Task.ConfigureAwait))
+            {
+                return false;
+            }
+
+            var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(node);
+
+            if (arguments.Count != 1)
+            {
+                return false;
+            }
+
+            var argument = arguments[0];
+
+            var expression = syntaxFacts.GetExpressionOfArgument(argument);
+
+            return syntaxFacts.IsFalseLiteralExpression(expression);
+        }
 
         public bool AllowMovingDeclaration
         {
