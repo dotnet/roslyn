@@ -22,7 +22,7 @@ docker kill $CONTAINER_NAME || true
 
 # Build the docker container (will be fast if it is already built)
 echo "Building Docker Container using Dockerfile: $dockerfile"
-docker build --build-arg USER_ID=$(id -u) --build-arg CACHE_BUST=$(date +%s) -t $CONTAINER_TAG $dockerfile
+docker build --build-arg USER_ID=$(id -u) --build-arg CACHE_BUST=$(date +%s) --no-cache -t $CONTAINER_TAG $dockerfile
 
 # Run the build in the container
 echo "Launching build in Docker Container"
