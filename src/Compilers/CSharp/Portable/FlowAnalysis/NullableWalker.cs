@@ -672,11 +672,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _updatedSymbolMapOpt[key] = updatedSymbol;
                 }
-                else if (_updatedSymbolMapOpt.TryGetValue(key, out var currentSymbol) && (object)currentSymbol != updatedSymbol)
+                else
                 {
                     // If the symbol is reset, remove the updated symbol so we don't needlessly update the
-                    // bound node later on.
-                    _updatedSymbolMapOpt.Remove(key);
+                    // bound node later on. We do this unconditionally, as Remove will just return false
+                    // if the key wasn't in the dictionary.
+                    _ = _updatedSymbolMapOpt.Remove(key);
                 }
             }
         }
@@ -6255,6 +6256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
             SetResult(node, resultType, indexer.TypeWithAnnotations);
+            SetUpdatedSymbol(node, node.Indexer, indexer);
             return null;
         }
 
@@ -6274,6 +6276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SetLvalueResultType(node, patternSymbol.GetTypeOrReturnType());
+            SetUpdatedSymbol(node, node.PatternSymbol, patternSymbol);
             return null;
         }
 

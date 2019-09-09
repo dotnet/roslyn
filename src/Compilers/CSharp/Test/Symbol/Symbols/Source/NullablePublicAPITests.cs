@@ -2719,5 +2719,167 @@ static class CExt
                 Assert.Equal(annotation, methodSymbol.TypeArgumentNullableAnnotations[0]);
             }
         }
+
+        [Fact]
+        public void GetSymbolInfo_ReinferredIndexer()
+        {
+            var source = @"
+class C<T, U>
+{
+    public T this[U u] { get => throw null!; set => throw null!; }
+    
+    public static void M(object? o1, object o2)
+    {
+        var c1 = CExt.Create(o1, o2);
+        c1[o1] = o2;
+        _ = c1[o1];
+        
+        var c2 = CExt.Create(o2, o1);
+        c2[o2] = o1;
+        _ = c2[o2];
+        
+        var c3 = CExt.Create(o1 ?? o2, o2);
+        c3[o1] = o2;
+        _ = c3[o1];
+    }
+}
+static class CExt
+{
+    public static C<T, U> Create<T, U>(T t, U u) => throw null!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,12): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
+                //         c1[o1] = o2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(9, 12),
+                // (10,16): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
+                //         _ = c1[o1];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(10, 16),
+                // (13,18): warning CS8601: Possible null reference assignment.
+                //         c2[o2] = o1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "o1").WithLocation(13, 18),
+                // (17,12): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
+                //         c3[o1] = o2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(17, 12),
+                // (18,16): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
+                //         _ = c3[o1];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(18, 16));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var indexers = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray();
+            verifyAnnotation(indexers.AsSpan().Slice(0, 2), PublicNullableAnnotation.Annotated, PublicNullableAnnotation.NotAnnotated);
+            verifyAnnotation(indexers.AsSpan().Slice(2, 2), PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
+            verifyAnnotation(indexers.AsSpan().Slice(4, 2), PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(Span<ElementAccessExpressionSyntax> indexers, PublicNullableAnnotation firstAnnotation, PublicNullableAnnotation secondAnnotation)
+            {
+                var propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[0]).Symbol;
+                verifyIndexer(propertySymbol);
+                propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[1]).Symbol;
+                verifyIndexer(propertySymbol);
+
+                void verifyIndexer(IPropertySymbol propertySymbol)
+                {
+                    Assert.True(propertySymbol.IsIndexer);
+                    Assert.Equal(firstAnnotation, propertySymbol.NullableAnnotation);
+                    Assert.Equal(secondAnnotation, propertySymbol.Parameters[0].NullableAnnotation);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_IndexReinferred()
+        {
+            var source = @"
+class C<T>
+{
+    public int Length { get; }
+    public T this[int i] { get => throw null!; set => throw null!; }
+    public static C<TT> Create<TT>(TT t) => throw null!;
+
+    public static void M(object? o)
+    {
+        var c1 = Create(o);
+        c1[^1] = new object();
+        _ = c1[^1];
+
+        var c2 = Create(o ?? new object());
+        c2[^1] = new object();
+        _ = c2[^1];
+    }
+}";
+
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var elementAccesses = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray();
+            verifyAnnotation(elementAccesses.AsSpan().Slice(0, 2), PublicNullableAnnotation.Annotated);
+            verifyAnnotation(elementAccesses.AsSpan().Slice(2, 2), PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(Span<ElementAccessExpressionSyntax> indexers, PublicNullableAnnotation annotation)
+            {
+                var propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[0]).Symbol;
+                verifyIndexer(propertySymbol);
+                propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[1]).Symbol;
+                verifyIndexer(propertySymbol);
+
+                void verifyIndexer(IPropertySymbol propertySymbol)
+                {
+                    Assert.True(propertySymbol.IsIndexer);
+                    Assert.Equal(annotation, propertySymbol.NullableAnnotation);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_PatternReinferred()
+        {
+
+            var source = @"
+using System;
+
+class C<T>
+{
+    public int Length { get; }
+    public Span<T> Slice(int start, int length) => throw null!;
+    public static C<TT> Create<TT>(TT t) => throw null!;
+
+    public static void M(object? o)
+    {
+        var c1 = Create(o);
+        _ = c1[..^1];
+
+        var c2 = Create(o ?? new object());
+        _ = c2[..^1];
+    }
+}";
+
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var elementAccesses = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray();
+            verifyAnnotation(elementAccesses[0], PublicNullableAnnotation.Annotated);
+            verifyAnnotation(elementAccesses[1], PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(ElementAccessExpressionSyntax indexer, PublicNullableAnnotation annotation)
+            {
+                var propertySymbol = (IMethodSymbol)model.GetSymbolInfo(indexer).Symbol;
+                Assert.NotNull(propertySymbol);
+                var spanType = (INamedTypeSymbol)propertySymbol.ReturnType;
+                Assert.Equal(annotation, spanType.TypeArgumentNullableAnnotations[0]);
+            }
+        }
     }
 }
