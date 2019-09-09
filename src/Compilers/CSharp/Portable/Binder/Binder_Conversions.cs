@@ -146,7 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: isCast && !wasCompilerGenerated,
                 conversionGroupOpt,
                 constantValueOpt: constantValue,
-                type: destination) { WasCompilerGenerated = wasCompilerGenerated };
+                type: destination)
+            { WasCompilerGenerated = wasCompilerGenerated };
         }
 
         /// <summary>

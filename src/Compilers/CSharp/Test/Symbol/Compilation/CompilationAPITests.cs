@@ -2906,6 +2906,6 @@ System.Action a = () => { return; };
             compilation.VerifyDiagnostics();
         }
 
-#endregion
+        #endregion
     }
 }
