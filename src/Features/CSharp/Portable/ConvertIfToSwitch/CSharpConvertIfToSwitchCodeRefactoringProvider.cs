@@ -148,7 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             {
                 return AsWhenClause(label.Guards
                     .Cast<ExpressionSyntax>()
-                    .AggregateOrDefault((prev, current) => BinaryExpression(SyntaxKind.LogicalAndExpression, current.WalkDownParentheses(), prev)));
+                    .Select(e => e.WalkUpParentheses())
+                    .AggregateOrDefault((prev, current) => BinaryExpression(SyntaxKind.LogicalAndExpression, current, prev)));
             }
 
             private static PatternSyntax AsPatternSyntax(Pattern pattern)

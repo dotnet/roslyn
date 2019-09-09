@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (o)
         {
-            case string s when s.Length > 5 && s.Length < 10:
+            case string s when (s.Length > 5 && s.Length < 10):
                 return;
             case int i:
                 return;
@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3:
+            case 1 when i == 2 && (i == 3):
                 return;
             case 10:
                 return;
@@ -1015,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3:
+            case 1 when (i == 2) && i == 3:
                 return;
             case 10:
                 return;
@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3:
+            case 1 when (i == 2) && (i == 3):
                 return;
             case 10:
                 return;
@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3:
+            case 1 when i == 2 && (i == 3):
                 return;
             case 10:
                 return;
@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3:
+            case 1 when (i == 2) && i == 3:
                 return;
             case 10:
                 return;
@@ -1165,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3:
+            case 1 when (i == 2) && (i == 3):
                 return;
             case 10:
                 return;
@@ -1195,7 +1195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3:
+            case 1 when (i == 2 && i == 3):
                 return;
             case 10:
                 return;
@@ -1285,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3:
+            case 1 when (i == 2) && i == 3:
                 return;
             case 10:
                 return;
@@ -1315,7 +1315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3:
+            case 1 when (i == 2) && (i == 3):
                 return;
             case 10:
                 return;
@@ -1345,7 +1345,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3:
+            case 1 when ((i == 2) && i == 3):
                 return;
             case 10:
                 return;
@@ -1375,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && (i == 3):
+            case 1 when (i == 2 && (i == 3)):
                 return;
             case 10:
                 return;
