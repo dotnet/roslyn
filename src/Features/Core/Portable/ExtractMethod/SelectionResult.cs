@@ -165,39 +165,32 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         private bool IsConfigureAwaitFalse(SyntaxNode node)
         {
             var syntaxFacts = SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
-
             if (!syntaxFacts.IsInvocationExpression(node))
             {
                 return false;
             }
 
             var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(node);
-
             if (!syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
             {
                 return false;
             }
 
             var name = syntaxFacts.GetNameOfMemberAccessExpression(invokedExpression);
-
             var identifier = syntaxFacts.GetIdentifierOfSimpleName(name);
-
-            if (identifier.ValueText != nameof(Task.ConfigureAwait))
+            if (!syntaxFacts.StringComparer.Equals(identifier.ValueText, nameof(Task.ConfigureAwait)))
             {
                 return false;
             }
 
             var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(node);
-
             if (arguments.Count != 1)
             {
                 return false;
             }
 
             var argument = arguments[0];
-
             var expression = syntaxFacts.GetExpressionOfArgument(argument);
-
             return syntaxFacts.IsFalseLiteralExpression(expression);
         }
 

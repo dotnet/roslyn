@@ -731,6 +731,25 @@ End Class")
         End Function
 
         <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        Public Async Function TestExtractAsyncMethodWithConfigureAwaitFalseDifferentCase() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        [|Await Task.Delay(duration).configureawait(False)|]
+    End Function
+End Class",
+"Class C
+    Private Async Function MyDelay(duration As TimeSpan) As Task
+        Await {|Rename:NewMethod|}(duration).ConfigureAwait(False)
+    End Function
+
+    Private Shared Async Function NewMethod(duration As TimeSpan) As System.Threading.Tasks.Task
+        Await Task.Delay(duration).configureawait(False)
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(38529, "https://github.com/dotnet/roslyn/issues/38529"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Async Function TestExtractAsyncMethodWithConfigureAwaitMixture1() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
