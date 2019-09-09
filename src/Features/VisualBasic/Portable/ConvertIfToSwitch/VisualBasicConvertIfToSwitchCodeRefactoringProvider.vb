@@ -52,23 +52,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
             End Function
 
             Private Shared Function GetStatements(node As SyntaxNode) As SyntaxList(Of StatementSyntax)
-                Select Case node.Kind
-                    Case SyntaxKind.MultiLineIfBlock
-                        Return DirectCast(node, MultiLineIfBlockSyntax).Statements
-                    Case SyntaxKind.SingleLineIfStatement
-                        Return DirectCast(node, SingleLineIfStatementSyntax).Statements
-                    Case SyntaxKind.SingleLineElseClause
-                        Return DirectCast(node, SingleLineElseClauseSyntax).Statements
-                    Case SyntaxKind.ElseIfBlock
-                        Return DirectCast(node, ElseIfBlockSyntax).Statements
-                    Case SyntaxKind.ElseBlock
-                        Return DirectCast(node, ElseBlockSyntax).Statements
-                    Case SyntaxKind.ReturnStatement,
-                         SyntaxKind.ThrowStatement
-                        Return SyntaxFactory.SingletonList(DirectCast(node, StatementSyntax))
-                    Case Else
+                Return node.TypeSwitch(
+                    Function(p As MultiLineIfBlockSyntax) p.Statements,
+                    Function(p As SingleLineIfStatementSyntax) p.Statements,
+                    Function(p As SingleLineElseClauseSyntax) p.Statements,
+                    Function(p As ElseIfBlockSyntax) p.Statements,
+                    Function(p As ElseBlockSyntax) p.Statements,
+                    Function(p As StatementSyntax) SyntaxFactory.SingletonList(p),
+                    Function(p) As SyntaxList(Of StatementSyntax)
                         Throw ExceptionUtilities.UnexpectedValue(node.Kind())
-                End Select
+                    End Function)
             End Function
 
             Public Overrides Function AsSwitchLabelSyntax(label As SwitchLabel) As SyntaxNode
@@ -81,13 +74,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                     Function(p As ConstantPattern) SyntaxFactory.SimpleCaseClause(DirectCast(p.ExpressionSyntax, ExpressionSyntax)),
                     Function(p As RangePattern) SyntaxFactory.RangeCaseClause(DirectCast(p.LowerBound, ExpressionSyntax),
                                                                               DirectCast(p.HigherBound, ExpressionSyntax)),
-                    Function(p As RelationalPattern) As CaseClauseSyntax
+                    Function(p As RelationalPattern)
                         Dim relationalOperator = s_operatorMap(p.OperatorKind)
                         Return SyntaxFactory.RelationalCaseClause(
                             relationalOperator.CaseClauseKind,
                             SyntaxFactory.Token(SyntaxKind.IsKeyword),
                             SyntaxFactory.Token(relationalOperator.OperatorTokenKind),
                             DirectCast(p.Value, ExpressionSyntax))
+                    End Function,
+                    Function(p) As CaseClauseSyntax
+                        Throw ExceptionUtilities.UnexpectedValue(p.GetType())
                     End Function)
             End Function
 
@@ -113,41 +109,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                 End Select
             End Function
 
-            Public Overrides ReadOnly Property SupportsCaseGuard As Boolean
-                Get
-                    Return False
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property SupportsRangePattern As Boolean
-                Get
-                    Return True
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property SupportsTypePattern As Boolean
-                Get
-                    Return False
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property SupportsSourcePattern As Boolean
-                Get
-                    Return False
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property SupportsRelationalPattern As Boolean
-                Get
-                    Return True
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property SupportsSwitchExpression As Boolean
-                Get
-                    Return False
-                End Get
-             End Property
+            Public Overrides ReadOnly Property SupportsCaseGuard As Boolean = False
+            Public Overrides ReadOnly Property SupportsRangePattern As Boolean = True
+            Public Overrides ReadOnly Property SupportsTypePattern As Boolean = False
+            Public Overrides ReadOnly Property SupportsSourcePattern As Boolean = False
+            Public Overrides ReadOnly Property SupportsRelationalPattern As Boolean = True
+            Public Overrides ReadOnly Property SupportsSwitchExpression As Boolean = False
         End Class
     End Class
 End Namespace
