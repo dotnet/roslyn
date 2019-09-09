@@ -271,5 +271,26 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
+        Public Async Function TestTrivia() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+Class C
+    Sub M(x as string, y as string)
+        Dim z = [||]If (x Is Nothing, y, x) ' comment
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(x as string, y as string)
+        Dim z = If(x, y) ' comment
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace
