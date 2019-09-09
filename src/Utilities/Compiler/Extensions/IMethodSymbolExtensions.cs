@@ -3,13 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using System.Diagnostics;
 
 #if HAS_IOPERATION
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 #endif
@@ -412,8 +411,8 @@ namespace Analyzer.Utilities.Extensions
         /// across analyzers and analyzer callbacks to re-use the operations, semanticModel and control flow graph.
         /// </summary>
         /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>> s_methodToTopmostOperationBlockCache
-            = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>>();
+        private static readonly BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>> s_methodToTopmostOperationBlockCache
+            = new BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>>();
 
         /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
@@ -517,6 +516,33 @@ namespace Analyzer.Utilities.Extensions
                    method.ReturnsVoid &&
                    method.Parameters.Length >= 1 &&
                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
+        }
+
+
+        public static bool IsInterlockedExchangeMethod(this IMethodSymbol method, INamedTypeSymbol systemThreadingInterlocked)
+        {
+            Debug.Assert(method.ContainingType.OriginalDefinition.Equals(systemThreadingInterlocked));
+
+            // "System.Threading.Interlocked.Exchange(ref T, T)"
+            return method.Name == "Exchange" &&
+                   method.Parameters.Length == 2 &&
+                   method.Parameters[0].RefKind == RefKind.Ref &&
+                   method.Parameters[1].RefKind != RefKind.Ref &&
+                   method.Parameters[0].Type.Equals(method.Parameters[1].Type);
+        }
+
+        public static bool IsInterlockedCompareExchangeMethod(this IMethodSymbol method, INamedTypeSymbol systemThreadingInterlocked)
+        {
+            Debug.Assert(method.ContainingType.OriginalDefinition.Equals(systemThreadingInterlocked));
+
+            // "System.Threading.Interlocked.CompareExchange(ref T, T, T)"
+            return method.Name == "CompareExchange" &&
+                   method.Parameters.Length == 3 &&
+                   method.Parameters[0].RefKind == RefKind.Ref &&
+                   method.Parameters[1].RefKind != RefKind.Ref &&
+                   method.Parameters[2].RefKind != RefKind.Ref &&
+                   method.Parameters[0].Type.Equals(method.Parameters[1].Type) &&
+                   method.Parameters[1].Type.Equals(method.Parameters[2].Type);
         }
 
         public static bool HasParameterWithDelegateType(this IMethodSymbol methodSymbol)

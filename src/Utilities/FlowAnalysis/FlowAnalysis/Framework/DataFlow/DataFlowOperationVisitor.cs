@@ -157,7 +157,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         protected bool IsInsideAnonymousObjectInitializer { get; private set; }
 
-        protected bool IsLValueFlowCapture(CaptureId captureId) => _lValueFlowCaptures.Contains(captureId);
+        protected bool IsLValueFlowCapture(IFlowCaptureOperation flowCapture)
+            => _lValueFlowCaptures.Contains(flowCapture.Id);
+
+        protected bool IsLValueFlowCaptureReference(IFlowCaptureReferenceOperation flowCaptureReference)
+            => flowCaptureReference.IsLValueFlowCaptureReference();
 
         private Dictionary<BasicBlock, ThrownExceptionInfo> _exceptionPathsThrownExceptionInfoMapOpt;
         private ThrownExceptionInfo DefaultThrownExceptionInfo
@@ -1680,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private void HandleFlowCaptureReferenceAssignment(IFlowCaptureReferenceOperation flowCaptureReference, IOperation assignedValueOperation, TAbstractAnalysisValue assignedValue)
         {
             Debug.Assert(flowCaptureReference != null);
-            Debug.Assert(IsLValueFlowCapture(flowCaptureReference.Id));
+            Debug.Assert(IsLValueFlowCaptureReference(flowCaptureReference));
 
             var pointsToValue = GetPointsToAbstractValue(flowCaptureReference);
             if (pointsToValue.Kind == PointsToAbstractValueKind.KnownLValueCaptures)
@@ -1965,7 +1969,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Check if we are already at the maximum allowed interprocedural call chain length.
-            int currentMethodCallCount = currentMethodsBeingAnalyzed.Where(m => !((IMethodSymbol)m.OwningSymbol).IsLambdaOrLocalFunctionOrDelegate()).Count();
+            int currentMethodCallCount = currentMethodsBeingAnalyzed.Where(m => !(m.OwningSymbol is IMethodSymbol ms && ms.IsLambdaOrLocalFunctionOrDelegate())).Count();
             int currentLambdaOrLocalFunctionCallCount = currentMethodsBeingAnalyzed.Count - currentMethodCallCount;
 
             if (currentMethodCallCount >= MaxInterproceduralMethodCallChain ||
@@ -2520,10 +2524,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public override TAbstractAnalysisValue VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object argument)
         {
             var value = base.VisitFlowCaptureReference(operation, argument);
-            if (!IsLValueFlowCapture(operation.Id))
+            if (!IsLValueFlowCaptureReference(operation))
             {
-                PerformFlowCaptureReferencePredicateAnalysis();
-                return ComputeAnalysisValueForReferenceOperation(operation, value);
+                if (_lValueFlowCaptures.Contains(operation.Id))
+                {
+                    // Special flow capture reference operation where the corresponding flow capture
+                    // is an LValue flow capture but the flow capture reference is not lvalue capture reference.
+                    var flowCaptureForCaptureId = DataFlowAnalysisContext.ControlFlowGraph
+                                                    .DescendantOperations<IFlowCaptureOperation>(OperationKind.FlowCapture)
+                                                    .FirstOrDefault(fc => fc.Id.Equals(operation.Id));
+                    if (flowCaptureForCaptureId != null)
+                    {
+                        return GetCachedAbstractValue(flowCaptureForCaptureId.Value);
+                    }
+                }
+                else
+                {
+                    PerformFlowCaptureReferencePredicateAnalysis();
+                    return ComputeAnalysisValueForReferenceOperation(operation, value);
+                }
             }
 
             return ValueDomain.UnknownOrMayBeValue;
@@ -2551,7 +2570,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public override TAbstractAnalysisValue VisitFlowCapture(IFlowCaptureOperation operation, object argument)
         {
             var value = Visit(operation.Value, argument);
-            if (!IsLValueFlowCapture(operation.Id))
+            if (!IsLValueFlowCapture(operation))
             {
                 SetAbstractValueForAssignment(target: operation, assignedValueOperation: operation.Value, assignedValue: value);
                 PerformFlowCapturePredicateAnalysis();
@@ -2769,6 +2788,32 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     Debug.Assert(arguments.Length >= 1);
 
                     HandleEnterLockOperation(arguments[0].Value);
+                }
+                else if (targetMethod.ContainingType.OriginalDefinition.Equals(WellKnownTypeProvider.Interlocked))
+                {
+                    ProcessInterlockedOperation(targetMethod, arguments);
+                }
+            }
+
+            void ProcessInterlockedOperation(IMethodSymbol targetMethod, ImmutableArray<IArgumentOperation> arguments)
+            {
+                var isExchangeMethod = targetMethod.IsInterlockedExchangeMethod(WellKnownTypeProvider.Interlocked);
+                var isCompareExchangeMethod = targetMethod.IsInterlockedCompareExchangeMethod(WellKnownTypeProvider.Interlocked);
+
+                if (isExchangeMethod || isCompareExchangeMethod)
+                {
+                    // "System.Threading.Interlocked.Exchange(ref T, T)" OR "System.Threading.Interlocked.CompareExchange(ref T, T, T)"
+                    Debug.Assert(arguments.Length >= 2);
+
+                    SetAbstractValueForAssignment(
+                        target: arguments[0].Value,
+                        assignedValueOperation: arguments[1].Value,
+                        assignedValue: GetCachedAbstractValue(arguments[1].Value),
+                        mayBeAssignment: isCompareExchangeMethod);
+                    foreach (var argument in arguments)
+                    {
+                        _pendingArgumentsToReset.Remove(argument);
+                    }
                 }
             }
         }

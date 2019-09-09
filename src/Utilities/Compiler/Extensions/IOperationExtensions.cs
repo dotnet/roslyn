@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -415,8 +414,8 @@ namespace Analyzer.Utilities.Extensions
         /// across analyzers and analyzer callbacks to re-use the control flow graph.
         /// </summary>
         /// <remarks>Also see <see cref="IMethodSymbolExtensions.s_methodToTopmostOperationBlockCache"/></remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>> s_operationToCfgCache
-            = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>>();
+        private static readonly BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>> s_operationToCfgCache
+            = new BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>>();
 
         public static bool TryGetEnclosingControlFlowGraph(this IOperation operation, out ControlFlowGraph cfg)
         {

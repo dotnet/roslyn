@@ -328,10 +328,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         }
                     }
                 }
-                else if (operation.Parameter.RefKind == RefKind.Ref)
+                else if (operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out)
                 {
-                    // By-ref argument is considered escaped in non-interprocedural analysis case.
-                    HandleEscapingOperation(operation, operation.Value);
+                    if (operation.Parameter.RefKind == RefKind.Ref)
+                    {
+                        // Input by-ref argument passed to invoked method is considered escaped in non-interprocedural analysis case.
+                        HandleEscapingOperation(operation, operation.Value);
+                    }
+
+                    // Output by-ref or out argument might be escaped if assigned to a field.
+                    HandlePossibleEscapingForAssignment(target: operation.Value, value: operation, operation: operation);
                 }
             }
 
@@ -1140,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public override PointsToAbstractValue VisitFlowCapture(IFlowCaptureOperation operation, object argument)
             {
                 var value = base.VisitFlowCapture(operation, argument);
-                if (IsLValueFlowCapture(operation.Id) &&
+                if (IsLValueFlowCapture(operation) &&
                     AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity flowCaptureEntity))
                 {
                     value = PointsToAbstractValue.Create(operation.Value);
@@ -1153,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public override PointsToAbstractValue VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object argument)
             {
                 var value = base.VisitFlowCaptureReference(operation, argument);
-                if (IsLValueFlowCapture(operation.Id) &&
+                if (IsLValueFlowCaptureReference(operation) &&
                     AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity flowCaptureEntity))
                 {
                     return GetAbstractValue(flowCaptureEntity);
