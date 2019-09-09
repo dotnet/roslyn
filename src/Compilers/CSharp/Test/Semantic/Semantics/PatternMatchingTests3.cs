@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static void AssertEmpty(SymbolInfo info)
         {
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.None, info.CandidateReason);
         }
@@ -64,7 +64,7 @@ class Point
             AssertEmpty(model.GetSymbolInfo(subpatterns[1].NameColon));
             var y = subpatterns[1].NameColon.Name;
             var ySymbol = model.GetSymbolInfo(y);
-            Assert.NotNull(ySymbol);
+            Assert.NotEqual(default, ySymbol);
             Assert.Equal(CandidateReason.None, ySymbol.CandidateReason);
             Assert.Equal("System.Int32 Point.Y { get; }", ySymbol.Symbol.ToTestDisplayString());
         }
@@ -1203,6 +1203,52 @@ Target->Ultimate
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void PointerAsInputType()
+        {
+            var source =
+@"unsafe class Program
+{
+    static void Main(string[] args)
+    {
+    }
+    bool M1(int* p) => p is null; // 1
+    bool M2(int* p) => p is var _; // 2
+    void M3(int* p)
+    {
+        switch (p)
+        {
+            case null: // 3
+                break;
+        }
+    }
+    void M4(int* p)
+    {
+        switch (p)
+        {
+            case var _: // 4
+                break;
+        }
+    }
+}";
+            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,29): error CS8521: Pattern-matching is not permitted for pointer types.
+                //     bool M1(int* p) => p is null; // 1
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(6, 29),
+                // (7,29): error CS8521: Pattern-matching is not permitted for pointer types.
+                //     bool M2(int* p) => p is var _; // 2
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(7, 29),
+                // (12,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                //             case null: // 3
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(12, 18),
+                // (20,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                //             case var _: // 4
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(20, 18)
+                );
+            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                );
         }
     }
 }

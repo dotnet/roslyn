@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
 
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -39,9 +39,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             {
                 return;
             }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindTokenOnLeftOfPosition(textSpan.Start);
 
             context.RegisterRefactoring(
                 new MyCodeAction(

@@ -441,11 +441,11 @@ class C
             var called = false;
             var provider = new CrefCompletionProvider(testSpeculativeNodeCallbackOpt: n =>
             {
-                    // asserts that we aren't be asked speculate on nodes inside documentation trivia.
-                    // This verifies that the provider is asking for a speculative SemanticModel
-                    // by walking to the node the documentation is attached to. 
+                // asserts that we aren't be asked speculate on nodes inside documentation trivia.
+                // This verifies that the provider is asking for a speculative SemanticModel
+                // by walking to the node the documentation is attached to. 
 
-                    called = true;
+                called = true;
                 var parent = n.GetAncestor<DocumentationCommentTriviaSyntax>();
                 Assert.Null(parent);
             });

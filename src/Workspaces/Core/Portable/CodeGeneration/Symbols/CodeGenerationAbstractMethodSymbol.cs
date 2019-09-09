@@ -118,6 +118,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public INamedTypeSymbol AssociatedAnonymousDelegate => null;
 
+        public bool IsConditional => false;
+
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
         {
             return new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());

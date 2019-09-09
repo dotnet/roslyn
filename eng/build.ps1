@@ -42,6 +42,7 @@ param (
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
+  [switch]$sourceBuild = $false,
 
   # official build settings
   [string]$officialBuildId = "",
@@ -102,6 +103,7 @@ function Print-Usage() {
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
+  Write-Host "  -sourceBuild              Simulate building source-build"
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                            An official build id, e.g. 20190102.3"
@@ -233,6 +235,9 @@ function BuildSolution() {
   # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
   $ibcDir = Join-Path $RepoRoot ".o%5c"
 
+  # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
+  $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -258,6 +263,7 @@ function BuildSolution() {
       /p:IbcOptimizationDataDir=$ibcDir `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
+      $buildFromSource `
       @properties
   }
   finally {

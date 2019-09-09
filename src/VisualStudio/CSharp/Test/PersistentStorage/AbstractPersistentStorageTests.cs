@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     [UseExportProvider]
     public abstract class AbstractPersistentStorageTests : IDisposable
     {
-        private enum Size
+        public enum Size
         {
             Small,
             Medium,
@@ -116,23 +116,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Null(await storage.ReadStreamAsync(document, streamName));
         }
 
-        [Fact]
-        public async Task PersistentService_Solution_WriteReadDifferentInstances()
+        [Theory]
+        [CombinatorialData]
+        public async Task PersistentService_Solution_WriteReadDifferentInstances(Size size, bool withChecksum)
         {
             var solution = CreateOrOpenSolution();
-            await PersistentService_Solution_WriteReadDifferentInstances(solution, Size.Small);
-            await PersistentService_Solution_WriteReadDifferentInstances(solution, Size.Medium);
-            await PersistentService_Solution_WriteReadDifferentInstances(solution, Size.Large);
-        }
-
-        private async Task PersistentService_Solution_WriteReadDifferentInstances(Solution solution, Size size)
-        {
-            await PersistentService_Solution_WriteReadDifferentInstances(solution, size, withChecksum: false);
-            await PersistentService_Solution_WriteReadDifferentInstances(solution, size, withChecksum: true);
-        }
-
-        private async Task PersistentService_Solution_WriteReadDifferentInstances(Solution solution, Size size, bool withChecksum)
-        {
             var streamName1 = "PersistentService_Solution_WriteReadDifferentInstances1";
             var streamName2 = "PersistentService_Solution_WriteReadDifferentInstances2";
 
@@ -149,23 +137,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
-        public async Task PersistentService_Solution_WriteReadReopenSolution()
+        [Theory]
+        [CombinatorialData]
+        public async Task PersistentService_Solution_WriteReadReopenSolution(Size size, bool withChecksum)
         {
             var solution = CreateOrOpenSolution();
-            await PersistentService_Solution_WriteReadReopenSolution(solution, Size.Small);
-            await PersistentService_Solution_WriteReadReopenSolution(solution, Size.Medium);
-            await PersistentService_Solution_WriteReadReopenSolution(solution, Size.Large);
-        }
-
-        private async Task PersistentService_Solution_WriteReadReopenSolution(Solution solution, Size size)
-        {
-            await PersistentService_Solution_WriteReadReopenSolution(solution, size, withChecksum: false);
-            await PersistentService_Solution_WriteReadReopenSolution(solution, size, withChecksum: true);
-        }
-
-        private async Task PersistentService_Solution_WriteReadReopenSolution(Solution solution, Size size, bool withChecksum)
-        {
             var streamName1 = "PersistentService_Solution_WriteReadReopenSolution1";
             var streamName2 = "PersistentService_Solution_WriteReadReopenSolution2";
 
@@ -184,23 +160,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
-        public async Task PersistentService_Solution_WriteReadSameInstance()
+        [Theory]
+        [CombinatorialData]
+        private async Task PersistentService_Solution_WriteReadSameInstance(Size size, bool withChecksum)
         {
             var solution = CreateOrOpenSolution();
-            await PersistentService_Solution_WriteReadSameInstance(solution, Size.Small);
-            await PersistentService_Solution_WriteReadSameInstance(solution, Size.Medium);
-            await PersistentService_Solution_WriteReadSameInstance(solution, Size.Large);
-        }
-
-        private async Task PersistentService_Solution_WriteReadSameInstance(Solution solution, Size size)
-        {
-            await PersistentService_Solution_WriteReadSameInstance(solution, size, withChecksum: false);
-            await PersistentService_Solution_WriteReadSameInstance(solution, size, withChecksum: true);
-        }
-
-        private async Task PersistentService_Solution_WriteReadSameInstance(Solution solution, Size size, bool withChecksum)
-        {
             var streamName1 = "PersistentService_Solution_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Solution_WriteReadSameInstance2";
 
@@ -212,23 +176,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName2, GetChecksum2(withChecksum))));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/22437")]
-        public async Task PersistentService_Project_WriteReadSameInstance()
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/22437")]
+        [CombinatorialData]
+        public async Task PersistentService_Project_WriteReadSameInstance(Size size, bool withChecksum)
         {
             var solution = CreateOrOpenSolution();
-            await PersistentService_Project_WriteReadSameInstance(solution, Size.Small);
-            await PersistentService_Project_WriteReadSameInstance(solution, Size.Medium);
-            await PersistentService_Project_WriteReadSameInstance(solution, Size.Large);
-        }
-
-        private async Task PersistentService_Project_WriteReadSameInstance(Solution solution, Size size)
-        {
-            await PersistentService_Project_WriteReadSameInstance(solution, size, withChecksum: false);
-            await PersistentService_Project_WriteReadSameInstance(solution, size, withChecksum: true);
-        }
-
-        private async Task PersistentService_Project_WriteReadSameInstance(Solution solution, Size size, bool withChecksum)
-        {
             var streamName1 = "PersistentService_Project_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Project_WriteReadSameInstance2";
 
@@ -242,23 +194,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(project, streamName2, GetChecksum2(withChecksum))));
         }
 
-        [Fact]
-        public async Task PersistentService_Document_WriteReadSameInstance()
+        [Theory]
+        [CombinatorialData]
+        public async Task PersistentService_Document_WriteReadSameInstance(Size size, bool withChecksum)
         {
             var solution = CreateOrOpenSolution();
-            await PersistentService_Document_WriteReadSameInstance(solution, Size.Small);
-            await PersistentService_Document_WriteReadSameInstance(solution, Size.Medium);
-            await PersistentService_Document_WriteReadSameInstance(solution, Size.Large);
-        }
-
-        private async Task PersistentService_Document_WriteReadSameInstance(Solution solution, Size size)
-        {
-            await PersistentService_Document_WriteReadSameInstance(solution, size, withChecksum: false);
-            await PersistentService_Document_WriteReadSameInstance(solution, size, withChecksum: true);
-        }
-
-        private async Task PersistentService_Document_WriteReadSameInstance(Solution solution, Size size, bool withChecksum)
-        {
             var streamName1 = "PersistentService_Document_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Document_WriteReadSameInstance2";
 
@@ -332,23 +272,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             countdown.Wait();
         }
 
-        [Fact]
-        public async Task PersistentService_Solution_SimultaneousReads()
+        [Theory]
+        [CombinatorialData]
+        public async Task PersistentService_Solution_SimultaneousReads(Size size, bool withChecksum)
         {
             var solution = CreateOrOpenSolution();
-            await PersistentService_Solution_SimultaneousReads(solution, Size.Small);
-            await PersistentService_Solution_SimultaneousReads(solution, Size.Medium);
-            await PersistentService_Solution_SimultaneousReads(solution, Size.Large);
-        }
-
-        private async Task PersistentService_Solution_SimultaneousReads(Solution solution, Size size)
-        {
-            await PersistentService_Solution_SimultaneousReads(solution, size, withChecksum: false);
-            await PersistentService_Solution_SimultaneousReads(solution, size, withChecksum: true);
-        }
-
-        private async Task PersistentService_Solution_SimultaneousReads(Solution solution, Size size, bool withChecksum)
-        {
             var streamName1 = "PersistentService_Solution_SimultaneousReads1";
 
             using var storage = GetStorage(solution);
@@ -356,23 +284,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))), GetData1(size));
         }
 
-        [Fact]
-        public async Task PersistentService_Project_SimultaneousReads()
+        [Theory]
+        [CombinatorialData]
+        public async Task PersistentService_Project_SimultaneousReads(Size size, bool withChecksum)
         {
             var solution = CreateOrOpenSolution();
-            await PersistentService_Project_SimultaneousReads(solution, Size.Small);
-            await PersistentService_Project_SimultaneousReads(solution, Size.Medium);
-            await PersistentService_Project_SimultaneousReads(solution, Size.Large);
-        }
-
-        private async Task PersistentService_Project_SimultaneousReads(Solution solution, Size size)
-        {
-            await PersistentService_Project_SimultaneousReads(solution, size, withChecksum: false);
-            await PersistentService_Project_SimultaneousReads(solution, size, withChecksum: true);
-        }
-
-        private async Task PersistentService_Project_SimultaneousReads(Solution solution, Size size, bool withChecksum)
-        {
             var streamName1 = "PersistentService_Project_SimultaneousReads1";
 
             using var storage = GetStorage(solution);
@@ -380,23 +296,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1, GetChecksum1(withChecksum))), GetData1(size));
         }
 
-        [Fact]
-        public async Task PersistentService_Document_SimultaneousReads()
+        [Theory]
+        [CombinatorialData]
+        public async Task PersistentService_Document_SimultaneousReads(Size size, bool withChecksum)
         {
             var solution = CreateOrOpenSolution();
-            await PersistentService_Document_SimultaneousReads(solution, Size.Small);
-            await PersistentService_Document_SimultaneousReads(solution, Size.Medium);
-            await PersistentService_Document_SimultaneousReads(solution, Size.Large);
-        }
-
-        private async Task PersistentService_Document_SimultaneousReads(Solution solution, Size size)
-        {
-            await PersistentService_Document_SimultaneousReads(solution, size, withChecksum: false);
-            await PersistentService_Document_SimultaneousReads(solution, size, withChecksum: true);
-        }
-
-        private async Task PersistentService_Document_SimultaneousReads(Solution solution, Size size, bool withChecksum)
-        {
             var streamName1 = "PersistentService_Document_SimultaneousReads1";
 
             using var storage = GetStorage(solution);

@@ -202,11 +202,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ConsList(Of DependencyDesc).Empty
             End If
 
-            If visited.Contains(current) Then
+            If Not visited.Add(current) Then
                 ' we have seen this already
                 Return Nothing
-            Else
-                visited.Add(current)
             End If
 
             Dim currentNamedType = TryCast(currentDef, NamedTypeSymbol)

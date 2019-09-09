@@ -21,7 +21,13 @@ using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
-    internal struct BuildPathsAlt
+    /// <summary>
+    /// This type is functionally identical to BuildPaths. Unfortunately BuildPaths cannot be used in our MSBuild 
+    /// layer as it's defined in Microsoft.CodeAnalysis. Yet we need the same functionality in our build server 
+    /// communication layer which is shared between MSBuild and non-MSBuild components. This is the problem that 
+    /// BuildPathsAlt fixes as the type lives with the build server communication code.
+    /// </summary>
+    internal readonly struct BuildPathsAlt
     {
         /// <summary>
         /// The path which contains the compiler binaries and response files.
@@ -53,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             TempDirectory = tempDir;
         }
     }
+
+    internal delegate bool CreateServerFunc(string clientDir, string pipeName);
 
     internal sealed class BuildServerConnection
     {
@@ -86,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 keepAlive,
                 libEnvVariable,
                 timeoutOverride: null,
-                tryCreateServerFunc: TryCreateServerCore,
+                createServerFunc: TryCreateServerCore,
                 cancellationToken: cancellationToken);
         }
 
@@ -98,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string keepAlive,
             string libEnvVariable,
             int? timeoutOverride,
-            Func<string, string, bool> tryCreateServerFunc,
+            CreateServerFunc createServerFunc,
             CancellationToken cancellationToken)
         {
             if (pipeName == null)
@@ -122,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
             Task<NamedPipeClientStream> pipeTask = null;
             IServerMutex clientMutex = null;
-            var holdsMutex = false;
             try
             {
+                var holdsMutex = false;
                 try
                 {
                     var clientMutexName = GetClientMutexName(pipeName);
@@ -162,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 bool wasServerRunning = WasServerMutexOpen(serverMutexName);
                 var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
-                if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
+                if (wasServerRunning || createServerFunc(clientDir, pipeName))
                 {
                     pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
                 }

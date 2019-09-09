@@ -1865,7 +1865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (source.ConstantValue.HasValue && source.ConstantValue.Value is null && destination.IsReferenceType)
                 {
                     constantValue = source.ConstantValue;
-                    return Conversion.DefaultOrNullLiteral;
+                    return Conversion.NullLiteral;
                 }
 
                 return Conversion.NoConversion;

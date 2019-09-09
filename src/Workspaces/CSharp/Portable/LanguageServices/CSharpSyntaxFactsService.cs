@@ -1520,6 +1520,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
             => ((AwaitExpressionSyntax)node).Expression;
 
+        public bool IsExpressionOfForeach(SyntaxNode node)
+            => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
+
         public bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
@@ -1692,67 +1695,67 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsOnTypeHeader(SyntaxNode root, int position, out SyntaxNode typeDeclaration)
         {
-            var node = TryGetAncestorForLocation<BaseTypeDeclarationSyntax>(position, root);
+            var node = TryGetAncestorForLocation<BaseTypeDeclarationSyntax>(root, position);
             typeDeclaration = node;
             if (node == null)
             {
                 return false;
             }
 
-            return IsOnHeader(position, node, node.Identifier);
+            return IsOnHeader(root, position, node, node.Identifier);
         }
 
         public bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, out SyntaxNode propertyDeclaration)
         {
-            var node = TryGetAncestorForLocation<PropertyDeclarationSyntax>(position, root);
+            var node = TryGetAncestorForLocation<PropertyDeclarationSyntax>(root, position);
             propertyDeclaration = node;
             if (propertyDeclaration == null)
             {
                 return false;
             }
 
-            return IsOnHeader(position, node, node.Identifier);
+            return IsOnHeader(root, position, node, node.Identifier);
         }
 
         public bool IsOnParameterHeader(SyntaxNode root, int position, out SyntaxNode parameter)
         {
-            var node = TryGetAncestorForLocation<ParameterSyntax>(position, root);
+            var node = TryGetAncestorForLocation<ParameterSyntax>(root, position);
             parameter = node;
             if (parameter == null)
             {
                 return false;
             }
 
-            return IsOnHeader(position, node, node);
+            return IsOnHeader(root, position, node, node);
         }
 
         public bool IsOnMethodHeader(SyntaxNode root, int position, out SyntaxNode method)
         {
-            var node = TryGetAncestorForLocation<MethodDeclarationSyntax>(position, root);
+            var node = TryGetAncestorForLocation<MethodDeclarationSyntax>(root, position);
             method = node;
             if (method == null)
             {
                 return false;
             }
 
-            return IsOnHeader(position, node, node.ParameterList);
+            return IsOnHeader(root, position, node, node.ParameterList);
         }
 
         public bool IsOnLocalFunctionHeader(SyntaxNode root, int position, out SyntaxNode localFunction)
         {
-            var node = TryGetAncestorForLocation<LocalFunctionStatementSyntax>(position, root);
+            var node = TryGetAncestorForLocation<LocalFunctionStatementSyntax>(root, position);
             localFunction = node;
             if (localFunction == null)
             {
                 return false;
             }
 
-            return IsOnHeader(position, node, node.ParameterList);
+            return IsOnHeader(root, position, node, node.ParameterList);
         }
 
         public bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, out SyntaxNode localDeclaration)
         {
-            var node = TryGetAncestorForLocation<LocalDeclarationStatementSyntax>(position, root);
+            var node = TryGetAncestorForLocation<LocalDeclarationStatementSyntax>(root, position);
             localDeclaration = node;
             if (localDeclaration == null)
             {
@@ -1762,72 +1765,78 @@ namespace Microsoft.CodeAnalysis.CSharp
             var initializersExpressions = node.Declaration.Variables
                 .Where(v => v.Initializer != null)
                 .SelectAsArray(initializedV => initializedV.Initializer.Value);
-            return IsOnHeader(position, node, node, holes: initializersExpressions);
+            return IsOnHeader(root, position, node, node, holes: initializersExpressions);
         }
 
         public bool IsOnIfStatementHeader(SyntaxNode root, int position, out SyntaxNode ifStatement)
         {
-            var node = TryGetAncestorForLocation<IfStatementSyntax>(position, root);
+            var node = TryGetAncestorForLocation<IfStatementSyntax>(root, position);
             ifStatement = node;
             if (ifStatement == null)
             {
                 return false;
             }
 
-            return IsOnHeader(position, node, node.CloseParenToken);
+            return IsOnHeader(root, position, node, node.CloseParenToken);
         }
 
         public bool IsOnForeachHeader(SyntaxNode root, int position, out SyntaxNode foreachStatement)
         {
-            var node = TryGetAncestorForLocation<ForEachStatementSyntax>(position, root);
+            var node = TryGetAncestorForLocation<ForEachStatementSyntax>(root, position);
             foreachStatement = node;
             if (foreachStatement == null)
             {
                 return false;
             }
 
-            return IsOnHeader(position, node, node.CloseParenToken);
+            return IsOnHeader(root, position, node, node.CloseParenToken);
         }
 
-        public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position)
+        public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, out SyntaxNode typeDeclaration)
         {
             var token = root.FindToken(position);
             var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
-            if (typeDecl != null)
+            typeDeclaration = typeDecl;
+
+            if (typeDecl == null)
             {
-                if (position >= typeDecl.OpenBraceToken.Span.End &&
-                    position <= typeDecl.CloseBraceToken.Span.Start)
+                return false;
+            }
+
+            if (position < typeDecl.OpenBraceToken.Span.End ||
+                position > typeDecl.CloseBraceToken.Span.Start)
+            {
+                return false;
+            }
+
+            var line = sourceText.Lines.GetLineFromPosition(position);
+            if (!line.IsEmptyOrWhitespace())
+            {
+                return false;
+            }
+
+            var member = typeDecl.Members.FirstOrDefault(d => d.FullSpan.Contains(position));
+            if (member == null)
+            {
+                // There are no members, or we're after the last member.
+                return true;
+            }
+            else
+            {
+                // We're within a member.  Make sure we're in the leading whitespace of
+                // the member.
+                if (position < member.SpanStart)
                 {
-                    var line = sourceText.Lines.GetLineFromPosition(position);
-                    if (!line.IsEmptyOrWhitespace())
+                    foreach (var trivia in member.GetLeadingTrivia())
                     {
-                        return false;
-                    }
-
-                    var member = typeDecl.Members.FirstOrDefault(d => d.FullSpan.Contains(position));
-                    if (member == null)
-                    {
-                        // There are no members, or we're after the last member.
-                        return true;
-                    }
-                    else
-                    {
-                        // We're within a member.  Make sure we're in the leading whitespace of
-                        // the member.
-                        if (position < member.SpanStart)
+                        if (!trivia.IsWhitespaceOrEndOfLine())
                         {
-                            foreach (var trivia in member.GetLeadingTrivia())
-                            {
-                                if (!trivia.IsWhitespaceOrEndOfLine())
-                                {
-                                    return false;
-                                }
+                            return false;
+                        }
 
-                                if (trivia.FullSpan.Contains(position))
-                                {
-                                    return true;
-                                }
-                            }
+                        if (trivia.FullSpan.Contains(position))
+                        {
+                            return true;
                         }
                     }
                 }

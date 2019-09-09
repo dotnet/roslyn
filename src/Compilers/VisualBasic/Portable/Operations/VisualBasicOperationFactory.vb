@@ -1167,6 +1167,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                      statementInfo.GetEnumeratorMethod,
                                                      statementInfo.CurrentProperty,
                                                      statementInfo.MoveNextMethod,
+                                                     isAsynchronous:=False,
                                                      boundForEachStatement.EnumeratorInfo.NeedToDispose,
                                                      knownToImplementIDisposable:=boundForEachStatement.EnumeratorInfo.NeedToDispose AndAlso
                                                                                   boundForEachStatement.EnumeratorInfo.IsOrInheritsFromOrImplementsIDisposable,

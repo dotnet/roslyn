@@ -1938,7 +1938,7 @@ static class E
 
             // Type not satisfying constraint.
             symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
-            CheckSymbolsUnordered(symbols, "void B.F<B>()");
+            CheckSymbolsUnordered(symbols);
 
             // Same tests as above but with position outside of
             // static class defining extension methods.
@@ -1978,7 +1978,7 @@ static class E
 
             // Type not satisfying constraint.
             symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
-            CheckSymbolsUnordered(symbols, "void B.F<B>()");
+            CheckSymbolsUnordered(symbols);
         }
 
         [Fact]
@@ -5219,6 +5219,94 @@ class C
             var symbols = model.LookupStaticMembers(methodDeclM.Body.SpanStart);
 
             Assert.Contains(symbols, s => s.Name == "Local");
+        }
+
+        [Fact]
+        public void InvalidParameterWithDefaultValue_Method()
+        {
+            var source =
+@"class Program
+{
+    static void F(int x = 2, = 3) { }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        [Fact]
+        [WorkItem(784401, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/784401")]
+        public void InvalidParameterWithDefaultValue_LocalFunction_01()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void F(int x, = 3) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            var symbol1 = VerifyParameter(model, decls[0], 0, "System.Int32 x", null, null);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        [Fact]
+        [WorkItem(784401, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/784401")]
+        public void InvalidParameterWithDefaultValue_LocalFunction_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void F(int x = 2, = 3) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        private static ParameterSymbol VerifyParameter(
+            SemanticModel model,
+            ParameterSyntax decl,
+            int expectedOrdinal,
+            string expectedSymbol,
+            string expectedType,
+            object expectedConstant)
+        {
+            var symbol = (ParameterSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(expectedOrdinal, symbol.Ordinal);
+            Assert.Equal(expectedSymbol, symbol.ToTestDisplayString());
+
+            var valueSyntax = decl.Default?.Value;
+            if (valueSyntax == null)
+            {
+                Assert.Null(expectedType);
+                Assert.Null(expectedConstant);
+            }
+            else
+            {
+                var type = model.GetTypeInfo(valueSyntax);
+                Assert.Equal(expectedType, type.Type.ToTestDisplayString());
+                Optional<object> actualConstant = model.GetConstantValue(valueSyntax);
+                Assert.Equal(expectedConstant, actualConstant.Value);
+            }
+
+            return symbol;
         }
     }
 }
