@@ -300,7 +300,7 @@ We follow suit in Roslyn so as not to break compatibility with (probably useless
 
 ### C# spec deviation: null??null and other null expressions
 
-```c#
+``` cs
             // NOTE: We extend the specification here. The C# 3.0 spec does not describe
             // a "null type". Rather, it says that the null literal is typeless, and is
             // convertible to any reference or nullable type. However, the C# 2.0 and 3.0
