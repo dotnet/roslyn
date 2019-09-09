@@ -5733,9 +5733,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var left = node.Left;
             var right = node.Right;
             Visit(left);
-            TypeWithAnnotations leftLValueType = LvalueResultType;
             FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(left);
-            leftLValueType = ApplyLValueAnnotations(leftLValueType, leftAnnotations);
+            TypeWithAnnotations declaredType = LvalueResultType;
+            TypeWithAnnotations leftLValueType = ApplyLValueAnnotations(declaredType, leftAnnotations);
 
             if (left.Kind == BoundKind.EventAccess && ((BoundEventAccess)left).EventSymbol.IsWindowsRuntimeEvent)
             {
@@ -5761,7 +5761,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the LHS has annotations, we perform an additional check for nullable value types
                 CheckDisallowedNullAssignment(rightState, leftAnnotations, right.Syntax.Location);
 
+                AdjustSetValue(left, declaredType, leftLValueType, ref rightState);
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
+
                 if (left is BoundDiscardExpression)
                 {
                     var lvalueType = rightState.ToTypeWithAnnotations();
@@ -5775,6 +5777,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// When the allowed output of a property/indexer is not-null but the allowed input is maybe-null, we store a not-null value instead.
+        /// This adjustment doesn't apply to oblivious properties/indexers.
+        /// </summary>
+        private void AdjustSetValue(BoundExpression left, TypeWithAnnotations declaredType, TypeWithAnnotations leftLValueType, ref TypeWithState rightState)
+        {
+            if ((left is BoundPropertyAccess || left is BoundIndexerAccess) &&
+                !declaredType.NullableAnnotation.IsOblivious() &&
+                isAllowedOutputStricter(leftLValueType, declaredType, getRValueAnnotations(left)))
+            {
+                rightState = rightState.WithNotNullState();
+            }
+            return;
+
+            static bool isAllowedOutputStricter(TypeWithAnnotations allowedInput, TypeWithAnnotations declaredType, FlowAnalysisAnnotations outputAnnotations)
+            {
+                if (!allowedInput.CanBeAssignedNull)
+                {
+                    // allowed input is `!`, ie. stricter
+                    return false;
+                }
+
+                var allowedOutput = ApplyUnconditionalAnnotations(declaredType.ToTypeWithState(), outputAnnotations);
+                return allowedOutput.IsNotNull;
+            }
+
+            FlowAnalysisAnnotations getRValueAnnotations(BoundExpression expr)
+            {
+                return expr switch
+                {
+                    BoundPropertyAccess property => GetRValueAnnotations(property.PropertySymbol),
+                    BoundIndexerAccess indexer => GetRValueAnnotations(indexer.Indexer),
+                    BoundFieldAccess field => GetRValueAnnotations(field.FieldSymbol),
+                    _ => FlowAnalysisAnnotations.None
+                };
+            }
         }
 
         private FlowAnalysisAnnotations GetLValueAnnotations(BoundExpression expr)
@@ -6203,8 +6243,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
-            Visit(node.Left);
-            TypeWithAnnotations leftLValueType = LvalueResultType;
+            var left = node.Left;
+            Visit(left);
+            TypeWithAnnotations declaredType = LvalueResultType;
+            TypeWithAnnotations leftLValueType = declaredType;
             TypeWithState leftResultType = ResultType;
 
             Debug.Assert(!IsConditionalState);
@@ -6268,6 +6310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = TypeWithState.Create(node.Type, NullableFlowState.NotNull);
             }
 
+            AdjustSetValue(left, declaredType, leftLValueType, ref resultType);
             TrackNullableStateForAssignment(node, leftLValueType, MakeSlot(node.Left), resultType);
             SetResultType(node, resultType);
             return null;
