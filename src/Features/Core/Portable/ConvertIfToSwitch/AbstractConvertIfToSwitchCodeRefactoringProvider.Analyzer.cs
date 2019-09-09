@@ -3,15 +3,8 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,7 +14,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
     using static BinaryOperatorKind;
 
-    internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
+    internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider<
+        TIfStatementSyntax, TExpressionSyntax, TIsExpressionSyntax, TPatternSyntax>
     {
         // Match the following pattern which can be safely converted to switch statement
         //
@@ -51,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         //        : <section-expr> || <pattern-expr>
         //        | <pattern-expr>
         //
-        internal abstract class Analyzer<TIfStatementSyntax> : IAnalyzer where TIfStatementSyntax : SyntaxNode
+        internal abstract class Analyzer
         {
             private SyntaxNode? _switchTargetExpression;
             private readonly ISyntaxFactsService _syntaxFacts;
@@ -61,9 +55,9 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 _syntaxFacts = syntaxFacts;
             }
 
-            public (ImmutableArray<SwitchSection>, SyntaxNode) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
+            public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
             {
-                var sections = ArrayBuilder<SwitchSection>.GetInstance();
+                var sections = ArrayBuilder<AnalyzedSwitchSection>.GetInstance();
                 if (!ParseIfStatementSequence(operations, sections, out var defaultBodyOpt))
                 {
                     sections.Free();
@@ -72,14 +66,15 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 if (defaultBodyOpt is object)
                 {
-                    sections.Add(new SwitchSection(labels: default, defaultBodyOpt, defaultBodyOpt.Syntax));
+                    sections.Add(new AnalyzedSwitchSection(labels: default, defaultBodyOpt, defaultBodyOpt.Syntax));
                 }
 
                 Debug.Assert(_switchTargetExpression is object);
-                return (sections.ToImmutableAndFree(), _switchTargetExpression);
+                // UNDONE: Null-suppression should be removed once Assert is annotated
+                return (sections.ToImmutableAndFree(), _switchTargetExpression!);
             }
 
-            private bool ParseIfStatementSequence(ReadOnlySpan<IOperation> operations, ArrayBuilder<SwitchSection> sections, out IOperation? defaultBodyOpt)
+            private bool ParseIfStatementSequence(ReadOnlySpan<IOperation> operations, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
             {
                 if (operations.Length > 1 &&
                     operations[0] is IConditionalOperation { WhenFalse: null } op &&
@@ -112,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return false;
             }
 
-            private bool ParseIfStatement(IOperation operation, ArrayBuilder<SwitchSection> sections, out IOperation? defaultBodyOpt)
+            private bool ParseIfStatement(IOperation operation, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
             {
                 switch (operation)
                 {
@@ -145,19 +140,19 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return false;
             }
 
-            private SwitchSection? ParseSwitchSection(IConditionalOperation operation)
+            private AnalyzedSwitchSection? ParseSwitchSection(IConditionalOperation operation)
             {
-                var labels = ArrayBuilder<SwitchLabel>.GetInstance();
+                var labels = ArrayBuilder<AnalyzedSwitchLabel>.GetInstance();
                 if (!ParseSwitchLabels(operation.Condition, labels))
                 {
                     labels.Free();
                     return null;
                 }
 
-                return new SwitchSection(labels.ToImmutableAndFree(), operation.WhenTrue, operation.Syntax);
+                return new AnalyzedSwitchSection(labels.ToImmutableAndFree(), operation.WhenTrue, operation.Syntax);
             }
 
-            private bool ParseSwitchLabels(IOperation operation, ArrayBuilder<SwitchLabel> labels)
+            private bool ParseSwitchLabels(IOperation operation, ArrayBuilder<AnalyzedSwitchLabel> labels)
             {
                 if (operation is IBinaryOperation { OperatorKind: ConditionalOr } op)
                 {
@@ -179,9 +174,9 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return true;
             }
 
-            private SwitchLabel? ParseSwitchLabel(IOperation operation)
+            private AnalyzedSwitchLabel? ParseSwitchLabel(IOperation operation)
             {
-                var guards = ArrayBuilder<SyntaxNode>.GetInstance();
+                var guards = ArrayBuilder<TExpressionSyntax>.GetInstance();
                 var pattern = ParsePattern(operation, guards);
                 if (pattern is null)
                 {
@@ -189,7 +184,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     return null;
                 }
 
-                return new SwitchLabel(pattern, guards.ToImmutableAndFree());
+                return new AnalyzedSwitchLabel(pattern, guards.ToImmutableAndFree());
             }
 
             private enum ConstantResult
@@ -209,38 +204,46 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 };
             }
 
-            private Pattern? ParsePattern(IOperation operation, ArrayBuilder<SyntaxNode> guards)
+            private AnalyzedPattern? ParsePattern(IOperation operation, ArrayBuilder<TExpressionSyntax> guards)
             {
                 switch (operation)
                 {
-                    case IBinaryOperation { OperatorKind: ConditionalAnd } op when SupportsCaseGuard:
-                        guards.Add(op.RightOperand.Syntax);
+                    case IBinaryOperation { OperatorKind: ConditionalAnd } op
+                        when SupportsCaseGuard && op.RightOperand.Syntax is TExpressionSyntax node:
+                        guards.Add(node);
                         return ParsePattern(op.LeftOperand, guards);
 
-                    case IBinaryOperation { OperatorKind: ConditionalAnd } op when SupportsRangePattern && GetRangeBounds(op) is var (lower, higher):
-                        return new RangePattern(lower, higher);
+                    case IBinaryOperation { OperatorKind: ConditionalAnd } op
+                        when SupportsRangePattern && GetRangeBounds(op) is (TExpressionSyntax lower, TExpressionSyntax higher):
+                        return new AnalyzedPattern.Range(lower, higher);
 
                     case IBinaryOperation { OperatorKind: BinaryOperatorKind.Equals } op:
                         return DetermineConstant(op) switch
                         {
-                            ConstantResult.Left => new ConstantPattern(op.LeftOperand),
-                            ConstantResult.Right => new ConstantPattern(op.RightOperand),
+                            ConstantResult.Left when op.LeftOperand.Syntax is TExpressionSyntax left
+                                => new AnalyzedPattern.Constant(left),
+                            ConstantResult.Right when op.RightOperand.Syntax is TExpressionSyntax right
+                                => new AnalyzedPattern.Constant(right),
                             _ => null
                         };
 
                     case IBinaryOperation op when SupportsRelationalPattern && IsComparisonOperator(op.OperatorKind):
                         return DetermineConstant(op) switch
                         {
-                            ConstantResult.Left => new RelationalPattern(Negate(op.OperatorKind), op.LeftOperand),
-                            ConstantResult.Right => new RelationalPattern(op.OperatorKind, op.RightOperand),
+                            ConstantResult.Left when op.LeftOperand.Syntax is TExpressionSyntax left
+                                => new AnalyzedPattern.Relational(Negate(op.OperatorKind), left),
+                            ConstantResult.Right when op.RightOperand.Syntax is TExpressionSyntax right
+                                => new AnalyzedPattern.Relational(op.OperatorKind, right),
                             _ => null
                         };
 
-                    case IIsTypeOperation op when SupportsTypePattern && CheckTargetExpression(op.ValueOperand):
-                        return new TypePattern(op);
+                    case IIsTypeOperation op
+                        when SupportsTypePattern && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
+                        return new AnalyzedPattern.Type(node);
 
-                    case IIsPatternOperation op when SupportsSourcePattern && CheckTargetExpression(op.Value):
-                        return new SourcePattern(op.Pattern);
+                    case IIsPatternOperation op
+                        when SupportsSourcePattern && CheckTargetExpression(op.Value) && op.Pattern.Syntax is TPatternSyntax pattern:
+                        return new AnalyzedPattern.Source(pattern);
 
                     case IParenthesizedOperation op:
                         return ParsePattern(op.Operand, guards);
@@ -256,7 +259,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 Higher,
             }
 
-            private (IOperation Lower, IOperation Higher)? GetRangeBounds(IBinaryOperation op)
+            private (SyntaxNode Lower, SyntaxNode Higher)? GetRangeBounds(IBinaryOperation op)
             {
                 if (!(op is { LeftOperand: IBinaryOperation left, RightOperand: IBinaryOperation right }))
                 {
@@ -266,10 +269,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return (GetRangeBound(left), GetRangeBound(right)) switch
                 {
                     ({ Kind: BoundKind.Lower } low, { Kind: BoundKind.Higher } high)
-                        when CheckTargetExpression(low.Expression, high.Expression) => (low.Value, high.Value),
+                        when CheckTargetExpression(low.Expression, high.Expression) => (low.Value.Syntax, high.Value.Syntax),
                     ({ Kind: BoundKind.Higher } high, { Kind: BoundKind.Lower } low)
-                        when CheckTargetExpression(low.Expression, high.Expression) => (low.Value, high.Value),
-                    _ => ((IOperation, IOperation)?)null
+                        when CheckTargetExpression(low.Expression, high.Expression) => (low.Value.Syntax, high.Value.Syntax),
+                    _ => ((SyntaxNode, SyntaxNode)?)null
                 };
 
                 bool CheckTargetExpression(IOperation left, IOperation right)
@@ -346,146 +349,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return _syntaxFacts.AreEquivalent(expression, _switchTargetExpression);
             }
 
-            public async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-            {
-                var document = context.Document;
-                var cancellationToken = context.CancellationToken;
-
-                if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-                {
-                    return;
-                }
-
-                var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
-                if (ifStatement == null || ifStatement.ContainsDiagnostics)
-                {
-                    return;
-                }
-
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var ifOperation = semanticModel.GetOperation(ifStatement);
-                if (!(ifOperation is IConditionalOperation { Parent: IBlockOperation { Operations: var operations } }))
-                {
-                    return;
-                }
-
-                var index = operations.IndexOf(ifOperation);
-                if (index == -1)
-                {
-                    return;
-                }
-
-                var (sections, target) = AnalyzeIfStatementSequence(operations.AsSpan().Slice(index));
-                if (sections.IsDefaultOrEmpty)
-                {
-                    return;
-                }
-
-                // To prevent noisiness we don't offer this unless we're going to generate at least
-                // two switch labels.  It can be quite annoying to basically have this offered
-                // on pretty much any simple 'if' like "if (a == 0)" or "if (x == null)".  In these
-                // cases, the converted code just looks and feels worse, and it ends up causing the
-                // lightbulb to appear too much.
-                //
-                // This does mean that if someone has a simple if, and is about to add a lot more
-                // cases, and says to themselves "let me convert this to a switch first!", then they'll
-                // be out of luck.  However, I believe the core value here is in taking existing large
-                // if-chains/checks and easily converting them over to a switch.  So not offering the
-                // feature on simple if-statements seems like an acceptable compromise to take to ensure
-                // the overall user experience isn't degraded.
-                var labelCount = sections.Sum(section => section.Labels.IsDefault ? 1 : section.Labels.Length);
-                if (labelCount < 2)
-                {
-                    return;
-                }
-
-                context.RegisterRefactoring(
-                    new MyCodeAction(Title,
-                        c => UpdateDocumentAsync(document, target, ifStatement, sections, convertToSwitchExpression: false, c)),
-                    ifStatement.Span);
-
-                if (SupportsSwitchExpression &&
-                    CanConvertToSwitchExpression(sections))
-                {
-                    context.RegisterRefactoring(
-                        new MyCodeAction("TODO",
-                            c => UpdateDocumentAsync(document, target, ifStatement, sections, convertToSwitchExpression: true, c)),
-                        ifStatement.Span);
-                }
-            }
-
-            private static bool CanConvertToSwitchExpression(ImmutableArray<SwitchSection> sections)
-            {
-                return
-                    sections.Any(section => section.Labels.IsDefault) &&
-                    sections.All(section => section.Labels.IsDefault || section.Labels.Length == 1) &&
-                    sections.Any(section => section.Body.Kind == OperationKind.Return) &&
-                    sections.All(section => CanConvertToSwitchArm(section.Body));
-
-                static bool CanConvertToSwitchArm(IOperation op)
-                {
-                    switch (op)
-                    {
-                        case IReturnOperation { ReturnedValue: { } }:
-                        case IThrowOperation { Exception: { } }:
-                        case IBlockOperation { Operations: { Length: 1 } statements } when CanConvertToSwitchArm(statements[0]):
-                            return true;
-                    }
-
-                    return false;
-                }
-            }
-
-            private async Task<Document> UpdateDocumentAsync(
-                Document document,
-                SyntaxNode target,
-                SyntaxNode ifStatement,
-                ImmutableArray<SwitchSection> sections,
-                bool convertToSwitchExpression,
-                CancellationToken cancellationToken)
-            {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var generator = SyntaxGenerator.GetGenerator(document);
-
-                var ifSpan = ifStatement.Span;
-
-                SyntaxNode @switch;
-                if (convertToSwitchExpression)
-                {
-                    @switch = CreateSwitchExpressionStatement(target, sections);
-                }
-                else
-                {
-                    var lastNode = sections.LastOrDefault()?.SyntaxToRemove ?? ifStatement;
-                    @switch = CreateSwitchStatement(ifStatement, target, sections.Select(AsSwitchSectionSyntax))
-                        .WithLeadingTrivia(ifStatement.GetLeadingTrivia())
-                        .WithTrailingTrivia(lastNode.GetTrailingTrivia())
-                        .WithAdditionalAnnotations(Formatter.Annotation);
-                }
-
-                var nodesToRemove = sections.Skip(1).Select(s => s.SyntaxToRemove).Where(s => s.Parent == ifStatement.Parent);
-                root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
-                root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
-                return document.WithSyntaxRoot(root);
-
-                SyntaxNode AsSwitchSectionSyntax(SwitchSection section)
-                {
-                    var statements = AsSwitchSectionStatements(section.Body);
-                    return section.Labels.IsDefault
-                        ? generator.DefaultSwitchSection(statements)
-                        : generator.SwitchSectionFromLabels(section.Labels.Select(AsSwitchLabelSyntax), statements);
-                }
-            }
-
-            public abstract SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<SwitchSection> sections);
-            public abstract SyntaxNode CreateSwitchStatement(SyntaxNode ifStatement, SyntaxNode target, IEnumerable<SyntaxNode> sectionList);
-            public abstract IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation);
-            public abstract SyntaxNode AsSwitchLabelSyntax(SwitchLabel label);
-
             public abstract bool CanConvert(IConditionalOperation operation);
             public abstract bool HasUnreachableEndPoint(IOperation operation);
-
-            public abstract string Title { get; }
 
             public abstract bool SupportsSwitchExpression { get; }
             public abstract bool SupportsRelationalPattern { get; }
