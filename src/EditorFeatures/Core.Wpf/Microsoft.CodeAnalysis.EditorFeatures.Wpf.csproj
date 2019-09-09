@@ -112,7 +112,4 @@
       <Generator>ResXFileCodeGenerator</Generator>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Interactive\CommandHandlers\" />
-  </ItemGroup>
 </Project>

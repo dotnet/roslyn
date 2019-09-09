@@ -179,16 +179,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overloads Sub SendDownKey()
             ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of DownKeyCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of DownKeyCommandArgs))
-            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub()
-                                                                                                                                                    End Sub)
+            MyBase.SendDownKey(
+                Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c),
+                Sub()
+                    EditorOperations.MoveLineDown(extendSelection:=False)
+                End Sub)
         End Sub
 
         Public Overloads Sub SendUpKey()
             ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of UpKeyCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of UpKeyCommandArgs))
-            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub()
-                                                                                                                                                      EditorOperations.MoveLineUp(extendSelection:=False)
-                                                                                                                                                  End Sub)
+            MyBase.SendUpKey(
+                Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c),
+                Sub()
+                    EditorOperations.MoveLineUp(extendSelection:=False)
+                End Sub)
         End Sub
 
         Public Overloads Sub SendPageUp()

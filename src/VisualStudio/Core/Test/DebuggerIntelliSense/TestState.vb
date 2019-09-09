@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
@@ -23,13 +24,14 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.TextManager
 Imports Microsoft.VisualStudio.Utilities
-Imports CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
     Friend Class TestState
         Inherits AbstractCommandHandlerTestState
+
+        Friend Const RoslynItem = "RoslynItem"
 
         Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpBeforeCompletionCommandHandler
         Friend ReadOnly CompletionCommandHandler As VSCommanding.ICommandHandler
@@ -40,12 +42,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
             Get
                 Return SessionTestState.CurrentSignatureHelpPresenterSession
-            End Get
-        End Property
-
-        Friend ReadOnly Property CurrentCompletionPresenterSession As TestCompletionPresenterSession
-            Get
-                Return SessionTestState.CurrentCompletionPresenterSession
             End Get
         End Property
 
@@ -171,103 +167,132 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Me._context.RebuildSpans()
         End Sub
 
-        Public Overloads Sub SendPageUp()
-            Dim handler = DirectCast(CompletionCommandHandler, IChainedCommandHandler(Of PageUpKeyCommandArgs))
-            MyBase.SendPageUp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
-        End Sub
-
         Public Overloads Sub SendInvokeCompletionList()
             Dim handler = DirectCast(CompletionCommandHandler, IChainedCommandHandler(Of InvokeCompletionListCommandArgs))
             MyBase.SendInvokeCompletionList(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
-        Public Overloads Sub SendCommitUniqueCompletionListItem()
-            Dim handler = DirectCast(CompletionCommandHandler, IChainedCommandHandler(Of CommitUniqueCompletionListItemCommandArgs))
-            MyBase.SendCommitUniqueCompletionListItem(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
-        End Sub
-
-        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
-            AssertNoAsynchronousOperationsRunning()
-            CurrentCompletionPresenterSession.SetSelectedItem(item)
-        End Sub
-
         Public Overloads Sub SendToggleCompletionMode()
-            Dim handler = DirectCast(CompletionCommandHandler, IChainedCommandHandler(Of ToggleCompletionModeCommandArgs))
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.ICommandHandler(Of ToggleCompletionModeCommandArgs))
             MyBase.SendToggleCompletionMode(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
-        Public Async Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
-            If block Then
-                Await WaitForAsynchronousOperationsAsync()
+        Public Function HasSuggestedItem() As Boolean
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim computedItems = session.GetComputedItems(CancellationToken.None)
+            Return computedItems.SuggestionItem IsNot Nothing
+        End Function
+
+        Public Async Function AssertNoCompletionSession() As Task
+            Await WaitForAsynchronousOperationsAsync()
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            If session Is Nothing Then
+                Return
             End If
 
-            Assert.Null(Me.CurrentCompletionPresenterSession)
+            If session.IsDismissed Then
+                Return
+            End If
+
+            Dim completionItems = session.GetComputedItems(CancellationToken.None)
+            ' During the computation we can explicitly dismiss the session or we can return no items.
+            ' Each of these conditions mean that there is no active completion.
+            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0, "AssertNoCompletionSession")
         End Function
 
         Public Async Function AssertCompletionSession() As Task
             Await WaitForAsynchronousOperationsAsync()
-            Assert.NotNull(Me.CurrentCompletionPresenterSession)
+            Dim view = TextView
+
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
+            Assert.True(session IsNot Nothing, "AssertCompletionSession")
+        End Function
+
+        Public Function GetCompletionItems() As IList(Of CompletionItem)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Return session.GetComputedItems(CancellationToken.None).Items.Select(Function(item) GetRoslynCompletionItem(item)).ToList()
+        End Function
+
+        Private Shared Function GetRoslynCompletionItem(item As Data.CompletionItem) As CompletionItem
+            Return If(item IsNot Nothing, DirectCast(item.Properties(RoslynItem), CompletionItem), Nothing)
         End Function
 
         Public Async Function AssertCompletionItemsContainAll(ParamArray displayTexts As String()) As Task
             Await WaitForAsynchronousOperationsAsync()
-
-            If Me.CurrentCompletionPresenterSession Is Nothing Then
-                Assert.False(True, "No completion session active")
-            End If
-
-            For Each displayText In displayTexts
-                If Not CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = displayText) Then
-                    Assert.False(True, "Didn't find '" & displayText & "' in completion.")
-                End If
-            Next
+            Dim items = GetCompletionItems()
+            Assert.True(displayTexts.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
         End Function
 
         Public Async Function AssertCompletionItemsContainNone(ParamArray displayTexts As String()) As Task
             Await WaitForAsynchronousOperationsAsync()
-
-            If Me.CurrentCompletionPresenterSession Is Nothing Then
-                Assert.False(True, "No completion session active")
-            End If
-
-            For Each displayText In displayTexts
-                If CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = displayText) Then
-                    Assert.False(True, "Found '" & displayText & "' in completion.")
-                End If
-            Next
+            Dim items = GetCompletionItems()
+            Assert.False(displayTexts.Any(Function(v) items.Any(Function(i) i.DisplayText = v)))
         End Function
 
         Public Async Function AssertSelectedCompletionItem(
-            Optional displayText As String = Nothing,
-            Optional description As String = Nothing,
-            Optional isSoftSelected As Boolean? = Nothing,
-            Optional isHardSelected As Boolean? = Nothing
-        ) As Task
+                                                    Optional displayText As String = Nothing,
+                                                    Optional displayTextSuffix As String = Nothing,
+                                                    Optional description As String = Nothing,
+                                                    Optional isSoftSelected As Boolean? = Nothing,
+                                                    Optional isHardSelected As Boolean? = Nothing,
+                                                    Optional shouldFormatOnCommit As Boolean? = Nothing,
+                                                    Optional inlineDescription As String = Nothing,
+                                                    Optional automationText As String = Nothing,
+                                                    Optional projectionsView As ITextView = Nothing) As Task
 
             Await WaitForAsynchronousOperationsAsync()
+            Dim view = If(projectionsView, TextView)
+
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
+            Assert.NotNull(session)
+            Dim items = session.GetComputedItems(CancellationToken.None)
+
             If isSoftSelected.HasValue Then
-                Assert.Equal(isSoftSelected.Value, Me.CurrentCompletionPresenterSession.IsSoftSelected)
+                If isSoftSelected.Value Then
+                    Assert.True(items.UsesSoftSelection, "Current completion is not soft-selected. Expected: soft-selected")
+                Else
+                    Assert.False(items.UsesSoftSelection, "Current completion is soft-selected. Expected: not soft-selected")
+                End If
             End If
 
             If isHardSelected.HasValue Then
-                Assert.Equal(isHardSelected.Value, Not Me.CurrentCompletionPresenterSession.IsSoftSelected)
+                If isHardSelected.Value Then
+                    Assert.True(Not items.UsesSoftSelection, "Current completion is not hard-selected. Expected: hard-selected")
+                Else
+                    Assert.True(items.UsesSoftSelection, "Current completion is hard-selected. Expected: not hard-selected")
+                End If
             End If
 
             If displayText IsNot Nothing Then
-                Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
+                Assert.NotNull(items.SelectedItem)
+                If displayTextSuffix IsNot Nothing Then
+                    Assert.NotNull(items.SelectedItem)
+                    Assert.Equal(displayText + displayTextSuffix, items.SelectedItem.DisplayText)
+                Else
+                    Assert.Equal(displayText, items.SelectedItem.DisplayText)
+                End If
             End If
 
-#If False Then
-            If insertionText IsNot Nothing Then
-                Assert.Equal(insertionText, Me.CurrentCompletionPresenterSession.SelectedItem.TextChange.NewText)
+            If shouldFormatOnCommit.HasValue Then
+                Assert.Equal(shouldFormatOnCommit.Value, GetRoslynCompletionItem(items.SelectedItem).Rules.FormatOnCommit)
             End If
-#End If
 
             If description IsNot Nothing Then
                 Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim service = CompletionService.GetService(document)
-                Dim itemDescription = Await service.GetDescriptionAsync(document, Me.CurrentCompletionPresenterSession.SelectedItem)
+                Dim roslynItem = GetRoslynCompletionItem(items.SelectedItem)
+                Dim itemDescription = Await service.GetDescriptionAsync(document, roslynItem)
                 Assert.Equal(description, itemDescription.Text)
+            End If
+
+            If inlineDescription IsNot Nothing Then
+                Assert.Equal(inlineDescription, items.SelectedItem.Suffix)
+            End If
+
+            If automationText IsNot Nothing Then
+                Assert.Equal(automationText, items.SelectedItem.AutomationText)
             End If
         End Function
 
@@ -288,24 +313,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 #End Region
 
 #Region "Signature Help Operations"
-
-        Public Overloads Sub SendInvokeSignatureHelp()
-            Dim handler = DirectCast(SignatureHelpCommandHandler, IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs))
-            MyBase.SendInvokeSignatureHelp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
-        End Sub
-
-        Public Sub SendSelectSignatureHelpItemThroughPresenterSession(item As SignatureHelpItem)
-            AssertNoAsynchronousOperationsRunning()
-            CurrentSignatureHelpPresenterSession.SetSelectedItem(item)
-        End Sub
-
-        Public Async Function AssertNoSignatureHelpSession(Optional block As Boolean = True) As Task
-            If block Then
-                Await WaitForAsynchronousOperationsAsync()
-            End If
-
-            Assert.Null(Me.CurrentSignatureHelpPresenterSession)
-        End Function
 
         Public Async Function AssertSignatureHelpSession() As Task
             Await WaitForAsynchronousOperationsAsync()
@@ -330,37 +337,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Return String.Join(String.Empty, parts.Select(Function(p) p.ToString()))
         End Function
 
-        Public Function SignatureHelpItemsContainsAll(displayText As String()) As Boolean
-            AssertNoAsynchronousOperationsRunning()
-            Return displayText.All(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
-                                       Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v))
-        End Function
-
-        Public Function SignatureHelpItemsContainsAny(displayText As String()) As Boolean
-            AssertNoAsynchronousOperationsRunning()
-            Return displayText.Any(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
-                                       Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v))
-        End Function
-
-        Public Async Function AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
-                               Optional documentation As String = Nothing,
-                               Optional selectedParameter As String = Nothing) As Task
-            Await WaitForAsynchronousOperationsAsync()
-
-            If displayText IsNot Nothing Then
-                Assert.Equal(displayText, GetDisplayText(Me.CurrentSignatureHelpPresenterSession.SelectedItem, Me.CurrentSignatureHelpPresenterSession.SelectedParameter.Value))
-            End If
-
-            If documentation IsNot Nothing Then
-                Assert.Equal(documentation, Me.CurrentSignatureHelpPresenterSession.SelectedItem.DocumentationFactory(CancellationToken.None).GetFullText())
-            End If
-
-            If selectedParameter IsNot Nothing Then
-                Assert.Equal(selectedParameter, GetDisplayText(
-                    Me.CurrentSignatureHelpPresenterSession.SelectedItem.Parameters(
-                        Me.CurrentSignatureHelpPresenterSession.SelectedParameter.Value).DisplayParts))
-            End If
-        End Function
 #End Region
 
         Public Function GetCurrentViewLineText() As String

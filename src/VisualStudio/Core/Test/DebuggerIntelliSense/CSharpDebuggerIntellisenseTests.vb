@@ -710,13 +710,13 @@ $$</Document>
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("args", state.GetCurrentViewLineText())
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.True(state.HasSuggestedItem())
                 state.SendToggleCompletionMode()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.False(state.HasSuggestedItem())
                 state.SendTypeChars(".")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.False(state.HasSuggestedItem())
             End Using
         End Function
 
@@ -740,13 +740,13 @@ $$</Document>
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("args", state.GetCurrentViewLineText())
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.True(state.HasSuggestedItem())
                 state.SendToggleCompletionMode()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.False(state.HasSuggestedItem())
                 state.SendTypeChars(".")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.False(state.HasSuggestedItem())
             End Using
         End Function
 
