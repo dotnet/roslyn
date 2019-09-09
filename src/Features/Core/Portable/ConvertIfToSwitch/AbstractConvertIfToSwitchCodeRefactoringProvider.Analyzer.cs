@@ -259,11 +259,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 Higher,
             }
 
-            private (SyntaxNode Lower, SyntaxNode Higher)? GetRangeBounds(IBinaryOperation op)
+            private (SyntaxNode Lower, SyntaxNode Higher) GetRangeBounds(IBinaryOperation op)
             {
                 if (!(op is { LeftOperand: IBinaryOperation left, RightOperand: IBinaryOperation right }))
                 {
-                    return null;
+                    return default;
                 }
 
                 return (GetRangeBound(left), GetRangeBound(right)) switch
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                         when CheckTargetExpression(low.Expression, high.Expression) => (low.Value.Syntax, high.Value.Syntax),
                     ({ Kind: BoundKind.Higher } high, { Kind: BoundKind.Lower } low)
                         when CheckTargetExpression(low.Expression, high.Expression) => (low.Value.Syntax, high.Value.Syntax),
-                    _ => ((SyntaxNode, SyntaxNode)?)null
+                    _ => default
                 };
 
                 bool CheckTargetExpression(IOperation left, IOperation right)
