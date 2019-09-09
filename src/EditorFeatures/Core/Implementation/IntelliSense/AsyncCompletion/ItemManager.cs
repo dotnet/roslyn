@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var completionHelper = document != null ? CompletionHelper.GetHelper(document) : _defaultCompletionHelper;
 
             // DismissIfLastCharacterDeleted should be applied only when started with Insertion, and then Deleted all characters typed.
-            // This confirms with the original VS 2010 behavior.
+            // This conforms with the original VS 2010 behavior.
             if (initialRoslynTriggerKind == CompletionTriggerKind.Insertion &&
                 data.Trigger.Reason == CompletionTriggerReason.Backspace &&
                 completionRules.DismissIfLastCharacterDeleted &&
@@ -166,6 +166,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var options = document?.Project.Solution.Options;
             var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? true;
+            // Nothing to highlight if user hasn't typed anything yet.
+            highlightMatchingPortions = highlightMatchingPortions && filterText.Length > 0;
 
             var builder = ArrayBuilder<ExtendedFilterResult>.GetInstance();
             foreach (var item in data.InitialSortedList)
@@ -208,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // The item didn't match the filter text.  We'll still keep it in the list
                     // if one of two things is true:
                     //
-                    //  1. The user has only typed a single character.  In this case they might
+                    //  1. The user has typed nothing or only typed a single character.  In this case they might
                     //     have just typed the character to get completion.  Filtering out items
                     //     here is not desirable.
                     //
@@ -243,7 +245,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
                 : ImmutableArray<CompletionFilterWithState>.Empty;
 
-            var highlightedList = GetHighlightedList(initialListOfItemsToBeIncluded, filterText, completionHelper, highlightMatchingPortions);
+            var highlightedList = highlightMatchingPortions
+                ? GetHighlightedList(initialListOfItemsToBeIncluded, filterText, completionHelper)
+                : initialListOfItemsToBeIncluded.SelectAsArray(r => new CompletionItemWithHighlight(r.VSCompletionItem, ImmutableArray<Span>.Empty));
 
             // If this was deletion, then we control the entire behavior of deletion ourselves.
             if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
@@ -309,14 +313,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             static ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(
                 ImmutableArray<ExtendedFilterResult> filterResults,
                 string filterText,
-                CompletionHelper completionHelper,
-                bool highlightMatchingPortions)
+                CompletionHelper completionHelper)
             {
-                if (!highlightMatchingPortions)
-                {
-                    return filterResults.SelectAsArray(r => new CompletionItemWithHighlight(r.VSCompletionItem, ImmutableArray<Span>.Empty));
-                }
-
                 var highlightedItems = ArrayBuilder<CompletionItemWithHighlight>.GetInstance(filterResults.Length);
                 foreach (var extendedResult in filterResults)
                 {
@@ -628,8 +626,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Get the match of the given completion item for the pattern provided so far. 
             // A completion item is checked against the pattern by see if it's 
             // CompletionItem.FilterText matches the item. That way, the pattern it checked 
-            // against terms like "IList" and not IList<>
-            patternMatch = helper.GetMatch(item.FilterText, filterText, includeMatchSpans: includeMatchSpans, CultureInfo.CurrentCulture);
+            // against terms like "IList" and not IList<>.
+            // Note that the check on filter text length is purely for efficiency, we should 
+            // get the same result with or without it.
+            patternMatch = filterText.Length > 0
+                ? helper.GetMatch(item.FilterText, filterText, includeMatchSpans: includeMatchSpans, CultureInfo.CurrentCulture)
+                : null;
 
             // For the deletion we bake in the core logic for how matching should work.
             // This way deletion feels the same across all languages that opt into deletion 
