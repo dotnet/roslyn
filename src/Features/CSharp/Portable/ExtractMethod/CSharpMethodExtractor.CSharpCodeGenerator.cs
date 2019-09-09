@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     {
                         Name: nameof(Task.ConfigureAwait),
                         Parameters: { Length: 1 } parameters
-                    } && parameters[0].Type is { SpecialType: SpecialType.System_Boolean }))
+                    } && parameters[0].Type.SpecialType == SpecialType.System_Boolean))
                     {
                         invocation = SyntaxFactory.InvocationExpression(
                             SyntaxFactory.MemberAccessExpression(
