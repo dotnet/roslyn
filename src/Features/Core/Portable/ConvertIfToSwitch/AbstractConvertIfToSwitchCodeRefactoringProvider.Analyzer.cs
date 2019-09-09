@@ -325,11 +325,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return operation.SemanticModel.GetConstantValue(operation.Syntax).HasValue;
             }
 
-            public virtual bool HasUnreachableEndPoint(IOperation operation)
-            {
-                return !operation.SemanticModel.AnalyzeControlFlow(operation.Syntax).EndPointIsReachable;
-            }
-
             private bool CheckTargetExpression(IOperation operation)
             {
                 if (operation is IConversionOperation { IsImplicit: false } op)
@@ -488,6 +483,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             public abstract SyntaxNode AsSwitchLabelSyntax(SwitchLabel label);
 
             public abstract bool CanConvert(IConditionalOperation operation);
+            public abstract bool HasUnreachableEndPoint(IOperation operation);
 
             public abstract string Title { get; }
 

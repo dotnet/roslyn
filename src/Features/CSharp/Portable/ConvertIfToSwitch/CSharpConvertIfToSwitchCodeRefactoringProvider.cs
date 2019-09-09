@@ -37,6 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             {
             }
 
+            public override bool HasUnreachableEndPoint(IOperation operation)
+            {
+                return !operation.SemanticModel.AnalyzeControlFlow(operation.Syntax).EndPointIsReachable;
+            }
+
             public override SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<SwitchSection> sections)
             {
                 return ReturnStatement(
