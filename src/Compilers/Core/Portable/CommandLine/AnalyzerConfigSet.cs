@@ -181,6 +181,11 @@ namespace Microsoft.CodeAnalysis
                         // lets us avoid an allocation if the id has already been added
                         if (!diagIdCache.TryGetValue(idSlice, out var diagId))
                         {
+                            // We use ReadOnlyMemory<char> to allow allocation-free lookups in the
+                            // dictionary, but the actual keys stored in the dictionary are trimmed
+                            // to avoid holding GC references to larger strings than necessary. The
+                            // GetOrAdd APIs do not allow the key to be manipulated between lookup
+                            // and insertion, so we separate the operations here in code.
                             diagId = idSlice.ToString();
                             diagId = diagIdCache.GetOrAdd(diagId.AsMemory(), diagId);
                         }
