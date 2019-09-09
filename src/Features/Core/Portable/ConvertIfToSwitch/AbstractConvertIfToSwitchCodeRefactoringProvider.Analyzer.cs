@@ -23,13 +23,17 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         //        : if (<section-expr>) { <unreachable-end-point> }, <if-statement-sequence>
         //        : if (<section-expr>) { <unreachable-end-point> }, ( return | throw )
         //        | <if-statement>
-
+        //
         //    <if-statement>
         //        : if (<section-expr>) { _ } else <if-statement>
         //        | if (<section-expr>) { _ } else { _ }
         //        | if (<section-expr>) { _ }
         //        | { <if-statement-sequence> }
-
+        //
+        //    <section-expr>
+        //        : <section-expr> || <pattern-expr>
+        //        | <pattern-expr>
+        //
         //    <pattern-expr>
         //        : <pattern-expr> && <expr>                         // C#
         //        | <expr0> is <pattern>                             // C#
@@ -40,10 +44,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         //           && ( <expr0> <= <const> | <const> >= <expr0> )  //     VB
         //        | ( <expr0> <= <const> | <const> >= <expr0> )
         //           && ( <expr0> >= <const> | <const> <= <expr0> )  //     VB
-        //
-        //    <section-expr>
-        //        : <section-expr> || <pattern-expr>
-        //        | <pattern-expr>
         //
         internal abstract class Analyzer
         {
@@ -74,6 +74,13 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return (sections.ToImmutableAndFree(), _switchTargetExpression!);
             }
 
+            // Tree to parse:
+            //
+            //    <if-statement-sequence>
+            //        : if (<section-expr>) { <unreachable-end-point> }, <if-statement-sequence>
+            //        : if (<section-expr>) { <unreachable-end-point> }, ( return | throw )
+            //        | <if-statement>
+            //
             private bool ParseIfStatementSequence(ReadOnlySpan<IOperation> operations, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
             {
                 if (operations.Length > 1 &&
@@ -107,6 +114,14 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return false;
             }
 
+            // Tree to parse:
+            //
+            //    <if-statement>
+            //        : if (<section-expr>) { _ } else <if-statement>
+            //        | if (<section-expr>) { _ } else { _ }
+            //        | if (<section-expr>) { _ }
+            //        | { <if-statement-sequence> }
+            //
             private bool ParseIfStatement(IOperation operation, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
             {
                 switch (operation)
@@ -152,6 +167,12 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return new AnalyzedSwitchSection(labels.ToImmutableAndFree(), operation.WhenTrue, operation.Syntax);
             }
 
+            // Tree to parse:
+            //
+            //    <section-expr>
+            //        : <section-expr> || <pattern-expr>
+            //        | <pattern-expr>
+            //
             private bool ParseSwitchLabels(IOperation operation, ArrayBuilder<AnalyzedSwitchLabel> labels)
             {
                 if (operation is IBinaryOperation { OperatorKind: ConditionalOr } op)
@@ -204,6 +225,19 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 };
             }
 
+            // Tree to parse:
+            //
+            //    <pattern-expr>
+            //        : <pattern-expr> && <expr>                         // C#
+            //        | <expr0> is <pattern>                             // C#
+            //        | <expr0> is <type>                                // C#
+            //        | <expr0> == <const-expr>                          // C#, VB
+            //        | <expr0> <comparison-op> <const>                  //     VB
+            //        | ( <expr0> >= <const> | <const> <= <expr0> )
+            //           && ( <expr0> <= <const> | <const> >= <expr0> )  //     VB
+            //        | ( <expr0> <= <const> | <const> >= <expr0> )
+            //           && ( <expr0> >= <const> | <const> <= <expr0> )  //     VB
+            //
             private AnalyzedPattern? ParsePattern(IOperation operation, ArrayBuilder<TExpressionSyntax> guards)
             {
                 switch (operation)
