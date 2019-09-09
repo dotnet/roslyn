@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
@@ -355,8 +356,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     return;
                 }
 
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
                 var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
                 if (ifStatement == null || ifStatement.ContainsDiagnostics)
                 {
@@ -402,7 +401,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 context.RegisterRefactoring(
                     new MyCodeAction(Title,
-                        _ => UpdateDocumentAsync(root, document, target, ifStatement, sections, convertToSwitchExpression: false)),
+                        c => UpdateDocumentAsync(document, target, ifStatement, sections, convertToSwitchExpression: false, c)),
                     ifStatement.Span);
 
                 if (SupportsSwitchExpression &&
@@ -410,7 +409,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 {
                     context.RegisterRefactoring(
                         new MyCodeAction("TODO",
-                            _ => UpdateDocumentAsync(root, document, target, ifStatement, sections, convertToSwitchExpression: true)),
+                            c => UpdateDocumentAsync(document, target, ifStatement, sections, convertToSwitchExpression: true, c)),
                         ifStatement.Span);
                 }
             }
@@ -437,18 +436,18 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
             }
 
-            private Task<Document> UpdateDocumentAsync(
-                SyntaxNode root,
+            private async Task<Document> UpdateDocumentAsync(
                 Document document,
                 SyntaxNode target,
                 SyntaxNode ifStatement,
                 ImmutableArray<SwitchSection> sections,
-                bool convertToSwitchExpression)
+                bool convertToSwitchExpression,
+                CancellationToken cancellationToken)
             {
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var generator = SyntaxGenerator.GetGenerator(document);
 
                 var ifSpan = ifStatement.Span;
-                var lastNode = sections.LastOrDefault()?.SyntaxToRemove ?? ifStatement;
 
                 SyntaxNode @switch;
                 if (convertToSwitchExpression)
@@ -457,6 +456,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
                 else
                 {
+                    var lastNode = sections.LastOrDefault()?.SyntaxToRemove ?? ifStatement;
                     @switch = CreateSwitchStatement(ifStatement, target, sections.Select(AsSwitchSectionSyntax))
                         .WithLeadingTrivia(ifStatement.GetLeadingTrivia())
                         .WithTrailingTrivia(lastNode.GetTrailingTrivia())
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 var nodesToRemove = sections.Skip(1).Select(s => s.SyntaxToRemove).Where(s => s.Parent == ifStatement.Parent);
                 root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
                 root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
-                return Task.FromResult(document.WithSyntaxRoot(root));
+                return document.WithSyntaxRoot(root);
 
                 SyntaxNode AsSwitchSectionSyntax(SwitchSection section)
                 {
