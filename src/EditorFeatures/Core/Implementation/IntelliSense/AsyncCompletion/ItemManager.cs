@@ -169,7 +169,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Nothing to highlight if user hasn't typed anything yet.
             highlightMatchingPortions = highlightMatchingPortions && filterText.Length > 0;
 
+            // Use a monotonically increasing integer to keep track the original alphabetical order of each item.
+            var currentIndex = 0;
             var builder = ArrayBuilder<ExtendedFilterResult>.GetInstance();
+
             foreach (var item in data.InitialSortedList)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -203,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     includeMatchSpans: highlightMatchingPortions,
                     out var patternMatch))
                 {
-                    builder.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: true, patternMatch)));
+                    builder.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: true, patternMatch), currentIndex++));
                 }
                 else
                 {
@@ -220,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         initialRoslynTriggerKind == CompletionTriggerKind.Invoke ||
                         filterText.Length <= 1)
                     {
-                        builder.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: false, patternMatch)));
+                        builder.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: false, patternMatch), currentIndex++));
                     }
                 }
             }
@@ -232,13 +235,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var experimentationService = document?.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
 
-            // Sort the items by pattern matching results.
-            // Need a stable sorting algorithm to preserve the original alphabetical order for items with same pattern match score.
-            var initialListOfItemsToBeIncluded = experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SortCompletionListByMatch) == true
-                ? builder.OrderBy(ExtendedFilterResultComparer.Instance).ToImmutableArray()
-                : builder.ToImmutable();
+            if (experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SortCompletionListByMatch) == true)
+            {
+                // Sort the items by pattern matching results.
+                // Note that we want to preserve the original alphabetical order for items with same pattern match score,
+                // but `ArrayBuilder.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
+                // to `ExtendedFilterResult` to archieve this.
+                builder.Sort(ExtendedFilterResult.Comparer);
+            }
 
-            builder.Free();
+            var initialListOfItemsToBeIncluded = builder.ToImmutableAndFree();
 
             var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
 
@@ -780,38 +786,50 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             public readonly VSCompletionItem VSCompletionItem;
             public readonly FilterResult FilterResult;
 
-            public ExtendedFilterResult(VSCompletionItem item, FilterResult filterResult)
+            // We want to preserve the original alphabetical order for items with same pattern match score,
+            // but `ArrayBuilder.Sort` we currently use isn't stable. So we have to add a monotonically increasing 
+            // integer to archieve this.
+            public readonly int IndexInOriginalSortedOrder;
+
+            public ExtendedFilterResult(VSCompletionItem item, FilterResult filterResult, int index)
             {
                 VSCompletionItem = item;
                 FilterResult = filterResult;
+                IndexInOriginalSortedOrder = index;
             }
-        }
 
-        private class ExtendedFilterResultComparer : IComparer<ExtendedFilterResult>
-        {
-            public static ExtendedFilterResultComparer Instance { get; } = new ExtendedFilterResultComparer();
+            public static IComparer<ExtendedFilterResult> Comparer => ExtendedFilterResultComparer.Instance;
 
-            public int Compare(ExtendedFilterResult x, ExtendedFilterResult y)
+            private class ExtendedFilterResultComparer : IComparer<ExtendedFilterResult>
             {
-                var matchX = x.FilterResult.PatternMatch;
-                var matchY = y.FilterResult.PatternMatch;
+                public static ExtendedFilterResultComparer Instance { get; } = new ExtendedFilterResultComparer();
 
-                if (matchX.HasValue)
+                public int Compare(ExtendedFilterResult x, ExtendedFilterResult y)
                 {
-                    if (matchY.HasValue)
+                    var matchX = x.FilterResult.PatternMatch;
+                    var matchY = y.FilterResult.PatternMatch;
+
+                    if (matchX.HasValue)
                     {
-                        return matchX.Value.CompareTo(matchY.Value);
+                        if (matchY.HasValue)
+                        {
+                            var ret = matchX.Value.CompareTo(matchY.Value);
+                            // We want to preserve the original order for items with same pattern match score.
+                            return ret == 0
+                                ? x.IndexInOriginalSortedOrder - y.IndexInOriginalSortedOrder
+                                : ret;
+                        }
+
+                        return -1;
                     }
 
-                    return -1;
-                }
+                    if (matchY.HasValue)
+                    {
+                        return 1;
+                    }
 
-                if (matchY.HasValue)
-                {
-                    return 1;
+                    return x.IndexInOriginalSortedOrder - y.IndexInOriginalSortedOrder;
                 }
-
-                return 0;
             }
         }
     }
