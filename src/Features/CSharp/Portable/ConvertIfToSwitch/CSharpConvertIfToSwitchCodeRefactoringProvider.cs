@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                     expression: (ExpressionSyntax)expression,
                     closeParenToken: ifStatement.CloseParenToken.WithPrependedLeadingTrivia(ElasticMarker),
                     openBraceToken: block?.OpenBraceToken ?? Token(SyntaxKind.OpenBraceToken),
-                    sections: List(sectionList.OfType<SwitchSectionSyntax>()),
+                    sections: List(sectionList.Cast<SwitchSectionSyntax>()),
                     closeBraceToken: block?.CloseBraceToken ?? Token(SyntaxKind.CloseBraceToken));
             }
 
