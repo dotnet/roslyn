@@ -32,10 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             var (pattern, whenClause) = section.Labels.IsDefault
                 ? (DiscardPattern(), null)
                 : (AsPatternSyntax(section.Labels[0].Pattern), AsWhenClause(section.Labels[0]));
-            return SwitchExpressionArm(
-                pattern,
-                whenClause,
-                expression: AsExpressionSyntax(section.Body));
+            return SwitchExpressionArm(pattern, whenClause, AsExpressionSyntax(section.Body));
         }
 
         private static ExpressionSyntax AsExpressionSyntax(IOperation operation)
