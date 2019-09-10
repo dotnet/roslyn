@@ -5994,7 +5994,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var nestedVariables = variable.NestedVariables;
                     if (nestedVariables == null)
                     {
-                        // TODO2 this method should handle attributes properly
                         VisitArgumentOutboundAssignmentsAndPostConditions(
                             variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
                             new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default), notNullParametersOpt: null);
