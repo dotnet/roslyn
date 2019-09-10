@@ -142,8 +142,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                         var section = ParseSwitchSection(op);
                         if (section is null)
                         {
-                            defaultBodyOpt = null;
-                            return false;
+                            break;
                         }
 
                         sections.Add(section);
