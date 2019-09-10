@@ -5893,167 +5893,179 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
 
-            int n = variables.Count;
-
             if (!conversion.DeconstructionInfo.IsDefault)
             {
-                VisitRvalue(right);
-
-                // If we were passed an explicit right result, use that rather than the visited result
-                if (rightResultOpt.HasValue)
-                {
-                    SetResultType(right, rightResultOpt.Value);
-                }
-                var rightResult = ResultType;
-
-                var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
-                var deconstructMethod = invocation?.Method;
-
-                if ((object)deconstructMethod != null)
-                {
-                    if (!invocation.InvokedAsExtensionMethod)
-                    {
-                        _ = CheckPossibleNullReceiver(right);
-
-                        // update the deconstruct method with any inferred type parameters of the containing type
-                        if (deconstructMethod.OriginalDefinition != deconstructMethod)
-                        {
-                            deconstructMethod = deconstructMethod.OriginalDefinition.AsMember((NamedTypeSymbol)rightResult.Type);
-                        }
-                    }
-                    else
-                    {
-                        if (deconstructMethod.IsGenericMethod)
-                        {
-                            // re-infer the deconstruct parameters based on the 'this' parameter
-                            ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n + 1);
-                            placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResult.ToTypeWithAnnotations()));
-                            for (int i = 0; i < n; i++)
-                            {
-                                placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
-                            }
-                            deconstructMethod = InferMethodTypeArguments(invocation, deconstructMethod, placeholderArgs.ToImmutableAndFree());
-
-                            // check the constraints remain valid with the re-inferred parameter types
-                            if (ConstraintsHelper.RequiresChecking(deconstructMethod))
-                            {
-                                CheckMethodConstraints(invocation.Syntax, deconstructMethod);
-                            }
-                        }
-                    }
-
-                    var parameters = deconstructMethod.Parameters;
-                    int offset = invocation.InvokedAsExtensionMethod ? 1 : 0;
-                    Debug.Assert(parameters.Length - offset == n);
-
-                    if (invocation.InvokedAsExtensionMethod)
-                    {
-                        // Check nullability for `this` parameter
-                        CheckExtensionMethodThisNullability(right, conversion, deconstructMethod.Parameters[0], rightResult);
-                    }
-
-                    for (int i = 0; i < n; i++)
-                    {
-                        var variable = variables[i];
-                        var parameter = parameters[i + offset];
-                        var underlyingConversion = conversion.UnderlyingConversions[i];
-                        var nestedVariables = variable.NestedVariables;
-                        if (nestedVariables != null)
-                        {
-                            var nestedRight = CreatePlaceholderIfNecessary(invocation.Arguments[i + offset], parameter.TypeWithAnnotations);
-                            VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: nestedRight);
-                        }
-                        else
-                        {
-                            VisitArgumentConversionAndInboundAssignmentsAndPreConditions(conversionOpt: null, variable.Expression, underlyingConversion, parameter.RefKind,
-                                parameter, parameter.TypeWithAnnotations, GetParameterAnnotations(parameter), new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
-                                extensionMethodThisArgument: false);
-                        }
-                    }
-
-                    for (int i = 0; i < n; i++)
-                    {
-                        var variable = variables[i];
-                        var parameter = parameters[i + offset];
-                        var nestedVariables = variable.NestedVariables;
-                        if (nestedVariables == null)
-                        {
-                            VisitArgumentOutboundAssignmentsAndPostConditions(
-                                variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
-                                new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default), notNullParametersOpt: null);
-                        }
-                    }
-                }
+                VisitDeconstructMethodArguments(variables, conversion, right, rightResultOpt);
             }
             else
             {
-                var rightParts = GetDeconstructionRightParts(right);
-                Debug.Assert(rightParts.Length == n);
+                VisitTupleDeconstructionArguments(variables, conversion.UnderlyingConversions, right);
+            }
+        }
+
+        private void VisitDeconstructMethodArguments(ArrayBuilder<DeconstructionVariable> variables, Conversion conversion, BoundExpression right, TypeWithState? rightResultOpt)
+        {
+            int n = variables.Count;
+            VisitRvalue(right);
+
+            // If we were passed an explicit right result, use that rather than the visited result
+            if (rightResultOpt.HasValue)
+            {
+                SetResultType(right, rightResultOpt.Value);
+            }
+            var rightResult = ResultType;
+
+            var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
+            var deconstructMethod = invocation?.Method;
+
+            if ((object)deconstructMethod != null)
+            {
+                if (!invocation.InvokedAsExtensionMethod)
+                {
+                    _ = CheckPossibleNullReceiver(right);
+
+                    // update the deconstruct method with any inferred type parameters of the containing type
+                    if (deconstructMethod.OriginalDefinition != deconstructMethod)
+                    {
+                        deconstructMethod = deconstructMethod.OriginalDefinition.AsMember((NamedTypeSymbol)rightResult.Type);
+                    }
+                }
+                else
+                {
+                    if (deconstructMethod.IsGenericMethod)
+                    {
+                        // re-infer the deconstruct parameters based on the 'this' parameter
+                        ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n + 1);
+                        placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResult.ToTypeWithAnnotations()));
+                        for (int i = 0; i < n; i++)
+                        {
+                            placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
+                        }
+                        deconstructMethod = InferMethodTypeArguments(invocation, deconstructMethod, placeholderArgs.ToImmutableAndFree());
+
+                        // check the constraints remain valid with the re-inferred parameter types
+                        if (ConstraintsHelper.RequiresChecking(deconstructMethod))
+                        {
+                            CheckMethodConstraints(invocation.Syntax, deconstructMethod);
+                        }
+                    }
+                }
+
+                var parameters = deconstructMethod.Parameters;
+                int offset = invocation.InvokedAsExtensionMethod ? 1 : 0;
+                Debug.Assert(parameters.Length - offset == n);
+
+                if (invocation.InvokedAsExtensionMethod)
+                {
+                    // Check nullability for `this` parameter
+                    CheckExtensionMethodThisNullability(right, conversion, deconstructMethod.Parameters[0], rightResult);
+                }
 
                 for (int i = 0; i < n; i++)
                 {
                     var variable = variables[i];
+                    var parameter = parameters[i + offset];
                     var underlyingConversion = conversion.UnderlyingConversions[i];
-                    var rightPart = rightParts[i];
                     var nestedVariables = variable.NestedVariables;
                     if (nestedVariables != null)
                     {
-                        VisitDeconstructionArguments(nestedVariables, underlyingConversion, rightPart);
+                        var nestedRight = CreatePlaceholderIfNecessary(invocation.Arguments[i + offset], parameter.TypeWithAnnotations);
+                        VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: nestedRight);
                     }
                     else
                     {
-                        var targetType = variable.Type;
-                        TypeWithState operandType;
-                        TypeWithState valueType;
-                        int valueSlot;
-                        if (underlyingConversion.IsIdentity)
+                        VisitArgumentConversionAndInboundAssignmentsAndPreConditions(conversionOpt: null, variable.Expression, underlyingConversion, parameter.RefKind,
+                            parameter, parameter.TypeWithAnnotations, GetParameterAnnotations(parameter), new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
+                            extensionMethodThisArgument: false);
+                    }
+                }
+
+                for (int i = 0; i < n; i++)
+                {
+                    var variable = variables[i];
+                    var parameter = parameters[i + offset];
+                    var nestedVariables = variable.NestedVariables;
+                    if (nestedVariables == null)
+                    {
+                        // TODO2 this method should handle attributes properly
+                        VisitArgumentOutboundAssignmentsAndPostConditions(
+                            variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
+                            new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default), notNullParametersOpt: null);
+                    }
+                }
+            }
+        }
+
+        private void VisitTupleDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, ImmutableArray<Conversion> conversions, BoundExpression right)
+        {
+            int n = variables.Count;
+            var rightParts = GetDeconstructionRightParts(right);
+            Debug.Assert(rightParts.Length == n);
+
+            for (int i = 0; i < n; i++)
+            {
+                var variable = variables[i];
+                var underlyingConversion = conversions[i];
+                var rightPart = rightParts[i];
+                var nestedVariables = variable.NestedVariables;
+                if (nestedVariables != null)
+                {
+                    VisitDeconstructionArguments(nestedVariables, underlyingConversion, rightPart);
+                }
+                else
+                {
+                    var targetType = variable.Type;
+                    TypeWithState operandType;
+                    TypeWithState valueType;
+                    int valueSlot;
+                    if (underlyingConversion.IsIdentity)
+                    {
+                        if ((variable.Expression as BoundLocal)?.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
-                            if ((variable.Expression as BoundLocal)?.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
-                            {
-                                // when the LHS is a var declaration, we can just visit the right part to infer the type
-                                valueType = operandType = VisitRvalueWithState(rightPart);
-                                _variableTypes[variable.Expression.ExpressionSymbol] = operandType.ToTypeWithAnnotations();
-                            }
-                            else
-                            {
-                                operandType = default;
-                                valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
-                            }
-                            valueSlot = MakeSlot(rightPart);
+                            // when the LHS is a var declaration, we can just visit the right part to infer the type
+                            valueType = operandType = VisitRvalueWithState(rightPart);
+                            _variableTypes[variable.Expression.ExpressionSymbol] = operandType.ToTypeWithAnnotations();
                         }
                         else
                         {
-                            operandType = VisitRvalueWithState(rightPart);
-                            valueType = VisitConversion(
-                                conversionOpt: null,
-                                rightPart,
-                                underlyingConversion,
-                                targetType,
-                                operandType,
-                                checkConversion: true,
-                                fromExplicitCast: false,
-                                useLegacyWarnings: true,
-                                AssignmentKind.Assignment,
-                                reportTopLevelWarnings: true,
-                                reportRemainingWarnings: true,
-                                trackMembers: false);
-                            valueSlot = -1;
+                            operandType = default;
+                            valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
                         }
+                        valueSlot = MakeSlot(rightPart);
+                    }
+                    else
+                    {
+                        operandType = VisitRvalueWithState(rightPart);
+                        valueType = VisitConversion(
+                            conversionOpt: null,
+                            rightPart,
+                            underlyingConversion,
+                            targetType,
+                            operandType,
+                            checkConversion: true,
+                            fromExplicitCast: false,
+                            useLegacyWarnings: true,
+                            AssignmentKind.Assignment,
+                            reportTopLevelWarnings: true,
+                            reportRemainingWarnings: true,
+                            trackMembers: false);
+                        valueSlot = -1;
+                    }
 
-                        int targetSlot = MakeSlot(variable.Expression);
-                        TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot);
+                    int targetSlot = MakeSlot(variable.Expression);
+                    // TODO2 should handle attributes properly
+                    TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot);
 
-                        // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
-                        if (targetSlot > 0 &&
-                            underlyingConversion.Kind == ConversionKind.ImplicitNullable &&
-                            AreNullableAndUnderlyingTypes(targetType.Type, operandType.Type, out TypeWithAnnotations underlyingType))
+                    // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
+                    if (targetSlot > 0 &&
+                        underlyingConversion.Kind == ConversionKind.ImplicitNullable &&
+                        AreNullableAndUnderlyingTypes(targetType.Type, operandType.Type, out TypeWithAnnotations underlyingType))
+                    {
+                        valueSlot = MakeSlot(rightPart);
+                        if (valueSlot > 0)
                         {
-                            valueSlot = MakeSlot(rightPart);
-                            if (valueSlot > 0)
-                            {
-                                var valueBeforeNullableWrapping = TypeWithState.Create(underlyingType.Type, NullableFlowState.NotNull);
-                                TrackNullableStateOfNullableValue(targetSlot, targetType.Type, rightPart, valueBeforeNullableWrapping, valueSlot);
-                            }
+                            var valueBeforeNullableWrapping = TypeWithState.Create(underlyingType.Type, NullableFlowState.NotNull);
+                            TrackNullableStateOfNullableValue(targetSlot, targetType.Type, rightPart, valueBeforeNullableWrapping, valueSlot);
                         }
                     }
                 }
