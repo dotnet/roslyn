@@ -206,7 +206,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Dim view = TextView
 
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
-            Assert.True(session IsNot Nothing, "AssertCompletionSession")
+            Assert.True(session IsNot Nothing, NameOf(AssertCompletionSession))
         End Function
 
         Public Function GetCompletionItems() As IList(Of CompletionItem)
