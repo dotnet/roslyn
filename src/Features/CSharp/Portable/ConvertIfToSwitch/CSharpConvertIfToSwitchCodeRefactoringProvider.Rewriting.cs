@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -88,45 +89,36 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             var requiresBreak = operation.SemanticModel.AnalyzeControlFlow(node).EndPointIsReachable;
             var requiresBlock = !operation.SemanticModel.AnalyzeDataFlow(node).VariablesDeclared.IsDefaultOrEmpty;
 
+            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
             if (node is BlockSyntax block)
             {
                 if (block.Statements.Count == 0)
                 {
-                    yield return BreakStatement();
+                    statements.Add(BreakStatement());
                 }
                 else if (requiresBlock)
                 {
-                    if (requiresBreak)
-                    {
-                        yield return block.AddStatements(BreakStatement());
-                    }
-                    else
-                    {
-                        yield return block;
-                    }
+                    statements.Add(requiresBreak ? block.AddStatements(BreakStatement()) : block);
                 }
                 else
                 {
-                    foreach (var statement in block.Statements)
-                    {
-                        yield return statement;
-                    }
-
+                    statements.AddRange(block.Statements);
                     if (requiresBreak)
                     {
-                        yield return BreakStatement();
+                        statements.Add(BreakStatement());
                     }
                 }
             }
             else
             {
-                yield return node;
-
+                statements.Add(node);
                 if (requiresBreak)
                 {
-                    yield return BreakStatement();
+                    statements.Add(BreakStatement());
                 }
             }
+
+            return statements.ToArrayAndFree();
         }
     }
 }
