@@ -108,6 +108,7 @@
       <_Dependency Remove="Microsoft.Build"/>
       <_Dependency Remove="Microsoft.Build.Framework"/>
       <_Dependency Remove="Microsoft.MSXML"/>
+      <_Dependency Remove="Microsoft.ServiceHub.Framework" />
       <_Dependency Remove="Newtonsoft.Json"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
