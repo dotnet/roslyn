@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var deltas = ArrayBuilder<Deltas>.GetInstance();
             var emitBaselines = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance();
-            var moduleReaders = ArrayBuilder<IDisposable>.GetInstance();
+            var readers = ArrayBuilder<IDisposable>.GetInstance();
             var diagnostics = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance();
 
             try
@@ -681,96 +681,87 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         var baseline = DebuggingSession.GetOrCreateEmitBaseline(project.Id, mvid);
 
-                        DebugInformationReaderProvider debugInfoReaderProvider = null;
-                        try
+                        // The metadata blob is guaranteed to not be disposed while "continue" operation is being executed.
+                        // If it is disposed it means it had been disposed when "continue" operation started.
+                        if (baseline == null || baseline.OriginalMetadata.IsDisposed)
                         {
-                            // The metadata blob is guaranteed to not be disposed while "continue" operation is being executed.
-                            // If it is disposed it means it had been disposed when "continue" operation started.
-                            if (baseline == null || baseline.OriginalMetadata.IsDisposed)
+                            // If we have no baseline the module has not been loaded yet.
+                            // We need to create the baseline from compiler outputs.
+                            var outputs = DebuggingSession.CompilationOutputsProvider.GetCompilationOutputs(project.Id);
+                            if (CreateInitialBaselineForDeferredModuleUpdate(outputs, out var createBaselineDiagnostics, out baseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
                             {
-                                // If we have no baseline the module has not been loaded yet.
-                                // We need to create the baseline from compiler outputs.
-                                var outputs = DebuggingSession.CompilationOutputsProvider.GetCompilationOutputs(project.Id);
-                                if (CreateInitialBaselineForDeferredModuleUpdate(outputs, out var createBaselineDiagnostics, out baseline, out debugInfoReaderProvider, out var metadataReaderProvider))
-                                {
-                                    moduleReaders.Add(metadataReaderProvider);
-                                }
-                                else
-                                {
-                                    diagnostics.Add((project.Id, createBaselineDiagnostics));
-                                    Telemetry.LogProjectAnalysisSummary(projectSummary, createBaselineDiagnostics);
-                                    isBlocked = true;
-                                    return;
-                                }
-                            }
-
-                            EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", project.Id.DebugName, project.Id);
-
-                            using var pdbStream = SerializableBytes.CreateWritableStream();
-                            using var metadataStream = SerializableBytes.CreateWritableStream();
-                            using var ilStream = SerializableBytes.CreateWritableStream();
-
-                            var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
-
-                            var emitResult = currentCompilation.EmitDifference(
-                                baseline,
-                                projectChanges.SemanticEdits,
-                                s => allAddedSymbols?.Contains(s) ?? false,
-                                metadataStream,
-                                ilStream,
-                                pdbStream,
-                                updatedMethods,
-                                cancellationToken);
-
-                            if (emitResult.Success)
-                            {
-                                var updatedMethodTokens = updatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
-
-                                // Determine all active statements whose span changed and exception region span deltas.
-                                GetActiveStatementAndExceptionRegionSpans(
-                                    mvid,
-                                    baseActiveStatements,
-                                    baseActiveExceptionRegions,
-                                    updatedMethodTokens,
-                                    _nonRemappableRegions,
-                                    projectChanges.NewActiveStatements,
-                                    out var activeStatementsInUpdatedMethods,
-                                    out var nonRemappableRegions);
-
-                                deltas.Add(new Deltas(
-                                    mvid,
-                                    ilStream.ToImmutableArray(),
-                                    metadataStream.ToImmutableArray(),
-                                    pdbStream.ToImmutableArray(),
-                                    updatedMethodTokens,
-                                    lineEdits,
-                                    nonRemappableRegions,
-                                    activeStatementsInUpdatedMethods));
-
-                                emitBaselines.Add((project.Id, emitResult.Baseline));
+                                readers.Add(metadataReaderProvider);
+                                readers.Add(debugInfoReaderProvider);
                             }
                             else
                             {
-                                // error
+                                diagnostics.Add((project.Id, createBaselineDiagnostics));
+                                Telemetry.LogProjectAnalysisSummary(projectSummary, createBaselineDiagnostics);
                                 isBlocked = true;
+                                return;
                             }
+                        }
 
-                            // TODO: https://github.com/dotnet/roslyn/issues/36061
-                            // We should only report diagnostics from emit phase.
-                            // Syntax and semantic diagnostics are already reported by the diagnostic analyzer.
-                            // Currently we do not have means to distinguish between diagnostics reported from compilation and emit phases.
-                            // Querying diagnostics of the entire compilation or just the updated files migth be slow.
-                            // In fact, it is desirable to allow emitting deltas for symbols affected by the change while allowing untouched
-                            // method bodies to have errors.
-                            diagnostics.Add((project.Id, emitResult.Diagnostics));
-                            Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics);
-                        }
-                        finally
+                        EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", project.Id.DebugName, project.Id);
+
+                        using var pdbStream = SerializableBytes.CreateWritableStream();
+                        using var metadataStream = SerializableBytes.CreateWritableStream();
+                        using var ilStream = SerializableBytes.CreateWritableStream();
+
+                        var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
+
+                        var emitResult = currentCompilation.EmitDifference(
+                            baseline,
+                            projectChanges.SemanticEdits,
+                            s => allAddedSymbols?.Contains(s) ?? false,
+                            metadataStream,
+                            ilStream,
+                            pdbStream,
+                            updatedMethods,
+                            cancellationToken);
+
+                        if (emitResult.Success)
                         {
-                            // Dispose PDB reader now. The debug information is only needed during emit and does not need to be kept alive
-                            // while the baseline is. On the other hand, the metadata backing the symbols held on by the baseline needs to be.
-                            debugInfoReaderProvider?.Dispose();
+                            var updatedMethodTokens = updatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+
+                            // Determine all active statements whose span changed and exception region span deltas.
+                            GetActiveStatementAndExceptionRegionSpans(
+                                mvid,
+                                baseActiveStatements,
+                                baseActiveExceptionRegions,
+                                updatedMethodTokens,
+                                _nonRemappableRegions,
+                                projectChanges.NewActiveStatements,
+                                out var activeStatementsInUpdatedMethods,
+                                out var nonRemappableRegions);
+
+                            deltas.Add(new Deltas(
+                                mvid,
+                                ilStream.ToImmutableArray(),
+                                metadataStream.ToImmutableArray(),
+                                pdbStream.ToImmutableArray(),
+                                updatedMethodTokens,
+                                lineEdits,
+                                nonRemappableRegions,
+                                activeStatementsInUpdatedMethods));
+
+                            emitBaselines.Add((project.Id, emitResult.Baseline));
                         }
+                        else
+                        {
+                            // error
+                            isBlocked = true;
+                        }
+
+                        // TODO: https://github.com/dotnet/roslyn/issues/36061
+                        // We should only report diagnostics from emit phase.
+                        // Syntax and semantic diagnostics are already reported by the diagnostic analyzer.
+                        // Currently we do not have means to distinguish between diagnostics reported from compilation and emit phases.
+                        // Querying diagnostics of the entire compilation or just the updated files migth be slow.
+                        // In fact, it is desirable to allow emitting deltas for symbols affected by the change while allowing untouched
+                        // method bodies to have errors.
+                        diagnostics.Add((project.Id, emitResult.Diagnostics));
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics);
                     }
                 }
 
@@ -779,12 +770,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     deltas.Free();
                     emitBaselines.Free();
 
-                    foreach (var peReader in moduleReaders)
+                    foreach (var reader in readers)
                     {
-                        peReader.Dispose();
+                        reader.Dispose();
                     }
 
-                    moduleReaders.Free();
+                    readers.Free();
 
                     return SolutionUpdate.Blocked(diagnostics.ToImmutableAndFree());
                 }
@@ -792,7 +783,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return new SolutionUpdate(
                     (deltas.Count > 0) ? SolutionUpdateStatus.Ready : SolutionUpdateStatus.None,
                     deltas.ToImmutableAndFree(),
-                    moduleReaders.ToImmutableAndFree(),
+                    readers.ToImmutableAndFree(),
                     emitBaselines.ToImmutableAndFree(),
                     diagnostics.ToImmutableAndFree());
             }
