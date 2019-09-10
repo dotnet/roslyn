@@ -1,6 +1,17 @@
+Microsoft.CodeAnalysis.IDependsOnAdditionalFileGenerator
+Microsoft.CodeAnalysis.IDependsOnAdditionalFileGenerator.SupportedAdditionalFileExtensions.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.IMethodSymbol.IsConditional.get -> bool
+Microsoft.CodeAnalysis.ISourceGenerator
+Microsoft.CodeAnalysis.ISourceGenerator.Execute(Microsoft.CodeAnalysis.SourceGeneratorContext context) -> void
 Microsoft.CodeAnalysis.Operations.IForEachLoopOperation.IsAsynchronous.get -> bool
 Microsoft.CodeAnalysis.Operations.IUsingOperation.IsAsynchronous.get -> bool
+Microsoft.CodeAnalysis.SourceGeneratorContext
+Microsoft.CodeAnalysis.SourceGeneratorContext.AddSource(string fileNameHint, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.SourceGeneratorContext.AnalyzerOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+Microsoft.CodeAnalysis.SourceGeneratorContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.SourceGeneratorContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.SourceGeneratorContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+Microsoft.CodeAnalysis.SourceGeneratorContext.SourceGeneratorContext() -> void
 abstract Microsoft.CodeAnalysis.DataFlowAnalysis.DefinitelyAssignedOnEntry.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 abstract Microsoft.CodeAnalysis.DataFlowAnalysis.DefinitelyAssignedOnExit.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitPropertySubpattern(Microsoft.CodeAnalysis.Operations.IPropertySubpatternOperation operation) -> void
