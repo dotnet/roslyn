@@ -1820,7 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void checkImplicitReceiver()
             {
-                if (containingSlot >= 0)
+                if (containingSlot >= 0 && (node as BoundObjectInitializerExpressionBase)?.Initializers.Length != 0)
                 {
                     _ = ReportPossibleNullReceiverIfNeeded(node.Type, this.State[containingSlot], checkNullableValueType: false, node.Syntax, out _);
                 }
