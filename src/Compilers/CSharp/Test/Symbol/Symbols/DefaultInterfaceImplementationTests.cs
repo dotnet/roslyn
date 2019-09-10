@@ -55815,5 +55815,90 @@ class Test : I101
 
             CompileAndVerify(compilation1, expectedOutput: "I100.C100.Test1");
         }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_29()
+        {
+            var source1 =
+@"
+interface A : C.E
+{
+}
+
+interface B : A
+{
+    public interface E
+    {}
+}
+
+interface C : B
+{
+    public interface E
+    {}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'C.E' causes a cycle in the interface hierarchy of 'A'
+                // interface A : C.E
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "A").WithArguments("A", "C.E").WithLocation(2, 11),
+                // (6,11): error CS0529: Inherited interface 'A' causes a cycle in the interface hierarchy of 'B'
+                // interface B : A
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "B").WithArguments("B", "A").WithLocation(6, 11),
+                // (12,11): error CS0529: Inherited interface 'B' causes a cycle in the interface hierarchy of 'C'
+                // interface C : B
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "C").WithArguments("C", "B").WithLocation(12, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_30()
+        {
+            var source1 =
+@"
+#nullable enable
+
+interface A : B, C<object>
+{
+}
+
+interface B : C<object?>
+{
+}
+
+interface C<T>
+{
+    public interface E
+    {}
+}
+
+interface D : A.E
+{
+    A.E Test();
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,11): warning CS8645: 'C<object>' is already listed in the interface list on type 'A' with different nullability of reference types.
+                // interface A : B, C<object>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "A").WithArguments("C<object>", "A").WithLocation(4, 11),
+                // (18,17): error CS0104: 'E' is an ambiguous reference between 'C<object>.E' and 'C<object?>.E'
+                // interface D : A.E
+                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object>.E", "C<object?>.E").WithLocation(18, 17),
+                // (20,7): error CS0104: 'E' is an ambiguous reference between 'C<object?>.E' and 'C<object>.E'
+                //     A.E Test();
+                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object?>.E", "C<object>.E").WithLocation(20, 7)
+                );
+        }
     }
 }
