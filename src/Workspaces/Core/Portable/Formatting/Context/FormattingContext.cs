@@ -570,8 +570,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public bool IsWrappingSuppressed(TextSpan textSpan, bool containsElasticTrivia)
         {
-            // use edge exclusive version of GetSmallestContainingInterval
-            var data = _suppressWrappingTree.GetSmallestEdgeExclusivelyContainingInterval(textSpan.Start, textSpan.Length);
+            // use edge inclusive version of GetSmallestContainingInterval
+            var data = _suppressWrappingTree.GetSmallestEdgeInclusivelyContainingInterval(textSpan.Start, textSpan.Length);
             if (data == null)
             {
                 return false;

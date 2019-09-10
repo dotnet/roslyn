@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -16,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
+
+            AddFormatSuppressOperations(list, node);
 
             AddInitializerSuppressOperations(list, node);
 
@@ -284,6 +287,109 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var lastToken = statementNode.GetLastToken(includeZeroWidth: true);
 
             AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
+        }
+
+        private void AddFormatSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        {
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (!child.IsToken)
+                {
+                    continue;
+                }
+
+                ProcessTriviaList(list, child.AsToken().LeadingTrivia);
+                ProcessTriviaList(list, child.AsToken().TrailingTrivia);
+            }
+
+            // Local functions
+            static void ProcessTriviaList(List<SuppressOperation> list, SyntaxTriviaList triviaList)
+            {
+                foreach (var trivia in triviaList)
+                {
+                    ProcessTrivia(list, trivia);
+                }
+            }
+
+            static void ProcessTrivia(List<SuppressOperation> list, SyntaxTrivia trivia)
+            {
+                if (!(trivia.HasStructure))
+                {
+                    return;
+                }
+
+                ProcessStructuredTrivia(list, trivia.GetStructure());
+            }
+
+            static void ProcessStructuredTrivia(List<SuppressOperation> list, SyntaxNode structure)
+            {
+                if (!(structure is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
+                {
+                    return;
+                }
+
+                if (!IsFormatDirective(pragmaWarningDirectiveTrivia, SyntaxKind.DisableKeyword))
+                {
+                    return;
+                }
+
+                var startToken = pragmaWarningDirectiveTrivia.GetLastToken(includeZeroWidth: true, includeDirectives: true);
+
+                var endDirective = pragmaWarningDirectiveTrivia.GetNextDirective(trivia => IsFormatDirective(trivia, SyntaxKind.RestoreKeyword));
+                var endToken = endDirective is null
+                    ? structure.SyntaxTree.GetRoot().GetLastToken(includeZeroWidth: true)
+                    : endDirective.GetFirstToken(includeDirectives: true);
+
+                if (startToken.IsKind(SyntaxKind.None) || endToken.IsKind(SyntaxKind.None))
+                {
+                    return;
+                }
+
+                var startTokenForWrappingSuppression = pragmaWarningDirectiveTrivia.GetFirstToken().GetPreviousToken();
+                var startSpanForWrappingSuppression = startTokenForWrappingSuppression.IsKind(SyntaxKind.None)
+                    ? pragmaWarningDirectiveTrivia.FullSpan.Start
+                    : startTokenForWrappingSuppression.Span.End;
+                var endTokenForWrappingSuppression = endToken.GetNextToken();
+                var endSpanForWrappingSuppression = endTokenForWrappingSuppression.IsKind(SyntaxKind.None)
+                    ? endToken.FullSpan.End
+                    : endTokenForWrappingSuppression.SpanStart;
+
+                // Spacing is suppressed within the #pragma region. Wrapping is suppressed from the non-trivia token
+                // preceding the #pragma region to the non-trivia token following the #pragma region.
+                var textSpan = TextSpan.FromBounds(startToken.Span.End, endToken.SpanStart);
+                var textSpanForWrappingSuppression = TextSpan.FromBounds(startSpanForWrappingSuppression, endSpanForWrappingSuppression);
+                list.Add(new SuppressOperation(startToken, endToken, textSpan, SuppressOption.NoSpacing));
+                list.Add(new SuppressOperation(startToken, endToken, textSpanForWrappingSuppression, SuppressOption.NoWrapping));
+            }
+        }
+
+        private static bool IsFormatDirective(DirectiveTriviaSyntax trivia, SyntaxKind disableOrRestoreKeyword)
+        {
+            if (!(trivia is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
+            {
+                return false;
+            }
+
+            if (!pragmaWarningDirectiveTrivia.DisableOrRestoreKeyword.IsKind(disableOrRestoreKeyword))
+            {
+                return false;
+            }
+
+            foreach (var errorCode in pragmaWarningDirectiveTrivia.ErrorCodes)
+            {
+                if (!(errorCode is IdentifierNameSyntax identifierName))
+                {
+                    continue;
+                }
+
+                if (identifierName.Identifier.ValueText.Equals("format")
+                    || identifierName.Identifier.ValueText.Equals("IDE0055"))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)

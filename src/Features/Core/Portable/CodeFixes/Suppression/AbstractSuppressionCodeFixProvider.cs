@@ -63,6 +63,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
         }
 
+        protected string GetOrMapDiagnosticId(Diagnostic diagnostic, out bool includeTitle)
+        {
+            if (diagnostic.Id == IDEDiagnosticIds.FormattingDiagnosticId)
+            {
+                includeTitle = false;
+                return IDEDiagnosticIds.FormatDocumentControlDiagnosticId;
+            }
+
+            includeTitle = true;
+            return diagnostic.Id;
+        }
+
         protected virtual SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
         {
             return token;
@@ -148,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
 
                     // SuppressMessageAttribute suppression is not supported for compiler diagnostics.
-                    if (!skipSuppressMessage && !SuppressionHelpers.IsCompilerDiagnostic(diagnostic))
+                    if (!skipSuppressMessage && SuppressionHelpers.CanBeSuppressedWithAttribute(diagnostic))
                     {
                         // global assembly-level suppress message attribute.
                         nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, project, diagnostic, this));

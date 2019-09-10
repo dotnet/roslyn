@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseCompoundAssignmentDiagnosticId = "IDE0054";
 
         public const string FormattingDiagnosticId = "IDE0055";
+        public const string FormatDocumentControlDiagnosticId = "format";
 
         public const string UseIndexOperatorDiagnosticId = "IDE0056";
         public const string UseRangeOperatorDiagnosticId = "IDE0057";
