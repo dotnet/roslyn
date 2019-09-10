@@ -244,7 +244,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public InlineRenameFileRenameInfo GetFileRenameInfo()
             {
-                if (RenameSymbol.Kind == SymbolKind.NamedType)
+                if (RenameSymbol.Kind == SymbolKind.NamedType &&
+                    _document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
+
                 {
                     if (RenameSymbol.Locations.Length > 1)
                     {
