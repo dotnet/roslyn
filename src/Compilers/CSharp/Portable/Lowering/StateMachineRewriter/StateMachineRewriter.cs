@@ -107,6 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields for the captured variables of the method
             var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(F.Compilation, method, body, diagnostics);
 
+            if (diagnostics.HasAnyErrors())
+            {
+                // Avoid triggering assertions in further lowering.
+                return new BoundBadStatement(F.Syntax, ImmutableArray<BoundNode>.Empty, hasErrors: true);
+            }
+
             CreateNonReusableLocalProxies(variablesToHoist, out this.nonReusableLocalProxies, out this.nextFreeHoistedLocalSlot);
 
             this.hoistedVariables = variablesToHoist;

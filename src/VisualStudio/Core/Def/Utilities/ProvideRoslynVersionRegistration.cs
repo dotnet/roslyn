@@ -37,15 +37,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
             // ran by the CreatPkgDef.exe tool by reflecting over built assembly and invoking this method.
             var version = FileVersionInfo.GetVersionInfo(typeof(ProvideRoslynVersionRegistration).Assembly.Location);
 
-            using (var key = context.CreateKey(GetKeyName()))
-            {
-                key.SetValue(null, "#" + _productNameResourceID);
-                key.SetValue("Package", Guid.Parse(_packageGuidString).ToString("B"));
-                key.SetValue("PID", version.ProductVersion);
-                key.SetValue("ProductDetails", "#" + _detailsResourceID);
-                key.SetValue("UseInterface", false);
-                key.SetValue("UseVSProductID", false);
-            }
+            using var key = context.CreateKey(GetKeyName());
+            key.SetValue(null, "#" + _productNameResourceID);
+            key.SetValue("Package", Guid.Parse(_packageGuidString).ToString("B"));
+            key.SetValue("PID", version.ProductVersion);
+            key.SetValue("ProductDetails", "#" + _detailsResourceID);
+            key.SetValue("UseInterface", false);
+            key.SetValue("UseVSProductID", false);
         }
 
         public override void Unregister(RegistrationContext context)

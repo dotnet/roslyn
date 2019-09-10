@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function IsSymbolAccessible(symbol As Symbol,
                                                   within As AssemblySymbol,
                                                   <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-                                                  Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As Boolean
+                                                  Optional basesBeingResolved As BasesBeingResolved = Nothing) As Boolean
             Return CheckSymbolAccessibilityCore(symbol, within, Nothing, basesBeingResolved, useSiteDiagnostics) = AccessCheckResult.Accessible
         End Function
 
@@ -48,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function CheckSymbolAccessibility(symbol As Symbol,
                                                         within As AssemblySymbol,
                                                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-                                                        Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
+                                                        Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
             Return CheckSymbolAccessibilityCore(symbol, within, Nothing, basesBeingResolved, useSiteDiagnostics)
         End Function
 
@@ -60,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   within As NamedTypeSymbol,
                                                   throughTypeOpt As TypeSymbol,
                                                   <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-                                                  Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As Boolean
+                                                  Optional basesBeingResolved As BasesBeingResolved = Nothing) As Boolean
             Return CheckSymbolAccessibilityCore(symbol, within, throughTypeOpt, basesBeingResolved, useSiteDiagnostics) = AccessCheckResult.Accessible
         End Function
 
@@ -73,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         within As NamedTypeSymbol,
                                                         throughTypeOpt As TypeSymbol,
                                                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-                                                        Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
+                                                        Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
             Return CheckSymbolAccessibilityCore(symbol, within, throughTypeOpt, basesBeingResolved, useSiteDiagnostics)
         End Function
 
@@ -87,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function CheckSymbolAccessibilityCore(symbol As Symbol,
                                                              within As Symbol,
                                                              throughTypeOpt As TypeSymbol,
-                                                             basesBeingResolved As ConsList(Of Symbol),
+                                                             basesBeingResolved As BasesBeingResolved,
                                                              <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As AccessCheckResult
             Debug.Assert(symbol IsNot Nothing)
             Debug.Assert(within IsNot Nothing)
@@ -136,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' be a named type or an assembly.
         Private Shared Function CheckNamedTypeAccessibility(typeSym As NamedTypeSymbol,
                                                             within As Symbol,
-                                                            basesBeingResolved As ConsList(Of Symbol),
+                                                            basesBeingResolved As BasesBeingResolved,
                                                             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As AccessCheckResult
             Debug.Assert(TypeOf within Is NamedTypeSymbol OrElse TypeOf within Is AssemblySymbol)
             Debug.Assert(typeSym IsNot Nothing)
@@ -199,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          declaredAccessibility As Accessibility,
                                                          within As Symbol,
                                                          throughTypeOpt As TypeSymbol,
-                                                         basesBeingResolved As ConsList(Of Symbol),
+                                                         basesBeingResolved As BasesBeingResolved,
                                                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As AccessCheckResult
             Debug.Assert(TypeOf within Is NamedTypeSymbol OrElse TypeOf within Is AssemblySymbol)
             Debug.Assert(containingType IsNot Nothing)
@@ -274,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function CheckProtectedSymbolAccessibility(within As Symbol,
                                                                   throughTypeOpt As TypeSymbol,
                                                                   originalContainingType As NamedTypeSymbol,
-                                                                  basesBeingResolved As ConsList(Of Symbol),
+                                                                  basesBeingResolved As BasesBeingResolved,
                                                                   <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As AccessCheckResult
             Debug.Assert(TypeOf within Is NamedTypeSymbol OrElse TypeOf within Is AssemblySymbol)
 
@@ -317,98 +318,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             withinType = withinType.OriginalDefinition
 
             ' Determine whether accessible through inheritance
-            Dim containedWithinDerived As Boolean = False
+            Dim result = AccessCheckResult.Inaccessible
+            Dim originalThroughTypeOpt = throughTypeOpt?.OriginalDefinition
             Dim current = withinType
 
             While current IsNot Nothing
                 Debug.Assert(current.IsDefinition)
 
-                If InheritsFromIgnoringConstruction(current, originalContainingType, basesBeingResolved, useSiteDiagnostics) Then
-                    containedWithinDerived = True
-                    Exit While
+                If InheritsFromOrImplementsIgnoringConstruction(current, originalContainingType, basesBeingResolved, useSiteDiagnostics) Then
+                    ' Any protected instance members in or visible in the current context
+                    ' through inheritance are accessible in the current context through an
+                    ' instance of the current context or any type derived from the current
+                    ' context.
+                    '
+                    ' eg:
+                    ' Class Cls1
+                    '    Protected Sub goo()
+                    '    End Sub
+                    ' End Class
+                    '
+                    ' Class Cls2
+                    '   Inherits Cls1
+                    '
+                    '    Sub Test()
+                    '        Dim obj1 as New Cls1
+                    '        Obj1.goo    'Not accessible
+                    '
+                    '        Dim obj2 as New Cls2
+                    '        Obj2.goo    'Accessible
+                    '    End Sub
+                    ' End Class
+                    If originalThroughTypeOpt Is Nothing OrElse
+                       InheritsFromOrImplementsIgnoringConstruction(originalThroughTypeOpt, current, basesBeingResolved, useSiteDiagnostics) Then
+                        Return AccessCheckResult.Accessible
+                    End If
+
+                    result = AccessCheckResult.InaccessibleViaThroughType
                 End If
 
                 ' Note that the container of an original type is always original.
                 current = current.ContainingType
             End While
 
-            If Not containedWithinDerived Then
-                Return AccessCheckResult.Inaccessible
-            End If
-
-            Dim originalThroughTypeOpt = If(throughTypeOpt Is Nothing, Nothing, throughTypeOpt.OriginalDefinition)
-
-            If originalThroughTypeOpt Is Nothing Then
-                ' Assuming the target member is Shared or is accessed through 'withinType'.
-                Return AccessCheckResult.Accessible
-            End If
-
-            ' Any protected instance members in or visible in the current context
-            ' through inheritance are accessible in the current context through an
-            ' instance of the current context or any type derived from the current
-            ' context.
-            '
-            ' eg:
-            ' Class Cls1
-            '    Protected Sub goo()
-            '    End Sub
-            ' End Class
-            '
-            ' Class Cls2
-            '   Inherits Cls1
-            '
-            '    Sub Test()
-            '        Dim obj1 as New Cls1
-            '        Obj1.goo    'Not accessible
-            '
-            '        Dim obj2 as New Cls2
-            '        Obj2.goo    'Accessible
-            '    End Sub
-            ' End Class
-            If InheritsFromIgnoringConstruction(originalThroughTypeOpt, withinType, basesBeingResolved, useSiteDiagnostics) Then
-                Return AccessCheckResult.Accessible
-            End If
-
-
-            ' Any protected instance members in or visible in an enclosing type through
-            ' inheritance are accessible in the current context through an instance of
-            ' that enclosing type.
-            '
-            ' eg:
-            ' Class Cls1
-            '    Protected Sub goo()
-            '    End Sub
-            ' End Class
-            '
-            ' Class Cls2
-            '   Inherits Cls1
-            '
-            '    Protected Sub goo()
-            '    End Sub
-            '
-            '    Class Cls2_1
-            '      Sub Test()
-            '        Dim obj2 as New Cls2
-            '        Obj2.goo    'Accessible
-            '
-            '        Obj2.goo    'Accessible
-            '      End Sub
-            '    End Class
-            ' End Class
-            current = withinType
-
-            While current IsNot Nothing
-                Debug.Assert(current.IsDefinition)
-
-                If current.Equals(originalThroughTypeOpt) Then
-                    Return AccessCheckResult.Accessible
-                End If
-
-                ' Note that the container of an original type is always original.
-                current = current.ContainingType
-            End While
-
-            Return AccessCheckResult.InaccessibleViaThroughType
+            Return result
         End Function
 
         ' Is a private symbol access OK.
@@ -448,35 +400,117 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        ' Determine if "derivedType" inherits from "baseType", ignoring constructed types, and dealing
-        ' only with original types.
-        Private Shared Function InheritsFromIgnoringConstruction(derivedType As TypeSymbol,
-                                                                 baseType As TypeSymbol,
-                                                                 basesBeingResolved As ConsList(Of Symbol),
-                                                                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        ''' <summary>
+        ''' Determine if "derivedType" inherits from or implements "baseType", ignoring constructed types, and dealing
+        ''' only with original types.
+        ''' </summary>
+        Private Shared Function InheritsFromOrImplementsIgnoringConstruction(derivedType As TypeSymbol,
+                                                                             baseType As TypeSymbol,
+                                                                             basesBeingResolved As BasesBeingResolved,
+                                                                             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             Debug.Assert(derivedType.IsDefinition)
             Debug.Assert(baseType.IsDefinition)
 
+            Dim interfacesLookedAt As PooledHashSet(Of NamedTypeSymbol) = Nothing
+            Dim baseInterfaces As ArrayBuilder(Of NamedTypeSymbol) = Nothing
+
+            Dim baseTypeIsInterface = baseType.IsInterfaceType()
+
+            If baseTypeIsInterface Then
+                interfacesLookedAt = PooledHashSet(Of NamedTypeSymbol).GetInstance()
+                baseInterfaces = ArrayBuilder(Of NamedTypeSymbol).GetInstance()
+            End If
+
             Dim current As TypeSymbol = derivedType
+            Dim result As Boolean = False
 
             While current IsNot Nothing
-                If current.Equals(baseType) Then
-                    Return True
+                If baseTypeIsInterface = current.IsInterfaceType() AndAlso current.Equals(baseType) Then
+                    result = True
+                    Exit While
                 End If
 
-                If basesBeingResolved IsNot Nothing AndAlso basesBeingResolved.Contains(current) Then
+                If baseTypeIsInterface Then
+                    AddBaseInterfaces(current, baseInterfaces, interfacesLookedAt, basesBeingResolved)
+                End If
+
+                If basesBeingResolved.InheritsBeingResolvedOpt?.Contains(current) Then
                     ' We can't obtain BaseType if we're currently resolving the base type of current.
                     current = Nothing ' can't go up the base type chain.
                 Else
+                    Select Case current.TypeKind
+                        Case TypeKind.Interface
+                            current = Nothing
+                        Case TypeKind.TypeParameter
+                            current = DirectCast(current, TypeParameterSymbol).GetClassConstraint(useSiteDiagnostics)
+                        Case Else
+                            current = current.GetDirectBaseTypeWithDefinitionUseSiteDiagnostics(basesBeingResolved, useSiteDiagnostics)
+                    End Select
+
                     ' NOTE: The base type of an 'original' type may not be 'original'. i.e. 
                     ' "class Goo : Inherits IBar(Of Integer)".  We must map it back to the 'original' when as we walk up
                     ' the base type hierarchy.
-                    current = current.BaseTypeOriginalDefinition(useSiteDiagnostics)
+                    If current IsNot Nothing Then
+                        current = current.OriginalDefinition
+                    End If
                 End If
             End While
 
-            Return False
+            If Not result AndAlso baseTypeIsInterface Then
+
+                While baseInterfaces.Count <> 0
+                    Dim currentBase As NamedTypeSymbol = baseInterfaces.Pop()
+
+                    If currentBase.Equals(baseType) Then
+                        result = True
+                        Exit While
+                    End If
+
+                    AddBaseInterfaces(currentBase, baseInterfaces, interfacesLookedAt, basesBeingResolved)
+                End While
+
+                If Not result Then
+                    For Each candidate In interfacesLookedAt
+                        candidate.AddUseSiteDiagnostics(useSiteDiagnostics)
+                    Next
+                End If
+            End If
+
+            interfacesLookedAt?.Free()
+            baseInterfaces?.Free()
+
+            Return result
         End Function
+
+        Private Shared Sub AddBaseInterfaces(derived As TypeSymbol, baseInterfaces As ArrayBuilder(Of NamedTypeSymbol), interfacesLookedAt As PooledHashSet(Of NamedTypeSymbol), basesBeingResolved As BasesBeingResolved)
+            If basesBeingResolved.InheritsBeingResolvedOpt?.Contains(derived) OrElse
+               basesBeingResolved.ImplementsBeingResolvedOpt?.Contains(derived) Then
+                Return
+            End If
+
+            Dim candidates As ImmutableArray(Of TypeSymbol)
+
+            Select Case derived.Kind
+                Case SymbolKind.TypeParameter
+                    candidates = DirectCast(derived, TypeParameterSymbol).ConstraintTypesNoUseSiteDiagnostics
+                Case SymbolKind.NamedType, SymbolKind.ErrorType
+                    candidates = ImmutableArray(Of TypeSymbol).CastUp(DirectCast(derived, NamedTypeSymbol).GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved))
+                Case Else
+                    candidates = ImmutableArray(Of TypeSymbol).CastUp(derived.InterfacesNoUseSiteDiagnostics)
+            End Select
+
+            For Each candidate In candidates
+                Select Case candidate.TypeKind
+                    Case TypeKind.Interface
+                        Dim definition = DirectCast(candidate.OriginalDefinition, NamedTypeSymbol)
+                        If interfacesLookedAt.Add(definition) Then
+                            baseInterfaces.Add(definition)
+                        End If
+                    Case TypeKind.TypeParameter
+                        AddBaseInterfaces(candidate, baseInterfaces, interfacesLookedAt, basesBeingResolved)
+                End Select
+            Next
+        End Sub
 
         ' Does "fromAssembly" have friend accessibility to "toAssembly"?
         ' I.e., either 
@@ -913,15 +947,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If container.OriginalDefinition.Equals(containerOfTypeDefinition) Then
                 Return True
-            ElseIf container.IsInterfaceType() Then
-                If containerOfType.IsInterfaceType() Then
-                    For Each iface In container.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                        If iface.OriginalDefinition.Equals(containerOfTypeDefinition) Then
-                            Return True
-                        End If
-                    Next
-                End If
-            ElseIf Not containerOfType.IsInterfaceType() Then
+            End If
+
+            If containerOfType.IsInterfaceType() Then
+                For Each iface In container.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                    If iface.OriginalDefinition.Equals(containerOfTypeDefinition) Then
+                        Return True
+                    End If
+                Next
+            Else
                 Dim baseDefinition = container.BaseTypeOriginalDefinition(useSiteDiagnostics)
 
                 While baseDefinition IsNot Nothing

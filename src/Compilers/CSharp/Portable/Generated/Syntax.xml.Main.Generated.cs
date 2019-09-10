@@ -2958,8 +2958,9 @@ namespace Microsoft.CodeAnalysis.CSharp
       var asyncKeyword = this.VisitToken(node.AsyncKeyword);
       var delegateKeyword = this.VisitToken(node.DelegateKeyword);
       var parameterList = (ParameterListSyntax)this.Visit(node.ParameterList);
-      var body = (CSharpSyntaxNode)this.Visit(node.Body);
-      return node.Update(asyncKeyword, delegateKeyword, parameterList, body);
+      var block = (BlockSyntax)this.Visit(node.Block);
+      var expressionBody = (ExpressionSyntax)this.Visit(node.ExpressionBody);
+      return node.Update(asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
     }
 
     public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
@@ -2967,8 +2968,9 @@ namespace Microsoft.CodeAnalysis.CSharp
       var asyncKeyword = this.VisitToken(node.AsyncKeyword);
       var parameter = (ParameterSyntax)this.Visit(node.Parameter);
       var arrowToken = this.VisitToken(node.ArrowToken);
-      var body = (CSharpSyntaxNode)this.Visit(node.Body);
-      return node.Update(asyncKeyword, parameter, arrowToken, body);
+      var block = (BlockSyntax)this.Visit(node.Block);
+      var expressionBody = (ExpressionSyntax)this.Visit(node.ExpressionBody);
+      return node.Update(asyncKeyword, parameter, arrowToken, block, expressionBody);
     }
 
     public override SyntaxNode VisitRefExpression(RefExpressionSyntax node)
@@ -2983,8 +2985,9 @@ namespace Microsoft.CodeAnalysis.CSharp
       var asyncKeyword = this.VisitToken(node.AsyncKeyword);
       var parameterList = (ParameterListSyntax)this.Visit(node.ParameterList);
       var arrowToken = this.VisitToken(node.ArrowToken);
-      var body = (CSharpSyntaxNode)this.Visit(node.Body);
-      return node.Update(asyncKeyword, parameterList, arrowToken, body);
+      var block = (BlockSyntax)this.Visit(node.Block);
+      var expressionBody = (ExpressionSyntax)this.Visit(node.ExpressionBody);
+      return node.Update(asyncKeyword, parameterList, arrowToken, block, expressionBody);
     }
 
     public override SyntaxNode VisitInitializerExpression(InitializerExpressionSyntax node)
@@ -5956,7 +5959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new AnonymousMethodExpressionSyntax instance.</summary>
-    public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
+    public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
     {
       switch (asyncKeyword.Kind())
       {
@@ -5973,26 +5976,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException(nameof(delegateKeyword));
       }
-      if (body == null)
-        throw new ArgumentNullException(nameof(body));
-      return (AnonymousMethodExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.AnonymousMethodExpression((Syntax.InternalSyntax.SyntaxToken)asyncKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node, parameterList == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode)body.Green).CreateRed();
+      if (block == null)
+        throw new ArgumentNullException(nameof(block));
+      return (AnonymousMethodExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.AnonymousMethodExpression((Syntax.InternalSyntax.SyntaxToken)asyncKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node, parameterList == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, block == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
     }
 
-
-    /// <summary>Creates a new AnonymousMethodExpressionSyntax instance.</summary>
-    public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(ParameterListSyntax parameterList, CSharpSyntaxNode body)
-    {
-      return SyntaxFactory.AnonymousMethodExpression(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, body);
-    }
-
-    /// <summary>Creates a new AnonymousMethodExpressionSyntax instance.</summary>
-    public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(CSharpSyntaxNode body)
-    {
-      return SyntaxFactory.AnonymousMethodExpression(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), default(ParameterListSyntax), body);
-    }
 
     /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
-    public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, CSharpSyntaxNode body)
+    public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
     {
       switch (asyncKeyword.Kind())
       {
@@ -6011,16 +6002,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException(nameof(arrowToken));
       }
-      if (body == null)
-        throw new ArgumentNullException(nameof(body));
-      return (SimpleLambdaExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SimpleLambdaExpression((Syntax.InternalSyntax.SyntaxToken)asyncKeyword.Node, parameter == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParameterSyntax)parameter.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node, body == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode)body.Green).CreateRed();
+      return (SimpleLambdaExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SimpleLambdaExpression((Syntax.InternalSyntax.SyntaxToken)asyncKeyword.Node, parameter == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParameterSyntax)parameter.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node, block == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
     }
 
 
     /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
-    public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter, CSharpSyntaxNode body)
+    public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter, BlockSyntax block, ExpressionSyntax expressionBody)
     {
-      return SyntaxFactory.SimpleLambdaExpression(default(SyntaxToken), parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), body);
+      return SyntaxFactory.SimpleLambdaExpression(default(SyntaxToken), parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
+    }
+
+    /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
+    public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter)
+    {
+      return SyntaxFactory.SimpleLambdaExpression(default(SyntaxToken), parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default(BlockSyntax), default(ExpressionSyntax));
     }
 
     /// <summary>Creates a new RefExpressionSyntax instance.</summary>
@@ -6046,7 +6041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-    public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, CSharpSyntaxNode body)
+    public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
     {
       switch (asyncKeyword.Kind())
       {
@@ -6065,22 +6060,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException(nameof(arrowToken));
       }
-      if (body == null)
-        throw new ArgumentNullException(nameof(body));
-      return (ParenthesizedLambdaExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression((Syntax.InternalSyntax.SyntaxToken)asyncKeyword.Node, parameterList == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node, body == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode)body.Green).CreateRed();
+      return (ParenthesizedLambdaExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression((Syntax.InternalSyntax.SyntaxToken)asyncKeyword.Node, parameterList == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node, block == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
     }
 
 
     /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-    public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(ParameterListSyntax parameterList, CSharpSyntaxNode body)
+    public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
     {
-      return SyntaxFactory.ParenthesizedLambdaExpression(default(SyntaxToken), parameterList, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), body);
+      return SyntaxFactory.ParenthesizedLambdaExpression(default(SyntaxToken), parameterList, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
     }
 
     /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-    public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(CSharpSyntaxNode body)
+    public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression()
     {
-      return SyntaxFactory.ParenthesizedLambdaExpression(default(SyntaxToken), SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), body);
+      return SyntaxFactory.ParenthesizedLambdaExpression(default(SyntaxToken), SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default(BlockSyntax), default(ExpressionSyntax));
     }
 
     /// <summary>Creates a new InitializerExpressionSyntax instance.</summary>

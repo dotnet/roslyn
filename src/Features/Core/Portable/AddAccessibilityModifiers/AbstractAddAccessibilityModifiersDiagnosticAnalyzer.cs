@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             var cancellationToken = context.CancellationToken;
             var syntaxTree = context.Tree;
 
-            var workspaceAnalyzerOptions = context.Options as WorkspaceAnalyzerOptions;
-            if (workspaceAnalyzerOptions == null)
+            if (!(context.Options is WorkspaceAnalyzerOptions workspaceAnalyzerOptions))
             {
                 return;
             }

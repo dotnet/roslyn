@@ -31,12 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, options))
-            {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            using var workspace = TestWorkspace.CreateCSharp(code, options);
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-                return GetSemanticClassificationsAsync(document, span);
-            }
+            return GetSemanticClassificationsAsync(document, span);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2342,73 +2340,63 @@ struct Type<T>
         public async Task TestCreateWithBufferNotInWorkspace()
         {
             // don't crash
-            using (var workspace = TestWorkspace.CreateCSharp(""))
+            using var workspace = TestWorkspace.CreateCSharp("");
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+
+            var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
+            var contentType = contentTypeService.GetDefaultContentType();
+            var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
+
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
+            using var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer);
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+
+            var provider = new SemanticClassificationViewTaggerProvider(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
+                workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
+                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                listenerProvider);
+
+            using var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
+            using (var edit = extraBuffer.CreateEdit())
             {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-
-                var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
-                var contentType = contentTypeService.GetDefaultContentType();
-                var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
-
-                WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
-                using (var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer))
-                {
-                    var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-
-                    var provider = new SemanticClassificationViewTaggerProvider(
-                        workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                        workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                        workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
-                        workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                        listenerProvider);
-
-                    using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer))
-                    {
-                        using (var edit = extraBuffer.CreateEdit())
-                        {
-                            edit.Insert(0, "class A { }");
-                            edit.Apply();
-                        }
-
-                        var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-                        await waiter.CreateExpeditedWaitTask();
-                    }
-                }
+                edit.Insert(0, "class A { }");
+                edit.Apply();
             }
+
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
+            await waiter.CreateExpeditedWaitTask();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestGetTagsOnBufferTagger()
         {
             // don't crash
-            using (var workspace = TestWorkspace.CreateCSharp("class C { C c; }"))
-            {
-                var document = workspace.Documents.First();
+            using var workspace = TestWorkspace.CreateCSharp("class C { C c; }");
+            var document = workspace.Documents.First();
 
-                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
-                var provider = new SemanticClassificationBufferTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                    workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                    workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
-                    workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                    listenerProvider);
+            var provider = new SemanticClassificationBufferTaggerProvider(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
+                workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
+                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                listenerProvider);
 
-                var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
-                using (var disposable = (IDisposable)tagger)
-                {
-                    var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-                    await waiter.CreateExpeditedWaitTask();
+            var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
+            using var disposable = (IDisposable)tagger;
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
+            await waiter.CreateExpeditedWaitTask();
 
-                    var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
-                    var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
+            var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
+            var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
 
-                    Assert.Empty(tags);
-                    Assert.NotEmpty(allTags);
+            Assert.Empty(tags);
+            Assert.NotEmpty(allTags);
 
-                    Assert.Equal(allTags.Count(), 1);
-                }
-            }
+            Assert.Equal(allTags.Count(), 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]

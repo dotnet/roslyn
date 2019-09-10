@@ -613,32 +613,23 @@ Null
             verifier.VerifyIL("Module1.Test8",
             <![CDATA[
 {
-  // Code size       62 (0x3e)
+  // Code size       38 (0x26)
   .maxstack  2
-  .locals init (T V_0,
-                T V_1)
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       "Function Module1.GetT(Of T)(T) As T"
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  initobj    "T"
-  IL_0011:  ldloc.1
-  IL_0012:  box        "T"
-  IL_0017:  brtrue.s   IL_002d
-  IL_0019:  ldobj      "T"
-  IL_001e:  stloc.1
-  IL_001f:  ldloca.s   V_1
-  IL_0021:  ldloc.1
-  IL_0022:  box        "T"
-  IL_0027:  brtrue.s   IL_002d
-  IL_0029:  pop
-  IL_002a:  ldnull
-  IL_002b:  br.s       IL_0038
-  IL_002d:  constrained. "T"
-  IL_0033:  callvirt   "Function I1.get_P2() As String"
-  IL_0038:  call       "Sub Module1.Do(Of String)(String)"
-  IL_003d:  ret
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0015
+  IL_0011:  pop
+  IL_0012:  ldnull
+  IL_0013:  br.s       IL_0020
+  IL_0015:  constrained. "T"
+  IL_001b:  callvirt   "Function I1.get_P2() As String"
+  IL_0020:  call       "Sub Module1.Do(Of String)(String)"
+  IL_0025:  ret
 }
 ]]>)
 
@@ -3552,30 +3543,21 @@ Ext4 C1
             verifier.VerifyIL("Module1.Test1_6",
             <![CDATA[
 {
-  // Code size       54 (0x36)
+  // Code size       30 (0x1e)
   .maxstack  2
-  .locals init (T V_0,
-                T V_1)
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       "Function Module1.GetT(Of T)(T) As T"
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  initobj    "T"
-  IL_0011:  ldloc.1
-  IL_0012:  box        "T"
-  IL_0017:  brtrue.s   IL_002b
-  IL_0019:  ldobj      "T"
-  IL_001e:  stloc.1
-  IL_001f:  ldloca.s   V_1
-  IL_0021:  ldloc.1
-  IL_0022:  box        "T"
-  IL_0027:  brtrue.s   IL_002b
-  IL_0029:  pop
-  IL_002a:  ret
-  IL_002b:  ldobj      "T"
-  IL_0030:  call       "Sub Module1.Ext1(Of T)(T)"
-  IL_0035:  ret
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0013
+  IL_0011:  pop
+  IL_0012:  ret
+  IL_0013:  ldobj      "T"
+  IL_0018:  call       "Sub Module1.Ext1(Of T)(T)"
+  IL_001d:  ret
 }
 ]]>)
 
@@ -5303,6 +5285,317 @@ C1
 CallAsyncExt2
 101
 C1
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")>
+        Public Sub CodeGen_ConditionalAccessUnconstrainedTField()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C(Of T)
+    Public Sub New(t As T)
+        field = t
+    End Sub
+
+    Public Sub New()
+    End Sub
+
+    Private field As T
+
+    Public Sub Print()
+        Console.WriteLine(field?.ToString())
+        Console.WriteLine(field)
+    End Sub
+End Class
+
+Public Structure S
+    Private a As Integer
+
+    Public Overrides Function ToString() As String
+        Dim result = a.ToString()
+        a = a + 1
+        Return result
+    End Function
+End Structure
+
+Module Program
+    Sub Main()
+        Call New C(Of S)().Print()
+        Call New C(Of S?)().Print()
+        Call New C(Of S?)(New S()).Print()
+        Call New C(Of String)("hello").Print()
+        Call New C(Of String)().Print()
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="0
+1
+
+
+0
+0
+hello
+hello")
+
+            c.VerifyIL("C(Of T).Print()",
+            <![CDATA[
+{
+  // Code size       75 (0x4b)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "C(Of T).field As T"
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  initobj    "T"
+  IL_000e:  ldloc.0
+  IL_000f:  box        "T"
+  IL_0014:  brtrue.s   IL_002a
+  IL_0016:  ldobj      "T"
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldloc.0
+  IL_001f:  box        "T"
+  IL_0024:  brtrue.s   IL_002a
+  IL_0026:  pop
+  IL_0027:  ldnull
+  IL_0028:  br.s       IL_0035
+  IL_002a:  constrained. "T"
+  IL_0030:  callvirt   "Function Object.ToString() As String"
+  IL_0035:  call       "Sub System.Console.WriteLine(String)"
+  IL_003a:  ldarg.0
+  IL_003b:  ldfld      "C(Of T).field As T"
+  IL_0040:  box        "T"
+  IL_0045:  call       "Sub System.Console.WriteLine(Object)"
+  IL_004a:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")>
+        Public Sub CodeGen_ConditionalAccessReadonlyUnconstrainedTField()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C(Of T)
+    Public Sub New(ByVal t As T)
+        field = t
+    End Sub
+
+    Public Sub New()
+    End Sub
+
+    ReadOnly field As T
+
+    Public Sub Print()
+        Console.WriteLine(field?.ToString())
+        Console.WriteLine(field)
+    End Sub
+End Class
+
+Public Structure S
+    Private a As Integer
+
+    Public Overrides Function ToString() As String
+        Return Math.Min(System.Threading.Interlocked.Increment(a), a - 1).ToString()
+    End Function
+End Structure
+
+Module Program
+    Sub Main()
+		Call New C(Of S)().Print()
+		Call New C(Of S?)().Print()
+		Call New C(Of S?)(New S()).Print()
+		Call New C(Of String)("hello").Print()
+		Call New C(Of String)().Print()
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="0
+0
+
+
+0
+0
+hello
+hello")
+
+            c.VerifyIL("C(Of T).Print()",
+            <![CDATA[
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "C(Of T).field As T"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0015
+  IL_0011:  pop
+  IL_0012:  ldnull
+  IL_0013:  br.s       IL_0020
+  IL_0015:  constrained. "T"
+  IL_001b:  callvirt   "Function Object.ToString() As String"
+  IL_0020:  call       "Sub System.Console.WriteLine(String)"
+  IL_0025:  ldarg.0
+  IL_0026:  ldfld      "C(Of T).field As T"
+  IL_002b:  box        "T"
+  IL_0030:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0035:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")>
+        Public Sub CodeGen_ConditionalAccessUnconstrainedTLocal()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C(Of T)
+    Public Sub New(ByVal t As T)
+        field = t
+    End Sub
+
+    Public Sub New()
+    End Sub
+
+    Private field As T
+
+    Public Sub Print()
+        Dim temp = field
+        Console.WriteLine(temp?.ToString())
+        Console.WriteLine(temp)
+    End Sub
+End Class
+
+Public Structure S
+    Private a As Integer
+
+    Public Overrides Function ToString() As String
+        Return Math.Min(System.Threading.Interlocked.Increment(a), a - 1).ToString()
+    End Function
+End Structure
+
+Module Program
+	Sub Main()
+		Call New C(Of S)().Print()
+		Call New C(Of S?)().Print()
+		Call New C(Of S?)(New S()).Print()
+		Call New C(Of String)("hello").Print()
+		Call New C(Of String)().Print()
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="0
+1
+
+
+0
+1
+hello
+hello")
+
+            c.VerifyIL("C(Of T).Print()",
+            <![CDATA[
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (T V_0) //temp
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "C(Of T).field As T"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  box        "T"
+  IL_000d:  brtrue.s   IL_0012
+  IL_000f:  ldnull
+  IL_0010:  br.s       IL_001f
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  constrained. "T"
+  IL_001a:  callvirt   "Function Object.ToString() As String"
+  IL_001f:  call       "Sub System.Console.WriteLine(String)"
+  IL_0024:  ldloc.0
+  IL_0025:  box        "T"
+  IL_002a:  call       "Sub System.Console.WriteLine(Object)"
+  IL_002f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")>
+        Public Sub CodeGen_ConditionalAccessUnconstrainedTTemp()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C(Of T)
+    Public Sub New(ByVal t As T)
+        field = t
+    End Sub
+
+    Public Sub New()
+    End Sub
+
+    Private field As T
+
+    Private Function M() As T
+        Return field
+    End Function
+
+    Public Sub Print()
+        Console.WriteLine(M()?.ToString())
+    End Sub
+End Class
+
+Module Program
+    Sub Main()
+        Call New C(Of Integer)().Print()
+        Call New C(Of Integer?)().Print()
+        Call New C(Of Integer?)(0).Print()
+        Call New C(Of String)("hello").Print()
+        Call New C(Of String)().Print()
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="0
+
+0
+hello
+")
+
+            c.VerifyIL("C(Of T).Print()",
+            <![CDATA[
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function C(Of T).M() As T"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0015
+  IL_0011:  pop
+  IL_0012:  ldnull
+  IL_0013:  br.s       IL_0020
+  IL_0015:  constrained. "T"
+  IL_001b:  callvirt   "Function Object.ToString() As String"
+  IL_0020:  call       "Sub System.Console.WriteLine(String)"
+  IL_0025:  ret
+}
 ]]>)
         End Sub
 

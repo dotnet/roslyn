@@ -51,6 +51,19 @@ Initially each type variable Xi is unfixed with an empty set of bounds.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    internal static class PooledDictionaryIgnoringNullableModifiersForReferenceTypes
+    {
+        private static readonly ObjectPool<PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>> s_poolInstance
+            = PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>.CreatePool(TypeSymbol.EqualsIgnoringNullableComparer);
+
+        internal static PooledDictionary<NamedTypeSymbol, NamedTypeSymbol> GetInstance()
+        {
+            var instance = s_poolInstance.Allocate();
+            Debug.Assert(instance.Count == 0);
+            return instance;
+        }
+    }
+
     // Method type inference can fail, but we still might have some best guesses. 
     internal struct MethodTypeInferenceResult
     {
@@ -1956,6 +1969,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
 
+            // duplicates with only nullability differences can be merged (to avoid an error in type inference)
+            allInterfaces = ModuloReferenceTypeNullabilityDifferences(allInterfaces, VarianceKind.In);
+
             NamedTypeSymbol matchingInterface = GetInterfaceInferenceBound(allInterfaces, target);
             if ((object)matchingInterface == null)
             {
@@ -1963,6 +1979,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             LowerBoundTypeArgumentInference(matchingInterface, target, ref useSiteDiagnostics);
             return true;
+        }
+
+        internal static ImmutableArray<NamedTypeSymbol> ModuloReferenceTypeNullabilityDifferences(ImmutableArray<NamedTypeSymbol> interfaces, VarianceKind variance)
+        {
+            var dictionary = PooledDictionaryIgnoringNullableModifiersForReferenceTypes.GetInstance();
+
+            foreach (var @interface in interfaces)
+            {
+                if (dictionary.TryGetValue(@interface, out var found))
+                {
+                    var merged = (NamedTypeSymbol)found.MergeNullability(@interface, variance);
+                    dictionary[@interface] = merged;
+                }
+                else
+                {
+                    dictionary.Add(@interface, @interface);
+                }
+            }
+
+            var result = dictionary.Count != interfaces.Length ? dictionary.Values.ToImmutableArray() : interfaces;
+            dictionary.Free();
+            return result;
         }
 
         private void LowerBoundTypeArgumentInference(NamedTypeSymbol source, NamedTypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2247,7 +2285,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
 
-            NamedTypeSymbol bestInterface = GetInterfaceInferenceBound(target.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), source);
+            ImmutableArray<NamedTypeSymbol> allInterfaces = target.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+
+            // duplicates with only nullability differences can be merged (to avoid an error in type inference)
+            allInterfaces = ModuloReferenceTypeNullabilityDifferences(allInterfaces, VarianceKind.Out);
+
+            NamedTypeSymbol bestInterface = GetInterfaceInferenceBound(allInterfaces, source);
             if ((object)bestInterface == null)
             {
                 return false;
@@ -2647,13 +2690,13 @@ OuterBreak:
             NamedTypeSymbol matchingInterface = null;
             foreach (var currentInterface in interfaces)
             {
-                if (TypeSymbol.Equals(currentInterface.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
+                if (TypeSymbol.Equals(currentInterface.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything))
                 {
                     if ((object)matchingInterface == null)
                     {
                         matchingInterface = currentInterface;
                     }
-                    else if (!TypeSymbol.Equals(matchingInterface, currentInterface, TypeCompareKind.ConsiderEverything2))
+                    else if (!TypeSymbol.Equals(matchingInterface, currentInterface, TypeCompareKind.ConsiderEverything))
                     {
                         // Not unique. Bail out.
                         return default;

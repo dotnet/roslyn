@@ -1283,6 +1283,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     break;
 
+                case SymbolKind.Method:
+                    if (variable is LocalFunctionSymbol localFunction)
+                    {
+                        // calling a static local function doesn't require capturing state
+                        if (localFunction.IsStatic)
+                        {
+                            return false;
+                        }
+
+                        break;
+                    }
+
+                    throw ExceptionUtilities.UnexpectedValue(variable);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(variable.Kind);
             }

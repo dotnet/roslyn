@@ -148,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(false, "what else could be defined in a lambda?");
+            diagnostics.Add(ErrorCode.ERR_InternalError, newLocation);
             return false;
         }
 

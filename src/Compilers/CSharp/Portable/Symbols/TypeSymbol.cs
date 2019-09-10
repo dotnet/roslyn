@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="interfaceMember">
         /// Must be a non-null interface property, method, or event.
         /// </param>
-        public Symbol FindImplementationForInterfaceMember(Symbol interfaceMember)
+        public Symbol FindImplementationForInterfaceMember(Symbol interfaceMember, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if ((object)interfaceMember == null)
             {
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.IsInterfaceType())
             {
-                return FindMostSpecificImplementation(interfaceMember, (NamedTypeSymbol)this);
+                return FindMostSpecificImplementation(interfaceMember, (NamedTypeSymbol)this, ref useSiteDiagnostics);
             }
 
             return FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceMember).Symbol;
@@ -769,8 +769,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ISymbol ITypeSymbol.FindImplementationForInterfaceMember(ISymbol interfaceMember)
         {
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             return interfaceMember is Symbol
-                ? FindImplementationForInterfaceMember((Symbol)interfaceMember)
+                ? FindImplementationForInterfaceMember((Symbol)interfaceMember, ref useSiteDiagnostics)
                 : null;
         }
 
@@ -985,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (interfaceMember.IsAccessor())
             {
                 // https://github.com/dotnet/roslyn/issues/34453: Do we need to adjust behavior of this function in any way?
-                CheckForImplementationOfCorrespondingPropertyOrEvent((MethodSymbol)interfaceMember, implementingType, implementingTypeIsFromSomeCompilation, ref implicitImpl);
+                CheckForImplementationOfCorrespondingPropertyOrEvent((MethodSymbol)interfaceMember, implementingType, implementingTypeIsFromSomeCompilation, ref implicitImpl, ref useSiteDiagnostics);
             }
 
             if ((object)implicitImpl == null && seenTypeDeclaringInterface)
@@ -1054,9 +1055,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return implicitImpl;
         }
 
-        private static Symbol FindMostSpecificImplementation(Symbol interfaceMember, NamedTypeSymbol implementingInterface)
+        private static Symbol FindMostSpecificImplementation(Symbol interfaceMember, NamedTypeSymbol implementingInterface, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             MultiDictionary<Symbol, Symbol>.ValueSet implementingMember = FindImplementationInInterface(interfaceMember, implementingInterface);
 
             switch (implementingMember.Count)
@@ -1334,12 +1334,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If there is no corresponding accessor on the implementation of the corresponding interface
         /// property/event and we found an accessor, then the accessor we found is invalid, so clear it.
         /// </summary>
-        private static void CheckForImplementationOfCorrespondingPropertyOrEvent(MethodSymbol interfaceMethod, TypeSymbol implementingType, bool implementingTypeIsFromSomeCompilation, ref Symbol implicitImpl)
+        private static void CheckForImplementationOfCorrespondingPropertyOrEvent(MethodSymbol interfaceMethod, TypeSymbol implementingType, bool implementingTypeIsFromSomeCompilation,
+                                                                                 ref Symbol implicitImpl, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(interfaceMethod.IsAccessor());
 
             Symbol associatedInterfacePropertyOrEvent = interfaceMethod.AssociatedSymbol;
-            Symbol implementingPropertyOrEvent = implementingType.FindImplementationForInterfaceMember(associatedInterfacePropertyOrEvent); // NB: uses cache
+            Symbol implementingPropertyOrEvent = implementingType.FindImplementationForInterfaceMember(associatedInterfacePropertyOrEvent, ref useSiteDiagnostics); // NB: uses cache
             MethodSymbol correspondingImplementingAccessor = null;
             if ((object)implementingPropertyOrEvent != null)
             {

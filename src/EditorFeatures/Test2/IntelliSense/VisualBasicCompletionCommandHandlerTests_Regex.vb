@@ -25,7 +25,6 @@ end class
 ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("\A")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
@@ -34,7 +33,7 @@ end class
         End Function
 
         <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory(Skip := "https://github.com/dotnet/roslyn/issues/35631"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/35631"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCaretPlacement(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                 <Document><![CDATA[
@@ -48,10 +47,6 @@ end class
 
                 state.SendTypeChars("[")
 
-                ' WaitForAsynchronousOperationsAsync is not enough for waiting in the async completion.
-                ' To be sure that calculations are done, need to check session.GetComputedItems, 
-                ' E.g. via AssertSelectedCompletionItem.
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("[  character-group  ]")
                 state.SendDownKey()
                 state.SendDownKey()
@@ -79,7 +74,6 @@ end class
 ]]></Document>)
 
                 state.SendTypeChars("\")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionSession()
 
                 For Each item In state.GetCompletionItems()
@@ -105,7 +99,6 @@ end class
 ]]></Document>)
 
                 state.SendTypeChars("[")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionSession()
 
                 For Each item In state.GetCompletionItems()
@@ -131,7 +124,6 @@ end class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionSession()
 
                 For Each item In state.GetCompletionItems()
