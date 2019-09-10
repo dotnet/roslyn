@@ -235,18 +235,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 if (expansion.ContainsFavorites)
                 {
-                    resultFlags |= DkmEvaluationResultFlags.HasObjectFavorites;
+                    resultFlags |= DkmEvaluationResultFlags.HasFavorites;
                 }
             }
 
             if (canFavorite)
             {
-                resultFlags |= DkmEvaluationResultFlags.CanAddToObjectFavorites;
+                resultFlags |= DkmEvaluationResultFlags.CanFavorite;
             }
 
             if (isFavorite)
             {
-                resultFlags |= DkmEvaluationResultFlags.IsObjectFavorite;
+                resultFlags |= DkmEvaluationResultFlags.IsFavorite;
             }
 
             return resultFlags;

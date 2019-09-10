@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 var innerWorkList = workList.InnerWorkList;
                 EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, displayInfo.Name,
-                    displayName => EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, displayInfo.Value,
+                    displayName => EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, displayInfo.GetValue(inspectionContext),
                         displayValue => EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, displayInfo.TypeName,
                             displayType =>
                                 workList.ContinueWith(() =>

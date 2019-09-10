@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 expansions.Add(favoritesExpansion);
 
                 // Check if we are only expanding favorites.
-                if (favoritesInfo.EvaluationFlags.HasFlag(DkmFavoritesEvaluationFlags.ShowOnlyFavorites))
+                if (inspectionContext.EvaluationFlags.HasFlag(DkmEvaluationFlags.FilterToFavorites))
                 {
                     instanceMembers.Free();
                     staticMembers.Free();
