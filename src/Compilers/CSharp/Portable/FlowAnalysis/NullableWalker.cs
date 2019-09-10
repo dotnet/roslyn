@@ -3700,7 +3700,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Adjust parameter state if MaybeNull or MaybeNullWhen are present (for `var` type and for assignment warnings)
                         var worstCaseParameterWithState = applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations);
 
-                        var lValueType = result.LValueType;
+                        var declaredType = result.LValueType;
+                        FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(argument);
+                        TypeWithAnnotations lValueType = ApplyLValueAnnotations(declaredType, leftAnnotations);
                         if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
                             var varType = worstCaseParameterWithState.ToTypeWithAnnotations();
@@ -3714,6 +3716,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // track state by assigning from a fictional value from the parameter to the argument.
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
+
+                        // If the LHS has annotations, we perform an additional check for nullable value types
+                        CheckDisallowedNullAssignment(parameterWithState, leftAnnotations, argument.Syntax.Location);
+
+                        AdjustSetValue(argument, declaredType, lValueType, ref parameterWithState);
                         trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations);
 
                         // report warnings if parameter would unsafely let a null out in the worst case
@@ -6014,7 +6021,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var targetType = variable.Type;
+                    var leftLValueType = variable.Type;
+                    var leftAnnotations = GetLValueAnnotations(variable.Expression);
+                    leftLValueType = ApplyLValueAnnotations(leftLValueType, leftAnnotations);
+
                     TypeWithState operandType;
                     TypeWithState valueType;
                     int valueSlot;
@@ -6029,7 +6039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             operandType = default;
-                            valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
+                            valueType = VisitOptionalImplicitConversion(rightPart, leftLValueType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
                         }
                         valueSlot = MakeSlot(rightPart);
                     }
@@ -6040,7 +6050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             conversionOpt: null,
                             rightPart,
                             underlyingConversion,
-                            targetType,
+                            leftLValueType,
                             operandType,
                             checkConversion: true,
                             fromExplicitCast: false,
@@ -6052,20 +6062,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         valueSlot = -1;
                     }
 
+                    // If the LHS has annotations, we perform an additional check for nullable value types
+                    CheckDisallowedNullAssignment(valueType, leftAnnotations, right.Syntax.Location);
+
                     int targetSlot = MakeSlot(variable.Expression);
-                    // TODO2 should handle attributes properly
-                    TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot);
+                    AdjustSetValue(variable.Expression, variable.Type, leftLValueType, ref valueType);
+                    TrackNullableStateForAssignment(rightPart, leftLValueType, targetSlot, valueType, valueSlot);
 
                     // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
                     if (targetSlot > 0 &&
                         underlyingConversion.Kind == ConversionKind.ImplicitNullable &&
-                        AreNullableAndUnderlyingTypes(targetType.Type, operandType.Type, out TypeWithAnnotations underlyingType))
+                        AreNullableAndUnderlyingTypes(leftLValueType.Type, operandType.Type, out TypeWithAnnotations underlyingType))
                     {
                         valueSlot = MakeSlot(rightPart);
                         if (valueSlot > 0)
                         {
                             var valueBeforeNullableWrapping = TypeWithState.Create(underlyingType.Type, NullableFlowState.NotNull);
-                            TrackNullableStateOfNullableValue(targetSlot, targetType.Type, rightPart, valueBeforeNullableWrapping, valueSlot);
+                            TrackNullableStateOfNullableValue(targetSlot, leftLValueType.Type, rightPart, valueBeforeNullableWrapping, valueSlot);
                         }
                     }
                 }
