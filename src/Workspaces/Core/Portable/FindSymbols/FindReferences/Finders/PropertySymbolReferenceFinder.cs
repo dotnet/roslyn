@@ -225,9 +225,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// </summary>
         /// <param name="syntaxFacts"></param>
         /// <param name="node"></param>
-        private static ImmutableArray<AdditionalProperty> GetAdditionalProperties(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node)
+        private static ImmutableArray<FindUsageProperty> GetAdditionalProperties(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node)
         {
-            var additionalProperties = new ArrayBuilder<AdditionalProperty>
+            var additionalProperties = new ArrayBuilder<FindUsageProperty>
             {
                 GetInfo(syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart), ContainingTypeInfoPropertyName, semanticModel),
                 GetInfo(syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart), ContainingMemberInfoPropertyName, semanticModel)

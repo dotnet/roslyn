@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Additional properties for this reference
         /// </summary>
-        internal ImmutableArray<AdditionalProperty> AdditionalProperties { get; }
+        internal ImmutableArray<FindUsageProperty> AdditionalProperties { get; }
 
         /// <summary>
         /// Indicates if this location is a duplicate of some another ReferenceLocation.
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableArray<AdditionalProperty> additionalProperties, CandidateReason candidateReason)
+        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableArray<FindUsageProperty> additionalProperties, CandidateReason candidateReason)
             : this()
         {
             this.Document = document;

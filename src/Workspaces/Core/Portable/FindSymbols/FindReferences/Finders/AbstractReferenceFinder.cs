@@ -704,9 +704,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return false;
         }
 
-        internal static ImmutableArray<AdditionalProperty> GetAdditionalProperties(SyntaxNode node, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
+        internal static ImmutableArray<FindUsageProperty> GetAdditionalProperties(SyntaxNode node, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
         {
-            var additionalProperties = new ArrayBuilder<AdditionalProperty>
+            var additionalProperties = new ArrayBuilder<FindUsageProperty>
             {
                 GetInfo(syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart), ContainingTypeInfoPropertyName, semanticModel),
                 GetInfo(syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart), ContainingMemberInfoPropertyName, semanticModel)
@@ -714,9 +714,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return additionalProperties.ToImmutableAndFree();
         }
 
-        internal static ImmutableArray<AdditionalProperty> GetAdditionalProperties(ISymbol definition)
+        internal static ImmutableArray<FindUsageProperty> GetAdditionalProperties(ISymbol definition)
         {
-            var additionalProperties = new ArrayBuilder<AdditionalProperty>();
+            var additionalProperties = new ArrayBuilder<FindUsageProperty>();
 
             var containingType = definition.ContainingType;
             if (containingType != null)
@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return additionalProperties.ToImmutableAndFree();
         }
 
-        protected static AdditionalProperty GetInfo(SyntaxNode node, string name, SemanticModel semanticModel)
+        protected static FindUsageProperty GetInfo(SyntaxNode node, string name, SemanticModel semanticModel)
         {
             if (node != null)
             {
@@ -746,17 +746,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
-            return new AdditionalProperty(name, "");
+            return new FindUsageProperty(name, "");
         }
 
-        private static AdditionalProperty GetAdditionalProperty(string propertyName, ISymbol symbol)
+        private static FindUsageProperty GetAdditionalProperty(string propertyName, ISymbol symbol)
         {
             if (symbol == null)
             {
-                return new AdditionalProperty(propertyName, "");
+                return new FindUsageProperty(propertyName, "");
             }
 
-            return new AdditionalProperty(propertyName, symbol.Name);
+            return new FindUsageProperty(propertyName, symbol.Name);
         }
     }
 

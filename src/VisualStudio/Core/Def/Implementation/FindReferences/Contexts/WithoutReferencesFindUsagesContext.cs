@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             sourceSpan,
                             HighlightSpanKind.Definition,
                             customColumnsDataOpt: null,
-                            additionalProperties: ImmutableArray<AdditionalProperty>.Empty)
+                            additionalProperties: ImmutableArray<FindUsageProperty>.Empty)
                                 .ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
                     }

@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                        originationParts: default,
                        sourceSpans: default,
                        properties: null,
-                       displayableProperties: ImmutableArray<AdditionalProperty>.Empty,
+                       displayableProperties: ImmutableArray<FindUsageProperty>.Empty,
                        displayIfNoReferences: true)
             {
                 _serviceProvider = serviceProvider;

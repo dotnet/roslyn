@@ -328,7 +328,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
                 ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt,
-                ImmutableArray<AdditionalProperty> additionalProperties)
+                ImmutableArray<FindUsageProperty> additionalProperties)
             {
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
@@ -371,7 +371,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            private ImmutableDictionary<string, string> GetCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsWithMultipleValuesOpt, ImmutableArray<AdditionalProperty> customColumns)
+            private ImmutableDictionary<string, string> GetCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsWithMultipleValuesOpt, ImmutableArray<FindUsageProperty> customColumns)
             {
                 var builder = ImmutableDictionary.CreateBuilder<string, string>();
 

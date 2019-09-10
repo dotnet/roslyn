@@ -2,12 +2,12 @@
 
 namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 {
-    internal struct AdditionalProperty
+    internal struct FindUsageProperty
     {
         public string Label { get; }
         public string Value { get; }
 
-        public AdditionalProperty(string label, string value)
+        public FindUsageProperty(string label, string value)
         {
             Label = label;
             Value = value;

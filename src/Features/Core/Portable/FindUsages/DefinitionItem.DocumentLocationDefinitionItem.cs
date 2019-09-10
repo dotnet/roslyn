@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ImmutableArray<TaggedText> originationParts,
                 ImmutableArray<DocumentSpan> sourceSpans,
                 ImmutableDictionary<string, string> properties,
-                ImmutableArray<AdditionalProperty> findUsagesProperty,
+                ImmutableArray<FindUsageProperty> findUsagesProperties,
                 bool displayIfNoReferences)
                 : base(tags, displayParts, nameDisplayParts, originationParts,
-                       sourceSpans, properties, findUsagesProperty, displayIfNoReferences)
+                       sourceSpans, properties, findUsagesProperties, displayIfNoReferences)
             {
             }
 
