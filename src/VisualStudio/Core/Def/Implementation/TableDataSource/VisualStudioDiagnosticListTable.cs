@@ -84,7 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 ConnectWorkspaceEvents();
 
                 _errorList.PropertyChanged += OnErrorListPropertyChanged;
-                SuppressionStateColumnDefinition.SetDefaultFilter(_errorList.TableControl);
             }
 
             private ITableDataSource GetCurrentDataSource()

@@ -2,6 +2,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
@@ -13,7 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature
     internal class CSharpChangeSignatureCommandHandler : AbstractChangeSignatureCommandHandler
     {
         [ImportingConstructor]
-        public CSharpChangeSignatureCommandHandler()
+        public CSharpChangeSignatureCommandHandler(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
         }
     }

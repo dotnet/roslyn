@@ -9,12 +9,12 @@
       </trans-unit>
       <trans-unit id="1012">
         <source>Visual Basic Editor with Encoding</source>
-        <target state="needs-review-translation">Editor de Página de Código do Microsoft Visual Basic</target>
+        <target state="translated">Editor do Visual Basic com Codificação</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
         <source>Visual Basic Editor</source>
-        <target state="needs-review-translation">Editor do Microsoft Visual Basic</target>
+        <target state="translated">Editor do Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
