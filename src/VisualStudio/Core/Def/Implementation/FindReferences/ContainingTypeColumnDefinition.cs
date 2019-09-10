@@ -27,8 +27,5 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public override bool IsFilterable => true;
         public override string Name => ColumnName;
         public override string DisplayName => ServicesVSResources.Containing_type;
-
-        public override string GetDisplayStringForColumnValues(ImmutableArray<string> values)
-            => throw ExceptionUtilities.Unreachable;
     }
 }

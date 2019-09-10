@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -17,11 +15,5 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         }
 
         public ColumnState2 DefaultColumnState { get; }
-
-        public abstract string GetDisplayStringForColumnValues(ImmutableArray<string> values);
-
-        protected static string JoinValues(ImmutableArray<string> values) => string.Join(", ", values);
-
-        protected static ImmutableArray<string> SplitAndTrimValue(string displayValue) => displayValue.Split(',').Select(v => v.Trim()).ToImmutableArray();
     }
 }

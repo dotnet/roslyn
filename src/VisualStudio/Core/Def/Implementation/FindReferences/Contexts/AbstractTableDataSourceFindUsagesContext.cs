@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -393,9 +394,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     {
                         if (_customColumnTitleToStatesMap.ContainsKey(column.Key))
                         {
-                            builder.Add(
-                                column.Key,
-                                ((AbstractCustomColumnDefinition)TableControl.ColumnDefinitionManager.GetColumnDefinition(column.Key)).GetDisplayStringForColumnValues(column.Value));
+                            var columnDefinition = TableControl.ColumnDefinitionManager.GetColumnDefinition(column.Key);
+                            if (columnDefinition is AbstractCustomColumnDefinitionWithMultipleValues definitionWithMultipleValues)
+                            {
+                                builder.Add(
+                                    column.Key,
+                                    definitionWithMultipleValues.GetDisplayStringForColumnValues(column.Value));
+                            }
+                            else
+                            {
+                                builder.Add(column.Key, column.Value[0]);
+                            }
                         }
                     }
                 }
