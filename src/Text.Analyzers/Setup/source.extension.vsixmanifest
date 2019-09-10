@@ -5,6 +5,7 @@
     <Identity Id="65c816b1-04f9-4b1a-b767-078f8ccd627e" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>Text Analyzers</DisplayName>
     <Description xml:space="preserve">Text Analyzers</Description>
+    <License>EULA.rtf</License>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0.27130.0,]" />
