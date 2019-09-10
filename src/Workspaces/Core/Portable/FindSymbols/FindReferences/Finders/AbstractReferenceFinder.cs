@@ -472,7 +472,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location: location, isImplicit: true, symbolUsageInfo, GetAdditionalProperties(node, semanticModel, syntaxFacts), candidateReason: CandidateReason.None)));
+                        document,
+                        alias: null,
+                        location: location,
+                        isImplicit: true,
+                        symbolUsageInfo,
+                        GetAdditionalProperties(node, semanticModel, syntaxFacts),
+                        candidateReason: CandidateReason.None)));
                 }
             }
         }

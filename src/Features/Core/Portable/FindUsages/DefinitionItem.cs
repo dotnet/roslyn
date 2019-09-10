@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 tags, displayParts, nameDisplayParts, originationParts,
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
-                displayableProperties: ImmutableArray<AdditionalProperty>.Empty,
+                findUsagesProperty: ImmutableArray<AdditionalProperty>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 originationParts: originationParts,
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
-                displayableProperties: ImmutableArray<AdditionalProperty>.Empty,
+                findUsagesProperty: ImmutableArray<AdditionalProperty>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
         }
 

@@ -59,9 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                    formatMapService,
                    classificationFormatMapService,
                    columns.Where(c =>
-                        c.Metadata.Name == FindUsagesValueUsageInfoColumnDefinition.ColumnName
-                        || c.Metadata.Name == ContainingMemberColumnDefinition.ColumnName
-                        || c.Metadata.Name == ContainingTypeColumnDefinition.ColumnName)
+                        c.Value is AbstractCustomColumnDefinition)
                         .Select(c => c.Value))
         {
         }

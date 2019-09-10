@@ -375,7 +375,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 var builder = ImmutableDictionary.CreateBuilder<string, string>();
 
-                // Aggregate dictionary values to get column display values. For example, below input:
+                // First, aggregate the dictionary values that contain an array of string values to get appropriate column display values. For example, below input:
                 //
                 // {
                 //   { "Column1", {"Value1", "Value2"} },
@@ -394,22 +394,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     {
                         if (_customColumnTitleToStatesMap.ContainsKey(column.Key))
                         {
-                            var columnDefinition = TableControl.ColumnDefinitionManager.GetColumnDefinition(column.Key);
-                            if (columnDefinition is AbstractCustomColumnDefinitionWithMultipleValues definitionWithMultipleValues)
-                            {
-                                builder.Add(
-                                    column.Key,
-                                    definitionWithMultipleValues.GetDisplayStringForColumnValues(column.Value));
-                            }
-                            else
-                            {
-                                builder.Add(column.Key, column.Value[0]);
-                            }
+                            builder.Add(
+                                column.Key,
+                                ((AbstractCustomColumnDefinitionWithMultipleValues)TableControl.ColumnDefinitionManager.GetColumnDefinition(column.Key)).GetDisplayStringForColumnValues(column.Value));
                         }
                     }
                 }
 
-                // Similarly, add the regular custom column display values
+                // Next, add the dictionary values that contain a single string
                 if (customColumns != null)
                 {
                     foreach (var column in customColumns)
