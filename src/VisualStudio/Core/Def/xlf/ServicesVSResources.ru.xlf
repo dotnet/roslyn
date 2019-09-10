@@ -1094,31 +1094,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">Сборка анализатора "{0}" зависит от "{1}", но последняя не найдена. Анализаторы могут работать неправильно, если не добавить отсутствующую сборку в качестве ссылки анализатора.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppression_State">
-        <source>Suppression State</source>
-        <target state="translated">Состояние подавления</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Active">
-        <source>Active</source>
-        <target state="translated">Активный</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppressed">
-        <source>Suppressed</source>
-        <target state="translated">Подавлено</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NotApplicable">
-        <source>N/A</source>
-        <target state="translated">Н/Д</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SuppressionNotSupportedToolTip">
-        <source>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</source>
-        <target state="translated">Состояние подавления поддерживается только для диагностики IntelliSense, которая предназначена для создания моментального снимка текущего решения. Для подавления переключитесь на диагностику "IntelliSense".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_diagnostics">
         <source>Suppress diagnostics</source>
         <target state="translated">Подавление диагностики</target>
