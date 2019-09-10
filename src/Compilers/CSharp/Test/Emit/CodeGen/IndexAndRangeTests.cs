@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        private (SemanticModel model, List<ElementAccessExpressionSyntax> accesses) GetModelAndAccesses(CSharpCompilation comp)
+        private static (SemanticModel model, List<ElementAccessExpressionSyntax> accesses) GetModelAndAccesses(CSharpCompilation comp)
         {
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return (model, root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToList());
         }
 
-        private void VerifyIndexCall(IMethodSymbol symbol, string methodName, string containingTypeName)
+        private static void VerifyIndexCall(IMethodSymbol symbol, string methodName, string containingTypeName)
         {
             Assert.NotNull(symbol);
             Assert.Equal(methodName, symbol.Name);

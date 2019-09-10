@@ -2770,10 +2770,10 @@ static class CExt
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
 
-            var indexers = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray();
-            verifyAnnotation(indexers.AsSpan().Slice(0, 2), PublicNullableAnnotation.Annotated, PublicNullableAnnotation.NotAnnotated);
-            verifyAnnotation(indexers.AsSpan().Slice(2, 2), PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
-            verifyAnnotation(indexers.AsSpan().Slice(4, 2), PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
+            var indexers = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray().AsSpan();
+            verifyAnnotation(indexers.Slice(0, 2), PublicNullableAnnotation.Annotated, PublicNullableAnnotation.NotAnnotated);
+            verifyAnnotation(indexers.Slice(2, 2), PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
+            verifyAnnotation(indexers.Slice(4, 2), PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
 
             void verifyAnnotation(Span<ElementAccessExpressionSyntax> indexers, PublicNullableAnnotation firstAnnotation, PublicNullableAnnotation secondAnnotation)
             {
@@ -2820,9 +2820,9 @@ class C<T>
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
 
-            var elementAccesses = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray();
-            verifyAnnotation(elementAccesses.AsSpan().Slice(0, 2), PublicNullableAnnotation.Annotated);
-            verifyAnnotation(elementAccesses.AsSpan().Slice(2, 2), PublicNullableAnnotation.NotAnnotated);
+            var elementAccesses = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray().AsSpan();
+            verifyAnnotation(elementAccesses.Slice(0, 2), PublicNullableAnnotation.Annotated);
+            verifyAnnotation(elementAccesses.Slice(2, 2), PublicNullableAnnotation.NotAnnotated);
 
             void verifyAnnotation(Span<ElementAccessExpressionSyntax> indexers, PublicNullableAnnotation annotation)
             {
@@ -2840,7 +2840,7 @@ class C<T>
         }
 
         [Fact]
-        public void GetSymbolInfo_PatternReinferred()
+        public void GetSymbolInfo_RangeReinferred()
         {
 
             var source = @"
