@@ -541,10 +541,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     {
                         var patternIndexerAccess = (BoundIndexOrRangePatternIndexerAccess)originalLHS;
-                        (RefKind refKind, bool isRange) = patternIndexerAccess.PatternSymbol switch
+                        RefKind refKind = patternIndexerAccess.PatternSymbol switch
                         {
-                            PropertySymbol { RefKind: var r } => (r, false),
-                            MethodSymbol { RefKind: var r } => (r, true),
+                            PropertySymbol p => p.RefKind,
+                            MethodSymbol m => m.RefKind,
                             var x => throw ExceptionUtilities.UnexpectedValue(x)
                         };
                         if (refKind == RefKind.None)
