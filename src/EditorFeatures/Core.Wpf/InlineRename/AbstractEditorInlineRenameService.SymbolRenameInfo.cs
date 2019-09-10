@@ -246,7 +246,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (RenameSymbol.Kind == SymbolKind.NamedType &&
                     _document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
-
                 {
                     if (RenameSymbol.Locations.Length > 1)
                     {
