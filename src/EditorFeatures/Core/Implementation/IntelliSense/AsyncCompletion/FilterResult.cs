@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
@@ -13,11 +14,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public readonly bool MatchedFilterText;
         public readonly string FilterText;
 
-        public FilterResult(CompletionItem completionItem, string filterText, bool matchedFilterText)
+        // In certain cases, there'd be no match but we'd still set `MatchedFilterText` to true,
+        // e.g. when the item is in MRU list. Therefore making this nullable.
+        public readonly PatternMatch? PatternMatch;
+
+        public FilterResult(CompletionItem completionItem, string filterText, bool matchedFilterText, PatternMatch? patternMatch)
         {
             CompletionItem = completionItem;
             MatchedFilterText = matchedFilterText;
             FilterText = filterText;
+            PatternMatch = patternMatch;
         }
 
         public int CompareTo(FilterResult other)

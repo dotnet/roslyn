@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
@@ -5929,7 +5930,7 @@ namespace NS2
         <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NonExpandedItemShouldAlwaysBePreferred_ExpandedItemHasBetterMatch(completionImplementation As CompletionImplementation) As Task
+        Public Async Function NonExpandedItemShouldBePreferred_ExpandedItemHasBetterButNotCompleteMatch(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                   <Document><![CDATA[
 namespace NS1
@@ -5942,7 +5943,71 @@ namespace NS1
         }
     }
 
-    public class BitArrayReceiver
+    public class ABar
+    {
+    } 
+}
+
+namespace NS2
+{
+    public class Bar1
+    {
+    }
+}
+]]></Document>)
+
+                Dim expectedText = "
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            ABar
+        }
+    }
+
+    public class ABar
+    {
+    } 
+}
+
+namespace NS2
+{
+    public class Bar1
+    {
+    }
+}
+"
+
+                state.Workspace.Options = state.Workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
+                    .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, -1)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="ABar")
+                state.SendTab()
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NonExpandedItemShouldBePreferred_BothExpandedAndNonExpandedItemsHaveCompleteMatch(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            bar$$
+        }
+    }
+
+    public class Bar
     {
     } 
 }
@@ -5962,11 +6027,11 @@ namespace NS1
     {
         public void Foo()
         {
-            BitArrayReceiver
+            Bar
         }
     }
 
-    public class BitArrayReceiver
+    public class Bar
     {
     } 
 }
@@ -5984,9 +6049,187 @@ namespace NS2
                     .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, -1)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem(displayText:="BitArrayReceiver")
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="")
                 state.SendTab()
                 Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ExpandedItemShouldBePreferred_IfIsOnlyCompleteMatch(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            bar$$
+        }
+    }
+
+    public class ABar
+    {
+    } 
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+]]></Document>)
+
+                Dim expectedText = "
+using NS2;
+
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar
+        }
+    }
+
+    public class ABar
+    {
+    } 
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+"
+
+                state.Workspace.Options = state.Workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
+                    .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, -1)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.SendTab()
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
+        <InlineData(CompletionImplementation.Modern)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SortItemsByPatternMatchIfExperimentEnabled(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+namespace NS
+{
+    class C
+    {
+        void M()
+        {
+            $$
+        }
+    }
+
+    class Task { }
+
+    class BTask1 { }
+    class BTask2 { }
+    class BTask3 { }
+
+
+    class Task1 { }
+    class Task2 { }
+    class Task3 { }
+
+    class ATaAaSaKa { }
+} </Document>, extraExportedTypes:={GetType(TestExperimentationService)}.ToList())
+
+                state.Workspace.Options = state.Workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
+
+                Dim experimentService = state.GetService(Of TestExperimentationService)()
+                experimentService.SetExperimentOption(WellKnownExperimentNames.SortCompletionListByMatch, True)
+
+                state.SendTypeChars("task")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(displayText:="Task")
+
+                Dim expectedOrder =
+                    {
+                        "Task",
+                        "Task1",
+                        "Task2",
+                        "Task3",
+                        "BTask1",
+                        "BTask2",
+                        "BTask3",
+                        "ATaAaSaKa"
+                    }
+
+                state.AssertItemsInOrder(expectedOrder)
+            End Using
+        End Function
+
+        <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
+        <InlineData(CompletionImplementation.Modern)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SortItemsAlphabeticallyIfExperimentDisabled(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+namespace NS
+{
+    class C
+    {
+        void M()
+        {
+            $$
+        }
+    }
+
+    class Task { }
+
+    class BTask1 { }
+    class BTask2 { }
+    class BTask3 { }
+
+
+    class Task1 { }
+    class Task2 { }
+    class Task3 { }
+
+    class ATaAaSaKa { }
+} </Document>, extraExportedTypes:={GetType(TestExperimentationService)}.ToList())
+
+                state.Workspace.Options = state.Workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)
+
+                Dim experimentService = state.GetService(Of TestExperimentationService)()
+                experimentService.SetExperimentOption(WellKnownExperimentNames.SortCompletionListByMatch, False)
+
+                state.SendTypeChars("task")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(displayText:="Task")
+
+                Dim expectedOrder =
+                    {
+                        "ATaAaSaKa",
+                        "BTask1",
+                        "BTask2",
+                        "BTask3",
+                        "Task",
+                        "Task1",
+                        "Task2",
+                        "Task3"
+                    }
+
+                state.AssertItemsInOrder(expectedOrder)
             End Using
         End Function
 

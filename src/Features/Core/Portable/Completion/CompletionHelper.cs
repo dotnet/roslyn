@@ -43,14 +43,13 @@ namespace Microsoft.CodeAnalysis.Completion
         /// results, or false if it should not be.
         /// </summary>
         public bool MatchesPattern(string text, string pattern, CultureInfo culture)
-            => GetMatch(text, pattern, culture) != null;
+            => GetMatch(text, pattern, includeMatchSpans: false, culture) != null;
 
-        private PatternMatch? GetMatch(string text, string pattern, CultureInfo culture)
-            => GetMatch(text, pattern, includeMatchSpans: false, culture: culture);
-
-        private PatternMatch? GetMatch(
-            string completionItemText, string pattern,
-            bool includeMatchSpans, CultureInfo culture)
+        public PatternMatch? GetMatch(
+            string completionItemText,
+            string pattern,
+            bool includeMatchSpans,
+            CultureInfo culture)
         {
             // If the item has a dot in it (i.e. for something like enum completion), then attempt
             // to match what the user wrote against the last portion of the name.  That way if they
@@ -136,9 +135,14 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public int CompareItems(CompletionItem item1, CompletionItem item2, string pattern, CultureInfo culture)
         {
-            var match1 = GetMatch(item1.FilterText, pattern, culture);
-            var match2 = GetMatch(item2.FilterText, pattern, culture);
+            var match1 = GetMatch(item1.FilterText, pattern, includeMatchSpans: false, culture);
+            var match2 = GetMatch(item2.FilterText, pattern, includeMatchSpans: false, culture);
 
+            return CompareItems(item1, match1, item2, match2);
+        }
+
+        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2)
+        {
             if (match1 != null && match2 != null)
             {
                 var result = CompareMatches(match1.Value, match2.Value, item1, item2);
@@ -185,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Always prefer non-expanded item regardless of the pattern matching result.
             // This currently means unimported types will be treated as "2nd tier" results,
             // which forces users to be more explicit about selecting them.
-            var expandedDiff = CompareExpandedItem(item1, item2);
+            var expandedDiff = CompareExpandedItem(item1, match1, item2, match2);
             if (expandedDiff != 0)
             {
                 return expandedDiff;
@@ -237,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private int ComparePreselection(CompletionItem item1, CompletionItem item2)
             => (item1.Rules.MatchPriority != MatchPriority.Preselect).CompareTo(item2.Rules.MatchPriority != MatchPriority.Preselect);
 
-        private int CompareExpandedItem(CompletionItem item1, CompletionItem item2)
+        private static int CompareExpandedItem(CompletionItem item1, PatternMatch match1, CompletionItem item2, PatternMatch match2)
         {
             var isItem1Expanded = item1.Flags.IsExpanded();
             var isItem2Expanded = item2.Flags.IsExpanded();
@@ -247,7 +251,54 @@ namespace Microsoft.CodeAnalysis.Completion
                 return 0;
             }
 
-            // Non-expanded item is better than expanded item
+            var isItem1ExactMatch = match1.Kind == PatternMatchKind.Exact;
+            var isItem2ExactMatch = match2.Kind == PatternMatchKind.Exact;
+
+            // If neither of the items is an exact match, or both are exact matches,
+            // then we prefer non-expanded item over expanded one.
+            // 
+            // For example, suppose we have two types `Namespace1.Cafe` and `Namespace2.Cafe`, and import completion is enabled.
+            // In the scenarios below, `Namespace1.Cafe` would be selected over `Namespace2.Cafe`
+
+            //  using Namespace1;
+            //  class C
+            //  {
+            //      cafe$$
+            //  }
+
+            //  using Namespace1;
+            //  class C
+            //  {
+            //      caf$$
+            //  }
+
+            if (!isItem1ExactMatch && !isItem2ExactMatch
+                || match1.Kind == match2.Kind)
+            {
+                return isItem1Expanded ? 1 : -1;
+            }
+
+            // We prefer expanded item over non-expanded one iff the expanded item 
+            // is an exact match whereas the non-expanded one isn't.
+            // 
+            // For example, suppose we have two types `Namespace1.Cafe1` and `Namespace2.Cafe`, and import completion is enabled.
+            // In the scenarios below, `Namespace2.Cafe` would be selected over `Namespace1.Cafe1`
+
+            //  using Namespace1;
+            //  class C
+            //  {
+            //      cafe$$
+            //  }
+            if (isItem1Expanded && isItem1ExactMatch)
+            {
+                return -1;
+            }
+            else if (isItem2Expanded && isItem2ExactMatch)
+            {
+                return 1;
+            }
+
+            // Non-expanded item is the only exact match, so we definitely prefer it.
             return isItem1Expanded ? 1 : -1;
         }
     }

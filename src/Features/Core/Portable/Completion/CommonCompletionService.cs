@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -54,6 +55,12 @@ namespace Microsoft.CodeAnalysis.Completion
         protected static bool IsSnippetItem(CompletionItem item)
         {
             return item.Tags.Contains(WellKnownTags.Snippet);
+        }
+
+        internal override ImmutableArray<CompletionItem> FilterItems(Document document, ImmutableArray<(CompletionItem, PatternMatch?)> itemsWithPatternMatch, string filterText)
+        {
+            var helper = CompletionHelper.GetHelper(document);
+            return CompletionService.FilterItems(helper, itemsWithPatternMatch);
         }
     }
 }
