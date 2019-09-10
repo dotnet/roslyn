@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 
         public override string GetTitle(bool forSwitchExpression)
             => forSwitchExpression
-                ? "TODO"
-                : CSharpFeaturesResources.Convert_to_switch;
+                ? CSharpFeaturesResources.Convert_to_switch_expression
+                : CSharpFeaturesResources.Convert_to_switch_statement;
 
         public override Analyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts)
             => new CSharpAnalyzer(syntaxFacts);

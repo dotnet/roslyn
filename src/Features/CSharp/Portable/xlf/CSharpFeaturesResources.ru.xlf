@@ -82,6 +82,16 @@
         <target state="translated">Преобразовать в метод</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_switch_expression">
+        <source>Convert to 'switch' expression</source>
+        <target state="new">Convert to 'switch' expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_switch_statement">
+        <source>Convert to 'switch' statement</source>
+        <target state="new">Convert to 'switch' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Declare_as_nullable">
         <source>Declare as nullable</source>
         <target state="translated">Объявить как тип, допускающий значения null</target>
@@ -780,11 +790,6 @@
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
         <source>Add parentheses</source>
         <target state="translated">Добавить скобки</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_switch">
-        <source>Convert to 'switch'</source>
-        <target state="translated">Преобразовать в "switch"</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_foreach">

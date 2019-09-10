@@ -520,8 +520,11 @@
   <data name="Add_this" xml:space="preserve">
     <value>Add 'this.'</value>
   </data>
-  <data name="Convert_to_switch" xml:space="preserve">
-    <value>Convert to 'switch'</value>
+  <data name="Convert_to_switch_statement" xml:space="preserve">
+    <value>Convert to 'switch' statement</value>
+  </data>
+  <data name="Convert_to_switch_expression" xml:space="preserve">
+    <value>Convert to 'switch' expression</value>
   </data>
   <data name="Warning_Extracting_a_local_function_reference_may_produce_invalid_code" xml:space="preserve">
     <value>Warning: Extracting a local function reference may produce invalid code</value>
