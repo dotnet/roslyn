@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             definitionBucket,
                             sourceSpan,
                             HighlightSpanKind.Definition,
-                            customColumnsDataOpt: null,
+                            propertiesWithMultipleValuesMapOpt: null,
                             additionalProperties: ImmutableArray<FindUsageProperty>.Empty)
                                 .ConfigureAwait(false);
                         entries.AddIfNotNull(entry);

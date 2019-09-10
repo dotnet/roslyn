@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var properties = GetProperties(definition);
 
-            var displayableProperties = AbstractReferenceFinder.GetAdditionalProperties(definition);
+            var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                 document, sourceSpan, cancellationToken).ConfigureAwait(false);
 
-            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo, referenceLocation.FindUsagesProperties);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)

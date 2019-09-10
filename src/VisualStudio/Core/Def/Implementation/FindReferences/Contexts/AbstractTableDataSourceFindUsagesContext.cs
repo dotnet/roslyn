@@ -327,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
-                ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt,
+                ImmutableDictionary<string, ImmutableArray<string>> propertiesWithMultipleValuesMapOpt,
                 ImmutableArray<FindUsageProperty> additionalProperties)
             {
                 var document = documentSpan.Document;
@@ -343,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return new DocumentSpanEntry(
                     this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetCustomColumnsData(customColumnsDataOpt, additionalProperties));
+                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetCustomColumnsData(propertiesWithMultipleValuesMapOpt, additionalProperties));
             }
 
             private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
@@ -413,13 +413,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return builder.ToImmutable();
             }
 
-
-            private void UpdateUsageColumnVisibility(ImmutableDictionary<string, ImmutableArray<string>> customUsageData)
+            private void UpdateCustomColumnsVisibility(ImmutableDictionary<string, ImmutableArray<string>> additionalPropertiesWithMultipleValues)
             {
                 // Check if we have any custom reference data to display.
                 // columnDefinitionManager will be null under unit test
                 var columnDefinitionManager = TableControl.ColumnDefinitionManager;
-                if (customUsageData.Count == 0 || columnDefinitionManager == null)
+                if (additionalPropertiesWithMultipleValues.Count == 0 || columnDefinitionManager == null)
                 {
                     return;
                 }
@@ -431,7 +430,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     lock (Gate)
                     {
-                        foreach (var customColumnName in customUsageData.Keys)
+                        foreach (var customColumnName in additionalPropertiesWithMultipleValues.Keys)
                         {
                             // Get the matching custom column.
                             var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractCustomColumnDefinition;
@@ -486,7 +485,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)
             {
-                UpdateUsageColumnVisibility(reference.AdditionalPropertiesWithMultipleValues);
+                UpdateCustomColumnsVisibility(reference.AdditionalPropertiesWithMultipleValues);
                 return OnReferenceFoundWorkerAsync(reference);
             }
 

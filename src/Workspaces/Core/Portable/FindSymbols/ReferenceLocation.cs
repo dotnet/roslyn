@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Additional properties for this reference
         /// </summary>
-        internal ImmutableArray<FindUsageProperty> AdditionalProperties { get; }
+        internal ImmutableArray<FindUsageProperty> FindUsagesProperties { get; }
 
         /// <summary>
         /// Indicates if this location is a duplicate of some another ReferenceLocation.
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Location = location;
             this.IsImplicit = isImplicit;
             this.SymbolUsageInfo = symbolUsageInfo;
-            this.AdditionalProperties = additionalProperties.NullToEmpty();
+            this.FindUsagesProperties = additionalProperties.NullToEmpty();
             this.CandidateReason = candidateReason;
         }
 

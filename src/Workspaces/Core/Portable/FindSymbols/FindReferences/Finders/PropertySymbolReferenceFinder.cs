@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
-                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalProperties(syntaxFacts, semanticModel, node), candidateReason: reason)));
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), candidateReason: reason)));
                 }
             }
 
@@ -213,26 +213,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var location = node.SyntaxTree.GetLocation(new TextSpan(node.SpanStart, 0));
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
-                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalProperties(syntaxFacts, semanticModel, node), candidateReason: reason)));
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), candidateReason: reason)));
                 }
             }
 
             return locations.ToImmutableAndFree();
-        }
-
-        /// <summary>
-        /// Returns an array of additional properties which consists of the Containing Type and Containing Member of the reference.
-        /// </summary>
-        /// <param name="syntaxFacts"></param>
-        /// <param name="node"></param>
-        private static ImmutableArray<FindUsageProperty> GetAdditionalProperties(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node)
-        {
-            var additionalProperties = new ArrayBuilder<FindUsageProperty>
-            {
-                GetInfo(syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart), ContainingTypeInfoPropertyName, semanticModel),
-                GetInfo(syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart), ContainingMemberInfoPropertyName, semanticModel)
-            };
-            return additionalProperties.ToImmutableAndFree();
         }
     }
 }

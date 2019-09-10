@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                               syntaxFactsService,
                               semanticFactsService,
                               cancellationToken),
-                          additionalProperties: GetAdditionalProperties(
+                          additionalProperties: GetAdditionalFindUsagesProperties(
                               node, semanticModel, syntaxFactsService),
                           candidateReason: CandidateReason.None)));
         }

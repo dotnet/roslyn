@@ -45,13 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 value is string displayString &&
                 !string.IsNullOrEmpty(displayString))
             {
-                filterItems = SplitColumnDisplayValue(displayString);
+                filterItems = s_displayValueToConstituentValuesMap.GetOrAdd(displayString, SplitAndTrimValue);
                 return true;
             }
 
             return base.TryGetFilterItems(entry, out filterItems);
         }
-
 
         // Allow filtering of the column by each allowed SymbolUsageInfo kind.
         public override IEnumerable<string> FilterPresets => SymbolUsageInfo.LocalizableStringsForAllAllowedValues;
@@ -63,7 +62,5 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         public override string GetDisplayStringForColumnValues(ImmutableArray<string> values)
             => s_constituentValuesToDisplayValuesMap.GetOrAdd(values, JoinValues);
-        private ImmutableArray<string> SplitColumnDisplayValue(string displayValue)
-            => s_displayValueToConstituentValuesMap.GetOrAdd(displayValue, SplitAndTrimValue);
     }
 }

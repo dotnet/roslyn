@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
-                AdditionalProperties = referenceLocation.AdditionalProperties,
+                AdditionalProperties = referenceLocation.FindUsagesProperties,
                 CandidateReason = referenceLocation.CandidateReason
             };
         }

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// Additional properties for the reference that can have only one value.
         /// For example, { "ContainingTypeInfo" } = { "MyClass" }
         /// </summary>
-        public ImmutableArray<FindUsageProperty> AdditionalProperties { get; }
+        public ImmutableArray<FindUsageProperty> FindUsagesProperties { get; }
 
         [Obsolete]
         public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, bool isWrittenTo)
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             SourceSpan = sourceSpan;
             IsWrittenTo = isWrittenTo;
             AdditionalPropertiesWithMultipleValues = AdditionalPropertiesWithMultipleValuesMap.Empty;
-            AdditionalProperties = ImmutableArray<FindUsageProperty>.Empty;
+            FindUsagesProperties = ImmutableArray<FindUsageProperty>.Empty;
         }
 
         public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, AdditionalPropertiesWithMultipleValuesMap referenceInfo)
@@ -65,25 +65,25 @@ namespace Microsoft.CodeAnalysis.FindUsages
             Definition = definition;
             SourceSpan = sourceSpan;
             AdditionalPropertiesWithMultipleValues = referenceInfo ?? AdditionalPropertiesWithMultipleValuesMap.Empty;
-            AdditionalProperties = ImmutableArray<FindUsageProperty>.Empty;
+            FindUsagesProperties = ImmutableArray<FindUsageProperty>.Empty;
         }
 
         // Being used by TypeScript
         internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo)
-            : this(definition, sourceSpan, GetOrCreateReferenceUsageInfo(symbolUsageInfo))
+            : this(definition, sourceSpan, GetOrCreateAdditionalPropertiesWithMultipleValuesMap(symbolUsageInfo))
         {
             IsWrittenTo = symbolUsageInfo.IsWrittenTo();
-            AdditionalProperties = ImmutableArray<FindUsageProperty>.Empty;
+            FindUsagesProperties = ImmutableArray<FindUsageProperty>.Empty;
         }
 
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableArray<FindUsageProperty> additionalProperties)
-            : this(definition, sourceSpan, GetOrCreateReferenceUsageInfo(symbolUsageInfo))
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableArray<FindUsageProperty> findUsagesProperty)
+            : this(definition, sourceSpan, GetOrCreateAdditionalPropertiesWithMultipleValuesMap(symbolUsageInfo))
         {
             IsWrittenTo = symbolUsageInfo.IsWrittenTo();
-            AdditionalProperties = additionalProperties.NullToEmpty();
+            FindUsagesProperties = findUsagesProperty.NullToEmpty();
         }
 
-        private static AdditionalPropertiesWithMultipleValuesMap GetOrCreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)
+        private static AdditionalPropertiesWithMultipleValuesMap GetOrCreateAdditionalPropertiesWithMultipleValuesMap(SymbolUsageInfo symbolUsageInfo)
             => s_symbolUsageInfoToReferenceInfoMap.GetOrAdd(symbolUsageInfo, v => CreateReferenceUsageInfo(v));
 
         private static AdditionalPropertiesWithMultipleValuesMap CreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)

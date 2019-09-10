@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, customColumnsDataOpt: null, additionalProperties: definition.DisplayableProperties).ConfigureAwait(false);
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, propertiesWithMultipleValuesMapOpt: null, additionalProperties: definition.DisplayableProperties).ConfigureAwait(false);
                     declarations.AddIfNotNull(definitionEntry);
                 }
 
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         bucket, reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
                         reference.AdditionalPropertiesWithMultipleValues,
-                        reference.AdditionalProperties),
+                        reference.FindUsagesProperties),
                     addToEntriesWhenGroupingByDefinition: true,
                     addToEntriesWhenNotGroupingByDefinition: true);
             }

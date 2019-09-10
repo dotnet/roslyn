@@ -2,10 +2,10 @@
 
 namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 {
-    internal struct FindUsageProperty
+    internal readonly struct FindUsageProperty
     {
-        public string Label { get; }
-        public string Value { get; }
+        public readonly string Label { get; }
+        public readonly string Value { get; }
 
         public FindUsageProperty(string label, string value)
         {
