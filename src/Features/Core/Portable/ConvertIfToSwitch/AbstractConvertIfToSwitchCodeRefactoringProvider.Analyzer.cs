@@ -80,8 +80,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     sections.Add(new AnalyzedSwitchSection(labels: default, defaultBodyOpt, defaultBodyOpt.Syntax));
                 }
 
-                Contract.ThrowIfNull(_switchTargetExpression);
-                return (sections.ToImmutableAndFree(), _switchTargetExpression);
+                return (sections.ToImmutableAndFree(), Contract.NotNull(_switchTargetExpression));
             }
 
             // Tree to parse:

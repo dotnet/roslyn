@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(semanticModel);
+            var semanticModel = Contract.NotNull(await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false));
             var ifOperation = semanticModel.GetOperation(ifStatement);
             if (!(ifOperation is IConditionalOperation { Parent: IBlockOperation parentBlock }))
             {

@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             bool convertToSwitchExpression,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(root);
-
+            var root = Contract.NotNull(await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
             var generator = SyntaxGenerator.GetGenerator(document);
             var ifSpan = ifStatement.Span;
 
