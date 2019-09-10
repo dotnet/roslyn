@@ -24,9 +24,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
 
                 Dim document = testState.Workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim service = CompletionService.GetService(document)
-                Await testState.AssertSelectedCompletionItem(description:="Shortcut")
                 Dim selectedItem = testState.GetSelectedItem()
+                Dim service = CompletionService.GetService(document)
                 Dim itemDescription = Await service.GetDescriptionAsync(document, selectedItem)
                 Assert.True(itemDescription.Text.StartsWith("Description"))
 
