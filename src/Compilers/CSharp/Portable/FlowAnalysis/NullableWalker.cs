@@ -6458,7 +6458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetResultType(expression: null, resultTypeWithState);
             }
 
-            if (reportedDiagnostic || node.EnumeratorInfoOpt == null)
+            if (reportedDiagnostic || node.EnumeratorInfoOpt == null || node.Expression is BoundConversion { Operand: { IsSuppressed: true } })
             {
                 return;
             }
