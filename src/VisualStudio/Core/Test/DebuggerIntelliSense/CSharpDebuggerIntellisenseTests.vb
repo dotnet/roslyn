@@ -182,7 +182,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainAll("variable1", "variable2")
+                Await state.AssertCompletionItemsContainAll({"variable1", "variable2"})
             End Using
         End Sub
 
@@ -208,7 +208,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainAll("variable1", "variable2")
+                Await state.AssertCompletionItemsContainAll({"variable1", "variable2"})
             End Using
         End Sub
 
@@ -234,8 +234,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
-                Await state.AssertCompletionItemsContainAll("variable2")
+                Await state.AssertCompletionItemsDoNotContainAny({"variable1"})
+                Await state.AssertCompletionItemsContainAll({"variable2"})
             End Using
         End Sub
 
@@ -261,8 +261,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
-                Await state.AssertCompletionItemsContainAll("variable2")
+                Await state.AssertCompletionItemsDoNotContainAny({"variable1"})
+                Await state.AssertCompletionItemsContainAll({"variable2"})
             End Using
         End Sub
 
@@ -288,8 +288,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
-                Await state.AssertCompletionItemsContainAll("variable2")
+                Await state.AssertCompletionItemsDoNotContainAny({"variable1"})
+                Await state.AssertCompletionItemsContainAll({"variable2"})
             End Using
         End Sub
 
@@ -315,8 +315,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
-                Await state.AssertCompletionItemsContainNone("variable2")
+                Await state.AssertCompletionItemsDoNotContainAny({"variable1"})
+                Await state.AssertCompletionItemsDoNotContainAny({"variable2"})
             End Using
         End Sub
 
@@ -451,7 +451,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("STATICI")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("STATICINT")
+                Await state.AssertCompletionItemsDoNotContainAny({"STATICINT"})
             End Using
         End Sub
 

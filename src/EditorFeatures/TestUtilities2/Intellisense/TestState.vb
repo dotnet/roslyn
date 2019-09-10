@@ -19,7 +19,7 @@ Imports Roslyn.Utilities
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
-    Friend NotInheritable Class TestState
+    Friend Class TestState
         Inherits AbstractCommandHandlerTestState
 
         Private Const timeoutMs = 10000
@@ -40,7 +40,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                                    GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
                                                                    GetType(FormatCommandHandler)}).
                                                WithParts({
-                                                         GetType(TestCompletionPresenter),
                                                          GetType(TestSignatureHelpPresenter),
                                                          GetType(IntelliSenseTestState),
                                                          GetType(MockCompletionPresenterProvider)
@@ -249,9 +248,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendWordDeleteToStart(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDeleteWordToLeft)
         End Sub
 
-        Public Overloads Sub ToggleSuggestionMode()
+        Public Overloads Sub SendToggleCompletionMode()
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of ToggleCompletionModeCommandArgs))
-            MyBase.ToggleSuggestionMode(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+            MyBase.SendToggleCompletionMode(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Protected Function GetHandler(Of T As VSCommanding.ICommandHandler)() As T
@@ -615,7 +614,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Private Shared Function CombineExtraTypes(extraExportedTypes As IList(Of Type)) As IList(Of Type)
             Dim result = New List(Of Type) From {
-                GetType(TestCompletionPresenter),
                 GetType(TestSignatureHelpPresenter),
                 GetType(IntelliSenseTestState),
                 GetType(MockCompletionPresenterProvider)

@@ -4433,20 +4433,20 @@ class C
 }
                               </Document>)
 
-                state.ToggleSuggestionMode()
+                state.SendToggleCompletionMode()
                 Await state.WaitForAsynchronousOperationsAsync()
                 state.SendTypeChars("s")
                 Await state.AssertCompletionSession()
                 Assert.True(state.HasSuggestedItem())
                 Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
 
-                state.ToggleSuggestionMode()
+                state.SendToggleCompletionMode()
                 Await state.AssertCompletionSession()
                 Assert.False(state.HasSuggestedItem())
                 ' We want to soft select if we were already in soft select mode.
                 Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
 
-                state.ToggleSuggestionMode()
+                state.SendToggleCompletionMode()
                 Await state.AssertCompletionSession()
                 Assert.True(state.HasSuggestedItem())
                 Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
