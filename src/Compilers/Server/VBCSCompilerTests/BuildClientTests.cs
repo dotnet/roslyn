@@ -20,9 +20,9 @@ using System.Security.Principal;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    public abstract class DesktopBuildClientTests : TestBase
+    public abstract class BuildClientTests : TestBase
     {
-        public sealed class ServerTests : DesktopBuildClientTests
+        public sealed class ServerTests : BuildClientTests
         {
             private readonly string _pipeName = Guid.NewGuid().ToString("N");
             private readonly BuildPaths _buildPaths;
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        public sealed class TryParseClientArgsTest : DesktopBuildClientTests
+        public sealed class TryParseClientArgsTest : BuildClientTests
         {
             private bool _hasShared;
             private string _keepAlive;

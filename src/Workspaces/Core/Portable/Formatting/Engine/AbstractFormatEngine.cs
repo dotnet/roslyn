@@ -412,16 +412,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             using (Logger.LogBlock(FunctionId.Formatting_ApplySpaceAndLine, cancellationToken))
             {
-                // go through each token pairs and apply operations. operations don't need to be applied in order
-                var partitioner = new Partitioner(context, tokenOperations);
-
-                // always create task 1 more than current processor count
-                var partitions = partitioner.GetPartitions(partitionCount: 1, cancellationToken);
-
-                foreach (var partition in partitions)
+                // go through each token pairs and apply operations
+                foreach (var operationPair in tokenOperations)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    partition.Do(operationPair => ApplySpaceAndWrappingOperationsBody(context, operationPair, applier, cancellationToken));
+                    ApplySpaceAndWrappingOperationsBody(context, operationPair, applier, cancellationToken);
                 }
             }
         }
