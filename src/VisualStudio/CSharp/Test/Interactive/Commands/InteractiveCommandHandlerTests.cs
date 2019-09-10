@@ -79,7 +79,7 @@ Console.WriteLine(x);", ExampleCode2);
         {
             var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
 
-            string expectedBoxSubmissionResult = @"int x;
+            var expectedBoxSubmissionResult = @"int x;
 int y;";
             AssertExecuteInInteractive(
                 exportProvider,
@@ -119,7 +119,7 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
         {
             var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
 
-            string exampleWithIfDirective =
+            var exampleWithIfDirective =
 @"#if DEF
 public void $$Run()
 {
@@ -129,7 +129,7 @@ public void $$Run()
             AssertExecuteInInteractive(exportProvider, exampleWithIfDirective,
 @"public void Run()");
 
-            string exampleWithDefine =
+            var exampleWithDefine =
 $@"#define DEF
 {exampleWithIfDirective}";
 
@@ -185,12 +185,10 @@ $@"#define DEF
 
         private static void AssertCopyToInteractive(ExportProvider exportProvider, string code, string expectedBufferText, string submissionBuffer = null)
         {
-            using (var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(exportProvider, code))
-            {
-                PrepareSubmissionBuffer(submissionBuffer, workspace);
-                workspace.SendCopyToInteractive();
-                Assert.Equal(expectedBufferText, workspace.WindowCurrentLanguageBuffer.CurrentSnapshot.GetText());
-            }
+            using var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(exportProvider, code);
+            PrepareSubmissionBuffer(submissionBuffer, workspace);
+            workspace.SendCopyToInteractive();
+            Assert.Equal(expectedBufferText, workspace.WindowCurrentLanguageBuffer.CurrentSnapshot.GetText());
         }
 
         private static void AssertExecuteInInteractive(ExportProvider exportProvider, string code, string expectedSubmission, string submissionBuffer = null)
@@ -200,18 +198,16 @@ $@"#define DEF
 
         private static void AssertExecuteInInteractive(ExportProvider exportProvider, string code, string[] expectedSubmissions, string submissionBuffer = null)
         {
-            List<string> submissions = new List<string>();
+            var submissions = new List<string>();
             void appendSubmission(object _, string item) { submissions.Add(item.TrimEnd()); }
 
-            using (var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(exportProvider, code))
-            {
-                PrepareSubmissionBuffer(submissionBuffer, workspace);
-                Assert.Equal(VSCommanding.CommandState.Available, workspace.GetStateForExecuteInInteractive());
+            using var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(exportProvider, code);
+            PrepareSubmissionBuffer(submissionBuffer, workspace);
+            Assert.Equal(VSCommanding.CommandState.Available, workspace.GetStateForExecuteInInteractive());
 
-                workspace.Evaluator.OnExecute += appendSubmission;
-                workspace.ExecuteInInteractive();
-                AssertEx.Equal(expectedSubmissions, submissions);
-            }
+            workspace.Evaluator.OnExecute += appendSubmission;
+            workspace.ExecuteInInteractive();
+            AssertEx.Equal(expectedSubmissions, submissions);
         }
 
         private static void PrepareSubmissionBuffer(string submissionBuffer, InteractiveWindowCommandHandlerTestState workspace)

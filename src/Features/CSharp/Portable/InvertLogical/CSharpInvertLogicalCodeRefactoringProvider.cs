@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertLogical
     internal class CSharpInvertLogicalCodeRefactoringProvider :
         AbstractInvertLogicalCodeRefactoringProvider<SyntaxKind, ExpressionSyntax, BinaryExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpInvertLogicalCodeRefactoringProvider()
+        {
+        }
+
         protected override SyntaxKind GetKind(int rawKind)
             => (SyntaxKind)rawKind;
 

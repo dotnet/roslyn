@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
@@ -19,12 +21,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
     internal class TodoCommentIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, ITodoListProvider
     {
         private static readonly ConditionalWeakTable<Workspace, TodoCommentIncrementalAnalyzer> s_analyzers = new ConditionalWeakTable<Workspace, TodoCommentIncrementalAnalyzer>();
+
         private readonly TodoCommentTokens _todoCommentTokens;
+        private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
 
         [ImportingConstructor]
-        public TodoCommentIncrementalAnalyzerProvider(TodoCommentTokens todoCommentTokens)
+        public TodoCommentIncrementalAnalyzerProvider(
+            TodoCommentTokens todoCommentTokens,
+            [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
             _todoCommentTokens = todoCommentTokens;
+            _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
@@ -35,6 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         internal void RaiseTaskListUpdated(object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> items)
         {
+            _eventListenerTracker.EnsureEventListener(workspace, this);
+
             this.TodoListUpdated?.Invoke(this, new TodoItemsUpdatedArgs(Tuple.Create(this, id), workspace, solution, projectId, documentId, items));
         }
 
@@ -65,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 return ImmutableArray<UpdatedEventArgs>.Empty;
             }
 
-            return analyzer.GetTodoItemsUpdatedEventArgs(workspace, cancellationToken);
+            return analyzer.GetTodoItemsUpdatedEventArgs(workspace);
         }
 
         private TodoCommentIncrementalAnalyzer TryGetAnalyzer(Workspace workspace)

@@ -11,5 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     internal sealed class CSharpSplitIntoNestedIfStatementsCodeRefactoringProvider
         : AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public CSharpSplitIntoNestedIfStatementsCodeRefactoringProvider()
+        {
+        }
     }
 }

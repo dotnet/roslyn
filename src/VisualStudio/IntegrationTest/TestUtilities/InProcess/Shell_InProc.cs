@@ -10,6 +10,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         public static Shell_InProc Create() => new Shell_InProc();
 
+        public string GetVersion()
+        {
+            return InvokeOnUIThread(cancellationToken =>
+            {
+                var shell = GetGlobalService<SVsShell, IVsShell>();
+                ErrorHandler.ThrowOnFailure(shell.GetProperty((int)__VSSPROPID5.VSSPROPID_ReleaseVersion, out var version));
+                return (string)version;
+            });
+        }
+
         public string GetActiveWindowCaption()
             => InvokeOnUIThread(cancellationToken => GetDTE().ActiveWindow.Caption);
 
@@ -33,5 +43,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 return (bool)isProvisionalObject;
             });
+
+        public bool IsUIContextActive(Guid context)
+        {
+            return UIContext.FromUIContextGuid(context).IsActive;
+        }
     }
 }

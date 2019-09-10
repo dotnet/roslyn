@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
 
                 Dim priority = MatchPriority.Default
                 Dim enclosingType = context.SemanticModel.GetEnclosingNamedType(context.Position, cancellationToken)
-                If enclosingType IsNot Nothing AndAlso context.InferredTypes.Any(Function(t) t Is enclosingType) Then
+                If enclosingType IsNot Nothing AndAlso context.InferredTypes.Any(Function(t) Equals(t, enclosingType)) Then
                     priority = SymbolMatchPriority.Keyword
                 End If
 

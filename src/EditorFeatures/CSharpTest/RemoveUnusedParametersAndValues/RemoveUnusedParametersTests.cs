@@ -1040,21 +1040,19 @@ internal sealed class CustomSerializingType : ISerializable
     }|]
 }";
             var testParameters = new TestParameters(retainNonFixableDiagnostics: true);
-            using (var workspace = CreateWorkspaceFromOptions(source, testParameters))
-            {
-                var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
-                diagnostics.Verify(
-                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p1").WithLocation(5, 15),
-                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p2").WithLocation(5, 23),
-                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p3").WithLocation(13, 23),
-                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p4").WithLocation(13, 31));
-                var sortedDiagnostics = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
+            using var workspace = CreateWorkspaceFromOptions(source, testParameters);
+            var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
+            diagnostics.Verify(
+                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p1").WithLocation(5, 15),
+                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p2").WithLocation(5, 23),
+                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p3").WithLocation(13, 23),
+                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p4").WithLocation(13, 31));
+            var sortedDiagnostics = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
 
-                Assert.Equal("Remove unused parameter 'p1'", sortedDiagnostics[0].GetMessage());
-                Assert.Equal("Remove unused parameter 'p2', its initial value is never used", sortedDiagnostics[1].GetMessage());
-                Assert.Equal("Remove unused parameter 'p3' if it is not part of a shipped public API", sortedDiagnostics[2].GetMessage());
-                Assert.Equal("Remove unused parameter 'p4' if it is not part of a shipped public API, its initial value is never used", sortedDiagnostics[3].GetMessage());
-            }
+            Assert.Equal("Remove unused parameter 'p1'", sortedDiagnostics[0].GetMessage());
+            Assert.Equal("Remove unused parameter 'p2', its initial value is never used", sortedDiagnostics[1].GetMessage());
+            Assert.Equal("Remove unused parameter 'p3' if it is not part of a shipped public API", sortedDiagnostics[2].GetMessage());
+            Assert.Equal("Remove unused parameter 'p4' if it is not part of a shipped public API, its initial value is never used", sortedDiagnostics[3].GetMessage());
         }
 
         [WorkItem(32287, "https://github.com/dotnet/roslyn/issues/32287")]
@@ -1212,6 +1210,180 @@ internal sealed class CustomSerializingType : ISerializable
     }
 }",
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(36715, "https://github.com/dotnet/roslyn/issues/36715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task GenericLocalFunction_02()
+        {
+            await TestDiagnosticsAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M(object [|value|])
+    {
+        try
+        {
+            value = LocalFunc(0);
+        }
+        finally
+        {
+            value = LocalFunc(0);
+        }
+
+        return;
+
+        IEnumerable<T> LocalFunc<T>(T value)
+        {
+            yield return value;
+        }
+    }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(36715, "https://github.com/dotnet/roslyn/issues/36715")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task GenericLocalFunction_03()
+        {
+            await TestDiagnosticsAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M(object [|value|])
+    {
+        Func<object, IEnumerable<object>> myDel = LocalFunc;
+        try
+        {
+            value = myDel(value);
+        }
+        finally
+        {
+            value = myDel(value);
+        }
+
+        return;
+
+        IEnumerable<T> LocalFunc<T>(T value)
+        {
+            yield return value;
+        }
+    }
+}");
+        }
+
+        [WorkItem(34830, "https://github.com/dotnet/roslyn/issues/34830")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RegressionTest_ShouldReportUnusedParameter()
+        {
+            var options = Option(CodeStyleOptions.UnusedParameters,
+                new CodeStyleOption<UnusedParametersPreference>(default, NotificationOption.Suggestion));
+
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Threading.Tasks;
+
+public interface I { event Action MyAction; }
+
+public sealed class C : IDisposable
+{
+    private readonly Task<I> task;
+
+    public C(Task<I> [|task|])
+    {
+        this.task = task;
+        Task.Run(async () => (await task).MyAction += myAction);
+    }
+
+    private void myAction() { }
+
+    public void Dispose() => task.Result.MyAction -= myAction;
+}", options);
+        }
+
+        [WorkItem(37326, "https://github.com/dotnet/roslyn/issues/37326")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RegressionTest_ShouldReportUnusedParameter_02()
+        {
+            var options = Option(CodeStyleOptions.UnusedParameters,
+                new CodeStyleOption<UnusedParametersPreference>((UnusedParametersPreference)2, NotificationOption.Suggestion));
+
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Threading.Tasks;
+
+public interface I { event Action MyAction; }
+
+public sealed class C : IDisposable
+{
+    private readonly Task<I> task;
+
+    public C(Task<I> [|task|])
+    {
+        this.task = task;
+        Task.Run(async () => (await task).MyAction += myAction);
+    }
+
+    private void myAction() { }
+
+    public void Dispose() => task.Result.MyAction -= myAction;
+}", options);
+        }
+
+        [WorkItem(37483, "https://github.com/dotnet/roslyn/issues/37483")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task MethodUsedAsDelegateInGeneratedCode_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+public partial class C
+{
+    private void M(int [|x|])
+    {
+    }
+}
+
+public partial class C
+{
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("""", """")]
+    public void M2(out Action<int> a)
+    {
+        a = M;
+    }
+}  
+");
+        }
+
+        [WorkItem(37483, "https://github.com/dotnet/roslyn/issues/37483")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedParameterInGeneratedCode_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"public partial class C
+{
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("""", """")]
+    private void M(int [|x|])
+    {
+    }
+}
+");
+        }
+
+        [WorkItem(36817, "https://github.com/dotnet/roslyn/issues/36817")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task ParameterWithoutName_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"public class C
+{
+    public void M[|(int )|]
+    {
+    }
+}");
         }
     }
 }

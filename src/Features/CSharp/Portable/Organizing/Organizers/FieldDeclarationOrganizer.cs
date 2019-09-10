@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
     [ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
     internal class FieldDeclarationOrganizer : AbstractSyntaxNodeOrganizer<FieldDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public FieldDeclarationOrganizer()
+        {
+        }
+
         protected override FieldDeclarationSyntax Organize(
             FieldDeclarationSyntax syntax,
             CancellationToken cancellationToken)

@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
     [ExportLanguageService(typeof(IReplaceDiscardDeclarationsWithAssignmentsService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : IReplaceDiscardDeclarationsWithAssignmentsService
     {
+        [ImportingConstructor]
+        public CSharpReplaceDiscardDeclarationsWithAssignmentsService()
+        {
+        }
+
         public Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var editor = new SyntaxEditor(memberDeclaration, CSharpSyntaxGenerator.Instance);
@@ -119,10 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
                 LocalDeclarationStatementSyntax localDeclarationStatement,
                 SyntaxEditor editor)
             {
-                using (var helper = new RemoveDiscardHelper(localDeclarationStatement, editor))
-                {
-                    helper.ProcessDeclarationStatement();
-                }
+                using var helper = new RemoveDiscardHelper(localDeclarationStatement, editor);
+                helper.ProcessDeclarationStatement();
             }
 
             public void Dispose() => _statementsBuilder.Free();

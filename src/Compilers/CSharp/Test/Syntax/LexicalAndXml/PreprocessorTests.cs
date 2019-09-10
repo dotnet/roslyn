@@ -46,8 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public SyntaxKind PragmaKind;
         public SyntaxKind WarningOrChecksumKind;
         public SyntaxKind DisableOrRestoreKind;
-        public SyntaxKind NullableKind;
-        public bool NullableIsMissing;
         public string[] WarningList;
         public string[] FileGuidByte;
     }
@@ -253,15 +251,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     case SyntaxKind.NullableDirectiveTrivia:
                         var nn = (NullableDirectiveTriviaSyntax)dt;
                         var setting = nn.SettingToken;
+                        var target = nn.TargetToken;
                         if (null == exp.Text)
                         {
                             Assert.True(setting.IsMissing);
+                            Assert.True(target.IsMissing);
                         }
                         else
                         {
-                            Assert.Equal(exp.Text, setting.ValueText);
+                            var actualText = setting.ValueText;
+                            if (!string.IsNullOrEmpty(target.ValueText))
+                            {
+                                actualText += " " + target.ValueText;
+                            }
+
+                            Assert.Equal(exp.Text, actualText);
+                            Assert.True(target.Kind() == SyntaxKind.WarningsKeyword || target.Kind() == SyntaxKind.AnnotationsKeyword ||
+                                        target.Kind() == SyntaxKind.None);
+
                             Assert.True(setting.Kind() == SyntaxKind.EnableKeyword || setting.Kind() == SyntaxKind.DisableKeyword ||
-                                        setting.Kind() == SyntaxKind.RestoreKeyword || setting.Kind() == SyntaxKind.SafeOnlyKeyword);
+                                        setting.Kind() == SyntaxKind.RestoreKeyword);
                         }
                         Assert.Equal(SyntaxKind.NullableKeyword, nn.DirectiveNameToken.Kind());
                         Assert.True(SyntaxFacts.IsPreprocessorDirective(SyntaxKind.NullableDirectiveTrivia));
@@ -311,21 +320,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Assert.Equal(expected.DisableOrRestoreKind, pwd.DisableOrRestoreKeyword.Kind());
                 }
 
-                Assert.Equal(expected.NullableKind, pwd.NullableKeyword.Kind());
-                if (SyntaxKind.NullableKeyword == pwd.NullableKeyword.Kind())
-                {
-                    Assert.Equal(expected.NullableIsMissing, pwd.NullableKeyword.IsMissing);
-                }
-
                 if (expected.WarningList == null || expected.WarningList.Length == 0)
                 {
                     Assert.Equal(0, pwd.ErrorCodes.Count);
                 }
                 else
                 {
-                    Assert.NotEqual(SyntaxKind.SafeOnlyKeyword, pwd.DisableOrRestoreKeyword.Kind());
-                    Assert.Equal(SyntaxKind.None, pwd.NullableKeyword.Kind());
-
                     Assert.Equal(expected.WarningList.Length, pwd.ErrorCodes.Count);
                     int idx = 0;
                     foreach (var warningNumber in expected.WarningList)
@@ -3441,21 +3441,21 @@ public class Test
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestPragmaWarningDisableNullable()
+        public void TestPragmaWarningEnable_Error()
         {
-            var text = @"#pragma warning disable nullable";
-            var node = Parse(text);
-            TestRoundTripping(node, text);
+            var text = @"#pragma warning enable 114";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPWarning); // CS1634
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                NullableKind = SyntaxKind.NullableKeyword
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnable()
         {
@@ -3473,6 +3473,38 @@ public class Test
 
         [Fact]
         [Trait("Feature", "Directives")]
+        public void TestPragmaWarningDisableNullable()
+        {
+            var text = @"#pragma warning disable nullable";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
+                WarningList = new[] { "nullable" }
+            });
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableNullable()
+        {
+            var text = @"#pragma warning enable nullable";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "nullable" }
+            });
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnableCSharp7_3()
         {
             var text = @"#pragma warning enable 114";
@@ -3485,73 +3517,6 @@ public class Test
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.EnableKeyword,
                 WarningList = new[] { "114" }
-            });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
-        public void TestPragmaWarningEnableNullable()
-        {
-            var text = @"#pragma warning enable nullable";
-            var node = Parse(text, options: TestOptions.Regular);
-            TestRoundTripping(node, text);
-            VerifyDirectivePragma(node, new PragmaInfo
-            {
-                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-                NullableKind = SyntaxKind.NullableKeyword
-            });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
-        public void TestPragmaWarningSafeOnly()
-        {
-            var text = @"#pragma warning safeonly nullable";
-            var node = Parse(text, options: TestOptions.Regular);
-            TestRoundTripping(node, text);
-            VerifyDirectivePragma(node, new PragmaInfo
-            {
-                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-                DisableOrRestoreKind = SyntaxKind.SafeOnlyKeyword,
-                NullableKind = SyntaxKind.NullableKeyword
-            });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
-        public void TestPragmaWarningSafeOnlyCSharp7_3()
-        {
-            var text = @"#pragma warning safeonly nullable";
-            var node = Parse(text, options: TestOptions.Regular7_3);
-            TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_ErrorOverride, Status = NodeStatus.IsWarning });
-            VerifyDirectivePragma(node, new PragmaInfo
-            {
-                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-                DisableOrRestoreKind = SyntaxKind.SafeOnlyKeyword,
-                NullableKind = SyntaxKind.NullableKeyword
-            });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
-        public void TestPragmaWarningSafeOnlyNotNullable()
-        {
-            var text = @"#pragma warning safeonly 114";
-            var node = Parse(text, options: TestOptions.Regular);
-            TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarningSafeOnly, Status = NodeStatus.IsWarning });
-            VerifyDirectivePragma(node, new PragmaInfo
-            {
-                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-                DisableOrRestoreKind = SyntaxKind.SafeOnlyKeyword,
-                NullableKind = SyntaxKind.NullableKeyword,
-                NullableIsMissing = true
             });
         }
 
@@ -3593,18 +3558,17 @@ public class Test
         {
             var text = @"#pragma warning disable nullable, 114";
             var node = Parse(text);
-            TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_EndOfPPLineExpected, Status = NodeStatus.IsWarning });
+            TestRoundTripping(node, text);
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                NullableKind = SyntaxKind.NullableKeyword
+                WarningList = new[] { "nullable", "114" }
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnableWithMultipleCodes_01()
         {
@@ -3620,7 +3584,7 @@ public class Test
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnableWithMultipleCodes_02()
         {
@@ -3636,55 +3600,19 @@ public class Test
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnableWithMultipleCodes_03()
         {
             var text = @"#pragma warning enable nullable, CS0162";
             var node = Parse(text, options: TestOptions.Regular);
-            TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_EndOfPPLineExpected, Status = NodeStatus.IsWarning });
+            TestRoundTripping(node, text);
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-                NullableKind = SyntaxKind.NullableKeyword
-            });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
-        public void TestPragmaWarningSafeOnlyWithMultipleCodes_01()
-        {
-            var text = @"#pragma warning safeonly 114, nullable";
-            var node = Parse(text, options: TestOptions.Regular);
-            TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarningSafeOnly, Status = NodeStatus.IsWarning });
-            VerifyDirectivePragma(node, new PragmaInfo
-            {
-                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-                DisableOrRestoreKind = SyntaxKind.SafeOnlyKeyword,
-                NullableKind = SyntaxKind.NullableKeyword,
-                NullableIsMissing = true
-            });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
-        public void TestPragmaWarningSafeOnlyWithMultipleCodes_02()
-        {
-            var text = @"#pragma warning safeonly nullable, 114";
-            var node = Parse(text, options: TestOptions.Regular);
-            TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_EndOfPPLineExpected, Status = NodeStatus.IsWarning });
-            VerifyDirectivePragma(node, new PragmaInfo
-            {
-                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-                DisableOrRestoreKind = SyntaxKind.SafeOnlyKeyword,
-                NullableKind = SyntaxKind.NullableKeyword,
+                WarningList = new[] { "nullable", "CS0162" }
             });
         }
 
@@ -3762,22 +3690,6 @@ class A
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestPragmaWarningRestoreNullable()
-        {
-            var text = @"#pragma warning restore nullable";
-            var node = Parse(text);
-            TestRoundTripping(node, text);
-            VerifyDirectivePragma(node, new PragmaInfo
-            {
-                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-                DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-                NullableKind = SyntaxKind.NullableKeyword
-            });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
         public void TestPragmaWarningRestoreWithMultipleCodes_01()
         {
             var text = @"#pragma warning restore CS0114, 162, Something // Multiple codes";
@@ -3814,14 +3726,13 @@ class A
         {
             var text = @"#pragma warning restore nullable, CS0114";
             var node = Parse(text);
-            TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_EndOfPPLineExpected, Status = NodeStatus.IsWarning });
+            TestRoundTripping(node, text);
             VerifyDirectivePragma(node, new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-                NullableKind = SyntaxKind.NullableKeyword
+                WarningList = new[] { "nullable", "CS0114" }
             });
         }
 
@@ -3905,7 +3816,7 @@ class A
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningEnableWithNoCodes()
         {
@@ -3917,24 +3828,6 @@ class A
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.EnableKeyword
-            });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
-        public void TestPragmaWarningSafeOnlyWithNoCodes()
-        {
-            var text = @"#pragma warning safeonly";
-            var node = Parse(text, options: TestOptions.Regular);
-            TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarningSafeOnly, Status = NodeStatus.IsWarning });
-            VerifyDirectivePragma(node, new PragmaInfo
-            {
-                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-                DisableOrRestoreKind = SyntaxKind.SafeOnlyKeyword,
-                NullableKind = SyntaxKind.NullableKeyword,
-                NullableIsMissing = true
             });
         }
 
@@ -4332,7 +4225,7 @@ class A
             var text = @"#nullable enable";
             var node = Parse(text, options: TestOptions.Regular7_3);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_FeatureInPreview, Status = NodeStatus.IsError });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7_3, Status = NodeStatus.IsError });
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
         }
 
@@ -4360,23 +4253,56 @@ class A
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void NullableSafeOnly()
-        {
-            var text = @"#nullable safeonly";
-            var node = Parse(text, options: TestOptions.Regular);
-            TestRoundTripping(node, text);
-            VerifyErrorCode(node); // no errors
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "safeonly" });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
         public void NullableDisable()
         {
             var text = @"#nullable disable // comment";
             var node = Parse(text, options: TestOptions.Regular);
             TestRoundTripping(node, text);
             VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnableWarnings()
+        {
+            var text = @"#nullable enable warnings";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable warnings" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnableAnnotations()
+        {
+            var text = @"#nullable enable annotations";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable annotations" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableDisableWarnings()
+        {
+            var text = @"#nullable disable warnings // comment";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable warnings" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableDisableBadTarget()
+        {
+            var text = @"#nullable disable errors";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveTargetExpected, Status = NodeStatus.IsError });
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
         }
 
@@ -4405,31 +4331,6 @@ class enable
             Assert.Equal(SyntaxKind.IdentifierToken, token.ContextualKind());
         }
 
-        /// <summary>
-        /// "safeonly" should be a keyword within the directive only.
-        /// </summary>
-        [Fact]
-        [Trait("Feature", "Directives")]
-        public void NullableSafeOnlyKeyword()
-        {
-            var text =
-@"#nullable safeonly
-class safeonly
-{
-}";
-            var tree = ParseTree(text);
-            var root = tree.GetCompilationUnitRoot();
-            TestRoundTripping(root, text, false);
-            VerifyErrorCode(root); // no errors
-            VerifyDirectivesSpecial(root, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "safeonly" });
-            var nodes = root.DescendantNodes(descendIntoTrivia: true);
-            SyntaxToken token = nodes.OfType<NullableDirectiveTriviaSyntax>().Single().SettingToken;
-            Assert.Equal(SyntaxKind.SafeOnlyKeyword, token.Kind());
-            token = nodes.OfType<ClassDeclarationSyntax>().Single().Identifier;
-            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, token.ContextualKind());
-        }
-
         [Fact]
         [Trait("Feature", "Directives")]
         public void NullableWithoutDisableOrRestore()
@@ -4448,7 +4349,7 @@ class safeonly
             var text = @"#nullable disable true";
             var node = Parse(text, options: TestOptions.Regular);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_EndOfPPLineExpected, Status = NodeStatus.IsError });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveTargetExpected, Status = NodeStatus.IsError });
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
         }
 

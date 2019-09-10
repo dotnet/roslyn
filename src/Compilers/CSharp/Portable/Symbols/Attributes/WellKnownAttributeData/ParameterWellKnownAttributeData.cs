@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -7,82 +10,114 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class ParameterWellKnownAttributeData : CommonParameterWellKnownAttributeData
     {
-        private bool _hasNotNullWhenTrueAttribute;
-        public bool HasNotNullWhenTrueAttribute
+        private bool _hasAllowNullAttribute;
+        public bool HasAllowNullAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return _hasNotNullWhenTrueAttribute;
+                return _hasAllowNullAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                _hasNotNullWhenTrueAttribute = value;
+                _hasAllowNullAttribute = value;
                 SetDataStored();
             }
         }
 
-        private bool _hasNotNullWhenFalseAttribute;
-        public bool HasNotNullWhenFalseAttribute
+        private bool _hasDisallowNullAttribute;
+        public bool HasDisallowNullAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return _hasNotNullWhenFalseAttribute;
+                return _hasDisallowNullAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                _hasNotNullWhenFalseAttribute = value;
+                _hasDisallowNullAttribute = value;
                 SetDataStored();
             }
         }
 
-        private bool _hasEnsuresNotNullAttribute;
-        public bool HasEnsuresNotNullAttribute
+        private bool _hasMaybeNullAttribute;
+        public bool HasMaybeNullAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return _hasEnsuresNotNullAttribute;
+                return _hasMaybeNullAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                _hasEnsuresNotNullAttribute = value;
+                _hasMaybeNullAttribute = value;
                 SetDataStored();
             }
         }
 
-        private bool _hasAssertsTrueAttribute;
-        public bool HasAssertsTrueAttribute
+        private bool? _maybeNullWhenAttribute;
+        public bool? MaybeNullWhenAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return _hasAssertsTrueAttribute;
+                return _maybeNullWhenAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                _hasAssertsTrueAttribute = value;
+                _maybeNullWhenAttribute = value;
                 SetDataStored();
             }
         }
 
-        private bool _hasAssertsFalseAttribute;
-        public bool HasAssertsFalseAttribute
+        private bool _hasNotNullAttribute;
+        public bool HasNotNullAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return _hasAssertsFalseAttribute;
+                return _hasNotNullAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                _hasAssertsFalseAttribute = value;
+                _hasNotNullAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool? _notNullWhenAttribute;
+        public bool? NotNullWhenAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _notNullWhenAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _notNullWhenAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool? _doesNotReturnIfAttribute;
+        public bool? DoesNotReturnIfAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _doesNotReturnIfAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _doesNotReturnIfAttribute = value;
                 SetDataStored();
             }
         }
@@ -101,6 +136,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _hasEnumeratorCancellationAttribute = value;
                 SetDataStored();
             }
+        }
+
+        private ImmutableHashSet<string> _notNullIfParameterNotNull = ImmutableHashSet<string>.Empty;
+        public ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _notNullIfParameterNotNull;
+            }
+        }
+        public void AddNotNullIfParameterNotNull(string parameterName)
+        {
+            VerifySealed(expected: false);
+            // The common case is zero or one attribute
+            _notNullIfParameterNotNull = _notNullIfParameterNotNull.Add(parameterName);
+            SetDataStored();
         }
     }
 }

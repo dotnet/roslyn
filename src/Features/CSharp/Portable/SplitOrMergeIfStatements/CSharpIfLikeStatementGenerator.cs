@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     [ExportLanguageService(typeof(IIfLikeStatementGenerator), LanguageNames.CSharp), Shared]
     internal sealed class CSharpIfLikeStatementGenerator : IIfLikeStatementGenerator
     {
+        [ImportingConstructor]
+        public CSharpIfLikeStatementGenerator()
+        {
+        }
+
         public bool IsIfOrElseIf(SyntaxNode node) => node is IfStatementSyntax;
 
         public bool IsCondition(SyntaxNode expression, out SyntaxNode ifOrElseIf)

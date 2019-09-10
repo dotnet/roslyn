@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic
     [ProjectFileExtension("vbproj")]
     internal class VisualBasicProjectFileLoaderFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public VisualBasicProjectFileLoaderFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new VisualBasicProjectFileLoader();

@@ -3,12 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Diagnostics;
-using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Global Nullable context options.
         /// </summary>
-        public NullableContextOptions NullableContextOptions { get; private set; }
+        public override NullableContextOptions NullableContextOptions { get; protected set; }
 
         // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.

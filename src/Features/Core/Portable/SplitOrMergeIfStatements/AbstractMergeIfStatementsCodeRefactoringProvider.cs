@@ -31,27 +31,29 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
+            var (document, textSpan, cancellationToken) = context;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(textSpan, getInnermostNodeForTie: true);
 
-            if (IsApplicableSpan(node, context.Span, out var ifOrElseIf))
+            if (IsApplicableSpan(node, textSpan, out var ifOrElseIf))
             {
-                var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
-                var syntaxKinds = context.Document.GetLanguageService<ISyntaxKindsService>();
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
 
-                if (await CanBeMergedUpAsync(context.Document, ifOrElseIf, context.CancellationToken, out var upperIfOrElseIf).ConfigureAwait(false))
+                if (await CanBeMergedUpAsync(document, ifOrElseIf, cancellationToken, out var upperIfOrElseIf).ConfigureAwait(false))
                     RegisterRefactoring(MergeDirection.Up, upperIfOrElseIf.Span, ifOrElseIf.Span);
 
-                if (await CanBeMergedDownAsync(context.Document, ifOrElseIf, context.CancellationToken, out var lowerIfOrElseIf).ConfigureAwait(false))
+                if (await CanBeMergedDownAsync(document, ifOrElseIf, cancellationToken, out var lowerIfOrElseIf).ConfigureAwait(false))
                     RegisterRefactoring(MergeDirection.Down, ifOrElseIf.Span, lowerIfOrElseIf.Span);
 
                 void RegisterRefactoring(MergeDirection direction, TextSpan upperIfOrElseIfSpan, TextSpan lowerIfOrElseIfSpan)
                 {
                     context.RegisterRefactoring(
                         CreateCodeAction(
-                            c => RefactorAsync(context.Document, upperIfOrElseIfSpan, lowerIfOrElseIfSpan, c),
+                            c => RefactorAsync(document, upperIfOrElseIfSpan, lowerIfOrElseIfSpan, c),
                             direction,
-                            syntaxFacts.GetText(syntaxKinds.IfKeyword)));
+                            syntaxFacts.GetText(syntaxKinds.IfKeyword)),
+                        new TextSpan(upperIfOrElseIfSpan.Start, lowerIfOrElseIfSpan.End));
                 }
             }
         }

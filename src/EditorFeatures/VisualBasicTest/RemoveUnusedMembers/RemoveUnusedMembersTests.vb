@@ -1560,5 +1560,60 @@ End Class")
     End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(37213, "https://github.com/dotnet/roslyn/issues/37213")>
+        Public Async Function UsedPrivateExtensionMethod() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System.Runtime.CompilerServices
+
+Public Module B
+    <Extension()>
+    Sub PublicExtensionMethod(s As String)
+        s.PrivateExtensionMethod()
+    End Sub
+
+    <Extension()>
+    Private Sub [|PrivateExtensionMethod|](s As String)
+    End Sub
+End Module")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(33142, "https://github.com/dotnet/roslyn/issues/33142")>
+        Public Async Function XmlLiteral_NoDiagnostic() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Public Class C
+    Public Sub Foo()
+        Dim xml = <tag><%= Me.M() %></tag>
+    End Sub
+
+    Private Function [|M|]() As Integer
+        Return 42
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(33142, "https://github.com/dotnet/roslyn/issues/33142")>
+        Public Async Function Attribute_Diagnostic() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class C
+    <MyAttribute>
+    Private Function [|M|]() As Integer
+        Return 42
+    End Function
+End Class
+
+Public Class MyAttribute
+    Inherits System.Attribute
+End Class",
+"Public Class C
+End Class
+
+Public Class MyAttribute
+    Inherits System.Attribute
+End Class")
+        End Function
     End Class
 End Namespace

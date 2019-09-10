@@ -25,6 +25,7 @@ using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -1765,7 +1766,7 @@ class C1
             await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp3, options => options.LanguageVersion);
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/38301"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestParseOptions_CSharp_LanguageVersion_Default()
         {
             CreateCSharpFiles();
@@ -3625,6 +3626,51 @@ class C { }";
                 var compilation = await project.GetCompilationAsync();
 
                 Assert.Single(compilation.References.OfType<CompilationReference>());
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudio16_2OrHigherMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestEditorConfigDiscovery()
+        {
+            var files = GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithDiscoverEditorConfigFiles)
+                .WithFile(".editorconfig", "root = true");
+
+            CreateFiles(files);
+
+            string expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var projectFullPath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+                var project = await workspace.OpenProjectAsync(projectFullPath);
+
+                // We should have exactly one .editorconfig corresponding to the file we had. We may also
+                // have other files if there is a .editorconfig floating around somewhere higher on the disk.
+                var analyzerConfigDocument = Assert.Single(project.AnalyzerConfigDocuments.Where(d => d.FilePath == expectedEditorConfigPath));
+                Assert.Equal(".editorconfig", analyzerConfigDocument.Name);
+                var text = await analyzerConfigDocument.GetTextAsync();
+                Assert.Equal("root = true", text.ToString());
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudio16_2OrHigherMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestEditorConfigDiscoveryDisabled()
+        {
+            var files = GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithDiscoverEditorConfigFiles)
+                .ReplaceFileElement(@"CSharpProject\CSharpProject.csproj", "DiscoverEditorConfigFiles", "false")
+                .WithFile(".editorconfig", "root = true");
+
+            CreateFiles(files);
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var projectFullPath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+                var project = await workspace.OpenProjectAsync(projectFullPath);
+                Assert.Empty(project.AnalyzerConfigDocuments);
             }
         }
 

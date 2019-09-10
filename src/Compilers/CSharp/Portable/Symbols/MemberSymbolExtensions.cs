@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsImplementable(this MethodSymbol methodOpt)
         {
-            return (object)methodOpt != null && (methodOpt.IsAbstract || methodOpt.IsVirtual);
+            return (object)methodOpt != null && !methodOpt.IsSealed && (methodOpt.IsAbstract || methodOpt.IsVirtual);
         }
 
         public static bool IsAccessor(this MethodSymbol methodSymbol)
@@ -346,6 +346,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ImmutableArray<TypeSymbol>.Empty;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+        }
+
+        internal static bool IsConstructor(this MethodSymbol method)
+        {
+            switch (method.MethodKind)
+            {
+                case MethodKind.Constructor:
+                case MethodKind.StaticConstructor:
+                    return true;
+                default:
+                    return false;
             }
         }
 

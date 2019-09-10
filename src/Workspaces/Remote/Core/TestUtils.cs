@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
                 Debug.Fail("Differences detected in solution checksum: " + result);
             }
 
-            void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)
+            static void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)
             {
                 if (items.Count == 0)
                 {

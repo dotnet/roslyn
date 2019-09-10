@@ -239,7 +239,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 switch (input.Type)
                 {
                     case NativeMethods.INPUT_KEYBOARD:
-                        LogKeyboardInput(input.ki);
+                        LogKeyboardInput(input.Input.ki);
                         break;
                     case NativeMethods.INPUT_MOUSE:
                         Debug.WriteLine("UNEXPECTED: Encountered mouse input");

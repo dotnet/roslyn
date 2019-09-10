@@ -40,6 +40,83 @@ class C
         }
 
         [Fact]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestSelection1()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        [|int i = 0;|]
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        var i = 0;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestSelection2()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        [|int|] i = 0;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        var i = 0;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+
+        [Fact]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestSelectionNotType()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        int [|i|] = 0;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        var i = 0;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
         public async Task TestForeachInsideLocalDeclaration()
         {
             var code = @"
@@ -182,6 +259,81 @@ class C
         }
 
         [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestIntForeachLoop2()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        foreach ([|int|] i in new[] { 0 }) { }
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new[] { 0 }) { }
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestIntForeachLoop3()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        foreach (int [|i|] in new[] { 0 }) { }
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new[] { 0 }) { }
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestIntForeachLoop4()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        foreach ([|object|] i in new[] { new object() }) { }
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new[] { new object() }) { }
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
         public async Task TestIntDeconstruction()
         {
             var code = @"
@@ -243,6 +395,25 @@ class C
         {
 
         }
+    }
+}";
+
+            // We never want to get offered here under any circumstances.
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task NoSuggestionWithinAnExpression()
+        {
+            var code = @"using System;
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        int a = 40 [||]+ 2;
     }
 }";
 

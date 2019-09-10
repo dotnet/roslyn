@@ -351,6 +351,9 @@
   <data name="Updating_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating '{0}' will prevent the debug session from continuing.</value>
   </data>
+  <data name="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine" xml:space="preserve">
+    <value>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</value>
+  </data>
   <data name="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating a complex statement containing an await expression will prevent the debug session from continuing.</value>
   </data>
@@ -395,6 +398,12 @@
   </data>
   <data name="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into an interface will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into an interface method will prevent the debug session from continuing.</value>
   </data>
   <data name="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</value>
@@ -495,12 +504,15 @@
   <data name="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session" xml:space="preserve">
     <value>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</value>
   </data>
-  <data name="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</value>
+  <data name="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Updating a '{0}' around an active statement will prevent the debug session from continuing.</value>
   </data>
   <data name="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</value>
     <comment>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</comment>
+  </data>
+  <data name="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</value>
   </data>
   <data name="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying a generic method will prevent the debug session from continuing.</value>
@@ -537,6 +549,9 @@
   </data>
   <data name="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</value>
   </data>
   <data name="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</value>
@@ -663,6 +678,12 @@ Do you want to continue?</value>
   </data>
   <data name="Remove_Suppression" xml:space="preserve">
     <value>Remove Suppression</value>
+  </data>
+  <data name="Configure_0_severity" xml:space="preserve">
+    <value>Configure {0} severity</value>
+  </data>
+  <data name="Configure_0_code_style" xml:space="preserve">
+    <value>Configure {0} code style</value>
   </data>
   <data name="Pending" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
@@ -1301,15 +1322,6 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0_including_trailing_arguments" xml:space="preserve">
     <value>Add argument name '{0}' (including trailing arguments)</value>
   </data>
-  <data name="Using_readonly_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using readonly structs will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Using_ref_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using ref structs will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Using_readonly_references_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Using readonly references will prevent the debug session from continuing.</value>
-  </data>
   <data name="local_function" xml:space="preserve">
     <value>local function</value>
   </data>
@@ -1505,7 +1517,7 @@ This version used in: {2}</value>
   <data name="Unnecessary_assignment_of_a_value" xml:space="preserve">
     <value>Unnecessary assignment of a value</value>
   </data>
-  <data name="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names" xml:space="preserve">
+  <data name="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc" xml:space="preserve">
     <value>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</value>
   </data>
   <data name="Use_discarded_local" xml:space="preserve">
@@ -1589,6 +1601,15 @@ This version used in: {2}</value>
   <data name="Use_expression_body_for_local_functions" xml:space="preserve">
     <value>Use expression body for local functions</value>
   </data>
+  <data name="Unwrap_call_chain" xml:space="preserve">
+    <value>Unwrap call chain</value>
+  </data>
+  <data name="Wrap_call_chain" xml:space="preserve">
+    <value>Wrap call chain</value>
+  </data>
+  <data name="Wrap_long_call_chain" xml:space="preserve">
+    <value>Wrap long call chain</value>
+  </data>
   <data name="Pull_0_up_to_1" xml:space="preserve">
     <value>Pull '{0}' up to '{1}'</value>
   </data>
@@ -1623,7 +1644,56 @@ This version used in: {2}</value>
   <data name="Target_type_matches" xml:space="preserve">
     <value>Target type matches</value>
   </data>
+  <data name="Generate_parameter_0" xml:space="preserve">
+    <value>Generate parameter '{0}'</value>
+  </data>
+  <data name="Generate_parameter_0_and_overrides_implementations" xml:space="preserve">
+    <value>Generate parameter '{0}' (and overrides/implementations)</value>
+  </data>
   <data name="in_Source_attribute" xml:space="preserve">
     <value>in Source (attribute)</value>
+  </data>
+  <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
+    <value>Stream must support read and seek operations.</value>
+  </data>
+  <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
+    <value>{0} must return a stream that supports read and seek operations.</value>
+  </data>
+  <data name="Dispose_objects_before_losing_scope" xml:space="preserve">
+    <value>Dispose objects before losing scope</value>
+  </data>
+  <data name="Disposable_object_created_by_0_is_never_disposed" xml:space="preserve">
+    <value>Disposable object created by '{0}' is never disposed</value>
+  </data>
+  <data name="Use_recommended_dispose_pattern" xml:space="preserve">
+    <value>Use recommended dispose pattern</value>
+  </data>
+  <data name="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally" xml:space="preserve">
+    <value>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</value>
+    <comment>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</comment>
+  </data>
+  <data name="UseRecommendedDisposePatternDescription" xml:space="preserve">
+    <value>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</value>
+  </data>
+  <data name="Disposable_fields_should_be_disposed" xml:space="preserve">
+    <value>Disposable fields should be disposed</value>
+  </data>
+  <data name="Disposable_field_0_is_never_disposed" xml:space="preserve">
+    <value>Disposable field '{0}' is never disposed</value>
+  </data>
+  <data name="DisposableFieldsShouldBeDisposedDescription" xml:space="preserve">
+    <value>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</value>
+  </data>
+  <data name="Wrap_and_align_call_chain" xml:space="preserve">
+    <value>Wrap and align call chain</value>
+  </data>
+  <data name="Wrap_and_align_long_call_chain" xml:space="preserve">
+    <value>Wrap and align long call chain</value>
+  </data>
+  <data name="Warning_colon_semantics_may_change_when_converting_statement" xml:space="preserve">
+    <value>Warning: Semantics may change when converting statement.</value>
+  </data>
+  <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
+    <value>Add null checks for all parameters</value>
   </data>
 </root>

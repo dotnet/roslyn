@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
     {
         private const string CS1998 = nameof(CS1998); // This async method lacks 'await' operators and will run synchronously.
 
+        [ImportingConstructor]
+        public CSharpMakeMethodSynchronousCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1998);
 
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
@@ -67,12 +72,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             else if (returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt))
             {
                 // If the return type is IAsyncEnumerable<T>, then make the new return type IEnumerable<T>.
-                newReturnType = knownTypes._iEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                newReturnType = knownTypes._iEnumerableOfTType.ConstructWithNullability(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
             else if (returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumeratorOfTTypeOpt))
             {
                 // If the return type is IAsyncEnumerator<T>, then make the new return type IEnumerator<T>.
-                newReturnType = knownTypes._iEnumeratorOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                newReturnType = knownTypes._iEnumeratorOfTType.ConstructWithNullability(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
 
             return newReturnType;

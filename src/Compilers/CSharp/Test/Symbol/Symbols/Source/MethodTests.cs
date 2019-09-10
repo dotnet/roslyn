@@ -2289,5 +2289,98 @@ static class C
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
                 );
         }
+
+        [Fact]
+        public void StaticMethodDoesNotRequireInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public static int M() => 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.False(method.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstanceMethodRequiresInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public int M() => 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void OrdinaryMethodIsNotConditional()
+        {
+            var source = @"
+class C
+{
+    public void M() {}
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.False(method.IsConditional);
+        }
+
+        [Fact]
+        public void ConditionalMethodIsConditional()
+        {
+            var source = @"
+using System.Diagnostics;
+class C
+{
+    [Conditional(""Debug"")]
+    public void M() {}
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.IsConditional);
+        }
+
+        [Fact]
+        public void ConditionalMethodOverrideIsConditional()
+        {
+            var source = @"
+using System.Diagnostics;
+
+class Base
+{
+    [Conditional(""Debug"")]
+    public virtual void M() {}
+}
+
+class Derived : Base
+{
+    public override void M() {}
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("Derived.M");
+            Assert.True(method.IsConditional);
+        }
+
+        [Fact]
+        public void InvalidConditionalMethodIsConditional()
+        {
+            var source = @"
+using System.Diagnostics;
+class C
+{
+    [Conditional(""Debug"")]
+    public int M() => 42; 
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                    // (5,6): error CS0578: The Conditional attribute is not valid on 'C.M()' because its return type is not void
+                    //     [Conditional("Debug")]
+                    Diagnostic(ErrorCode.ERR_ConditionalMustReturnVoid, @"Conditional(""Debug"")").WithArguments("C.M()").WithLocation(5, 6));
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.IsConditional);
+        }
     }
 }

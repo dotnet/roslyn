@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax,
             ForEachStatementSyntax, SwitchSectionSyntax, SwitchLabelSyntax, CatchClauseSyntax, CatchClauseSyntax>
     {
+        [ImportingConstructor]
+        public CSharpRemoveUnusedValuesCodeFixProvider()
+        {
+        }
+
         protected override BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
             => SyntaxFactory.Block(statements);
 

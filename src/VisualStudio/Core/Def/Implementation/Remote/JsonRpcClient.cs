@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -36,9 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Workspace = workspace;
             _logger = logger;
 
-            _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target);
-            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
-
+            _rpc = stream.CreateStreamJsonRpc(target, logger);
             _rpc.Disconnected += OnDisconnected;
         }
 
@@ -60,8 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             try
             {
-
-                await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
@@ -75,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             try
             {
-                return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments?.AsArray(), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
@@ -117,9 +115,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private void HandleException(Exception ex, CancellationToken cancellationToken)
         {
-            // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
-            // Handle this case by throwing a proper cancellation exception instead.
-            // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
             cancellationToken.ThrowIfCancellationRequested();
 
             LogError($"exception: {ex.ToString()}");
@@ -158,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private void ThrowSoftCrashException(Exception ex, CancellationToken token)
         {
-            RemoteHostCrashInfoBar.ShowInfoBar(Workspace);
+            RemoteHostCrashInfoBar.ShowInfoBar(Workspace, ex);
 
             // log disconnect information before throw
             LogDisconnectInfo(_debuggingLastDisconnectReason, _debuggingLastDisconnectCallstack);

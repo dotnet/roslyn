@@ -32,6 +32,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddParameter
         Const BC36582 As String = NameOf(BC36582) ' error BC36582: Too many arguments to extension method 'Public Sub ExtensionM1()' defined in 'Extensions'.
         Const BC36625 As String = NameOf(BC36625) ' error BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(Of String)(
             IDEDiagnosticIds.UnboundConstructorId,
             BC30057, BC30272, BC30274, BC30311, BC30389, BC30512, BC32006, BC30387, BC30516, BC36582, BC36625)

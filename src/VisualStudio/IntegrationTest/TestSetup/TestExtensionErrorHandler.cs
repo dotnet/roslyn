@@ -11,6 +11,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
     [Shared, Export(typeof(IExtensionErrorHandler)), Export(typeof(TestExtensionErrorHandler))]
     public class TestExtensionErrorHandler : IExtensionErrorHandler
     {
+        [ImportingConstructor]
+        public TestExtensionErrorHandler()
+        {
+        }
+
         public void HandleError(object sender, Exception exception)
         {
             if (exception is ArgumentOutOfRangeException argumentOutOfRangeException
@@ -18,6 +23,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 && argumentOutOfRangeException.StackTrace.Contains("Microsoft.NodejsTools.Repl.ReplOutputClassifier.GetClassificationSpans"))
             {
                 // Known issue https://github.com/Microsoft/nodejstools/issues/2138
+                return;
+            }
+
+            if (exception is ArgumentException argumentException
+                && argumentException.Message.Contains("SnapshotPoint")
+                && argumentException.StackTrace.Contains("Microsoft.VisualStudio.Text.Editor.Implementation.WpfTextView.ValidateBufferPosition"))
+            {
+                // Known issue https://github.com/dotnet/roslyn/issues/35123
                 return;
             }
 

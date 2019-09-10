@@ -40,6 +40,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Friend Class BinaryConditionalExpressionSignatureHelpProvider
         Inherits ConditionalExpressionSignatureHelpProvider(Of BinaryConditionalExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property Kind As SyntaxKind
             Get
                 Return SyntaxKind.BinaryConditionalExpression
@@ -50,6 +54,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     <ExportSignatureHelpProvider("TernaryConditionalExpressionSignatureHelpProvider", LanguageNames.VisualBasic), [Shared]>
     Friend Class TernaryConditionalExpressionSignatureHelpProvider
         Inherits ConditionalExpressionSignatureHelpProvider(Of TernaryConditionalExpressionSyntax)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides ReadOnly Property Kind As SyntaxKind
             Get

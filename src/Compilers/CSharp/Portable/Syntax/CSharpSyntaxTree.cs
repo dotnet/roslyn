@@ -619,20 +619,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
         }
 
-        /// <summary>
-        /// Returns true if the `#nullable` directive preceding the position is
-        /// `enable` or `safeonly`, false if `disable`, and null if no preceding directive,
-        /// or directive preceding the position is `restore`.
-        /// </summary>
-        internal bool? GetNullableDirectiveState(int position)
+        private void EnsureNullableContextMapInitialized()
         {
-            if (_lazyNullableDirectiveMap == null)
+            if (_lazyNullableContextStateMap == null)
             {
                 // Create the #nullable directive map on demand.
-                Interlocked.CompareExchange(ref _lazyNullableDirectiveMap, NullableDirectiveMap.Create(this, IsGeneratedCode()), null);
+                Interlocked.CompareExchange(ref _lazyNullableContextStateMap, NullableContextStateMap.Create(this, IsGeneratedCode()), null);
             }
+        }
 
-            return _lazyNullableDirectiveMap.GetDirectiveState(position);
+        internal NullableContextState GetNullableContextState(int position)
+        {
+            EnsureNullableContextMapInitialized();
+            return _lazyNullableContextStateMap.GetContextState(position);
+        }
+
+        /// <summary>
+        /// Returns true if there are any nullable directives that enable annotations, warnings, or both.
+        /// This does not include any restore directives.
+        /// </summary>
+        internal bool HasNullableEnables()
+        {
+            EnsureNullableContextMapInitialized();
+            return _lazyNullableContextStateMap.HasNullableEnables();
         }
 
         internal bool IsGeneratedCode()
@@ -653,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private CSharpLineDirectiveMap _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;
-        private NullableDirectiveMap _lazyNullableDirectiveMap;
+        private NullableContextStateMap _lazyNullableContextStateMap;
         private ThreeState _lazyIsGeneratedCode = ThreeState.Unknown;
 
         private LinePosition GetLinePosition(int position)

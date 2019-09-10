@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), WorkspaceKind.Interactive), Shared]
         internal class InteractiveTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
         {
+            [ImportingConstructor]
+            public InteractiveTextBufferSupportsFeatureService()
+            {
+            }
+
             public bool SupportsCodeFixes(ITextBuffer textBuffer)
             {
                 if (textBuffer != null)
@@ -52,6 +57,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), WorkspaceKind.Interactive), Shared]
         internal class InteractiveDocumentSupportsFeatureService : IDocumentSupportsFeatureService
         {
+            [ImportingConstructor]
+            public InteractiveDocumentSupportsFeatureService()
+            {
+            }
+
             public bool SupportsCodeFixes(Document document)
             {
                 // TODO: Implement this.

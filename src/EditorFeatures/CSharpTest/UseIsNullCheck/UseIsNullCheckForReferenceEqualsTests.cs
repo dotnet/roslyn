@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseIsNullCheck;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -141,7 +144,7 @@ class C
 {
     void M(string s)
     {
-        if (!(s is null))
+        if (s is object)
             return;
     }
 }");
@@ -249,6 +252,35 @@ class C
 ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsUnconstrainedGenericNegated()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if (![||]ReferenceEquals(value, null))
+        {
+            return;
+        }
+    }
+}
+", @"
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if (value is object)
+        {
+            return;
+        }
+    }
+}
+");
+        }
+
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsRefConstraintGeneric()
@@ -280,6 +312,36 @@ class C
 ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsRefConstraintGenericNegated()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:class
+    {
+        if (![||]ReferenceEquals(value, null))
+        {
+            return;
+        }
+    }
+}
+",
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:class
+    {
+        if (value is object)
+        {
+            return;
+        }
+    }
+}
+");
+        }
+
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsValueConstraintGeneric()
@@ -291,6 +353,24 @@ class C
     public static void NotNull<T>(T value) where T:struct
     {
         if ([||]ReferenceEquals(value, null))
+        {
+            return;
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsValueConstraintGenericNegated()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:struct
+    {
+        if (![||]ReferenceEquals(value, null))
         {
             return;
         }

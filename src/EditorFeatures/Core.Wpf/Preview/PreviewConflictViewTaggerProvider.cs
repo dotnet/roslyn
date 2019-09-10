@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         : AbstractPreviewTaggerProvider<ConflictTag>
     {
         [ImportingConstructor]
-        public PreviewConflictTaggerProvider() :
-            base(PredefinedPreviewTaggerKeys.ConflictSpansKey, ConflictTag.Instance)
+        public PreviewConflictTaggerProvider()
+            : base(PredefinedPreviewTaggerKeys.ConflictSpansKey, ConflictTag.Instance)
         {
         }
     }

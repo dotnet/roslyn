@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
     Friend Class VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider
         Inherits AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetIsNullTitle() As String
             Return VBFeaturesResources.Use_Is_Nothing_check
         End Function
@@ -24,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
                 SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))).Parenthesize()
         End Function
 
-        Protected Overrides Function CreateNotNullCheck(notExpression As SyntaxNode, argument As SyntaxNode, isUnconstrainedGeneric As Boolean) As SyntaxNode
+        Protected Overrides Function CreateNotNullCheck(argument As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.IsNotExpression(
                 DirectCast(argument, ExpressionSyntax).Parenthesize(),
                 SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))).Parenthesize()

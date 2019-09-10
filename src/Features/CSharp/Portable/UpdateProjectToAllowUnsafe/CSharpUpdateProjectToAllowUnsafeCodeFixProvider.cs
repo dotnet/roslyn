@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UpdateProjectToAllowUnsafe
     {
         private const string CS0227 = nameof(CS0227); // error CS0227: Unsafe code may only appear if compiling with /unsafe
 
+        [ImportingConstructor]
+        public CSharpUpdateProjectToAllowUnsafeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS0227);
 

@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
@@ -21,31 +23,44 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// <returns>Roslyn completion trigger</returns>
         internal static RoslynTrigger GetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
         {
+            var completionTriggerKind = GetRoslynTriggerKind(trigger);
+            if (completionTriggerKind == CompletionTriggerKind.Deletion)
+            {
+                var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
+                char characterRemoved;
+                if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
+                {
+                    // If multiple characters were removed (selection), this finds the first character from the left. 
+                    characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
+                }
+                else
+                {
+                    characterRemoved = (char)0;
+                }
+
+                return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
+            }
+            else
+            {
+                return new RoslynTrigger(completionTriggerKind, trigger.Character);
+            }
+        }
+
+        internal static CompletionTriggerKind GetRoslynTriggerKind(AsyncCompletionData.CompletionTrigger trigger)
+        {
             switch (trigger.Reason)
             {
                 case AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
-                    return new RoslynTrigger(CompletionTriggerKind.InvokeAndCommitIfUnique);
+                    return CompletionTriggerKind.InvokeAndCommitIfUnique;
                 case AsyncCompletionData.CompletionTriggerReason.Insertion:
-                    return RoslynTrigger.CreateInsertionTrigger(trigger.Character);
+                    return CompletionTriggerKind.Insertion;
                 case AsyncCompletionData.CompletionTriggerReason.Deletion:
                 case AsyncCompletionData.CompletionTriggerReason.Backspace:
-                    var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
-                    char characterRemoved;
-                    if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
-                    {
-                        // If multiple characters were removed (selection), this finds the first character from the left. 
-                        characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
-                    }
-                    else
-                    {
-                        characterRemoved = (char)0;
-                    }
-
-                    return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
+                    return CompletionTriggerKind.Deletion;
                 case AsyncCompletionData.CompletionTriggerReason.SnippetsMode:
-                    return new RoslynTrigger(CompletionTriggerKind.Snippets);
+                    return CompletionTriggerKind.Snippets;
                 default:
-                    return RoslynTrigger.Invoke;
+                    return CompletionTriggerKind.Invoke;
             }
         }
 
@@ -63,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal static bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar)
+        internal static bool IsFilterCharacter(RoslynCompletionItem item, char ch, string textTypedSoFar)
         {
             // First see if the item has any specific filter rules it wants followed.
             foreach (var rule in item.Rules.FilterCharacterRules)
@@ -97,5 +112,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             return false;
         }
+
+        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
+        // We expect that Editor will intorduce this support and we will get rid of relying on the "★" then.
+        internal static bool IsPreferredItem(this RoslynCompletionItem completionItem)
+            => completionItem.DisplayText.StartsWith("★");
+
+        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
+        // We expect that Editor will intorduce this support and we will get rid of relying on the "★" then.
+        internal static bool IsPreferredItem(this VSCompletionItem completionItem)
+            => completionItem.DisplayText.StartsWith("★");
     }
 }

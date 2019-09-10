@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string expectedSourceTextAfterRefactoring,
             string expectedDocumentName,
             string destinationDocumentText,
-            ImmutableArray<string> destinationDocumentContainers = default(ImmutableArray<string>),
+            ImmutableArray<string> destinationDocumentContainers = default,
             bool expectedCodeAction = true,
             int index = 0,
             Action<Workspace> onAfterWorkspaceCreated = null)

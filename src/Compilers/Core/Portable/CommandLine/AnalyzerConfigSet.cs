@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -29,6 +30,12 @@ namespace Microsoft.CodeAnalysis
         /// corresponds to each <see cref="AnalyzerConfig.NamedSections"/>.
         /// </summary>
         private readonly ImmutableArray<ImmutableArray<SectionNameMatcher?>> _analyzerMatchers;
+
+        // PERF: diagnostic IDs will appear in the output options for every syntax tree in
+        // the solution. We share string instances for each diagnostic ID to avoid creating
+        // excess strings
+        private readonly ConcurrentDictionary<ReadOnlyMemory<char>, string> _diagnosticIdCache =
+            new ConcurrentDictionary<ReadOnlyMemory<char>, string>(CharMemoryEqualityComparer.Instance);
 
         private readonly static DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
             = new DiagnosticDescriptor(
@@ -80,6 +87,7 @@ namespace Microsoft.CodeAnalysis
         /// precedence rules if there are multiple rules for the same file.
         /// </summary>
         /// <param name="sourcePath">The path to a file such as a source file or additional file. Must be non-null.</param>
+        /// <remarks>This method is safe to call from multiple threads.</remarks>
         public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
         {
             if (sourcePath == null)
@@ -103,6 +111,15 @@ namespace Microsoft.CodeAnalysis
 
                 if (normalizedPath.StartsWith(config.NormalizedDirectory, StringComparison.Ordinal))
                 {
+                    // If this config is a root config, then clear earlier options since they don't apply
+                    // to this source file.
+                    if (config.IsRoot)
+                    {
+                        analyzerOptionsBuilder.Clear();
+                        treeOptionsBuilder.Clear();
+                        diagnosticBuilder.Clear();
+                    }
+
                     int dirLength = config.NormalizedDirectory.Length;
                     // Leave '/' if the normalized directory ends with a '/'. This can happen if
                     // we're in a root directory (e.g. '/' or 'Z:/'). The section matching
@@ -119,7 +136,13 @@ namespace Microsoft.CodeAnalysis
                         if (matchers[sectionIndex]?.IsMatch(relativePath) == true)
                         {
                             var section = config.NamedSections[sectionIndex];
-                            addOptions(section, treeOptionsBuilder, analyzerOptionsBuilder, config.PathToFile);
+                            addOptions(
+                                section,
+                                treeOptionsBuilder,
+                                analyzerOptionsBuilder,
+                                diagnosticBuilder,
+                                config.PathToFile,
+                                _diagnosticIdCache);
                         }
                     }
                 }
@@ -130,11 +153,13 @@ namespace Microsoft.CodeAnalysis
                 analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
                 diagnosticBuilder.ToImmutableAndFree());
 
-            void addOptions(
+            static void addOptions(
                 AnalyzerConfig.Section section,
                 TreeOptions.Builder treeBuilder,
                 AnalyzerOptions.Builder analyzerBuilder,
-                string analyzerConfigPath)
+                ArrayBuilder<Diagnostic> diagnosticBuilder,
+                string analyzerConfigPath,
+                ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache)
             {
                 const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
                 const string DiagnosticOptionSuffix = ".severity";
@@ -151,9 +176,19 @@ namespace Microsoft.CodeAnalysis
 
                     if (diagIdLength >= 0)
                     {
-                        var diagId = key.Substring(
-                            DiagnosticOptionPrefix.Length,
-                            diagIdLength);
+                        ReadOnlyMemory<char> idSlice = key.AsMemory().Slice(DiagnosticOptionPrefix.Length, diagIdLength);
+                        // PERF: this is similar to a double-checked locking pattern, and trying to fetch the ID first
+                        // lets us avoid an allocation if the id has already been added
+                        if (!diagIdCache.TryGetValue(idSlice, out var diagId))
+                        {
+                            // We use ReadOnlyMemory<char> to allow allocation-free lookups in the
+                            // dictionary, but the actual keys stored in the dictionary are trimmed
+                            // to avoid holding GC references to larger strings than necessary. The
+                            // GetOrAdd APIs do not allow the key to be manipulated between lookup
+                            // and insertion, so we separate the operations here in code.
+                            diagId = idSlice.ToString();
+                            diagId = diagIdCache.GetOrAdd(diagId.AsMemory(), diagId);
+                        }
 
                         ReportDiagnostic? severity;
                         var comparer = StringComparer.OrdinalIgnoreCase;
@@ -165,19 +200,19 @@ namespace Microsoft.CodeAnalysis
                         {
                             severity = ReportDiagnostic.Error;
                         }
-                        else if (comparer.Equals(value, "warn"))
+                        else if (comparer.Equals(value, "warning"))
                         {
                             severity = ReportDiagnostic.Warn;
                         }
-                        else if (comparer.Equals(value, "info"))
+                        else if (comparer.Equals(value, "suggestion"))
                         {
                             severity = ReportDiagnostic.Info;
                         }
-                        else if (comparer.Equals(value, "hidden"))
+                        else if (comparer.Equals(value, "silent") || comparer.Equals(value, "refactoring"))
                         {
                             severity = ReportDiagnostic.Hidden;
                         }
-                        else if (comparer.Equals(value, "suppress"))
+                        else if (comparer.Equals(value, "none"))
                         {
                             severity = ReportDiagnostic.Suppress;
                         }

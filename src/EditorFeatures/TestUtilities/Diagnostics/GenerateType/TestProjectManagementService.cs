@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
     {
         private string _defaultNamespace;
 
+        [ImportingConstructor]
+        public TestProjectManagementService()
+        {
+        }
+
         public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
         {
             return null;

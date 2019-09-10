@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var nameSyntax = typeSyntax as NameSyntax;
-            if (nameSyntax == null)
+            if (!(typeSyntax is NameSyntax nameSyntax))
             {
                 return false;
             }
@@ -93,33 +92,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method)
         {
+            var returnType = method.ReturnType.WithNullability(method.ReturnNullableAnnotation);
+
             if (method.ReturnsByRef)
             {
-                return method.ReturnType.GenerateRefTypeSyntax();
+                return returnType.GenerateRefTypeSyntax();
             }
             else if (method.ReturnsByRefReadonly)
             {
-                return method.ReturnType.GenerateRefReadOnlyTypeSyntax();
+                return returnType.GenerateRefReadOnlyTypeSyntax();
             }
             else
             {
-                return method.ReturnType.GenerateTypeSyntax();
-            }
-        }
-
-        public static TypeSyntax GenerateTypeSyntax(this IPropertySymbol property)
-        {
-            if (property.ReturnsByRef)
-            {
-                return property.Type.GenerateRefTypeSyntax();
-            }
-            else if (property.ReturnsByRefReadonly)
-            {
-                return property.Type.GenerateRefReadOnlyTypeSyntax();
-            }
-            else
-            {
-                return property.Type.GenerateTypeSyntax();
+                return returnType.GenerateTypeSyntax();
             }
         }
 

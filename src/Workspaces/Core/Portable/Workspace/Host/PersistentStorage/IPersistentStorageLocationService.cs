@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService)), Shared]
     internal class DefaultPersistentStorageLocationService : IPersistentStorageLocationService
     {
+        [ImportingConstructor]
+        public DefaultPersistentStorageLocationService()
+        {
+        }
+
         public bool IsSupported(Workspace workspace) => false;
 
         public string TryGetStorageLocation(SolutionId solutionId) => null;

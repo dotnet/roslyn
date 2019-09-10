@@ -7,5 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public bool IsVar => this is IdentifierNameSyntax name && name.Identifier.ToString() == "var";
 
         public bool IsUnmanaged => this is IdentifierNameSyntax name && name.Identifier.ToString() == "unmanaged";
+
+        public bool IsNotNull => this is IdentifierNameSyntax name && name.Identifier.ToString() == "notnull";
     }
 }

@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [PartNotDiscoverable]
     internal class StubVsEditorAdaptersFactoryService : IVsEditorAdaptersFactoryService
     {
+        [ImportingConstructor]
+        public StubVsEditorAdaptersFactoryService()
+        {
+        }
+
         public IVsCodeWindow CreateVsCodeWindowAdapter(IServiceProvider serviceProvider)
         {
             throw new NotImplementedException();

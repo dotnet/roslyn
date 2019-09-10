@@ -74,15 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             get { return EnvDTE.vsCMElement.vsCMElementAttribute; }
         }
 
-        public override object Parent
-        {
-            get
-            {
-                return _parent != null
-                    ? _parent
-                    : (object)this.FileCodeModel;
-            }
-        }
+        public override object Parent => _parent ?? (object)this.FileCodeModel;
 
         public EnvDTE.CodeElements Arguments
         {

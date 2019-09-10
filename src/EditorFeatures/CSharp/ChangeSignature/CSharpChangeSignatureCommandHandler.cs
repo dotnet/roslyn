@@ -12,5 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature
     [Name(PredefinedCommandHandlerNames.ChangeSignature)]
     internal class CSharpChangeSignatureCommandHandler : AbstractChangeSignatureCommandHandler
     {
+        [ImportingConstructor]
+        public CSharpChangeSignatureCommandHandler()
+        {
+        }
     }
 }

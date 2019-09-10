@@ -35,40 +35,50 @@ namespace Microsoft.CodeAnalysis.InvertLogical
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
+            var (document, span, cancellationToken) = context;
 
-            var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-
-            if (span.Length > 0 && span != token.Span)
-            {
-                return;
-            }
-
-            if (span.Length == 0 && !token.Span.IntersectsWith(position))
-            {
-                return;
-            }
-
+            var expression = await context.TryGetRelevantNodeAsync<TBinaryExpressionSyntax>().ConfigureAwait(false) as SyntaxNode;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            var parent = token.Parent;
-            if (!syntaxFacts.IsLogicalAndExpression(parent) &&
-                !syntaxFacts.IsLogicalOrExpression(parent))
+            if (expression == null ||
+                (!syntaxFacts.IsLogicalAndExpression(expression) &&
+                !syntaxFacts.IsLogicalOrExpression(expression)))
             {
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(
-                GetTitle(GetKind(parent.RawKind)),
-                c => InvertLogicalAsync(document, position, c)));
+            if (span.IsEmpty)
+            {
+                // Walk up to the topmost binary of the same type.  When converting || to && (or vice versa)
+                // we want to grab the entire set.  i.e.  `!a && !b && !c` should become `!(a || b || c)` not
+                // `!(a || b) && !c`
+                while (expression.Parent?.RawKind == expression.RawKind)
+                {
+                    expression = expression.Parent;
+                }
+            }
+            else
+            {
+                // When selection is non-empty -> allow only top-level full selections.
+                // Currently the refactoring can't handle invert of arbitrary nodes but only whole subtrees
+                // and allowing it just for selection of those nodes that - by chance - form a full subtree
+                // would produce only confusion.
+                if (CodeRefactoringHelpers.IsNodeUnderselected(expression, span) ||
+                    syntaxFacts.IsLogicalAndExpression(expression.Parent) || syntaxFacts.IsLogicalOrExpression(expression.Parent))
+                {
+                    return;
+                }
+            }
+
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    GetTitle(GetKind(expression.RawKind)),
+                    c => InvertLogicalAsync(document, expression, c)),
+                expression.Span);
         }
 
         private async Task<Document> InvertLogicalAsync(
-            Document document1, int position, CancellationToken cancellationToken)
+            Document document1, SyntaxNode binaryExpression, CancellationToken cancellationToken)
         {
             // We invert in two steps.  To invert `a op b` we are effectively generating two negations:
             // `!(!(a op b)`.  The inner `!` will distribute on the inside to make `!a op' !b` leaving
@@ -79,25 +89,16 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             // and undo the work we just did).  Because our negation helper needs semantics, we generate
             // a new document at each step so that we'll be able to properly analyze things as we go
             // along.
-            var document2 = await InvertInnerExpressionAsync(document1, position, cancellationToken).ConfigureAwait(false);
+            var document2 = await InvertInnerExpressionAsync(document1, binaryExpression, cancellationToken).ConfigureAwait(false);
             var document3 = await InvertOuterExpressionAsync(document2, cancellationToken).ConfigureAwait(false);
             return document3;
         }
 
         private async Task<Document> InvertInnerExpressionAsync(
-            Document document, int position, CancellationToken cancellationToken)
+            Document document, SyntaxNode binaryExpression, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // Walk up to the topmost binary of the same type.  When converting || to && (or vice versa)
-            // we want to grab the entire set.  i.e.  `!a && !b && !c` should become `!(a || b || c)` not
-            // `!(a || b) && !c`
-            var binaryExpression = root.FindToken(position).Parent;
-            while (binaryExpression.Parent?.RawKind == binaryExpression.RawKind)
-            {
-                binaryExpression = binaryExpression.Parent;
-            }
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var newBinary = generator.Negate(binaryExpression, semanticModel, cancellationToken);

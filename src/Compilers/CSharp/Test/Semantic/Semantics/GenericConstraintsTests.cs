@@ -3409,18 +3409,18 @@ public class C
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (16,18): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (16,18): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         MyStruct<InnerStruct<int>> myStruct;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "InnerStruct<int>").WithArguments("unmanaged constructed types").WithLocation(16, 18),
-                // (17,12): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "InnerStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(16, 18),
+                // (17,12): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         M2(&myStruct);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&myStruct").WithArguments("unmanaged constructed types").WithLocation(17, 12),
-                // (20,27): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&myStruct").WithArguments("unmanaged constructed types", "8.0").WithLocation(17, 12),
+                // (20,55): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public unsafe void M2(MyStruct<InnerStruct<int>>* ms) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct<InnerStruct<int>>*").WithArguments("unmanaged constructed types").WithLocation(20, 27),
-                // (20,55): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(20, 55),
+                // (20,55): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public unsafe void M2(MyStruct<InnerStruct<int>>* ms) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ms").WithArguments("unmanaged constructed types").WithLocation(20, 55));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(20, 55));
         }
 
         [Fact]
@@ -3456,9 +3456,9 @@ public class C
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (16,18): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (16,18): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         MyStruct<InnerStruct<int>> myStruct = default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "InnerStruct<int>").WithArguments("unmanaged constructed types").WithLocation(16, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "InnerStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(16, 18)
                 );
         }
 
@@ -3490,9 +3490,9 @@ public class C
                     // (12,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<U>')
                     //         M2<U>(&myStruct);
                     Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<U>").WithLocation(12, 15),
-                    // (15,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<V>')
+                    // (15,43): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<V>')
                     //     public unsafe void M2<V>(MyStruct<V>* ms) { }
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "MyStruct<V>*").WithArguments("MyStruct<V>").WithLocation(15, 30),
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "ms").WithArguments("MyStruct<V>").WithLocation(15, 43),
                     // (15,43): error CS8377: The type 'V' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'MyStruct<T>'
                     //     public unsafe void M2<V>(MyStruct<V>* ms) { }
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ms").WithArguments("MyStruct<T>", "T", "V").WithLocation(15, 43));
@@ -3523,9 +3523,9 @@ public class C
                     // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
                     //         M2(&myStruct);
                     Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12),
-                    // (15,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    // (15,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
                     //     public unsafe void M2(MyStruct<string>* ms) { }
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "MyStruct<string>*").WithArguments("MyStruct<string>").WithLocation(15, 27));
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "ms").WithArguments("MyStruct<string>").WithLocation(15, 45));
         }
 
         [Fact]
@@ -3804,9 +3804,9 @@ public struct MyStruct<T>
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (9,19): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,19): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var ptr = &ms;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&ms").WithArguments("unmanaged constructed types").WithLocation(9, 19)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 19)
                 );
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
@@ -3834,12 +3834,12 @@ public class MyClass
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (12,16): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,16): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         fixed (MyStruct<int>* ptr = &c.ms)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct<int>*").WithArguments("unmanaged constructed types").WithLocation(12, 16),
-                // (12,37): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>*").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 16),
+                // (12,37): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         fixed (MyStruct<int>* ptr = &c.ms)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&c.ms").WithArguments("unmanaged constructed types").WithLocation(12, 37));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&c.ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 37));
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -3860,9 +3860,9 @@ public struct MyStruct<T>
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (8,20): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,20): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var size = sizeof(MyStruct<int>);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(MyStruct<int>)").WithArguments("unmanaged constructed types").WithLocation(8, 20)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "sizeof(MyStruct<int>)").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 20)
                 );
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
@@ -3884,9 +3884,9 @@ public struct MyStruct<T>
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (8,19): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,19): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var arr = stackalloc[] { new MyStruct<int>() };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc[] { new MyStruct<int>() }").WithArguments("unmanaged constructed types").WithLocation(8, 19));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc[] { new MyStruct<int>() }").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 19));
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -3907,9 +3907,9 @@ public struct MyStruct<T>
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (8,30): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,30): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var arr = stackalloc MyStruct<int>[4];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct<int>").WithArguments("unmanaged constructed types").WithLocation(8, 30));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 30));
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -3930,9 +3930,36 @@ public unsafe struct OtherStruct
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (9,12): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,27): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public MyStruct<int>* ms;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct<int>*").WithArguments("unmanaged constructed types").WithLocation(9, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 27)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericNestedStructPointerFieldRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public struct InnerStruct
+    {
+        public T field;
+    }
+}
+
+public unsafe struct OtherStruct
+{
+    public MyStruct<int>.InnerStruct* ms;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (12,39): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     public MyStruct<int>.InnerStruct* ms;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 39)
                 );
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
@@ -3960,12 +3987,12 @@ public class C
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (13,9): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,9): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         M<MyStruct>();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M<MyStruct>").WithArguments("unmanaged constructed types").WithLocation(13, 9),
-                // (14,9): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<MyStruct>").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 9),
+                // (14,9): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         M<(int, int)>();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M<(int, int)>").WithArguments("unmanaged constructed types").WithLocation(14, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<(int, int)>").WithArguments("unmanaged constructed types", "8.0").WithLocation(14, 9)
                 );
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
@@ -3997,9 +4024,9 @@ public class C
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (13,9): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,9): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         M<MyStruct<U>>();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M<MyStruct<U>>").WithArguments("unmanaged constructed types").WithLocation(13, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<MyStruct<U>>").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 9),
                 // (18,9): error CS8377: The type 'MyStruct<V>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
                 //         M<MyStruct<V>>();
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<MyStruct<V>>").WithArguments("C.M<T>()", "T", "MyStruct<V>").WithLocation(18, 9)

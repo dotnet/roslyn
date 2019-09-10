@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Hosting.Diagnostics.Waiters;
 
@@ -109,10 +110,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
 
         public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
-            => GetWaitingService().WaitForAsyncOperations(timeout, featuresToWaitFor, waitForWorkspaceFirst);
+        {
+            if (waitForWorkspaceFirst || featuresToWaitFor == FeatureAttribute.Workspace)
+            {
+                WaitForProjectSystem(timeout);
+            }
+
+            GetWaitingService().WaitForAsyncOperations(timeout, featuresToWaitFor, waitForWorkspaceFirst);
+        }
 
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
-            => GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);
+        {
+            if (featureNames.Contains(FeatureAttribute.Workspace))
+            {
+                WaitForProjectSystem(timeout);
+            }
+
+            GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);
+        }
+
+        private static void WaitForProjectSystem(TimeSpan timeout)
+        {
+            var operationProgressStatus = InvokeOnUIThread(_ => GetGlobalService<SVsOperationProgress, IVsOperationProgressStatusService>());
+            var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
+            stageStatus.WaitForCompletionAsync().Wait(timeout);
+        }
 
         private static void LoadRoslynPackage()
         {

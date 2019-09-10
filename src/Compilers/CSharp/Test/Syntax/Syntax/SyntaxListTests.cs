@@ -226,6 +226,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void AddNamespaceAttributeListsAndModifiers()
+        {
+            var declaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("M"));
+
+            Assert.True(declaration.AttributeLists.Count == 0);
+            Assert.True(declaration.Modifiers.Count == 0);
+
+            declaration = declaration.AddAttributeLists(new[]
+            {
+                SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr")))),
+            });
+
+            Assert.True(declaration.AttributeLists.Count == 1);
+            Assert.True(declaration.Modifiers.Count == 0);
+
+            declaration = declaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+
+            Assert.True(declaration.AttributeLists.Count == 1);
+            Assert.True(declaration.Modifiers.Count == 1);
+        }
+
+        [Fact]
         public void Extensions()
         {
             var list = SyntaxFactory.List<SyntaxNode>(

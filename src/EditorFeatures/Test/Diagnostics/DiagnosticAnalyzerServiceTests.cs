@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
@@ -107,8 +108,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var service = new MyDiagnosticAnalyzerService(diagnosticAnalyzer, listener);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
-            bool syntax = false;
-            bool semantic = false;
+            var syntax = false;
+            var semantic = false;
 
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             var workspace = new AdhocWorkspace(VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic));
 
-            var language = Workspaces.NoCompilationConstants.LanguageName;
+            var language = NoCompilationConstants.LanguageName;
 
             var project = workspace.AddProject(
                            ProjectInfo.Create(
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var service = new MyDiagnosticAnalyzerService(new NoNameAnalyzer(), listener, language);
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
-            bool syntax = false;
+            var syntax = false;
 
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
@@ -322,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 }
 
                 var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
-                Assert.IsNotType<ProjectDiagnosticAnalyzer>(liveId.Analyzer);
+                Assert.False(liveId.Analyzer is ProjectDiagnosticAnalyzer);
 
                 called = true;
             };

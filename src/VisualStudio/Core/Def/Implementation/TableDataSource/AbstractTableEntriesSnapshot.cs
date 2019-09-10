@@ -12,22 +12,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Base implementation of ITableEntriesSnapshot
     /// </summary>
-    internal abstract class AbstractTableEntriesSnapshot<TData> : ITableEntriesSnapshot
+    internal abstract class AbstractTableEntriesSnapshot<TItem> : ITableEntriesSnapshot
+        where TItem : TableItem
     {
         // TODO : remove these once we move to new drop which contains API change from editor team
         protected const string ProjectNames = StandardTableKeyNames.ProjectName + "s";
         protected const string ProjectGuids = StandardTableKeyNames.ProjectGuid + "s";
 
         private readonly int _version;
-        private readonly ImmutableArray<TableItem<TData>> _items;
+        private readonly ImmutableArray<TItem> _items;
         private ImmutableArray<ITrackingPoint> _trackingPoints;
 
-        protected AbstractTableEntriesSnapshot(int version, ImmutableArray<TableItem<TData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
+        protected AbstractTableEntriesSnapshot(int version, ImmutableArray<TItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
         {
             _version = version;
             _items = items;
@@ -36,7 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public abstract bool TryNavigateTo(int index, bool previewTab);
         public abstract bool TryGetValue(int index, string columnName, out object content);
-        protected abstract bool IsEquivalent(TData item1, TData item2);
 
         public int VersionNumber
         {
@@ -56,51 +54,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public int IndexOf(int index, ITableEntriesSnapshot newerSnapshot)
         {
-            var data = GetItem(index);
-            if (data == null)
-            {
-                return -1;
-            }
-
-            var item = data.Primary;
+            var item = GetItem(index);
             if (item == null)
             {
                 return -1;
             }
 
-            var ourSnapshot = newerSnapshot as AbstractTableEntriesSnapshot<TData>;
-            if (ourSnapshot == null || ourSnapshot.Count == 0)
+            if (!(newerSnapshot is AbstractTableEntriesSnapshot<TItem> ourSnapshot) || ourSnapshot.Count == 0)
             {
                 // not ours, we don't know how to track index
                 return -1;
             }
 
             // quick path - this will deal with a case where we update data without any actual change
-            if (this.Count == ourSnapshot.Count)
+            if (Count == ourSnapshot.Count)
             {
-                var newData = ourSnapshot.GetItem(index);
-                if (newData != null)
+                var newItem = ourSnapshot.GetItem(index);
+                if (newItem != null && newItem.Equals(item))
                 {
-                    var newItem = newData.Primary;
-                    if (newItem != null && newItem.Equals(item))
-                    {
-                        return index;
-                    }
+                    return index;
                 }
             }
 
             // slow path.
-            var bestMatch = Tuple.Create(-1, int.MaxValue);
             for (var i = 0; i < ourSnapshot.Count; i++)
             {
-                var newData = ourSnapshot.GetItem(i);
-                if (newData != null)
+                var newItem = ourSnapshot.GetItem(i);
+                if (item.EqualsIgnoringLocation(newItem))
                 {
-                    var newItem = newData.Primary;
-                    if (IsEquivalent(item, newItem))
-                    {
-                        return i;
-                    }
+                    return i;
                 }
             }
 
@@ -119,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StopTracking();
         }
 
-        internal TableItem<TData> GetItem(int index)
+        internal TItem GetItem(int index)
         {
             if (index < 0 || _items.Length <= index)
             {
@@ -129,16 +111,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return _items[index];
         }
 
-        protected LinePosition GetTrackingLineColumn(Workspace workspace, DocumentId documentId, int index)
+        protected LinePosition GetTrackingLineColumn(Document document, int index)
         {
-            if (documentId == null || _trackingPoints.IsDefaultOrEmpty)
-            {
-                return LinePosition.Zero;
-            }
-
-            var solution = workspace.CurrentSolution;
-            var document = solution.GetDocument(documentId);
-            if (document == null || !document.IsOpen())
+            if (_trackingPoints.IsDefaultOrEmpty)
             {
                 return LinePosition.Zero;
             }
@@ -165,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return GetLinePosition(currentSnapshot, trackingPoint);
         }
 
-        private LinePosition GetLinePosition(ITextSnapshot snapshot, ITrackingPoint trackingPoint)
+        private static LinePosition GetLinePosition(ITextSnapshot snapshot, ITrackingPoint trackingPoint)
         {
             var point = trackingPoint.GetPoint(snapshot);
             var line = point.GetContainingLine();
@@ -173,15 +148,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new LinePosition(line.LineNumber, point.Position - line.Start);
         }
 
-        protected bool TryNavigateTo(Workspace workspace, DocumentId documentId, int line, int column, bool previewTab)
+        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab)
         {
-            var document = workspace.CurrentSolution.GetDocument(documentId);
-            if (document == null)
-            {
-                // document could be already removed from the solution
-                return false;
-            }
-
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
             {
@@ -189,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab);
-            if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, line, column, options))
+            if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options))
             {
                 return true;
             }
@@ -197,12 +165,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return false;
         }
 
-        protected string GetFileName(string original, string mapped)
+        protected bool TryNavigateToItem(int index, bool previewTab)
+        {
+            var item = GetItem(index);
+            var documentId = item?.DocumentId;
+            if (documentId == null)
+            {
+                return false;
+            }
+
+            var workspace = item.Workspace;
+            var solution = workspace.CurrentSolution;
+            var document = solution.GetDocument(documentId);
+            if (document == null)
+            {
+                return false;
+            }
+
+            LinePosition position;
+            LinePosition trackingLinePosition;
+
+            if (workspace.IsDocumentOpen(documentId) &&
+                (trackingLinePosition = GetTrackingLineColumn(document, index)) != LinePosition.Zero)
+            {
+                position = trackingLinePosition;
+            }
+            else
+            {
+                position = item.GetOriginalPosition();
+            }
+
+            return TryNavigateTo(workspace, documentId, position, previewTab);
+        }
+
+        protected static string GetFileName(string original, string mapped)
         {
             return mapped == null ? original : original == null ? mapped : Combine(original, mapped);
         }
 
-        private string Combine(string path1, string path2)
+        private static string Combine(string path1, string path2)
         {
             if (TryCombine(path1, path2, out var result))
             {

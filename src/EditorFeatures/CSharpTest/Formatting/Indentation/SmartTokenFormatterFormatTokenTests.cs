@@ -575,7 +575,7 @@ class Program
             int indentationLine,
             int expectedSpace,
             int? baseIndentation = null,
-            TextSpan span = default(TextSpan))
+            TextSpan span = default)
         {
             var actualIndentation = await GetSmartTokenFormatterIndentationAsync(code, indentationLine, '{', baseIndentation, span);
             Assert.Equal(expectedSpace, actualIndentation);
@@ -587,13 +587,11 @@ class Program
             int indentationLine)
         {
             // create tree service
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var buffer = workspace.Documents.First().GetTextBuffer();
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var buffer = workspace.Documents.First().GetTextBuffer();
 
-                var actual = await TokenFormatAsync(workspace, buffer, indentationLine, '{');
-                Assert.Equal(expected, actual);
-            }
+            var actual = await TokenFormatAsync(workspace, buffer, indentationLine, '{');
+            Assert.Equal(expected, actual);
         }
 
         private Task AssertSmartTokenFormatterCloseBraceWithBaseIndentation(string markup, int baseIndentation, int expectedIndentation)
@@ -614,7 +612,7 @@ class Program
             int indentationLine,
             int expectedSpace,
             int? baseIndentation = null,
-            TextSpan span = default(TextSpan))
+            TextSpan span = default)
         {
             var actualIndentation = await GetSmartTokenFormatterIndentationAsync(code, indentationLine, '}', baseIndentation, span);
             Assert.Equal(expectedSpace, actualIndentation);

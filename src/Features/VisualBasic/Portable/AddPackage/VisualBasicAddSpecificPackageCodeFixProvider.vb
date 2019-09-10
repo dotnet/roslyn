@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddPackage
 
         Private Const BC37267 As String = NameOf(BC37267) ' Predefined type 'ValueTuple(Of ,)' is not defined or imported.
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC37267)

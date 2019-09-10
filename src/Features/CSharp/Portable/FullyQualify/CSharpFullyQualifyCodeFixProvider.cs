@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
         /// </summary>
         private const string CS0308 = nameof(CS0308);
 
+        [ImportingConstructor]
+        public CSharpFullyQualifyCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308, IDEDiagnosticIds.UnboundIdentifierId); }
@@ -51,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 
         protected override bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node)
         {
-            var simpleName = node as SimpleNameSyntax;
-            if (simpleName == null)
+            if (!(node is SimpleNameSyntax simpleName))
             {
                 return false;
             }

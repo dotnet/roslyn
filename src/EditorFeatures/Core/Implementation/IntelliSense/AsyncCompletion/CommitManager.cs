@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -148,12 +146,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 AsyncCompletionLogger.LogCommitWithTypeImportCompletionEnabled();
 
-                if (roslynItem.ProviderName == "TypeImportCompletionProvider")
+                if (roslynItem.IsCached)
                 {
-                    AsyncCompletionLogger.LogCommitTypeImportCompletionItem();
+                    AsyncCompletionLogger.LogCommitOfTypeImportCompletionItem();
                 }
             }
-            
+
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
             {
                 // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
@@ -166,13 +164,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
-            char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
+            var commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
                 triggerDocument, completionService, session.TextView, subjectBuffer,
                 roslynItem, completionListSpan, commitChar, triggerSnapshot, serviceRules,
                 filterText, cancellationToken);
 
-            _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
+            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
             return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
         }
 
@@ -341,6 +339,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 case EnterKeyRule.Always:
                     return true;
                 case EnterKeyRule.AfterFullyTypedWord:
+                    // textTypedSoFar is concatenated from individual chars typed.
+                    // '\n' is the enter char.
+                    // That is why, there is no need to check for '\r\n'.
+                    if (textTypedSoFar.LastOrDefault() == '\n')
+                    {
+                        textTypedSoFar = textTypedSoFar.Substring(0, textTypedSoFar.Length - 1);
+                    }
+
                     return item.GetEntireDisplayText() == textTypedSoFar;
             }
         }

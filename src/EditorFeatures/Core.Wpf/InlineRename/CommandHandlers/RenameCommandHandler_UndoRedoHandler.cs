@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (_renameService.ActiveSession != null)
             {
-                for (int i = 0; i < args.Count && _renameService.ActiveSession != null; i++)
+                for (var i = 0; i < args.Count && _renameService.ActiveSession != null; i++)
                 {
                     _renameService.ActiveSession.UndoManager.Undo(args.SubjectBuffer);
                 }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (_renameService.ActiveSession != null)
             {
-                for (int i = 0; i < args.Count && _renameService.ActiveSession != null; i++)
+                for (var i = 0; i < args.Count && _renameService.ActiveSession != null; i++)
                 {
                     _renameService.ActiveSession.UndoManager.Redo(args.SubjectBuffer);
                 }

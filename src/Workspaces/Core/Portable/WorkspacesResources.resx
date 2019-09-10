@@ -357,6 +357,9 @@
   <data name="Adding_additional_documents_is_not_supported" xml:space="preserve">
     <value>Adding additional documents is not supported.</value>
   </data>
+  <data name="Adding_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Adding analyzer config documents is not supported.</value>
+  </data>
   <data name="Adding_analyzer_references_is_not_supported" xml:space="preserve">
     <value>Adding analyzer references is not supported.</value>
   </data>
@@ -372,6 +375,9 @@
   <data name="Changing_additional_documents_is_not_supported" xml:space="preserve">
     <value>Changing additional documents is not supported.</value>
   </data>
+  <data name="Changing_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Changing analyzer config documents is not supported.</value>
+  </data>
   <data name="Changing_documents_is_not_supported" xml:space="preserve">
     <value>Changing documents is not supported.</value>
   </data>
@@ -380,6 +386,9 @@
   </data>
   <data name="Removing_additional_documents_is_not_supported" xml:space="preserve">
     <value>Removing additional documents is not supported.</value>
+  </data>
+  <data name="Removing_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Removing analyzer config documents is not supported.</value>
   </data>
   <data name="Removing_analyzer_references_is_not_supported" xml:space="preserve">
     <value>Removing analyzer references is not supported.</value>

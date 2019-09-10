@@ -17,6 +17,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private static readonly ImmutableArray<string> s_metadataReferenceSearchPaths = ImmutableArray.Create(RuntimeEnvironment.GetRuntimeDirectory());
 
+        [ImportingConstructor]
+        public MiscellaneousFilesScriptEnvironmentService()
+        {
+        }
+
         public ImmutableArray<string> MetadataReferenceSearchPaths => s_metadataReferenceSearchPaths;
         public ImmutableArray<string> SourceReferenceSearchPaths => ImmutableArray<string>.Empty;
         public string BaseDirectory => null;

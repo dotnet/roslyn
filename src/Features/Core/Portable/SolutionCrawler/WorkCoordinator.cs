@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public WorkCoordinator(
                  IAsynchronousOperationListener listener,
                  IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
+                 bool initializeLazily,
                  Registration registration)
             {
                 _logAggregator = new LogAggregator();
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var entireProjectWorkerBackOffTimeSpanInMS = _optionService.GetOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS);
 
                 _documentAndProjectWorkerProcessor = new IncrementalAnalyzerProcessor(
-                    listener, analyzerProviders, _registration,
+                    listener, analyzerProviders, initializeLazily, _registration,
                     activeFileBackOffTimeSpanInMS, allFilesWorkerBackOffTimeSpanInMS, entireProjectWorkerBackOffTimeSpanInMS, _shutdownToken);
 
                 var semanticBackOffTimeSpanInMS = _optionService.GetOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS);
@@ -621,8 +622,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public ReanalyzeScope(IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)
             {
-                projectIds = projectIds ?? SpecializedCollections.EmptyEnumerable<ProjectId>();
-                documentIds = documentIds ?? SpecializedCollections.EmptyEnumerable<DocumentId>();
+                projectIds ??= SpecializedCollections.EmptyEnumerable<ProjectId>();
+                documentIds ??= SpecializedCollections.EmptyEnumerable<DocumentId>();
 
                 _solutionId = null;
                 _projectOrDocumentIds = new HashSet<object>(projectIds);
@@ -649,39 +650,37 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return string.Empty;
                 }
 
-                using (var pool = SharedPools.Default<HashSet<string>>().GetPooledObject())
+                using var pool = SharedPools.Default<HashSet<string>>().GetPooledObject();
+                if (_solutionId != null)
                 {
-                    if (_solutionId != null)
-                    {
-                        pool.Object.UnionWith(solution.State.ProjectStates.Select(kv => kv.Value.Language));
-                        return string.Join(",", pool.Object);
-                    }
-
-                    foreach (var projectOrDocumentId in _projectOrDocumentIds)
-                    {
-                        switch (projectOrDocumentId)
-                        {
-                            case ProjectId projectId:
-                                var project = solution.GetProject(projectId);
-                                if (project != null)
-                                {
-                                    pool.Object.Add(project.Language);
-                                }
-                                break;
-                            case DocumentId documentId:
-                                var document = solution.GetDocument(documentId);
-                                if (document != null)
-                                {
-                                    pool.Object.Add(document.Project.Language);
-                                }
-                                break;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
-                        }
-                    }
-
+                    pool.Object.UnionWith(solution.State.ProjectStates.Select(kv => kv.Value.Language));
                     return string.Join(",", pool.Object);
                 }
+
+                foreach (var projectOrDocumentId in _projectOrDocumentIds)
+                {
+                    switch (projectOrDocumentId)
+                    {
+                        case ProjectId projectId:
+                            var project = solution.GetProject(projectId);
+                            if (project != null)
+                            {
+                                pool.Object.Add(project.Language);
+                            }
+                            break;
+                        case DocumentId documentId:
+                            var document = solution.GetDocument(documentId);
+                            if (document != null)
+                            {
+                                pool.Object.Add(document.Project.Language);
+                            }
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
+                    }
+                }
+
+                return string.Join(",", pool.Object);
             }
 
             public int GetDocumentCount(Solution solution)

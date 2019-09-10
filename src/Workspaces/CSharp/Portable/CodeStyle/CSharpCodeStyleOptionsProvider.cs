@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     [ExportOptionProvider, Shared]
     internal class CSharpCodeStyleOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public CSharpCodeStyleOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = CSharpCodeStyleOptions.AllOptions;
     }
 }

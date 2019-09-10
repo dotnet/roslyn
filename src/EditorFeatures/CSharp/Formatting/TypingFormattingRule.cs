@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
-            if (TryAddSuppressionOnMissingCloseBraceCase(list, node, optionSet))
+            if (TryAddSuppressionOnMissingCloseBraceCase(list, node))
             {
                 return;
             }
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             base.AddSuppressOperations(list, node, optionSet, in nextOperation);
         }
 
-        private bool TryAddSuppressionOnMissingCloseBraceCase(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet)
+        private bool TryAddSuppressionOnMissingCloseBraceCase(List<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
             if (!bracePair.IsValidBracePair())

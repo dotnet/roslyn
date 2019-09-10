@@ -119,6 +119,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             hasPragmaSuppression = false;
 
+            Debug.Assert(location?.SourceTree is null || location.SourceTree is CSharpSyntaxTree);
+            var tree = location?.SourceTree as CSharpSyntaxTree;
+            var position = location.SourceSpan.Start;
+
+            bool isNullableFlowAnalysisWarning = ErrorFacts.NullableWarnings.Contains(id);
+            if (isNullableFlowAnalysisWarning)
+            {
+                var nullableWarningsGloballyEnabled = nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings;
+                var nullableWarningsEnabled = tree?.GetNullableContextState(position).WarningsState ?? nullableWarningsGloballyEnabled;
+                if (!nullableWarningsEnabled)
+                {
+                    return ReportDiagnostic.Suppress;
+                }
+            }
+
             // 1. Warning level
             if (diagnosticWarningLevel > warningLevelOption)  // honor the warning level
             {
@@ -126,7 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ReportDiagnostic report;
-            SyntaxTree tree = location?.SourceTree;
             bool isSpecified = false;
 
             if (tree != null && tree.DiagnosticOptions.TryGetValue(id, out var treeReport))
@@ -146,23 +160,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
             }
 
-            bool isNullableFlowAnalysisSafetyWarning = ErrorFacts.NullableFlowAnalysisSafetyWarnings.Contains(id);
-            bool isNullableFlowAnalysisNonSafetyWarning = ErrorFacts.NullableFlowAnalysisNonSafetyWarnings.Contains(id);
-            Debug.Assert(!isNullableFlowAnalysisSafetyWarning || !isNullableFlowAnalysisNonSafetyWarning);
-
-            if (report == ReportDiagnostic.Suppress && // check options (/nowarn)
-                !isNullableFlowAnalysisSafetyWarning && !isNullableFlowAnalysisNonSafetyWarning)
+            if (report == ReportDiagnostic.Suppress)
             {
                 return ReportDiagnostic.Suppress;
             }
 
             // If location.SourceTree is available, check out pragmas
-            var pragmaWarningState = tree?.GetPragmaDirectiveWarningState(id, location.SourceSpan.Start) ?? Syntax.PragmaWarningState.Default;
+            var pragmaWarningState = tree?.GetPragmaDirectiveWarningState(id, position) ?? Syntax.PragmaWarningState.Default;
             if (pragmaWarningState == Syntax.PragmaWarningState.Disabled)
             {
                 hasPragmaSuppression = true;
             }
 
+            // NOTE: this may be removed as part of https://github.com/dotnet/roslyn/issues/36550
             if (pragmaWarningState == Syntax.PragmaWarningState.Enabled)
             {
                 switch (report)
@@ -193,34 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (report == ReportDiagnostic.Suppress) // check options (/nowarn)
             {
                 return ReportDiagnostic.Suppress;
-            }
-
-            // Nullable flow analysis warnings cannot be turned on by specific diagnostic options.
-            // They can be turned on by nullable options and specific diagnostic options
-            // can either turn them off, or adjust the way they are reported.
-            switch (nullableOption)
-            {
-                case NullableContextOptions.Disable:
-                    if (isNullableFlowAnalysisSafetyWarning || isNullableFlowAnalysisNonSafetyWarning)
-                    {
-                        return ReportDiagnostic.Suppress;
-                    }
-                    break;
-
-                case NullableContextOptions.SafeOnly:
-                case NullableContextOptions.SafeOnlyWarnings:
-                    if (isNullableFlowAnalysisNonSafetyWarning)
-                    {
-                        return ReportDiagnostic.Suppress;
-                    }
-                    break;
-
-                case NullableContextOptions.Enable:
-                case NullableContextOptions.Warnings:
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(nullableOption);
             }
 
             // 4. Global options

@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
     Friend NotInheritable Class VisualBasicIntroduceUsingStatementCodeRefactoringProvider
         Inherits AbstractIntroduceUsingStatementCodeRefactoringProvider(Of StatementSyntax, LocalDeclarationStatementSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property CodeActionTitle As String = VBFeaturesResources.Introduce_Using_statement
 
         Protected Overrides Function CanRefactorToContainBlockStatements(parent As SyntaxNode) As Boolean

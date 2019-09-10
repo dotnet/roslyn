@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private Dictionary<string, bool> _experimentsOptionValues = new Dictionary<string, bool>();
 
+        [ImportingConstructor]
+        public TestExperimentationService()
+        {
+        }
+
         public void SetExperimentOption(string experimentName, bool enabled)
         {
             _experimentsOptionValues[experimentName] = enabled;

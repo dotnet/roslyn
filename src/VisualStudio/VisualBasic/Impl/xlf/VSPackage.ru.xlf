@@ -8,18 +8,18 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Редактор кодовых страниц Microsoft Visual Basic</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="needs-review-translation">Редактор кодовых страниц Microsoft Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Редактор Microsoft Visual Basic</target>
+        <source>Visual Basic Editor</source>
+        <target state="needs-review-translation">Редактор Microsoft Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
         <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">Автоматическая вставка завершающих конструкций;Изменение параметров форматирования кода;Изменение режима отображения структуры;Автоматическая вставка членов Interface и MustOverride;Отображение и скрытие разделительных линий процедур;Включение и отключение предложений по исправлению ошибок;Включение и отключение выделения ссылок и ключевых слов;Регулярные выражения;Выделять регулярные выражения цветом;Выделять цветом соответствующие компоненты под курсором;Сообщать о недопустимых регулярных выражениях</target>
+        <target state="translated">Автоматическая вставка конечных конструкций;Изменение параметров автоматического форматирования;Изменение режима структуры;Автоматическая вставка интерфейса и членов MustOverride;Отображение или скрытие разделителей строк для процедуры;Включение или выключение предложения об исправлении ошибок;Включение или выключение выделения ссылок и ключевых слов;Регулярные выражения;Выделение регулярных выражений цветом;Выделение связанных компонентов под курсором;Выделение недопустимых регулярных выражений;регулярное выражение;регулярное выражение;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="An_empty_Visual_Basic_script_file">
         <source>An empty Visual Basic script file.</source>
-        <target state="new">An empty Visual Basic script file.</target>
+        <target state="translated">Пустой файл сценария Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Script">
         <source>Visual Basic Script</source>
-        <target state="new">Visual Basic Script</target>
+        <target state="translated">Сценарий Visual Basic</target>
         <note />
       </trans-unit>
     </body>

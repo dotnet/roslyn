@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override bool TryGetRoot(out CSharpSyntaxNode root)
                 {
-                    bool status = _recoverableRoot.TryGetValue(out var node);
+                    var status = _recoverableRoot.TryGetValue(out var node);
                     root = node;
                     CacheRootNode(node);
                     return status;

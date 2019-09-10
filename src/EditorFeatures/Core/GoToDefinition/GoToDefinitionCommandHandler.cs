@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     internal class GoToDefinitionCommandHandler :
         VSCommanding.ICommandHandler<GoToDefinitionCommandArgs>
     {
+        [ImportingConstructor]
+        public GoToDefinitionCommandHandler()
+        {
+        }
+
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
         private (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
@@ -30,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public VSCommanding.CommandState GetCommandState(GoToDefinitionCommandArgs args)
         {
-            var (document, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
             return service != null
                 ? VSCommanding.CommandState.Available
                 : VSCommanding.CommandState.Unavailable;

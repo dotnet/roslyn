@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Displays a symbol in the VisualBasic style.
     ''' </summary>
-    ''' <seealso cref="T:Microsoft.CodeAnalysis.CSharp.Symbols.SymbolDisplay"/>
+    ''' <seealso cref="T:Microsoft.CodeAnalysis.CSharp.SymbolDisplay"/>
 #Enable Warning CA1200 ' Avoid using cref tags with a prefix
     Public Module SymbolDisplay
         ''' <summary>

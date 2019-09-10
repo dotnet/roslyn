@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Synchronize data to OOP proactively without anyone asking for it to make most of operation
         /// faster
         /// </summary>
-        Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken);
+        Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, int workspaceVersion, CancellationToken cancellationToken);
         Task SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken);
         Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken);
     }

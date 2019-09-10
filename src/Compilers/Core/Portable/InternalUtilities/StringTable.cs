@@ -583,8 +583,7 @@ foundIdx:
 
         internal static string AddSharedUTF8(ReadOnlySpan<byte> bytes)
         {
-            bool isAscii;
-            int hashCode = Hash.GetFNVHashCode(bytes, out isAscii);
+            int hashCode = Hash.GetFNVHashCode(bytes, out bool isAscii);
 
             if (isAscii)
             {

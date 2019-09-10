@@ -97,6 +97,11 @@
         <target state="translated">Rimuovi Import non necessari</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">Or&amp;dina import</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">Digitare qui un nome per dichiarare un nuovo campo.</target>
@@ -346,7 +351,7 @@
         <source>Creates a delegate procedure instance that references the specified procedure.
 AddressOf &lt;procedureName&gt;</source>
         <target state="translated">Crea un'istanza di routine delegata che fa riferimento alla routine specificata.
-AddressOf &lt;nomeRoutine&gt;</target>
+AddressOf &lt;procedureName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Indicates_that_an_external_procedure_has_another_name_in_its_DLL">
@@ -897,7 +902,7 @@ Iterator Function(&lt;elencoParametri&gt;) As IEnumerable(Of &lt;T&gt;)</target>
         <source>Determines the run-time type of an object reference variable and compares it to a data type. Returns True or False depending, on whether the two types are compatible.
 &lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</source>
         <target state="translated">Determina il tipo in fase di esecuzione di una variabile di riferimento a un oggetto e lo confronta con un tipo di dati. Restituisce True o False a seconda che i due tipi siano o meno compatibili.
-&lt;risultato&gt; = TypeOf &lt;espressioneOggetto&gt; Is &lt;nomeTipo&gt;</target>
+&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_Specifies_that_Visual_Basic_should_marshal_all_strings_to_Unicode_values_in_a_call_into_an_external_procedure_and_should_look_up_the_procedure_without_modifying_its_name">
@@ -984,7 +989,7 @@ Case {&lt;expression&gt;|&lt;expression1&gt; To &lt;expression2&gt;|[Is] &lt;com
       <trans-unit id="Sets_the_default_comparison_method_to_use_when_comparing_string_data_When_set_to_Text_uses_a_text_sort_order_that_is_not_case_sensitive_When_set_to_Binary_uses_a_strict_binary_sort_order_Option_Compare_Binary_Text">
         <source>Sets the default comparison method to use when comparing string data. When set to Text, uses a text sort order that is not case sensitive. When set to Binary, uses a strict binary sort order.
 Option Compare {Binary | Text}</source>
-        <target state="translated">Imposta il metodo di confronto predefinito da usare per il confronto di dati stringa. Se impostata su Text, usa un ordinamento testo che non rileva la distinzione tra maiuscole e minuscole. Se impostata su Binary, usa un ordinamento binario ridotto.
+        <target state="translated">Imposta il metodo di confronto predefinito da usare per il confronto di dati stringa. Se impostata su Text, usa un ordinamento testo che rileva la distinzione tra maiuscole e minuscole. Se impostata su Binary, usa un ordinamento binario ridotto.
 Option Compare {Binary | Text}</target>
         <note />
       </trans-unit>
@@ -1360,7 +1365,7 @@ Option Strict {On | Off}</target>
         <source>Ensures that multiple threads do not execute the statement block at the same time.
 SyncLock &lt;object&gt;...End Synclock</source>
         <target state="translated">Impedisce l'esecuzione simultanea del blocco di istruzioni da parte di più thread.
-SyncLock &lt;oggetto&gt;...End Synclock</target>
+SyncLock &lt;object&gt;...End Synclock</target>
         <note />
       </trans-unit>
       <trans-unit id="Includes_elements_up_to_a_specified_position_in_the_collection">
@@ -1433,7 +1438,7 @@ New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</targ
         <source>Runs a series of statements that refer to a single object or structure.
 With &lt;object&gt;...End With</source>
         <target state="translated">Esegue una serie di istruzioni che fanno riferimento a un singolo oggetto o struttura.
-With &lt;oggetto&gt;...End With</target>
+With &lt;object&gt;...End With</target>
         <note />
       </trans-unit>
       <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">
@@ -1689,7 +1694,7 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">condizione di join</target>
+        <target state="translated">condizione di Join</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">
@@ -1704,7 +1709,7 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       </trans-unit>
       <trans-unit id="as_clause">
         <source>as clause</source>
-        <target state="translated">clausola AS</target>
+        <target state="translated">clausola as</target>
         <note>{Locked="as"} "as" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="type_parameters">
@@ -1739,7 +1744,7 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
         <source>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</source>
-        <target state="translated">Aggiunge un riferimento ai metadati all'assembly specificato e a tutte le relative dipendenze, ad esempio #r "LibPersonale.dll".</target>
+        <target state="translated">Aggiunge un riferimento ai metadati all'assembly specificato e a tutte le relative dipendenze, ad esempio #r "myLib.dll".</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties">

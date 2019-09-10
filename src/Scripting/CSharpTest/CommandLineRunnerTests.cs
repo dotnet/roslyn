@@ -168,8 +168,7 @@ $@"{ logoOutput }
 >", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")]
-        // https://github.com/dotnet/roslyn/issues/33564: Was [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30924")]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30924")]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture2()
@@ -248,6 +247,7 @@ div(10, 0)
 ");
             Assert.Equal(0, runner.RunInteractive());
 
+            var exception = new DivideByZeroException();
             Assert.Equal(
 $@"{LogoAndHelpPrompt}
 > int div(int a, int b) => a/b;
@@ -255,13 +255,13 @@ $@"{LogoAndHelpPrompt}
 5
 > div(10, 0)
 «Red»
-{new System.DivideByZeroException().Message}
+{exception.GetType()}: {exception.Message}
   + Submission#0.div(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
 
             Assert.Equal(
-$@"{new System.DivideByZeroException().Message}
+$@"{exception.GetType()}: {exception.Message}
   + Submission#0.div(int, int)
 ", runner.Console.Error.ToString());
         }
@@ -276,6 +276,7 @@ C<string>.div<bool>(10, 0)
 ");
             Assert.Equal(0, runner.RunInteractive());
 
+            var exception = new DivideByZeroException();
             Assert.Equal(
 $@"{LogoAndHelpPrompt}
 > static class C<T> {{ public static int div<U>(int a, int b) => a/b; }}
@@ -283,13 +284,13 @@ $@"{LogoAndHelpPrompt}
 5
 > C<string>.div<bool>(10, 0)
 «Red»
-{new System.DivideByZeroException().Message}
+{exception.GetType()}: {exception.Message}
   + Submission#0.C<T>.div<U>(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
 
             Assert.Equal(
-$@"{new System.DivideByZeroException().Message}
+$@"{exception.GetType()}: {exception.Message}
   + Submission#0.C<T>.div<U>(int, int)
 ", runner.Console.Error.ToString());
         }
@@ -889,7 +890,7 @@ $@"{LogoAndHelpPrompt}
 «Yellow»
 (1,58): warning CS0162: { CSharpResources.WRN_UnreachableCode }
 «Red»
-Bang!
+System.Exception: Bang!
 «Gray»
 > i + j + k
 120
@@ -897,7 +898,7 @@ Bang!
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"(1,58): warning CS0162: { CSharpResources.WRN_UnreachableCode }
-Bang!",
+System.Exception: Bang!",
                 runner.Console.Error.ToString());
         }
 

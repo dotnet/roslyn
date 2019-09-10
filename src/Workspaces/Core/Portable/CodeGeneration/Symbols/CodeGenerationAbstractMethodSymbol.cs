@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract IMethodSymbol PartialDefinitionPart { get; }
         public abstract IMethodSymbol PartialImplementationPart { get; }
 
-        public NullableAnnotation ReceiverNullableAnnotation => throw new NotImplementedException();
-        public NullableAnnotation ReturnNullableAnnotation => throw new NotImplementedException();
-        public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => throw new NotImplementedException();
+        public NullableAnnotation ReceiverNullableAnnotation => ReceiverType.GetNullability();
+        public NullableAnnotation ReturnNullableAnnotation => ReturnType.GetNullability();
+        public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => TypeArguments.SelectAsArray(a => a.GetNullability());
 
         public virtual ITypeSymbol ReceiverType
         {
@@ -118,7 +118,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public INamedTypeSymbol AssociatedAnonymousDelegate => null;
 
+        public bool IsConditional => false;
+
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
+        {
+            return new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());
+        }
+
+        public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
         {
             return new CodeGenerationConstructedMethodSymbol(this, typeArguments);
         }

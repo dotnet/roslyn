@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
     [ExportWorkspaceServiceFactory(typeof(IScriptEnvironmentService), WorkspaceKind.Interactive), Shared]
     internal sealed class InteractiveScriptEnvironmentServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public InteractiveScriptEnvironmentServiceFactory()
+        {
+        }
+
         private sealed class Service : IScriptEnvironmentService
         {
             private readonly InteractiveWorkspace _workspace;

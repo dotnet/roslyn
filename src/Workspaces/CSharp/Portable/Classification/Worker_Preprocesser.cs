@@ -300,6 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.NullableKeyword, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.SettingToken, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.TargetToken, ClassificationTypeNames.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node);
         }
     }

@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
     Partial Friend Class SimplifyTypeNamesCodeFixProvider
         Inherits AbstractSimplifyTypeNamesCodeFixProvider(Of SyntaxKind)
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer())
         End Sub

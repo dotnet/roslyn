@@ -2544,6 +2544,80 @@ public class C
             VerifyTypingSemicolon(code, expected);
         }
 
+        [WorkItem(35260, "https://github.com/dotnet/roslyn/issues/35260")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DoWhile5()
+        {
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while ($$n < Min(4,5))
+    }
+}";
+
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < Min(4,5));$$
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(35260, "https://github.com/dotnet/roslyn/issues/35260")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DoWhile6()
+        {
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < Min(4,5)$$)
+    }
+}";
+
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < Min(4,5));$$
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DoWhile_MissingParen()
         {
@@ -3644,6 +3718,45 @@ class D
             VerifyTypingSemicolon(code, expected);
         }
 
+        [WorkItem(35260, "https://github.com/dotnet/roslyn/issues/35260")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void IncompleteLambda()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    public void Test()
+    {
+        C c = new C();
+        c.M(z =>
+        {
+        return 0$$)
+        }
+
+    private void M(Func<object, int> p) { }
+}
+";
+            var expected = @"
+using System;
+
+class C
+{
+    public void Test()
+    {
+        C c = new C();
+        c.M(z =>
+        {
+        return 0;$$)
+        }
+
+    private void M(Func<object, int> p) { }
+}
+";
+            VerifyTypingSemicolon(code, expected);
+        }
+
         internal override VSCommanding.ICommandHandler GetCommandHandler(TestWorkspace workspace)
         {
             return workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
@@ -3655,6 +3768,165 @@ class D
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM([|x[0]|], x[1])");
 
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34051, "https://github.com/dotnet/roslyn/issues/34051")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParameterList_DelegateDeclaration()
+        {
+            var code = @"
+class C
+{
+    delegate void Del(string str$$)
+}";
+            var expected = @"
+class C
+{
+    delegate void Del(string str);$$
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34051, "https://github.com/dotnet/roslyn/issues/34051")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParameterList_DelegateDeclaration2()
+        {
+            var code = @"
+class C
+{
+    public delegate TResult Blah<in T, out TResult$$>(T arg)
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34051, "https://github.com/dotnet/roslyn/issues/34051")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParameterList_DelegateDeclaration3()
+        {
+            var code = @"
+class C
+{
+    public delegate TResult Blah<in T, out TResult>(T arg$$)
+}";
+            var expected = @"
+class C
+{
+    public delegate TResult Blah<in T, out TResult>(T arg);$$
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34051, "https://github.com/dotnet/roslyn/issues/34051")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParameterList_MultilineDelegateDeclaration()
+        {
+            var code = @"
+class C
+{
+    delegate void Del(string str$$,
+        int i,
+        string str2)
+}";
+            var expected = @"
+class C
+{
+    delegate void Del(string str,
+        int i,
+        string str2);$$
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34051, "https://github.com/dotnet/roslyn/issues/34051")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParameterList_Constructor()
+        {
+            var code = @"
+class D
+{
+    public D($$)
+    {
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34051, "https://github.com/dotnet/roslyn/issues/34051")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParameterList_Destructor()
+        {
+            var code = @"
+class D
+{
+    public D()
+    {
+    }
+
+    ~D($$)
+    {
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34051, "https://github.com/dotnet/roslyn/issues/34051")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParameterList_MethodDeclaration()
+        {
+            var code = @"
+class D
+{
+   void M($$)
+    {
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("/$$* comments */")]
+        [InlineData("/*$$ comments */")]
+        [InlineData("/* comments $$*/")]
+        [InlineData("/* comments *$$/")]
+        [InlineData("3, /* comments$$ */")]
+        [InlineData("/$$/ comments ")]
+        [InlineData("//$$ comments ")]
+        [InlineData("// comments $$")]
+        public void InsideComments(string argument)
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(" + argument + ")");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("$$/* comments */")]
+        [InlineData("/* comments */$$")]
+        [InlineData("3$$, /* comments */")]
+        [InlineData("3, $$/* comments */")]
+        [InlineData("// comments \r\n$$")]
+        public void NearComments(string argument)
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(" + argument + ")");
+
+            var expected = CreateTestWithMethodCall(
+                @"var test = ClassC.MethodM(" + argument.Remove(argument.IndexOf("$$"), 2) + ");$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(923157, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/923157")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BrokenCode_ReturnIfCaretDoesNotMove()
+        {
+            var code = @"
+class D
+{
+  public Delegate Task<int> Handles(int num)$$
+}";
             VerifyNoSpecialSemicolonHandling(code);
         }
 

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private class IsPatternExpressionLocalRewriter : PatternLocalRewriter
+        private sealed class IsPatternExpressionLocalRewriter : PatternLocalRewriter
         {
             /// <summary>
             /// Accumulates side-effects that come before the next conjunct.
@@ -35,9 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public IsPatternExpressionLocalRewriter(SyntaxNode node, LocalRewriter localRewriter)
                 : base(node, localRewriter)
             {
-                this._conjunctBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-                this._sideEffectBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+                _conjunctBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+                _sideEffectBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             }
+
+            protected override bool IsSwitchStatement => false;
 
             public new void Free()
             {

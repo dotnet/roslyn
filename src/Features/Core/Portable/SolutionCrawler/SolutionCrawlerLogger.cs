@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
@@ -229,9 +228,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         continue;
                     }
 
-                    if (kv.Key is ValueTuple<string, Guid>)
+                    if (kv.Key is ValueTuple<string, Guid> tuple)
                     {
-                        var tuple = (ValueTuple<string, Guid>)kv.Key;
                         var list = statMap.GetOrAdd(tuple.Item1, _ => new List<int>());
                         list.Add(kv.Value.GetCount());
                         continue;

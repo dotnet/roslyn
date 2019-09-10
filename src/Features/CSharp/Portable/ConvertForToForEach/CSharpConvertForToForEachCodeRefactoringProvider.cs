@@ -4,8 +4,6 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertForToForEach;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
@@ -23,19 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             TypeSyntax,
             VariableDeclaratorSyntax>
     {
+        [ImportingConstructor]
+        public CSharpConvertForToForEachCodeRefactoringProvider()
+        {
+        }
+
         protected override string GetTitle()
             => CSharpFeaturesResources.Convert_to_foreach;
-
-        protected override bool IsValidCursorPosition(ForStatementSyntax forStatement, int cursorPos)
-        {
-            // If there isn't a selection, then we allow the refactoring from the start of
-            // 'for' to the start of the open paren, or in the trailing trivia of the c
-            // close paren.
-            var startSpan = TextSpan.FromBounds(forStatement.ForKeyword.SpanStart, forStatement.OpenParenToken.SpanStart);
-            var endSpan = TextSpan.FromBounds(forStatement.CloseParenToken.Span.End, forStatement.CloseParenToken.FullSpan.End);
-
-            return startSpan.IntersectsWith(cursorPos) || endSpan.IntersectsWith(cursorPos);
-        }
 
         protected override SyntaxList<StatementSyntax> GetBodyStatements(ForStatementSyntax forStatement)
             => forStatement.Statement is BlockSyntax block
@@ -75,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
                             memberAccess = (MemberAccessExpressionSyntax)binaryExpression.Right;
 
                             var incrementor = forStatement.Incrementors[0];
-                            return TryGetStepValue(
-                                iterationVariable, incrementor, out stepValueExpressionOpt, cancellationToken);
+                            return TryGetStepValue(iterationVariable, incrementor, out stepValueExpressionOpt);
                         }
                     }
                 }
@@ -90,8 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         }
 
         private static bool TryGetStepValue(
-            SyntaxToken iterationVariable, ExpressionSyntax incrementor,
-            out ExpressionSyntax stepValue, CancellationToken cancellationToken)
+            SyntaxToken iterationVariable, ExpressionSyntax incrementor, out ExpressionSyntax stepValue)
         {
             // support
             //  x++
@@ -131,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             SyntaxToken foreachIdentifier, ExpressionSyntax collectionExpression,
             ITypeSymbol iterationVariableType, OptionSet optionSet)
         {
-            typeNode = typeNode ?? iterationVariableType.GenerateTypeSyntax();
+            typeNode ??= iterationVariableType.GenerateTypeSyntax();
 
             return SyntaxFactory.ForEachStatement(
                 SyntaxFactory.Token(SyntaxKind.ForEachKeyword).WithTriviaFrom(forStatement.ForKeyword),

@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateVariable
         private const string CS0120 = nameof(CS0120); // error CS0120: An object reference is required for the non-static field, method, or property 'A'
         private const string CS0118 = nameof(CS0118); // error CS0118: 'C' is a type but is used like a variable
 
+        [ImportingConstructor]
+        public CSharpGenerateVariableCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(CS1061, CS0103, CS0117, CS0539, CS0246, CS0120, CS0118);
 

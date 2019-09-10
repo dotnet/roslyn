@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
     {
         private readonly static TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
+        private readonly CancellationTokenSource _shutdownCancellationSource;
 
         // it is saved here more on debugging purpose.
         private static Func<FunctionId, bool> s_logChecker = _ => false;
@@ -53,18 +55,20 @@ namespace Microsoft.CodeAnalysis.Remote
             SetNativeDllSearchDirectories();
         }
 
-        public RemoteHostService(Stream stream, IServiceProvider serviceProvider) :
-            base(serviceProvider, stream)
+        public RemoteHostService(Stream stream, IServiceProvider serviceProvider)
+            : base(serviceProvider, stream)
         {
+            _shutdownCancellationSource = new CancellationTokenSource();
+
             // this service provide a way for client to make sure remote host is alive
             StartService();
         }
 
         public string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken)
         {
-            return RunService(token =>
+            return RunService(() =>
             {
-                token.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 _primaryInstance = InstanceId;
 
@@ -95,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
         {
-            RunService(_ =>
+            RunService(() =>
             {
                 var persistentStorageService = GetPersistentStorageService();
                 persistentStorageService.UpdateStorageLocation(solutionId, storageLocation);
@@ -104,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void OnGlobalOperationStarted(string unused)
         {
-            RunService(_ =>
+            RunService(() =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
                 globalOperationNotificationService?.OnStarted();
@@ -113,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
         {
-            RunService(_ =>
+            RunService(() =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
                 globalOperationNotificationService?.OnStopped(operations, cancelled);
@@ -122,14 +126,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void SetLoggingFunctionIds(List<string> loggerTypes, List<string> functionIds, CancellationToken cancellationToken)
         {
-            RunService(token =>
+            RunService(() =>
             {
                 var functionIdType = typeof(FunctionId);
 
                 var set = new HashSet<FunctionId>();
                 foreach (var functionIdString in functionIds)
                 {
-                    token.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     try
                     {
@@ -186,20 +190,20 @@ namespace Microsoft.CodeAnalysis.Remote
             EnsureCulture(uiCultureLCID, cultureLCID);
 
             // set roslyn loggers
-            WatsonReporter.SetTelemetrySession(session);
+            RoslynServices.SetTelemetrySession(session);
 
             RoslynLogger.SetLogger(AggregateLogger.Create(new VSTelemetryLogger(session), RoslynLogger.GetLogger()));
 
             // set both handler as NFW
-            FatalError.Handler = WatsonReporter.Report;
-            FatalError.NonFatalHandler = WatsonReporter.Report;
+            FatalError.Handler = ex => WatsonReporter.Report(ex, WatsonSeverity.Critical);
+            FatalError.NonFatalHandler = ex => WatsonReporter.Report(ex);
 
             // start performance reporter
             var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
             if (diagnosticAnalyzerPerformanceTracker != null)
             {
                 var globalOperationNotificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>();
-                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, s_reportInterval, ShutdownCancellationToken);
+                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, s_reportInterval, _shutdownCancellationSource.Token);
             }
         }
 
@@ -282,25 +286,25 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
+        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, int workspaceVersion, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, token))
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
                     var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, token).ConfigureAwait(false);
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
 
         public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, token))
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, token).ConfigureAwait(false);
+                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
 
                     foreach (var asset in assets)
                     {
@@ -312,9 +316,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, Checksum.GetChecksumLogInfo, baseTextChecksum, token))
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, Checksum.GetChecksumLogInfo, baseTextChecksum, cancellationToken))
                 {
                     var service = SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>();
                     if (service == null)
@@ -331,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
 
                     var newText = new WrappedText(text.WithChanges(textChanges));
-                    var newChecksum = service.CreateChecksum(newText, token);
+                    var newChecksum = service.CreateChecksum(newText, cancellationToken);
 
                     // save new text in the cache so that when asked, the data is most likely already there
                     //
@@ -372,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return null;
                     }
 
-                    return await document.GetTextAsync(token).ConfigureAwait(false);
+                    return await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

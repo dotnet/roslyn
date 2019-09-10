@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 
         <ImportingConstructor>
-        Private Sub New(editorOptionsFactoryService As IEditorOptionsFactoryService,
+        Public Sub New(editorOptionsFactoryService As IEditorOptionsFactoryService,
                         <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService),
                         commitBufferManagerFactory As CommitBufferManagerFactory)
             Me._editorOptionsFactoryService = editorOptionsFactoryService

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
                 Assert.True(expectedRegions.Length == actualRegions.Length, $"Expected {expectedRegions.Length} regions but there were {actualRegions.Length}");
 
-                for (int i = 0; i < expectedRegions.Length; i++)
+                for (var i = 0; i < expectedRegions.Length; i++)
                 {
                     AssertRegion(expectedRegions[i], actualRegions[i]);
                 }

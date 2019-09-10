@@ -8,18 +8,18 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Microsoft Visual Basic コード ページ エディター</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="needs-review-translation">Microsoft Visual Basic コード ページ エディター</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Microsoft Visual Basic エディター</target>
+        <source>Visual Basic Editor</source>
+        <target state="needs-review-translation">Microsoft Visual Basic エディター</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
         <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">構造文の終端の自動挿入; 再フォーマット設定の変更; アウトライン モードの変更; Interface と MustOverride メンバーの自動挿入; プロシージャ行の区切り記号の表示/非表示; エラー修正候補のオン/オフの切り替え; 参照とキーワードの強調表示のオン/オフの切り替え; 正規表現; 正規表現の色付け; カーソルの下の関連コンポーネントを強調表示する; 無効な正規表現をレポートする</target>
+        <target state="translated">コンストラクトの終端の自動挿入;再フォーマット設定の変更;アウトライン モードの変更;Interface と MustOverride メンバーの自動挿入;プロシージャ行の区切り記号の表示/非表示;エラー修正候補のオン/オフの切り替え;参照とキーワードの強調表示のオン/オフの切り替え;Regex;正規表現の色付け;カーソルの下の関連コンポーネントのハイライト;無効な正規表現の報告;Regex;正規表現;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="An_empty_Visual_Basic_script_file">
         <source>An empty Visual Basic script file.</source>
-        <target state="new">An empty Visual Basic script file.</target>
+        <target state="translated">空の Visual Basic スクリプト ファイル。</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Script">
         <source>Visual Basic Script</source>
-        <target state="new">Visual Basic Script</target>
+        <target state="translated">Visual Basic スクリプト</target>
         <note />
       </trans-unit>
     </body>

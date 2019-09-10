@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class SwitchStatementHighlighter : AbstractKeywordHighlighter<SwitchStatementSyntax>
     {
+        [ImportingConstructor]
+        public SwitchStatementHighlighter()
+        {
+        }
+
         protected override IEnumerable<TextSpan> GetHighlights(
             SwitchStatementSyntax switchStatement, CancellationToken cancellationToken)
         {

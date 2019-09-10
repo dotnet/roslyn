@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
     [UserVisible(true)]
     internal class WrittenReferenceHighlightTagDefinition : MarkerFormatDefinition
     {
+        [ImportingConstructor]
         public WrittenReferenceHighlightTagDefinition()
         {
             // NOTE: This is the same color used by the editor for reference highlighting

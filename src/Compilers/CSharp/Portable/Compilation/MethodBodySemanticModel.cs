@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,14 +8,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class MethodBodySemanticModel : MemberSemanticModel
     {
+#nullable enable
+        /// <summary>
+        /// Initial state for a MethodBodySemanticModel. Shared between here and the <see cref="MethodCompiler"/>. Used to make a <see cref="MethodBodySemanticModel"/>
+        /// with the required syntax and optional precalculated starting state for the model.
+        /// </summary>
+        internal readonly struct InitialState
+        {
+            internal readonly CSharpSyntaxNode Syntax;
+            internal readonly BoundNode? Body;
+            internal readonly ExecutableCodeBinder? Binder;
+            internal readonly NullableWalker.SnapshotManager? SnapshotManager;
+
+            internal InitialState(CSharpSyntaxNode syntax, BoundNode? bodyOpt = null, ExecutableCodeBinder? binder = null, NullableWalker.SnapshotManager? snapshotManager = null)
+            {
+                Syntax = syntax;
+                Body = bodyOpt;
+                Binder = binder;
+                SnapshotManager = snapshotManager;
+            }
+        }
+#nullable restore
+
         private MethodBodySemanticModel(
             Symbol owner,
             Binder rootBinder,
             CSharpSyntaxNode syntax,
             SyntaxTreeSemanticModel containingSemanticModelOpt = null,
             SyntaxTreeSemanticModel parentSemanticModelOpt = null,
+            NullableWalker.SnapshotManager snapshotManagerOpt = null,
             int speculatedPosition = 0)
-            : base(syntax, owner, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, speculatedPosition)
+            : base(syntax, owner, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, snapshotManagerOpt, speculatedPosition)
         {
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
@@ -27,15 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a SemanticModel for the method.
         /// </summary>
-        internal static MethodBodySemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, MethodSymbol owner, ExecutableCodeBinder executableCodeBinder,
-                                                       CSharpSyntaxNode syntax, BoundNode boundNode = null)
+        internal static MethodBodySemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, MethodSymbol owner, InitialState initialState)
         {
             Debug.Assert(containingSemanticModel != null);
-            var result = new MethodBodySemanticModel(owner, executableCodeBinder, syntax, containingSemanticModel);
+            var result = new MethodBodySemanticModel(owner, initialState.Binder, initialState.Syntax, containingSemanticModel);
 
-            if (boundNode != null)
+            if (initialState.Body != null)
             {
-                result.UnguardedAddBoundTreeForStandaloneSyntax(syntax, boundNode);
+                result.UnguardedAddBoundTreeForStandaloneSyntax(initialState.Syntax, initialState.Body, initialState.SnapshotManager);
             }
 
             return result;
@@ -70,14 +91,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a speculative SemanticModel for a method body that did not appear in the original source code.
         /// </summary>
-        internal static MethodBodySemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, StatementSyntax syntax, Binder rootBinder, int position)
+        internal static MethodBodySemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, StatementSyntax syntax, Binder rootBinder, NullableWalker.SnapshotManager snapshotManagerOpt, int position)
         {
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(syntax != null);
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            return new MethodBodySemanticModel(owner, rootBinder, syntax, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
+            return new MethodBodySemanticModel(owner, rootBinder, syntax, parentSemanticModelOpt: parentSemanticModel, snapshotManagerOpt: snapshotManagerOpt, speculatedPosition: position);
         }
 
         /// <summary>
@@ -137,7 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var executablebinder = new ExecutableCodeBinder(body, methodSymbol, binder ?? this.RootBinder);
             var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(GetSemanticModelBinderFlags());
-            speculativeModel = CreateSpeculative(parentModel, methodSymbol, body, blockBinder, position);
+            // We don't pass the snapshot manager along here, because we're speculating about an entirely new body and it should not
+            // be influenced by any existing code in the body.
+            speculativeModel = CreateSpeculative(parentModel, methodSymbol, body, blockBinder, snapshotManagerOpt: null, position);
             return true;
         }
 
@@ -159,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             binder = new ExecutableCodeBinder(statement, methodSymbol, binder);
-            speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, position);
+            speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, GetSnapshotManager(), position);
             return true;
         }
 
@@ -205,9 +228,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        protected override BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics)
+        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager);
         }
     }
 }

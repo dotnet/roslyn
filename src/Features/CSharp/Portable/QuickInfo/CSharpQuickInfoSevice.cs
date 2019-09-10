@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     [ExportLanguageServiceFactory(typeof(QuickInfoService), LanguageNames.CSharp), Shared]
     internal class CSharpQuickInfoServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpQuickInfoServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new CSharpQuickInfoService(languageServices.WorkspaceServices.Workspace);

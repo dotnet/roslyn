@@ -24,6 +24,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                        p.Name <> PredefinedCodeCleanupProviderNames.Format
             End Function
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
                                 isExplicitFormat As Boolean,
                                 useSemantics As Boolean,

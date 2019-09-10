@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
         }
 
+        [ImportingConstructor]
         public CSharpUseNamedArgumentsCodeRefactoringProvider()
             : base(new ArgumentAnalyzer(), new AttributeArgumentAnalyzer())
         {

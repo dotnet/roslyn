@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -63,14 +64,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return semanticModel.GetEnclosingSymbol<INamespaceSymbol>(position, cancellationToken);
         }
 
+        /// <summary>
+        /// Fetches the ITypeSymbol that should be used if we were generating a parameter or local that would accept <paramref name="expression"/>. If
+        /// expression is a type, that's returned; otherwise this will see if it's something like a method group and then choose an appropriate delegate.
+        /// </summary>
         public static ITypeSymbol GetType(
             this SemanticModel semanticModel,
             SyntaxNode expression,
             CancellationToken cancellationToken)
         {
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
+
+            if (typeInfo.Type != null)
+            {
+                return typeInfo.GetTypeWithFlowNullability();
+            }
+
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            return typeInfo.Type ?? symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
+            return symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
         }
 
         private static ISymbol MapSymbol(ISymbol symbol, ITypeSymbol type)
@@ -221,29 +232,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static HashSet<ISymbol> GetAllDeclaredSymbols(
-            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
+            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken, Func<SyntaxNode, bool> filter = null)
         {
             var symbols = new HashSet<ISymbol>();
             if (container != null)
             {
-                GetAllDeclaredSymbols(semanticModel, container, symbols, cancellationToken);
+                GetAllDeclaredSymbols(semanticModel, container, symbols, cancellationToken, filter);
             }
 
             return symbols;
         }
 
         public static IEnumerable<ISymbol> GetExistingSymbols(
-            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
+            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken, Func<SyntaxNode, bool> descendInto = null)
         {
             // Ignore an anonymous type property or tuple field.  It's ok if they have a name that
             // matches the name of the local we're introducing.
-            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
+            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken, descendInto)
                 .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
         }
 
         private static void GetAllDeclaredSymbols(
             SemanticModel semanticModel, SyntaxNode node,
-            HashSet<ISymbol> symbols, CancellationToken cancellationToken)
+            HashSet<ISymbol> symbols, CancellationToken cancellationToken, Func<SyntaxNode, bool> descendInto = null)
         {
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
 
@@ -256,9 +267,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (child.IsNode)
                 {
-                    GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken);
+                    var childNode = child.AsNode();
+                    if (ShouldDescendInto(childNode, descendInto))
+                    {
+                        GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken, descendInto);
+                    }
                 }
             }
+
+            static bool ShouldDescendInto(SyntaxNode node, Func<SyntaxNode, bool> filter)
+                => filter != null ? filter(node) : true;
         }
     }
 }

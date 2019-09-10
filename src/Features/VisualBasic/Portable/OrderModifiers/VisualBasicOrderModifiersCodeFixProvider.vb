@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
     Friend Class VisualBasicOrderModifiersCodeFixProvider
         Inherits AbstractOrderModifiersCodeFixProvider
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(VisualBasicSyntaxFactsService.Instance,
                        VisualBasicCodeStyleOptions.PreferredModifierOrder,

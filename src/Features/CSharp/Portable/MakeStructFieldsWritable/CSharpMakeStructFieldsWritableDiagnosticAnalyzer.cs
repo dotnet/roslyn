@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(compilationStartContext

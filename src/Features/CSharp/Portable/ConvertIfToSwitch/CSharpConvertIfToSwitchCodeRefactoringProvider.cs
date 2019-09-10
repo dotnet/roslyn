@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertIfToSwitchCodeRefactoringProvider)), Shared]
     internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider : AbstractConvertIfToSwitchCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public CSharpConvertIfToSwitchCodeRefactoringProvider()
+        {
+        }
+
         protected override IAnalyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
             => new CSharpAnalyzer(syntaxFacts, semanticModel);
 

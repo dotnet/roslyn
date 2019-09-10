@@ -318,6 +318,10 @@ class { }
         Private Class MockServiceProvider
             Implements SVsServiceProvider
 
+            <ImportingConstructor>
+            Public Sub New()
+            End Sub
+
             Public Function GetService(serviceType As Type) As Object Implements SVsServiceProvider.GetService
                 If GetType(SVsFindAllReferences) = serviceType Then
                     Return TestFindAllReferencesService.Instance

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -84,6 +85,27 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new FaultyAssemblyLoader());
 
             Assert.False(result);
+        }
+
+        [Fact]
+        public void NetstandardIgnored()
+        {
+            var directory = Temp.CreateDirectory();
+            const string name = "netstandardRef";
+            var comp = CSharpCompilation.Create(
+                name,
+                new[] { SyntaxFactory.ParseSyntaxTree(@"class C {}") },
+                references: new MetadataReference[] { MetadataReference.CreateFromImage(TestResources.NetFX.netstandard20.netstandard) },
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compFile = directory.CreateFile(name);
+            comp.Emit(compFile.Path);
+
+
+            var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference(name));
+
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader());
+
+            Assert.True(result);
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader

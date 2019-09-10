@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         private string GetDebuggerDisplay()
         {
-            string result = Kind.ToString();
+            var result = Kind.ToString();
             switch (Kind)
             {
                 case EditKind.Delete:

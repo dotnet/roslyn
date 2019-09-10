@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 .Single();
             var allRawConventions = new Dictionary<string, string> { { storageLocation.KeyName, args } };
 
-            Assert.True(storageLocation.TryGetOption(null, allRawConventions, typeof(CodeStyleOption<AccessibilityModifiersRequired>), out var parsedCodeStyleOption));
+            Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(CodeStyleOption<AccessibilityModifiersRequired>), out var parsedCodeStyleOption));
             var codeStyleOption = (CodeStyleOption<AccessibilityModifiersRequired>)parsedCodeStyleOption;
             Assert.Equal((AccessibilityModifiersRequired)value, codeStyleOption.Value);
             Assert.Equal(severity, codeStyleOption.Notification.Severity);
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 .Single();
             var allRawConventions = new Dictionary<string, string> { { storageLocation.KeyName, configurationString } };
 
-            Assert.True(storageLocation.TryGetOption(null, allRawConventions, typeof(string), out var parsedNewLine));
+            Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(string), out var parsedNewLine));
             Assert.Equal(newLine, (string)parsedNewLine);
         }
     }

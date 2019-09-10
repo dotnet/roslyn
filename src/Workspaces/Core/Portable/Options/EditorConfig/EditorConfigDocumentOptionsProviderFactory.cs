@@ -7,24 +7,37 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorLogger;
-using Microsoft.CodeAnalysis.Experiments;
 
 namespace Microsoft.CodeAnalysis.Options.EditorConfig
 {
     [Export(typeof(IDocumentOptionsProviderFactory)), Shared]
     internal sealed class EditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
-        public static bool ShouldUseNativeEditorConfigSupport = Environment.GetEnvironmentVariable("ROSLYN_EDITORCONFIG_SUPPORT") == "native";
+        [ImportingConstructor]
+        public EditorConfigDocumentOptionsProviderFactory()
+        {
+        }
 
         public IDocumentOptionsProvider TryCreate(Workspace workspace)
         {
-            if (!ShouldUseNativeEditorConfigSupport)
+            if (!ShouldUseNativeEditorConfigSupport(workspace))
             {
                 // Simply disable if the feature isn't on
                 return null;
             }
 
             return new EditorConfigDocumentOptionsProvider(workspace.Services.GetService<IErrorLoggerService>());
+        }
+
+        private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
+
+        public static readonly Option<bool> UseLegacyEditorConfigSupport =
+            new Option<bool>(nameof(EditorConfigDocumentOptionsProviderFactory), nameof(UseLegacyEditorConfigSupport), defaultValue: false,
+                storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "UseLegacySupport"));
+
+        public static bool ShouldUseNativeEditorConfigSupport(Workspace workspace)
+        {
+            return !workspace.Options.GetOption(UseLegacyEditorConfigSupport);
         }
 
         private class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
@@ -54,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
                     _errorLogger = errorLogger;
                 }
 
-                public bool TryGetDocumentOption(OptionKey option, OptionSet underlyingOptions, out object value)
+                public bool TryGetDocumentOption(OptionKey option, out object value)
                 {
                     var editorConfigPersistence = option.Option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
                     if (editorConfigPersistence == null)
@@ -65,8 +78,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 
                     try
                     {
-                        var underlyingOption = underlyingOptions.GetOption(option);
-                        return editorConfigPersistence.TryGetOption(underlyingOption, _options, option.Option.Type, out value);
+                        return editorConfigPersistence.TryGetOption(_options, option.Option.Type, out value);
                     }
                     catch (Exception ex)
                     {

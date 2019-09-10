@@ -8,18 +8,18 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Microsoft Visual Basic Kod Sayfası Düzenleyicisi</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="needs-review-translation">Microsoft Visual Basic Kod Sayfası Düzenleyicisi</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Microsoft Visual Basic Düzenleyicisi</target>
+        <source>Visual Basic Editor</source>
+        <target state="needs-review-translation">Microsoft Visual Basic Düzenleyicisi</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
         <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">Otomatik ekleme sonu oluşturur; Oldukça liste ayarlarını değiştirme; Anahat oluşturma modunu değiştirmek; Otomatik ekleme arabirimi ve MustOverride üyelerinin; Göster veya gizle yordam satır ayırıcıları; Hata düzeltme önerileri açıp kapatabilir; Başvurular ve anahtar kelimeler açık veya kapalı vurgulayarak açmak; Regex; Normal ifadeler renklendirmek; İmleç altında ilişkili bileşenleri vurgulamak; Rapor geçersiz düzenli ifadeler</target>
+        <target state="translated">Bitirme yapılarının otomatik olarak eklenmesi;Düzgün listeleme ayarlarını değiştir;Ana hat modunu değiştir;Arabirim ve MustOverride üyelerinin otomatik olarak eklenmesi;Yordam satır ayıraçlarını göster veya gizle;Hata düzeltme önerilerini aç veya kapat;Başvuruları ve anahtar sözcükleri vurgulamayı aç veya kapat;Normal ifade;Normal ifadeleri renklendir;İmlecin altında ilgili bileşenleri vurgula;Geçersiz normal ifadeleri bildir;normal ifade;normal ifade;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="An_empty_Visual_Basic_script_file">
         <source>An empty Visual Basic script file.</source>
-        <target state="new">An empty Visual Basic script file.</target>
+        <target state="translated">Boş bir Visual Basic betik dosyası.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Script">
         <source>Visual Basic Script</source>
-        <target state="new">Visual Basic Script</target>
+        <target state="translated">Visual Basic Betiği</target>
         <note />
       </trans-unit>
     </body>

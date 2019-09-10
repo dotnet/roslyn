@@ -97,6 +97,11 @@
         <target state="translated">Удалить ненужные импорты</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">&amp;Сортировать импорты</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">Введите здесь имя для объявления нового поля.</target>

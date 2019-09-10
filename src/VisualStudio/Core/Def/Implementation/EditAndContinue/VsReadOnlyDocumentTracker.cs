@@ -81,9 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private void SetReadOnly(Document document)
         {
             // Only set documents read-only if they're part of a project that supports Enc.
-            var workspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
 
-            if (workspace != null && VsENCRebuildableProjectImpl.TryGetRebuildableProject(document.Project.Id) != null)
+            if (document.Project.Solution.Workspace is VisualStudioWorkspace workspace && VsENCRebuildableProjectImpl.TryGetRebuildableProject(document.Project.Id) != null)
             {
                 SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Id, out var sessionReason, out var projectReason) && AllowsReadOnly(document.Id));
             }

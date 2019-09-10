@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _position = position;
         }
 
-        internal override bool IsNullableGloballyEnabled()
+        internal override bool AreNullableAnnotationsGloballyEnabled()
         {
-            return Next.IsNullableEnabled(_syntaxTree, _position);
+            return Next.AreNullableAnnotationsEnabled(_syntaxTree, _position);
         }
     }
 }

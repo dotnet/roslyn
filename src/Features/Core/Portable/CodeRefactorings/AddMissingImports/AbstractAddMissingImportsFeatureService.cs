@@ -48,7 +48,10 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             // Find fixes for the diagnostic where there is only a single fix.
-            var usableFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+            var unambiguousFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+
+            // We do not want to add project or framework references without the user's input, so filter those out.
+            var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
             if (usableFixes.IsEmpty)
             {
                 return document.Project;
@@ -57,6 +60,13 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // Apply those fixes to the document.
             var newDocument = await ApplyFixesAsync(document, usableFixes, cancellationToken).ConfigureAwait(false);
             return newDocument.Project;
+        }
+
+        private bool DoesNotAddReference(AddImportFixData fixData, ProjectId currentProjectId)
+        {
+            return (fixData.ProjectReferenceToAdd is null || fixData.ProjectReferenceToAdd == currentProjectId)
+                && (fixData.PortableExecutableReferenceProjectId is null || fixData.PortableExecutableReferenceProjectId == currentProjectId)
+                && string.IsNullOrEmpty(fixData.AssemblyReferenceAssemblyName);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -248,8 +258,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 // Since we know the general shape of these new import statements, we simply look for where
                 // tokens are not on the same line and force them to only be separated by a single newline.
 
-                _text.GetLineAndOffset(previousToken.Span.Start, out int previousLine, out _);
-                _text.GetLineAndOffset(currentToken.Span.Start, out int currentLine, out _);
+                _text.GetLineAndOffset(previousToken.Span.Start, out var previousLine, out _);
+                _text.GetLineAndOffset(currentToken.Span.Start, out var currentLine, out _);
 
                 if (previousLine != currentLine)
                 {

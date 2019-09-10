@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeMethodA
             => (null, new CSharpMakeMethodAsynchronousCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AwaitInVoidMethodWithModifiers()
         {
             var initial =
@@ -37,7 +38,7 @@ using System.Threading.Tasks;
 
 class Program
 {
-    public static async void TestAsync()
+    public static async void Test()
     {
         await Task.Delay(1);
     }
@@ -81,6 +82,7 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         [WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AwaitInVoidMainMethodWithModifiers_NotEntryPoint()
         {
             var initial =
@@ -101,7 +103,7 @@ using System.Threading.Tasks;
 
 class Program
 {
-    public async void MainAsync()
+    public async void Main()
     {
         await Task.Delay(1);
     }
@@ -139,6 +141,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AwaitInTaskMethodNoModifiers()
         {
             var initial =
@@ -159,7 +162,7 @@ using System.Threading.Tasks;
 
 class Program 
 {
-    async Task TestAsync() 
+    async Task Test() 
     {
         await Task.Delay(1);
     }
@@ -168,6 +171,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AwaitInTaskMethodWithModifiers()
         {
             var initial =
@@ -188,7 +192,7 @@ using System.Threading.Tasks;
 
 class Program
 {
-    public/*Comment*/static/*Comment*/async Task/*Comment*/TestAsync()
+    public/*Comment*/static/*Comment*/async Task/*Comment*/Test()
     {
         await Task.Delay(1);
     }
@@ -257,6 +261,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod()
         {
             var initial =
@@ -273,7 +278,7 @@ class Program
 @"using System.Threading.Tasks;
 class Program
 {
-    async void TestAsync()
+    async void Test()
     {
         await Task.Delay(1);
     }
@@ -282,6 +287,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod2()
         {
             var initial =
@@ -298,7 +304,7 @@ class Program
 @"using System.Threading.Tasks;
 class Program
 {
-    async Task TestAsync()
+    async Task Test()
     {
         await Task.Delay(1);
     }
@@ -307,6 +313,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod3()
         {
             var initial =
@@ -323,7 +330,7 @@ class Program
 @"using System.Threading.Tasks;
 class Program
 {
-    async Task<int> TestAsync()
+    async Task<int> Test()
     {
         await Task.Delay(1);
     }
@@ -357,6 +364,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod5()
         {
             var initial =
@@ -371,7 +379,7 @@ class Program
             var expected =
 @"class Program
 {
-    async void TestAsync()
+    async void Test()
     {
         await Task.Delay(1);
     }
@@ -380,6 +388,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod6()
         {
             var initial =
@@ -394,7 +403,7 @@ class Program
             var expected =
 @"class Program
 {
-    async Task TestAsync()
+    async Task Test()
     {
         await Task.Delay(1);
     }
@@ -403,6 +412,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInNonAsyncMethod7()
         {
             var initial =
@@ -417,7 +427,7 @@ class Program
             var expected =
 @"class Program
 {
-    async Task<int> TestAsync()
+    async Task<int> Test()
     {
         await Task.Delay(1);
     }
@@ -714,6 +724,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInIAsyncEnumerableMethod()
         {
             var initial =
@@ -733,7 +744,7 @@ class Program
 using System.Collections.Generic;
 class Program
 {
-    async IAsyncEnumerable<int> TestAsync()
+    async IAsyncEnumerable<int> Test()
     {
         yield return 1;
         await Task.Delay(1);
@@ -743,6 +754,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task BadAwaitInIAsyncEnumeratorMethod()
         {
             var initial =
@@ -762,7 +774,7 @@ class Program
 using System.Collections.Generic;
 class Program
 {
-    async IAsyncEnumerator<int> TestAsync()
+    async IAsyncEnumerator<int> Test()
     {
         yield return 1;
         await Task.Delay(1);
@@ -927,6 +939,7 @@ class C
 
         [WorkItem(17470, "https://github.com/dotnet/roslyn/issues/17470")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AwaitInValueTaskMethod()
         {
             var initial =
@@ -959,7 +972,7 @@ namespace System.Threading.Tasks {
 
 class Program 
 {
-    async ValueTask<int> TestAsync() 
+    async ValueTask<int> Test() 
     {
         await Task.Delay(1);
     }
@@ -1010,6 +1023,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
         public async Task AddAsyncInLocalFunctionKeepVoidReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -1036,7 +1050,7 @@ class C
 {
     public void M1()
     {
-        async void M2Async()
+        async void M2()
         {
             await M3Async();
         }
@@ -1051,13 +1065,14 @@ index: 1);
         }
 
         [Theory]
-        [InlineData(0, "void", "Task")]
-        [InlineData(1, "void", "void")]
-        [InlineData(0, "int", "Task<int>")]
-        [InlineData(0, "Task", "Task")]
+        [InlineData(0, "void", "Task", "M2Async")]
+        [InlineData(1, "void", "void", "M2")]
+        [InlineData(0, "int", "Task<int>", "M2Async")]
+        [InlineData(0, "Task", "Task", "M2")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
-        public async Task AddAsyncInLocalFunctionKeepsTrivia(int codeFixIndex, string initialReturn, string expectedReturn)
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        public async Task AddAsyncInLocalFunctionKeepsTrivia(int codeFixIndex, string initialReturn, string expectedReturn, string expectedName)
         {
             await TestInRegularAndScriptAsync(
 $@"using System.Threading.Tasks;
@@ -1085,7 +1100,7 @@ class C
     public void M1()
     {{
         // Leading trivia
-        /*1*/ async {expectedReturn} /*2*/ M2Async/*3*/() /*4*/
+        /*1*/ async {expectedReturn} /*2*/ {expectedName}/*3*/() /*4*/
         {{
             await M3Async();
         }}
@@ -1100,13 +1115,14 @@ class C
         }
 
         [Theory]
-        [InlineData("", 0, "Task")]
-        [InlineData("", 1, "void")]
-        [InlineData("public", 0, "Task")]
-        [InlineData("public", 1, "void")]
+        [InlineData("", 0, "Task", "M2Async")]
+        [InlineData("", 1, "void", "M2")]
+        [InlineData("public", 0, "Task", "M2Async")]
+        [InlineData("public", 1, "void", "M2")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
-        public async Task AddAsyncKeepsTrivia(string modifiers, int codeFixIndex, string expectedReturn)
+        [WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")]
+        public async Task AddAsyncKeepsTrivia(string modifiers, int codeFixIndex, string expectedReturn, string expectedName)
         {
             await TestInRegularAndScriptAsync(
 $@"using System.Threading.Tasks;
@@ -1129,7 +1145,7 @@ $@"using System.Threading.Tasks;
 class C
 {{
     // Leading trivia
-    {modifiers}/*1*/ async {expectedReturn} /*2*/ M2Async/*3*/() /*4*/
+    {modifiers}/*1*/ async {expectedReturn} /*2*/ {expectedName}/*3*/() /*4*/
     {{
         await M3Async();
     }}
@@ -1257,6 +1273,94 @@ class C
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task MethodWithNullableReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+using System.Threading.Tasks;
+class C
+{
+    string? M()
+    {
+        [|await Task.Delay(1);|]
+        return null;
+    }
+}",
+@"#nullable enable
+using System.Threading.Tasks;
+class C
+{
+    async Task<string?> MAsync()
+    {
+        await Task.Delay(1);
+        return null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task EnumerableMethodWithNullableType()
+        {
+            var initial =
+@"#nullable enable
+using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    IEnumerable<string?> Test()
+    {
+        yield return string.Empty;
+        [|await Task.Delay(1);|]
+    }
+}" + IAsyncEnumerable;
+
+            var expected =
+@"#nullable enable
+using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    async IAsyncEnumerable<string?> TestAsync()
+    {
+        yield return string.Empty;
+        await Task.Delay(1);
+    }
+}" + IAsyncEnumerable;
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task EnumeratorMethodWithNullableType()
+        {
+            var initial =
+@"#nullable enable
+using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    IEnumerator<string?> Test()
+    {
+        yield return string.Empty;
+        [|await Task.Delay(1);|]
+    }
+}" + IAsyncEnumerable;
+
+            var expected =
+@"#nullable enable
+using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    async IAsyncEnumerator<string?> TestAsync()
+    {
+        yield return string.Empty;
+        await Task.Delay(1);
+    }
+}" + IAsyncEnumerable;
+            await TestInRegularAndScriptAsync(initial, expected);
         }
     }
 }

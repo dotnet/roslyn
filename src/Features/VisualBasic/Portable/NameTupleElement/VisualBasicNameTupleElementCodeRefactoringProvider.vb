@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NameTupleElement
     Friend Class VisualBasicNameTupleElementCodeRefactoringProvider
         Inherits AbstractNameTupleElementCodeRefactoringProvider(Of SimpleArgumentSyntax, TupleExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function WithName(argument As SimpleArgumentSyntax, name As String) As SimpleArgumentSyntax
             Return argument.WithNameColonEquals(SyntaxFactory.NameColonEquals(name.ToIdentifierName()))
         End Function

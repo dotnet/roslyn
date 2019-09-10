@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsMeaningfulBlock(node As SyntaxNode) As Boolean
             Return TypeOf node Is LambdaExpressionSyntax OrElse
                    TypeOf node Is ForOrForEachBlockSyntax OrElse

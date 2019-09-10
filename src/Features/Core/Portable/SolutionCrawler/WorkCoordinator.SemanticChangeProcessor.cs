@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     IncrementalAnalyzerProcessor documentWorkerProcessor,
                     int backOffTimeSpanInMS,
                     int projectBackOffTimeSpanInMS,
-                    CancellationToken cancellationToken) :
-                    base(listener, backOffTimeSpanInMS, cancellationToken)
+                    CancellationToken cancellationToken)
+                    : base(listener, backOffTimeSpanInMS, cancellationToken)
                 {
                     _gate = new SemaphoreSlim(initialCount: 0);
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private Data Dequeue()
                 {
-                    return DequeueWorker(_workGate, _pendingWork, this.CancellationToken);
+                    return DequeueWorker(_workGate, _pendingWork, CancellationToken);
                 }
 
                 private async Task<bool> TryEnqueueFromHint(Document document, SyntaxPath changedMember)
@@ -108,12 +108,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // TODO: if there is a reliable way to track changed member, we could use GetSemanticModel here which could
                     //       rebuild compilation from scratch
                     if (!document.TryGetSemanticModel(out var model) ||
-                        !changedMember.TryResolve(await document.GetSyntaxRootAsync(this.CancellationToken).ConfigureAwait(false), out SyntaxNode declarationNode))
+                        !changedMember.TryResolve(await document.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false), out SyntaxNode declarationNode))
                     {
                         return false;
                     }
 
-                    var symbol = model.GetDeclaredSymbol(declarationNode, this.CancellationToken);
+                    var symbol = model.GetDeclaredSymbol(declarationNode, CancellationToken);
                     if (symbol == null)
                     {
                         return false;
@@ -257,9 +257,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public void Enqueue(Document document, SyntaxPath changedMember)
                 {
-                    this.UpdateLastAccessTime();
+                    UpdateLastAccessTime();
 
-                    using (_workGate.DisposableWait(this.CancellationToken))
+                    using (_workGate.DisposableWait(CancellationToken))
                     {
                         if (_pendingWork.TryGetValue(document.Id, out var data))
                         {
@@ -332,9 +332,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     public Data(Document document, SyntaxPath changedMember, IAsyncToken asyncToken)
                     {
-                        this.AsyncToken = asyncToken;
-                        this.Document = document;
-                        this.ChangedMember = changedMember;
+                        AsyncToken = asyncToken;
+                        Document = document;
+                        ChangedMember = changedMember;
                     }
                 }
 
@@ -355,8 +355,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Registration registration,
                         IncrementalAnalyzerProcessor processor,
                         int backOffTimeSpanInMS,
-                        CancellationToken cancellationToken) :
-                        base(listener, backOffTimeSpanInMS, cancellationToken)
+                        CancellationToken cancellationToken)
+                        : base(listener, backOffTimeSpanInMS, cancellationToken)
                     {
                         _registration = registration;
                         _processor = processor;
@@ -379,9 +379,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     public void Enqueue(ProjectId projectId, bool needDependencyTracking = false)
                     {
-                        this.UpdateLastAccessTime();
+                        UpdateLastAccessTime();
 
-                        using (_workGate.DisposableWait(this.CancellationToken))
+                        using (_workGate.DisposableWait(CancellationToken))
                         {
                             // the project is already in the queue. nothing needs to be done
                             if (_pendingWork.ContainsKey(projectId))
@@ -401,11 +401,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     public async Task EnqueueWorkItemAsync(Document document)
                     {
                         // we are shutting down
-                        this.CancellationToken.ThrowIfCancellationRequested();
+                        CancellationToken.ThrowIfCancellationRequested();
 
                         // call to this method is serialized. and only this method does the writing.
                         var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
-                        var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, this.CancellationToken).ConfigureAwait(false);
+                        var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, CancellationToken).ConfigureAwait(false);
 
                         _processor.Enqueue(
                             new WorkItem(document.Id, document.Project.Language, InvocationReasons.SemanticChanged,
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private Data Dequeue()
                     {
-                        return DequeueWorker(_workGate, _pendingWork, this.CancellationToken);
+                        return DequeueWorker(_workGate, _pendingWork, CancellationToken);
                     }
 
                     private async Task EnqueueWorkItemAsync(Project project)
@@ -471,9 +471,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         public Data(ProjectId projectId, bool needDependencyTracking, IAsyncToken asyncToken)
                         {
-                            this.AsyncToken = asyncToken;
-                            this.ProjectId = projectId;
-                            this.NeedDependencyTracking = needDependencyTracking;
+                            AsyncToken = asyncToken;
+                            ProjectId = projectId;
+                            NeedDependencyTracking = needDependencyTracking;
                         }
                     }
                 }

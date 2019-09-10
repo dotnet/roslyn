@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     Friend NotInheritable Class VisualBasicMergeNestedIfStatementsCodeRefactoringProvider
         Inherits AbstractMergeNestedIfStatementsCodeRefactoringProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsApplicableSpan(node As SyntaxNode, span As TextSpan, ByRef ifOrElseIf As SyntaxNode) As Boolean
             If TypeOf node Is IfStatementSyntax And TypeOf node.Parent Is MultiLineIfBlockSyntax Then
                 Dim ifStatement = DirectCast(node, IfStatementSyntax)

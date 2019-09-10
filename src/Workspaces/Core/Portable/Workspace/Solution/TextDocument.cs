@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -11,24 +14,22 @@ namespace Microsoft.CodeAnalysis
 {
     public class TextDocument
     {
-        internal readonly TextDocumentState State;
+        internal TextDocumentState State { get; }
+        internal TextDocumentKind Kind { get; }
 
         /// <summary>
         /// The project this document belongs to.
         /// </summary>
-        public Project Project { get; protected set; }
+        public Project Project { get; }
 
-        protected TextDocument()
-        {
-        }
-
-        internal TextDocument(Project project, TextDocumentState state)
+        internal TextDocument(Project project, TextDocumentState state, TextDocumentKind kind)
         {
             Contract.ThrowIfNull(project);
             Contract.ThrowIfNull(state);
 
             this.Project = project;
             State = state;
+            Kind = kind;
         }
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The path to the document file or null if there is no document file.
         /// </summary>
-        public string FilePath => State.FilePath;
+        public string? FilePath => State.FilePath;
 
         /// <summary>
         /// The name of the document.
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get the current text for the document if it is already loaded and available.
         /// </summary>
-        public bool TryGetText(out SourceText text)
+        public bool TryGetText([NotNullWhen(returnValue: true)] out SourceText? text)
         {
             return State.TryGetText(out text);
         }

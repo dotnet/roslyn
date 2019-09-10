@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
     {
         private readonly IPickMembersService _pickMembersService_forTestingPurposes;
 
+        [ImportingConstructor]
         public GenerateOverridesCodeRefactoringProvider() : this(null)
         {
         }
@@ -28,18 +29,15 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start) &&
-                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start))
+            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
+                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
                 return;
             }
@@ -47,8 +45,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only supported on classes/structs.
-            var containingType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                semanticModel, root, textSpan.Start, cancellationToken);
+            var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration) as INamedTypeSymbol;
 
             var overridableMembers = containingType.GetOverridableMembers(cancellationToken);
             if (overridableMembers.Length == 0)
@@ -56,8 +53,10 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 return;
             }
 
-            context.RegisterRefactoring(new GenerateOverridesWithDialogCodeAction(
-                this, document, textSpan, containingType, overridableMembers));
+            context.RegisterRefactoring(
+                new GenerateOverridesWithDialogCodeAction(
+                    this, document, textSpan, containingType, overridableMembers),
+                typeDeclaration.Span);
         }
     }
 }

@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     {
         protected AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId,
+                   CodeStyleOptions.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
-            var syntaxFacts = this.GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFactsService();
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNodeHigh, out var whenFalseNodeHigh);
 
@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 conditionNode = syntaxFacts.GetOperandOfPrefixUnaryExpression(conditionNode);
             }
 
-            var conditionMemberAccess = conditionNode as TMemberAccessExpression;
-            if (conditionMemberAccess == null)
+            if (!(conditionNode is TMemberAccessExpression conditionMemberAccess))
             {
                 return;
             }
@@ -86,8 +85,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             var whenPartToCheck = notHasValueExpression ? whenFalseNodeLow : whenTrueNodeLow;
-            var whenPartMemberAccess = whenPartToCheck as TMemberAccessExpression;
-            if (whenPartMemberAccess == null)
+            if (!(whenPartToCheck is TMemberAccessExpression whenPartMemberAccess))
             {
                 return;
             }

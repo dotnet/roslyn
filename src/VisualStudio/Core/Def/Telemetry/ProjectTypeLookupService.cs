@@ -11,6 +11,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     [ExportWorkspaceService(typeof(IProjectTypeLookupService), ServiceLayer.Host), Shared]
     internal class ProjectTypeLookupService : IProjectTypeLookupService
     {
+        [ImportingConstructor]
+        public ProjectTypeLookupService()
+        {
+        }
+
         public string GetProjectType(Workspace workspace, ProjectId projectId)
         {
             if (!(workspace is VisualStudioWorkspace vsWorkspace) || projectId == null)
@@ -18,8 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 return string.Empty;
             }
 
-            var aggregatableProject = vsWorkspace.GetHierarchy(projectId) as IVsAggregatableProject;
-            if (aggregatableProject == null)
+            if (!(vsWorkspace.GetHierarchy(projectId) is IVsAggregatableProject aggregatableProject))
             {
                 return string.Empty;
             }

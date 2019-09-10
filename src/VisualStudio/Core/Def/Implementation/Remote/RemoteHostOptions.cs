@@ -69,6 +69,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     [ExportOptionProvider, Shared]
     internal class RemoteHostOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public RemoteHostOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             RemoteHostOptions.RemoteHost,
             RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS,

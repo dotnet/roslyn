@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Partial Friend Class MidAssignmentSignatureHelpProvider
         Inherits AbstractIntrinsicOperatorSignatureHelpProvider(Of AssignmentStatementSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As AssignmentStatementSyntax, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
             Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New MidAssignmentDocumentation()})
         End Function

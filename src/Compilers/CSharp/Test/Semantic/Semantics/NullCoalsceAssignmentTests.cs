@@ -39,7 +39,7 @@ class C
             void assertTypeInfo(SyntaxNode syntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
-                Assert.NotNull(typeInfo);
+                Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
                 Assert.Equal(cType, typeInfo.Type);
                 Assert.Equal(cType, typeInfo.ConvertedType);
@@ -74,14 +74,14 @@ class D : C {}";
             assertTypeInfo(coalesceAssignment.Left);
 
             var whenNullTypeInfo = semanticModel.GetTypeInfo(coalesceAssignment.Right);
-            Assert.NotNull(whenNullTypeInfo);
+            Assert.NotEqual(default, whenNullTypeInfo);
             Assert.Equal(dType, whenNullTypeInfo.Type);
             Assert.Equal(cType, whenNullTypeInfo.ConvertedType);
 
             void assertTypeInfo(SyntaxNode syntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
-                Assert.NotNull(typeInfo);
+                Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
                 Assert.Equal(cType, typeInfo.Type);
                 Assert.Equal(cType, typeInfo.ConvertedType);
@@ -114,7 +114,7 @@ class D : C {}";
             var coalesceAssignment = syntaxRoot.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
 
             var whenNullTypeInfo = semanticModel.GetTypeInfo(coalesceAssignment);
-            Assert.NotNull(whenNullTypeInfo);
+            Assert.NotEqual(default, whenNullTypeInfo);
             Assert.Equal(dType, whenNullTypeInfo.Type);
             Assert.Equal(cType, whenNullTypeInfo.ConvertedType);
 
@@ -124,7 +124,7 @@ class D : C {}";
             void assertTypeInfo(SyntaxNode syntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
-                Assert.NotNull(typeInfo);
+                Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
                 Assert.Equal(dType, typeInfo.Type);
                 Assert.Equal(dType, typeInfo.ConvertedType);
@@ -133,7 +133,7 @@ class D : C {}";
         }
 
         [Fact]
-        public void CoalesceAssignment_NotConvertedToNonNullable()
+        public void CoalesceAssignment_ConvertedToNonNullable()
         {
             var source = @"
 class C
@@ -152,14 +152,34 @@ class C
             var semanticModel = comp.GetSemanticModel(syntaxTree);
             var coalesceAssignment = syntaxRoot.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
 
-            var nullable = comp.GetSpecialType(SpecialType.System_Nullable_T);
             var int32 = comp.GetSpecialType(SpecialType.System_Int32);
-
             var coalesceType = semanticModel.GetTypeInfo(coalesceAssignment).Type;
-            var genericParameter = ((INamedTypeSymbol)coalesceType).TypeArguments.Single();
 
-            Assert.Equal(nullable, coalesceType.OriginalDefinition);
-            Assert.Equal(int32, genericParameter);
+            Assert.Equal(int32, coalesceType);
+        }
+
+        [Fact]
+        public void CoalesceAssignment_DefaultConvertedToNonNullable()
+        {
+            var source = @"
+class C
+{
+    void M(int? a)
+    {
+        a ??= default;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var syntaxRoot = syntaxTree.GetRoot();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var defaultLiteral = syntaxRoot.DescendantNodes().OfType<LiteralExpressionSyntax>().Where(expr => expr.IsKind(SyntaxKind.DefaultLiteralExpression)).Single();
+
+            Assert.Equal(SpecialType.System_Int32, semanticModel.GetTypeInfo(defaultLiteral).Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, semanticModel.GetTypeInfo(defaultLiteral).ConvertedType.SpecialType);
         }
     }
 }

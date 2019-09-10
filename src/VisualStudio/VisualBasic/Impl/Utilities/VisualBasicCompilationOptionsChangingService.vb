@@ -10,6 +10,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Utilities
     Friend NotInheritable Class VisualBasicCompilationOptionsChangingService
         Implements ICompilationOptionsChangingService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CanApplyChange(oldOptions As CompilationOptions, newOptions As CompilationOptions) As Boolean Implements ICompilationOptionsChangingService.CanApplyChange
             Return False
         End Function

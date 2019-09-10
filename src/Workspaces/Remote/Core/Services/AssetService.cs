@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// TODO: change this service to workspace service
     /// </summary>
-    internal class AssetService
+    internal class AssetService : IAssetProvider
     {
         private readonly ISerializerService _serializerService;
         private readonly int _scopeId;
@@ -126,13 +127,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            using (var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
-            {
-                pooledObject.Object.Add(checksum);
+            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+            pooledObject.Object.Add(checksum);
 
-                var tuple = await RequestAssetsAsync(pooledObject.Object, cancellationToken).ConfigureAwait(false);
-                return tuple[0].Item2;
-            }
+            var tuple = await RequestAssetsAsync(pooledObject.Object, cancellationToken).ConfigureAwait(false);
+            return tuple[0].Item2;
         }
 
         private async Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)

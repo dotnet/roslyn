@@ -19,7 +19,6 @@
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
     <RoslynPortableTargetFrameworks>net472;netcoreapp2.1</RoslynPortableTargetFrameworks>
-    <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
     <RoslynEnforceCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true'">true</RoslynEnforceCodeStyle>
     <UseSharedCompilation>true</UseSharedCompilation>
 
@@ -30,7 +29,7 @@
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
     <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
-    <CodeAnalysisTargets>*none*</CodeAnalysisTargets>
+    <CodeAnalysisTargets>NON_EXISTENT_FILE</CodeAnalysisTargets>
 
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring($([System.Convert]::ToInt32(0)), $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
@@ -44,9 +43,6 @@
     <WindowsAppContainer>false</WindowsAppContainer>
 
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
-    
-    <!-- Disabled to work around ibcmerge error https://github.com/dotnet/arcade/issues/2309 -->
-    <EnableNgenOptimizationLogDetails>false</EnableNgenOptimizationLogDetails>
   </PropertyGroup>
 
   <!-- 
@@ -84,6 +80,7 @@
     <RemoteLanguageServiceKey>$(VisualStudioKey)</RemoteLanguageServiceKey>
     <VisualStudioDebuggerKey>$(VisualStudioKey)</VisualStudioDebuggerKey>
     <XamarinKey>002400000480000094000000060200000024000052534131000400000100010079159977d2d03a8e6bea7a2e74e8d1afcc93e8851974952bb480a12c9134474d04062447c37e0e68c080536fcf3c3fbe2ff9c979ce998475e506e8ce82dd5b0f350dc10e93bf2eeecf874b24770c5081dbea7447fddafa277b22de47d6ffea449674a4f9fccf84d15069089380284dbdd35f46cdff12a1bd78e4ef0065d016df</XamarinKey>
+    <UnitTestingKey>$(VisualStudioKey)</UnitTestingKey>
   </PropertyGroup>
 
   <!-- 
@@ -122,7 +119,7 @@
   <!--
     Analyzers
   -->
-  <ItemGroup>
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
     <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="$(MicrosoftCodeQualityAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NetCore.Analyzers" Version="$(MicrosoftNetCoreAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
@@ -197,4 +194,10 @@
       </PropertyGroup>
     </When>
   </Choose>
+
+  <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+    <!-- https://github.com/dotnet/roslyn/issues/38433 Vbc does not like the extra semicolon -->
+    <DefineConstants Condition="'$(DefineConstants)' != ''">DOTNET_BUILD_FROM_SOURCE;$(DefineConstants)</DefineConstants>
+    <DefineConstants Condition="'$(DefineConstants)' == ''">DOTNET_BUILD_FROM_SOURCE</DefineConstants>
+  </PropertyGroup>
 </Project>

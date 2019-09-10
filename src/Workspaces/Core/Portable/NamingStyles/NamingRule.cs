@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal struct NamingRule
+    internal readonly struct NamingRule
     {
         public readonly SymbolSpecification SymbolSpecification;
         public readonly NamingStyle NamingStyle;

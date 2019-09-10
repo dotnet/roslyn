@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
-                ValueSource<Compilation> baseCompilationSource = state.Compilation;
+                var baseCompilationSource = state.Compilation;
                 var baseCompilation = baseCompilationSource.GetValue(cancellationToken);
                 if (baseCompilation != null)
                 {
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis
                                 // if we failed to get the metadata, check to see if we previously had existing metadata and reuse it instead.
                                 var inProgressCompilationNotRef = inProgressCompilation;
                                 metadata = inProgressCompilationNotRef.ExternalReferences.FirstOrDefault(
-                                    r => solution.GetProjectState(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol, cancellationToken)?.Id == projectReference.ProjectId);
+                                    r => solution.GetProjectState(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol)?.Id == projectReference.ProjectId);
                             }
 
                             if (metadata != null)
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     // if HasAllInformation is false, then this project is always not completed.
-                    bool hasSuccessfullyLoaded = this.ProjectState.HasAllInformation;
+                    var hasSuccessfullyLoaded = this.ProjectState.HasAllInformation;
 
                     var newReferences = new List<MetadataReference>();
                     var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis
             /// compilation. Only actual compilation references are returned. Could potentially 
             /// return null if nothing can be provided.
             /// </summary>
-            public MetadataReference GetPartialMetadataReference(SolutionState solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
+            public MetadataReference GetPartialMetadataReference(SolutionState solution, ProjectState fromProject, ProjectReference projectReference)
             {
                 var state = this.ReadState();
                 // get compilation in any state it happens to be in right now.

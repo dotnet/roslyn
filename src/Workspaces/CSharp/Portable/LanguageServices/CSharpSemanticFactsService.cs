@@ -26,6 +26,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        protected override IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
+        {
+            // Get all the symbols visible to the current location.
+            var visibleSymbols = semanticModel.LookupSymbols(location.SpanStart);
+
+            // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
+            // E.g. symbols inside if statements / try catch statements.
+            var symbolsInBlock = semanticModel.GetExistingSymbols(container, cancellationToken,
+                descendInto: n => ShouldDescendInto(n));
+
+            return symbolsInBlock.Concat(visibleSymbols);
+
+            // Walk through the enclosing block symbols, but avoid exploring local functions
+            //     a) Visible symbols from the local function would be returned by LookupSymbols
+            //        (e.g. location is inside a local function, the local function method name).
+            //     b) Symbols declared inside the local function do not cause collisions with symbols declared outside them, so avoid considering those symbols.
+            // Exclude lambdas as well when the language version is C# 8 or higher because symbols declared inside no longer collide with outer variables.
+            bool ShouldDescendInto(SyntaxNode node)
+            {
+                var isLanguageVersionGreaterOrEqualToCSharp8 = (semanticModel.Compilation as CSharpCompilation)?.LanguageVersion >= LanguageVersion.CSharp8;
+                return isLanguageVersionGreaterOrEqualToCSharp8 ? !SyntaxFactsService.IsAnonymousOrLocalFunction(node) : !SyntaxFactsService.IsLocalFunctionStatement(node);
+            }
+        }
+
         public bool SupportsImplicitInterfaceImplementation => true;
 
         public bool ExposesAnonymousFunctionParameterNames => false;
@@ -71,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsMemberDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             return semanticModel.SyntaxTree.IsMemberDeclarationContext(
-                position, semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken), cancellationToken);
+                position, semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken));
         }
 
         public bool IsPreProcessorDirectiveContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -151,11 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(oldNode.Kind() == newNode.Kind());
 
             var model = oldSemanticModel;
-
-            // currently we only support method. field support will be added later.
-            var oldMethod = oldNode as BaseMethodDeclarationSyntax;
-            var newMethod = newNode as BaseMethodDeclarationSyntax;
-            if (oldMethod == null || newMethod == null || oldMethod.Body == null)
+            if (!(oldNode is BaseMethodDeclarationSyntax oldMethod) || !(newNode is BaseMethodDeclarationSyntax newMethod) || oldMethod.Body == null)
             {
                 speculativeModel = null;
                 return false;

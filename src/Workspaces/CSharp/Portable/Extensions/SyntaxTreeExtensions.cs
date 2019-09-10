@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ISet<SyntaxKind> GetPrecedingModifiers(
             this SyntaxTree syntaxTree,
             int position,
-            SyntaxToken tokenOnLeftOfPosition,
-            CancellationToken cancellationToken)
+            SyntaxToken tokenOnLeftOfPosition)
             => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
@@ -157,12 +156,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return token.Kind() == SyntaxKind.NumericLiteralToken;
         }
 
-        public static bool IsPrimaryFunctionExpressionContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        public static bool IsPrimaryFunctionExpressionContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
         {
             return
-                syntaxTree.IsTypeOfExpressionContext(position, tokenOnLeftOfPosition, cancellationToken) ||
-                syntaxTree.IsDefaultExpressionContext(position, tokenOnLeftOfPosition, cancellationToken) ||
-                syntaxTree.IsSizeOfExpressionContext(position, tokenOnLeftOfPosition, cancellationToken);
+                syntaxTree.IsTypeOfExpressionContext(position, tokenOnLeftOfPosition) ||
+                syntaxTree.IsDefaultExpressionContext(position, tokenOnLeftOfPosition) ||
+                syntaxTree.IsSizeOfExpressionContext(position, tokenOnLeftOfPosition);
         }
 
         public static bool IsAfterKeyword(this SyntaxTree syntaxTree, int position, SyntaxKind kind, CancellationToken cancellationToken)
@@ -377,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 throw new ArgumentException(CSharpWorkspaceResources.Expected_string_or_char_literal, nameof(token));
             }
 
-            int startLength = 1;
+            var startLength = 1;
             if (token.IsVerbatimStringLiteral())
             {
                 startLength = 2;
@@ -622,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             genericIdentifier = default;
             lessThanToken = default;
-            int index = 0;
+            var index = 0;
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             if (token.Kind() == SyntaxKind.None)
@@ -636,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            int stack = 0;
+            var stack = 0;
             while (true)
             {
                 switch (token.Kind())
@@ -732,9 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool IsFullyWrittenGeneric(SyntaxToken token, SyntaxToken lessThanToken)
         {
-            var genericName = token.Parent as GenericNameSyntax;
-
-            return genericName != null && genericName.TypeArgumentList != null &&
+            return token.Parent is GenericNameSyntax genericName && genericName.TypeArgumentList != null &&
                    genericName.TypeArgumentList.LessThanToken == lessThanToken && !genericName.TypeArgumentList.GreaterThanToken.IsMissing;
         }
     }

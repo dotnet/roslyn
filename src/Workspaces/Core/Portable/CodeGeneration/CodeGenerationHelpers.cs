@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static SyntaxNode GenerateThrowStatement(
             SyntaxGenerator factory,
             SemanticDocument document,
-            string exceptionMetadataName,
-            CancellationToken cancellationToken)
+            string exceptionMetadataName)
         {
             var compilation = document.SemanticModel.Compilation;
             var exceptionType = compilation.GetTypeByMetadataName(exceptionMetadataName);
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (forward)
             {
-                for (int i = index; i < availableIndices.Count; i++)
+                for (var i = index; i < availableIndices.Count; i++)
                 {
                     if (availableIndices[i])
                     {
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
             else
             {
-                for (int i = index; i >= 0; i--)
+                for (var i = index; i >= 0; i--)
                 {
                     if (availableIndices[i])
                     {

@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
@@ -175,36 +177,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 
         private static async Task TestAsync(string codeWithMarker, bool remote)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false))
+            using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false);
+            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, remote);
+
+            var commentTokens = new TodoCommentTokens();
+            var provider = new TodoCommentIncrementalAnalyzerProvider(commentTokens, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
+            var worker = (TodoCommentIncrementalAnalyzer)provider.CreateIncrementalAnalyzer(workspace);
+
+            var document = workspace.Documents.First();
+            var documentId = document.Id;
+            var reasons = new InvocationReasons(PredefinedInvocationReasons.DocumentAdded);
+            await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), InvocationReasons.Empty, CancellationToken.None);
+
+            var todoLists = worker.GetItems_TestingOnly(documentId);
+            var expectedLists = document.SelectedSpans;
+
+            Assert.Equal(todoLists.Length, expectedLists.Count);
+
+            for (var i = 0; i < todoLists.Length; i++)
             {
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, remote);
+                var todo = todoLists[i];
+                var span = expectedLists[i];
 
-                var commentTokens = new TodoCommentTokens();
-                var provider = new TodoCommentIncrementalAnalyzerProvider(commentTokens);
-                var worker = (TodoCommentIncrementalAnalyzer)provider.CreateIncrementalAnalyzer(workspace);
+                var line = document.InitialTextSnapshot.GetLineFromPosition(span.Start);
+                var text = document.InitialTextSnapshot.GetText(span.ToSpan());
 
-                var document = workspace.Documents.First();
-                var documentId = document.Id;
-                var reasons = new InvocationReasons(PredefinedInvocationReasons.DocumentAdded);
-                await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), InvocationReasons.Empty, CancellationToken.None);
-
-                var todoLists = worker.GetItems_TestingOnly(documentId);
-                var expectedLists = document.SelectedSpans;
-
-                Assert.Equal(todoLists.Length, expectedLists.Count);
-
-                for (int i = 0; i < todoLists.Length; i++)
-                {
-                    var todo = todoLists[i];
-                    var span = expectedLists[i];
-
-                    var line = document.InitialTextSnapshot.GetLineFromPosition(span.Start);
-                    var text = document.InitialTextSnapshot.GetText(span.ToSpan());
-
-                    Assert.Equal(todo.MappedLine, line.LineNumber);
-                    Assert.Equal(todo.MappedColumn, span.Start - line.Start);
-                    Assert.Equal(todo.Message, text);
-                }
+                Assert.Equal(todo.MappedLine, line.LineNumber);
+                Assert.Equal(todo.MappedColumn, span.Start - line.Start);
+                Assert.Equal(todo.Message, text);
             }
         }
     }

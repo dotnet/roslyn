@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
     [ExportLanguageServiceFactory(typeof(ISymbolDisplayService), LanguageNames.CSharp), Shared]
     internal partial class CSharpSymbolDisplayServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpSymbolDisplayServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {
             return new CSharpSymbolDisplayService(provider);

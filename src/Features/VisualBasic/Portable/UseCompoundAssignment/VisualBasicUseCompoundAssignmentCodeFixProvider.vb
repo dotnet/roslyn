@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
     Friend Class VisualBasicUseCompoundAssignmentCodeFixProvider
         Inherits AbstractUseCompoundAssignmentCodeFixProvider(Of SyntaxKind, AssignmentStatementSyntax, ExpressionSyntax)
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(Kinds)
         End Sub

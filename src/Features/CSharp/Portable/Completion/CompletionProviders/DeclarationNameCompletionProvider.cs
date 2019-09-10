@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var recommendedNames = await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, cancellationToken).ConfigureAwait(false);
-                int sortValue = 0;
+                var sortValue = 0;
                 foreach (var (name, kind) in recommendedNames)
                 {
                     // We've produced items in the desired order, add a sort text to each item to prevent alphabetization
@@ -111,33 +111,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private Glyph GetGlyph(SymbolKind kind, Accessibility? declaredAccessibility)
         {
-            Glyph publicIcon;
-            switch (kind)
+            var publicIcon = kind switch
             {
-                case SymbolKind.Field:
-                    publicIcon = Glyph.FieldPublic;
-                    break;
-                case SymbolKind.Local:
-                    publicIcon = Glyph.Local;
-                    break;
-                case SymbolKind.Method:
-                    publicIcon = Glyph.MethodPublic;
-                    break;
-                case SymbolKind.Parameter:
-                    publicIcon = Glyph.Parameter;
-                    break;
-                case SymbolKind.Property:
-                    publicIcon = Glyph.PropertyPublic;
-                    break;
-                case SymbolKind.RangeVariable:
-                    publicIcon = Glyph.RangeVariable;
-                    break;
-                case SymbolKind.TypeParameter:
-                    publicIcon = Glyph.TypeParameter;
-                    break;
-                default:
-                    throw new ArgumentException();
-            }
+                SymbolKind.Field => Glyph.FieldPublic,
+                SymbolKind.Local => Glyph.Local,
+                SymbolKind.Method => Glyph.MethodPublic,
+                SymbolKind.Parameter => Glyph.Parameter,
+                SymbolKind.Property => Glyph.PropertyPublic,
+                SymbolKind.RangeVariable => Glyph.RangeVariable,
+                SymbolKind.TypeParameter => Glyph.TypeParameter,
+                _ => throw new ArgumentException(),
+            };
 
             switch (declaredAccessibility)
             {
@@ -199,9 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var valueTaskType = compilation.ValueTaskOfTType();
                 var lazyOfTType = compilation.LazyOfTType();
 
-                if (originalDefinition == taskOfTType ||
-                    originalDefinition == valueTaskType ||
-                    originalDefinition == lazyOfTType ||
+                if (Equals(originalDefinition, taskOfTType) ||
+                    Equals(originalDefinition, valueTaskType) ||
+                    Equals(originalDefinition, lazyOfTType) ||
                     originalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
                     return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural, seenTypes: seenTypes);

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var symbolsWithName = symbols.SelectAsArray(s => new SymbolAndProjectId(s, project.Id));
 
-                if (startingCompilation != null && startingAssembly != null && compilation.Assembly != startingAssembly)
+                if (startingCompilation != null && startingAssembly != null && !Equals(compilation.Assembly, startingAssembly))
                 {
                     // Return symbols from skeleton assembly in this case so that symbols have 
                     // the same language as startingCompilation.

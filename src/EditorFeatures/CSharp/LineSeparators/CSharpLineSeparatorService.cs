@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
     [ExportLanguageService(typeof(ILineSeparatorService), LanguageNames.CSharp), Shared]
     internal class CSharpLineSeparatorService : ILineSeparatorService
     {
+        [ImportingConstructor]
+        public CSharpLineSeparatorService()
+        {
+        }
+
         /// <summary>
         /// Given a tree returns line separator spans.
         /// The operation may take fairly long time on a big tree so it is cancellable.
@@ -272,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
 
             // first child needs no separator
             var seenSeparator = true;
-            for (int i = 0; i < children.Count - 1; i++)
+            for (var i = 0; i < children.Count - 1; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

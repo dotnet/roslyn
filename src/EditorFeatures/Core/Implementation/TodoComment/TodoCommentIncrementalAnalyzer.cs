@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 }
             }
 
-            var tokens = _todoCommentTokens.GetTokens(document, cancellationToken);
+            var tokens = _todoCommentTokens.GetTokens(document);
             var comments = await GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
             var items = await CreateItemsAsync(document, comments, cancellationToken).ConfigureAwait(false);
 
@@ -129,7 +128,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return new TodoItem(
                 comment.Descriptor.Priority,
                 comment.Message,
-                document.Project.Solution.Workspace,
                 document.Id,
                 mappedLine: mappedLineInfo.StartLinePosition.Line,
                 originalLine: originalLineInfo.StartLinePosition.Line,
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return existingData.Items;
         }
 
-        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace, CancellationToken cancellationToken)
+        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace)
         {
             foreach (var documentId in _state.GetDocumentIds())
             {

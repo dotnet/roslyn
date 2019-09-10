@@ -43,6 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
             delegateStyle: SymbolDisplayDelegateStyle.NameAndParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+        [ImportingConstructor]
+        public CSharpProgressionLanguageService()
+        {
+        }
+
         public IEnumerable<SyntaxNode> GetTopLevelNodesFromDocument(SyntaxNode root, CancellationToken cancellationToken)
         {
             // We implement this method lazily so we are able to abort as soon as we need to.

@@ -76,26 +76,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
             var keyDownInput = new NativeMethods.INPUT
             {
                 Type = NativeMethods.INPUT_KEYBOARD,
-                ki = new NativeMethods.KEYBDINPUT
+                Input =
                 {
-                    wVk = 0,
-                    wScan = ch,
-                    dwFlags = NativeMethods.KEYEVENTF_UNICODE,
-                    time = 0,
-                    dwExtraInfo = IntPtr.Zero
+                    ki = new NativeMethods.KEYBDINPUT
+                    {
+                        wVk = 0,
+                        wScan = ch,
+                        dwFlags = NativeMethods.KEYEVENTF_UNICODE,
+                        time = 0,
+                        dwExtraInfo = NativeMethods.GetMessageExtraInfo(),
+                    }
                 }
             };
 
             var keyUpInput = new NativeMethods.INPUT
             {
                 Type = NativeMethods.INPUT_KEYBOARD,
-                ki = new NativeMethods.KEYBDINPUT
+                Input =
                 {
-                    wVk = 0,
-                    wScan = ch,
-                    dwFlags = NativeMethods.KEYEVENTF_UNICODE | NativeMethods.KEYEVENTF_KEYUP,
-                    time = 0,
-                    dwExtraInfo = IntPtr.Zero
+                    ki = new NativeMethods.KEYBDINPUT
+                    {
+                        wVk = 0,
+                        wScan = ch,
+                        dwFlags = NativeMethods.KEYEVENTF_UNICODE | NativeMethods.KEYEVENTF_KEYUP,
+                        time = 0,
+                        dwExtraInfo = NativeMethods.GetMessageExtraInfo(),
+                    }
                 }
             };
 
@@ -112,13 +118,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                 input = new NativeMethods.INPUT
                 {
                     Type = NativeMethods.INPUT_KEYBOARD,
-                    ki = new NativeMethods.KEYBDINPUT
+                    Input =
                     {
-                        wVk = 0,
-                        wScan = (ushort)scanCode,
-                        dwFlags = dwFlags | NativeMethods.KEYEVENTF_SCANCODE,
-                        time = 0,
-                        dwExtraInfo = IntPtr.Zero
+                        ki = new NativeMethods.KEYBDINPUT
+                        {
+                            wVk = 0,
+                            wScan = (ushort)scanCode,
+                            dwFlags = dwFlags | NativeMethods.KEYEVENTF_SCANCODE,
+                            time = 0,
+                            dwExtraInfo = NativeMethods.GetMessageExtraInfo(),
+                        }
                     }
                 };
             }
@@ -127,20 +136,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                 input = new NativeMethods.INPUT
                 {
                     Type = NativeMethods.INPUT_KEYBOARD,
-                    ki = new NativeMethods.KEYBDINPUT
+                    Input =
                     {
-                        wVk = (ushort)virtualKey,
-                        wScan = 0,
-                        dwFlags = dwFlags,
-                        time = 0,
-                        dwExtraInfo = IntPtr.Zero
+                        ki = new NativeMethods.KEYBDINPUT
+                        {
+                            wVk = (ushort)virtualKey,
+                            wScan = 0,
+                            dwFlags = dwFlags,
+                            time = 0,
+                            dwExtraInfo = NativeMethods.GetMessageExtraInfo(),
+                        }
                     }
                 };
             }
 
             if (IsExtendedKey(virtualKey))
             {
-                input.ki.dwFlags |= NativeMethods.KEYEVENTF_EXTENDEDKEY;
+                input.Input.ki.dwFlags |= NativeMethods.KEYEVENTF_EXTENDEDKEY;
             }
 
             inputs.Add(input);

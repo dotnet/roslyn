@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
 
                 Task.Delay(TimeSpan.FromSeconds(5), cancellationTokenSource.Token).ContinueWith(_ =>
                 {
-                    bool needsNotification = false;
+                    var needsNotification = false;
 
                     lock (_gate)
                     {

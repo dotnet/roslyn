@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Default), Shared]
     internal class TextFactoryService : ITextFactoryService
     {
+        [ImportingConstructor]
+        public TextFactoryService()
+        {
+        }
+
         public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();

@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpMakeFieldReadonlyCodeFixProvider : AbstractMakeFieldReadonlyCodeFixProvider<VariableDeclaratorSyntax, FieldDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public CSharpMakeFieldReadonlyCodeFixProvider()
+        {
+        }
+
         protected override SyntaxNode GetInitializerNode(VariableDeclaratorSyntax declaration)
             => declaration.Initializer?.Value;
 

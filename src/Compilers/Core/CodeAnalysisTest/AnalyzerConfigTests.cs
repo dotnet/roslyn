@@ -853,7 +853,7 @@ RoOt = TruE");
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [*.vb]
 dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
@@ -876,7 +876,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [test.*]
 dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
@@ -899,13 +899,13 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [*.vb]
 dotnet_diagnostic.cs000.severity = error
 
 [{test.*]
-dotnet_diagnostic.cs000.severity = info"
+dotnet_diagnostic.cs000.severity = suggestion"
 , "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
@@ -926,8 +926,8 @@ dotnet_diagnostic.cs000.severity = info"
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress
-dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
+dotnet_diagnostic.cs000.severity = none
+dotnet_diagnostic.cs001.severity = suggestion", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs" },
@@ -943,15 +943,37 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
         }
 
         [Fact]
+        public void TwoTermsForHidden()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = silent
+dotnet_diagnostic.cs001.severity = refactoring", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Hidden),
+                    ("cs001", ReportDiagnostic.Hidden)),
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
         public void TwoSettingsDifferentSections()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [test.*]
-dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
+dotnet_diagnostic.cs001.severity = suggestion", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
                 new[] { "/test.cs" },
@@ -972,13 +994,13 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [**/*]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [**test.*]
-dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
+dotnet_diagnostic.cs001.severity = suggestion", "/.editorconfig"));
             configs.Add(Parse(@"
 [**]
-dotnet_diagnostic.cs000.severity = warn
+dotnet_diagnostic.cs000.severity = warning
 
 [test.cs]
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
@@ -1005,10 +1027,10 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [**/*]
-dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs000.severity = none
 
 [**test.cs]
-dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
+dotnet_diagnostic.cs001.severity = suggestion", "/.editorconfig"));
             configs.Add(Parse(@"
 [test.cs]
 dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
@@ -1036,7 +1058,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
+dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
                 new[] { "Z:\\test.cs" },
@@ -1070,13 +1092,38 @@ dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
             {
                 if (expected[i] is null)
                 {
-                    Assert.Null(options[i]);
+                    Assert.NotEqual(default, options[i]);
                 }
                 else
                 {
                     AssertEx.SetEqual(
                         expected[i].Select(KeyValuePair.ToKeyValuePair),
                         options[i].AnalyzerOptions);
+                }
+            }
+        }
+
+        private static void VerifyTreeOptions(
+            (string diagId, ReportDiagnostic severity)[][] expected,
+            AnalyzerConfigOptionsResult[] options)
+        {
+            Assert.Equal(expected.Length, options.Length);
+
+            for (int i = 0; i < expected.Length; i++)
+            {
+                if (expected[i] is null)
+                {
+                    Assert.NotEqual(default, options[i]);
+                }
+                else
+                {
+                    var treeOptions = options[i].TreeOptions;
+                    Assert.Equal(expected[i].Length, treeOptions.Count);
+                    foreach (var item in expected[i])
+                    {
+                        Assert.True(treeOptions.TryGetValue(item.diagId, out var severity));
+                        Assert.Equal(item.severity, severity);
+                    }
                 }
             }
         }
@@ -1100,6 +1147,124 @@ dotnet_diagnostic.cs000.some_key = some_val", "/.editorconfig"));
                     new (string, string) [] { }
                 },
                 options);
+        }
+
+        [Fact]
+        public void NestedAnalyzerOptionsWithRoot()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.bad_key = bad_val", "/.editorconfig"));
+            configs.Add(Parse(@"
+root = true
+
+[*.cs]
+dotnet_diagnostic.cs000.some_key = some_val", "/src/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/src/test.cs", "/src/test.vb", "/root.cs" },
+                configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+                new[] {
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "some_val") },
+                    new (string, string) [] { },
+                    new[] { ("dotnet_diagnostic.cs000.bad_key", "bad_val") }
+               },
+                options);
+        }
+
+        [Fact]
+        public void NestedAnalyzerOptionsWithOverrides()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.some_key = a_val", "/.editorconfig"));
+            configs.Add(Parse(@"
+[test.*]
+dotnet_diagnostic.cs000.some_key = b_val", "/src/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/src/test.cs", "/src/test.vb", "/root.cs" },
+                configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+                new[] {
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "b_val") },
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "b_val") },
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "a_val") }
+               },
+                options);
+        }
+
+        [Fact]
+        public void NestedAnalyzerOptionsWithSectionOverrides()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.some_key = a_val", "/.editorconfig"));
+            configs.Add(Parse(@"
+[test.*]
+dotnet_diagnostic.cs000.some_key = b_val
+
+[*.cs]
+dotnet_diagnostic.cs000.some_key = c_val", "/src/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/src/test.cs", "/src/test.vb", "/root.cs" },
+                configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+                new[] {
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "c_val") },
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "b_val") },
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "a_val") }
+               },
+                options);
+        }
+
+        [Fact]
+        public void NestedBothOptionsWithSectionOverrides()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = warning
+somekey = a_val", "/.editorconfig"));
+            configs.Add(Parse(@"
+[test.*]
+dotnet_diagnostic.cs000.severity = error
+somekey = b_val
+
+[*.cs]
+dotnet_diagnostic.cs000.severity = none
+somekey = c_val", "/src/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/src/test.cs", "/src/test.vb", "/root.cs" },
+                configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+                new[] {
+                    new[] { ("somekey", "c_val") },
+                    new[] { ("somekey", "b_val") },
+                    new[] { ("somekey", "a_val") }
+               }, options);
+
+            VerifyTreeOptions(
+                new[]
+                {
+                    new[] { ("cs000", ReportDiagnostic.Suppress) },
+                    new[] { ("cs000", ReportDiagnostic.Error) },
+                    new[] { ("cs000", ReportDiagnostic.Warn) }
+                }, options);
         }
 
         [Fact]
@@ -1187,7 +1352,7 @@ dotnet_diagnostic.cs000.some_key = some_other_val", "/subdir/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-dotnet_diagnostic..severity = warn
+dotnet_diagnostic..severity = warning
 dotnet_diagnostic..some_key = some_val", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
@@ -1247,7 +1412,7 @@ dotnet_diagnostic.some_key = some_val", "/.editorconfig"));
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [a{-10..0}b{0..10}.cs]
-dotnet_diagnostic.cs000.severity = warn", "/.editorconfig"));
+dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
 
             var options = GetAnalyzerConfigOptions(
                 new[] { "/a0b0.cs", "/test/a-5b5.cs", "/a0b0.vb" },
@@ -1262,6 +1427,32 @@ dotnet_diagnostic.cs000.severity = warn", "/.editorconfig"));
                     ("cs000", ReportDiagnostic.Warn)),
                 SyntaxTree.EmptyDiagnosticOptions
             }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
+        public void DiagnosticIdInstancesAreSharedBetweenMultipleTrees()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/a.cs", "/b.cs", "/c.cs" },
+                configs);
+            configs.Free();
+
+            Assert.Equal("cs000", options[0].TreeOptions.Keys.Single());
+
+            Assert.True(
+                object.ReferenceEquals(
+                    options[0].TreeOptions.Keys.First(),
+                    options[1].TreeOptions.Keys.First()));
+
+            Assert.True(
+                object.ReferenceEquals(
+                    options[1].TreeOptions.Keys.First(),
+                    options[2].TreeOptions.Keys.First()));
         }
 
         #endregion

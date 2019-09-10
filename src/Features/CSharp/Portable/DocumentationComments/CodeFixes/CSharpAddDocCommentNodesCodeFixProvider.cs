@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         /// </summary>
         private const string CS1573 = nameof(CS1573);
 
+        [ImportingConstructor]
+        public CSharpAddDocCommentNodesCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1573);
 
         protected override string NodeName { get; } = "param";

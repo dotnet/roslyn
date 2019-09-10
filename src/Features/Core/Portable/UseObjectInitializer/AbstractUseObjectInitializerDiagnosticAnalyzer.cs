@@ -29,11 +29,10 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
     {
         protected abstract bool FadeOutOperatorToken { get; }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
-                  new LocalizableResourceString(nameof(FeaturesResources.Simplify_object_initialization), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   CodeStyleOptions.PreferObjectInitializer,
+                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_object_initialization), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Object_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
@@ -117,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             foreach (var match in matches)
             {
-                var end = this.FadeOutOperatorToken
+                var end = FadeOutOperatorToken
                     ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
                     : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression).Span.End;
 

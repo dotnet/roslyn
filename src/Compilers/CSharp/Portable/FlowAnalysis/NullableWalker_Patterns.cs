@@ -2,10 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -46,8 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRecursivePattern(BoundRecursivePattern node)
         {
-            VisitAll(node.Deconstruction);
-            VisitAll(node.Properties);
+            Visit(node.DeclaredType);
+            VisitAndUnsplitAll(node.Deconstruction);
+            VisitAndUnsplitAll(node.Properties);
             Visit(node.VariableAccess);
             return null;
         }
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitITuplePattern(BoundITuplePattern node)
         {
-            VisitAll(node.Subpatterns);
+            VisitAndUnsplitAll(node.Subpatterns);
             return null;
         }
 
@@ -160,8 +158,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // visit switch header
             var expressionState = VisitRvalueWithState(node.Expression);
             LocalState initialState = this.State.Clone();
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref initialState);
 
+            DeclareLocals(node.InnerLocals);
+            foreach (var section in node.SwitchSections)
+            {
+                // locals can be alive across jumps in the switch sections, so we declare them early.
+                DeclareLocals(section.Locals);
+            }
+
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref initialState);
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
@@ -174,6 +179,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             labelStateMap.Free();
             return initialState;
+        }
+
+        protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
+        {
+            TakeIncrementalSnapshot(node);
+            SetState(UnreachableState());
+            foreach (var label in node.SwitchLabels)
+            {
+                TakeIncrementalSnapshot(label);
+                VisitPatternForRewriting(label.Pattern);
+                VisitLabel(label.Label, node);
+            }
+
+            VisitStatementList(node);
         }
 
         private PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)>
@@ -229,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         // We may need to recompute the Deconstruct method for a deconstruction if
                                         // the receiver type has changed (e.g. its nested nullability).
                                         var method = e.DeconstructMethod;
-                                        int extensionExtra = method.IsStatic ? 1 : 0;
+                                        int extensionExtra = method.RequiresInstanceReceiver ? 0 : 1;
                                         for (int i = 0; i < method.ParameterCount - extensionExtra; i++)
                                         {
                                             var parameterType = method.Parameters[i + extensionExtra].TypeWithAnnotations;
@@ -263,8 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 break;
                                         }
                                         State[outputSlot] = NullableFlowState.NotNull;
-                                        var outputType = TypeWithState.Create(e.Type, inputState);
-                                        addToTempMap(output, outputSlot, outputType.Type);
+                                        addToTempMap(output, outputSlot, e.Type);
                                         break;
                                     }
                                 case BoundDagFieldEvaluation e:
@@ -373,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(foundTemp);
                             var (tempSlot, tempType) = tempSlotAndType;
                             var tempState = this.State[tempSlot];
-                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol { IsVar: true } local })
+                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local })
                             {
                                 var inferredType = TypeWithState.Create(tempType, tempState).ToTypeWithAnnotations();
                                 if (_variableTypes.TryGetValue(local, out var existingType))
@@ -459,7 +477,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            bool inferType = !node.WasTargetTyped;
+            VisitSwitchExpressionCore(node, inferType);
+            return null;
+        }
+
+        public override BoundNode VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
+        {
+            VisitSwitchExpressionCore(node, inferType: true);
+            return null;
+        }
+
+        private void VisitSwitchExpressionCore(BoundSwitchExpression node, bool inferType)
         {
             // first, learn from any null tests in the patterns
             int slot = MakeSlot(node.Expression);
@@ -480,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 labelStateMap.TryGetValue(node.DefaultLabel, out var defaultLabelState) && defaultLabelState.believedReachable)
             {
                 SetState(defaultLabelState.state);
-                ReportSafetyDiagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, ((SwitchExpressionSyntax)node.Syntax).SwitchKeyword.GetLocation());
+                ReportDiagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, ((SwitchExpressionSyntax)node.Syntax).SwitchKeyword.GetLocation());
             }
 
             // collect expressions, conversions and result types
@@ -493,7 +524,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var arm in node.SwitchArms)
             {
                 SetState(!arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState());
+                // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the snapshot?
+                TakeIncrementalSnapshot(arm);
+                VisitPatternForRewriting(arm.Pattern);
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
+                SnapshotWalkerThroughConversionGroup(arm.Value, expression);
                 expressions.Add(expression);
                 conversions.Add(conversion);
                 var armType = VisitRvalueWithState(expression);
@@ -506,9 +541,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var placeholders = placeholderBuilder.ToImmutableAndFree();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
             TypeSymbol inferredType =
-                BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) ??
-                node.Type.SetUnknownNullabilityForReferenceTypes();
+                (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) : null)
+                    ?? node.Type?.SetUnknownNullabilityForReferenceTypes()
+                    ?? new ExtendedErrorTypeSymbol(this.compilation, "", arity: 0, errorInfo: null, unreported: false);
+
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
 
             // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
@@ -538,13 +576,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             labelStateMap.Free();
             SetState(endState);
             SetResult(node, resultType, inferredTypeWithAnnotations);
-            return null;
         }
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             Debug.Assert(!IsConditionalState);
             LearnFromAnyNullPatterns(node.Expression, node.Pattern);
+            VisitPatternForRewriting(node.Pattern);
             var expressionState = VisitRvalueWithState(node.Expression);
             var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref this.State);
             var trueState = labelStateMap.TryGetValue(node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();

@@ -78,9 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var cacheEntry = GetCacheEntry(filePath);
 
-            return cacheEntry != null
-                ? cacheEntry.Value.ComHandle
-                : null;
+            return cacheEntry?.ComHandle;
         }
 
         public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath, object parent)

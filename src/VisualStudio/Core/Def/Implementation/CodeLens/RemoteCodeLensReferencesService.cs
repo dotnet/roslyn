@@ -18,6 +18,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
     [ExportWorkspaceService(typeof(ICodeLensReferencesService), layer: ServiceLayer.Host), Shared]
     internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesService
     {
+        [ImportingConstructor]
+        public RemoteCodeLensReferencesService()
+        {
+        }
+
         public async Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults,
             CancellationToken cancellationToken)
         {
@@ -141,8 +146,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 var referenceExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
                 var tooltipExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.Tooltip, cancellationToken).ConfigureAwait(false);
 
-                var reference = GetReferenceInfo(referenceExcerpt, descriptor);
-                var referenceTexts = GetReferenceTexts(referenceExcerpt, tooltipExcerpt, descriptor);
+                var (text, start, length) = GetReferenceInfo(referenceExcerpt, descriptor);
+                var (before1, before2, after1, after2) = GetReferenceTexts(referenceExcerpt, tooltipExcerpt, descriptor);
 
                 list.Add(new ReferenceLocationDescriptor(
                     descriptor.LongDescription,
@@ -155,13 +160,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     descriptor.ProjectGuid,
                     descriptor.DocumentGuid,
                     result.FilePath,
-                    reference.text,
-                    reference.start,
-                    reference.length,
-                    referenceTexts.before1,
-                    referenceTexts.before2,
-                    referenceTexts.after1,
-                    referenceTexts.after2));
+                    text,
+                    start,
+                    length,
+                    before1,
+                    before2,
+                    after1,
+                    after2));
             }
 
             return list;

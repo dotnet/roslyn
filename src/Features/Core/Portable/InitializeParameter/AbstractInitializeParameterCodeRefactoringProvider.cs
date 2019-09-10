@@ -10,7 +10,9 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
@@ -28,85 +30,110 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract SyntaxNode GetBody(SyntaxNode functionDeclaration);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
+        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
+            Document document,
+            SyntaxNode functionDeclaration,
+            IMethodSymbol method,
+            IBlockOperation blockStatementOpt,
+            ImmutableArray<SyntaxNode> listOfParameterNodes,
+            TextSpan parameterSpan,
+            CancellationToken cancellationToken);
+
+        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
+            Document document,
+            IParameterSymbol parameter,
+            SyntaxNode functionDeclaration,
+            IMethodSymbol methodSymbol,
+            IBlockOperation blockStatementOpt,
+            CancellationToken cancellationToken);
+
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method,
             SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
 
-        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
-            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
-            IBlockOperation blockStatementOpt, CancellationToken cancellationToken);
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var position = context.Span.Start;
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, textSpan, cancellationToken) = context;
 
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            // TODO: One could try to retrieve TParameterList and then filter out parameters that intersect with
+            // textSpan and use that as `parameterNodes`, where `selectedParameter` would be the first one.
 
-            var token = root.FindToken(position);
-            var parameterNode = GetParameterNode(token, position);
-            if (parameterNode == null)
+            var selectedParameter = await context.TryGetRelevantNodeAsync<TParameterSyntax>().ConfigureAwait(false);
+            if (selectedParameter == null)
             {
                 return;
             }
 
-            // Only offered when there isn't a selection, or the selection exactly selects
-            // a parameter name.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!context.Span.IsEmpty)
-            {
-                var parameterName = syntaxFacts.GetNameOfParameter(parameterNode);
-                if (parameterName == null || parameterName.Value.Span != context.Span)
-                {
-                    return;
-                }
-            }
-
-            var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
-            if (functionDeclaration == null)
+            var functionDeclaration = selectedParameter.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+            if (functionDeclaration is null)
             {
                 return;
             }
 
-            var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
-
-            // Don't offer inside the "=initializer" of a parameter
-            if (parameterDefault?.Span.Contains(position) == true)
-            {
-                return;
-            }
-
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var parameterNodes = generator.GetParameters(functionDeclaration);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            var parameterDefault = syntaxFacts.GetDefaultOfParameter(selectedParameter);
 
             // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
             // so first we have to get the parameter symbol and then its containing method symbol
-            var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
-            if (parameter == null || parameter.Name == "")
+            if (!TryGetParameterSymbol(selectedParameter, semanticModel, out var parameter, cancellationToken))
             {
                 return;
             }
 
-            var method = (IMethodSymbol)parameter.ContainingSymbol;
-            if (method.IsAbstract ||
-                method.IsExtern ||
-                method.PartialImplementationPart != null ||
-                method.ContainingType.TypeKind == TypeKind.Interface)
+            var methodSymbol = (IMethodSymbol)parameter.ContainingSymbol;
+            if (methodSymbol.IsAbstract ||
+                methodSymbol.IsExtern ||
+                methodSymbol.PartialImplementationPart != null ||
+                methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
             {
                 return;
             }
 
             if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
             {
-                // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
+                // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
-                context.RegisterRefactorings(await GetRefactoringsAsync(
-                    document, parameter, functionDeclaration, method, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+                context.RegisterRefactorings(await GetRefactoringsForSingleParameterAsync(
+                    document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+            }
+
+            // List with parameterNodes that pass all checks
+            var listOfPotentiallyValidParametersNodes = ArrayBuilder<SyntaxNode>.GetInstance();
+            foreach (var parameterNode in parameterNodes)
+            {
+                if (!TryGetParameterSymbol(parameterNode, semanticModel, out parameter, cancellationToken))
+                {
+                    return;
+                }
+
+                // Update the list of valid parameter nodes
+                listOfPotentiallyValidParametersNodes.Add(parameterNode);
+            }
+
+            if (listOfPotentiallyValidParametersNodes.Count > 1)
+            {
+                // Looks like we can offer a refactoring for more than one parameter. Defer to subclass to 
+                // actually determine if there are any viable refactorings here.
+                context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
+                    document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes.ToImmutableAndFree(), selectedParameter.Span, cancellationToken).ConfigureAwait(false));
+            }
+
+            static bool TryGetParameterSymbol(
+                SyntaxNode parameterNode,
+                SemanticModel semanticModel,
+                out IParameterSymbol parameter,
+                CancellationToken cancellationToken)
+            {
+                parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+                return parameter.Name != "";
             }
         }
 
-        private bool CanOfferRefactoring(SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out IBlockOperation blockStatementOpt)
+        protected bool CanOfferRefactoring(SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out IBlockOperation blockStatementOpt)
         {
             blockStatementOpt = null;
 
@@ -121,6 +148,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // In order to get the block operation for the body of an anonymous function, we need to
             // get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.
+
             var operation = semanticModel.GetOperation(
                 syntaxFacts.IsAnonymousFunction(functionDeclaration) ? functionDeclaration : functionBody,
                 cancellationToken);
@@ -145,27 +173,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return true;
         }
 
-        private TParameterSyntax GetParameterNode(SyntaxToken token, int position)
-        {
-            var parameterNode = token.Parent?.FirstAncestorOrSelf<TParameterSyntax>();
-            if (parameterNode != null)
-            {
-                return parameterNode;
-            }
-
-            // We may be on the comma of a param list.  Try the position before us.
-            token = token.GetPreviousToken();
-            if (position == token.FullSpan.End)
-            {
-                return token.Parent?.FirstAncestorOrSelf<TParameterSyntax>();
-            }
-
-            return null;
-        }
-
         protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
-            => UnwrapImplicitConversion(operation) is IParameterReferenceOperation parameterReference &&
-               parameter.Equals(parameterReference.Parameter);
+        => UnwrapImplicitConversion(operation) is IParameterReferenceOperation parameterReference &&
+           parameter.Equals(parameterReference.Parameter);
 
         protected static IOperation UnwrapImplicitConversion(IOperation operation)
             => operation is IConversionOperation conversion && conversion.IsImplicit

@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
     Friend Class VisualBasicQualifyMemberAccessCodeFixProvider
         Inherits AbstractQualifyMemberAccessCodeFixprovider(Of SimpleNameSyntax, InvocationExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetTitle() As String
             Return VBFeaturesResources.Add_Me
         End Function

@@ -8,11 +8,11 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exposed by the compiler.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract partial class Symbol : ISymbol, IFormattable
+    internal abstract partial class Symbol : ISymbol, ISymbolInternal, IFormattable
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -191,6 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)sourceModuleSymbol == null ? null : sourceModuleSymbol.DeclaringCompilation;
             }
         }
+
+        Compilation ISymbolInternal.DeclaringCompilation
+            => DeclaringCompilation;
 
         /// <summary>
         /// Returns the module containing this symbol. If this symbol is shared across multiple
@@ -590,15 +593,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)left != (object)right && !right.Equals(left);
         }
 
-        // By default, we do reference equality. This can be overridden.
-        public override bool Equals(object obj)
+        public sealed override bool Equals(object obj)
         {
-            return (object)this == obj;
+            return this.Equals(obj as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
-        public bool Equals(ISymbol other)
+        bool IEquatable<ISymbol>.Equals(ISymbol other)
         {
-            return this.Equals((object)other);
+            return this.Equals(other as Symbol, SymbolEqualityComparer.Default.CompareKind);
+        }
+
+        bool ISymbol.Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+        {
+            return equalityComparer.Equals(this, other);
+        }
+
+        bool ISymbolInternal.Equals(ISymbol other, TypeCompareKind compareKind)
+        {
+            return this.Equals(other as Symbol, compareKind);
+        }
+
+        // By default we don't consider the compareKind, and do reference equality. This can be overridden.
+        public virtual bool Equals(Symbol other, TypeCompareKind compareKind)
+        {
+            return (object)this == other;
         }
 
         // By default, we do reference equality. This can be overridden.
@@ -1157,6 +1175,148 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal void ReportExplicitUseOfNullabilityAttribute(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, AttributeDescription attributeDescription)
+        {
+            // Attribute should not be set explicitly.
+            arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
+        }
+
+        internal virtual byte? GetNullableContextValue()
+        {
+            return GetLocalNullableContextValue() ?? ContainingSymbol?.GetNullableContextValue();
+        }
+
+        internal virtual byte? GetLocalNullableContextValue()
+        {
+            return null;
+        }
+
+        internal void GetCommonNullableValues(CSharpCompilation compilation, ref MostCommonNullableValueBuilder builder)
+        {
+            switch (this.Kind)
+            {
+                case SymbolKind.NamedType:
+                    if (compilation.ShouldEmitNullableAttributes(this))
+                    {
+                        builder.AddValue(this.GetLocalNullableContextValue());
+                    }
+                    break;
+                case SymbolKind.Event:
+                    if (compilation.ShouldEmitNullableAttributes(this))
+                    {
+                        builder.AddValue(((EventSymbol)this).TypeWithAnnotations);
+                    }
+                    break;
+                case SymbolKind.Field:
+                    if (compilation.ShouldEmitNullableAttributes(this))
+                    {
+                        builder.AddValue(((FieldSymbol)this).TypeWithAnnotations);
+                    }
+                    break;
+                case SymbolKind.Method:
+                    if (compilation.ShouldEmitNullableAttributes(this))
+                    {
+                        builder.AddValue(this.GetLocalNullableContextValue());
+                    }
+                    break;
+                case SymbolKind.Property:
+                    if (compilation.ShouldEmitNullableAttributes(this))
+                    {
+                        builder.AddValue(((PropertySymbol)this).TypeWithAnnotations);
+                        // Attributes are not emitted for property parameters.
+                    }
+                    break;
+                case SymbolKind.Parameter:
+                    builder.AddValue(((ParameterSymbol)this).TypeWithAnnotations);
+                    break;
+                case SymbolKind.TypeParameter:
+                    if (this is SourceTypeParameterSymbolBase typeParameter)
+                    {
+                        builder.AddValue(typeParameter.GetSynthesizedNullableAttributeValue());
+                        foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                        {
+                            builder.AddValue(constraintType);
+                        }
+                    }
+                    break;
+            }
+        }
+
+        internal bool ShouldEmitNullableContextValue(out byte value)
+        {
+            byte? localValue = GetLocalNullableContextValue();
+            if (localValue == null)
+            {
+                value = 0;
+                return false;
+            }
+
+            value = localValue.GetValueOrDefault();
+            byte containingValue = ContainingSymbol?.GetNullableContextValue() ?? 0;
+            return value != containingValue;
+        }
+
+        /// <summary>
+        /// True if the symbol is declared outside of the scope of the containing
+        /// symbol
+        /// </summary>
+        internal static bool IsCaptured(Symbol variable, SourceMethodSymbol containingSymbol)
+        {
+            switch (variable.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                // Range variables are not captured, but their underlying parameters
+                // may be. If this is a range underlying parameter it will be a
+                // ParameterSymbol, not a RangeVariableSymbol.
+                case SymbolKind.RangeVariable:
+                    return false;
+
+                case SymbolKind.Local:
+                    if (((LocalSymbol)variable).IsConst)
+                    {
+                        return false;
+                    }
+                    break;
+
+                case SymbolKind.Parameter:
+                    break;
+
+                case SymbolKind.Method:
+                    if (variable is LocalFunctionSymbol localFunction)
+                    {
+                        // calling a static local function doesn't require capturing state
+                        if (localFunction.IsStatic)
+                        {
+                            return false;
+                        }
+
+                        break;
+                    }
+
+                    throw ExceptionUtilities.UnexpectedValue(variable);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(variable.Kind);
+            }
+
+            // Walk up the containing symbols until we find the target function, in which
+            // case the variable is not captured by the target function, or null, in which
+            // case it is.
+            for (var currentFunction = variable.ContainingSymbol;
+                 (object)currentFunction != null;
+                 currentFunction = currentFunction.ContainingSymbol)
+            {
+                if (ReferenceEquals(currentFunction, containingSymbol))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         #region ISymbol Members
 
         public string Language
@@ -1322,6 +1482,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor);
 
         #endregion
+
+        protected static ImmutableArray<TypeWithAnnotations> ConstructTypeArguments(ITypeSymbol[] typeArguments)
+        {
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArguments.Length);
+            foreach (var typeArg in typeArguments)
+            {
+                var type = typeArg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
+                builder.Add(TypeWithAnnotations.Create(type));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        protected static ImmutableArray<TypeWithAnnotations> ConstructTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+        {
+            if (typeArguments.IsDefault)
+            {
+                throw new ArgumentException(nameof(typeArguments));
+            }
+
+            int n = typeArguments.Length;
+            if (!typeArgumentNullableAnnotations.IsDefault && typeArgumentNullableAnnotations.Length != n)
+            {
+                throw new ArgumentException(nameof(typeArgumentNullableAnnotations));
+            }
+
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                var type = typeArguments[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
+                var annotation = typeArgumentNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : typeArgumentNullableAnnotations[i].ToInternalAnnotation();
+                builder.Add(TypeWithAnnotations.Create(type, annotation));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
 
         string IFormattable.ToString(string format, IFormatProvider formatProvider)
         {

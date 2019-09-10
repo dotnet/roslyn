@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     Friend NotInheritable Class VisualBasicIfLikeStatementGenerator
         Implements IIfLikeStatementGenerator
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function IsIfOrElseIf(node As SyntaxNode) As Boolean Implements IIfLikeStatementGenerator.IsIfOrElseIf
             Return TypeOf node Is MultiLineIfBlockSyntax OrElse
                    TypeOf node Is ElseIfBlockSyntax

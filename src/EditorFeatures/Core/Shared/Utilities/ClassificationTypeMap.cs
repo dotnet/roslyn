@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal ClassificationTypeMap(
+        public ClassificationTypeMap(
             IClassificationTypeRegistryService registryService)
         {
             _registryService = registryService;

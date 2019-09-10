@@ -60,16 +60,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.ReferenceTypeConstraintIsNullable; }
         }
 
-        internal override bool? IsNotNullableIfReferenceType
+        public override bool HasNotNullConstraint
+        {
+            get { return _sourceTypeParameter.HasNotNullConstraint; }
+        }
+
+        internal override bool? IsNotNullable
         {
             get
             {
                 if (_sourceTypeParameter.ConstraintTypesNoUseSiteDiagnostics.IsEmpty)
                 {
-                    return _sourceTypeParameter.IsNotNullableIfReferenceType;
+                    return _sourceTypeParameter.IsNotNullable;
                 }
 
-                return CalculateIsNotNullableIfReferenceType();
+                return CalculateIsNotNullable();
             }
         }
 

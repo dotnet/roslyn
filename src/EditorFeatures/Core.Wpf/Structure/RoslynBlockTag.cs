@@ -26,8 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IBlockTag parent,
             ITextSnapshot snapshot,
-            BlockSpan blockSpan) :
-            base(span: blockSpan.TextSpan.ToSnapshotSpan(snapshot),
+            BlockSpan blockSpan)
+            : base(
+                 span: blockSpan.TextSpan.ToSnapshotSpan(snapshot),
                  statementSpan: blockSpan.HintSpan.ToSnapshotSpan(snapshot),
                  parent: parent,
                  type: blockSpan.Type,

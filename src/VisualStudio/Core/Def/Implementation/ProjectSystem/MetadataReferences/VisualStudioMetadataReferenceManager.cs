@@ -321,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
 
             string assemblyDir = null;
-            foreach (string moduleName in manifestModule.GetModuleNames())
+            foreach (var moduleName in manifestModule.GetModuleNames())
             {
                 if (moduleBuilder.Count == 0)
                 {

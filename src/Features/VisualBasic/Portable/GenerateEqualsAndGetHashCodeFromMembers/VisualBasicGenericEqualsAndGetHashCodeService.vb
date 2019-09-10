@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateEqualsAndGetHashCodeFromMem
     Friend Class VisualBasicGenericEqualsAndGetHashCodeService
         Inherits AbstractGenerateEqualsAndGetHashCodeService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function TryWrapWithUnchecked(statements As ImmutableArray(Of SyntaxNode), ByRef wrappedStatements As ImmutableArray(Of SyntaxNode)) As Boolean
             ' VB doesn't support 'unchecked' statements.
             Return False

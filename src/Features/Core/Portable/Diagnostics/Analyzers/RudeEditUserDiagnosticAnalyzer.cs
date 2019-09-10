@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                EditSession session = encService.EditSession;
+                var session = encService.EditSession;
                 if (session == null ||
                     session.BaseSolution.WorkspaceVersion == document.Project.Solution.WorkspaceVersion ||
                     !session.HasProject(document.Project.Id))

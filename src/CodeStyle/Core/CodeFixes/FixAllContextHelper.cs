@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var tree = diagnostic.Location.SourceTree;
             if (tree != null)
             {
-                Document document;
-                if (treeToDocumentsMap.TryGetValue(tree, out document))
+                if (treeToDocumentsMap.TryGetValue(tree, out var document))
                 {
                     return document;
                 }

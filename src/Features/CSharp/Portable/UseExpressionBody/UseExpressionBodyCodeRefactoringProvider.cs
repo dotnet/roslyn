@@ -21,21 +21,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     {
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
+        [ImportingConstructor]
         public UseExpressionBodyCodeRefactoringProvider()
         {
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            if (context.Span.Length > 0)
+            var (document, textSpan, cancellationToken) = context;
+            if (textSpan.Length > 0)
             {
                 return;
             }
 
-            var position = context.Span.Start;
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-
+            var position = textSpan.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindToken(position).Parent;
             if (node == null)
@@ -78,25 +77,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             var document = context.Document;
 
-            bool succeeded = false;
+            var succeeded = false;
             if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: false))
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper,
-                        useExpressionBody: true, cancellationToken: c)));
+                        document, root, declaration, helper,
+                        useExpressionBody: true, cancellationToken: c)),
+                    declaration.Span);
                 succeeded = true;
             }
 
             var (canOffer, _) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false);
             if (canOffer)
             {
-                context.RegisterRefactoring(new MyCodeAction(
-                    helper.UseBlockBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper,
-                        useExpressionBody: false, cancellationToken: c)));
+                context.RegisterRefactoring(
+                    new MyCodeAction(
+                        helper.UseBlockBodyTitle.ToString(),
+                        c => UpdateDocumentAsync(
+                            document, root, declaration, helper,
+                            useExpressionBody: false, cancellationToken: c)),
+                    declaration.Span);
                 succeeded = true;
             }
 
@@ -118,12 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, SyntaxNode declaration,
-            OptionSet options, UseExpressionBodyHelper helper, bool useExpressionBody,
+            UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)
         {
-            var parseOptions = root.SyntaxTree.Options;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var updatedDeclaration = helper.Update(semanticModel, declaration, options, parseOptions, useExpressionBody);
+            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
 
             var parent = declaration is AccessorDeclarationSyntax
                 ? declaration.Parent

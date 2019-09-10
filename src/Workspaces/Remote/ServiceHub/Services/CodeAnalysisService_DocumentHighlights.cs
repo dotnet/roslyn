@@ -17,20 +17,20 @@ namespace Microsoft.CodeAnalysis.Remote
         public Task<IList<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
             DocumentId documentId, int position, DocumentId[] documentIdsToSearch, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 // NOTE: In projection scenarios, we might get a set of documents to search
                 // that are not all the same language and might not exist in the OOP process
                 // (like the JS parts of a .cshtml file). Filter them out here.  This will
                 // need to be revisited if we someday support FAR between these languages.
-                var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId);
                 var documentsToSearch = ImmutableHashSet.CreateRange(
                     documentIdsToSearch.Select(solution.GetDocument).WhereNotNull());
 
                 var service = document.GetLanguageService<IDocumentHighlightsService>();
                 var result = await service.GetDocumentHighlightsAsync(
-                    document, position, documentsToSearch, token).ConfigureAwait(false);
+                    document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
 
                 return (IList<SerializableDocumentHighlights>)result.SelectAsArray(SerializableDocumentHighlights.Dehydrate);
             }, cancellationToken);

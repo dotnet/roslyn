@@ -753,7 +753,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool TypeParameterHasConstraints(ITypeParameterSymbol typeParam)
         {
             return !typeParam.ConstraintTypes.IsEmpty || typeParam.HasConstructorConstraint ||
-                typeParam.HasReferenceTypeConstraint || typeParam.HasValueTypeConstraint;
+                typeParam.HasReferenceTypeConstraint || typeParam.HasValueTypeConstraint ||
+                typeParam.HasNotNullConstraint;
         }
 
         private void AddTypeParameterConstraints(ImmutableArray<ITypeSymbol> typeArguments)
@@ -813,6 +814,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (typeParam.HasValueTypeConstraint)
                             {
                                 AddKeyword(SyntaxKind.StructKeyword);
+                                needComma = true;
+                            }
+                            else if (typeParam.HasNotNullConstraint)
+                            {
+                                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "notnull"));
                                 needComma = true;
                             }
 

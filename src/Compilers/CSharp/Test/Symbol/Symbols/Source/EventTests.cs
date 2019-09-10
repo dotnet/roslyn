@@ -812,6 +812,39 @@ class D
             var eventSymbol = (PEEventSymbol)classSymbol.GetMember("E");
             Assert.Equal("System.Action<System.Object>", eventSymbol.Type.ToTestDisplayString());
         }
+
+        [Fact]
+        public void StaticEventDoesNotRequireInstanceReceiver()
+        {
+            var source = @"using System;
+class C
+{
+    public static event EventHandler E;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (4,38): warning CS0067: The event 'C.E' is never used
+                //     public static event EventHandler E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 38));
+            var eventSymbol = compilation.GetMember<EventSymbol>("C.E");
+            Assert.False(eventSymbol.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstanceEventRequiresInstanceReceiver()
+        {
+            var source = @"using System;
+class C
+{
+    public event EventHandler E;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (4,31): warning CS0067: The event 'C.E' is never used
+                //     public event EventHandler E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
+            var eventSymbol = compilation.GetMember<EventSymbol>("C.E");
+            Assert.True(eventSymbol.RequiresInstanceReceiver);
+        }
+
         #endregion
 
         #region Error cases
@@ -2145,10 +2178,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.IFormattable").WithArguments("<invalid-global-code>.", "System.IFormattable").WithLocation(1, 21),
                 // (1,41): error CS0539: '<invalid-global-code>.' in explicit interface declaration is not a member of interface
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41),
-                // (1,41): error CS0065: '<invalid-global-code>.': event property must have both add and remove accessors
-                // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41));
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

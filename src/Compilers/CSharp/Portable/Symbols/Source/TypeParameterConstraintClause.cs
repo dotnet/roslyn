@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         ObliviousNullabilityIfReferenceType = 0x40,
 
+        NotNull = 0x80,
+
         /// <summary>
         /// All bits involved into describing various aspects of 'class' constraint. 
         /// </summary>

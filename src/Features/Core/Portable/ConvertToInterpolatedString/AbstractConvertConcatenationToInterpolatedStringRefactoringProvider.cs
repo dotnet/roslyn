@@ -15,44 +15,39 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
     /// <summary>
-    /// Code refactoring that converts expresions of the form:  a + b + " str " + d + e
+    /// Code refactoring that converts expressions of the form:  a + b + " str " + d + e
     /// into:
     ///     $"{a + b} str {d}{e}".
     /// </summary>
-    internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
+        where TExpressionSyntax : SyntaxNode
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            // Currently only supported if there is no selection, to prevent possible confusion when
-            // selecting part of what would become an interpolated string
-            if (context.Span.Length > 0)
-            {
-                return;
-            }
-
-            var cancellationToken = context.CancellationToken;
-
-            var document = context.Document;
-            var position = context.Span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
+            var (document, textSpan, cancellationToken) = context;
+            var possibleExpressions = await context.GetRelevantNodesAsync<TExpressionSyntax>().ConfigureAwait(false);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // The selected token has to at least be contained in a concatenation of some form.
-            // i.e.  "goo" + a      or    3 + 1 + "goo".  However, those concats could be in larger
-            // concats as well.  Walk to the top of that entire chain.
-            var selectedExpression = token.Parent;
-            var top = selectedExpression;
-            while (IsStringConcat(syntaxFacts, top.Parent, semanticModel, cancellationToken))
+            // let's take the largest (last) StringConcat we can given current textSpan
+            var top = possibleExpressions
+                .Where(expr => IsStringConcat(syntaxFacts, expr, semanticModel, cancellationToken))
+                .LastOrDefault();
+
+            if (top == null)
             {
-                top = top.Parent;
+                return;
             }
 
-            if (top == selectedExpression && !IsStringConcat(syntaxFacts, top, semanticModel, cancellationToken))
+            // Currently we can concatenate only full subtrees. Therefore we can't support arbitrary selection. We could
+            // theoretically support selecting the selections that correspond to full sub-trees (e.g. prefixes of 
+            // correct length but from UX point of view that it would feel arbitrary). 
+            // Thus, we only support selection that takes the whole topmost expression. It breaks some leniency around under-selection
+            // but it's the best solution so far.
+            if (CodeRefactoringHelpers.IsNodeUnderselected(top, textSpan) ||
+                IsStringConcat(syntaxFacts, top.Parent, semanticModel, cancellationToken))
             {
-                // We weren't in a concatenation at all.
                 return;
             }
 
@@ -61,7 +56,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var pieces = new List<SyntaxNode>();
             CollectPiecesDown(syntaxFacts, pieces, top, semanticModel, cancellationToken);
 
-            var stringLiterals = pieces.Where(syntaxFacts.IsStringLiteralExpression).ToImmutableArray();
+            var stringLiterals = pieces
+                .Where(x => syntaxFacts.IsStringLiteralExpression(x) || syntaxFacts.IsCharacterLiteralExpression(x))
+                .ToImmutableArray();
 
             // If the entire expression is just concatenated strings, then don't offer to
             // make an interpolated string.  The user likely manually split this for
@@ -89,12 +86,15 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 }
             }
 
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var interpolatedString = CreateInterpolatedString(document, isVerbatimStringLiteral, pieces);
-            context.RegisterRefactoring(new MyCodeAction(
-                c => UpdateDocumentAsync(document, root, top, interpolatedString, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    _ => UpdateDocumentAsync(document, root, top, interpolatedString)),
+                top.Span);
         }
 
-        private Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString, CancellationToken c)
+        private Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString)
         {
             var newRoot = root.ReplaceNode(top, interpolatedString);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
@@ -114,12 +114,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var previousContentWasStringLiteralExpression = false;
             foreach (var piece in pieces)
             {
-                var currentContentIsStringLiteral = syntaxFacts.IsStringLiteralExpression(piece);
-                if (currentContentIsStringLiteral)
+                var isCharacterLiteral = syntaxFacts.IsCharacterLiteralExpression(piece);
+                var currentContentIsStringOrCharacterLiteral = syntaxFacts.IsStringLiteralExpression(piece) || isCharacterLiteral;
+                if (currentContentIsStringOrCharacterLiteral)
                 {
                     var text = piece.GetFirstToken().Text;
                     var textWithEscapedBraces = text.Replace("{", "{{").Replace("}", "}}");
-                    var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, isVerbatimStringLiteral);
+                    var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, isVerbatimStringLiteral, isCharacterLiteral);
                     if (previousContentWasStringLiteralExpression)
                     {
                         // Last part we added to the content list was also an interpolated-string-text-node.
@@ -145,8 +146,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     content.Add(generator.Interpolation(piece.WithoutTrivia()));
                 }
                 // Update this variable to be true every time we encounter a new string literal expression
-                // so we know to concatinate future string literals together if we encounter them.
-                previousContentWasStringLiteralExpression = currentContentIsStringLiteral;
+                // so we know to concatenate future string literals together if we encounter them.
+                previousContentWasStringLiteralExpression = currentContentIsStringOrCharacterLiteral;
             }
 
             return generator.InterpolatedStringExpression(startToken, content, endToken);
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(newText));
         }
 
-        protected abstract string GetTextWithoutQuotes(string text, bool isVerbatimStringLiteral);
+        protected abstract string GetTextWithoutQuotes(string text, bool isVerbatimStringLiteral, bool isCharacterLiteral);
         protected abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatimStringLiteral);
         protected abstract SyntaxToken CreateInterpolatedStringEndToken();
 

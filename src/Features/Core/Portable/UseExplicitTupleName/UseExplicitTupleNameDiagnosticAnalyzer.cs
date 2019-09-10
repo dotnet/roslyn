@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 
         public UseExplicitTupleNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_explicitly_provided_tuple_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Prefer_explicitly_provided_tuple_element_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   CodeStyleOptions.PreferExplicitTupleNames,
+                   title: new LocalizableResourceString(nameof(FeaturesResources.Use_explicitly_provided_tuple_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Prefer_explicitly_provided_tuple_element_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             var field = fieldReferenceOperation.Field;
             if (field.ContainingType.IsTupleType)
             {
-                if (field.CorrespondingTupleField.Equals(field))
+                if (field.CorrespondingTupleField?.Equals(field) == true)
                 {
                     var namedField = GetNamedField(field.ContainingType, field, cancellationToken);
                     if (namedField != null)

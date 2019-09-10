@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class BasicLinkedFileMergeConflictCommentAdditionService
         Inherits AbstractLinkedFileMergeConflictCommentAdditionService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Friend Overrides Function GetConflictCommentText(header As String, beforeString As String, afterString As String) As String
             If beforeString Is Nothing AndAlso afterString Is Nothing Then
                 Return Nothing

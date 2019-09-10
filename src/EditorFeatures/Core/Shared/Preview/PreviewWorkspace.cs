@@ -68,6 +68,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             this.OnAdditionalDocumentOpened(documentId, text.Container);
         }
 
+        public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
+        {
+            var document = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
+            var text = document.GetTextSynchronously(CancellationToken.None);
+
+            this.OnAnalyzerConfigDocumentOpened(documentId, text.Container);
+        }
+
         public override void CloseDocument(DocumentId documentId)
         {
             var document = this.CurrentSolution.GetDocument(documentId);
@@ -84,6 +92,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             var version = document.GetTextVersionSynchronously(CancellationToken.None);
 
             this.OnAdditionalDocumentClosed(documentId, TextLoader.From(TextAndVersion.Create(text, version)));
+        }
+
+        public override void CloseAnalyzerConfigDocument(DocumentId documentId)
+        {
+            var document = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
+            var text = document.GetTextSynchronously(CancellationToken.None);
+            var version = document.GetTextVersionSynchronously(CancellationToken.None);
+
+            this.OnAnalyzerConfigDocumentClosed(documentId, TextLoader.From(TextAndVersion.Create(text, version)));
         }
 
         protected override void Dispose(bool finalize)

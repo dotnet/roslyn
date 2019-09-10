@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -313,6 +310,93 @@ class C
     }
 }";
             CompileAndVerify(source, expectedOutput: "A");
+        }
+
+        [Fact, WorkItem(14965, "https://github.com/dotnet/roslyn/issues/14965")]
+        public void TestThrowConvertedValue()
+        {
+            var source = @"
+class C
+{
+    static void M(X x)
+    {
+        throw x;
+    }
+}
+class X
+{
+    public static implicit operator System.NullReferenceException(X x) => new System.NullReferenceException();
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         throw x;
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "x").WithLocation(6, 15)
+                );
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyDiagnostics();
+
+            compilation.VerifyIL("C.M",
+@"{
+    // Code size        7 (0x7)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  call       ""System.NullReferenceException X.op_Implicit(X)""
+    IL_0006:  throw
+}");
+        }
+
+        [Fact]
+        public void TestThrowSwitchedValue()
+        {
+            var source = @"
+class C
+{
+    static void M(bool c)
+    {
+        throw c switch { true => new System.NullReferenceException(), false => new System.ArgumentException() };
+    }
+}
+";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyDiagnostics();
+
+            compilation.VerifyIL("C.M",
+@"
+{
+    // Code size       19 (0x13)
+    .maxstack  1
+    .locals init (System.Exception V_0)
+    IL_0000:  ldarg.0
+    IL_0001:  brfalse.s  IL_000b
+    IL_0003:  newobj     ""System.NullReferenceException..ctor()""
+    IL_0008:  stloc.0
+    IL_0009:  br.s       IL_0011
+    IL_000b:  newobj     ""System.ArgumentException..ctor()""
+    IL_0010:  stloc.0
+    IL_0011:  ldloc.0
+    IL_0012:  throw
+}
+");
+        }
+
+        [Fact]
+        public void TestThrowTypeParameter()
+        {
+            var source = @"
+class C
+{
+    static void M<T>(T t)
+    {
+        throw t;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,15): error CS0029: Cannot implicitly convert type 'T' to 'System.Exception'
+                //         throw t;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "System.Exception").WithLocation(6, 15)
+                );
         }
     }
 }

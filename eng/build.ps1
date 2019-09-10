@@ -42,6 +42,7 @@ param (
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
+  [switch]$sourceBuild = $false,
 
   # official build settings
   [string]$officialBuildId = "",
@@ -102,6 +103,7 @@ function Print-Usage() {
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
+  Write-Host "  -sourceBuild              Simulate building source-build"
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                            An official build id, e.g. 20190102.3"
@@ -222,14 +224,21 @@ function BuildSolution() {
   # Do not set this property to true explicitly, since that would override values set in projects.
   $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
+  # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
+  # that MSBuild output as well as ones that custom tasks output. This causes problems for us as 
+  # portions of our build will issue warnings: style analyzers being the most prominent example. Hence
+  # rather than a blanket include of warnings we include a fixed set.
+  #
+  # In all cases we pass /p:TreatWarningsAsErrors=true to promote compiler warnings to errors
+  $msbuildWarnAsError = if ($warnAsError) { "/warnAsError:MSB3270,MSB3277" } else { "" }
+
   # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
   $ibcDir = Join-Path $RepoRoot ".o%5c"
 
+  # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
+  $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
+
   try {
-    # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
-    # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
-    # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
-    # Warnings reported from other msbuild tasks are not treated as errors for now.
     MSBuild $toolsetBuildProj `
       $bl `
       /p:Configuration=$configuration `
@@ -253,6 +262,8 @@ function BuildSolution() {
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
       $suppressExtensionDeployment `
+      $msbuildWarnAsError `
+      $buildFromSource `
       @properties
   }
   finally {
@@ -378,6 +389,7 @@ function TestUsingOptimizedRunner() {
     }
 
     $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
+    $args += " -testVsi"
   } else {
     $dlls = Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir
     $args += " -trait:Feature=NetCore"
@@ -424,6 +436,22 @@ function TestUsingOptimizedRunner() {
       Remove-Item env:\ROSLYN_TEST_LEGACY_COMPLETION
     }
   }
+}
+
+function EnablePreviewSdks() {
+  $vsInfo = LocateVisualStudio
+  if ($vsInfo -eq $null) {
+    # Preview SDKs are allowed when no Visual Studio instance is installed
+    return
+  }
+
+  $vsId = $vsInfo.instanceId
+  $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+
+  $instanceDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsId"
+  Create-Directory $instanceDir
+  $sdkFile = Join-Path $instanceDir "sdk.txt"
+  'UsePreviews=True' | Set-Content $sdkFile
 }
 
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
@@ -580,6 +608,7 @@ try {
   if ($ci) {
     List-Processes
     Prepare-TempDir
+    EnablePreviewSdks
     if ($testVsi) {
       Setup-IntegrationTestRun 
     }
@@ -592,8 +621,16 @@ try {
     InstallDotNetSdk $global:_DotNetInstallDir "2.1.503"
   }
 
-  if ($bootstrap) {
-    $bootstrapDir = Make-BootstrapBuild -force32:$test32
+  try
+  {
+    if ($bootstrap) {
+      $bootstrapDir = Make-BootstrapBuild -force32:$test32
+    }
+  }
+  catch
+  {
+    echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
+    throw $_
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
@@ -604,8 +641,16 @@ try {
     SetVisualStudioBootstrapperBuildArgs
   }
 
-  if ($testDesktop -or $testVsi -or $testIOperation) {
-    TestUsingOptimizedRunner
+  try
+  {
+    if ($testDesktop -or $testVsi -or $testIOperation) {
+      TestUsingOptimizedRunner
+    }
+  }
+  catch
+  {
+    echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
+    throw $_
   }
 
   if ($launch) {

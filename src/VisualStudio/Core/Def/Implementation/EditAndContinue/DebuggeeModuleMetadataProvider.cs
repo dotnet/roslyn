@@ -56,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
         private readonly DebuggeeModuleInfoCache _baselineMetadata;
 
+        [ImportingConstructor]
         public DebuggeeModuleMetadataProvider()
         {
             _baselineMetadata = new DebuggeeModuleInfoCache();

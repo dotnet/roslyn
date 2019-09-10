@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     catch (COMException)
                     {
                         // Devenv can throw COMExceptions if it's busy when we make DTE calls.
-                        return default(T);
+                        return default;
                     }
                 },
                 delay,
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     }
                     catch (Exception)
                     {
-                        return default(T);
+                        return default;
                     }
                 },
                 delay,

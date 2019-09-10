@@ -107,6 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields for the captured variables of the method
             var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(F.Compilation, method, body, diagnostics);
 
+            if (diagnostics.HasAnyErrors())
+            {
+                // Avoid triggering assertions in further lowering.
+                return new BoundBadStatement(F.Syntax, ImmutableArray<BoundNode>.Empty, hasErrors: true);
+            }
+
             CreateNonReusableLocalProxies(variablesToHoist, out this.nonReusableLocalProxies, out this.nextFreeHoistedLocalSlot);
 
             this.hoistedVariables = variablesToHoist;
@@ -175,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // EnC: When emitting the baseline (gen 0) the id is stored in a custom debug information attached to the kickoff method.
                             //      When emitting a delta the id is only used to map to the existing field in the previous generation.
                             SyntaxNode declaratorSyntax = local.GetDeclaratorSyntax();
-                            int syntaxOffset = this.method.CalculateLocalSyntaxOffset(declaratorSyntax.SpanStart, declaratorSyntax.SyntaxTree);
+                            int syntaxOffset = method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(declaratorSyntax), declaratorSyntax.SyntaxTree);
                             int ordinal = synthesizedLocalOrdinals.AssignLocalOrdinal(synthesizedKind, syntaxOffset);
                             id = new LocalDebugId(syntaxOffset, ordinal);
 

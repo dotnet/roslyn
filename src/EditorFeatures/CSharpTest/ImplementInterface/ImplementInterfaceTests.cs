@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
@@ -334,6 +335,63 @@ class Class : IInterface
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task NoNullableAttributesInMethodFromMetadata()
+        {
+            var initial = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" CommonReferences=""true"">
+            <Document>
+#nullable enable
+
+public interface IInterface
+{
+    void M(string? s1, string s2);
+    string this[string? s1, string s2] { get; set; }
+}
+            </Document>
+        </MetadataReferenceFromSource>
+        <Document>
+#nullable enable
+
+using System;
+
+class C : [|IInterface|]
+{
+}</Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C : IInterface
+{
+    public string this[string? s1, string s2]
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public void M(string? s1, string s2)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6035,6 +6093,56 @@ class C : I
             await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementationOfIndexerWithInaccessibleAttributes()
+        {
+            var initial = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+internal class ShouldBeRemovedAttribute : Attribute { }
+public interface I
+{
+    string this[[ShouldBeRemovedAttribute] int i] { get; set; }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+using System;
+
+class C : [|I|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+using System;
+
+class C : I
+{
+    public string this[int i]
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+        ";
+
+            await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
+        }
+
 #if false
         [WorkItem(13677)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -7869,6 +7977,161 @@ abstract class Class : IInterface
     public abstract void Method1();
 }",
 index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNotNullConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"public interface ITest
+{
+    void M<T>() where T : notnull;
+}
+public class Test : [|ITest|]
+{
+}",
+@"public interface ITest
+{
+    void M<T>() where T : notnull;
+}
+public class Test : ITest
+{
+    public void M<T>() where T : notnull
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : ITest
+{
+    public string? P => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullablePropertyAlreadyImplemented()
+        {
+            await TestMissingAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+public class Test : [|ITest|]
+{
+    public string? P => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P();
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P();
+}
+public class Test : ITest
+{
+    public string? P()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableEvent()
+        {
+            // Question whether this is needed,
+            // see https://github.com/dotnet/roslyn/issues/36673 
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+using System;
+
+public interface ITest
+{
+    event EventHandler? SomeEvent;
+}
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+using System;
+
+public interface ITest
+{
+    event EventHandler? SomeEvent;
+}
+public class Test : ITest
+{
+    public event EventHandler? SomeEvent;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithNullableDisabled()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+
+#nullable disable
+
+public class Test : [|ITest|]
+{
+}",
+@"#nullable enable 
+
+public interface ITest
+{
+    string? P { get; }
+}
+
+#nullable disable
+
+public class Test : ITest
+{
+    public string P => throw new System.NotImplementedException();
+}");
         }
     }
 }

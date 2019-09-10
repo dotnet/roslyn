@@ -31,10 +31,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var nestedHierarchy = hierarchyItem.HierarchyIdentity.NestedHierarchy;
             var nestedHierarchyId = hierarchyItem.HierarchyIdentity.NestedItemID;
 
-            if (!nestedHierarchy.TryGetCanonicalName(nestedHierarchyId, out string nestedCanonicalName)
-                || !nestedHierarchy.TryGetItemName(nestedHierarchyId, out string nestedName))
+            if (!nestedHierarchy.TryGetCanonicalName(nestedHierarchyId, out var nestedCanonicalName)
+                || !nestedHierarchy.TryGetItemName(nestedHierarchyId, out var nestedName))
             {
-                projectId = default(ProjectId);
+                projectId = default;
                 return false;
             }
 
@@ -64,8 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var hierarchy = _workspace.GetHierarchy(p.Id);
 
                     if (hierarchy != null
-                        && hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
-                        && hierarchy.TryGetItemName((uint)VSConstants.VSITEMID.Root, out string projectName)
+                        && hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out var projectCanonicalName)
+                        && hierarchy.TryGetItemName((uint)VSConstants.VSITEMID.Root, out var projectName)
                         && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase)
                         && projectName.Equals(nestedName))
                     {
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                             return true;
                         }
 
-                        return hierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out string projectTargetFrameworkMoniker)
+                        return hierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var projectTargetFrameworkMoniker)
                             && projectTargetFrameworkMoniker.Equals(targetFrameworkMoniker);
                     }
 
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            projectId = default(ProjectId);
+            projectId = default;
             return false;
         }
     }

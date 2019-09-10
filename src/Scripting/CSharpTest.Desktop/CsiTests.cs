@@ -148,7 +148,7 @@ throw new Exception(""Error!"");
             Assert.True(result.ContainsErrors);
             AssertEx.AssertEqualToleratingWhitespaceDifferences("OK", result.Output);
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Error!
+System.Exception: Error!
    + <Initialize>.MoveNext(){string.Format(ScriptingResources.AtFileLine, $"{cwd}{Path.DirectorySeparatorChar}a.csx", "2")}
 ", result.Errors);
         }

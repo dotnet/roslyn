@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using static Microsoft.CodeAnalysis.CSharp.Symbols.FlowAnalysisAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -9,42 +8,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal enum FlowAnalysisAnnotations
     {
         None = 0,
-        NotNullWhenTrue = 1 << 0,
-        NotNullWhenFalse = 1 << 1,
-        EnsuresNotNull = NotNullWhenTrue | NotNullWhenFalse,
-        AssertsTrue = 1 << 2,
-        AssertsFalse = 1 << 3,
-    }
-
-    internal static class FlowAnalysisAnnotationsFacts
-    {
-        /// <summary>
-        /// For EnsuresNotNull, you should set NotNullWhenTrue and NotNullWhenFalse.
-        /// </summary>
-        internal static FlowAnalysisAnnotations Create(bool notNullWhenTrue, bool notNullWhenFalse, bool assertsTrue, bool assertsFalse)
-        {
-            FlowAnalysisAnnotations value = None;
-            if (notNullWhenFalse)
-            {
-                value |= NotNullWhenFalse;
-            }
-
-            if (notNullWhenTrue)
-            {
-                value |= NotNullWhenTrue;
-            }
-
-            if (assertsTrue)
-            {
-                value |= AssertsTrue;
-            }
-
-            if (assertsFalse)
-            {
-                value |= AssertsFalse;
-            }
-
-            return value;
-        }
+        AllowNull = 1 << 0,
+        DisallowNull = 1 << 1,
+        MaybeNullWhenTrue = 1 << 2,
+        MaybeNullWhenFalse = 1 << 3,
+        MaybeNull = MaybeNullWhenTrue | MaybeNullWhenFalse,
+        NotNullWhenTrue = 1 << 4,
+        NotNullWhenFalse = 1 << 5,
+        NotNull = NotNullWhenTrue | NotNullWhenFalse,
+        DoesNotReturnIfFalse = 1 << 6,
+        DoesNotReturnIfTrue = 1 << 7,
+        DoesNotReturn = DoesNotReturnIfTrue | DoesNotReturnIfFalse,
     }
 }

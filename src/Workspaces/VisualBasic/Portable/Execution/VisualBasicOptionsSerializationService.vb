@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
     Friend Class VisualBasicOptionsSerializationService
         Inherits AbstractOptionsSerializationService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Sub WriteTo(options As CompilationOptions, writer As ObjectWriter, cancellationToken As CancellationToken)
             WriteCompilationOptionsTo(options, writer, cancellationToken)
 

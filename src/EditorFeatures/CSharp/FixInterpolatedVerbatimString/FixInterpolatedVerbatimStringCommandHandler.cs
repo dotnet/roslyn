@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
     [Name(nameof(FixInterpolatedVerbatimStringCommandHandler))]
     internal sealed class FixInterpolatedVerbatimStringCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
+        [ImportingConstructor]
+        public FixInterpolatedVerbatimStringCommandHandler()
+        {
+        }
+
         public string DisplayName => CSharpEditorResources.Fix_interpolated_verbatim_string;
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)

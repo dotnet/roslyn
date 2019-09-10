@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 // 'write' operation is 'null' for the initial write of the parameter,
                 // which may be from the caller's argument or parameter initializer.
-                if (kvp.Key.write == null && kvp.Key.symbol == parameter)
+                if (kvp.Key.write == null && Equals(kvp.Key.symbol, parameter))
                 {
                     return kvp.Value;
                 }
@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         /// </summary>
         public int GetSymbolWriteCount(ISymbol symbol)
         {
-            int count = 0;
+            var count = 0;
             foreach (var kvp in SymbolWritesMap)
             {
-                if (kvp.Key.symbol == symbol)
+                if (Equals(kvp.Key.symbol, symbol))
                 {
                     count++;
                 }

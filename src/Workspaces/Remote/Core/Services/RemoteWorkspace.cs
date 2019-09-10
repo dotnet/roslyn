@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Remote
         // guard to make sure host API doesn't run concurrently
         private readonly object _gate = new object();
 
+        // this is used to make sure we never move remote workspace backward.
+        // this version is the WorkspaceVersion of primary solution in client (VS) we are
+        // currently caching
+        private int _currentRemoteWorkspaceVersion = -1;
+
         public RemoteWorkspace()
             : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteWorkspace)
         {
@@ -67,20 +72,9 @@ namespace Microsoft.CodeAnalysis.Remote
         public override bool CanOpenDocuments => true;
 
         /// <summary>
-        /// Clears all projects and documents from the workspace.
-        /// </summary>
-        public new void ClearSolution()
-        {
-            lock (_gate)
-            {
-                base.ClearSolution();
-            }
-        }
-
-        /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.
         /// </summary>
-        public Solution AddSolution(SolutionInfo solutionInfo)
+        public bool TryAddSolutionIfPossible(SolutionInfo solutionInfo, int workspaceVersion, out Solution solution)
         {
             if (solutionInfo == null)
             {
@@ -89,16 +83,31 @@ namespace Microsoft.CodeAnalysis.Remote
 
             lock (_gate)
             {
+                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
+                {
+                    // we never move workspace backward
+                    solution = null;
+                    return false;
+                }
+
+                // set initial solution version
+                _currentRemoteWorkspaceVersion = workspaceVersion;
+
+                // clear previous solution data if there is one
+                // it is required by OnSolutionAdded
+                this.ClearSolutionData();
+
                 this.OnSolutionAdded(solutionInfo);
 
-                return this.CurrentSolution;
+                solution = this.CurrentSolution;
+                return true;
             }
         }
 
         /// <summary>
         /// update primary solution
         /// </summary>
-        public Solution UpdateSolution(Solution solution)
+        public Solution UpdateSolutionIfPossible(Solution solution, int workspaceVersion)
         {
             if (solution == null)
             {
@@ -107,6 +116,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
             lock (_gate)
             {
+                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
+                {
+                    // we never move workspace backward
+                    return solution;
+                }
+
+                // move version forward
+                _currentRemoteWorkspaceVersion = workspaceVersion;
+
                 var oldSolution = this.CurrentSolution;
                 Contract.ThrowIfFalse(oldSolution.Id == solution.Id && oldSolution.FilePath == solution.FilePath);
 

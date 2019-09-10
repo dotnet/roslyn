@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax>
     {
+        [ImportingConstructor]
+        public CSharpMoveDeclarationNearReferenceService()
+        {
+        }
+
         protected override bool IsMeaningfulBlock(SyntaxNode node)
         {
             return node is AnonymousFunctionExpressionSyntax ||

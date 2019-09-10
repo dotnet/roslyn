@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return DiagnosticData.Create(project, diagnostic);
+            return DiagnosticData.Create(project.Solution.Workspace, diagnostic, project.Id);
         }
 
         public static async Task<ImmutableArray<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)

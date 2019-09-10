@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddParameter
@@ -33,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
         private static readonly ImmutableArray<string> AddParameterFixableDiagnosticIds = ImmutableArray.Create(
             CS1501, CS1503, CS1660, CS1729, CS1739,
             IDEDiagnosticIds.UnboundConstructorId);
+
+        [ImportingConstructor]
+        public CSharpAddParameterCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => AddParameterFixableDiagnosticIds;

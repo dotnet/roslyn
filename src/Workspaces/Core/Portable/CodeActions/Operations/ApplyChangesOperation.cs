@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal override bool TryApply(
             Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            workspace.TryApplyChanges(ChangedSolution, progressTracker);
-            return true;
+            return workspace.TryApplyChanges(ChangedSolution, progressTracker);
         }
     }
 }

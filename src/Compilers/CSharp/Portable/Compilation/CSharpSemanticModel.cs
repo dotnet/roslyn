@@ -152,6 +152,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal abstract CSharpTypeInfo GetTypeInfoWorker(CSharpSyntaxNode node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Binds the provided expression in the given context.
+        /// </summary>
+        /// <param name="position">The position to bind at.</param>
+        /// <param name="expression">The expression to bind</param>
+        /// <param name="bindingOption">How to speculatively bind the given expression. If this is <see cref="SpeculativeBindingOption.BindAsTypeOrNamespace"/>
+        /// then the provided expression should be a <see cref="TypeSyntax"/>.</param>
+        /// <param name="binder">The binder that was used to bind the given syntax.</param>
+        /// <param name="crefSymbols">The symbols used in a cref. If this is not default, then the return is null.</param>
+        /// <returns>The expression that was bound. If <paramref name="crefSymbols"/> is not default, this is null.</returns>
+        internal abstract BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols);
+
+        /// <summary>
         /// Gets a list of method or indexed property symbols for a syntax node. This is overridden by various specializations of SemanticModel.
         /// It can assume that CheckSyntaxNode and CanGetSemanticInfo have already been called, as well as that named
         /// argument nodes have been handled.
@@ -261,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Keep in sync with Binder.BindCrefParameterOrReturnType.
         /// </remarks>
-        private BoundExpression GetSpeculativelyBoundExpression(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
+        protected BoundExpression GetSpeculativelyBoundExpressionWithoutNullability(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption, out Binder binder, out ImmutableArray<Symbol> crefSymbols)
         {
             if (expression == null)
             {
@@ -1556,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol containingType = (TypeSymbol)container;
                     foreach (MethodSymbol extensionMethod in lookupResult.Symbols)
                     {
-                        var reduced = extensionMethod.ReduceExtensionMethod(containingType);
+                        var reduced = extensionMethod.ReduceExtensionMethod(containingType, Compilation);
                         if ((object)reduced != null)
                         {
                             results.Add(reduced);
@@ -1950,12 +1962,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 break;
                             }
-                        case BoundConvertedTupleLiteral tupleLiteral:
+                        case BoundConvertedTupleLiteral { SourceTuple: BoundTupleLiteral original }:
                             {
-                                // The bound tree always fully binds tuple literals. From the language point of
+                                // The bound tree fully binds tuple literals. From the language point of
                                 // view, however, converted tuple literals represent tuple conversions
                                 // from tuple literal expressions which may or may not have types
-                                type = tupleLiteral.NaturalTypeOpt;
+                                type = original.Type;
                                 break;
                             }
                     }
@@ -1987,7 +1999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (tupleLiteralConversion.Operand.Kind == BoundKind.ConvertedTupleLiteral)
                     {
                         var convertedTuple = (BoundConvertedTupleLiteral)tupleLiteralConversion.Operand;
-                        type = convertedTuple.NaturalTypeOpt;
+                        type = convertedTuple.SourceTuple.Type;
                         nullability = convertedTuple.TopLevelNullability;
                     }
                     else
@@ -3007,9 +3019,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LocalSymbol local = foreachBinder.GetDeclaredLocalsForScope(forEachStatement).FirstOrDefault();
             return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable)
-                ? local
+                ? GetAdjustedLocalSymbol(local, forEachStatement.SpanStart)
                 : null;
         }
+
+        /// <summary>
+        /// Given a local symbol, gets an updated version of that local symbol adjusted for nullability analysis
+        /// if the analysis affects the local.
+        /// </summary>
+        /// <param name="originalSymbol">The original symbol from initial binding.</param>
+        /// <param name="position">The position the local was declared at.</param>
+        /// <returns>The nullability-adjusted local, or the original symbol if the nullability analysis made no adjustments or was not run.</returns>
+        internal abstract LocalSymbol GetAdjustedLocalSymbol(LocalSymbol originalSymbol, int position);
 
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
@@ -3165,7 +3186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            symbols = StaticCast<Symbol>.From(CreateReducedExtensionMethodsFromOriginalsIfNecessary(call));
+                            symbols = StaticCast<Symbol>.From(CreateReducedExtensionMethodsFromOriginalsIfNecessary(call, Compilation));
                             resultKind = call.ResultKind;
                         }
                     }
@@ -3200,6 +3221,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols = ImmutableArray.Create<Symbol>(methodSymbol);
                         resultKind = eventAssignment.ResultKind;
                     }
+                    break;
+
+                case BoundKind.EventAccess when boundNodeForSyntacticParent is BoundEventAssignmentOperator { ResultKind: LookupResultKind.Viable } parentOperator &&
+                                                boundNode.ExpressionSymbol is Symbol accessSymbol &&
+                                                boundNode != parentOperator.Argument &&
+                                                parentOperator.Event.Equals(accessSymbol, TypeCompareKind.AllNullableIgnoreOptions):
+                    // When we're looking at the left-hand side of an event assignment, we synthesize a BoundEventAccess node. This node does not have
+                    // nullability information, however, so if we're in that case then we need to grab the event symbol from the parent event assignment
+                    // which does have the nullability-reinfered symbol
+                    symbols = ImmutableArray.Create<Symbol>(parentOperator.Event);
+                    resultKind = parentOperator.ResultKind;
                     break;
 
                 case BoundKind.Conversion:
@@ -3952,7 +3984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 resultKind = call.ResultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
-                                symbols = StaticCast<Symbol>.From(CreateReducedExtensionMethodsFromOriginalsIfNecessary(call));
+                                symbols = StaticCast<Symbol>.From(CreateReducedExtensionMethodsFromOriginalsIfNecessary(call, Compilation));
                             }
                         }
                         break;
@@ -4253,7 +4285,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new SingleLookupResult(node.ResultKind, method, node.LookupError),
                         typeArguments,
                         null,
-                        ref resultKind);
+                        ref resultKind,
+                        binder.Compilation);
                 }
             }
             else
@@ -4267,7 +4300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new SingleLookupResult(node.ResultKind, otherSymbol, node.LookupError),
                         typeArguments,
                         null,
-                        ref resultKind);
+                        ref resultKind,
+                        binder.Compilation);
                 }
             }
 
@@ -4312,7 +4346,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             binder.CheckViability(method, arity, options, accessThroughType: null, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics),
                             typeArguments,
                             receiver.Type,
-                            ref resultKind);
+                            ref resultKind,
+                            binder.Compilation);
                     }
 
                     extensionMethods.Free();
@@ -4333,7 +4368,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> filteredMethods,
             MethodSymbol method,
             ImmutableArray<TypeWithAnnotations> typeArguments,
-            TypeSymbol receiverType)
+            TypeSymbol receiverType,
+            CSharpCompilation compilation)
         {
             MethodSymbol constructedMethod;
             if (!typeArguments.IsDefaultOrEmpty && method.Arity == typeArguments.Length)
@@ -4348,7 +4384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)receiverType != null)
             {
-                constructedMethod = constructedMethod.ReduceExtensionMethod(receiverType);
+                constructedMethod = constructedMethod.ReduceExtensionMethod(receiverType, compilation);
                 if ((object)constructedMethod == null)
                 {
                     return false;
@@ -4372,7 +4408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SingleLookupResult singleResult,
             ImmutableArray<TypeWithAnnotations> typeArguments,
             TypeSymbol receiverType,
-            ref LookupResultKind resultKind)
+            ref LookupResultKind resultKind,
+            CSharpCompilation compilation)
         {
             Debug.Assert(singleResult.Kind != LookupResultKind.Empty);
             Debug.Assert((object)singleResult.Symbol != null);
@@ -4391,7 +4428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var method = (MethodSymbol)singleResult.Symbol;
-            if (AddReducedAndFilteredMethodGroupSymbol(methods, filteredMethods, method, typeArguments, receiverType))
+            if (AddReducedAndFilteredMethodGroupSymbol(methods, filteredMethods, method, typeArguments, receiverType, compilation))
             {
                 Debug.Assert(methods.Count > 0);
                 if (resultKind < singleKind)
@@ -4408,7 +4445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the call represents an extension method invocation with an explicit receiver, return the original
         /// methods as ReducedExtensionMethodSymbols. Otherwise, return the original methods unchanged.
         /// </summary>
-        private static ImmutableArray<MethodSymbol> CreateReducedExtensionMethodsFromOriginalsIfNecessary(BoundCall call)
+        private static ImmutableArray<MethodSymbol> CreateReducedExtensionMethodsFromOriginalsIfNecessary(BoundCall call, CSharpCompilation compilation)
         {
             var methods = call.OriginalMethodsOpt;
             TypeSymbol extensionThisType = null;
@@ -4434,7 +4471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var filteredMethodBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
             foreach (var method in FilterOverriddenOrHiddenMethods(methods))
             {
-                AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeWithAnnotations>), extensionThisType);
+                AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeWithAnnotations>), extensionThisType, compilation);
             }
             methodBuilder.Free();
             return filteredMethodBuilder.ToImmutableAndFree();
@@ -4445,7 +4482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// ReducedExtensionMethodSymbol if it can be constructed. Otherwise, return the 
         /// original call method.
         /// </summary>
-        private static ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundCall call)
+        private ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundCall call)
         {
             var method = call.Method;
             Debug.Assert((object)method != null);
@@ -4454,7 +4491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(call.Arguments.Length > 0);
                 BoundExpression receiver = call.Arguments[0];
-                MethodSymbol reduced = method.ReduceExtensionMethod(receiver.Type);
+                MethodSymbol reduced = method.ReduceExtensionMethod(receiver.Type, Compilation);
                 // If the extension method can't be applied to the receiver of the given
                 // type, we should also return the original call method.
                 method = reduced ?? method;
@@ -4462,14 +4499,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<Symbol>(method);
         }
 
-        private static ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundDelegateCreationExpression delegateCreation, BoundExpression receiverOpt)
+        private ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundDelegateCreationExpression delegateCreation, BoundExpression receiverOpt)
         {
             var method = delegateCreation.MethodOpt;
             Debug.Assert((object)method != null);
 
             if (delegateCreation.IsExtensionMethod && method.IsExtensionMethod && (receiverOpt != null))
             {
-                MethodSymbol reduced = method.ReduceExtensionMethod(receiverOpt.Type);
+                MethodSymbol reduced = method.ReduceExtensionMethod(receiverOpt.Type, Compilation);
                 method = reduced ?? method;
             }
             return ImmutableArray.Create<Symbol>(method);
@@ -5010,6 +5047,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected sealed override bool IsEventUsableAsFieldCore(int position, IEventSymbol symbol)
         {
             return this.IsEventUsableAsField(position, symbol.EnsureCSharpSymbolOrNull<IEventSymbol, EventSymbol>(nameof(symbol)));
+        }
+
+        public sealed override NullableContext GetNullableContext(int position)
+        {
+            var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
+            NullableContextState contextState = syntaxTree.GetNullableContextState(position);
+            var defaultState = syntaxTree.IsGeneratedCode() ? NullableContextOptions.Disable : Compilation.Options.NullableContextOptions;
+
+            NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnabled);
+            context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnabled);
+
+            return context;
+
+            static NullableContext getFlag(bool? contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
+                contextState switch
+                {
+                    null when defaultEnableState => (inheritedFlag | enableFlag),
+                    null => inheritedFlag,
+                    true => enableFlag,
+                    false => NullableContext.Disabled
+                };
         }
 
         #endregion

@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     [ExportOptionProvider, Shared]
     internal class ServiceComponentOnOffOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public ServiceComponentOnOffOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             ServiceComponentOnOffOptions.DiagnosticProvider);
     }

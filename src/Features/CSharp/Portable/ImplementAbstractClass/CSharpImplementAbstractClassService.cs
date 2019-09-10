@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
     internal class CSharpImplementAbstractClassService :
         AbstractImplementAbstractClassService<ClassDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public CSharpImplementAbstractClassService()
+        {
+        }
+
         protected override bool TryInitializeState(
             Document document, SemanticModel model, ClassDeclarationSyntax classNode, CancellationToken cancellationToken,
             out INamedTypeSymbol classType, out INamedTypeSymbol abstractClassType)

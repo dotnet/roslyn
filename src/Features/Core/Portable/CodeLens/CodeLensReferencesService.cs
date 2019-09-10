@@ -43,27 +43,25 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken))
+            using var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken);
+            try
             {
-                try
-                {
-                    await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
-                        progress.CancellationToken).ConfigureAwait(false);
+                await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
+                    progress.CancellationToken).ConfigureAwait(false);
 
-                    return await onResults(progress).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
+                return await onResults(progress).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                if (onCapped != null && progress.SearchCapReached)
                 {
-                    if (onCapped != null && progress.SearchCapReached)
-                    {
-                        // search was cancelled, and it was cancelled by us because a cap was reached.
-                        return await onCapped(progress).ConfigureAwait(false);
-                    }
-
-                    // search was cancelled, but not because of cap.
-                    // this always throws.
-                    throw;
+                    // search was cancelled, and it was cancelled by us because a cap was reached.
+                    return await onCapped(progress).ConfigureAwait(false);
                 }
+
+                // search was cancelled, but not because of cap.
+                // this always throws.
+                throw;
             }
         }
 
@@ -237,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var fullName = GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
 
-            return !string.IsNullOrEmpty(fullName) ? new ReferenceMethodDescriptor(fullName, document.FilePath) : null;
+            return !string.IsNullOrEmpty(fullName) ? new ReferenceMethodDescriptor(fullName, document.FilePath, document.Project.OutputFilePath) : null;
         }
 
         public Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)

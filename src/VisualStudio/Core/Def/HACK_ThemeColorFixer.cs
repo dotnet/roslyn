@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool _done;
 
         [ImportingConstructor]
-        private HACK_ThemeColorFixer(
+        public HACK_ThemeColorFixer(
             IClassificationTypeRegistryService classificationTypeRegistryService,
             IClassificationFormatMapService classificationFormatMapService)
         {

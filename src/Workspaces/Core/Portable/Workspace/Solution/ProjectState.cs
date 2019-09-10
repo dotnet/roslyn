@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ValueSource<AnalyzerConfigSet> _lazyAnalyzerConfigSet;
 
         // this will be initialized lazily.
-        private AnalyzerOptions _analyzerOptionsDoNotAccessDirectly;
+        private AnalyzerOptions? _analyzerOptionsDoNotAccessDirectly;
 
         private ProjectState(
             ProjectInfo projectInfo,
@@ -233,7 +237,7 @@ namespace Microsoft.CodeAnalysis
             return latestVersion;
         }
 
-        internal DocumentState CreateDocument(DocumentInfo documentInfo, ParseOptions parseOptions)
+        internal DocumentState CreateDocument(DocumentInfo documentInfo, ParseOptions? parseOptions)
         {
             var doc = new DocumentState(documentInfo, parseOptions, _lazyAnalyzerConfigSet, _languageServices, _solutionServices);
 
@@ -252,7 +256,7 @@ namespace Microsoft.CodeAnalysis
                 if (_analyzerOptionsDoNotAccessDirectly == null)
                 {
                     _analyzerOptionsDoNotAccessDirectly = new AnalyzerOptions(
-                        _additionalDocumentStates.Values.Select(d => new AdditionalTextDocument(d)).ToImmutableArray<AdditionalText>(),
+                        _additionalDocumentStates.Values.Select(d => new AdditionalTextWithState(d)).ToImmutableArray<AdditionalText>(),
                         new WorkspaceAnalyzerConfigOptionsProvider(this));
                 }
 
@@ -290,7 +294,7 @@ namespace Microsoft.CodeAnalysis
                     _analyzerOptions = analyzerConfigOptions.AnalyzerOptions;
                 }
 
-                public override bool TryGetValue(string key, out string value) => _analyzerOptions.TryGetValue(key, out value);
+                public override bool TryGetValue(string key, [NotNullWhen(returnValue: true)] out string? value) => _analyzerOptions.TryGetValue(key, out value);
             }
         }
 
@@ -334,16 +338,16 @@ namespace Microsoft.CodeAnalysis
         public ProjectId Id => this.ProjectInfo.Id;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public string FilePath => this.ProjectInfo.FilePath;
+        public string? FilePath => this.ProjectInfo.FilePath;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public string OutputFilePath => this.ProjectInfo.OutputFilePath;
+        public string? OutputFilePath => this.ProjectInfo.OutputFilePath;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public string OutputRefFilePath => this.ProjectInfo.OutputRefFilePath;
+        public string? OutputRefFilePath => this.ProjectInfo.OutputRefFilePath;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public string DefaultNamespace => this.ProjectInfo.DefaultNamespace;
+        public string? DefaultNamespace => this.ProjectInfo.DefaultNamespace;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public HostLanguageServices LanguageServices => _languageServices;
@@ -358,7 +362,7 @@ namespace Microsoft.CodeAnalysis
         public bool IsSubmission => this.ProjectInfo.IsSubmission;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public Type HostObjectType => this.ProjectInfo.HostObjectType;
+        public Type? HostObjectType => this.ProjectInfo.HostObjectType;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public bool SupportsCompilation => this.LanguageServices.GetService<ICompilationFactoryService>() != null;
@@ -373,10 +377,10 @@ namespace Microsoft.CodeAnalysis
         public string AssemblyName => this.ProjectInfo.AssemblyName;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public CompilationOptions CompilationOptions => this.ProjectInfo.CompilationOptions;
+        public CompilationOptions? CompilationOptions => this.ProjectInfo.CompilationOptions;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public ParseOptions ParseOptions => this.ProjectInfo.ParseOptions;
+        public ParseOptions? ParseOptions => this.ProjectInfo.ParseOptions;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public IReadOnlyList<MetadataReference> MetadataReferences => this.ProjectInfo.MetadataReferences;
@@ -394,7 +398,7 @@ namespace Microsoft.CodeAnalysis
         public bool HasDocuments => _documentIds.Count > 0;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IEnumerable<DocumentState> OrderedDocumentStates => this.DocumentIds.Select(GetDocumentState);
+        public IEnumerable<DocumentState> OrderedDocumentStates => this.DocumentIds.Select(GetDocumentState)!;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public IReadOnlyList<DocumentId> DocumentIds => _documentIds;
@@ -431,34 +435,34 @@ namespace Microsoft.CodeAnalysis
             return _analyzerConfigDocumentStates.ContainsKey(documentId);
         }
 
-        public DocumentState GetDocumentState(DocumentId documentId)
+        public DocumentState? GetDocumentState(DocumentId documentId)
         {
             _documentStates.TryGetValue(documentId, out var state);
             return state;
         }
 
-        public TextDocumentState GetAdditionalDocumentState(DocumentId documentId)
+        public TextDocumentState? GetAdditionalDocumentState(DocumentId documentId)
         {
             _additionalDocumentStates.TryGetValue(documentId, out var state);
             return state;
         }
 
-        public AnalyzerConfigDocumentState GetAnalyzerConfigDocumentState(DocumentId documentId)
+        public AnalyzerConfigDocumentState? GetAnalyzerConfigDocumentState(DocumentId documentId)
         {
             _analyzerConfigDocumentStates.TryGetValue(documentId, out var state);
             return state;
         }
 
         private ProjectState With(
-            ProjectInfo projectInfo = null,
-            ImmutableList<DocumentId> documentIds = default,
-            ImmutableList<DocumentId> additionalDocumentIds = default,
-            ImmutableSortedDictionary<DocumentId, DocumentState> documentStates = null,
-            ImmutableSortedDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
-            ImmutableSortedDictionary<DocumentId, AnalyzerConfigDocumentState> analyzerConfigDocumentStates = null,
-            AsyncLazy<VersionStamp> latestDocumentVersion = null,
-            AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null,
-            ValueSource<AnalyzerConfigSet> analyzerConfigSet = null)
+            ProjectInfo? projectInfo = null,
+            ImmutableList<DocumentId>? documentIds = null,
+            ImmutableList<DocumentId>? additionalDocumentIds = null,
+            ImmutableSortedDictionary<DocumentId, DocumentState>? documentStates = null,
+            ImmutableSortedDictionary<DocumentId, TextDocumentState>? additionalDocumentStates = null,
+            ImmutableSortedDictionary<DocumentId, AnalyzerConfigDocumentState>? analyzerConfigDocumentStates = null,
+            AsyncLazy<VersionStamp>? latestDocumentVersion = null,
+            AsyncLazy<VersionStamp>? latestDocumentTopLevelChangeVersion = null,
+            ValueSource<AnalyzerConfigSet>? analyzerConfigSet = null)
         {
             return new ProjectState(
                 projectInfo ?? _projectInfo,
@@ -484,7 +488,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(projectInfo: this.ProjectInfo.WithName(name).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState UpdateFilePath(string filePath)
+        public ProjectState UpdateFilePath(string? filePath)
         {
             if (filePath == this.FilePath)
             {
@@ -504,7 +508,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(projectInfo: this.ProjectInfo.WithAssemblyName(assemblyName).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState UpdateOutputFilePath(string outputFilePath)
+        public ProjectState UpdateOutputFilePath(string? outputFilePath)
         {
             if (outputFilePath == this.OutputFilePath)
             {
@@ -514,7 +518,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(projectInfo: this.ProjectInfo.WithOutputFilePath(outputFilePath).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState UpdateOutputRefFilePath(string outputRefFilePath)
+        public ProjectState UpdateOutputRefFilePath(string? outputRefFilePath)
         {
             if (outputRefFilePath == this.OutputRefFilePath)
             {
@@ -524,7 +528,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(projectInfo: this.ProjectInfo.WithOutputRefFilePath(outputRefFilePath).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState UpdateDefaultNamespace(string defaultNamespace)
+        public ProjectState UpdateDefaultNamespace(string? defaultNamespace)
         {
             if (defaultNamespace == this.DefaultNamespace)
             {
@@ -554,9 +558,8 @@ namespace Microsoft.CodeAnalysis
             // update parse options for all documents too
             var docMap = _documentStates;
 
-            foreach (var (docId, _) in _documentStates)
+            foreach (var (docId, oldDocState) in _documentStates)
             {
-                var oldDocState = this.GetDocumentState(docId);
                 var newDocState = oldDocState.UpdateParseOptions(options);
                 docMap = docMap.SetItem(docId, newDocState);
             }
@@ -715,9 +718,8 @@ namespace Microsoft.CodeAnalysis
             // a specific syntax tree; therefore we must update all our syntax trees.
             var docMap = _documentStates;
 
-            foreach (var (docId, _) in _documentStates)
+            foreach (var (docId, oldDocState) in _documentStates)
             {
-                var oldDocState = this.GetDocumentState(docId);
                 var newDocState = oldDocState.UpdateAnalyzerConfigSet(newAnalyzerConfigSet);
                 docMap = docMap.SetItem(docId, newDocState);
             }
@@ -770,7 +772,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(this.ContainsDocument(newDocument.Id));
 
-            var oldDocument = this.GetDocumentState(newDocument.Id);
+            var oldDocument = this.GetDocumentState(newDocument.Id)!;
             if (oldDocument == newDocument)
             {
                 return this;
@@ -791,7 +793,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(this.ContainsAdditionalDocument(newDocument.Id));
 
-            var oldDocument = this.GetAdditionalDocumentState(newDocument.Id);
+            var oldDocument = this.GetAdditionalDocumentState(newDocument.Id)!;
             if (oldDocument == newDocument)
             {
                 return this;
