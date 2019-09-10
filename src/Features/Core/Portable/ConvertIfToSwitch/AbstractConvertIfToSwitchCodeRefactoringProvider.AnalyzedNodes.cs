@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         where TIsExpressionSyntax : SyntaxNode
         where TPatternSyntax : SyntaxNode
     {
+        // Represents a switch-section constructed from a series of
+        // if-conditions, possibly combined with logical-or operator
         internal sealed class AnalyzedSwitchSection
         {
             public readonly ImmutableArray<AnalyzedSwitchLabel> Labels;
@@ -31,6 +33,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             }
         }
 
+        // Represents a switch-label constructed from a series of
+        // if-conditions, possibly combined by logical-and operator
         internal sealed class AnalyzedSwitchLabel
         {
             public readonly AnalyzedPattern Pattern;
@@ -43,12 +47,14 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             }
         }
 
+        // Represents a case clause (pattern) constructed from various checks - see below
         internal abstract class AnalyzedPattern
         {
             private AnalyzedPattern()
             {
             }
 
+            // Represents a type-pattern, constructed from is-expression
             internal sealed class Type : AnalyzedPattern
             {
                 public readonly TIsExpressionSyntax IsExpressionSyntax;
@@ -59,6 +65,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
             }
 
+            // Represents a source-pattern constructed from C# patterns
             internal sealed class Source : AnalyzedPattern
             {
                 public readonly TPatternSyntax PatternSyntax;
@@ -69,6 +76,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
             }
 
+            // Represents a constant-pattern constructed from an equality check
             internal sealed class Constant : AnalyzedPattern
             {
                 public readonly TExpressionSyntax ExpressionSyntax;
@@ -79,6 +87,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
             }
 
+            // Represents a relational-pattern constructed from comparison operators
             internal sealed class Relational : AnalyzedPattern
             {
                 public readonly BinaryOperatorKind OperatorKind;
@@ -91,6 +100,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
             }
 
+            // Represents a range-pattern constructed from a couple of comparison operators
             internal sealed class Range : AnalyzedPattern
             {
                 public readonly TExpressionSyntax LowerBound;
