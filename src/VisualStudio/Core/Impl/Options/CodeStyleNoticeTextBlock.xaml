@@ -10,7 +10,11 @@
     d:DesignHeight="450" d:DesignWidth="800">
     <Run Text="{x:Static local:CodeStyleNoticeTextBlock.CodeStylePageHeader}"/>
     <Run Text=" "/>
-    <Hyperlink RequestNavigate="LearnMoreHyperlink_RequestNavigate" NavigateUri="{x:Static local:CodeStyleNoticeTextBlock.CodeStylePageHeaderLearnMoreUri}">
+    <Hyperlink 
+        x:Name="learnMoreHyperlink"
+        AutomationProperties.Name="{x:Static local:CodeStyleNoticeTextBlock.CodeStylePageHeaderLearnMoreText}"
+        RequestNavigate="LearnMoreHyperlink_RequestNavigate"
+        NavigateUri="{x:Static local:CodeStyleNoticeTextBlock.CodeStylePageHeaderLearnMoreUri}">
         <TextBlock Text="{x:Static local:CodeStyleNoticeTextBlock.CodeStylePageHeaderLearnMoreText}"/>
     </Hyperlink>
 </TextBlock>
