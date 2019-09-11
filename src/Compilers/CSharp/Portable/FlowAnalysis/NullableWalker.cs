@@ -320,6 +320,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _disableDiagnostics = false;
 
         /// <summary>
+        /// Whether we are currently visiting as a regular expression or an l-value.
+        /// </summary>
+        private bool _expressionIsRead = true;
+
+        /// <summary>
         /// Used to allow <see cref="MakeSlot(BoundExpression)"/> to substitute the correct slot for a <see cref="BoundConditionalReceiver"/> when
         /// it's encountered.
         /// </summary>
@@ -956,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeWithAnnotations VisitLvalueWithAnnotations(BoundExpression node)
         {
-            Visit(node);
+            VisitLValue(node);
             Unsplit();
             return LvalueResultType;
         }
@@ -1481,6 +1486,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !type.IsNullableTypeOrTypeParameter();
         }
 
+        private static bool RequiresSafetyWarningWhenNullIntroduced(TypeSymbol type, FlowAnalysisAnnotations annotations)
+        {
+            return
+                (annotations & FlowAnalysisAnnotations.MaybeNull) != 0 &&
+                type.IsTypeParameterDisallowingAnnotation();
+        }
+
         public override BoundNode VisitLocal(BoundLocal node)
         {
             var local = node.LocalSymbol;
@@ -1692,8 +1704,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Visit(BoundNode node)
         {
+            bool originalExpressionIsRead = _expressionIsRead;
+            _expressionIsRead = true;
+
             TakeIncrementalSnapshot(node);
-            return base.Visit(node);
+            var result = base.Visit(node);
+
+            _expressionIsRead = originalExpressionIsRead;
+            return result;
+        }
+
+        public BoundNode VisitLValue(BoundNode node)
+        {
+            bool originalExpressionIsRead = _expressionIsRead;
+            _expressionIsRead = false;
+
+            TakeIncrementalSnapshot(node);
+            var result = base.Visit(node);
+
+            _expressionIsRead = originalExpressionIsRead;
+            return result;
         }
 
         protected override void VisitStatement(BoundStatement statement)
@@ -3063,9 +3093,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 returnState = returnState.WithNotNullState();
             }
+            ReportMaybeNullFromTypeParameterValueIfNeeded(node, method.ReturnType, GetRValueAnnotations(method));
 
             SetResult(node, returnState, method.ReturnTypeWithAnnotations);
             SetUpdatedSymbol(node, node.Method, method);
+        }
+
+        /// <summary>
+        /// Members that return [MaybeNull]T values (for an unconstrained type parameter) produce a warning upon usage,
+        /// just like default(T).
+        /// </summary>
+        void ReportMaybeNullFromTypeParameterValueIfNeeded(BoundExpression expr, TypeSymbol type, FlowAnalysisAnnotations annotations)
+        {
+            if (!expr.IsSuppressed && RequiresSafetyWarningWhenNullIntroduced(type, annotations))
+            {
+                ReportDiagnostic(ErrorCode.WRN_ExpressionMayIntroduceNullT, expr.Syntax, GetTypeAsDiagnosticArgument(expr.Type));
+            }
         }
 
         private void LearnFromEqualsMethod(MethodSymbol method, BoundCall node, TypeWithState receiverType, ImmutableArray<VisitArgumentResult> results)
@@ -3689,6 +3732,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), UseLegacyWarnings(argument, result.LValueType));
                         }
+
+                        ReportMaybeNullFromTypeParameterValueIfNeeded(argument, parameterType.Type, parameterAnnotations);
                     }
                     break;
                 case RefKind.Out:
@@ -3734,6 +3779,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ReportNullabilityMismatchInArgument(argument.Syntax, lValueType.Type, parameter, parameterType.Type, forOutput: true);
                             }
                         }
+
+                        ReportMaybeNullFromTypeParameterValueIfNeeded(argument, parameterType.Type, parameterAnnotations);
                     }
                     break;
                 default:
@@ -5739,7 +5786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var left = node.Left;
             var right = node.Right;
-            Visit(left);
+            VisitLValue(left);
             FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(left);
             TypeWithAnnotations declaredType = LvalueResultType;
             TypeWithAnnotations leftLValueType = ApplyLValueAnnotations(declaredType, leftAnnotations);
@@ -5788,6 +5835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// When the allowed output of a property/indexer is not-null but the allowed input is maybe-null, we store a not-null value instead.
+        /// This way, assignment of a legal intput value results in a legal output value.
         /// This adjustment doesn't apply to oblivious properties/indexers.
         /// </summary>
         private void AdjustSetValue(BoundExpression left, TypeWithAnnotations declaredType, TypeWithAnnotations leftLValueType, ref TypeWithState rightState)
@@ -6123,7 +6171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ConvertedTupleLiteral:
                         return new DeconstructionVariable(expr, GetDeconstructionAssignmentVariables((BoundTupleExpression)expr));
                     default:
-                        Visit(expr);
+                        VisitLValue(expr);
                         return new DeconstructionVariable(expr, LvalueResultType);
                 }
             }
@@ -6336,6 +6384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AdjustSetValue(left, declaredType, leftLValueType, ref resultType);
             TrackNullableStateForAssignment(node, leftLValueType, MakeSlot(node.Left), resultType);
+
             SetResultType(node, resultType);
             return null;
         }
@@ -6525,6 +6574,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Split();
                     this.StateWhenTrue[containingSlot] = NullableFlowState.NotNull;
                 }
+            }
+
+            if (_expressionIsRead)
+            {
+                ReportMaybeNullFromTypeParameterValueIfNeeded(node, type.Type, GetRValueAnnotations(member));
             }
 
             SetResult(node, resultType, type);

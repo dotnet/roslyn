@@ -97,6 +97,10 @@ The `Interlocked.CompareExchange` methods have special handling in flow analysis
 - `static object? System.Threading.Interlocked.CompareExchange(ref object? location, object? value, object? comparand)`
 - `static T System.Threading.Interlocked.CompareExchange<T>(ref T location, T value, T comparand) where T : class?`
 
+When simple pre- and post-condition attributes are applied to a property, and an allowed input state is assigned to the property, the property's state is updated to be an allowed output state. For instance an `[AllowNull] string` property can be assigned `null` and still return not-null values.
+
+The use of any member returning `[MaybeNull]T` for an unconstrained type parameter `T` produces a warning, just like `default(T)` (see below). For instance, `listT.FirstOrDefault();` would produce a warning.
+
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.
 ```c#
@@ -116,7 +120,6 @@ If `T` is an unconstrained type parameter, `default(T)` is a `T` that is maybe n
 ```c#
 T t = default; // warning
 ```
-_Is `default(T?)` an error?_
 
 ### Conversions
 Conversions can be calculated with ~ considered distinct from ? and !, or with ~ implicitly convertible to ? and !.
