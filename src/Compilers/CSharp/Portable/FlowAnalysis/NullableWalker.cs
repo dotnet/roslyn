@@ -1699,6 +1699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+#nullable enable
         private void VisitObjectOrDynamicObjectCreation(
             BoundExpression node,
             ImmutableArray<BoundExpression> arguments,
@@ -1711,9 +1712,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argumentTypes = argumentResults.SelectAsArray(ar => ar.RValueType);
 
             int slot = -1;
-            TypeSymbol type = node.Type;
-            NullableFlowState resultState = NullableFlowState.NotNull;
-            if ((object)type != null)
+            var type = node.Type;
+            var resultState = NullableFlowState.NotNull;
+            if (type is object)
             {
                 slot = GetOrCreatePlaceholderSlot(node);
                 if (slot > 0)
@@ -1724,7 +1725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (EmptyStructTypeCache.IsTrackableStructType(type))
                     {
                         var tupleType = constructor?.ContainingType as TupleTypeSymbol;
-                        if ((object)tupleType != null && !isDefaultValueTypeConstructor)
+                        if (tupleType is object && !isDefaultValueTypeConstructor)
                         {
                             // new System.ValueTuple<T1, ..., TN>(e1, ..., eN)
                             TrackNullableStateOfTupleElements(slot, tupleType, arguments, argumentTypes, useRestField: true);
@@ -1772,6 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SetResultType(node, TypeWithState.Create(type, resultState));
         }
+#nullable restore
 
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
         {
