@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.PooledObjects;
 
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
 #pragma warning disable CA1710 // Rename DictionaryAnalysisData to end in 'Dictionary'
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow

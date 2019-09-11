@@ -532,32 +532,21 @@ namespace Analyzer.Utilities.Extensions
 
         public static ITypeSymbol GetPatternType(this IPatternOperation pattern)
         {
-            switch (pattern)
+            return pattern switch
             {
-                case IDeclarationPatternOperation declarationPattern:
-                    switch (declarationPattern.DeclaredSymbol)
-                    {
-                        case ILocalSymbol local:
-                            return local.Type;
+                IDeclarationPatternOperation declarationPattern => declarationPattern.DeclaredSymbol switch
+                {
+                    ILocalSymbol local => local.Type,
 
-                        case IDiscardSymbol discard:
-                            return discard.Type;
+                    IDiscardSymbol discard => discard.Type,
 
-                        default:
-                            // TODO use the new IOperation API 'IDeclarationPatternOperation.MatchedType' when we move the repo
-                            // to use Microsoft.CodeAnalysis 3.0 or greater.
-                            return null;
-                    }
+                    _ => null,
+                },
 
-                case IConstantPatternOperation constantPattern:
-                    return constantPattern.Value.Type;
+                IConstantPatternOperation constantPattern => constantPattern.Value.Type,
 
-                default:
-                    // Below assert fires for IDiscardPatternOperation.
-                    // https://github.com/dotnet/roslyn-analyzers/issues/2185 tracks enabling this assert.
-                    //Debug.Fail($"Unhandled pattern kind '{pattern.Kind}'");
-                    return null;
-            }
+                _ => null,
+            };
         }
 
         /// <summary>
@@ -612,26 +601,20 @@ namespace Analyzer.Utilities.Extensions
 
         public static ISymbol GetReferencedMemberOrLocalOrParameter(this IOperation operation)
         {
-            switch (operation)
+            return operation switch
             {
-                case IMemberReferenceOperation memberReference:
-                    return memberReference.Member;
+                IMemberReferenceOperation memberReference => memberReference.Member,
 
-                case IParameterReferenceOperation parameterReference:
-                    return parameterReference.Parameter;
+                IParameterReferenceOperation parameterReference => parameterReference.Parameter,
 
-                case ILocalReferenceOperation localReference:
-                    return localReference.Local;
+                ILocalReferenceOperation localReference => localReference.Local,
 
-                case IParenthesizedOperation parenthesized:
-                    return parenthesized.Operand.GetReferencedMemberOrLocalOrParameter();
+                IParenthesizedOperation parenthesized => parenthesized.Operand.GetReferencedMemberOrLocalOrParameter(),
 
-                case IConversionOperation conversion:
-                    return conversion.Operand.GetReferencedMemberOrLocalOrParameter();
+                IConversionOperation conversion => conversion.Operand.GetReferencedMemberOrLocalOrParameter(),
 
-                default:
-                    return null;
-            }
+                _ => null,
+            };
         }
 
         /// <summary>

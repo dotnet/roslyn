@@ -5,6 +5,7 @@
     <Identity Id="41880BF7-B087-402F-AE29-18A367E9DF9B" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft DevLabs" />
     <DisplayName>.NET Compiler Platform (Roslyn) Analyzers</DisplayName>
     <Description xml:space="preserve">Analyzers for .NET Compiler Platform (Roslyn) APIs.</Description>
+    <License>EULA.rtf</License>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0.0.0,17.0.0.0)" />

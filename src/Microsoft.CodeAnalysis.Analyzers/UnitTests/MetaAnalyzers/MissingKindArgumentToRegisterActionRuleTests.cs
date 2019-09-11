@@ -240,24 +240,16 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(int line, int column, MissingKindArgument kind)
         {
-            string message;
-            switch (kind)
+            var message = kind switch
             {
-                case MissingKindArgument.SymbolKind:
-                    message = CodeAnalysisDiagnosticsResources.MissingSymbolKindArgumentToRegisterActionMessage;
-                    break;
+                MissingKindArgument.SymbolKind => CodeAnalysisDiagnosticsResources.MissingSymbolKindArgumentToRegisterActionMessage,
 
-                case MissingKindArgument.SyntaxKind:
-                    message = CodeAnalysisDiagnosticsResources.MissingSyntaxKindArgumentToRegisterActionMessage;
-                    break;
+                MissingKindArgument.SyntaxKind => CodeAnalysisDiagnosticsResources.MissingSyntaxKindArgumentToRegisterActionMessage,
 
-                case MissingKindArgument.OperationKind:
-                    message = CodeAnalysisDiagnosticsResources.MissingOperationKindArgumentToRegisterActionMessage;
-                    break;
+                MissingKindArgument.OperationKind => CodeAnalysisDiagnosticsResources.MissingOperationKindArgumentToRegisterActionMessage,
 
-                default:
-                    throw new ArgumentException("Unsupported argument kind", nameof(kind));
-            }
+                _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
+            };
 
             return new DiagnosticResult(DiagnosticIds.MissingKindArgumentToRegisterActionRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
                 .WithLocation(line, column)

@@ -5,6 +5,7 @@
     <Identity Id="20ad7bf0-adc1-4fb0-8089-3dec89e40855" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft DevLabs" />
     <DisplayName>PerformanceSensitive Analyzers</DisplayName>
     <Description xml:space="preserve">PerformanceSensitive Analyzers</Description>
+    <License>EULA.rtf</License>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0.0.0,17.0.0.0)" />

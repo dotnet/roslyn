@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> interproceduralAnalysisDataOpt,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
         {
+            Debug.Assert(valueDomain != null, "valueDomain must not be null for use in ComputeHashCodeParts");
             Debug.Assert(controlFlowGraph != null);
             Debug.Assert(owningSymbol != null);
             Debug.Assert(owningSymbol.Kind == SymbolKind.Method ||
