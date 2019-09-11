@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 
 #pragma warning disable CS3001 // Some types from Roslyn are not CLS-Compliant
 #pragma warning disable CS3003 // Some types from Roslyn are not CLS-Compliant
@@ -165,32 +164,24 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
         internal async static Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
         {
-            switch (symbol.Kind)
+            return symbol.Kind switch
             {
-                case SymbolKind.Assembly:
-                    return await AssemblyMetricData.ComputeAsync((IAssemblySymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                SymbolKind.Assembly => await AssemblyMetricData.ComputeAsync((IAssemblySymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
 
-                case SymbolKind.Namespace:
-                    return await NamespaceMetricData.ComputeAsync((INamespaceSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                SymbolKind.Namespace => await NamespaceMetricData.ComputeAsync((INamespaceSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
 
-                case SymbolKind.NamedType:
-                    return await NamedTypeMetricData.ComputeAsync((INamedTypeSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                SymbolKind.NamedType => await NamedTypeMetricData.ComputeAsync((INamedTypeSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
 
-                case SymbolKind.Method:
-                    return await MethodMetricData.ComputeAsync((IMethodSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                SymbolKind.Method => await MethodMetricData.ComputeAsync((IMethodSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
 
-                case SymbolKind.Property:
-                    return await PropertyMetricData.ComputeAsync((IPropertySymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                SymbolKind.Property => await PropertyMetricData.ComputeAsync((IPropertySymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
 
-                case SymbolKind.Field:
-                    return await FieldMetricData.ComputeAsync((IFieldSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                SymbolKind.Field => await FieldMetricData.ComputeAsync((IFieldSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
 
-                case SymbolKind.Event:
-                    return await EventMetricData.ComputeAsync((IEventSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                SymbolKind.Event => await EventMetricData.ComputeAsync((IEventSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
 
-                default:
-                    throw new NotSupportedException();
-            }
+                _ => throw new NotSupportedException(),
+            };
         }
 
         internal static async Task<ImmutableArray<CodeAnalysisMetricData>> ComputeAsync(IEnumerable<ISymbol> children, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)

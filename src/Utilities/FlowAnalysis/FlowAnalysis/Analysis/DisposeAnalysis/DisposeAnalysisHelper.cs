@@ -3,24 +3,22 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using System;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities
 {
     /// <summary>
     /// Helper for DisposeAnalysis.
     /// </summary>
-    public class DisposeAnalysisHelper
+    internal sealed class DisposeAnalysisHelper
     {
         private static readonly string[] s_disposeOwnershipTransferLikelyTypes = new string[]
             {
@@ -29,10 +27,8 @@ namespace Analyzer.Utilities
                 "System.IO.TextWriter",
                 "System.Resources.IResourceReader",
             };
-        private static readonly ConditionalWeakTable<Compilation, DisposeAnalysisHelper> s_DisposeHelperCache =
-            new ConditionalWeakTable<Compilation, DisposeAnalysisHelper>();
-        private static readonly ConditionalWeakTable<Compilation, DisposeAnalysisHelper>.CreateValueCallback s_DisposeHelperCacheCallback =
-            new ConditionalWeakTable<Compilation, DisposeAnalysisHelper>.CreateValueCallback(compilation => new DisposeAnalysisHelper(compilation));
+        private static readonly BoundedCacheWithFactory<Compilation, DisposeAnalysisHelper> s_DisposeHelperCache =
+            new BoundedCacheWithFactory<Compilation, DisposeAnalysisHelper>();
 
         private static readonly ImmutableHashSet<OperationKind> s_DisposableCreationKinds = ImmutableHashSet.Create(
             OperationKind.ObjectCreation,
@@ -80,7 +76,7 @@ namespace Analyzer.Utilities
 
         public static bool TryGetOrCreate(Compilation compilation, out DisposeAnalysisHelper disposeHelper)
         {
-            disposeHelper = s_DisposeHelperCache.GetValue(compilation, s_DisposeHelperCacheCallback);
+            disposeHelper = s_DisposeHelperCache.GetOrCreateValue(compilation, CreateDisposeAnalysisHelper);
             if (disposeHelper.IDisposable == null)
             {
                 disposeHelper = null;
@@ -88,6 +84,10 @@ namespace Analyzer.Utilities
             }
 
             return true;
+
+            // Local functions
+            static DisposeAnalysisHelper CreateDisposeAnalysisHelper(Compilation compilation)
+                => new DisposeAnalysisHelper(compilation);
         }
 
         public bool TryGetOrComputeResult(

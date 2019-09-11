@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Remoting;
 using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -32,13 +32,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             public PropertySetAnalysisParameters(string typeToTrack, ConstructorMapper constructorMapper, PropertyMapperCollection propertyMapperCollection, HazardousUsageEvaluatorCollection hazardousUsageEvaluatorCollection)
             {
-                TypeToTrack = typeToTrack ?? throw new ArgumentNullException(nameof(typeToTrack));
+                TypesToTrack = new string[] { typeToTrack }.ToImmutableHashSet() ?? throw new ArgumentNullException(nameof(typeToTrack));
                 ConstructorMapper = constructorMapper ?? throw new ArgumentNullException(nameof(constructorMapper));
                 PropertyMapperCollection = propertyMapperCollection ?? throw new ArgumentNullException(nameof(propertyMapperCollection));
                 HazardousUsageEvaluatorCollection = hazardousUsageEvaluatorCollection ?? throw new ArgumentNullException(nameof(hazardousUsageEvaluatorCollection));
             }
 
-            public string TypeToTrack { get; }
+            public ImmutableHashSet<string> TypesToTrack { get; }
             public ConstructorMapper ConstructorMapper { get; }
             public PropertyMapperCollection PropertyMapperCollection { get; }
             public HazardousUsageEvaluatorCollection HazardousUsageEvaluatorCollection { get; }
@@ -68,6 +68,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 operation != null,
                 $"Could not find code block to analyze.  Does your test code have {StartString} and {EndString} around the braces of block to analyze?");
             ISymbol symbol = model.GetDeclaredSymbol(syntaxNode.Parent) ?? model.GetSymbolInfo(syntaxNode.Parent).Symbol;
+            var success = operation.TryGetEnclosingControlFlowGraph(out var cfg);
+            Debug.Assert(success);
+            Debug.Assert(cfg != null);
 
 #pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/2180
             using (var cancellationSource = new CancellationTokenSource())
@@ -76,10 +79,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 DiagnosticDescriptor dummy = new DiagnosticDescriptor("fakeId", null, null, "fakeagory", DiagnosticSeverity.Info, true);
                 PropertySetAnalysisResult result =
                     PropertySetAnalysis.GetOrComputeResult(
-                        operation.GetEnclosingControlFlowGraph(),
+                        cfg,
                         compilation,
                         symbol,
-                        propertySetAnalysisParameters.TypeToTrack,
+                        new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                        propertySetAnalysisParameters.TypesToTrack,
                         propertySetAnalysisParameters.ConstructorMapper,
                         propertySetAnalysisParameters.PropertyMapperCollection,
                         propertySetAnalysisParameters.HazardousUsageEvaluatorCollection,
@@ -145,12 +149,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
-            string MethodSymbolOrReturnString(IMethodSymbol methodSymbol)
+            static string MethodSymbolOrReturnString(IMethodSymbol methodSymbol)
             {
                 return methodSymbol != null ? $"Method {methodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}" : "Return/Initialization";
             }
 
-            string MethodOrReturnString(string method)
+            static string MethodOrReturnString(string method)
             {
                 return method != null ? $"Method {method}" : "Return/Initialization";
             }
@@ -218,17 +222,13 @@ public class OtherClass
                         "AString",
                         (PointsToAbstractValue pointsToAbstractValue) =>
                         {
-                            switch (pointsToAbstractValue.NullState)
+                            return pointsToAbstractValue.NullState switch
                             {
-                                case NullAbstractValue.Null:
-                                    return PropertySetAbstractValueKind.Unflagged;
-                                case NullAbstractValue.NotNull:
-                                    return PropertySetAbstractValueKind.Flagged;
-                                case NullAbstractValue.MaybeNull:
-                                    return PropertySetAbstractValueKind.MaybeFlagged;
-                                default:
-                                    return PropertySetAbstractValueKind.Unknown;
-                            }
+                                NullAbstractValue.Null => PropertySetAbstractValueKind.Unflagged,
+                                NullAbstractValue.NotNull => PropertySetAbstractValueKind.Flagged,
+                                NullAbstractValue.MaybeNull => PropertySetAbstractValueKind.MaybeFlagged,
+                                _ => PropertySetAbstractValueKind.Unknown,
+                            };
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
@@ -238,15 +238,12 @@ public class OtherClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only one property being tracked, this is straightforward.
-                            switch (abstractValue[0])
+                            return (abstractValue[0]) switch
                             {
-                                case PropertySetAbstractValueKind.Flagged:
-                                    return HazardousUsageEvaluationResult.Flagged;
-                                case PropertySetAbstractValueKind.MaybeFlagged:
-                                    return HazardousUsageEvaluationResult.MaybeFlagged;
-                                default:
-                                    return HazardousUsageEvaluationResult.Unflagged;
-                            }
+                                PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
+                                PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
+                                _ => HazardousUsageEvaluationResult.Unflagged,
+                            };
                         }),
                     new HazardousUsageEvaluator(    // When OtherClass.OtherMethod() is invoked, evaluate its "TypeToTrack t" argument.
                         "OtherClass",
@@ -258,15 +255,12 @@ public class OtherClass
 
                             // With only one property being tracked, this is straightforward.
 
-                            switch (abstractValue[0])
+                            return (abstractValue[0]) switch
                             {
-                                case PropertySetAbstractValueKind.Flagged:
-                                    return HazardousUsageEvaluationResult.Flagged;
-                                case PropertySetAbstractValueKind.MaybeFlagged:
-                                    return HazardousUsageEvaluationResult.MaybeFlagged;
-                                default:
-                                    return HazardousUsageEvaluationResult.Unflagged;
-                            }
+                                PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
+                                PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
+                                _ => HazardousUsageEvaluationResult.Unflagged,
+                            };
                         }),
                      new HazardousUsageEvaluator(    // When OtherClass.StaticMethod() is invoked, evaluate its "TypeToTrack staticMethodParameter" argument.
                         "OtherClass",
@@ -278,15 +272,12 @@ public class OtherClass
 
                             // With only one property being tracked, this is straightforward.
 
-                            switch (abstractValue[0])
+                            return (abstractValue[0]) switch
                             {
-                                case PropertySetAbstractValueKind.Flagged:
-                                    return HazardousUsageEvaluationResult.Flagged;
-                                case PropertySetAbstractValueKind.MaybeFlagged:
-                                    return HazardousUsageEvaluationResult.MaybeFlagged;
-                                default:
-                                    return HazardousUsageEvaluationResult.Unflagged;
-                            }
+                                PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
+                                PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
+                                _ => HazardousUsageEvaluationResult.Unflagged,
+                            };
                         })));
 
         [Fact]
@@ -411,21 +402,13 @@ class TestClass
                         if (method.Parameters.Length >= 2)
                         {
                             // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
-                            switch (argumentPointsToAbstractValues[2].NullState)
+                            kind = argumentPointsToAbstractValues[2].NullState switch
                             {
-                                case NullAbstractValue.Null:
-                                    kind = PropertySetAbstractValueKind.Unflagged;
-                                    break;
-                                case NullAbstractValue.NotNull:
-                                    kind = PropertySetAbstractValueKind.Flagged;
-                                    break;
-                                case NullAbstractValue.MaybeNull:
-                                    kind = PropertySetAbstractValueKind.MaybeFlagged;
-                                    break;
-                                default:
-                                    kind = PropertySetAbstractValueKind.Unknown;
-                                    break;
-                            }
+                                NullAbstractValue.Null => PropertySetAbstractValueKind.Unflagged,
+                                NullAbstractValue.NotNull => PropertySetAbstractValueKind.Flagged,
+                                NullAbstractValue.MaybeNull => PropertySetAbstractValueKind.MaybeFlagged,
+                                _ => PropertySetAbstractValueKind.Unknown,
+                            };
                         }
 
                         return PropertySetAbstractValue.GetInstance(kind);
@@ -435,17 +418,13 @@ class TestClass
                     "AString",
                     (PointsToAbstractValue pointsToAbstractValue) =>
                     {
-                        switch (pointsToAbstractValue.NullState)
+                        return pointsToAbstractValue.NullState switch
                         {
-                            case NullAbstractValue.Null:
-                                return PropertySetAbstractValueKind.Unflagged;
-                            case NullAbstractValue.NotNull:
-                                return PropertySetAbstractValueKind.Flagged;
-                            case NullAbstractValue.MaybeNull:
-                                return PropertySetAbstractValueKind.MaybeFlagged;
-                            default:
-                                return PropertySetAbstractValueKind.Unknown;
-                        }
+                            NullAbstractValue.Null => PropertySetAbstractValueKind.Unflagged,
+                            NullAbstractValue.NotNull => PropertySetAbstractValueKind.Flagged,
+                            NullAbstractValue.MaybeNull => PropertySetAbstractValueKind.MaybeFlagged,
+                            _ => PropertySetAbstractValueKind.Unknown,
+                        };
                     })),
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(
@@ -455,15 +434,12 @@ class TestClass
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                         // With only one property being tracked, this is straightforward.
-                        switch (abstractValue[0])
+                        return (abstractValue[0]) switch
                         {
-                            case PropertySetAbstractValueKind.Flagged:
-                                return HazardousUsageEvaluationResult.Flagged;
-                            case PropertySetAbstractValueKind.MaybeFlagged:
-                                return HazardousUsageEvaluationResult.MaybeFlagged;
-                            default:
-                                return HazardousUsageEvaluationResult.Unflagged;
-                        }
+                            PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
+                            PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
+                            _ => HazardousUsageEvaluationResult.Unflagged,
+                        };
                     })));
 
         [Fact]
@@ -556,15 +532,12 @@ class TestClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only one property being tracked, this is straightforward.
-                            switch (abstractValue[0])
+                            return (abstractValue[0]) switch
                             {
-                                case PropertySetAbstractValueKind.Flagged:
-                                    return HazardousUsageEvaluationResult.Flagged;
-                                case PropertySetAbstractValueKind.MaybeFlagged:
-                                    return HazardousUsageEvaluationResult.MaybeFlagged;
-                                default:
-                                    return HazardousUsageEvaluationResult.Unflagged;
-                            }
+                                PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
+                                PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
+                                _ => HazardousUsageEvaluationResult.Unflagged,
+                            };
                         })));
 
         [Fact]
@@ -631,15 +604,12 @@ class TestClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only one property being tracked, this is straightforward.
-                            switch (abstractValue[0])
+                            return (abstractValue[0]) switch
                             {
-                                case PropertySetAbstractValueKind.Flagged:
-                                    return HazardousUsageEvaluationResult.Flagged;
-                                case PropertySetAbstractValueKind.MaybeFlagged:
-                                    return HazardousUsageEvaluationResult.MaybeFlagged;
-                                default:
-                                    return HazardousUsageEvaluationResult.Unflagged;
-                            }
+                                PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
+                                PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
+                                _ => HazardousUsageEvaluationResult.Unflagged,
+                            };
                         })));
 
         [Fact]
@@ -893,15 +863,12 @@ class TestClass
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                         // With only one property being tracked, this is straightforward.
-                        switch (abstractValue[0])
+                        return (abstractValue[0]) switch
                         {
-                            case PropertySetAbstractValueKind.Flagged:
-                                return HazardousUsageEvaluationResult.Flagged;
-                            case PropertySetAbstractValueKind.MaybeFlagged:
-                                return HazardousUsageEvaluationResult.MaybeFlagged;
-                            default:
-                                return HazardousUsageEvaluationResult.Unflagged;
-                        }
+                            PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
+                            PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
+                            _ => HazardousUsageEvaluationResult.Unflagged,
+                        };
                     })));
 
         [Fact]
@@ -999,15 +966,12 @@ class TestClass
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                         // With only one property being tracked, this is straightforward.
-                        switch (abstractValue[0])
+                        return (abstractValue[0]) switch
                         {
-                            case PropertySetAbstractValueKind.Flagged:
-                                return HazardousUsageEvaluationResult.Flagged;
-                            case PropertySetAbstractValueKind.MaybeFlagged:
-                                return HazardousUsageEvaluationResult.MaybeFlagged;
-                            default:
-                                return HazardousUsageEvaluationResult.Unflagged;
-                        }
+                            PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
+                            PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
+                            _ => HazardousUsageEvaluationResult.Unflagged,
+                        };
                     })));
 
         [Fact]
@@ -1067,17 +1031,13 @@ class TestClass
                         "AString",
                         (PointsToAbstractValue pointsToAbstractValue) =>
                         {
-                            switch (pointsToAbstractValue.NullState)
+                            return pointsToAbstractValue.NullState switch
                             {
-                                case NullAbstractValue.Null:
-                                    return PropertySetAbstractValueKind.Unflagged;
-                                case NullAbstractValue.NotNull:
-                                    return PropertySetAbstractValueKind.Flagged;
-                                case NullAbstractValue.MaybeNull:
-                                    return PropertySetAbstractValueKind.MaybeFlagged;
-                                default:
-                                    return PropertySetAbstractValueKind.Unknown;
-                            }
+                                NullAbstractValue.Null => PropertySetAbstractValueKind.Unflagged,
+                                NullAbstractValue.NotNull => PropertySetAbstractValueKind.Flagged,
+                                NullAbstractValue.MaybeNull => PropertySetAbstractValueKind.MaybeFlagged,
+                                _ => PropertySetAbstractValueKind.Unknown,
+                            };
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(
@@ -1085,15 +1045,12 @@ class TestClass
                         (PropertySetAbstractValue abstractValue) =>
                         {
                             // With only one property being tracked, this is straightforward.
-                            switch (abstractValue[0])
+                            return (abstractValue[0]) switch
                             {
-                                case PropertySetAbstractValueKind.Flagged:
-                                    return HazardousUsageEvaluationResult.Flagged;
-                                case PropertySetAbstractValueKind.MaybeFlagged:
-                                    return HazardousUsageEvaluationResult.MaybeFlagged;
-                                default:
-                                    return HazardousUsageEvaluationResult.Unflagged;
-                            }
+                                PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
+                                PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
+                                _ => HazardousUsageEvaluationResult.Unflagged,
+                            };
                         })));
 
         [Fact]
@@ -1177,34 +1134,26 @@ class TestClass
                         "AString",
                         (PointsToAbstractValue pointsToAbstractValue) =>
                         {
-                            switch (pointsToAbstractValue.NullState)
+                            return pointsToAbstractValue.NullState switch
                             {
-                                case NullAbstractValue.Null:
-                                    return PropertySetAbstractValueKind.Unflagged;
-                                case NullAbstractValue.NotNull:
-                                    return PropertySetAbstractValueKind.Flagged;
-                                case NullAbstractValue.MaybeNull:
-                                    return PropertySetAbstractValueKind.MaybeFlagged;
-                                default:
-                                    return PropertySetAbstractValueKind.Unknown;
-                            }
+                                NullAbstractValue.Null => PropertySetAbstractValueKind.Unflagged,
+                                NullAbstractValue.NotNull => PropertySetAbstractValueKind.Flagged,
+                                NullAbstractValue.MaybeNull => PropertySetAbstractValueKind.MaybeFlagged,
+                                _ => PropertySetAbstractValueKind.Unknown,
+                            };
                         },
                         propertyIndex: 0),    // Both AString and AnObject point to index 0.
                     new PropertyMapper(    // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
                         "AnObject",
                         (PointsToAbstractValue pointsToAbstractValue) =>
                         {
-                            switch (pointsToAbstractValue.NullState)
+                            return pointsToAbstractValue.NullState switch
                             {
-                                case NullAbstractValue.Null:
-                                    return PropertySetAbstractValueKind.Unflagged;
-                                case NullAbstractValue.NotNull:
-                                    return PropertySetAbstractValueKind.Flagged;
-                                case NullAbstractValue.MaybeNull:
-                                    return PropertySetAbstractValueKind.MaybeFlagged;
-                                default:
-                                    return PropertySetAbstractValueKind.Unknown;
-                            }
+                                NullAbstractValue.Null => PropertySetAbstractValueKind.Unflagged,
+                                NullAbstractValue.NotNull => PropertySetAbstractValueKind.Flagged,
+                                NullAbstractValue.MaybeNull => PropertySetAbstractValueKind.MaybeFlagged,
+                                _ => PropertySetAbstractValueKind.Unknown,
+                            };
                         },
                         propertyIndex: 0)),    // Both AString and AnObject point to index 0.
                 new HazardousUsageEvaluatorCollection(
@@ -1215,15 +1164,12 @@ class TestClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only underlying value (from the two "aliased" properties) being tracked, this is straightforward.
-                            switch (abstractValue[0])
+                            return (abstractValue[0]) switch
                             {
-                                case PropertySetAbstractValueKind.Flagged:
-                                    return HazardousUsageEvaluationResult.Flagged;
-                                case PropertySetAbstractValueKind.MaybeFlagged:
-                                    return HazardousUsageEvaluationResult.MaybeFlagged;
-                                default:
-                                    return HazardousUsageEvaluationResult.Unflagged;
-                            }
+                                PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
+                                PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
+                                _ => HazardousUsageEvaluationResult.Unflagged,
+                            };
                         })));
 
         [Fact]

@@ -32,11 +32,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </summary>
         /// <param name="trackedTypeMethodName">Name of the method within the tracked type.</param>
         /// <param name="evaluator">Evaluation callback.</param>
-        public HazardousUsageEvaluator(string trackedTypeMethodName, InvocationEvaluationCallback evaluator)
+        /// <param name="derivedClass">Whether to consider derived class.</param>
+        public HazardousUsageEvaluator(string trackedTypeMethodName, InvocationEvaluationCallback evaluator, bool derivedClass = false)
         {
             MethodName = trackedTypeMethodName ?? throw new ArgumentNullException(nameof(trackedTypeMethodName));
             InvocationEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
             Kind = HazardousUsageEvaluatorKind.Invocation;
+            DerivedClass = derivedClass;
         }
 
         /// <summary>
@@ -46,12 +48,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="methodName">Name of the method within <paramref name="containingType"/>.</param>
         /// <param name="parameterNameOfPropertySetObject">Name of the method parameter containing the type being tracked by PropertySetAnalysis.</param>
         /// <param name="evaluator">Evaluation callback.</param>
-        public HazardousUsageEvaluator(string containingType, string methodName, string parameterNameOfPropertySetObject, InvocationEvaluationCallback evaluator)
+        /// <param name="derivedClass">Whether to consider derived class.</param>
+        public HazardousUsageEvaluator(string containingType, string methodName, string parameterNameOfPropertySetObject, InvocationEvaluationCallback evaluator, bool derivedClass = false)
         {
             ContainingTypeName = containingType ?? throw new ArgumentNullException(nameof(containingType));
             MethodName = methodName ?? throw new ArgumentNullException(nameof(methodName));
             ParameterNameOfPropertySetObject = parameterNameOfPropertySetObject ?? throw new ArgumentNullException(nameof(parameterNameOfPropertySetObject));
             InvocationEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
+            DerivedClass = derivedClass;
             Kind = HazardousUsageEvaluatorKind.Invocation;
         }
 
@@ -59,16 +63,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// Initializes a <see cref="HazardousUsageEvaluator"/> that evaluates a return statement with a return value of the tracked type.
         /// </summary>
         /// <param name="evaluator">Evaluation callback.</param>
-        public HazardousUsageEvaluator(HazardousUsageEvaluatorKind kind, EvaluationCallback evaluator)
+        /// <param name="derivedClass">Whether to consider derived class.</param>
+        public HazardousUsageEvaluator(HazardousUsageEvaluatorKind kind, EvaluationCallback evaluator, bool derivedClass = false)
         {
-            if (kind != HazardousUsageEvaluatorKind.Return && kind != HazardousUsageEvaluatorKind.Initialization)
+            if (kind != HazardousUsageEvaluatorKind.Return && kind != HazardousUsageEvaluatorKind.Initialization && kind != HazardousUsageEvaluatorKind.Argument)
             {
                 throw new ArgumentException(
-                    "kind must be Return or Initialization.  Use other constructors for Invocation.",
+                    "kind must be Return or Initialization or Argument.  Use other constructors for Invocation.",
                     nameof(kind));
             }
 
             Kind = kind;
+            DerivedClass = derivedClass;
             ValueEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
         }
 
@@ -99,6 +105,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public InvocationEvaluationCallback InvocationEvaluator { get; }
 
         /// <summary>
+        /// Determines whether consider the derived classes of the containing type.
+        /// </summary>
+        public bool DerivedClass { get; }
+
+        /// <summary>
         /// Evaluates if the return statement or initialization value with a given <see cref="PropertySetAbstractValue"/> is hazardous or not.
         /// </summary>
         public EvaluationCallback ValueEvaluator { get; }
@@ -109,7 +120,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 this.ContainingTypeName.GetHashCodeOrDefault(),
                 HashUtilities.Combine(this.MethodName.GetHashCodeOrDefault(),
                 HashUtilities.Combine(this.ParameterNameOfPropertySetObject.GetHashCodeOrDefault(),
-                this.InvocationEvaluator.GetHashCodeOrDefault())));
+                 HashUtilities.Combine(this.DerivedClass.GetHashCodeOrDefault(),
+                this.InvocationEvaluator.GetHashCodeOrDefault()))));
         }
 
         public override bool Equals(object obj)
@@ -123,6 +135,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 && this.ContainingTypeName == other.ContainingTypeName
                 && this.MethodName == other.MethodName
                 && this.ParameterNameOfPropertySetObject == other.ParameterNameOfPropertySetObject
+                && this.DerivedClass == other.DerivedClass
                 && this.InvocationEvaluator == other.InvocationEvaluator;
         }
     }

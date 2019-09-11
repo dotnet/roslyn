@@ -338,6 +338,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     {
                         var pointsToValue = GetPointsToAbstractValue(operation.Value);
                         HandlePossibleEscapingOperation(operation, pointsToValue.Locations);
+                        return;
                     }
                     else if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse &&
                         operation.Parameter.RefKind == RefKind.Out &&
@@ -362,9 +363,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                         //      obj.Dispose();
 
                         HandlePossibleInvalidatingOperation(operation);
+                        return;
                     }
                 }
-                else if (operation.Parameter.RefKind == RefKind.Out || operation.Parameter.RefKind == RefKind.Ref)
+
+                // Ref or out argument values from callee might be escaped by assigning to field.
+                if (operation.Parameter.RefKind == RefKind.Out || operation.Parameter.RefKind == RefKind.Ref)
                 {
                     HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
                 }
@@ -380,19 +384,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                         return false;
                     }
 
-                    switch (operation.Parent)
+                    return operation.Parent switch
                     {
-                        case IObjectCreationOperation _:
-                            return DisposeOwnershipTransferAtConstructor ||
-                                DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type);
+                        IObjectCreationOperation _ => DisposeOwnershipTransferAtConstructor ||
+                            DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type),
 
-                        case IInvocationOperation invocation:
-                            return DisposeOwnershipTransferAtMethodCall ||
-                                IsDisposableCreationSpecialCase(invocation.TargetMethod) && DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type);
+                        IInvocationOperation invocation => DisposeOwnershipTransferAtMethodCall ||
+                            IsDisposableCreationSpecialCase(invocation.TargetMethod) && DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type),
 
-                        default:
-                            return false;
-                    }
+                        _ => false,
+                    };
                 }
             }
 

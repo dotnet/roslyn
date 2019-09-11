@@ -2,10 +2,7 @@
 
 #if HAS_IOPERATION
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -41,7 +38,7 @@ namespace Analyzer.Utilities.Extensions
 
             if (methodBlock != null)
             {
-                bool IsSingleStatementBody(IBlockOperation body)
+                static bool IsSingleStatementBody(IBlockOperation body)
                 {
                     return body.Operations.Length == 1 ||
                         (body.Operations.Length == 3 && body.Syntax.Language == LanguageNames.VisualBasic &&
@@ -63,10 +60,10 @@ namespace Analyzer.Utilities.Extensions
 
                     if (innerOperation.Kind == OperationKind.Throw &&
                         innerOperation is IThrowOperation throwOperation &&
-                        throwOperation.Exception is IObjectCreationOperation createdException)
+                        throwOperation.GetThrownExceptionType() is ITypeSymbol createdExceptionType)
                     {
-                        if (Equals(WellKnownTypes.NotImplementedException(context.Compilation), createdException.Type.OriginalDefinition)
-                            || Equals(WellKnownTypes.NotSupportedException(context.Compilation), createdException.Type.OriginalDefinition))
+                        if (Equals(WellKnownTypes.NotImplementedException(context.Compilation), createdExceptionType.OriginalDefinition)
+                            || Equals(WellKnownTypes.NotSupportedException(context.Compilation), createdExceptionType.OriginalDefinition))
                         {
                             return true;
                         }

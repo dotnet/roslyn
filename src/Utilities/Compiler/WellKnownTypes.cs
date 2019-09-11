@@ -31,6 +31,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsIEnumerator);
         }
 
+        public static INamedTypeSymbol Enumerable(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemLinqEnumerable);
+        }
+
         public static INamedTypeSymbol GenericIEnumerable(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEnumerable1);
@@ -39,6 +44,11 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol GenericIEnumerator(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEnumerator1);
+        }
+
+        public static INamedTypeSymbol Queryable(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemLinqQueryable);
         }
 
         public static INamedTypeSymbol IList(Compilation compilation)
@@ -244,6 +254,11 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol CLSCompliantAttribute(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName(typeof(System.CLSCompliantAttribute).FullName);
+        }
+
+        public static INamedTypeSymbol RazorCompiledItemAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute);
         }
 
         public static INamedTypeSymbol ConditionalAttribute(Compilation compilation)

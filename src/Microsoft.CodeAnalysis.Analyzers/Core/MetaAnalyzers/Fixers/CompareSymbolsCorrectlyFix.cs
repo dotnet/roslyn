@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var expression = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
-            var operation = semanticModel.GetOperation(expression, cancellationToken) as IBinaryOperation;
-            if (operation is null)
+            if (!(semanticModel.GetOperation(expression, cancellationToken) is IBinaryOperation operation))
             {
                 return document;
             }

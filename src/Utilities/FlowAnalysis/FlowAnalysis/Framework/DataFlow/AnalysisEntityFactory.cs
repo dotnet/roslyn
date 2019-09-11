@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly Dictionary<ISymbol, PointsToAbstractValue> _instanceLocationsForSymbols;
         private readonly Func<IOperation, PointsToAbstractValue> _getPointsToAbstractValueOpt;
         private readonly Func<bool> _getIsInsideAnonymousObjectInitializer;
-        private readonly Func<CaptureId, bool> _getIsLValueFlowCapture;
+        private readonly Func<IFlowCaptureOperation, bool> _getIsLValueFlowCapture;
         private readonly AnalysisEntity _interproceduralThisOrMeInstanceForCallerOpt;
         private readonly ImmutableStack<IOperation> _interproceduralCallStackOpt;
         private readonly Func<IOperation, AnalysisEntity> _interproceduralGetAnalysisEntityForFlowCaptureOpt;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             WellKnownTypeProvider wellKnownTypeProvider,
             Func<IOperation, PointsToAbstractValue> getPointsToAbstractValueOpt,
             Func<bool> getIsInsideAnonymousObjectInitializer,
-            Func<CaptureId, bool> getIsLValueFlowCapture,
+            Func<IFlowCaptureOperation, bool> getIsLValueFlowCapture,
             INamedTypeSymbol containingTypeSymbol,
             AnalysisEntity interproceduralInvocationInstanceOpt,
             AnalysisEntity interproceduralThisOrMeInstanceForCallerOpt,
@@ -188,11 +188,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                     break;
 
-                case IInvocationOperation invocation:
-                    symbolOpt = invocation.TargetMethod;
-                    instanceOpt = invocation.Instance;
-                    break;
-
                 case IConversionOperation conversion:
                     return TryCreate(conversion.Operand, out analysisEntity);
 
@@ -203,11 +198,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return TryCreate(argument.Value, out analysisEntity);
 
                 case IFlowCaptureOperation flowCapture:
-                    analysisEntity = GetOrCreateForFlowCapture(flowCapture.Id, flowCapture.Value.Type, flowCapture);
+                    analysisEntity = GetOrCreateForFlowCapture(flowCapture.Id, flowCapture.Value.Type, flowCapture, _getIsLValueFlowCapture(flowCapture));
                     break;
 
                 case IFlowCaptureReferenceOperation flowCaptureReference:
-                    analysisEntity = GetOrCreateForFlowCapture(flowCaptureReference.Id, flowCaptureReference.Type, flowCaptureReference);
+                    analysisEntity = GetOrCreateForFlowCapture(flowCaptureReference.Id, flowCaptureReference.Type, flowCaptureReference, flowCaptureReference.IsLValueFlowCaptureReference());
                     break;
 
                 case IDeclarationExpressionOperation declarationExpression:
@@ -385,10 +380,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public bool TryGetForInterproceduralAnalysis(IOperation operation, out AnalysisEntity analysisEntity)
             => _analysisEntityMap.TryGetValue(operation, out analysisEntity);
 
-        private AnalysisEntity GetOrCreateForFlowCapture(CaptureId captureId, ITypeSymbol type, IOperation flowCaptureOrReference)
+        private AnalysisEntity GetOrCreateForFlowCapture(CaptureId captureId, ITypeSymbol type, IOperation flowCaptureOrReference, bool isLValueFlowCapture)
         {
             // Type can be null for capture of operations with OperationKind.None
-            type = type ?? _wellKnownTypeProvider.Compilation.GetSpecialType(SpecialType.System_Object);
+            type ??= _wellKnownTypeProvider.Compilation.GetSpecialType(SpecialType.System_Object);
 
             var interproceduralFlowCaptureEntityOpt = _interproceduralGetAnalysisEntityForFlowCaptureOpt?.Invoke(flowCaptureOrReference);
             if (interproceduralFlowCaptureEntityOpt != null)
@@ -400,7 +395,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(_controlFlowGraph.DescendantOperations().Contains(flowCaptureOrReference));
             if (!_captureIdEntityMap.TryGetValue(captureId, out var entity))
             {
-                var isLValueFlowCapture = _getIsLValueFlowCapture(captureId);
                 var interproceduralCaptureId = new InterproceduralCaptureId(captureId, _controlFlowGraph, isLValueFlowCapture);
                 var instanceLocation = PointsToAbstractValue.Create(
                     AbstractLocation.CreateFlowCaptureLocation(interproceduralCaptureId, type, _interproceduralCallStackOpt),
@@ -475,7 +469,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (instanceLocationOpt == null && symbolOpt != null)
             {
-                Debug.Assert(symbolOpt.Kind == SymbolKind.Local || symbolOpt.Kind == SymbolKind.Parameter || symbolOpt.IsStatic);
+                Debug.Assert(symbolOpt.Kind == SymbolKind.Local || symbolOpt.Kind == SymbolKind.Parameter || symbolOpt.IsStatic || symbolOpt.IsLambdaOrLocalFunction());
 
                 if (!_instanceLocationsForSymbols.TryGetValue(symbolOpt, out instanceLocationOpt))
                 {

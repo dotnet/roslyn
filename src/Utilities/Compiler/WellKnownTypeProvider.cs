@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
 
@@ -14,10 +13,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public class WellKnownTypeProvider
     {
-        private static readonly ConditionalWeakTable<Compilation, WellKnownTypeProvider> s_providerCache =
-            new ConditionalWeakTable<Compilation, WellKnownTypeProvider>();
-        private static readonly ConditionalWeakTable<Compilation, WellKnownTypeProvider>.CreateValueCallback s_ProviderCacheCallback =
-            new ConditionalWeakTable<Compilation, WellKnownTypeProvider>.CreateValueCallback(compilation => new WellKnownTypeProvider(compilation));
+        private static readonly BoundedCacheWithFactory<Compilation, WellKnownTypeProvider> s_providerCache =
+            new BoundedCacheWithFactory<Compilation, WellKnownTypeProvider>();
 
         private WellKnownTypeProvider(Compilation compilation)
         {
@@ -28,6 +25,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Contract = GetTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticContractsContract);
             IDisposable = GetTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             Monitor = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingMonitor);
+            Interlocked = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingInterlocked);
             Task = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
             GenericTask = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksGenericTask);
             CollectionTypes = GetWellKnownCollectionTypes();
@@ -35,7 +33,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             GenericIEquatable = GetTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
         }
 
-        public static WellKnownTypeProvider GetOrCreate(Compilation compilation) => s_providerCache.GetValue(compilation, s_ProviderCacheCallback);
+        public static WellKnownTypeProvider GetOrCreate(Compilation compilation)
+        {
+            return s_providerCache.GetOrCreateValue(compilation, CreateWellKnownTypeProvider);
+
+            // Local functions
+            static WellKnownTypeProvider CreateWellKnownTypeProvider(Compilation compilation)
+                => new WellKnownTypeProvider(compilation);
+        }
 
         public Compilation Compilation { get; }
 
@@ -68,6 +73,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Monitor"/>
         /// </summary>
         public INamedTypeSymbol Monitor { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Interlocked"/>
+        /// </summary>
+        public INamedTypeSymbol Interlocked { get; }
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for 'System.Runtime.Serialization.SerializationInfo' type />
@@ -134,6 +144,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Determines if <paramref name="typeSymbol"/> is a <see cref="System.Threading.Tasks.Task{TResult}"/> with its type
+        /// argument satisfying <paramref name="typeArgumentPredicate"/>.
+        /// </summary>
+        /// <param name="typeSymbol">Type potentially representing a <see cref="System.Threading.Tasks.Task{TResult}"/>.</param>
+        /// <param name="typeArgumentPredicate">Predicate to check the <paramref name="typeSymbol"/>'s type argument.</param>
+        /// <returns>True if <paramref name="typeSymbol"/> is a <see cref="System.Threading.Tasks.Task{TResult}"/> with its
+        /// type argument satisfying <paramref name="typeArgumentPredicate"/>, false otherwise.</returns>
+        internal bool IsTaskOfType(ITypeSymbol typeSymbol, Func<ITypeSymbol, bool> typeArgumentPredicate)
+        {
+            return typeSymbol != null
+                && typeSymbol.OriginalDefinition != null
+                && typeSymbol.OriginalDefinition.Equals(GenericTask)
+                && typeSymbol is INamedTypeSymbol namedTypeSymbol
+                && namedTypeSymbol.TypeArguments.Length == 1
+                && typeArgumentPredicate(namedTypeSymbol.TypeArguments[0]);
         }
     }
 }

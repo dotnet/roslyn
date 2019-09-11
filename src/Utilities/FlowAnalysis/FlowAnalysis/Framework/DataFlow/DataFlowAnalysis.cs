@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
@@ -22,8 +20,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         where TAnalysisResult : DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>
         where TBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        private static readonly ConditionalWeakTable<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>> s_resultCache =
-            new ConditionalWeakTable<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>>();
+        private static readonly BoundedCache<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>> s_resultCache =
+            new BoundedCache<IOperation, SingleThreadedConcurrentDictionary<TAnalysisContext, TAnalysisResult>>();
 
         protected DataFlowAnalysis(AbstractAnalysisDomain<TAnalysisData> analysisDomain, DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> operationVisitor)
         {
@@ -41,7 +39,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 throw new ArgumentNullException(nameof(analysisContext));
             }
 
-            if (!cacheResult)
+            // Don't add interprocedural analysis result to our static results cache.
+            if (!cacheResult || analysisContext.InterproceduralAnalysisDataOpt != null)
             {
                 return Run(analysisContext);
             }
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private TAnalysisResult Run(TAnalysisContext analysisContext)
         {
             var cfg = analysisContext.ControlFlowGraph;
-            if (!cfg.SupportsFlowAnalysis())
+            if (cfg?.SupportsFlowAnalysis() != true)
             {
                 return default;
             }
@@ -486,7 +485,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            ControlFlowRegion TryGetReachableCatchRegionStartingHandler(ControlFlowRegion tryAndCatchRegion, BasicBlock sourceBlock)
+            static ControlFlowRegion TryGetReachableCatchRegionStartingHandler(ControlFlowRegion tryAndCatchRegion, BasicBlock sourceBlock)
             {
                 Debug.Assert(tryAndCatchRegion.Kind == ControlFlowRegionKind.TryAndCatch);
 
@@ -588,7 +587,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // If this block starts a catch/filter region, return the enclosing TryAndCatch region.
-            ControlFlowRegion GetEnclosingTryAndCatchRegionIfStartsHandler(BasicBlock block)
+            static ControlFlowRegion GetEnclosingTryAndCatchRegionIfStartsHandler(BasicBlock block)
             {
                 if (block.EnclosingRegion?.FirstBlockOrdinal == block.Ordinal)
                 {

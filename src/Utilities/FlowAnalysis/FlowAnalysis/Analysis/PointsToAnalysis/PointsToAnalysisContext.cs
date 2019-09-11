@@ -2,11 +2,9 @@
 
 using System;
 using System.Diagnostics;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
-
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
@@ -24,6 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             bool exceptionPathsAnalysis,
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             ControlFlowGraph parentControlFlowGraphOpt,
             InterproceduralPointsToAnalysisData interproceduralAnalysisDataOpt,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
-            : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis,
+            : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis,
                   predicateAnalysis: true, exceptionPathsAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt: null, valueContentAnalysisResultOpt: null,
                   tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt, interproceduralAnalysisDataOpt, interproceduralAnalysisPredicateOpt)
         {
@@ -43,6 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             bool exceptionPathsAnalysis,
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             Func<PointsToAnalysisContext, PointsToAnalysisResult> tryGetOrComputeAnalysisResult,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
         {
-            return new PointsToAnalysisContext(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig,
+            return new PointsToAnalysisContext(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions, interproceduralAnalysisConfig,
                 pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResultOpt, tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt: null,
                 interproceduralAnalysisDataOpt: null, interproceduralAnalysisPredicateOpt);
         }
@@ -67,12 +67,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             Debug.Assert(pointsToAnalysisResultOpt == null);
             Debug.Assert(valueContentAnalysisResultOpt == null);
 
-            return new PointsToAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, InterproceduralAnalysisConfiguration,
+            return new PointsToAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration,
                 PessimisticAnalysis, ExceptionPathsAnalysis, copyAnalysisResultOpt, TryGetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
                 InterproceduralAnalysisPredicateOpt);
         }
 
-        protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
         }
     }

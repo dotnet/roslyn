@@ -144,7 +144,8 @@ namespace Analyzer.Utilities.Extensions
             SymbolVisibilityGroup defaultRequiredVisibility = SymbolVisibilityGroup.Public)
         {
             var allowedVisibilities = options.GetSymbolVisibilityGroupOption(rule, defaultRequiredVisibility, cancellationToken);
-            return allowedVisibilities.Contains(symbol.GetResultantVisibility());
+            return allowedVisibilities == SymbolVisibilityGroup.All ||
+                allowedVisibilities.Contains(symbol.GetResultantVisibility());
         }
 
         /// <summary>
@@ -186,6 +187,23 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns true if the given symbol has required symbol modifiers based on options:
+        ///   1. If user has explicitly configured candidate <see cref="SymbolModifiers"/> in editor config options and
+        ///      given symbol has all the required modifiers.
+        ///   2. Otherwise, if user has not configured modifiers.
+        /// </summary>
+        public static bool MatchesConfiguredModifiers(
+            this ISymbol symbol,
+            AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            CancellationToken cancellationToken,
+            SymbolModifiers defaultRequiredModifiers = SymbolModifiers.None)
+        {
+            var requiredModifiers = options.GetRequiredModifiersOption(rule, defaultRequiredModifiers, cancellationToken);
+            return symbol.GetSymbolModifiers().Contains(requiredModifiers);
         }
 
         /// <summary>
@@ -537,20 +555,16 @@ namespace Analyzer.Utilities.Extensions
             Debug.Assert(symbol != null);
             Debug.Assert(symbol.IsOverride);
 
-            switch (symbol)
+            return symbol switch
             {
-                case IMethodSymbol methodSymbol:
-                    return methodSymbol.OverriddenMethod;
+                IMethodSymbol methodSymbol => methodSymbol.OverriddenMethod,
 
-                case IPropertySymbol propertySymbol:
-                    return propertySymbol.OverriddenProperty;
+                IPropertySymbol propertySymbol => propertySymbol.OverriddenProperty,
 
-                case IEventSymbol eventSymbol:
-                    return eventSymbol.OverriddenEvent;
+                IEventSymbol eventSymbol => eventSymbol.OverriddenEvent,
 
-                default:
-                    throw new NotImplementedException();
-            }
+                _ => throw new NotImplementedException(),
+            };
         }
 
         /// <summary>
@@ -578,53 +592,42 @@ namespace Analyzer.Utilities.Extensions
 
         public static ITypeSymbol GetMemberOrLocalOrParameterType(this ISymbol symbol)
         {
-            switch (symbol.Kind)
+            return symbol.Kind switch
             {
-                case SymbolKind.Local:
-                    return ((ILocalSymbol)symbol).Type;
+                SymbolKind.Local => ((ILocalSymbol)symbol).Type,
 
-                case SymbolKind.Parameter:
-                    return ((IParameterSymbol)symbol).Type;
+                SymbolKind.Parameter => ((IParameterSymbol)symbol).Type,
 
-                default:
-                    return GetMemberType(symbol);
-            }
+                _ => GetMemberType(symbol),
+            };
         }
 
         public static ITypeSymbol GetMemberType(this ISymbol symbol)
         {
-            switch (symbol.Kind)
+            return symbol.Kind switch
             {
-                case SymbolKind.Event:
-                    return ((IEventSymbol)symbol).Type;
+                SymbolKind.Event => ((IEventSymbol)symbol).Type,
 
-                case SymbolKind.Field:
-                    return ((IFieldSymbol)symbol).Type;
+                SymbolKind.Field => ((IFieldSymbol)symbol).Type,
 
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).ReturnType;
+                SymbolKind.Method => ((IMethodSymbol)symbol).ReturnType,
 
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)symbol).Type;
+                SymbolKind.Property => ((IPropertySymbol)symbol).Type,
 
-                default:
-                    return null;
-            }
+                _ => null,
+            };
         }
 
         public static bool IsReadOnlyFieldOrProperty(this ISymbol symbol)
         {
-            switch (symbol)
+            return symbol switch
             {
-                case IFieldSymbol field:
-                    return field.IsReadOnly;
+                IFieldSymbol field => field.IsReadOnly,
 
-                case IPropertySymbol property:
-                    return property.IsReadOnly;
+                IPropertySymbol property => property.IsReadOnly,
 
-                default:
-                    return false;
-            }
+                _ => false,
+            };
         }
 
         /// <summary>
@@ -669,5 +672,32 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
             => symbol?.Name.StartsWith("_", StringComparison.Ordinal) == true &&
                (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
+
+        public static bool IsConst(this ISymbol symbol)
+        {
+            return symbol switch
+            {
+                IFieldSymbol field => field.IsConst,
+
+                ILocalSymbol local => local.IsConst,
+
+                _ => false,
+            };
+        }
+
+        public static bool IsReadOnly(this ISymbol symbol)
+        {
+            return symbol switch
+            {
+                IFieldSymbol field => field.IsReadOnly,
+
+                IPropertySymbol property => property.IsReadOnly,
+
+                // TODO: IMethodSymbol and ITypeSymbol also have IsReadOnly in Microsoft.CodeAnalysis 3.x
+                //       Add these cases once we move to the required Microsoft.CodeAnalysis.nupkg.
+
+                _ => false,
+            };
+        }
     }
 }

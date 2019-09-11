@@ -3,10 +3,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -25,19 +25,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             var lvalueFlowCaptureIdBuilder = PooledHashSet<CaptureId>.GetInstance();
 #if DEBUG
-            var rvalueFlowCaptureIds = new HashSet<CaptureId>();
+            var rvalueFlowCaptureIds = new Dictionary<CaptureId, HashSet<IFlowCaptureReferenceOperation>>();
 #endif
             foreach (var flowCaptureReference in cfg.DescendantOperations<IFlowCaptureReferenceOperation>(OperationKind.FlowCaptureReference))
             {
-                if (flowCaptureReference.Parent is IAssignmentOperation assignment &&
-                    assignment.Target == flowCaptureReference)
+                if (flowCaptureReference.IsLValueFlowCaptureReference())
                 {
                     lvalueFlowCaptureIdBuilder.Add(flowCaptureReference.Id);
                 }
 #if DEBUG
                 else
                 {
-                    rvalueFlowCaptureIds.Add(flowCaptureReference.Id);
+                    if (!rvalueFlowCaptureIds.TryGetValue(flowCaptureReference.Id, out var operations))
+                    {
+                        operations = new HashSet<IFlowCaptureReferenceOperation>();
+                        rvalueFlowCaptureIds[flowCaptureReference.Id] = operations;
+                    }
+
+                    operations.Add(flowCaptureReference);
                 }
 #endif
             }
@@ -47,7 +52,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 foreach (var captureId in lvalueFlowCaptureIdBuilder)
                 {
-                    Debug.Assert(!rvalueFlowCaptureIds.Contains(captureId), "Flow capture used as both an r-value and an l-value?");
+                    if (rvalueFlowCaptureIds.ContainsKey(captureId))
+                    {
+                        // Flow capture reference is used on left side as well as right side for
+                        // CFG generated for coalesce assignment operation ('??=')
+                        // Do not fire an assert for this known anomaly.
+                        var operations = rvalueFlowCaptureIds[captureId];
+                        if (operations.Count == 1 &&
+                            operations.Single().Parent?.Kind == OperationKind.FlowCapture)
+                        {
+                            continue;
+                        }
+
+                        Debug.Fail("Flow capture used as both an r-value and an l-value?");
+                    }
                 }
             }
 #endif

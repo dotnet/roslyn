@@ -3,7 +3,6 @@
 #if HAS_IOPERATION
 
 using System.Collections.Concurrent;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {

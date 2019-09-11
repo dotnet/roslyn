@@ -10,8 +10,6 @@ using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
-
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     /// <summary>
@@ -173,17 +171,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                switch (SymbolOpt)
+                return SymbolOpt switch
                 {
-                    case IFieldSymbol field:
-                        return field.HasConstantValue;
+                    IFieldSymbol field => field.HasConstantValue,
 
-                    case ILocalSymbol local:
-                        return local.HasConstantValue;
+                    ILocalSymbol local => local.HasConstantValue,
 
-                    default:
-                        return false;
-                }
+                    _ => false,
+                };
             }
         }
 
@@ -235,27 +230,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public int EqualsIgnoringInstanceLocationId => _ignoringLocationHashCode;
 
-        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(InstanceLocation.GetHashCode());
-            ComputeHashCodePartsIgnoringLocation(builder);
+            addPart(InstanceLocation.GetHashCode());
+            ComputeHashCodePartsIgnoringLocation(addPart);
         }
 
-        private void ComputeHashCodePartsIgnoringLocation(ArrayBuilder<int> builder)
+        private void ComputeHashCodePartsIgnoringLocation(Action<int> addPart)
         {
-            builder.Add(SymbolOpt.GetHashCodeOrDefault());
-            builder.Add(HashUtilities.Combine(Indices));
-            builder.Add(InstanceReferenceOperationSyntaxOpt.GetHashCodeOrDefault());
-            builder.Add(CaptureIdOpt.GetHashCodeOrDefault());
-            builder.Add(Type.GetHashCode());
-            builder.Add(ParentOpt.GetHashCodeOrDefault());
-            builder.Add(IsThisOrMeInstance.GetHashCode());
+            addPart(SymbolOpt.GetHashCodeOrDefault());
+            addPart(HashUtilities.Combine(Indices));
+            addPart(InstanceReferenceOperationSyntaxOpt.GetHashCodeOrDefault());
+            addPart(CaptureIdOpt.GetHashCodeOrDefault());
+            addPart(Type.GetHashCode());
+            addPart(ParentOpt.GetHashCodeOrDefault());
+            addPart(IsThisOrMeInstance.GetHashCode());
         }
 
         private ImmutableArray<int> ComputeIgnoringLocationHashCodeParts()
         {
             var builder = ArrayBuilder<int>.GetInstance(7);
-            ComputeHashCodePartsIgnoringLocation(builder);
+            ComputeHashCodePartsIgnoringLocation(builder.Add);
             return builder.ToImmutableAndFree();
         }
 

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -12,7 +11,7 @@ namespace Text.Analyzers
     /// </summary>
     public abstract class IdentifiersShouldBeSpelledCorrectlyFixer : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IdentifiersShouldBeSpelledCorrectlyAnalyzer.RuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray<string>.Empty;
 
         public sealed override FixAllProvider GetFixAllProvider()
         {

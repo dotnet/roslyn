@@ -2,19 +2,19 @@
 
 using System;
 using System.Diagnostics;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
-
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
+    using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
     using InterproceduralTaintedDataAnalysisData = InterproceduralAnalysisData<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAbstractValue>;
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     internal sealed class TaintedDataAnalysisContext : AbstractDataFlowAnalysisContext<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataAbstractValue>
     {
@@ -23,9 +23,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
+            CopyAnalysisResult copyAnalysisResultOpt,
             PointsToAnalysisResult pointsToAnalysisResult,
+            ValueContentAnalysisResult valueContentAnalysisResult,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> tryGetOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraph,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisDataOpt,
@@ -37,13 +40,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                   wellKnownTypeProvider,
                   controlFlowGraph,
                   owningSymbol,
+                  analyzerOptions,
                   interproceduralAnalysisConfig,
                   pessimisticAnalysis,
                   predicateAnalysis: false,
                   exceptionPathsAnalysis: false,
-                  copyAnalysisResultOpt: null,
+                  copyAnalysisResultOpt,
                   pointsToAnalysisResult,
-                  valueContentAnalysisResultOpt: null,
+                  valueContentAnalysisResult,
                   tryGetOrComputeAnalysisResult,
                   parentControlFlowGraph,
                   interproceduralAnalysisDataOpt,
@@ -61,9 +65,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
+            CopyAnalysisResult copyAnalysisResultOpt,
             PointsToAnalysisResult pointsToAnalysisResult,
+            ValueContentAnalysisResult valueContentAnalysisResult,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> tryGetOrComputeAnalysisResult,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
@@ -76,9 +83,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 wellKnownTypeProvider,
                 controlFlowGraph,
                 owningSymbol,
+                analyzerOptions,
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis,
+                copyAnalysisResultOpt,
                 pointsToAnalysisResult,
+                valueContentAnalysisResult,
                 tryGetOrComputeAnalysisResult,
                 parentControlFlowGraph: null,
                 interproceduralAnalysisDataOpt: null,
@@ -96,17 +106,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue> valueContentAnalysisResultOpt,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisData)
         {
-            Debug.Assert(copyAnalysisResultOpt == null);   // Just because we're not passing this argument along.
-            Debug.Assert(valueContentAnalysisResultOpt == null);
-
             return new TaintedDataAnalysisContext(
                 this.ValueDomain,
                 this.WellKnownTypeProvider,
                 invokedCfg,
                 invokedMethod,
+                this.AnalyzerOptions,
                 this.InterproceduralAnalysisConfiguration,
                 this.PessimisticAnalysis,
+                copyAnalysisResultOpt,
                 pointsToAnalysisResultOpt,
+                valueContentAnalysisResultOpt,
                 this.TryGetOrComputeAnalysisResult,
                 this.ControlFlowGraph,
                 interproceduralAnalysisData,
@@ -130,11 +140,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public TaintedDataSymbolMap<SinkInfo> SinkInfos { get; }
 
-        protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
-            builder.Add(SourceInfos.GetHashCode());
-            builder.Add(SanitizerInfos.GetHashCode());
-            builder.Add(SinkInfos.GetHashCode());
+            addPart(SourceInfos.GetHashCode());
+            addPart(SanitizerInfos.GetHashCode());
+            addPart(SinkInfos.GetHashCode());
         }
     }
 }

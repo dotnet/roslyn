@@ -9,8 +9,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Operations;
+
+#if LEGACY_CODE_METRICS_MODE
+using Analyzer.Utilities.Extensions;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -220,8 +223,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             return (cyclomaticComplexity, computationalComplexityMetrics);
-
-            bool hasConditionalLogic(IOperation operation)
+            static bool hasConditionalLogic(IOperation operation)
             {
                 switch (operation.Kind)
                 {
@@ -261,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             // Compat
-            bool isIgnoreableType(INamedTypeSymbol namedType)
+            static bool isIgnoreableType(INamedTypeSymbol namedType)
             {
                 switch (namedType.SpecialType)
                 {
@@ -303,15 +305,12 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
         internal static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol member)
         {
-            switch (member.Kind)
+            return member.Kind switch
             {
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)member).Parameters;
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)member).Parameters;
-                default:
-                    return ImmutableArray<IParameterSymbol>.Empty;
-            }
+                SymbolKind.Method => ((IMethodSymbol)member).Parameters,
+                SymbolKind.Property => ((IPropertySymbol)member).Parameters,
+                _ => ImmutableArray<IParameterSymbol>.Empty,
+            };
         }
     }
 }

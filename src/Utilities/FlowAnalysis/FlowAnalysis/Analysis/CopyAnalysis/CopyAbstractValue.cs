@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
-
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
@@ -76,10 +74,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         public ImmutableHashSet<AnalysisEntity> AnalysisEntities { get; }
         public CopyAbstractValueKind Kind { get; }
 
-        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(HashUtilities.Combine(AnalysisEntities));
-            builder.Add(Kind.GetHashCode());
+            addPart(HashUtilities.Combine(AnalysisEntities));
+            addPart(Kind.GetHashCode());
         }
     }
 }
