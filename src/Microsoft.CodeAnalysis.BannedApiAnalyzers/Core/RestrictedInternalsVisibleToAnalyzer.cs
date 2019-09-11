@@ -78,33 +78,17 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             compilationContext.RegisterOperationAction(
                 context =>
                 {
-                    ISymbol symbol;
-                    switch (context.Operation)
+                    var symbol = context.Operation switch
                     {
-                        case IObjectCreationOperation objectCreation:
-                            symbol = objectCreation.Constructor;
-                            break;
-                        case IInvocationOperation invocation:
-                            symbol = invocation.TargetMethod;
-                            break;
-                        case IMemberReferenceOperation memberReference:
-                            symbol = memberReference.Member;
-                            break;
-                        case IConversionOperation conversion:
-                            symbol = conversion.OperatorMethod;
-                            break;
-                        case IUnaryOperation unary:
-                            symbol = unary.OperatorMethod;
-                            break;
-                        case IBinaryOperation binary:
-                            symbol = binary.OperatorMethod;
-                            break;
-                        case IIncrementOrDecrementOperation incrementOrDecrement:
-                            symbol = incrementOrDecrement.OperatorMethod;
-                            break;
-                        default:
-                            throw new NotImplementedException($"Unhandled OperationKind: {context.Operation.Kind}");
-                    }
+                        IObjectCreationOperation objectCreation => objectCreation.Constructor,
+                        IInvocationOperation invocation => invocation.TargetMethod,
+                        IMemberReferenceOperation memberReference => memberReference.Member,
+                        IConversionOperation conversion => conversion.OperatorMethod,
+                        IUnaryOperation unary => unary.OperatorMethod,
+                        IBinaryOperation binary => binary.OperatorMethod,
+                        IIncrementOrDecrementOperation incrementOrDecrement => incrementOrDecrement.OperatorMethod,
+                        _ => throw new NotImplementedException($"Unhandled OperationKind: {context.Operation.Kind}"),
+                    };
 
                     VerifySymbol(symbol, context.Operation.Syntax,
                         context.ReportDiagnostic, restrictedInternalsVisibleToMap, namespaceToIsBannedMap);

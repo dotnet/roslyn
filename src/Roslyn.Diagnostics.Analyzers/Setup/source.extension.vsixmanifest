@@ -5,6 +5,7 @@
     <Identity Id="574abf23-083a-46c6-9aab-9db558ce883a" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft DevLabs" />
     <DisplayName>Roslyn.Diagnostics Analyzers</DisplayName>
     <Description xml:space="preserve">Roslyn.Diagnostics Analyzers</Description>
+    <License>EULA.rtf</License>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0.0.0,17.0.0.0)" />

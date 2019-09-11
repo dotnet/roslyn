@@ -3,8 +3,6 @@
 using System;
 using System.Diagnostics;
 
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
-
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     public abstract partial class AbstractIndex
