@@ -22,20 +22,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <returns>Flagged if null, Unflagged if not null, MaybeFlagged otherwise.</returns>
         public static PropertySetAbstractValueKind FlagIfNull(PointsToAbstractValue pointsToAbstractValue)
         {
-            switch (pointsToAbstractValue.NullState)
+            return pointsToAbstractValue.NullState switch
             {
-                case NullAbstractValue.Null:
-                    return PropertySetAbstractValueKind.Flagged;
+                NullAbstractValue.Null => PropertySetAbstractValueKind.Flagged,
 
-                case NullAbstractValue.NotNull:
-                    return PropertySetAbstractValueKind.Unflagged;
+                NullAbstractValue.NotNull => PropertySetAbstractValueKind.Unflagged,
 
-                case NullAbstractValue.MaybeNull:
-                    return PropertySetAbstractValueKind.MaybeFlagged;
+                NullAbstractValue.MaybeNull => PropertySetAbstractValueKind.MaybeFlagged,
 
-                default:
-                    return PropertySetAbstractValueKind.Unknown;
-            }
+                _ => PropertySetAbstractValueKind.Unknown,
+            };
         }
 
         /// <summary>

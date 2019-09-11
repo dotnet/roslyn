@@ -95,17 +95,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             }
             else if (locations.Count > LocationThreshold)
             {
-                switch (nullState)
+                return nullState switch
                 {
-                    case NullAbstractValue.Null:
-                        return UnknownNull;
+                    NullAbstractValue.Null => UnknownNull,
 
-                    case NullAbstractValue.NotNull:
-                        return UnknownNotNull;
+                    NullAbstractValue.NotNull => UnknownNotNull,
 
-                    default:
-                        return Unknown;
-                }
+                    _ => Unknown,
+                };
             }
 
             return new PointsToAbstractValue(locations, nullState);

@@ -171,17 +171,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                switch (SymbolOpt)
+                return SymbolOpt switch
                 {
-                    case IFieldSymbol field:
-                        return field.HasConstantValue;
+                    IFieldSymbol field => field.HasConstantValue,
 
-                    case ILocalSymbol local:
-                        return local.HasConstantValue;
+                    ILocalSymbol local => local.HasConstantValue,
 
-                    default:
-                        return false;
-                }
+                    _ => false,
+                };
             }
         }
 
