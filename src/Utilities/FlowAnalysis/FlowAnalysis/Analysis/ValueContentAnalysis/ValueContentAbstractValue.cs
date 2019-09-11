@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         public static ValueContentAbstractValue InvalidState { get; } = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Invalid);
         public static ValueContentAbstractValue MayBeContainsNonLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Maybe);
         public static ValueContentAbstractValue DoesNotContainLiteralOrNonLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.No);
+        public static ValueContentAbstractValue ContainsNullLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create((object)null), ValueContainsNonLiteralState.No);
         public static ValueContentAbstractValue ContainsEmptyStringLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(string.Empty), ValueContainsNonLiteralState.No);
         public static ValueContentAbstractValue ContainsZeroIntergralLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(0), ValueContainsNonLiteralState.No);
         public static ValueContentAbstractValue ContainsOneIntergralLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(1), ValueContainsNonLiteralState.No);
@@ -38,6 +39,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
         internal static ValueContentAbstractValue Create(object literal, ITypeSymbol type)
         {
+            Debug.Assert(literal != null);
+
             switch (type.SpecialType)
             {
                 case SpecialType.System_Byte:
@@ -199,13 +202,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         public bool IsLiteralState => !LiteralValues.IsEmpty && NonLiteralState == ValueContainsNonLiteralState.No;
 
         /// <summary>
-        /// For super simple cases: If this abstract value is a single literal, then get that literal value.
+        /// For super simple cases: If this abstract value is a single non-null literal, then get that literal value.
         /// </summary>
         /// <typeparam name="T">Type of the expected literal value.</typeparam>
-        /// <param name="literalValue">Literal value, or its default if not a single literal value.</param>
-        /// <returns>True if a literal value was found, false otherwise.</returns>
+        /// <param name="literalValue">Literal value, or its default if not a single non-null literal value.</param>
+        /// <returns>True if a non-null literal value was found, false otherwise.</returns>
         /// <remarks>If you're looking for null, you should be looking at <see cref="PointsToAnalysis"/>.</remarks>
-        public bool TryGetSingleLiteral<T>(out T literalValue)
+        public bool TryGetSingleNonNullLiteral<T>(out T literalValue)
         {
             if (!IsLiteralState || LiteralValues.Count != 1)
             {

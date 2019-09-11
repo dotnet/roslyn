@@ -50,7 +50,7 @@ namespace Analyzer.Utilities
 
         internal static int Combine<T>(ImmutableHashSet<T> set) => Combine(set, 0);
         internal static int Combine<T>(ImmutableHashSet<T> set, int currentKey)
-            => Combine(set.Select(element => element.GetHashCode()).Order(),
+            => Combine(set.Select(element => element?.GetHashCode() ?? 0).Order(),
                        set.Count,
                        currentKey);
 

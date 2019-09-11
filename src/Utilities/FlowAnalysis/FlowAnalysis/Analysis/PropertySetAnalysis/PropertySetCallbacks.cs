@@ -41,8 +41,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="badLiteralValuePredicate">Predicate function to determine if a literal value is bad.</param>
         /// <returns>Mapped kind.</returns>
         /// <remarks>
-        /// Null is not handled by this.  Look at the <see cref="PointsToAbstractValue"/> if you need to treat null as bad.
-        /// 
         /// All literal values are bad => Flagged
         /// Some but not all literal are bad => MaybeFlagged
         /// All literal values are known and none are bad => Unflagged
