@@ -159,9 +159,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             public BasicBlockAnalysisData CreateBlockAnalysisData()
             {
                 var instance = BasicBlockAnalysisData.GetInstance();
-                _allocatedBasicBlockAnalysisDatas.Add(instance);
+                TrackAllocatedBlockAnalysisData(instance);
                 return instance;
             }
+
+            public void TrackAllocatedBlockAnalysisData(BasicBlockAnalysisData allocatedData)
+                => _allocatedBasicBlockAnalysisDatas.Add(allocatedData);
 
             public void OnReadReferenceFound(ISymbol symbol)
             {
