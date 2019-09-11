@@ -91,6 +91,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End If
         End Sub
 
+        Friend Overloads Sub SendBackSpace()
+            EditorOperations.Backspace()
+        End Sub
+
         Friend Overloads Sub SendBackTab()
             If Not SendBackTab(AddressOf SnippetCommandHandler.ExecuteCommand) Then
                 EditorOperations.Unindent()

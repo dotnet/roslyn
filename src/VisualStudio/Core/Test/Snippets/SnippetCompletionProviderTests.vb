@@ -41,7 +41,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 testState.SendTabToCompletion()
-                Await testState.WaitForAsynchronousOperationsAsync()
                 Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
 
                 testState.SendBackspace()
