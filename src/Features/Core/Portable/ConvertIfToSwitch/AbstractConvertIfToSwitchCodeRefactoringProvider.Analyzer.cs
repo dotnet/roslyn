@@ -367,8 +367,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private static bool IsConstant(IOperation operation)
             {
-                // Use syntax to skip possible conversion operation
-                return operation.SemanticModel.GetConstantValue(operation.Syntax).HasValue;
+                // Constants do not propagate to conversions
+                return operation is IConversionOperation op
+                    ? IsConstant(op.Operand)
+                    : operation.ConstantValue.HasValue;
             }
 
             private bool CheckTargetExpression(IOperation operation)
