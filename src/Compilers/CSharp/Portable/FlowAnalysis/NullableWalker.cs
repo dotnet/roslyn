@@ -1745,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // a nullable value type created with its default constructor is by definition null
                             resultState = NullableFlowState.MaybeNull;
                         }
-                        else if (constructor.ParameterCount == 1)
+                        else if (constructor?.ParameterCount == 1)
                         {
                             // if we deal with one-parameter ctor that takes underlying, then Value state is inferred from the argument.
                             var parameterType = constructor.ParameterTypesWithAnnotations[0];
