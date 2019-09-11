@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 => new Converter(semanticModel, semanticFacts, queryExpression, cancellationToken).TryConvert(out documentUpdateInfo);
 
         /// <summary>
-        /// Finds a node for the span and checks that it is either a QueryExpressionSyntax or a QueryExpressionSyntax argument within ArgumentSyntax.
+        /// Finds a QueryExpressionSyntax node for the span.
         /// </summary>
         protected override Task<QueryExpressionSyntax> FindNodeToRefactorAsync(CodeRefactoringContext context)
             => context.TryGetRelevantNodeAsync<QueryExpressionSyntax>();

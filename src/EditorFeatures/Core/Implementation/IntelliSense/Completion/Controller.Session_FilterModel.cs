@@ -140,12 +140,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     // Check if the item matches the filter text typed so far.
-                    var matchesFilterText = ItemManager.MatchesFilterText(helper, currentItem, filterText, model.Trigger.Kind, filterReason, recentItems);
+                    var matchesFilterText = ItemManager.MatchesFilterText(helper, currentItem, filterText, model.Trigger.Kind, filterReason, recentItems, includeMatchSpans: false, out var patternMatch);
 
                     if (matchesFilterText)
                     {
                         filterResults.Add(new FilterResult(
-                            currentItem, filterText, matchedFilterText: true));
+                            currentItem, filterText, matchedFilterText: true, patternMatch));
                     }
                     else
                     {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         if (shouldKeepItem)
                         {
                             filterResults.Add(new FilterResult(
-                                currentItem, filterText, matchedFilterText: false));
+                                currentItem, filterText, matchedFilterText: false, patternMatch));
                         }
                     }
                 }
@@ -250,8 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 var matchingCompletionItems = filterResults.Where(r => r.MatchedFilterText)
-                                                           .Select(t => t.CompletionItem)
-                                                           .AsImmutable();
+                                                           .SelectAsArray(t => (t.CompletionItem, t.PatternMatch));
                 var chosenItems = service.FilterItems(
                     document, matchingCompletionItems, filterText);
 

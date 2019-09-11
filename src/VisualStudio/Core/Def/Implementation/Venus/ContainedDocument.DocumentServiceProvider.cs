@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     internal sealed partial class ContainedDocument
     {
         // this is to support old venus/razor case before dev16. 
-        // all new razor (asp.NET core after dev16) should use thier own implementation not ours
+        // all new razor (asp.NET core after dev16) should use their own implementation not ours
         public class DocumentServiceProvider : IDocumentServiceProvider
         {
             private readonly SpanMapper _spanMapper;
@@ -45,6 +45,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     return excerpter;
                 }
 
+                if (DesignTimeOnlyDocumentPropertiesService.Instance is TService documentPropertiesService)
+                {
+                    return documentPropertiesService;
+                }
+
                 // ask the default document service provider
                 return DefaultTextDocumentServiceProvider.Instance.GetService<TService>();
             }
@@ -52,6 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             private static ITextSnapshot GetRoslynSnapshot(SourceText sourceText)
             {
                 return sourceText.FindCorrespondingEditorTextSnapshot();
+            }
+
+            private sealed class DesignTimeOnlyDocumentPropertiesService : DocumentPropertiesService
+            {
+                public static readonly DesignTimeOnlyDocumentPropertiesService Instance = new DesignTimeOnlyDocumentPropertiesService();
+                public override bool DesignTimeOnly => true;
             }
 
             private class SpanMapper : ISpanMappingService
@@ -165,71 +176,69 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     // anything based on content is starting from 0
                     var startPositionOnContentSpan = GetNonWhitespaceStartPositionOnContent(contentSpanOnPrimarySnapshot);
 
-                    using (var pooledObject = SharedPools.Default<List<ClassifiedSpan>>().GetPooledObject())
+                    using var pooledObject = SharedPools.Default<List<ClassifiedSpan>>().GetPooledObject();
+                    var list = pooledObject.Object;
+
+                    foreach (var roslynSpan in primarySnapshot.MapToSourceSnapshots(contentSpanOnPrimarySnapshot.Span))
                     {
-                        var list = pooledObject.Object;
-
-                        foreach (var roslynSpan in primarySnapshot.MapToSourceSnapshots(contentSpanOnPrimarySnapshot.Span))
+                        if (roslynSnapshot.TextBuffer != roslynSpan.Snapshot.TextBuffer)
                         {
-                            if (roslynSnapshot.TextBuffer != roslynSpan.Snapshot.TextBuffer)
+                            // not mapped to right buffer. ignore
+                            continue;
+                        }
+
+                        // we don't have gurantee that pirmary snapshot is from same snapshot as roslyn snapshot. make sure
+                        // we map it to right snapshot
+                        var fixedUpSpan = roslynSpan.TranslateTo(roslynSnapshot, SpanTrackingMode.EdgeExclusive);
+                        var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, fixedUpSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                        if (classifiedSpans.IsDefault)
+                        {
+                            continue;
+                        }
+
+                        foreach (var classifiedSpan in classifiedSpans)
+                        {
+                            var mappedSpan = MapRoslynSpanToPrimarySpan(primarySnapshot, roslynSnapshot, classifiedSpan.TextSpan);
+                            if (mappedSpan == null)
                             {
-                                // not mapped to right buffer. ignore
                                 continue;
                             }
 
-                            // we don't have gurantee that pirmary snapshot is from same snapshot as roslyn snapshot. make sure
-                            // we map it to right snapshot
-                            var fixedUpSpan = roslynSpan.TranslateTo(roslynSnapshot, SpanTrackingMode.EdgeExclusive);
-                            var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, fixedUpSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-                            if (classifiedSpans.IsDefault)
+                            var spanOnContentSpan = GetSpanOnContent(mappedSpan.Value.Span.ToTextSpan(), contentSpan);
+                            if (spanOnContentSpan.Start < startPositionOnContentSpan)
                             {
+                                // skip span before start position.
                                 continue;
                             }
 
-                            foreach (var classifiedSpan in classifiedSpans)
-                            {
-                                var mappedSpan = MapRoslynSpanToPrimarySpan(primarySnapshot, roslynSnapshot, classifiedSpan.TextSpan);
-                                if (mappedSpan == null)
-                                {
-                                    continue;
-                                }
-
-                                var spanOnContentSpan = GetSpanOnContent(mappedSpan.Value.Span.ToTextSpan(), contentSpan);
-                                if (spanOnContentSpan.Start < startPositionOnContentSpan)
-                                {
-                                    // skip span before start position.
-                                    continue;
-                                }
-
-                                list.Add(new ClassifiedSpan(spanOnContentSpan, classifiedSpan.ClassificationType));
-                            }
+                            list.Add(new ClassifiedSpan(spanOnContentSpan, classifiedSpan.ClassificationType));
                         }
-
-                        // classifier expects there is no gap between classification spans. any empty space
-                        // from the above classification call will be filled with "text"
-                        //
-                        // the EditorClassifier call above fills all the gaps for the span it is called with, but we are combining
-                        // multiple spans with html code, so we need to fill those gaps
-                        var builder = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                        ClassifierHelper.FillInClassifiedSpanGaps(startPositionOnContentSpan, list, builder);
-
-                        // add html after roslyn content if there is any
-                        if (builder.Count == 0)
-                        {
-                            // no roslyn code. add all as html code
-                            builder.Add(new ClassifiedSpan(new TextSpan(0, contentSpan.Length), ClassificationTypeNames.Text));
-                        }
-                        else
-                        {
-                            var lastSpan = builder[builder.Count - 1].TextSpan;
-                            if (lastSpan.End < contentSpan.Length)
-                            {
-                                builder.Add(new ClassifiedSpan(new TextSpan(lastSpan.End, contentSpan.Length - lastSpan.End), ClassificationTypeNames.Text));
-                            }
-                        }
-
-                        return builder.ToImmutableAndFree();
                     }
+
+                    // classifier expects there is no gap between classification spans. any empty space
+                    // from the above classification call will be filled with "text"
+                    //
+                    // the EditorClassifier call above fills all the gaps for the span it is called with, but we are combining
+                    // multiple spans with html code, so we need to fill those gaps
+                    var builder = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                    ClassifierHelper.FillInClassifiedSpanGaps(startPositionOnContentSpan, list, builder);
+
+                    // add html after roslyn content if there is any
+                    if (builder.Count == 0)
+                    {
+                        // no roslyn code. add all as html code
+                        builder.Add(new ClassifiedSpan(new TextSpan(0, contentSpan.Length), ClassificationTypeNames.Text));
+                    }
+                    else
+                    {
+                        var lastSpan = builder[builder.Count - 1].TextSpan;
+                        if (lastSpan.End < contentSpan.Length)
+                        {
+                            builder.Add(new ClassifiedSpan(new TextSpan(lastSpan.End, contentSpan.Length - lastSpan.End), ClassificationTypeNames.Text));
+                        }
+                    }
+
+                    return builder.ToImmutableAndFree();
                 }
 
                 private static int GetNonWhitespaceStartPositionOnContent(SnapshotSpan spanOnPrimarySnapshot)

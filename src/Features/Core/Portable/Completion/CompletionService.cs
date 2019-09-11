@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -175,41 +177,62 @@ namespace Microsoft.CodeAnalysis.Completion
             return FilterItems(helper, items, filterText);
         }
 
+        internal virtual ImmutableArray<CompletionItem> FilterItems(
+           Document document,
+           ImmutableArray<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+           string filterText)
+        {
+            // Default implementation just drops the pattern matches and
+            // calls the public overload of FilterItems for compatibility.
+            return FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText);
+        }
+
         internal static ImmutableArray<CompletionItem> FilterItems(
             CompletionHelper completionHelper,
             ImmutableArray<CompletionItem> items,
             string filterText)
         {
-            var bestItems = ArrayBuilder<CompletionItem>.GetInstance();
-            foreach (var item in items)
+            var itemsWithPatternMatch = items.SelectAsArray(
+                item => (item, completionHelper.GetMatch(item.FilterText, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+
+            return FilterItems(completionHelper, itemsWithPatternMatch);
+        }
+
+        internal static ImmutableArray<CompletionItem> FilterItems(
+            CompletionHelper completionHelper,
+            ImmutableArray<(CompletionItem item, PatternMatch? match)> itemsWithPatternMatch)
+        {
+            var bestItems = ArrayBuilder<(CompletionItem, PatternMatch?)>.GetInstance();
+            foreach (var pair in itemsWithPatternMatch)
             {
                 if (bestItems.Count == 0)
                 {
                     // We've found no good items yet.  So this is the best item currently.
-                    bestItems.Add(item);
+                    bestItems.Add(pair);
                 }
                 else
                 {
-                    var comparison = completionHelper.CompareItems(item, bestItems.First(), filterText, CultureInfo.CurrentCulture);
+                    var (bestItem, bestItemMatch) = bestItems.First();
+                    var comparison = completionHelper.CompareItems(pair.item, pair.match, bestItem, bestItemMatch);
                     if (comparison < 0)
                     {
                         // This item is strictly better than the best items we've found so far.
                         bestItems.Clear();
-                        bestItems.Add(item);
+                        bestItems.Add(pair);
                     }
                     else if (comparison == 0)
                     {
                         // This item is as good as the items we've been collecting.  We'll return 
                         // it and let the controller decide what to do.  (For example, it will
                         // pick the one that has the best MRU index).
-                        bestItems.Add(item);
+                        bestItems.Add(pair);
                     }
                     // otherwise, this item is strictly worse than the ones we've been collecting.
                     // We can just ignore it.
                 }
             }
 
-            return bestItems.ToImmutableAndFree();
+            return bestItems.ToImmutableAndFree().SelectAsArray(itemWithPatternMatch => itemWithPatternMatch.Item1);
         }
     }
 }

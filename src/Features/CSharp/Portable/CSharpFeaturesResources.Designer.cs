@@ -232,6 +232,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assign &apos;out&apos; parameters.
+        /// </summary>
+        internal static string Assign_out_parameters {
+            get {
+                return ResourceManager.GetString("Assign_out_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assign &apos;out&apos; parameters (at start).
+        /// </summary>
+        internal static string Assign_out_parameters_at_start {
+            get {
+                return ResourceManager.GetString("Assign_out_parameters_at_start", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to asynchronous foreach statement.
         /// </summary>
         internal static string asynchronous_foreach_statement {
@@ -1545,6 +1563,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Warning_Extracting_a_local_function_reference_may_produce_invalid_code {
             get {
                 return ResourceManager.GetString("Warning_Extracting_a_local_function_reference_may_produce_invalid_code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Inlining temporary into conditional method call..
+        /// </summary>
+        internal static string Warning_Inlining_temporary_into_conditional_method_call {
+            get {
+                return ResourceManager.GetString("Warning_Inlining_temporary_into_conditional_method_call", resourceCulture);
             }
         }
         

@@ -558,6 +558,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public static string ReadLengthPrefixedString(BinaryReader reader)
         {
             var length = reader.ReadInt32();
+            if (length < 0)
+            {
+                return null;
+            }
+
             return new String(reader.ReadChars(length));
         }
 
@@ -568,8 +573,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         public static void WriteLengthPrefixedString(BinaryWriter writer, string value)
         {
-            writer.Write(value.Length);
-            writer.Write(value.ToCharArray());
+            if (value is object)
+            {
+                writer.Write(value.Length);
+                writer.Write(value.ToCharArray());
+            }
+            else
+            {
+                writer.Write(-1);
+            }
         }
 
         /// <summary>

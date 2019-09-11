@@ -650,39 +650,37 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return string.Empty;
                 }
 
-                using (var pool = SharedPools.Default<HashSet<string>>().GetPooledObject())
+                using var pool = SharedPools.Default<HashSet<string>>().GetPooledObject();
+                if (_solutionId != null)
                 {
-                    if (_solutionId != null)
-                    {
-                        pool.Object.UnionWith(solution.State.ProjectStates.Select(kv => kv.Value.Language));
-                        return string.Join(",", pool.Object);
-                    }
-
-                    foreach (var projectOrDocumentId in _projectOrDocumentIds)
-                    {
-                        switch (projectOrDocumentId)
-                        {
-                            case ProjectId projectId:
-                                var project = solution.GetProject(projectId);
-                                if (project != null)
-                                {
-                                    pool.Object.Add(project.Language);
-                                }
-                                break;
-                            case DocumentId documentId:
-                                var document = solution.GetDocument(documentId);
-                                if (document != null)
-                                {
-                                    pool.Object.Add(document.Project.Language);
-                                }
-                                break;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
-                        }
-                    }
-
+                    pool.Object.UnionWith(solution.State.ProjectStates.Select(kv => kv.Value.Language));
                     return string.Join(",", pool.Object);
                 }
+
+                foreach (var projectOrDocumentId in _projectOrDocumentIds)
+                {
+                    switch (projectOrDocumentId)
+                    {
+                        case ProjectId projectId:
+                            var project = solution.GetProject(projectId);
+                            if (project != null)
+                            {
+                                pool.Object.Add(project.Language);
+                            }
+                            break;
+                        case DocumentId documentId:
+                            var document = solution.GetDocument(documentId);
+                            if (document != null)
+                            {
+                                pool.Object.Add(document.Project.Language);
+                            }
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
+                    }
+                }
+
+                return string.Join(",", pool.Object);
             }
 
             public int GetDocumentCount(Solution solution)

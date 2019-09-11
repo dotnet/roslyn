@@ -692,7 +692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     witheventsPropertyInCurrentClass = witheventsProperty
                 End If
 
-                typeBinder.ReportDiagnosticsIfObsolete(diagBag, witheventsPropertyInCurrentClass, singleHandleClause.EventContainer)
+                typeBinder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, witheventsPropertyInCurrentClass, singleHandleClause.EventContainer)
             Else
                 Binder.ReportDiagnostic(diagBag, singleHandleClause.EventContainer, ERRID.ERR_HandlesSyntaxInClass)
                 Return Nothing
@@ -722,7 +722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End If
 
-            typeBinder.ReportDiagnosticsIfObsolete(diagBag, eventSymbol, singleHandleClause.EventMember)
+            typeBinder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, eventSymbol, singleHandleClause.EventMember)
 
             Binder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventSymbol)
 

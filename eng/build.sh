@@ -211,9 +211,6 @@ function MakeBootstrapBuild {
 
 function BuildSolution {
   local solution="Compilers.sln"
-  if [[ "$source_build" == true ]]; then
-    solution="SourceBuild.sln"
-  fi
   echo "$solution:"
 
   InitializeToolset

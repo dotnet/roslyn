@@ -651,6 +651,17 @@
   <data name="_0_may_be_null_here" xml:space="preserve">
     <value>'{0}' may be null here.</value>
   </data>
+  <data name="Assign_out_parameters" xml:space="preserve">
+    <value>Assign 'out' parameters</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Assign_out_parameters_at_start" xml:space="preserve">
+    <value>Assign 'out' parameters (at start)</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Warning_Inlining_temporary_into_conditional_method_call" xml:space="preserve">
+    <value>Warning: Inlining temporary into conditional method call.</value>
+  </data>
   <data name="local_variable_declaration" xml:space="preserve">
     <value>local variable declaration</value>
   </data>

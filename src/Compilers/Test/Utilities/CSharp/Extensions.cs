@@ -579,4 +579,10 @@ internal static class Extensions
     {
         return TypeMap.AsTypeSymbols(symbol.ConstraintTypesNoUseSiteDiagnostics);
     }
+
+    public static Symbol FindImplementationForInterfaceMember(this TypeSymbol type, Symbol interfaceMember)
+    {
+        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+        return type.FindImplementationForInterfaceMember(interfaceMember, ref useSiteDiagnostics);
+    }
 }

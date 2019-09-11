@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Completion
     [DebuggerDisplay("{DisplayText}")]
     public sealed class CompletionItem : IComparable<CompletionItem>
     {
+        private readonly string _filterText;
+
         /// <summary>
         /// The text that is displayed to the user.
         /// </summary>
@@ -37,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The text used to determine if the item matches the filter and is show in the list.
         /// This is often the same as <see cref="DisplayText"/> but may be different in certain circumstances.
         /// </summary>
-        public string FilterText { get; }
+        public string FilterText => _filterText ?? DisplayText;
+
+        internal bool HasDifferentFilterText => _filterText != null;
 
         /// <summary>
         /// The text used to determine the order that the item appears in the list.
@@ -107,13 +111,17 @@ namespace Microsoft.CodeAnalysis.Completion
             DisplayText = displayText ?? "";
             DisplayTextPrefix = displayTextPrefix ?? "";
             DisplayTextSuffix = displayTextSuffix ?? "";
-            FilterText = filterText ?? DisplayText;
             SortText = sortText ?? DisplayText;
             InlineDescription = inlineDescription ?? "";
             Span = span;
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             Tags = tags.NullToEmpty();
             Rules = rules ?? CompletionItemRules.Default;
+
+            if (!DisplayText.Equals(filterText, StringComparison.Ordinal))
+            {
+                _filterText = filterText;
+            }
         }
 
         // binary back compat overload

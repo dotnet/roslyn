@@ -5,6 +5,7 @@
     <DisplayName>Roslyn Language Services</DisplayName>
     <Description>C# and VB.NET language services for Visual Studio.</Description>
     <PackageId>Microsoft.CodeAnalysis.VisualStudio.Setup</PackageId>
+    <License>EULA.rtf</License>
   </Metadata>
   <Installation Experimental="true">
     <InstallationTarget Version="[15.0,]" Id="Microsoft.VisualStudio.Pro" />

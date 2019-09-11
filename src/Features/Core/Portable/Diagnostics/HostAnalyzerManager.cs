@@ -504,8 +504,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void OnAnalyzerLoadFailed(object sender, AnalyzerLoadFailureEventArgs e)
             {
-                var reference = sender as AnalyzerFileReference;
-                if (reference == null)
+                if (!(sender is AnalyzerFileReference reference))
                 {
                     return;
                 }

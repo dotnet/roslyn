@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // "default(int?)" never has a value.
-            if (expr.Kind == BoundKind.DefaultExpression)
+            // "default(int?)" and "default" never have a value.
+            if (expr is BoundDefaultLiteral || expr is BoundDefaultExpression)
             {
                 return true;
             }
@@ -101,9 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = (BoundConversion)expr;
                 switch (conversion.ConversionKind)
                 {
-                    case ConversionKind.DefaultOrNullLiteral:
-                        // Any "null literal conversion" is a conversion from the literals null/default to
+                    case ConversionKind.NullLiteral:
+                        // Any null literal conversion is a conversion from the literal null to
                         // a nullable value type; obviously it never has a value.
+                        return true;
+                    case ConversionKind.DefaultLiteral:
+                        // Any default literal to a nullable value type never has a value. 
                         return true;
                     case ConversionKind.ImplicitNullable:
                     case ConversionKind.ExplicitNullable:

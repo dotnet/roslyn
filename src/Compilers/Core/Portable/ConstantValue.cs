@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis
         internal abstract SpecialType SpecialType { get; }
 
         public virtual string StringValue { get { throw new InvalidOperationException(); } }
+        internal virtual Rope RopeValue { get { throw new InvalidOperationException(); } }
+
         public virtual bool BooleanValue { get { throw new InvalidOperationException(); } }
 
         public virtual sbyte SByteValue { get { throw new InvalidOperationException(); } }
@@ -94,6 +96,12 @@ namespace Microsoft.CodeAnalysis
                 return Null;
             }
 
+            return new ConstantValueString(value);
+        }
+
+        internal static ConstantValue CreateFromRope(Rope value)
+        {
+            Debug.Assert(value != null);
             return new ConstantValueString(value);
         }
 
