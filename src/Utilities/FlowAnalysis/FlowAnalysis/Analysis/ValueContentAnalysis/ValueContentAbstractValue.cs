@@ -10,8 +10,6 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
-
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
     /// <summary>
