@@ -9,10 +9,14 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
+
     internal partial class TaintedDataAnalysis
     {
         private sealed class TaintedDataOperationVisitor : AnalysisEntityDataFlowOperationVisitor<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataAbstractValue>
@@ -240,8 +244,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
                         method,
                         visitedArguments,
-                        (originalOperation as IInvocationOperation).Arguments.Select(o => GetPointsToAbstractValue(o.Value)).ToImmutableArray(),
-                        (originalOperation as IInvocationOperation).Arguments.Select(o => GetValueContentAbstractValue(o.Value)).ToImmutableArray(),
+                        new Lazy<PointsToAnalysisResult>(() => DataFlowAnalysisContext.PointsToAnalysisResultOpt),
+                        new Lazy<ValueContentAnalysisResult>(() => DataFlowAnalysisContext.ValueContentAnalysisResultOpt),
                         out taintedTargets))
                     {
                         foreach (string taintedTarget in taintedTargets)

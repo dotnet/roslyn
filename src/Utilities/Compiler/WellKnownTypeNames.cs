@@ -314,6 +314,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreHttpCookieOptions = "Microsoft.AspNetCore.Http.CookieOptions";
         public const string SystemSecurityCryptographyX509CertificatesX509Store = "System.Security.Cryptography.X509Certificates.X509Store";
         public const string SystemSecurityCryptographyX509CertificatesStoreName = "System.Security.Cryptography.X509Certificates.StoreName";
+        public const string SystemSecurityCryptographyX509CertificatesX509Certificate = "System.Security.Cryptography.X509Certificates.X509Certificate";
         public const string SystemSecurityCryptographyRSA = "System.Security.Cryptography.RSA";
         public const string SystemSecurityCryptographyDSA = "System.Security.Cryptography.DSA";
         public const string SystemSecurityCryptographyAsymmetricAlgorithm = "System.Security.Cryptography.AsymmetricAlgorithm";

@@ -1,16 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
+
     internal static class TaintedDataSymbolMapExtensions
     {
         /// <summary>
@@ -19,16 +23,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <param name="sourceSymbolMap"></param>
         /// <param name="method"></param>
         /// <param name="arguments"></param>
-        /// <param name="pointsTos"></param>
-        /// <param name="valueContents"></param>
+        /// <param name="pointsToAnalysisResult">If the method needs to do PointsToAnalysis, the PointsToAnalysis result will be produced by the passed value factory.</param>
+        /// <param name="valueContentAnalysisResult">If the method needs to do ValueContentAnalysis, the ValueContentAnalysis result will be produced by the passed value factory.</param>
         /// <param name="taintedTargets"></param>
         /// <returns></returns>
         public static bool IsSourceMethod(
             this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
             IMethodSymbol method,
             ImmutableArray<IArgumentOperation> arguments,
-            ImmutableArray<PointsToAbstractValue> pointsTos,
-            ImmutableArray<ValueContentAbstractValue> valueContents,
+            Lazy<PointsToAnalysisResult> pointsToAnalysisResult,
+            Lazy<ValueContentAnalysisResult> valueContentAnalysisResult,
             out PooledHashSet<string> taintedTargets)
         {
             taintedTargets = null;
@@ -38,7 +42,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     if (methodMatcher(method.Name, arguments))
                     {
-                        IEnumerable<(PointsToCheck, string target)> positivePointsToTaintedTargets = pointsToTaintedTargets.Where(s => s.pointsToCheck(pointsTos));
+                        IEnumerable<(PointsToCheck, string target)> positivePointsToTaintedTargets = pointsToTaintedTargets.Where(s =>
+                            s.pointsToCheck(
+                                arguments.Select(o =>
+                                    pointsToAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray()));
                         if (positivePointsToTaintedTargets != null)
                         {
                             if (taintedTargets == null)
@@ -55,7 +62,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     if (methodMatcher(method.Name, arguments))
                     {
-                        IEnumerable<(ValueContentCheck, string target)> positiveValueContentTaintedTargets = valueContentTaintedTargets.Where(s => s.valueContentCheck(pointsTos, valueContents));
+                        IEnumerable<(ValueContentCheck, string target)> positiveValueContentTaintedTargets = valueContentTaintedTargets.Where(s =>
+                            s.valueContentCheck(
+                                arguments.Select(o =>
+                                pointsToAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray(),
+                                arguments.Select(o => valueContentAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray()));
                         if (positiveValueContentTaintedTargets != null)
                         {
                             if (taintedTargets == null)
