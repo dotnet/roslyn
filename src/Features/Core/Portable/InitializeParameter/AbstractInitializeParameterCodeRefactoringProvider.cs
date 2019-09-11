@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IMethodSymbol method,
             IBlockOperation blockStatementOpt,
             ImmutableArray<SyntaxNode> listOfParameterNodes,
-            int position,
+            TextSpan parameterSpan,
             CancellationToken cancellationToken);
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -53,10 +54,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var position = context.Span.Start;
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
+
+            // TODO: One could try to retrieve TParameterList and then filter out parameters that intersect with
+            // textSpan and use that as `parameterNodes`, where `selectedParameter` would be the first one.
+
             var selectedParameter = await context.TryGetRelevantNodeAsync<TParameterSyntax>().ConfigureAwait(false);
             if (selectedParameter == null)
             {
@@ -74,23 +75,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            // Only offered when there isn't a selection, or the selection exactly selects a parameter name.
-            if (!context.Span.IsEmpty)
-            {
-                var parameterName = syntaxFacts.GetNameOfParameter(selectedParameter);
-                if (parameterName == null || parameterName.Value.Span != context.Span)
-                {
-                    return;
-                }
-            }
-
             var parameterDefault = syntaxFacts.GetDefaultOfParameter(selectedParameter);
-
-            // Don't offer inside the "=initializer" of a parameter
-            if (parameterDefault?.Span.Contains(position) == true)
-            {
-                return;
-            }
 
             // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
             // so first we have to get the parameter symbol and then its containing method symbol
@@ -134,7 +119,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // Looks like we can offer a refactoring for more than one parameter. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
                 context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
-                    document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes.ToImmutableAndFree(), position, cancellationToken).ConfigureAwait(false));
+                    document, functionDeclaration, methodSymbol, blockStatementOpt, listOfPotentiallyValidParametersNodes.ToImmutableAndFree(), selectedParameter.Span, cancellationToken).ConfigureAwait(false));
             }
 
             static bool TryGetParameterSymbol(
@@ -186,24 +171,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             return true;
-        }
-
-        protected TParameterSyntax GetParameterNode(SyntaxToken token, int position)
-        {
-            var parameterNode = token.Parent?.FirstAncestorOrSelf<TParameterSyntax>();
-            if (parameterNode != null)
-            {
-                return parameterNode;
-            }
-
-            // We may be on the comma of a param list.  Try the position before us.
-            token = token.GetPreviousToken();
-            if (position == token.FullSpan.End)
-            {
-                return token.Parent?.FirstAncestorOrSelf<TParameterSyntax>();
-            }
-
-            return null;
         }
 
         protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)

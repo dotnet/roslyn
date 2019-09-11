@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 {
                     // Format the document only during uncomment operations.  Use second transaction so it can be undone.
                     using var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
-                    
+
                     var formattedDocument = Format(service, subjectBuffer.CurrentSnapshot, trackingSnapshotSpans, CancellationToken.None);
                     if (formattedDocument != null)
                     {

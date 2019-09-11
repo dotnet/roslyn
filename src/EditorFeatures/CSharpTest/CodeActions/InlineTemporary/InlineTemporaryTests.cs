@@ -4746,5 +4746,77 @@ Console.WriteLine(y); }",
 
         Console.WriteLine(1); }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnOnInlineIntoConditional1()
+        {
+            await TestFixOneAsync(
+    @"{ var [|x = true|];
+
+System.Diagnostics.Debug.Assert(x); }",
+    @"{
+        {|Warning:System.Diagnostics.Debug.Assert(true)|}; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnOnInlineIntoConditional2()
+        {
+            await TestFixOneAsync(
+    @"{ var [|x = true|];
+
+System.Diagnostics.Debug.Assert(x == true); }",
+    @"{
+        {|Warning:System.Diagnostics.Debug.Assert(true == true)|}; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WarnOnInlineIntoMultipleConditionalLocations()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        var [|x = true|];
+        System.Diagnostics.Debug.Assert(x);
+        System.Diagnostics.Debug.Assert(x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task OnlyWarnOnConditionalLocations()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        var [|x = true|];
+        System.Diagnostics.Debug.Assert(x);
+        Console.Writeline(x);
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        {|Warning:System.Diagnostics.Debug.Assert(true)|};
+        Console.Writeline(true);
+    }
+}");
+        }
     }
 }

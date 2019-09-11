@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return annotations;
         }
 
-        internal override ImmutableHashSet<string> NotNullIfParameterNotNull 
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
             => GetDecodedWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
 
         internal bool HasEnumeratorCancellationAttribute

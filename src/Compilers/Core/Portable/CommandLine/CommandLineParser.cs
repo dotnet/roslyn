@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis
         /// Only defined if errors were encountered.
         /// The error message for the encountered error.
         /// </param>
-        /// <param name="sessionKey">
+        /// <param name="pipeName">
         /// Only specified if <paramref name="containsShared"/> is true and the session key
         /// was provided.  Can be null
         /// </param>
@@ -481,14 +481,14 @@ namespace Microsoft.CodeAnalysis
             out List<string> parsedArgs,
             out bool containsShared,
             out string keepAliveValue,
-            out string sessionKey,
+            out string pipeName,
             out string errorMessage)
         {
             containsShared = false;
             keepAliveValue = null;
             errorMessage = null;
             parsedArgs = null;
-            sessionKey = null;
+            pipeName = null;
             var newArgs = new List<string>();
             foreach (var arg in args)
             {
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis
                             return false;
                         }
 
-                        sessionKey = value;
+                        pipeName = value;
                     }
 
                     containsShared = true;

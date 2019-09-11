@@ -20,56 +20,9 @@ using System.Security.Principal;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    public abstract class DesktopBuildClientTests : TestBase
+    public abstract class BuildClientTests : TestBase
     {
-        private sealed class TestableDesktopBuildClient : DesktopBuildClient
-        {
-            private readonly string _pipeName;
-            private readonly Func<string, bool> _createServerFunc;
-            private readonly Func<Task<BuildResponse>> _runServerCompilationFunc;
-
-            public TestableDesktopBuildClient(
-                RequestLanguage language,
-                CompileFunc compileFunc,
-                string pipeName,
-                Func<string, bool> createServerFunc,
-                Func<Task<BuildResponse>> runServerCompilationFunc) : base(language, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
-            {
-                _pipeName = pipeName;
-                _createServerFunc = createServerFunc;
-                _runServerCompilationFunc = runServerCompilationFunc;
-            }
-
-            protected override string GetSessionKey(BuildPaths buildPaths)
-            {
-                return _pipeName;
-            }
-
-            protected override bool TryCreateServer(string clientDir, string pipeName)
-            {
-                return _createServerFunc(pipeName);
-            }
-
-            protected override Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string sessionKey, string keepAlive, string libDirectory, CancellationToken cancellationToken)
-            {
-                if (_runServerCompilationFunc != null)
-                {
-                    return _runServerCompilationFunc();
-                }
-
-                return base.RunServerCompilation(arguments, buildPaths, sessionKey, keepAlive, libDirectory, cancellationToken);
-            }
-
-            public static async Task<bool> TryConnectToNamedPipe(string pipeName, int timeoutMs, CancellationToken cancellationToken)
-            {
-                using (var pipeStream = await BuildServerConnection.TryConnectToServerAsync(pipeName, timeoutMs, cancellationToken))
-                {
-                    return pipeStream != null;
-                }
-            }
-        }
-
-        public sealed class ServerTests : DesktopBuildClientTests
+        public sealed class ServerTests : BuildClientTests
         {
             private readonly string _pipeName = Guid.NewGuid().ToString("N");
             private readonly BuildPaths _buildPaths;
@@ -95,16 +48,30 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 base.Dispose();
             }
 
-            private TestableDesktopBuildClient CreateClient(
+            public static async Task<bool> TryConnectToNamedPipe(string pipeName, int timeoutMs, CancellationToken cancellationToken)
+            {
+                using (var pipeStream = await BuildServerConnection.TryConnectToServerAsync(pipeName, timeoutMs, cancellationToken))
+                {
+                    return pipeStream != null;
+                }
+            }
+
+            private BuildClient CreateClient(
                 RequestLanguage? language = null,
                 CompileFunc compileFunc = null,
-                Func<string, bool> createServerFunc = null,
-                Func<Task<BuildResponse>> runServerCompilationFunc = null)
+                CreateServerFunc createServerFunc = null)
             {
-                language = language ?? RequestLanguage.CSharpCompile;
-                compileFunc = compileFunc ?? delegate { return 0; };
-                createServerFunc = createServerFunc ?? TryCreateServer;
-                return new TestableDesktopBuildClient(language.Value, compileFunc, _pipeName, createServerFunc, runServerCompilationFunc);
+                language ??= RequestLanguage.CSharpCompile;
+                compileFunc ??= delegate { return 0; };
+                createServerFunc ??= ((_, pipeName) => TryCreateServer(pipeName));
+                return new BuildClient(language.Value, compileFunc, createServerFunc);
+            }
+
+            private ServerData CreateServer(string pipeName, ICompilerServerHost compilerServerHost = null)
+            {
+                var serverData = ServerUtil.CreateServer(pipeName, compilerServerHost).GetAwaiter().GetResult();
+                _serverDataList.Add(serverData);
+                return serverData;
             }
 
             private bool TryCreateServer(string pipeName)
@@ -115,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return false;
                 }
 
-                var serverData = ServerUtil.CreateServer(pipeName).GetAwaiter().GetResult();
-                _serverDataList.Add(serverData);
+                CreateServer(pipeName);
                 return true;
             }
 
@@ -141,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                             ranLocal = true;
                             return 0;
                         });
-                    var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
+                    var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths, pipeName: _pipeName).ExitCode;
                     Assert.Equal(0, exitCode);
                     Assert.True(ranLocal);
                 }
@@ -165,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                             ranLocal = true;
                             return 0;
                         });
-                    var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
+                    var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths, pipeName: _pipeName).ExitCode;
                     Assert.Equal(0, exitCode);
                     Assert.True(ranLocal);
                 }
@@ -179,11 +145,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 var oneSec = TimeSpan.FromSeconds(1);
 
-                Assert.False(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
+                Assert.False(await TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
 
                 // Try again with infinite timeout and cancel
                 var cts = new CancellationTokenSource();
-                var connection = TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, Timeout.Infinite, cts.Token);
+                var connection = TryConnectToNamedPipe(pipeName, Timeout.Infinite, cts.Token);
                 Assert.False(connection.IsCompleted);
                 cts.Cancel();
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(
@@ -191,9 +157,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 // Create server and try again
                 Assert.True(TryCreateServer(pipeName));
-                Assert.True(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
+                Assert.True(await TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
                 // With infinite timeout
-                Assert.True(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, Timeout.Infinite, cancellationToken: default));
+                Assert.True(await TryConnectToNamedPipe(pipeName, Timeout.Infinite, cancellationToken: default));
             }
 
             [ConditionalFact(typeof(DesktopOnly))]
@@ -209,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 for (var i = 0; i < 5; i++)
                 {
-                    client.RunCompilation(new[] { "/shared" }, _buildPaths, new StringWriter());
+                    client.RunCompilation(new[] { "/shared" }, _buildPaths, new StringWriter(), pipeName: _pipeName);
                 }
 
                 Assert.Equal(1, _serverDataList.Count);
@@ -227,48 +193,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return 0;
                 });
 
-                var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
+                var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths, pipeName: _pipeName).ExitCode;
                 Assert.Equal(0, exitCode);
                 Assert.True(ranLocal);
                 Assert.Equal(1, _failedCreatedServerCount);
                 Assert.Equal(0, _serverDataList.Count);
             }
-
-            [Fact]
-            [WorkItem(7866, "https://github.com/dotnet/roslyn/issues/7866")]
-            public void RunServerCompilationThrows()
-            {
-                bool ranLocal;
-                Func<int> compileFunc = () =>
-                {
-                    ranLocal = true;
-                    return CommonCompiler.Succeeded;
-                };
-
-                TestableDesktopBuildClient client;
-                RunCompilationResult result;
-
-                ranLocal = false;
-                client = CreateClient(
-                    compileFunc: delegate { return compileFunc(); },
-                    runServerCompilationFunc: () => Task.FromException<BuildResponse>(new Exception()));
-                result = client.RunCompilation(new[] { "/shared" }, _buildPaths);
-                Assert.Equal(CommonCompiler.Succeeded, result.ExitCode);
-                Assert.False(result.RanOnServer);
-                Assert.True(ranLocal);
-
-                ranLocal = false;
-                client = CreateClient(
-                    compileFunc: delegate { return compileFunc(); },
-                    runServerCompilationFunc: () => { throw new Exception(); });
-                result = client.RunCompilation(new[] { "/shared" }, _buildPaths);
-                Assert.Equal(CommonCompiler.Succeeded, result.ExitCode);
-                Assert.False(result.RanOnServer);
-                Assert.True(ranLocal);
-            }
         }
 
-        public sealed class TryParseClientArgsTest : DesktopBuildClientTests
+        public sealed class TryParseClientArgsTest : BuildClientTests
         {
             private bool _hasShared;
             private string _keepAlive;

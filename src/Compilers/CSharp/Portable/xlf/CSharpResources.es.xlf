@@ -232,6 +232,11 @@
         <target state="translated">“{0}” no puede implementar el miembro de interfaz “{1}” en el tipo “{2}” porque tiene un parámetro __arglist</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InternalError">
+        <source>Internal error in the C# compiler.</source>
+        <target state="new">Internal error in the C# compiler.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Nombre de algoritmo hash no válido: "{0}"</target>

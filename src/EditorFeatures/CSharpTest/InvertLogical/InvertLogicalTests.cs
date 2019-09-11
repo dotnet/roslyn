@@ -184,23 +184,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task InverSelection1()
+        public async Task MissingInverSelection1()
         {
-            await TestInRegularAndScriptAsync(
+            // Can't convert selected partial subtrees 
+            // -> see comment at AbstractInvertLogicalCodeRefactoringProvider::ComputeRefactoringsAsync
+            // -> "expected" result commented out & TestMissingXXX method used in the meantime
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(int a, int b, int c)
     {
         var x = !([|a <= 10 && b >= 20|] && c != 30);
     }
-}",
+}"/*
 @"class C
 {
     void M(int a, int b, int c)
     {
         var x = !(!(a > 10 || b < 20) && c != 30);
     }
-}");
+}"*/);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
@@ -265,6 +268,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     void M(bool x, int a, int b)
     {
         var c = !(a <= 10 && b >= 20);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task MissingSelectedSubtree()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(int a, int b, int c)
+    {
+        var x = !(a <= 10 && [|b >= 20 && c != 30|]);
     }
 }");
         }

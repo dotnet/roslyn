@@ -681,7 +681,7 @@ class B : A
             Assert.NotEqual(0, baseExprLocation);
 
             var baseExprInfo = model.GetTypeInfo((ExpressionSyntax)baseExprNode);
-            Assert.NotNull(baseExprInfo);
+            Assert.NotEqual(default, baseExprInfo);
 
             var baseExprType = (NamedTypeSymbol)baseExprInfo.Type;
             Assert.NotNull(baseExprType);
@@ -1924,7 +1924,7 @@ class Program
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
             var symbolInfo = model.GetSymbolInfo(call.Expression);
-            Assert.NotNull(symbolInfo);
+            Assert.NotEqual(default, symbolInfo);
             Assert.Equal(symbolInfo.Symbol, m);
         }
 
@@ -1954,7 +1954,7 @@ class Program
             var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single().Expression;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.NotNull(symbolInfo);
+            Assert.NotEqual(default, symbolInfo);
             Assert.Equal(symbolInfo.Symbol, m);
         }
 
@@ -1984,7 +1984,7 @@ class Program
             var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single().Expression;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.NotNull(symbolInfo);
+            Assert.NotEqual(default, symbolInfo);
             Assert.Equal(symbolInfo.Symbol, m);
         }
 
@@ -2010,7 +2010,7 @@ class Program
             var node = tree.GetRoot().DescendantNodes().OfType<GenericNameSyntax>().Single();
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.NotNull(symbolInfo);
+            Assert.NotEqual(default, symbolInfo);
             Assert.NotNull(symbolInfo.Symbol);
         }
 

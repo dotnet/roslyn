@@ -969,7 +969,7 @@ class Query
 
         private void TestAnonymousType(NamedTypeSymbol type, int typeIndex, TypeDescr typeDescr)
         {
-            Assert.NotNull(typeDescr);
+            Assert.NotEqual(default, typeDescr);
             Assert.NotNull(typeDescr.FieldNames);
 
             //  prepare 

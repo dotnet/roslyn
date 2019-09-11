@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "\u0915\u094d\u200d\u0937";
             var tok = SyntaxFactory.ParseToken(text);
 
-            Assert.NotNull(tok);
+            Assert.NotEqual(default, tok);
             Assert.Equal(text, tok.ToString());
             Assert.NotEqual(text, tok.ValueText);
             Assert.Equal("\u0915\u094d\u0937", tok.ValueText); //formatting character \u200d removed
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "x\u00ady";
             var tok = SyntaxFactory.ParseToken(text);
 
-            Assert.NotNull(tok);
+            Assert.NotEqual(default, tok);
             Assert.Equal(text, tok.ToString());
             Assert.NotEqual(text, tok.ValueText);
             Assert.Equal("xy", tok.ValueText); // formatting character SOFT HYPHEN (U+00AD) removed

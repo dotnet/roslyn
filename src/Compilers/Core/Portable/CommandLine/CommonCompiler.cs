@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct BuildPaths
+    internal readonly struct BuildPaths
     {
         /// <summary>
         /// The path which contains the compiler binaries and response files.
