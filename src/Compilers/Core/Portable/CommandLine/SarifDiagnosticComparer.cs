@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -50,11 +52,11 @@ namespace Microsoft.CodeAnalysis
 
             return (x.Category == y.Category
                 && x.DefaultSeverity == y.DefaultSeverity
-                && x.Description.Equals(y.Description)
+                && x.Description!.Equals(y.Description)
                 && x.HelpLinkUri == y.HelpLinkUri
                 && x.Id == y.Id
                 && x.IsEnabledByDefault == y.IsEnabledByDefault
-                && x.Title.Equals(y.Title)
+                && x.Title!.Equals(y.Title)
                 && x.CustomTags.SequenceEqual(y.CustomTags));
         }
 
@@ -69,13 +71,13 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(obj.Category != null && obj.Description != null && obj.HelpLinkUri != null
                 && obj.Id != null && obj.Title != null && obj.CustomTags != null);
 
-            return Hash.Combine(obj.Category.GetHashCode(),
+            return Hash.Combine(obj.Category!.GetHashCode(),
                 Hash.Combine(obj.DefaultSeverity.GetHashCode(),
-                Hash.Combine(obj.Description.GetHashCode(),
-                Hash.Combine(obj.HelpLinkUri.GetHashCode(),
-                Hash.Combine(obj.Id.GetHashCode(),
+                Hash.Combine(obj.Description!.GetHashCode(),
+                Hash.Combine(obj.HelpLinkUri!.GetHashCode(),
+                Hash.Combine(obj.Id!.GetHashCode(),
                 Hash.Combine(obj.IsEnabledByDefault.GetHashCode(),
-                Hash.Combine(obj.Title.GetHashCode(),
+                Hash.Combine(obj.Title!.GetHashCode(),
                 Hash.CombineValues(obj.CustomTags))))))));
         }
     }

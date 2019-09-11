@@ -120,7 +120,9 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        internal ErrorLogOptions ParseErrorLogOptions(
+#nullable enable
+
+        internal ErrorLogOptions? ParseErrorLogOptions(
             string arg,
             IList<Diagnostic> diagnostics,
             string baseDirectory,
@@ -128,61 +130,37 @@ namespace Microsoft.CodeAnalysis
         {
             diagnosticAlreadyReported = false;
 
-            bool success = true;
-            string path = null;
+            List<string> parts = ParseSeparatedStrings(arg, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
+            if (parts.Count == 0 || parts.Count > 2)
+            {
+                return null;
+            }
+
+            string? path = ParseGenericPathToFile(parts[0], diagnostics, baseDirectory);
+            if (path is null)
+            {
+                // ParseGenericPathToFile already reported the failure, so the caller should not
+                // report its own failure.
+                diagnosticAlreadyReported = true;
+                return null;
+            }
+
             SarifVersion sarifVersion = SarifVersion.Default;
-
-            string[] parts = ParseSeparatedStrings(arg, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).ToArray();
-            if (parts.Length == 0)
-            {
-                success = false;
-            }
-
-            if (parts.Length > 0)
-            {
-                if (!string.IsNullOrEmpty(parts[0]))
-                {
-                    path = ParseGenericPathToFile(parts[0], diagnostics, baseDirectory);
-                    if (path == null)
-                    {
-                        success = false;
-
-                        // ParseGenericPathToFile already reported the failure, so the caller should not
-                        // report its own failure.
-                        diagnosticAlreadyReported = true;
-                    }
-                }
-                else
-                {
-                    success = false;
-                }
-            }
-
-            if (parts.Length > 1)
+            if (parts.Count > 1)
             {
                 string[] nameValue = parts[1].Split('=');
-                if (nameValue.Length == 2 && nameValue[0] == "version")
+                if (nameValue.Length != 2 ||
+                    !string.Equals(nameValue[0], "version", StringComparison.OrdinalIgnoreCase) ||
+                    !SarifVersionFacts.TryParse(nameValue[1], out sarifVersion))
                 {
-                    if (!SarifVersionFacts.TryParse(nameValue[1], out sarifVersion))
-                    {
-                        success = false;
-                    }
-                }
-                else
-                {
-                    success = false;
+                    return null;
                 }
             }
 
-            if (parts.Length > 2)
-            {
-                success = false;
-            }
-
-            return success
-                ? new ErrorLogOptions(path, sarifVersion)
-                : null;
+            return new ErrorLogOptions(path, sarifVersion);
         }
+
+#nullable restore
 
         internal static void ParseAndNormalizeFile(
             string unquoted,

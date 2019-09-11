@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 
 namespace Microsoft.CodeAnalysis
@@ -7,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Options controlling the generation of a SARIF log file containing compilation or analyzer diagnostics.
     /// </summary>
-    public class ErrorLogOptions
+    public sealed class ErrorLogOptions
     {
         /// <summary>
         /// Absolute path of the error log file.
