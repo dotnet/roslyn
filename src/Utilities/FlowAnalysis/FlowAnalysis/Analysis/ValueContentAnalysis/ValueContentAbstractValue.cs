@@ -10,8 +10,6 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
-
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
     /// <summary>
@@ -82,17 +80,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         {
             if (literalValues.IsEmpty)
             {
-                switch (nonLiteralState)
+                return nonLiteralState switch
                 {
-                    case ValueContainsNonLiteralState.Undefined:
-                        return UndefinedState;
-                    case ValueContainsNonLiteralState.Invalid:
-                        return InvalidState;
-                    case ValueContainsNonLiteralState.No:
-                        return DoesNotContainLiteralOrNonLiteralState;
-                    default:
-                        return MayBeContainsNonLiteralState;
-                }
+                    ValueContainsNonLiteralState.Undefined => UndefinedState,
+                    ValueContainsNonLiteralState.Invalid => InvalidState,
+                    ValueContainsNonLiteralState.No => DoesNotContainLiteralOrNonLiteralState,
+                    _ => MayBeContainsNonLiteralState,
+                };
             }
             else if (literalValues.Count == 1 && nonLiteralState == ValueContainsNonLiteralState.No)
             {

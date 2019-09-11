@@ -8,8 +8,6 @@ using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
-
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     /// <summary>
@@ -142,21 +140,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             SyntaxNode TryGetSyntaxNodeToReportDiagnostic(IOperation creation)
             {
                 // If any of the argument to creation points to this location, then use the argument.
-                ImmutableArray<IArgumentOperation> arguments;
-                switch (creation)
+                var arguments = creation switch
                 {
-                    case IInvocationOperation invocation:
-                        arguments = invocation.Arguments;
-                        break;
+                    IInvocationOperation invocation => invocation.Arguments,
 
-                    case IObjectCreationOperation objectCreation:
-                        arguments = objectCreation.Arguments;
-                        break;
+                    IObjectCreationOperation objectCreation => objectCreation.Arguments,
 
-                    default:
-                        arguments = ImmutableArray<IArgumentOperation>.Empty;
-                        break;
-                }
+                    _ => ImmutableArray<IArgumentOperation>.Empty,
+                };
 
                 foreach (var argument in arguments)
                 {

@@ -555,20 +555,16 @@ namespace Analyzer.Utilities.Extensions
             Debug.Assert(symbol != null);
             Debug.Assert(symbol.IsOverride);
 
-            switch (symbol)
+            return symbol switch
             {
-                case IMethodSymbol methodSymbol:
-                    return methodSymbol.OverriddenMethod;
+                IMethodSymbol methodSymbol => methodSymbol.OverriddenMethod,
 
-                case IPropertySymbol propertySymbol:
-                    return propertySymbol.OverriddenProperty;
+                IPropertySymbol propertySymbol => propertySymbol.OverriddenProperty,
 
-                case IEventSymbol eventSymbol:
-                    return eventSymbol.OverriddenEvent;
+                IEventSymbol eventSymbol => eventSymbol.OverriddenEvent,
 
-                default:
-                    throw new NotImplementedException();
-            }
+                _ => throw new NotImplementedException(),
+            };
         }
 
         /// <summary>
@@ -596,53 +592,42 @@ namespace Analyzer.Utilities.Extensions
 
         public static ITypeSymbol GetMemberOrLocalOrParameterType(this ISymbol symbol)
         {
-            switch (symbol.Kind)
+            return symbol.Kind switch
             {
-                case SymbolKind.Local:
-                    return ((ILocalSymbol)symbol).Type;
+                SymbolKind.Local => ((ILocalSymbol)symbol).Type,
 
-                case SymbolKind.Parameter:
-                    return ((IParameterSymbol)symbol).Type;
+                SymbolKind.Parameter => ((IParameterSymbol)symbol).Type,
 
-                default:
-                    return GetMemberType(symbol);
-            }
+                _ => GetMemberType(symbol),
+            };
         }
 
         public static ITypeSymbol GetMemberType(this ISymbol symbol)
         {
-            switch (symbol.Kind)
+            return symbol.Kind switch
             {
-                case SymbolKind.Event:
-                    return ((IEventSymbol)symbol).Type;
+                SymbolKind.Event => ((IEventSymbol)symbol).Type,
 
-                case SymbolKind.Field:
-                    return ((IFieldSymbol)symbol).Type;
+                SymbolKind.Field => ((IFieldSymbol)symbol).Type,
 
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).ReturnType;
+                SymbolKind.Method => ((IMethodSymbol)symbol).ReturnType,
 
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)symbol).Type;
+                SymbolKind.Property => ((IPropertySymbol)symbol).Type,
 
-                default:
-                    return null;
-            }
+                _ => null,
+            };
         }
 
         public static bool IsReadOnlyFieldOrProperty(this ISymbol symbol)
         {
-            switch (symbol)
+            return symbol switch
             {
-                case IFieldSymbol field:
-                    return field.IsReadOnly;
+                IFieldSymbol field => field.IsReadOnly,
 
-                case IPropertySymbol property:
-                    return property.IsReadOnly;
+                IPropertySymbol property => property.IsReadOnly,
 
-                default:
-                    return false;
-            }
+                _ => false,
+            };
         }
 
         /// <summary>
@@ -690,35 +675,29 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsConst(this ISymbol symbol)
         {
-            switch (symbol)
+            return symbol switch
             {
-                case IFieldSymbol field:
-                    return field.IsConst;
+                IFieldSymbol field => field.IsConst,
 
-                case ILocalSymbol local:
-                    return local.IsConst;
+                ILocalSymbol local => local.IsConst,
 
-                default:
-                    return false;
-            }
+                _ => false,
+            };
         }
 
         public static bool IsReadOnly(this ISymbol symbol)
         {
-            switch (symbol)
+            return symbol switch
             {
-                case IFieldSymbol field:
-                    return field.IsReadOnly;
+                IFieldSymbol field => field.IsReadOnly,
 
-                case IPropertySymbol property:
-                    return property.IsReadOnly;
+                IPropertySymbol property => property.IsReadOnly,
 
                 // TODO: IMethodSymbol and ITypeSymbol also have IsReadOnly in Microsoft.CodeAnalysis 3.x
                 //       Add these cases once we move to the required Microsoft.CodeAnalysis.nupkg.
 
-                default:
-                    return false;
-            }
+                _ => false,
+            };
         }
     }
 }

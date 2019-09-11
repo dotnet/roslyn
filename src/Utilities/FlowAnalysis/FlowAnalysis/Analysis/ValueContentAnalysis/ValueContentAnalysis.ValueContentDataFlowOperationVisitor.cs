@@ -173,17 +173,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                     }
                     else
                     {
-                        switch (GetNullAbstractValue(operation))
+                        return (GetNullAbstractValue(operation)) switch
                         {
-                            case PointsToAnalysis.NullAbstractValue.Invalid:
-                                return ValueContentAbstractValue.InvalidState;
+                            PointsToAnalysis.NullAbstractValue.Invalid => ValueContentAbstractValue.InvalidState,
 
-                            case PointsToAnalysis.NullAbstractValue.Null:
-                                return ValueContentAbstractValue.ContainsNullLiteralState;
+                            PointsToAnalysis.NullAbstractValue.Null => ValueContentAbstractValue.ContainsNullLiteralState,
 
-                            default:
-                                return ValueContentAbstractValue.MayBeContainsNonLiteralState;
-                        }
+                            _ => ValueContentAbstractValue.MayBeContainsNonLiteralState,
+                        };
                     }
                 }
 
