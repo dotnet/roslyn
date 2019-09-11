@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Forces binding and decoding of attributes.
         ''' NOTE: Conditional symbols on the overridden method must be inherited by the overriding method, but the native VB compiler doesn't do so. We maintain compatibility.
         ''' </remarks>
-        Friend ReadOnly Property IsConditional As Boolean
+        Public ReadOnly Property IsConditional As Boolean Implements IMethodSymbol.IsConditional
             Get
                 Return Me.GetAppliedConditionalSymbols.Any()
             End Get

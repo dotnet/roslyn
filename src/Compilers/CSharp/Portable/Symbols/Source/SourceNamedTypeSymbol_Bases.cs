@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!isClass)
                 {
-                    if (BaseTypeAnalysis.InterfaceDependsOn(depends: t, on: this))
+                    if (BaseTypeAnalysis.TypeDependsOn(depends: t, on: this))
                     {
                         result.Add(new ExtendedErrorTypeSymbol(t, LookupResultKind.NotReferencable,
                             diagnostics.Add(ErrorCode.ERR_CycleInInterfaceInheritance, Locations[0], this, t)));
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (BaseTypeAnalysis.ClassDependsOn(declaredBase, this))
+            if (BaseTypeAnalysis.TypeDependsOn(declaredBase, this))
             {
                 return new ExtendedErrorTypeSymbol(declaredBase, LookupResultKind.NotReferencable,
                     diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], declaredBase, this));

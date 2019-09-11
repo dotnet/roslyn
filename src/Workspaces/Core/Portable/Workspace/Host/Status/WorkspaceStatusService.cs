@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
-        event EventHandler<bool> IWorkspaceStatusService.StatusChanged
+        event EventHandler IWorkspaceStatusService.StatusChanged
         {
             add { }
             remove { }

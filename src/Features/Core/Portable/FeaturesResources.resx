@@ -646,9 +646,6 @@ Do you want to continue?</value>
   <data name="Remove_qualification" xml:space="preserve">
     <value>Remove qualification</value>
   </data>
-  <data name="Edit_and_Continue1" xml:space="preserve">
-    <value>Edit and Continue</value>
-  </data>
   <data name="This_signature_does_not_contain_parameters_that_can_be_changed" xml:space="preserve">
     <value>This signature does not contain parameters that can be changed.</value>
   </data>
@@ -706,9 +703,6 @@ Do you want to continue?</value>
   <data name="Compiler1" xml:space="preserve">
     <value>Compiler</value>
   </data>
-  <data name="Edit_and_Continue2" xml:space="preserve">
-    <value>Edit and Continue</value>
-  </data>
   <data name="Style" xml:space="preserve">
     <value>Style</value>
   </data>
@@ -757,8 +751,8 @@ Do you want to continue?</value>
   <data name="Compiler2" xml:space="preserve">
     <value>Compiler</value>
   </data>
-  <data name="Edit_And_Continue" xml:space="preserve">
-    <value>Edit And Continue</value>
+  <data name="EditAndContinue" xml:space="preserve">
+    <value>Edit and Continue</value>
   </data>
   <data name="Live" xml:space="preserve">
     <value>Live</value>
@@ -1535,8 +1529,8 @@ This version used in: {2}</value>
   <data name="Remove_unused_parameter_0" xml:space="preserve">
     <value>Remove unused parameter '{0}'</value>
   </data>
-  <data name="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names" xml:space="preserve">
-    <value>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</value>
+  <data name="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names" xml:space="preserve">
+    <value>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</value>
   </data>
   <data name="Fix_formatting" xml:space="preserve">
     <value>Fix formatting</value>
@@ -1658,6 +1652,27 @@ This version used in: {2}</value>
   </data>
   <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
     <value>{0} must return a stream that supports read and seek operations.</value>
+  </data>
+  <data name="RudeEdit" xml:space="preserve">
+    <value>Rude edit</value>
+  </data>
+  <data name="EditAndContinueDisallowedByModule" xml:space="preserve">
+    <value>Edit and Continue disallowed by module</value>
+  </data>
+  <data name="CannotApplyChangesUnexpectedError" xml:space="preserve">
+    <value>Cannot apply changes -- unexpected error: '{0}'</value>
+  </data>
+  <data name="ErrorReadingFile" xml:space="preserve">
+    <value>Error while reading file '{0}': {1}</value>
+  </data>
+  <data name="EditAndContinueDisallowedByProject" xml:space="preserve">
+    <value>Changes made in project '{0}' will prevent the debug session from continuing: {1}</value>
+  </data>
+  <data name="ChangesNotAppliedWhileRunning" xml:space="preserve">
+    <value>Changes made in project '{0}' will not be applied while the application is running</value>
+  </data>
+  <data name="ChangesDisallowedWhileStoppedAtException" xml:space="preserve">
+    <value>Changes are not allowed while stopped at exception</value>
   </data>
   <data name="Dispose_objects_before_losing_scope" xml:space="preserve">
     <value>Dispose objects before losing scope</value>

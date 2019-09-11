@@ -37,6 +37,11 @@
         <target state="translated">as 式で Null 許容参照型 '{0}?' を使用することはできません。代わりに基になる型 '{0}' をご使用ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">属性 '{0}' はイベント アクセサーでは無効です。'{1}' 宣言でのみ有効です。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">'set' アクセサーがあるため、自動実装プロパティ '{0}' を 'readonly' とマークすることはできません。</target>
@@ -45,11 +50,6 @@
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">自動実装の 'set' アクセサー '{0}' を 'readonly' とマークすることはできません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="translated">属性 '{0}' はイベント アクセサーでは無効です。'{1}' 宣言でのみ有効です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
+        <target state="translated">/nullable のオプション '{0}' が無効です。'disable'、'enable'、'warnings'、'annotations' のいずれかにする必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
-        <target state="new">Duplicate null suppression operator ('!')</target>
+        <target state="translated">Null 抑制演算子 ('!') が重複しています</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
@@ -309,7 +309,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">'warnings'、'annotations'、またはディレクティブの終わりが必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -630,35 +630,35 @@
                              Visual C# コンパイラのオプション
 
                        - 出力ファイル -
- -out:&lt;file&gt;                   出力ファイル名を指定します (既定: メイン クラスを含むファイル
+-out:&lt;file&gt;                   出力ファイル名を指定します (既定: メイン クラスを含むファイル
                               または最初のファイルのベース名)
- -target:exe                   コンソール実行可能ファイルをビルドします (既定) (短い
+-target:exe                   コンソール実行可能ファイルをビルドします (既定) (短い
                               形式: -t:exe)
- -target:winexe                Windows 実行可能ファイルをビルドします (短い形式: 
+-target:winexe                Windows 実行可能ファイルをビルドします (短い形式:
                               -t:winexe)
 -target:library               ライブラリをビルドします (短い形式: -t:library)
 -target:module                別のアセンブリに追加できるモジュールを
-                               ビルドします (短い形式: -t:module)
+                              ビルドします (短い形式: -t:module)
 -target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式:
                               -t:appcontainerexe)
 -target:winmdobj              WinMDExp で使用される
-                        Windows ランタイムの中間ファイルをビルドします (短い形式: -t:winmdobj)
+                              Windows ランタイムの中間ファイルをビルドします (短い形式: -t:winmdobj)
 -doc:&lt;file&gt;                   生成する XML ドキュメント ファイル
--refout:&lt;file&gt;              生成する参照アセンブリの出力
--platform:&lt;string&gt;            このコードを実行できるプラットフォームを
-                              Itx86、Itanium、x64、arm、arm64、anycpu32bitpreferred、
+-refout:&lt;file&gt;                生成する参照アセンブリの出力
+-platform:&lt;string&gt;            このコードを実行できるプラットフォームを x86、
+                              Itanium、x64、arm、arm64、anycpu32bitpreferred、
                               anycpu に限定します。既定は anycpu です。
 
                        - 入力ファイル -
 -recurse:&lt;wildcard&gt;           ワイルドカードの指定に従い、現行ディレクトリおよび
                               サブディレクトリ内のすべてのファイルを
-                               インクルードします
+                              インクルードします
 -reference:&lt;alias&gt;=&lt;file&gt;     指定されたエイリアスを使用して、指定された
                               アセンブリ ファイルのメタデータを参照します (短い形式: -r)
- -reference:&lt;file list&gt;        指定されたアセンブリ ファイルのメタデータを
+-reference:&lt;file list&gt;        指定されたアセンブリ ファイルのメタデータを
                               参照します (短い形式: -r)
- -addmodule:&lt;file list&gt;        指定されたモジュールをこのアセンブリにリンクします
- -link:&lt;file list&gt;             指定された相互運用アセンブリ ファイルの
+-addmodule:&lt;file list&gt;        指定されたモジュールをこのアセンブリにリンクします
+-link:&lt;file list&gt;             指定された相互運用アセンブリ ファイルの
                               メタデータを埋め込みます (短い形式: -l)
 -analyzer:&lt;file list&gt;         このアセンブリからアナライザーを実行します
                               (短い形式: -a)
@@ -667,7 +667,7 @@
                               生成するときに使用する可能性のある追加ファイル。
 -embed                        すべてのソース ファイルを PDB に埋め込みます。
 -embed:&lt;file list&gt;            特定のファイルを PDB に埋め込みます。
- 
+
                        - リソース -
 -win32res:&lt;file&gt;              Win32 リソース ファイル (.res) を指定します
 -win32icon:&lt;file&gt;             出力にこのアイコンを使用します
@@ -699,36 +699,38 @@
 -warn:&lt;n&gt;                     警告レベル (0-4) を設定します (短い形式: -w)
 -nowarn:&lt;warn list&gt;           特定の警告メッセージを無効にします
 -ruleset:&lt;file&gt;               特定の診断を無効にするルールセット ファイルを
-                               指定します。
+                              指定します。
 -errorlog:&lt;file&gt;              すべてのコンパイラとアナライザーの診断をログに記録するための
-                               ファイルを指定します。
+                              ファイルを指定します。
 -reportanalyzer               追加のアナライザー情報を報告します
-                               (実行時間など)。
- 
-                        - 言語 -
+                              (実行時間など)。
+
+                       - 言語 -
 -checked[+|-]                 オーバーフロー検査を生成します
 -unsafe[+|-]                  '安全でない' コードを許可します
--define:&lt;symbol list&gt;         条件付きコンパイル シンボルを定義します (短い 
-                               形式: -d)
+-define:&lt;symbol list&gt;         条件付きコンパイル シンボルを定義します (短い
+                              形式: -d)
 -langversion:?                許容される言語バージョンの値を表示します。
--langversion:&lt;string&gt;         `default` (最新のメジャー バージョン)、
-                              `latest` (マイナー バージョンを含む最新バージョン)、
-                              `6` や `7.1` などの特定のバージョンなど、
+-langversion:&lt;string&gt;         `latest` (マイナー バージョンを含む最新バージョン)、
+                              `default` (`latest` と同様)、
+                              `latestmajor` (マイナー バージョンを除く最新バージョン)、
+                              `preview` (サポートされないプレビューの機能を含む、最新バージョン)、
+                              または `6` や `7.1` などの特定のバージョンなど、
                               言語バージョンを指定します
 -nullable[+|-]                Null 許容コンテキスト オプションの enable|disable を指定します。
--nullable:{enable|disable|warnings}
-                              Null 許容コンテキストオプションの enable|disable|warnings を指定します。
+-nullable:{enable|disable|warnings|annotations}
+                              Null 許容コンテキスト オプションの enable|disable|warnings|annotations を指定します。
 
-                        - セキュリティ -
+                       - セキュリティ -
 -delaysign[+|-]               厳密な名前キーのパブリックな部分のみを使って
-                               アセンブリを遅延署名します
+                              アセンブリを遅延署名します
 -publicsign[+|-]              厳密な名前キーのパブリックな部分のみを使って
-                               アセンブリを公開署名します
+                              アセンブリを公開署名します
 -keyfile:&lt;file&gt;               厳密な名前キーのファイルを指定します
 -keycontainer:&lt;string&gt;        厳密な名前キーのコンテナーを指定します
 -highentropyva[+|-]           高エントロピ ASLR を有効にします
 
-                        - その他 -
+                       - その他 -
 @&lt;file&gt;                       応答ファイルを読み取り、オプションを追加します
 -help                         この使用法に関するメッセージを表示します (短い形式: -?)
 -nologo                       コンパイラの著作権メッセージを表示しません
@@ -736,47 +738,47 @@
 -parallel[+|-]                ビルドを並列処理します。
 -version                      コンパイラ バージョンの数字を表示して終了します。
 
-                        - 高度なオプション -
+                       - 高度なオプション -
 -baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレスです
--checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイルのチェックサム 
-                               を計算するアルゴリズムを指定します。サポートされる値:
-                               SHA1 または SHA256 (既定)。
+-checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイルのチェックサム
+                              を計算するアルゴリズムを指定します。サポートされる値:
+                              SHA1 または SHA256 (既定)。
 -codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコード ページを
-                               指定します
+                              指定します
 -utf8output                   コンパイラ メッセージを UTF-8 エンコードで出力します
 -main:&lt;type&gt;                  エントリ ポイントを含む型を指定します
-                               (他のエントリ ポイントはすべて無視します) (短い 
-                               形式: -m)
+                              (他のエントリ ポイントはすべて無視します) (短い
+                              形式: -m)
 -fullpaths                    コンパイラは完全修飾パスを生成します
 -filealign:&lt;n&gt;                出力ファイル セクションで使用する配置を
-                               指定します
+                              指定します
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               コンパイラが出力するソース パス名のマッピングを
-                               指定します。
--pdb:&lt;file&gt;                   デバッグ情報ファイル名を指定します (既定: 
-                               .pdb 拡張子の付いた出力ファイル名)
+                              コンパイラが出力するソース パス名のマッピングを
+                              指定します。
+-pdb:&lt;file&gt;                   デバッグ情報ファイル名を指定します (既定:
+                              .pdb 拡張子の付いた出力ファイル名)
 -errorendlocation             各エラーの終了位置の出力行と
-                               出力列
+                              出力列
 -preferreduilang              出力用の言語名を指定します。
 -nosdkpath                    標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
 -nostdlib[+|-]                標準ライブラリ (mscorlib.dll) は参照しません
 -subsystemversion:&lt;string&gt;    このアセンブリのサブシステム バージョンを指定します
 -lib:&lt;file list&gt;              参照を検索する追加ディレクトリを
-                               指定します
--errorreport:&lt;string&gt;         内部コンパイラ エラーの処理方法
-                               (prompt、send、queue、none) を指定します。既定値は 
-                               queue です。
+                              指定します
+-errorreport:&lt;string&gt;         内部コンパイラ エラーの処理方法:
+                              (prompt、send、queue、none) を指定します。既定値は 
+                              queue です。
 -appconfig:&lt;file&gt;             アセンブリ バインド設定を含む
-                               アプリケーション構成ファイルを指定します
--moduleassemblyname:&lt;string&gt;  このモジュールが一部となる
-                               アセンブリ名です
+                              アプリケーション構成ファイルを指定します
+-moduleassemblyname:&lt;string&gt;  このモジュールが含められる
+                              アセンブリの名前
 -modulename:&lt;string&gt;          ソース モジュールの名前を指定します
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
+        <target state="translated">既定のインターフェイスの実装</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
@@ -901,7 +903,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="new">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;switch 式&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1426,7 +1428,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">'#nullable' 注釈コンテキスト内のコードでのみ、Null 許容参照型の注釈を使用する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
@@ -1441,7 +1443,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">'#nullable' 注釈コンテキスト内のコードでのみ、Null 許容参照型の注釈を使用する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1606,7 +1608,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <target state="translated">'{1}' のパラメーター '{0}' の型における参照型の Null 許容性が、暗黙的に実装されるメンバー '{2}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1656,7 +1658,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">'{0}' の戻り値の型における参照型の Null 許容性が、暗黙的に実装されるメンバー '{1}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1686,7 +1688,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">'{0}' の型における参照型の Null 許容性が、暗黙的に実装されるメンバー '{1}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
@@ -1696,12 +1698,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">型における参照型の Null 許容性が、オーバーライドされるメンバーと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">型における参照型の Null 許容性が、オーバーライドされるメンバーと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1826,12 +1828,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Null 非許容 {0} '{1}' が初期化されていません。</target>
+        <target state="translated">Null 非許容の {0} '{1}' が初期化されていません。{0} を null 許容として宣言することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="needs-review-translation">Null 非許容フィールドが初期化されていません。</target>
+        <target state="translated">Null 非許容フィールドは初期化されていません。null 許容として宣言することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5854,12 +5856,12 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected 'disable' or 'restore'</source>
-        <target state="needs-review-translation">disable、restore、enable、または safeonly が必要です</target>
+        <target state="translated">'disable' または 'restore' を指定してください</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected 'disable' or 'restore' after #pragma warning</source>
-        <target state="needs-review-translation">#pragma 警告の後に disable、restore、enable、または safeonly が必要です</target>
+        <target state="translated">#pragma 警告の後に、'disable' または 'restore' が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
