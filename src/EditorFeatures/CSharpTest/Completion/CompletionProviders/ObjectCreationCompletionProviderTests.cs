@@ -616,5 +616,25 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "A");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableTypeCreation()
+        {
+            var markup =
+@"#nullable enable
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        void M()
+        {
+            object? o;
+            o = new $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "object");
+        }
     }
 }

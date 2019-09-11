@@ -78,6 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return (symbol.Name, "", symbol.Name);
             }
 
+            if (symbol is INamespaceOrTypeSymbol namespaceOrTypeSymbol)
+            {
+                return base.GetDisplayAndSuffixAndInsertionText(namespaceOrTypeSymbol.WithoutNullability(), context);
+            }
+
             return base.GetDisplayAndSuffixAndInsertionText(symbol, context);
         }
 
