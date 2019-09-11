@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
 
             protected override ValueContentAbstractValue GetAbstractDefaultValue(ITypeSymbol type)
-                => ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState;
+                => type != null ?
+                   ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState :
+                   ValueContentAbstractValue.ContainsNullLiteralState;
 
             protected override bool HasAnyAbstractValue(ValueContentAnalysisData data)
                 => data.HasAnyAbstractValue;
@@ -158,14 +160,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 _ = base.DefaultVisit(operation, argument);
                 if (operation.Type == null)
                 {
-                    return ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState;
+                    return ValueContentAbstractValue.ContainsNullLiteralState;
                 }
 
                 if (ValueContentAbstractValue.IsSupportedType(operation.Type, out ITypeSymbol valueTypeSymbol))
                 {
-                    if (operation.ConstantValue.HasValue && operation.ConstantValue.Value != null)
+                    if (operation.ConstantValue.HasValue)
                     {
-                        return ValueContentAbstractValue.Create(operation.ConstantValue.Value, valueTypeSymbol);
+                        return operation.ConstantValue.Value != null ?
+                            ValueContentAbstractValue.Create(operation.ConstantValue.Value, valueTypeSymbol) :
+                            ValueContentAbstractValue.ContainsNullLiteralState;
                     }
                     else
                     {
@@ -175,7 +179,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                                 return ValueContentAbstractValue.InvalidState;
 
                             case PointsToAnalysis.NullAbstractValue.Null:
-                                return ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState;
+                                return ValueContentAbstractValue.ContainsNullLiteralState;
 
                             default:
                                 return ValueContentAbstractValue.MayBeContainsNonLiteralState;
