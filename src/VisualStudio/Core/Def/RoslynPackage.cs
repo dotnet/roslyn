@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -28,6 +29,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleS
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.RpcContracts.OutputChannel;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TaskStatusCenter;
@@ -43,7 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     internal class RoslynPackage : AbstractPackage
     {
         private VisualStudioWorkspace _workspace;
-        private WorkspaceFailureOutputPane _outputPane;
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
         private IDisposable _solutionEventMonitor;
@@ -78,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             RoslynTelemetrySetup.Initialize(this);
 
             // set workspace output pane
-            _outputPane = new WorkspaceFailureOutputPane(_componentModel.GetService<IThreadingContext>(), this, _workspace);
+            await InitializeWorkspaceFailureOutputWindow().ConfigureAwait(true);
 
             InitializeColors();
 
@@ -88,6 +89,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
 
             TrackBulkFileOperations();
+        }
+
+        private async Task InitializeWorkspaceFailureOutputWindow()
+        {
+            var threadingContext = _componentModel.GetService<IThreadingContext>();
+            var brokeredServiceContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
+            Assumes.Present(brokeredServiceContainer);
+            var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
+            var serviceBrokerClient = new ServiceBrokerClient(serviceBroker, threadingContext.JoinableTaskFactory);
+
+#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
+            _workspace.WorkspaceFailed += async (sender, eventArgs) =>
+            {
+                using var outputChannelStore = await serviceBrokerClient.GetProxyAsync<IOutputChannelStore>(VisualStudioServices.VS2019_4.OutputChannelStore).ConfigureAwait(false);
+                await outputChannelStore.Proxy.WriteLineAsync(ServicesVSResources.IntelliSense, eventArgs.Diagnostic.ToString()).ConfigureAwait(false);
+            };
+#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
         }
 
         private void InitializeColors()
