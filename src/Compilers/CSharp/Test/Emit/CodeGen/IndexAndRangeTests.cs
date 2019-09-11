@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -15,6 +18,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 new[] { s, TestSources.GetSubArray, },
                 expectedOutput is null ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
             return CompileAndVerify(comp, expectedOutput: expectedOutput);
+        }
+
+        private static (SemanticModel model, List<ElementAccessExpressionSyntax> accesses) GetModelAndAccesses(CSharpCompilation comp)
+        {
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            return (model, root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToList());
+        }
+
+        private static void VerifyIndexCall(IMethodSymbol symbol, string methodName, string containingTypeName)
+        {
+            Assert.NotNull(symbol);
+            Assert.Equal(methodName, symbol.Name);
+            Assert.Equal(2, symbol.Parameters.Length);
+            Assert.Equal(containingTypeName, symbol.ContainingType.Name);
         }
 
         [Fact]
@@ -88,6 +108,16 @@ abcd");
   IL_0053:  blt.s      IL_0039
   IL_0055:  ret
 }");
+
+            var (model, elementAccesses) = GetModelAndAccesses(comp);
+
+            var info = model.GetSymbolInfo(elementAccesses[0]);
+            var substringCall = (IMethodSymbol)info.Symbol;
+            info = model.GetSymbolInfo(elementAccesses[1]);
+            var sliceCall = (IMethodSymbol)info.Symbol;
+
+            VerifyIndexCall(substringCall, "Substring", "String");
+            VerifyIndexCall(sliceCall, "Slice", "ReadOnlySpan");
         }
 
         [Fact]
@@ -118,6 +148,9 @@ class C
 }";
             var comp = CreateCompilationWithIndexAndRangeAndSpan(src, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "throws");
+
+            var (model, accesses) = GetModelAndAccesses(comp);
+            VerifyIndexCall((IMethodSymbol)model.GetSymbolInfo(accesses[0]).Symbol, "Slice", "Span");
         }
 
         [Fact]
@@ -194,6 +227,19 @@ class C
   IL_0054:  call       ""void System.Console.WriteLine(int)""
   IL_0059:  ret
 }");
+
+            var (model, accesses) = GetModelAndAccesses(comp);
+
+            foreach (var access in accesses)
+            {
+                var info = model.GetSymbolInfo(access);
+                var property = (IPropertySymbol)info.Symbol;
+
+                Assert.NotNull(property);
+                Assert.True(property.IsIndexer);
+                Assert.Equal(SpecialType.System_Int32, property.Parameters[0].Type.SpecialType);
+                Assert.Equal("S", property.ContainingType.Name);
+            }
         }
 
         [Fact]
