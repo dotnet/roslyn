@@ -253,7 +253,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -281,7 +281,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:none
+dotnet_style_object_initializer = true:none
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -576,7 +576,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -604,7 +604,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:silent
+dotnet_style_object_initializer = true:silent
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -899,7 +899,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:warning
+dotnet_style_object_initializer = true:warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -927,7 +927,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1222,7 +1222,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1250,7 +1250,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:warning
+dotnet_style_object_initializer = true:warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1545,7 +1545,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1573,7 +1573,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:error
+dotnet_style_object_initializer = true:error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"

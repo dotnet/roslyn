@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(context.Node.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = context.Options.GetAnalyzerOptionSetAsync(context.Node.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;

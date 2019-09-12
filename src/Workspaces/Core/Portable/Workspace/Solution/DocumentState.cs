@@ -757,7 +757,10 @@ namespace Microsoft.CodeAnalysis
             }
             else if (Name != null && projectFilePath != null)
             {
-                effectiveFilePath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(projectFilePath), Name);
+                var projectDirectory = PathUtilities.GetDirectoryName(projectFilePath);
+                effectiveFilePath = string.IsNullOrEmpty(projectDirectory)
+                    ? Name
+                    : PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(projectFilePath), Name);
             }
             else
             {

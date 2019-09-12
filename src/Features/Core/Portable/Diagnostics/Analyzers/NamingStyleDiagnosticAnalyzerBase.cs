@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            var optionSet = await options.GetDocumentOptionSetAsync(sourceTree, cancellationToken).ConfigureAwait(false);
+            var optionSet = await options.GetAnalyzerOptionSetAsync(sourceTree, cancellationToken).ConfigureAwait(false);
             return optionSet?.GetOption(SimplificationOptions.NamingPreferences, compilation.Language);
         }
 

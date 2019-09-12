@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
 
-            var options = context.Options.GetDocumentOptionSetAsync(tree, cancellationToken).GetAwaiter().GetResult();
+            var options = context.Options.GetAnalyzerOptionSetAsync(tree, cancellationToken).GetAwaiter().GetResult();
             if (options == null)
             {
                 return;

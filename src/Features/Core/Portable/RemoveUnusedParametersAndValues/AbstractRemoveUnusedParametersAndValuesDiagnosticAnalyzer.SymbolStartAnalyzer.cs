@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
 
                 var location = parameter.Locations[0];
-                var optionSet = analyzerOptions.GetDocumentOptionSetAsync(location.SourceTree, cancellationToken).GetAwaiter().GetResult();
+                var optionSet = analyzerOptions.GetAnalyzerOptionSetAsync(location.SourceTree, cancellationToken).GetAwaiter().GetResult();
                 if (optionSet == null)
                 {
                     return;

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private static async Task<CodeStyleOption<AddImportPlacement>> GetPreferredPlacementOptionAsync(SyntaxNodeAnalysisContext context)
         {
-            var options = await context.Options.GetDocumentOptionSetAsync(context.Node.SyntaxTree, context.CancellationToken);
+            var options = await context.Options.GetAnalyzerOptionSetAsync(context.Node.SyntaxTree, context.CancellationToken);
             return options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
         }
 

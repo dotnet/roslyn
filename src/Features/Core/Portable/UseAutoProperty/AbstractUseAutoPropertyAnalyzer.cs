@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var semanticModel = context.SemanticModel;
 
             // Don't even bother doing the analysis if the user doesn't even want auto-props.
-            var optionSet = context.Options.GetDocumentOptionSetAsync(
+            var optionSet = context.Options.GetAnalyzerOptionSetAsync(
                 semanticModel.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var variableDeclarator = result.VariableDeclarator;
             var nodeToFade = GetNodeToFade(result.FieldDeclaration, variableDeclarator);
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(
+            var optionSet = context.Options.GetAnalyzerOptionSetAsync(
                 result.FieldDeclaration.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {

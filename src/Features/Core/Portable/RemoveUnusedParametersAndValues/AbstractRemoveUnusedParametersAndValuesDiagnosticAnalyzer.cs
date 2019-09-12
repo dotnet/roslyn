@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             out Options options)
         {
             options = null;
-            var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = analyzerOptions.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return false;
