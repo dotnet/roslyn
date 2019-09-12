@@ -116,11 +116,11 @@ namespace Microsoft.CodeAnalysis
         private ImmutableArray<MetadataReference> _lazyExplicitReferences;
 
         /// <summary>
-        /// Stores teh results of implicit reference resolutions.
+        /// Stores the results of implicit reference resolutions.
         /// If <see cref="MetadataReferenceResolver.ResolveMissingAssemblies"/> is true the reference manager attempts to resolve assembly identities,
         /// that do not match any explicit metadata references passed to the compilation (or specified via #r directive).
         /// For each such assembly identity <see cref="MetadataReferenceResolver.ResolveMissingAssembly(MetadataReference, AssemblyIdentity)"/> is called
-        /// and its result is captured in this map. Both the original requested identity as well as the actual identity of the resolved assembly are captured in the map.
+        /// and its result is captured in this map.
         /// The map also stores failures - the reference is null if the assembly of the given identity is not found by the resolver.
         /// This is important to maintain consistency, especially across multiple submissions (e.g. the reference is not found during compilation of the first submission
         /// but then it is available when the second submission is compiled).

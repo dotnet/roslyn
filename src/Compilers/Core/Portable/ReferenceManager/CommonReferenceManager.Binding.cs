@@ -494,25 +494,17 @@ namespace Microsoft.CodeAnalysis
         {
             resolvedAssemblyIdentity = null;
             resolvedAssemblyMetadata = null;
+            bool isNewlyResolvedReference = false;
 
-            // Check if we have resolved a missing assembly of the given identity in a previous submission:
-            if (implicitReferenceResolutions.TryGetValue(referenceIdentity, out var previouslyResolvedReference))
-            {
-                resolvedReference = previouslyResolvedReference;
-
-                if (previouslyResolvedReference == null)
-                {
-                    return false;
-                }
-
-                resolvedAssemblyMetadata = GetAssemblyMetadata(previouslyResolvedReference, resolutionDiagnostics);
-                resolvedAssemblyIdentity = referenceIdentity;
-                return resolvedAssemblyMetadata != null;
-            }
-
+            // Check if we have previously resolved an identity and reuse the previously resolved reference if so. 
             // Use the resolver to find the missing reference.
             // Note that the resolver may return an assembly of a different identity than requested, e.g. a higher version.
-            resolvedReference = resolver.ResolveMissingAssembly(requestingReference, referenceIdentity);
+            if (!implicitReferenceResolutions.TryGetValue(referenceIdentity, out resolvedReference))
+            {
+                resolvedReference = resolver.ResolveMissingAssembly(requestingReference, referenceIdentity);
+                isNewlyResolvedReference = true;
+            }
+
             if (resolvedReference == null)
             {
                 return false;
@@ -526,29 +518,16 @@ namespace Microsoft.CodeAnalysis
 
             var resolvedAssembly = resolvedAssemblyMetadata.GetAssembly();
 
-            // Allow reference and definition identities to differ in version, but not other properties:
-            if (IdentityComparer.Compare(referenceIdentity, resolvedAssembly.Identity) == AssemblyIdentityComparer.ComparisonResult.NotEquivalent)
+            // Allow reference and definition identities to differ in version, but not other properties.
+            // Don't need to compare if we are reusing a previously resolved reference.
+            if (isNewlyResolvedReference &&
+                IdentityComparer.Compare(referenceIdentity, resolvedAssembly.Identity) == AssemblyIdentityComparer.ComparisonResult.NotEquivalent)
             {
                 return false;
             }
 
             resolvedAssemblyIdentity = resolvedAssembly.Identity;
-
-            // Check again if we have resolved a missing assembly with the same identity as the one returned by the resolver.
-            // If so, use the one we already resolved.
-            if (implicitReferenceResolutions.TryGetValue(resolvedAssemblyIdentity, out previouslyResolvedReference))
-            {
-                if (previouslyResolvedReference == null)
-                {
-                    return false;
-                }
-
-                resolvedAssemblyMetadata = GetAssemblyMetadata(previouslyResolvedReference, resolutionDiagnostics);
-                resolvedReference = previouslyResolvedReference;
-                return resolvedAssemblyMetadata != null;
-            }
-
-            implicitReferenceResolutions = implicitReferenceResolutions.Add(resolvedAssemblyIdentity, resolvedReference);
+            implicitReferenceResolutions = implicitReferenceResolutions.Add(referenceIdentity, resolvedReference);
             return true;
         }
 
