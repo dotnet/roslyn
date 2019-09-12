@@ -1399,7 +1399,6 @@ class C
         [Fact]
         public void SpeculativeGetTypeInfo_Basic()
         {
-
             var source = @"
 class C
 {
@@ -2636,7 +2635,6 @@ static class CExt2
         [Fact]
         public void GetSymbolInfo_ReinferredCollectionInitializerAdd_MultiElementAdds()
         {
-
             var source = @"
 using System.Collections;
 class C : IEnumerable
@@ -2680,7 +2678,6 @@ static class CExt
         [Fact]
         public void GetSymbolInfo_ReinferredCollectionInitializerAdd_MultiElementAdds_LinkedTypes()
         {
-
             var source = @"
 using System.Collections;
 class C : IEnumerable
@@ -2842,7 +2839,6 @@ class C<T>
         [Fact]
         public void GetSymbolInfo_RangeReinferred()
         {
-
             var source = @"
 using System;
 
@@ -2879,6 +2875,94 @@ class C<T>
                 Assert.NotNull(propertySymbol);
                 var spanType = (INamedTypeSymbol)propertySymbol.ReturnType;
                 Assert.Equal(annotation, spanType.TypeArgumentNullableAnnotations[0]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_UnaryOperator()
+        {
+            var source =
+@"#nullable enable
+struct S<T>
+{
+    public static S<T> operator~(S<T> s) => s;
+}
+class Program
+{
+    static S<T> Create1<T>(T t) => new S<T>();
+    static S<T>? Create2<T>(T t) => null;
+    static void F<T>() where T : class, new()
+    {
+        T x = null;
+        var sx = Create1(x);
+        _ = ~sx;
+        T? y = new T();
+        var sy = Create2(y);
+        _ = ~sy;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 15));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+            var operators = root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().ToList();
+            verifyAnnotations(operators[0], PublicNullableAnnotation.Annotated, "S<T?> S<T?>.operator ~(S<T?> s)");
+            verifyAnnotations(operators[1], PublicNullableAnnotation.NotAnnotated, "S<T!> S<T!>.operator ~(S<T!> s)");
+
+            void verifyAnnotations(PrefixUnaryExpressionSyntax syntax, PublicNullableAnnotation annotation, string expected)
+            {
+                var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
+                Assert.Equal(expected, method.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal(annotation, method.ContainingType.TypeArgumentNullableAnnotations[0]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_BinaryOperator()
+        {
+            var source =
+@"#nullable enable
+struct S<T>
+{
+    public static S<T> operator+(S<T> x, S<T> y) => x;
+}
+class Program
+{
+    static S<T> Create1<T>(T t) => new S<T>();
+    static S<T>? Create2<T>(T t) => null;
+    static void F<T>() where T : class, new()
+    {
+        T x = null;
+        var sx = Create1(x);
+        _ = sx + sx;
+        T? y = new T();
+        var sy = Create2(y);
+        _ = sy + sy;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 15));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+            var operators = root.DescendantNodes().OfType<BinaryExpressionSyntax>().ToList();
+            verifyAnnotations(operators[0], PublicNullableAnnotation.Annotated, "S<T?> S<T?>.operator +(S<T?> x, S<T?> y)");
+            verifyAnnotations(operators[1], PublicNullableAnnotation.NotAnnotated, "S<T!> S<T!>.operator +(S<T!> x, S<T!> y)");
+
+            void verifyAnnotations(BinaryExpressionSyntax syntax, PublicNullableAnnotation annotation, string expected)
+            {
+                var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
+                Assert.Equal(expected, method.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal(annotation, method.ContainingType.TypeArgumentNullableAnnotations[0]);
             }
         }
     }

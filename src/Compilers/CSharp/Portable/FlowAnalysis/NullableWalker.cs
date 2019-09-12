@@ -2315,9 +2315,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isLifted = binary.OperatorKind.IsLifted();
                 TypeWithState leftUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, leftType);
                 TypeWithState rightUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, rightType);
-                TypeSymbol asMemberOfType = getTypeIfIsOrDerivedFrom(methodContainer, leftUnderlyingType.Type.StrippedType()) ??
-                    getTypeIfIsOrDerivedFrom(methodContainer, rightUnderlyingType.Type.StrippedType());
-                if (!(asMemberOfType is null))
+                TypeSymbol asMemberOfType = getTypeIfContainingType(methodContainer, leftUnderlyingType.Type) ??
+                    getTypeIfContainingType(methodContainer, rightUnderlyingType.Type);
+                if (asMemberOfType is object)
                 {
                     method = (MethodSymbol)AsMemberOfType(asMemberOfType, method);
                 }
@@ -2326,6 +2326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameters = method.Parameters;
                 visitOperandConversion(binary.Left, leftOperand, leftConversion, parameters[0], leftUnderlyingType);
                 visitOperandConversion(binary.Right, rightOperand, rightConversion, parameters[1], rightUnderlyingType);
+                SetUpdatedSymbol(binary, binary.MethodOpt, method);
 
                 void visitOperandConversion(
                     BoundExpression expr,
@@ -2456,12 +2457,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 slotBuilder.Free();
             }
 
-            TypeSymbol getTypeIfIsOrDerivedFrom(TypeSymbol baseType, TypeSymbol derivedType)
+            TypeSymbol getTypeIfContainingType(TypeSymbol baseType, TypeSymbol derivedType)
             {
                 if (derivedType is null)
                 {
                     return null;
                 }
+                derivedType = derivedType.StrippedType();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 var conversion = _conversions.ClassifyBuiltInConversion(derivedType, baseType, ref useSiteDiagnostics);
                 if (conversion.Exists && !conversion.IsExplicit)
@@ -6780,13 +6782,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnaryOperatorKind.BoolLogicalNegation:
                     VisitCondition(node.Operand);
                     SetConditionalState(StateWhenFalse, StateWhenTrue);
-                    resultType = getResultType(ResultType);
+                    resultType = adjustForLifting(ResultType);
                     break;
                 case UnaryOperatorKind.DynamicTrue:
                     // We cannot use VisitCondition, because the operand is not of type bool.
                     // Yet we want to keep the result split if it was split.  So we simply visit.
                     Visit(node.Operand);
-                    resultType = getResultType(ResultType);
+                    resultType = adjustForLifting(ResultType);
                     break;
                 case UnaryOperatorKind.DynamicLogicalNegation:
                     // We cannot use VisitCondition, because the operand is not of type bool.
@@ -6795,7 +6797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If the state is split, the result is `bool` at runtime and we invert it here.
                     if (IsConditionalState)
                         SetConditionalState(StateWhenFalse, StateWhenTrue);
-                    resultType = getResultType(ResultType);
+                    resultType = adjustForLifting(ResultType);
                     break;
                 default:
                     if (node.OperatorKind.IsUserDefined() &&
@@ -6823,11 +6825,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             assignmentKind: AssignmentKind.Argument,
                             parameterOpt: parameter);
                         resultType = GetLiftedReturnTypeIfNecessary(isLifted, method.ReturnTypeWithAnnotations, operandResult.State);
+                        SetUpdatedSymbol(node, node.MethodOpt, method);
                     }
                     else
                     {
                         VisitRvalue(node.Operand);
-                        resultType = getResultType(ResultType);
+                        resultType = adjustForLifting(ResultType);
                     }
                     break;
             }
@@ -6835,7 +6838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetResultType(node, resultType);
             return null;
 
-            TypeWithState getResultType(TypeWithState argumentResult) =>
+            TypeWithState adjustForLifting(TypeWithState argumentResult) =>
                 TypeWithState.Create(node.Type, node.OperatorKind.IsLifted() ? argumentResult.State : NullableFlowState.NotNull);
         }
 
