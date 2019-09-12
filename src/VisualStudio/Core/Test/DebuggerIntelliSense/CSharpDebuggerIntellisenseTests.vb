@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -13,7 +12,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function CompletionOnTypeCharacter() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -38,7 +36,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function CompletionOnTypeCharacterInImmediateWindow() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -63,7 +60,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function LocalsInBlockAfterInstructionPointer() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -93,7 +89,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function CompletionAfterReturn() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -125,7 +120,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function ExecutedUnexecutedLocals() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -164,7 +158,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals1()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -190,7 +183,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals2()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -216,7 +208,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals3()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -243,7 +234,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals4()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -270,7 +260,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals5()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -297,7 +286,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals6()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -324,7 +312,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub SignatureHelpInParameterizedConstructor()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -348,7 +335,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub SignatureHelpInMethodCall()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void something(string z, int b)
@@ -376,7 +362,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub SignatureHelpInGenericMethodCall()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void something&lt;T&gt;(&lt;T&gt; z, int b)
@@ -405,7 +390,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function InstructionPointerInForeach() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -431,7 +415,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub ClassDesigner1()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static int STATICINT;
@@ -460,7 +443,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub ClassDesigner2()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -671,7 +653,6 @@ $$</Document>
         Public Async Function TypeNumberAtStartOfViewDoesNotCrash() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 	{
 		static void Main(string[] args)
@@ -694,7 +675,6 @@ $$</Document>
         Public Async Function BuilderSettingRetainedBetweenComputations_Watch() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -724,7 +704,6 @@ $$</Document>
         Public Async Function BuilderSettingRetainedBetweenComputations_Watch_Immediate() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)

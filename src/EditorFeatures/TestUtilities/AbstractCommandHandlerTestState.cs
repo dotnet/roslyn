@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -61,14 +62,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public AbstractCommandHandlerTestState(
             XElement workspaceElement,
             ExportProvider exportProvider,
-            string workspaceKind)
+            string workspaceKind,
+            XElement cursorDocumentElement = null,
+            ImmutableArray<string> roles = default)
         {
             this.Workspace = TestWorkspace.CreateWorkspace(
                 workspaceElement,
                 exportProvider: exportProvider,
                 workspaceKind: workspaceKind);
 
-            var cursorDocument = this.Workspace.Documents.First(d => d.CursorPosition.HasValue);
+            TestHostDocument cursorDocument;
+            if (cursorDocumentElement == null)
+            {
+                cursorDocument = this.Workspace.Documents.First(d => d.CursorPosition.HasValue);
+            }
+            else
+            {
+                var languageName = Workspace.Projects.First().Language;
+                cursorDocument = TestWorkspace.CreateDocument(cursorDocumentElement, exportProvider, Workspace.Services.GetLanguageServices(languageName), roles);
+            }
+
             _textView = cursorDocument.GetTextView();
             _subjectBuffer = cursorDocument.GetTextBuffer();
 

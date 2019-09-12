@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -11,8 +10,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function QueryVariables() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Main(args As String())
         Dim bar = From x In "asdf"
@@ -32,8 +29,6 @@ End Module</Document>
         Public Async Function EnteringMethod() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     [|Sub Main(args As String())|]
         Dim z = 4
@@ -51,8 +46,6 @@ End Module</Document>
         Public Async Function ExitingMethod() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Main(args As String())
         Dim z = 4
@@ -70,8 +63,6 @@ End Module</Document>
         Public Async Function SingleLineLambda() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Main(args As String())
         Dim z = [|Function(x) x + 5|]
@@ -89,8 +80,6 @@ End Module</Document>
         Public Async Function MultiLineLambda() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Main(args As String())
         Dim z = [|Function(x)|]
@@ -110,8 +99,6 @@ End Module</Document>
         Public Async Function LocalVariables() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Main(args As String())
         Dim bar as String = "boo"
@@ -132,8 +119,6 @@ End Module</Document>
         Public Async Function CompletionAfterReturn() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Main(args As String())
         Dim bar as String = "boo"
@@ -156,8 +141,6 @@ End Module</Document>
         Public Async Sub TypeALineTenTimes()
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Main(args As String())
         Dim xx as String = "boo"
@@ -185,8 +168,6 @@ End Module</Document>
         Public Async Sub SignatureHelpInParameterizedConstructor()
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Main(args As String())
         Dim xx as String = "boo"
@@ -207,8 +188,6 @@ End Module</Document>
         Public Async Sub SignatureHelpInMethodCall()
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Main(args As String())
         Dim xx as String = "boo"
@@ -229,8 +208,6 @@ End Module</Document>
         Public Async Sub SignatureHelpInGenericMethod()
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Self(Of T)(goo as T)
         Return goo
@@ -255,8 +232,6 @@ End Module</Document>
         Public Async Sub CompletionInExpression()
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Self(Of T)(goo as T)
         Return goo
@@ -282,8 +257,6 @@ End Module</Document>
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <ProjectReference>ReferencedProject</ProjectReference>
-                               <Document>$$</Document>
-
                                <Document>Module Program
 
     Sub Main(args As String())
@@ -313,8 +286,6 @@ End Class
         Public Async Sub CompletionForGenericType()
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Self(Of T)(goo as T)
         Return goo
@@ -339,8 +310,6 @@ End Module</Document>
         Public Async Sub LocalsInForBlock()
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
-
                                <Document>Module Program
     Sub Main(args As String())
         Dim xx as String = "boo"
@@ -382,7 +351,6 @@ End Module</Document>
         Public Async Sub StoppedOnEndSub()
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>Module Program
     Sub Main(o as Integer)
     [|End Sub|]
@@ -399,7 +367,6 @@ End Module</Document>
         Public Async Sub StoppedOnEndProperty()
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>Class C
     Public Property x As Integer
         Get

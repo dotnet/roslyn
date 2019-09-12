@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
@@ -75,8 +76,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                        excludedTypes As List(Of Type),
                        extraExportedTypes As List(Of Type),
                        includeFormatCommandHandler As Boolean,
-                       workspaceKind As String)
-            MyBase.New(workspaceElement, GetExportProvider(excludedTypes, extraExportedTypes, includeFormatCommandHandler), workspaceKind:=workspaceKind)
+                       workspaceKind As String,
+                       Optional cursorDocumentElement As XElement = Nothing,
+                       Optional roles As ImmutableArray(Of String) = Nothing)
+            MyBase.New(workspaceElement, GetExportProvider(excludedTypes, extraExportedTypes, includeFormatCommandHandler), workspaceKind:=workspaceKind, cursorDocumentElement, roles)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
