@@ -310,6 +310,7 @@ class X
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                         case ErrorCode.WRN_NullReferenceInitializer:
+                        case ErrorCode.WRN_ExpressionMayIntroduceNullT:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
