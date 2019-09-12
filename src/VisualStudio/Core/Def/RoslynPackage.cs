@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             RoslynTelemetrySetup.Initialize(this);
 
             // set workspace output pane
-            await InitializeWorkspaceFailureOutputWindow().ConfigureAwait(true);
+            await InitializeWorkspaceFailureOutputWindowAsync().ConfigureAwait(true);
 
             InitializeColors();
 
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             TrackBulkFileOperations();
         }
 
-        private async Task InitializeWorkspaceFailureOutputWindow()
+        private async Task InitializeWorkspaceFailureOutputWindowAsync()
         {
             var threadingContext = _componentModel.GetService<IThreadingContext>();
             var brokeredServiceContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
