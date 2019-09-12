@@ -13,7 +13,7 @@ namespace Templates.EditorConfig.FileGenerator
 {
     internal class EditorConfigFileGenerator
     {
-        private DTE2 _dte;
+        private readonly DTE2 _dte;
 
         public EditorConfigFileGenerator(DTE2 dte)
         {
