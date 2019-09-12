@@ -880,7 +880,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetOrAddModelForAttribute((AttributeSyntax)memberDecl);
 
                     case SyntaxKind.Parameter:
-                        return GetOrAddModelForParameter((ParameterSyntax)memberDecl, span);
+                        if (node != memberDecl)
+                        {
+                            return GetOrAddModelForParameter((ParameterSyntax)memberDecl, span);
+                        }
+                        else
+                        {
+                            return GetMemberModel(memberDecl.Parent);
+                        }
                 }
             }
 

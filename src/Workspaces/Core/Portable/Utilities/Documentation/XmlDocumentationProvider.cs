@@ -62,11 +62,9 @@ However, the said XmlResolver property no longer exists in .NET portable framewo
 So we suppress this error until the reporting for CA3053 has been updated to account for .NET portable framework.")]
         private XDocument GetXDocument(CancellationToken cancellationToken)
         {
-            using (var stream = GetSourceStream(cancellationToken))
-            using (var xmlReader = XmlReader.Create(stream, s_xmlSettings))
-            {
-                return XDocument.Load(xmlReader);
-            }
+            using var stream = GetSourceStream(cancellationToken);
+            using var xmlReader = XmlReader.Create(stream, s_xmlSettings);
+            return XDocument.Load(xmlReader);
         }
 
         protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
@@ -84,11 +82,9 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                         {
                             if (e.Attribute("name") != null)
                             {
-                                using (var reader = e.CreateReader())
-                                {
-                                    reader.MoveToContent();
-                                    _docComments[e.Attribute("name").Value] = reader.ReadInnerXml();
-                                }
+                                using var reader = e.CreateReader();
+                                reader.MoveToContent();
+                                _docComments[e.Attribute("name").Value] = reader.ReadInnerXml();
                             }
                         }
                     }

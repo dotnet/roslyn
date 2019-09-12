@@ -780,12 +780,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task GenerateCompilationEventsAndPopulateEventsCacheAsync(AnalysisScope analysisScope, AnalyzerDriver driver, CancellationToken cancellationToken)
         {
-#if SIMULATED_EVENT_QUEUE
-            await _analysisState.GenerateSimulatedCompilationEventsAsync(analysisScope, _compilation, _compilationData.GetOrCreateCachedSemanticModel, driver, cancellationToken).ConfigureAwait(false);
-#else
             GenerateCompilationEvents(analysisScope, cancellationToken);
             await PopulateEventsCacheAsync(cancellationToken).ConfigureAwait(false);
-#endif
         }
 
         private void GenerateCompilationEvents(AnalysisScope analysisScope, CancellationToken cancellationToken)

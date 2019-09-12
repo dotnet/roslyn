@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static SyntaxNode GenerateThrowStatement(
             SyntaxGenerator factory,
             SemanticDocument document,
-            string exceptionMetadataName,
-            CancellationToken cancellationToken)
+            string exceptionMetadataName)
         {
             var compilation = document.SemanticModel.Compilation;
             var exceptionType = compilation.GetTypeByMetadataName(exceptionMetadataName);

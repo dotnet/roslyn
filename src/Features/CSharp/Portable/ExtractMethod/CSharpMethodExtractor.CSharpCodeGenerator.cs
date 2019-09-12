@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
-                    typeParameters: CreateMethodTypeParameters(cancellationToken),
+                    typeParameters: CreateMethodTypeParameters(),
                     parameters: CreateMethodParameters(),
                     statements: result.Data);
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 statements = postProcessor.MergeDeclarationStatements(statements);
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken);
                 statements = await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
-                statements = AddReturnIfUnreachable(statements, cancellationToken);
+                statements = AddReturnIfUnreachable(statements);
 
                 return statements;
             }
@@ -204,11 +204,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var isUnsafe = this.CSharpSelectionResult.ShouldPutUnsafeModifier();
                 var isAsync = this.CSharpSelectionResult.ShouldPutAsyncModifier();
+                var isStatic = !this.AnalyzerResult.UseInstanceMember;
+                var isReadOnly = this.AnalyzerResult.ShouldBeReadOnly;
 
                 return new DeclarationModifiers(
                     isUnsafe: isUnsafe,
                     isAsync: isAsync,
-                    isStatic: !this.AnalyzerResult.UseInstanceMember);
+                    isStatic: isStatic,
+                    isReadOnly: isReadOnly);
             }
 
             private static SyntaxKind GetParameterRefSyntaxKind(ParameterBehavior parameterBehavior)
@@ -285,20 +288,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 foreach (var statement in statements)
                 {
-                    if (statement is LocalDeclarationStatementSyntax declStatement)
-                    {
-                        foreach (var variable in declStatement.Declaration.Variables)
-                        {
-                            if (variable.Initializer != null)
-                            {
-                                // found one
-                                return OperationStatus.Succeeded;
-                            }
-                        }
-                    }
-                    else
+                    if (!(statement is LocalDeclarationStatementSyntax declStatement))
                     {
                         return OperationStatus.Succeeded;
+                    }
+
+                    foreach (var variable in declStatement.Declaration.Variables)
+                    {
+                        if (variable.Initializer != null)
+                        {
+                            // found one
+                            return OperationStatus.Succeeded;
+                        }
                     }
                 }
 

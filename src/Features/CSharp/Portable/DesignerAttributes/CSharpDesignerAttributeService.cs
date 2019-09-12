@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
 
         protected override IEnumerable<SyntaxNode> GetAllTopLevelTypeDefined(SyntaxNode node)
         {
-            var compilationUnit = node as CompilationUnitSyntax;
-            if (compilationUnit == null)
+            if (!(node is CompilationUnitSyntax compilationUnit))
             {
                 return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
             }

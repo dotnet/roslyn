@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return stateSet.IsCompilationEndAnalyzer(project, compilation);
         }
 
-        public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+        public bool ContainsDiagnostics(ProjectId projectId)
         {
             foreach (var stateSet in _stateManager.GetStateSets(projectId))
             {
@@ -235,17 +235,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return ImmutableArray<DiagnosticData>.Empty;
             }
 
-            switch (kind)
+            return kind switch
             {
-                case AnalysisKind.Syntax:
-                    return result.GetResultOrEmpty(result.SyntaxLocals, id);
-                case AnalysisKind.Semantic:
-                    return result.GetResultOrEmpty(result.SemanticLocals, id);
-                case AnalysisKind.NonLocal:
-                    return result.GetResultOrEmpty(result.NonLocals, id);
-                default:
-                    return Contract.FailWithReturn<ImmutableArray<DiagnosticData>>("shouldn't reach here");
-            }
+                AnalysisKind.Syntax => result.GetResultOrEmpty(result.SyntaxLocals, id),
+                AnalysisKind.Semantic => result.GetResultOrEmpty(result.SemanticLocals, id),
+                AnalysisKind.NonLocal => result.GetResultOrEmpty(result.NonLocals, id),
+                _ => Contract.FailWithReturn<ImmutableArray<DiagnosticData>>("shouldn't reach here"),
+            };
         }
 
         public void LogAnalyzerCountSummary()

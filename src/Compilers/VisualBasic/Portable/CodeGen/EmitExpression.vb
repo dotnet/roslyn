@@ -288,35 +288,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim nullCheckOnCopy = conditional.CaptureReceiver OrElse (receiverType.IsReferenceType AndAlso receiverType.TypeKind = TypeKind.TypeParameter)
 
                 If nullCheckOnCopy Then
-                    EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
+                    receiverTemp = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
 
                     If Not receiverType.IsReferenceType Then
-                        ' unconstrained case needs to handle case where T Is actually a struct.
-                        ' such values are never nulls
-                        ' we will emit a check for such case, but the check Is really a JIT-time 
-                        ' constant since JIT will know if T Is a struct Or Not.
-                        '
-                        ' if ((object)default(T) != null) 
-                        ' {
-                        '     goto whenNotNull
-                        ' }
-                        ' else
-                        ' {
-                        '     temp = receiverRef
-                        '     receiverRef = ref temp
-                        ' }
-                        EmitInitObj(receiverType, True, receiver.Syntax)
-                        EmitBox(receiverType, receiver.Syntax)
-                        _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel)
-                        EmitLoadIndirect(receiverType, receiver.Syntax)
+                        If receiverTemp Is Nothing Then
+                            ' unconstrained case needs to handle case where T Is actually a struct.
+                            ' such values are never nulls
+                            ' we will emit a check for such case, but the check Is really a JIT-time 
+                            ' constant since JIT will know if T Is a struct Or Not.
+                            '
+                            ' if ((object)default(T) != null) 
+                            ' {
+                            '     goto whenNotNull
+                            ' }
+                            ' else
+                            ' {
+                            '     temp = receiverRef
+                            '     receiverRef = ref temp
+                            ' }
+                            EmitInitObj(receiverType, True, receiver.Syntax)
+                            EmitBox(receiverType, receiver.Syntax)
+                            _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel)
+                            EmitLoadIndirect(receiverType, receiver.Syntax)
 
-                        temp = AllocateTemp(receiverType, receiver.Syntax)
-                        _builder.EmitLocalStore(temp)
-                        _builder.EmitLocalAddress(temp)
-                        _builder.EmitLocalLoad(temp)
-                        EmitBox(receiver.Type, receiver.Syntax)
+                            temp = AllocateTemp(receiverType, receiver.Syntax)
+                            _builder.EmitLocalStore(temp)
+                            _builder.EmitLocalAddress(temp)
+                            _builder.EmitLocalLoad(temp)
+                            EmitBox(receiverType, receiver.Syntax)
 
-                        ' here we have loaded a ref to a temp And its boxed value { &T, O }
+                            ' here we have loaded a ref to a temp And its boxed value { &T, O }
+                        Else
+                            ' we are calling the expression on a copy of the target anyway, 
+                            ' so even if T is a struct, we don't need to make sure we call the expression on the original target.
+
+                            _builder.EmitLocalLoad(receiverTemp)
+                            EmitBox(receiverType, receiver.Syntax)
+                        End If
                     Else
                         _builder.EmitOpCode(ILOpCode.Dup)
                         ' here we have loaded two copies of a reference   { O, O }
@@ -360,6 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.MarkLabel(whenNotNullLabel)
 
                 If Not nullCheckOnCopy Then
+                    Debug.Assert(receiverTemp Is Nothing)
                     receiverTemp = EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
                     Debug.Assert(receiverTemp Is Nothing OrElse receiver.IsDefaultValue())
                 End If

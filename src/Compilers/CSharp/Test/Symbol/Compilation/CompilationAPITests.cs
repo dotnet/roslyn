@@ -313,7 +313,7 @@ namespace A.B {
             // Create Compilation with Option is not null
             var comp = CSharpCompilation.Create("Compilation", listSyntaxTree, listRef, ops);
             Assert.Equal(ops, comp.Options);
-            Assert.NotNull(comp.SyntaxTrees);
+            Assert.NotEqual(default, comp.SyntaxTrees);
             Assert.NotNull(comp.References);
             Assert.Equal(1, comp.SyntaxTrees.Length);
             Assert.Equal(1, comp.ExternalReferences.Length);
@@ -2906,6 +2906,6 @@ System.Action a = () => { return; };
             compilation.VerifyDiagnostics();
         }
 
-#endregion
+        #endregion
     }
 }

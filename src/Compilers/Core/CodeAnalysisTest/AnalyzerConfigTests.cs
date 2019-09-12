@@ -1092,7 +1092,7 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
             {
                 if (expected[i] is null)
                 {
-                    Assert.Null(options[i]);
+                    Assert.NotEqual(default, options[i]);
                 }
                 else
                 {
@@ -1113,7 +1113,7 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
             {
                 if (expected[i] is null)
                 {
-                    Assert.Null(options[i]);
+                    Assert.NotEqual(default, options[i]);
                 }
                 else
                 {
@@ -1427,6 +1427,32 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
                     ("cs000", ReportDiagnostic.Warn)),
                 SyntaxTree.EmptyDiagnosticOptions
             }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
+        public void DiagnosticIdInstancesAreSharedBetweenMultipleTrees()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/a.cs", "/b.cs", "/c.cs" },
+                configs);
+            configs.Free();
+
+            Assert.Equal("cs000", options[0].TreeOptions.Keys.Single());
+
+            Assert.True(
+                object.ReferenceEquals(
+                    options[0].TreeOptions.Keys.First(),
+                    options[1].TreeOptions.Keys.First()));
+
+            Assert.True(
+                object.ReferenceEquals(
+                    options[1].TreeOptions.Keys.First(),
+                    options[2].TreeOptions.Keys.First()));
         }
 
         #endregion

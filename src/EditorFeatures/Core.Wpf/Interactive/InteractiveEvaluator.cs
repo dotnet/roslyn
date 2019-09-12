@@ -133,17 +133,12 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             set
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException();
-                }
-
                 if (_currentWindow != null)
                 {
                     throw new NotSupportedException(InteractiveEditorFeaturesResources.The_CurrentWindow_property_may_only_be_assigned_once);
                 }
 
-                _currentWindow = value;
+                _currentWindow = value ?? throw new ArgumentNullException();
                 _workspace.Window = value;
 
                 Task.Run(() => _interactiveHost.SetOutputs(_currentWindow.OutputWriter, _currentWindow.ErrorOutputWriter));

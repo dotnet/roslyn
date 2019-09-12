@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
             base.VisitEventAssignmentOperator(node);
-            if (node.IsAddition && node is { Event: { AssociatedField: { } field } }) 
+            if (node.IsAddition && node is { Event: { AssociatedField: { } field } })
             {
                 int slot = MakeMemberSlot(node.ReceiverOpt, field);
                 if (slot != -1)

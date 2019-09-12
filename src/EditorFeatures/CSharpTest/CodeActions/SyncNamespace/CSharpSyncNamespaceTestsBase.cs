@@ -169,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     var changedDocumentIds = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
 
                     Assert.True(changedDocumentIds.Contains(originalDocumentId), "original document was not changed.");
-                    Assert.True(expectedSourceReference == null || changedDocumentIds.Contains(refDocumentId), "reference document was not changed.");
 
                     var modifiedOriginalDocument = newSolution.GetDocument(originalDocumentId);
                     var modifiedOringinalRoot = await modifiedOriginalDocument.GetSyntaxRootAsync();
@@ -195,8 +194,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     var actualText = (await modifiedOriginalDocument.GetTextAsync()).ToString();
                     Assert.Equal(expectedSourceOriginal, actualText);
 
-                    if (expectedSourceReference != null)
+                    if (expectedSourceReference == null)
                     {
+                        // there shouldn't be any textual change
+                        if (changedDocumentIds.Contains(refDocumentId))
+                        {
+                            var oldRefText = (await oldSolution.GetDocument(refDocumentId).GetTextAsync()).ToString();
+                            var newRefText = (await newSolution.GetDocument(refDocumentId).GetTextAsync()).ToString();
+                            Assert.Equal(oldRefText, newRefText);
+                        }
+                    }
+                    else
+                    {
+                        Assert.True(changedDocumentIds.Contains(refDocumentId));
                         var actualRefText = (await newSolution.GetDocument(refDocumentId).GetTextAsync()).ToString();
                         Assert.Equal(expectedSourceReference, actualRefText);
                     }
