@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.Host
         [return: NotNull]
         public TWorkspaceService GetRequiredService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService
         {
+            // Producing a [MaybeNull]T value results in a warning like default(T).
+            // We are investigating a more complex design for nullable analysis to solve this. See:
+            // https://github.com/dotnet/roslyn/issues/38638
             var service = GetService<TWorkspaceService>()!;
             if (service == null)
             {
