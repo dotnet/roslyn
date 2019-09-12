@@ -17,6 +17,9 @@ This is a page tracking the queries the compiler team uses to manage our GitHub 
 - [Phase 3 - Compiler issues not yet assigned to a release](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+no%3Amilestone)
 - [Phase 4 - Compiler issues in release 16.4 not yet assigned](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+milestone%3A16.4+no%3Aassignee)
 - [Language design issues that should probably be closed or moved to a language spec repo](https://github.com/dotnet/roslyn/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3A%22Area-Language+Design%22+-label%3AArea-Compilers)
+- [Oldest compiler issues that "need more info".  If no information is offered we close](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3A%22Need+More+Info%22+sort%3Acreated-asc)
+- [Oldest compiler issues that are blocked](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+sort%3Acreated-asc+label%3ABlocked)
+- [Oldest compiler questions - please answer and close](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+sort%3Acreated-asc+label%3AQuestion)
 
 ## Release Specific
 - [16.4](https://github.com/dotnet/roslyn/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+-label%3A%22PR+For+Personal+Review+Only%22+label%3Aarea-compilers++)
