@@ -84,7 +84,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void RegisterDocumentOptionsProviders()
         {
-            var optionsService = _services.GetRequiredService<IOptionService>();
+            var optionsService = _services.GetService<IOptionService>();
+            if (optionsService is null)
+            {
+                return;
+            }
+
             var exportProvider = (IMefHostExportProvider)_services.HostServices;
 
             foreach (var providerFactory in exportProvider.GetExports<IDocumentOptionsProviderFactory>())

@@ -35,9 +35,7 @@ using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement;
 using Microsoft.CodeAnalysis.CSharp.UseThrowExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MakeFieldReadonly;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PreferFrameworkType;
 using Microsoft.CodeAnalysis.UseCoalesceExpression;
 using Microsoft.CodeAnalysis.UseExplicitTupleName;
@@ -63,21 +61,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Format
 {
     internal class CodeStyleAnalyzers
     {
-        public static void RegisterDocumentOptionsProvider(Workspace workspace)
-        {
-            var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
-
-            foreach (var providerFactory in exportProvider.GetExports<IDocumentOptionsProviderFactory>())
-            {
-                var optionsProvider = providerFactory.Value.TryCreate(workspace);
-
-                if (optionsProvider != null)
-                {
-                    workspace.Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
-                }
-            }
-        }
-
         public static AnalyzerOptions GetWorkspaceAnalyzerOptions(Project project)
             => new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution);
 
