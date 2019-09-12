@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -126,8 +127,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 BasicBlockAnalysisData currentAnalysisData,
                 CancellationToken cancellationToken)
             {
-                var fallThroughSuccessorData = AnalyzeBranch(basicBlock.FallThroughSuccessor, basicBlock, currentAnalysisData, cancellationToken);
+                var newCurrentAnalysisData = AnalyzeBranch(basicBlock.FallThroughSuccessor, basicBlock, currentAnalysisData, cancellationToken);
+
+                // Ensure that we use different instances of block analysis data for fall through successor and conditional successor.
+                _analysisData.AdditionalConditionalBranchAnalysisData.SetAnalysisDataFrom(newCurrentAnalysisData);
+                var fallThroughSuccessorData = _analysisData.AdditionalConditionalBranchAnalysisData;
+
                 var conditionalSuccessorData = AnalyzeBranch(basicBlock.ConditionalSuccessor, basicBlock, currentAnalysisData, cancellationToken);
+
                 return (fallThroughSuccessorData, conditionalSuccessorData);
             }
 
@@ -143,13 +150,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 // Analyze the branch value
                 var operations = SpecializedCollections.SingletonEnumerable(basicBlock.BranchValue);
                 Walker.AnalyzeOperationsAndUpdateData(operations, _analysisData, cancellationToken);
+                ProcessOutOfScopeLocals();
+                return _analysisData.CurrentBlockAnalysisData;
 
-                currentBlockAnalysisData = _analysisData.CurrentBlockAnalysisData;
-                ProcessOutOfScopeLocals(currentBlockAnalysisData);
-                return currentBlockAnalysisData;
-
-                // Local functions.
-                void ProcessOutOfScopeLocals(BasicBlockAnalysisData currentBlockAnalysisData)
+                // Local functions
+                void ProcessOutOfScopeLocals()
                 {
                     if (branch == null)
                     {
@@ -164,12 +169,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         return;
                     }
 
-                    // Stop tracking analysis data for out of scope locals.
                     foreach (var region in branch.LeavingRegions)
                     {
                         foreach (var local in region.Locals)
                         {
-                            currentBlockAnalysisData.Clear(local);
+                            _analysisData.CurrentBlockAnalysisData.Clear(local);
                         }
                     }
                 }

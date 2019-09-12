@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                 _allocatedBasicBlockAnalysisDatas = ArrayBuilder<BasicBlockAnalysisData>.GetInstance();
                 CurrentBlockAnalysisData = CreateBlockAnalysisData();
+                AdditionalConditionalBranchAnalysisData = CreateBlockAnalysisData();
             }
 
             /// <summary>
@@ -71,6 +72,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// Current block analysis data used for analysis.
             /// </summary>
             public BasicBlockAnalysisData CurrentBlockAnalysisData { get; }
+
+            /// <summary>
+            /// Block analysis data used for an additional conditional branch.
+            /// </summary>
+            public BasicBlockAnalysisData AdditionalConditionalBranchAnalysisData { get; }
 
             /// <summary>
             /// Creates an immutable <see cref="SymbolUsageResult"/> for the current analysis data.
