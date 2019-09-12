@@ -2315,9 +2315,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isLifted = binary.OperatorKind.IsLifted();
                 TypeWithState leftUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, leftType);
                 TypeWithState rightUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, rightType);
-                TypeSymbol asMemberOfType = isOrDerivedFrom(methodContainer, leftUnderlyingType.Type) ?
-                    leftUnderlyingType.Type :
-                    (isOrDerivedFrom(methodContainer, rightUnderlyingType.Type) ? rightUnderlyingType.Type : null);
+                TypeSymbol asMemberOfType = getTypeIfIsOrDerivedFrom(methodContainer, leftUnderlyingType.Type.StrippedType()) ??
+                    getTypeIfIsOrDerivedFrom(methodContainer, rightUnderlyingType.Type.StrippedType());
                 if (!(asMemberOfType is null))
                 {
                     method = (MethodSymbol)AsMemberOfType(asMemberOfType, method);
@@ -2457,15 +2456,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 slotBuilder.Free();
             }
 
-            bool isOrDerivedFrom(TypeSymbol baseType, TypeSymbol derivedType)
+            TypeSymbol getTypeIfIsOrDerivedFrom(TypeSymbol baseType, TypeSymbol derivedType)
             {
                 if (derivedType is null)
                 {
-                    return false;
+                    return null;
                 }
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 var conversion = _conversions.ClassifyBuiltInConversion(derivedType, baseType, ref useSiteDiagnostics);
-                return conversion.Exists && !conversion.IsExplicit;
+                if (conversion.Exists && !conversion.IsExplicit)
+                {
+                    return derivedType;
+                }
+                return null;
             }
         }
 
@@ -6805,7 +6808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isLifted = node.OperatorKind.IsLifted();
                         var operandType = GetNullableUnderlyingTypeIfNecessary(isLifted, operandResult);
                         // Update method based on inferred operand type.
-                        method = (MethodSymbol)AsMemberOfType(operandType.Type, method);
+                        method = (MethodSymbol)AsMemberOfType(operandType.Type.StrippedType(), method);
                         // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                         var parameter = method.Parameters[0];
                         _ = VisitConversion(
