@@ -66,10 +66,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
 
                 // Get the favorites information if it is supported.
-                HashSet<string> favoritesMemberNames = null;
+                Dictionary<string, object> favoritesMemberNames = null;
                 if (supportsFavorites && favoritesInfo?.Favorites != null)
                 {
-                    favoritesMemberNames = new HashSet<string>(favoritesInfo.Favorites);
+                    favoritesMemberNames = new Dictionary<string, object>(favoritesInfo.Favorites.Count);
+
+                    foreach (var favorite in favoritesInfo.Favorites)
+                    {
+                        favoritesMemberNames.Add(favorite, null);
+                    }
                 }
 
                 // Hide non-public members if hideNonPublic is specified (intended to reflect the
@@ -166,7 +171,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                 previousDeclaration,
                                 inheritanceLevel,
                                 canFavorite: supportsFavorites,
-                                isFavorite: (favoritesMemberNames?.Contains(memberName) == true)));
+                                isFavorite: (favoritesMemberNames?.ContainsKey(memberName) == true)));
                     }
                 }
 

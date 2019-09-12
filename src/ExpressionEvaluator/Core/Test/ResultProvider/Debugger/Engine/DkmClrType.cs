@@ -361,5 +361,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
 
             return builder.ToArrayAndFree();
         }
+
+        public DkmClrObjectFavoritesInfo GetFavorites() => null;
     }
 }

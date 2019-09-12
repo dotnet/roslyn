@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public DebuggerDisplayItemInfo GetValue(DkmInspectionContext inspectionContext)
         {
-            if (m_simpleValue != null && inspectionContext.EvaluationFlags.HasFlag(DkmEvaluationFlags.UseSimpleDisplayString))
+            if (m_simpleValue != null && (inspectionContext.EvaluationFlags & DkmEvaluationFlags.UseSimpleDisplayString) == DkmEvaluationFlags.UseSimpleDisplayString)
             {
                 return m_simpleValue;
             }
