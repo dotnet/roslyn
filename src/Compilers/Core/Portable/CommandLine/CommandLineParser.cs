@@ -130,13 +130,13 @@ namespace Microsoft.CodeAnalysis
         {
             diagnosticAlreadyReported = false;
 
-            List<string> parts = ParseSeparatedStrings(arg, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
-            if (parts.Count == 0 || parts.Count > 2)
+            IEnumerator<string> partsEnumerator = ParseSeparatedStrings(arg, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).GetEnumerator();
+            if (!partsEnumerator.MoveNext() || string.IsNullOrEmpty(partsEnumerator.Current))
             {
                 return null;
             }
 
-            string? path = ParseGenericPathToFile(parts[0], diagnostics, baseDirectory);
+            string? path = ParseGenericPathToFile(partsEnumerator.Current, diagnostics, baseDirectory);
             if (path is null)
             {
                 // ParseGenericPathToFile already reported the failure, so the caller should not
@@ -145,16 +145,29 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
+            const char ParameterNameValueSeparator = '=';
             SarifVersion sarifVersion = SarifVersion.Default;
-            if (parts.Count > 1)
+
+            if (partsEnumerator.MoveNext() && !string.IsNullOrEmpty(partsEnumerator.Current))
             {
-                string[] nameValue = parts[1].Split('=');
-                if (nameValue.Length != 2 ||
-                    !string.Equals(nameValue[0], "version", StringComparison.OrdinalIgnoreCase) ||
-                    !SarifVersionFacts.TryParse(nameValue[1], out sarifVersion))
+                string part = partsEnumerator.Current;
+
+                string versionParameterDesignator = "version" + ParameterNameValueSeparator;
+                int versionParameterDesignatorLength = versionParameterDesignator.Length;
+
+                if (!(
+                        part.Length > versionParameterDesignatorLength &&
+                        part.Substring(0, versionParameterDesignatorLength).Equals(versionParameterDesignator, StringComparison.OrdinalIgnoreCase) &&
+                        SarifVersionFacts.TryParse(part.Substring(versionParameterDesignatorLength), out sarifVersion)
+                    ))
                 {
                     return null;
                 }
+            }
+
+            if (partsEnumerator.MoveNext())
+            {
+                return null;
             }
 
             return new ErrorLogOptions(path, sarifVersion);
