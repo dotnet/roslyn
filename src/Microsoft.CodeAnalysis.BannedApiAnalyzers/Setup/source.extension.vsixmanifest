@@ -5,6 +5,7 @@
     <Identity Id="7ba185fb-b7f2-4015-bc49-576b2266193e" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>Banned API Analyzers</DisplayName>
     <Description xml:space="preserve">Banned API Analyzers</Description>
+    <License>EULA.rtf</License>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0.27130.0,]" />

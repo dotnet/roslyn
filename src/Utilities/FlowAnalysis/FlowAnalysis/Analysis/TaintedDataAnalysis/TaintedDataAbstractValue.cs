@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
-
     /// <summary>
     /// Abstract tainted data value shared by a set of one of more <see cref="AnalysisEntity"/> instances tracked by <see cref="TaintedDataAnalysis"/>.
     /// </summary>

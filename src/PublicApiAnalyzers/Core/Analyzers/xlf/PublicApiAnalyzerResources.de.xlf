@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="PublicApiFilesMissingMessage">
         <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="new">The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</target>
+        <target state="translated">Die Projektmappe muss zwei Dateien mit dem Typ "AdditionalFiles" enthalten: "PublicAPI.Unshipped.txt" und "PublicAPI.Shipped.txt". txt. Mindestens eine dieser Dateien fehlt oder weist den falschen Typ auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesMissingTitle">
         <source>One or both of the public API files are missing</source>
-        <target state="new">One or both of the public API files are missing</target>
+        <target state="translated">Mindestens eine der öffentlichen API-Dateien fehlt.</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">

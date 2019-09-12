@@ -28,20 +28,16 @@ namespace Analyzer.Utilities
     {
         public static bool Contains(this SymbolVisibilityGroup symbolVisibilityGroup, SymbolVisibility symbolVisibility)
         {
-            switch (symbolVisibility)
+            return symbolVisibility switch
             {
-                case SymbolVisibility.Public:
-                    return (symbolVisibilityGroup & SymbolVisibilityGroup.Public) != 0;
+                SymbolVisibility.Public => (symbolVisibilityGroup & SymbolVisibilityGroup.Public) != 0,
 
-                case SymbolVisibility.Internal:
-                    return (symbolVisibilityGroup & SymbolVisibilityGroup.Internal) != 0;
+                SymbolVisibility.Internal => (symbolVisibilityGroup & SymbolVisibilityGroup.Internal) != 0,
 
-                case SymbolVisibility.Private:
-                    return (symbolVisibilityGroup & SymbolVisibilityGroup.Private) != 0;
+                SymbolVisibility.Private => (symbolVisibilityGroup & SymbolVisibilityGroup.Private) != 0,
 
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(symbolVisibility), symbolVisibility, null);
-            }
+                _ => throw new ArgumentOutOfRangeException(nameof(symbolVisibility), symbolVisibility, null),
+            };
         }
     }
 }

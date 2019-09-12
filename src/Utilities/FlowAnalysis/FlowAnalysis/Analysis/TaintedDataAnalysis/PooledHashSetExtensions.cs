@@ -74,7 +74,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                 (methodName, argumets) => methodName == o,
                                 ImmutableHashSet<(PointsToCheck, string)>.Empty.Add(
                                     (
-                                        pointsTos => true,
+                                        SourceInfo.AlwaysTruePointsToCheck,
                                         TaintedTargetValue.Return
                                     ))
                             ))
@@ -149,13 +149,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Add SourceInfos which needs PointsToAnalysis checks or ValueContentAnalysis checks and each check taints return value by default.
         /// </summary>
         public static void AddSourceInfo(
-        this PooledHashSet<SourceInfo> builder,
-        string fullTypeName,
-        bool isInterface,
-        string[] taintedProperties,
-        IEnumerable<(MethodMatcher methodMatcher, PointsToCheck[] pointsToChecks)> taintedMethodsNeedsPointsToAnalysis,
-        IEnumerable<(MethodMatcher methodMatcher, ValueContentCheck[] valueContentChecks)> taintedMethodsNeedsValueContentAnalysis,
-        bool taintConstantArray = false)
+            this PooledHashSet<SourceInfo> builder,
+            string fullTypeName,
+            bool isInterface,
+            string[] taintedProperties,
+            IEnumerable<(MethodMatcher methodMatcher, PointsToCheck[] pointsToChecks)> taintedMethodsNeedsPointsToAnalysis,
+            IEnumerable<(MethodMatcher methodMatcher, ValueContentCheck[] valueContentChecks)> taintedMethodsNeedsValueContentAnalysis,
+            bool taintConstantArray = false)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,

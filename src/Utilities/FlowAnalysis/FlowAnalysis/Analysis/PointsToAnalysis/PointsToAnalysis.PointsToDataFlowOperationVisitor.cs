@@ -227,24 +227,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     existingValue = defaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity);
                 }
 
-                PointsToAbstractValue newPointsToValue;
-                switch (nullState)
+                var newPointsToValue = nullState switch
                 {
-                    case NullAbstractValue.Null:
-                        newPointsToValue = existingValue.MakeNull();
-                        break;
+                    NullAbstractValue.Null => existingValue.MakeNull(),
 
-                    case NullAbstractValue.NotNull:
-                        newPointsToValue = existingValue.MakeNonNull();
-                        break;
+                    NullAbstractValue.NotNull => existingValue.MakeNonNull(),
 
-                    case NullAbstractValue.Invalid:
-                        newPointsToValue = PointsToAbstractValue.Invalid;
-                        break;
+                    NullAbstractValue.Invalid => PointsToAbstractValue.Invalid,
 
-                    default:
-                        throw new InvalidProgramException();
-                }
+                    _ => throw new InvalidProgramException(),
+                };
 
                 targetAnalysisData.SetAbstractValue(analysisEntity, newPointsToValue);
                 AssertValidPointsToAnalysisData(targetAnalysisData);
@@ -514,17 +506,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 Debug.Assert(IsValidValueForPredicateAnalysis(value));
 
-                switch (value)
+                return value switch
                 {
-                    case NullAbstractValue.Null:
-                        return NullAbstractValue.NotNull;
+                    NullAbstractValue.Null => NullAbstractValue.NotNull,
 
-                    case NullAbstractValue.NotNull:
-                        return NullAbstractValue.Null;
+                    NullAbstractValue.NotNull => NullAbstractValue.Null,
 
-                    default:
-                        throw new InvalidProgramException();
-                }
+                    _ => throw new InvalidProgramException(),
+                };
             }
             #endregion
 
@@ -983,20 +972,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             private PointsToAbstractValue GetValueBasedOnInstanceOrReferenceValue(IOperation referenceOrInstance, IOperation operation, PointsToAbstractValue defaultValue)
             {
                 NullAbstractValue nullState = GetNullStateBasedOnInstanceOrReferenceValue(referenceOrInstance, operation.Type, defaultValue.NullState);
-                switch (nullState)
+                return nullState switch
                 {
-                    case NullAbstractValue.NotNull:
-                        return defaultValue.MakeNonNull();
+                    NullAbstractValue.NotNull => defaultValue.MakeNonNull(),
 
-                    case NullAbstractValue.Null:
-                        return defaultValue.MakeNull();
+                    NullAbstractValue.Null => defaultValue.MakeNull(),
 
-                    case NullAbstractValue.Invalid:
-                        return PointsToAbstractValue.Invalid;
+                    NullAbstractValue.Invalid => PointsToAbstractValue.Invalid,
 
-                    default:
-                        return defaultValue;
-                }
+                    _ => defaultValue,
+                };
             }
 
             public override PointsToAbstractValue VisitFieldReference(IFieldReferenceOperation operation, object argument)

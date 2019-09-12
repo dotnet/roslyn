@@ -73,6 +73,73 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         /// <summary>
+        /// Faster IsSourceMethod(), before using PointsToAnalysis or ValueContentAnalysis.
+        /// </summary>
+        /// <param name="sourceSymbolMap">SourceInfos.</param>
+        /// <param name="method">Invoked ethod to be evaluated.</param>
+        /// <param name="arguments">Arguments of the method.</param>
+        /// <param name="isSourceMethod">Indicates that the invoked method is definitely a tainted data source.</param>
+        /// <param name="requiresPointsTo">Indicates that the invoked method requires PointsToAnalysis for further
+        /// evaluation.</param>
+        /// <param name="requiresValueContent">Indicates that the invoked method requires ValueContentAnalysis for further
+        /// evaluation.</param>
+        /// <returns>True if the invoked method is potentially a tainted data source.</returns>
+        public static bool IsSourceMethodFast(
+            this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
+            IMethodSymbol method,
+            ImmutableArray<IArgumentOperation> arguments,
+            out bool isSourceMethod,
+            out bool requiresPointsTo,
+            out bool requiresValueContent)
+        {
+            isSourceMethod = false;
+            requiresPointsTo = false;
+            requiresValueContent = false;
+
+            foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
+            {
+                if (!(requiresPointsTo && isSourceMethod))
+                {
+                    foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(PointsToCheck pointsToCheck, string)> pointsToTaintedTargets) in sourceInfo.TaintedMethodsNeedsPointsToAnalysis)
+                    {
+                        if (methodMatcher(method.Name, arguments))
+                        {
+                            foreach ((PointsToCheck pointsToCheck, string) p in pointsToTaintedTargets)
+                            {
+                                if (p.pointsToCheck == SourceInfo.AlwaysTruePointsToCheck)
+                                {
+                                    isSourceMethod = true;
+                                }
+                                else
+                                {
+                                    requiresPointsTo = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!requiresValueContent)
+                {
+                    foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(ValueContentCheck valueContentCheck, string)> valueContentTaintedTargets) in sourceInfo.TaintedMethodsNeedsValueContentAnalysis)
+                    {
+                        if (methodMatcher(method.Name, arguments))
+                        {
+                            requiresValueContent = true;
+                        }
+                    }
+                }
+
+                if (requiresPointsTo && requiresValueContent && isSourceMethod)
+                {
+                    break;
+                }
+            }
+
+            return isSourceMethod || requiresPointsTo || requiresValueContent;
+        }
+
+        /// <summary>
         /// Determines if the given property is a tainted data source.
         /// </summary>
         /// <param name="sourceSymbolMap"></param>
@@ -131,16 +198,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             taintedParameterPairs = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
             {
-                foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(string source, string end)> sourceToEnds) passerMethod in sourceInfo.TransferMethods)
+                foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(string source, string end)> sourceToEnds) in sourceInfo.TransferMethods)
                 {
-                    if (passerMethod.methodMatcher(method.Name, arguments))
+                    if (methodMatcher(method.Name, arguments))
                     {
                         if (taintedParameterPairs == null)
                         {
                             taintedParameterPairs = PooledHashSet<(string, string)>.GetInstance();
                         }
 
-                        taintedParameterPairs.UnionWith(passerMethod.sourceToEnds.Where(s => taintedParameterNames.Contains(s.source)));
+                        taintedParameterPairs.UnionWith(sourceToEnds.Where(s => taintedParameterNames.Contains(s.source)));
                     }
                 }
             }
