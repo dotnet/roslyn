@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             var syntaxTree = context.Tree;
             var root = syntaxTree.GetRoot(cancellationToken);
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;

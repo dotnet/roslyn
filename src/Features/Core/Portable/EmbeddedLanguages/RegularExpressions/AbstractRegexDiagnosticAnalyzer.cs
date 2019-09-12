@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var cancellationToken = context.CancellationToken;
 
             var options = context.Options;
-            var optionSet = options.GetDocumentOptionSetAsync(
+            var optionSet = options.GetAnalyzerOptionSetAsync(
                 semanticModel.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {

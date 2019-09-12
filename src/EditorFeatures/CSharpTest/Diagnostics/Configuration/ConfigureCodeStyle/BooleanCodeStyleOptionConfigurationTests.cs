@@ -136,7 +136,7 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]    # Comment1
-dotnet_style_object_initializer = false:suggestion    ; Comment2
+dotnet_style_object_initializer = true:suggestion    ; Comment2
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -285,7 +285,7 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -323,7 +323,7 @@ dotnet_style_object_initializer = true:suggestion
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]

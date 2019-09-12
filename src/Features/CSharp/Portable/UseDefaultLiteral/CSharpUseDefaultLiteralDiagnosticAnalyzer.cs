@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             var cancellationToken = context.CancellationToken;
 
             var syntaxTree = context.Node.SyntaxTree;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
