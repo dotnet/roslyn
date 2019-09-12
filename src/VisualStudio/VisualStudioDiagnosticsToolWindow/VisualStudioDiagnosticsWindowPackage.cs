@@ -110,7 +110,9 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             var optionService = componentModel.GetService<IGlobalOptionService>();
             var remoteService = workspace.Services.GetService<IRemoteHostClientService>();
 
-            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteService);
+            var brokeredServiceContainer = (IBrokeredServiceContainer)await GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(true);
+
+            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteService, brokeredServiceContainer);
         }
         #endregion
 

@@ -22,30 +22,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly IThreadingContext _threadingContext;
 
-        public OutputWindowLogger()
-            : this((Func<FunctionId, bool>)null)
-        {
-        }
-
-        public OutputWindowLogger(IGlobalOptionService optionService)
-            : this(Logger.GetLoggingChecker(optionService))
-        {
-        }
-
-        public OutputWindowLogger(Func<FunctionId, bool> loggingChecker)
+        public OutputWindowLogger(Func<FunctionId, bool> loggingChecker, IThreadingContext threadingContext, IBrokeredServiceContainer brokeredServiceContainer)
         {
             _loggingChecker = loggingChecker;
 
-            var serviceProvider = ServiceProvider.GlobalProvider;
-
-            var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-            Assumes.Present(componentModel);
-
-            var brokeredServiceContainer = (IBrokeredServiceContainer)serviceProvider.GetService(typeof(SVsBrokeredServiceContainer));
             Assumes.Present(brokeredServiceContainer);
             var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
-            _threadingContext = componentModel.GetService<IThreadingContext>();
+            _threadingContext = threadingContext;
             _serviceBrokerClient = new ServiceBrokerClient(serviceBroker, _threadingContext.JoinableTaskFactory);
         }
 

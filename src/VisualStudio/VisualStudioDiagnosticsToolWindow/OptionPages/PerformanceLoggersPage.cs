@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using Microsoft.VisualStudio.Shell;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
@@ -22,12 +23,14 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         private IGlobalOptionService _optionService;
         private IThreadingContext _threadingContext;
         private IRemoteHostClientService _remoteService;
+        private IBrokeredServiceContainer _brokeredServiceContainer;
 
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
             if (_optionService == null)
             {
                 var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+                _brokeredServiceContainer = (IBrokeredServiceContainer)serviceProvider.GetService(typeof(SVsBrokeredServiceContainer));
 
                 _optionService = componentModel.GetService<IGlobalOptionService>();
                 _threadingContext = componentModel.GetService<IThreadingContext>();
@@ -43,10 +46,11 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         {
             base.OnApply(e);
 
-            SetLoggers(_optionService, _threadingContext, _remoteService);
+            SetLoggers(_optionService, _threadingContext, _remoteService, _brokeredServiceContainer);
         }
 
-        public static void SetLoggers(IGlobalOptionService optionService, IThreadingContext threadingContext, IRemoteHostClientService remoteService)
+        public static void SetLoggers(IGlobalOptionService optionService, IThreadingContext threadingContext,
+            IRemoteHostClientService remoteService, IBrokeredServiceContainer brokeredServiceContainer)
         {
             var loggerTypes = GetLoggerTypes(optionService).ToList();
 
@@ -55,7 +59,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
             SetRoslynLogger(loggerTypes, () => new EtwLogger(options));
             SetRoslynLogger(loggerTypes, () => new TraceLogger(options));
-            SetRoslynLogger(loggerTypes, () => new OutputWindowLogger(options));
+            SetRoslynLogger(loggerTypes, () => new OutputWindowLogger(options, threadingContext, brokeredServiceContainer));
 
             // second set RemoteHost options
             var client = threadingContext.JoinableTaskFactory.Run(() => remoteService.TryGetRemoteHostClientAsync(CancellationToken.None));
