@@ -322,6 +322,11 @@
         <target state="translated">네임스페이스로 이동...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pass_variable_explicitly">
+        <source>Pass in values explicitly</source>
+        <target state="new">Pass in values explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
         <target state="translated">Private 멤버 '{0}'에 할당된 값을 읽을 수 없으므로 이 멤버를 제거할 수 있습니다.</target>

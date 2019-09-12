@@ -322,6 +322,11 @@
         <target state="translated">Přesunout do oboru názvů...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pass_variable_explicitly">
+        <source>Pass in values explicitly</source>
+        <target state="new">Pass in values explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
         <target state="translated">Soukromý člen {0} se může odebrat, jak jeho přiřazená hodnota se nikdy nečte.</target>
