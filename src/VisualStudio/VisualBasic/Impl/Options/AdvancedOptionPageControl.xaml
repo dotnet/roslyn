@@ -18,6 +18,8 @@
                 <StackPanel>
                     <CheckBox x:Name="Enable_full_solution_analysis"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_full_solution_analysis}" />
+                    <CheckBox x:Name="Use_editorconfig_compatibility_mode"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_editorconfig_compatibility_mode}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ImportDirectivesGroupBox"

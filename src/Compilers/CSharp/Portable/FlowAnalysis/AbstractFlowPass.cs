@@ -202,6 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _nonMonotonicTransfer = nonMonotonicTransferFunction;
         }
 
+        protected bool TrackingRegions => _trackRegions;
+
         protected abstract string Dump(TLocalState state);
 
         protected string Dump()
@@ -888,6 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode DefaultVisit(BoundNode node)
         {
             Debug.Assert(false, $"Should Visit{node.Kind} be overridden in {this.GetType().Name}?");
+            Diagnostics.Add(ErrorCode.ERR_InternalError, node.Syntax.Location);
             return null;
         }
 
@@ -1134,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitReceiverBeforeCall(BoundExpression receiverOpt, MethodSymbol method)
         {
-            if ((object)method == null || method.MethodKind != MethodKind.Constructor)
+            if (method is null || method.MethodKind != MethodKind.Constructor)
             {
                 VisitRvalue(receiverOpt);
             }
@@ -1142,10 +1145,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitReceiverAfterCall(BoundExpression receiverOpt, MethodSymbol method)
         {
-            NamedTypeSymbol containingType;
-            if (receiverOpt != null && ((object)method == null || method.MethodKind == MethodKind.Constructor || (object)(containingType = method.ContainingType) != null && method.RequiresInstanceReceiver && !containingType.IsReferenceType && !TypeIsImmutable(containingType)))
+            if (receiverOpt is null)
             {
-                WriteArgument(receiverOpt, method?.MethodKind == MethodKind.Constructor ? RefKind.Out : RefKind.Ref, method);
+                return;
+            }
+
+            if (method is null)
+            {
+                WriteArgument(receiverOpt, RefKind.Ref, method: null);
+            }
+            else if (method.TryGetThisParameter(out var thisParameter)
+                && thisParameter is object
+                && !TypeIsImmutable(thisParameter.Type))
+            {
+                var thisRefKind = thisParameter.RefKind;
+                if (thisRefKind.IsWritableReference())
+                {
+                    WriteArgument(receiverOpt, thisRefKind, method);
+                }
             }
         }
 
@@ -2630,6 +2647,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node.Expression);
             PendingBranches.Add(new PendingBranch(node, this.State, null));
+            return null;
+        }
+
+        public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
             return null;
         }
 

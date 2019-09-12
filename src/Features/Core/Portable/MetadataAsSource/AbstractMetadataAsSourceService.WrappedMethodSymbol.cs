@@ -109,6 +109,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return _symbol.Construct(typeArguments);
             }
 
+            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+            {
+                return _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
+            }
+
             public DllImportData GetDllImportData()
             {
                 return _symbol.GetDllImportData();
@@ -123,6 +128,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsVararg => _symbol.IsVararg;
 
             public bool IsCheckedBuiltin => _symbol.IsCheckedBuiltin;
+
+            public bool IsConditional => _symbol.IsConditional;
         }
     }
 }

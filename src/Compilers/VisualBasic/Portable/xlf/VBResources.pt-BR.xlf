@@ -4,17 +4,37 @@
     <body>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">Use a versão de linguagem {0} ou posterior para usar comentários após o caractere de continuação de linha.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">Não é possível que haja vários arquivos de configuração do analisador no mesmo diretório ('{0}').</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
+        <target state="new">Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">comentários após a continuação da linha</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -1670,7 +1690,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverridingPropertyKind2">
         <source>'{0}' cannot override '{1}' because they differ by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem por "ReadyOnly" ou "WriteOnly".</target>
+        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem por "ReadOnly" ou "WriteOnly".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewInInterface">
@@ -2799,7 +2819,7 @@
       </trans-unit>
       <trans-unit id="ERR_GotoIntoSyncLock">
         <source>'GoTo {0}' is not valid because '{0}' is inside a 'SyncLock' statement that does not contain this statement.</source>
-        <target state="translated">'"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "SyncLok" que não contém essa instrução.</target>
+        <target state="translated">'"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "SyncLock" que não contém essa instrução.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GotoIntoWith">
@@ -3235,7 +3255,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">O caractere de continuação de linha '_' deve ser precedido por no mínimo um espaço em branco e deve ser o último caractere na linha.</target>
+        <target state="translated">O caractere de continuação de linha '_' precisa ser precedido por pelo menos um espaço em branco e seguido por um comentário ou ser o último caractere da linha.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -3375,7 +3395,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeClashesWithVbCoreType4">
         <source>{0} '{1}' conflicts with a Visual Basic Runtime {2} '{3}'.</source>
-        <target state="translated">{0} "{1}" está em conflito com um Tempo de Execução do Visual Basic {2} "{3}".</target>
+        <target state="translated">{0} '{1}' está em conflito com um Visual Basic Runtime {2} '{3}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">
@@ -3995,7 +4015,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidSubsystemVersion">
         <source>The value '{0}' is not a valid subsystem version. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise.</source>
-        <target state="translated">O valor "{0}" não é uma versão de subsistema válido. A versão deve ser 6.02 ou mais recente para ARM ou AppContainer Exe e 4.00 ou mais recente caso contrário.</target>
+        <target state="translated">O valor "{0}" não é uma versão de subsistema válido. A versão deve ser 6.02 ou mais recente para ARM ou AppContainerExe e 4.00 ou mais recente caso contrário.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFileAlignment">
@@ -5227,7 +5247,7 @@
       </trans-unit>
       <trans-unit id="ERR_MissingRuntimeHelper">
         <source>Requested operation is not available because the runtime library function '{0}' is not defined.</source>
-        <target state="translated">Operação solicitada não está disponível porque a função de biblioteca de tempo de execução "{0}" não está definida.</target>
+        <target state="translated">Operação solicitada não está disponível porque a função de biblioteca em tempo de execução "{0}" não está definida.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedDotAfterGlobalNameSpace">
@@ -6548,7 +6568,7 @@
       </trans-unit>
       <trans-unit id="WRN_ObjectMath2">
         <source>Operands of type Object used for operator '{0}'; runtime errors could occur.</source>
-        <target state="translated">Operandos do tipo objeto usados pelo operador "{0}"; erros de tempo de execução poderiam ocorrer.</target>
+        <target state="translated">Operandos do tipo objeto usados pelo operador "{0}"; erros de runtime poderiam ocorrer.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObjectMath2_Title">
@@ -6658,7 +6678,7 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime.</source>
-        <target state="translated">Variável "{0}" é passada por referência antes de receber um valor. Uma exceção de referência nula poderia resultar em tempo de execução.</target>
+        <target state="translated">Variável "{0}" é passada por referência antes de receber um valor. Uma exceção de referência nula poderia resultar em runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef_Title">
@@ -6778,7 +6798,7 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRef">
         <source>Variable '{0}' is used before it has been assigned a value. A null reference exception could result at runtime.</source>
-        <target state="translated">Variável "{0}" é usada antes de receber um valor. Uma exceção de referência nula poderia resultar em tempo de execução.</target>
+        <target state="translated">Variável "{0}" é usada antes de receber um valor. Uma exceção de referência nula poderia resultar em runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRef_Title">
@@ -6818,7 +6838,7 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use</source>
-        <target state="translated">Variável "{0}" é passada por referência antes de receber um valor. Uma exceção de referência nula poderia resultar em tempo de execução. Certifique-se que a estrutura ou todos os membros de referência são inicializados antes do uso</target>
+        <target state="translated">Variável "{0}" é passada por referência antes de receber um valor. Uma exceção de referência nula poderia resultar em runtime. Certifique-se que a estrutura ou todos os membros de referência são inicializados antes do uso</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr_Title">
@@ -6828,7 +6848,7 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefStr">
         <source>Variable '{0}' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use</source>
-        <target state="translated">Variável "{0}" é usada antes de receber um valor. Uma exceção de referência nula poderia resultar em tempo de execução. Certifique-se que a estrutura ou todos os membros de referência são inicializados antes do uso</target>
+        <target state="translated">Variável "{0}" é usada antes de receber um valor. Uma exceção de referência nula poderia resultar em runtime. Certifique-se que a estrutura ou todos os membros de referência são inicializados antes do uso</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefStr_Title">
@@ -7078,7 +7098,7 @@
       </trans-unit>
       <trans-unit id="WRN_InterfaceConversion2">
         <source>Runtime errors might occur when converting '{0}' to '{1}'.</source>
-        <target state="translated">Podem ocorrer erros de tempo de execução ao converter "{0}" para "{1}".</target>
+        <target state="translated">Podem ocorrer erros de runtime ao converter '{0}' para '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterfaceConversion2_Title">
@@ -8150,7 +8170,7 @@
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTAndNETEvents">
         <source>Event '{0}' cannot implement a Windows Runtime event '{1}' and a regular .NET event '{2}'</source>
-        <target state="translated">Evento "{0}" não pode implementar um evento de Tempo de Execução do Windows "{1}" e um evento .NET regular "{2}"</target>
+        <target state="translated">Evento '{0}' não pode implementar um evento de Windows Runtime '{1}' e um evento .NET regular '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EventImplRemoveHandlerParamWrong">
@@ -8165,17 +8185,17 @@
       </trans-unit>
       <trans-unit id="ERR_RemoveParamWrongForWinRT">
         <source>In a Windows Runtime event, the type of the 'RemoveHandler' method parameter must be 'EventRegistrationToken'</source>
-        <target state="translated">Em um evento do Tempo de Execução do Windows, o tipo do parâmetro do método 'RemoveHandler' deve ser 'EventRegistrationToken'</target>
+        <target state="translated">Em um evento do Windows Runtime, o tipo do parâmetro do método 'RemoveHandler' deve ser 'EventRegistrationToken'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface5">
         <source>'{0}.{1}' from 'implements {2}' is already implemented by the base class '{3}'. Re-implementation of Windows Runtime Interface '{4}' is not allowed</source>
-        <target state="translated">'{0}.{1}' de 'implementa {2}' já foi implementado pela classe base '{3}'. A reimplementação da Interface do Tempo de Execução do Windows '{4}' não é permitida</target>
+        <target state="translated">'{0}.{1}' de 'implementa {2}' já foi implementado pela classe base '{3}'. A reimplementação da Interface do Windows Runtime '{4}' não é permitida</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface4">
         <source>'{0}.{1}' is already implemented by the base class '{2}'. Re-implementation of Windows Runtime Interface '{3}' is not allowed</source>
-        <target state="translated">'{0}.{1}' já foi implementado pela classe base '{2}'. A reimplementação da Interface do Tempo de Execução do Windows '{3}' não é permitida</target>
+        <target state="translated">'{0}.{1}' já foi implementado pela classe base '{2}'. A reimplementação da Interface do Windows Runtime '{3}' não é permitida</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorByRefParam">
@@ -8210,12 +8230,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1">
         <source>The AddHandler for Windows Runtime event '{0}' doesn't return a value on all code paths. Are you missing a 'Return' statement?</source>
-        <target state="translated">O AddHandler para evento de Tempo de Execução do Windows "{0}" não retorna um valor em todos os caminhos de código. Está faltando uma instrução "Return"?</target>
+        <target state="translated">O AddHandler para evento de Windows Runtime '{0}' não retorna um valor em todos os caminhos de código. Está faltando uma instrução 'Return'?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgNoRetValWinRtEventVal1_Title">
         <source>The AddHandler for Windows Runtime event doesn't return a value on all code paths</source>
-        <target state="translated">O AddHandler para Tempo de Execução do Windows não retorna um valor em todos os caminhos de código</target>
+        <target state="translated">O AddHandler para Windows Runtime não retorna um valor em todos os caminhos de código</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodDefaultParameterValueMismatch2">
@@ -8250,7 +8270,7 @@
       </trans-unit>
       <trans-unit id="ERR_CmdOptionConflictsSource">
         <source>Attribute '{0}' given in a source file conflicts with option '{1}'.</source>
-        <target state="translated">Atributo "{0}" fornecido em um arquivo de origem com a opção "{1}".</target>
+        <target state="translated">O atributo '{0}' fornecido em um arquivo de origem conflita com a opção '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ReferencedAssemblyDoesNotHaveStrongName">
@@ -8759,8 +8779,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">O comprimento da constante de cadeia de caracteres excede o limite de memória atual.  Tente dividir a cadeia de caracteres em várias constantes.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">O comprimento da constante de cadeia de caracteres excede o limite de memória atual.  Tente dividir a cadeia de caracteres em várias constantes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">

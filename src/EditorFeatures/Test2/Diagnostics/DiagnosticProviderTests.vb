@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Utilities
 

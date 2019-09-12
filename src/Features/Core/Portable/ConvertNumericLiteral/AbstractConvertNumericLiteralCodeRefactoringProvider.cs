@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             var numericToken = await GetNumericTokenAsync(context).ConfigureAwait(false);
 
             if (numericToken == default || numericToken.ContainsDiagnostics)
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 
             if (kind != NumericKind.Binary)
             {
-                RegisterRefactoringWithResult(binaryPrefix + Convert.ToString(value, 2), FeaturesResources.Convert_to_binary);
+                RegisterRefactoringWithResult(binaryPrefix + Convert.ToString(value, toBase: 2), FeaturesResources.Convert_to_binary);
             }
 
             if (kind != NumericKind.Hexadecimal)
@@ -88,37 +88,41 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
                 switch (kind)
                 {
                     case NumericKind.Decimal when number.Length > 3:
-                        RegisterRefactoringWithResult(AddSeparators(number, 3), FeaturesResources.Separate_thousands);
+                        RegisterRefactoringWithResult(AddSeparators(number, interval: 3), FeaturesResources.Separate_thousands);
                         break;
 
                     case NumericKind.Hexadecimal when number.Length > 4:
-                        RegisterRefactoringWithResult(hexPrefix + AddSeparators(number, 4), FeaturesResources.Separate_words);
+                        RegisterRefactoringWithResult(hexPrefix + AddSeparators(number, interval: 4), FeaturesResources.Separate_words);
                         break;
 
                     case NumericKind.Binary when number.Length > 4:
-                        RegisterRefactoringWithResult(binaryPrefix + AddSeparators(number, 4), FeaturesResources.Separate_nibbles);
+                        RegisterRefactoringWithResult(binaryPrefix + AddSeparators(number, interval: 4), FeaturesResources.Separate_nibbles);
                         break;
                 }
             }
 
             void RegisterRefactoringWithResult(string text, string title)
             {
-                context.RegisterRefactoring(new MyCodeAction(title, c =>
-                {
-                    var generator = SyntaxGenerator.GetGenerator(document);
-                    var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
-                        .WithTriviaFrom(numericToken);
-                    var updatedRoot = root.ReplaceToken(numericToken, updatedToken);
-                    return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
-                }));
+                context.RegisterRefactoring(
+                    new MyCodeAction(title, c => ReplaceToken(document, root, numericToken, value, text, suffix)),
+                    numericToken.Span);
             }
+        }
+
+        private static Task<Document> ReplaceToken(Document document, SyntaxNode root, SyntaxToken numericToken, long value, string text, string suffix)
+        {
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
+                .WithTriviaFrom(numericToken);
+            var updatedRoot = root.ReplaceToken(numericToken, updatedToken);
+            return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
         }
 
         internal virtual async Task<SyntaxToken> GetNumericTokenAsync(CodeRefactoringContext context)
         {
             var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
 
-            var literalNode = await context.TryGetSelectedNodeAsync<TNumericLiteralExpression>().ConfigureAwait(false);
+            var literalNode = await context.TryGetRelevantNodeAsync<TNumericLiteralExpression>().ConfigureAwait(false);
             var numericLiteralExpressionNode = syntaxFacts.IsNumericLiteralExpression(literalNode)
                 ? literalNode
                 : null;

@@ -35,9 +35,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, typeSymbol.Name, containingNamespace);
 
-            return CompletionItem.Create(
+            var item = CompletionItem.Create(
                  displayText: typeSymbol.Name,
-                 filterText: typeSymbol.Name,
                  sortText: sortTextBuilder.ToStringAndFree(),
                  properties: propertyBuilder?.ToImmutableDictionaryAndFree(),
                  tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
@@ -45,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  displayTextPrefix: null,
                  displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : genericTypeSuffix,
                  inlineDescription: containingNamespace);
+
+            item.Flags = CompletionItemFlags.CachedAndExpanded;
+            return item;
         }
 
         public static CompletionItem CreateAttributeItemWithoutSuffix(CompletionItem attributeItem, string attributeNameWithoutSuffix)
@@ -59,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return CompletionItem.Create(
                  displayText: attributeNameWithoutSuffix,
-                 filterText: attributeNameWithoutSuffix,
                  sortText: sortTextBuilder.ToStringAndFree(),
                  properties: newProperties,
                  tags: attributeItem.Tags,
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return null;
+            return CompletionDescription.Empty;
         }
 
         private static string GetAritySuffix(int arity)

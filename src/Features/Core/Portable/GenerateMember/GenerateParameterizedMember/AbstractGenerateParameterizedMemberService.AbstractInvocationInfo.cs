@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var classTypes = constraints.Where(ts => ts.TypeKind == TypeKind.Class).ToList();
                 var nonClassTypes = constraints.Where(ts => ts.TypeKind != TypeKind.Class).ToList();
 
-                classTypes = MergeClassTypes(classTypes, cancellationToken);
+                classTypes = MergeClassTypes(classTypes);
                 constraints = classTypes.Concat(nonClassTypes).ToList();
                 if (constraints.SequenceEqual(typeParameter.ConstraintTypes))
                 {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     hasNotNullConstraint: typeParameter.HasNotNullConstraint);
             }
 
-            private List<ITypeSymbol> MergeClassTypes(List<ITypeSymbol> classTypes, CancellationToken cancellationToken)
+            private List<ITypeSymbol> MergeClassTypes(List<ITypeSymbol> classTypes)
             {
                 var compilation = Document.SemanticModel.Compilation;
                 for (var i = classTypes.Count - 1; i >= 0; i--)

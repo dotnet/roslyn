@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             => (new UseExpressionBodyForLambdaDiagnosticAnalyzer(), new UseExpressionBodyForLambdaCodeFixProvider());
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
         private IDictionary<OptionKey, object> UseBlockBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task UseExpressionBodyInMethod()
@@ -1162,6 +1162,126 @@ class C
             return y =>
             {
                 return (x + y).ToString();
+            };
+        };
+    }
+}", options: UseBlockBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task FixAllNested1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a {|FixAllInDocument:=>|}
+        {
+            return b =>
+            {
+                return b.ToString();
+            };
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a => b => b.ToString();
+    }
+}", options: UseExpressionBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task FixAllNested2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a =>
+        {
+            return b {|FixAllInDocument:=>|}
+            {
+                return b.ToString();
+            };
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a => b => b.ToString();
+    }
+}", options: UseExpressionBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task FixAllNested3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a {|FixAllInDocument:=>|} b => b.ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a =>
+        {
+            return b =>
+            {
+                return b.ToString();
+            };
+        };
+    }
+}", options: UseBlockBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task FixAllNested4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a => b {|FixAllInDocument:=>|} b.ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, Func<int, string>> f = a =>
+        {
+            return b =>
+            {
+                return b.ToString();
             };
         };
     }

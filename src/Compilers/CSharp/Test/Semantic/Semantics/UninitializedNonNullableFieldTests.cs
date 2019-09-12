@@ -49,18 +49,150 @@ class C
         }
 
         [Fact]
-        public void NoNonNullWarnings_CSharp7()
+        public void NoExplicitConstructors_CSharp7_01()
         {
             var source =
 @"class C
 {
     internal object F;
+    static object G;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (3,21): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value null
                 //     internal object F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "null").WithLocation(3, 21));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "null").WithLocation(3, 21),
+                // (4,19): warning CS0169: The field 'C.G' is never used
+                //     static object G;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "G").WithArguments("C.G").WithLocation(4, 19));
+        }
+
+        [Fact]
+        public void NoExplicitConstructors_CSharp7_02()
+        {
+            var source =
+@"class C
+{
+#nullable enable
+    internal object F;
+    static object G;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (3,2): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nullable enable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(3, 2),
+                // (4,21): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value null
+                //     internal object F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "null").WithLocation(4, 21),
+                // (5,19): warning CS0169: The field 'C.G' is never used
+                //     static object G;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "G").WithArguments("C.G").WithLocation(5, 19));
+        }
+
+        [Fact]
+        public void NoExplicitConstructors()
+        {
+            var source =
+@"class C
+{
+    internal object F;
+    static object G;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (3,21): warning CS8618: Non-nullable field 'F' is uninitialized. Consider declaring the field as nullable.
+                //     internal object F;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F").WithArguments("field", "F").WithLocation(3, 21),
+                // (3,21): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value null
+                //     internal object F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "null").WithLocation(3, 21),
+                // (4,19): warning CS8618: Non-nullable field 'G' is uninitialized. Consider declaring the field as nullable.
+                //     static object G;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "G").WithArguments("field", "G").WithLocation(4, 19),
+                // (4,19): warning CS0169: The field 'C.G' is never used
+                //     static object G;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "G").WithArguments("C.G").WithLocation(4, 19));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_Disabled_01()
+        {
+            var source =
+@"#pragma warning disable 169, 649
+#nullable enable
+class C
+{
+    internal object F;
+    static object G;
+    static C() { }
+#nullable disable
+    C() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): warning CS8618: Non-nullable field 'G' is uninitialized. Consider declaring the field as nullable.
+                //     static C() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "G").WithLocation(7, 12));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_Disabled_02()
+        {
+            var source =
+@"#pragma warning disable 169, 649
+#nullable enable
+class C
+{
+    internal object F;
+    static object G;
+    C() { }
+#nullable disable
+    static C() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,5): warning CS8618: Non-nullable field 'F' is uninitialized. Consider declaring the field as nullable.
+                //     C() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F").WithLocation(7, 5));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_Disabled_03()
+        {
+            var source =
+@"#pragma warning disable 169, 649
+#nullable disable
+class C
+{
+    internal object F;
+    static object G;
+#nullable enable
+    C() { }
+    static C() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Constants()
+        {
+            var source =
+@"class C
+{
+    private const object? C1 = null;
+    internal const object C2 = null!;
+    protected const string? C3 = """";
+    public const string C4 = """";
+}
+struct S
+{
+    internal const string? C5 = null;
+    private const string C6 = null!;
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(29849, "https://github.com/dotnet/roslyn/issues/29849")]
@@ -231,9 +363,59 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        // https://github.com/dotnet/roslyn/issues/30020: Report warnings for static fields.
         [Fact]
-        [WorkItem(30020, "https://github.com/dotnet/roslyn/issues/30020")]
+        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        public void StaticFields_DefaultConstructor_NoInitializer_Field()
+        {
+            var source =
+@"class C
+{
+#pragma warning disable 0169
+    private static object F;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,27): warning CS8618: Non-nullable field 'F' is uninitialized. Consider declaring the field as nullable.
+                //     private static object F;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F").WithArguments("field", "F").WithLocation(4, 27));
+        }
+
+        [Fact]
+        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        public void StaticFields_DefaultConstructor_NoInitializer_Property()
+        {
+            var source =
+@"class C
+{
+    private static object P { get; set; }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (3,27): warning CS8618: Non-nullable property 'P' is uninitialized. Consider declaring the property as nullable.
+                //     private static object P { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P").WithArguments("property", "P").WithLocation(3, 27));
+        }
+
+        [Fact]
+        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        public void StaticFields_DefaultConstructor_NoInitializer_Event()
+        {
+            var source =
+@"delegate void D();
+#pragma warning disable 0067
+class C
+{
+    private static event D E;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,28): warning CS8618: Non-nullable event 'E' is uninitialized. Consider declaring the event as nullable.
+                //     private static event D E;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(5, 28));
+        }
+
+        [Fact]
+        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
         public void StaticFields_DefaultConstructor()
         {
             var source =
@@ -244,20 +426,29 @@ class C
     private static object F2 = new object();
     private readonly static object F3;
     private readonly static object F4 = new object();
+    private static object P1 { get; }
+    private static object P2 { get; } = new object();
+    private static object P3 { get; set; }
+    private static object P4 { get; set; } = new object();
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-            //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
-            ////     static C()
-            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
-            //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
-            ////     static C()
-            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,27): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //     private static object F1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(4, 27),
+                // (6,36): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
+                //     private readonly static object F3;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F3").WithArguments("field", "F3").WithLocation(6, 36),
+                // (8,27): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //     private static object P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(8, 27),
+                // (10,27): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
+                //     private static object P3 { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P3").WithArguments("property", "P3").WithLocation(10, 27));
         }
 
-        // https://github.com/dotnet/roslyn/issues/30020: Report warnings for static fields.
         [Fact]
-        [WorkItem(30020, "https://github.com/dotnet/roslyn/issues/30020")]
+        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
         public void StaticFields_ExplicitConstructor()
         {
             var source =
@@ -265,23 +456,181 @@ class C
 {
 #pragma warning disable 0169
     private static object F1;
-    private static object F2;
-    private readonly static object F3;
+    private static object F2 = new object();
+    private static object F3;
     private readonly static object F4;
+    private readonly static object F5 = new object();
+    private readonly static object F6;
+    private static object P1 { get; }
+    private static object P2 { get; } = new object();
+    private static object P3 { get; }
+    private static object P4 { get; set; }
+    private static object P5 { get; set; } = new object();
+    private static object P6 { get; set; }
     static C()
     {
-        F2 = new object();
-        F4 = new object();
+        F3 = new object();
+        F6 = new object();
+        P3 = new object();
+        P6 = new object();
     }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-            //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
-            ////     static C()
-            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
-            //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
-            ////     static C()
-            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (16,12): warning CS8618: Non-nullable field 'F4' is uninitialized. Consider declaring the field as nullable.
+                //     static C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F4").WithLocation(16, 12),
+                // (16,12): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //     static C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P1").WithLocation(16, 12),
+                // (16,12): warning CS8618: Non-nullable property 'P4' is uninitialized. Consider declaring the property as nullable.
+                //     static C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P4").WithLocation(16, 12),
+                // (16,12): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //     static C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(16, 12));
+        }
+
+        [Fact]
+        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        [WorkItem(37511, "https://github.com/dotnet/roslyn/issues/37511")]
+        public void StaticFields_GenericTypes()
+        {
+            var source =
+@"#pragma warning disable 0169
+using System.Diagnostics.CodeAnalysis;
+class C<T, U, V>
+    where U : class
+    where V : struct
+{
+    private static T P1 { get; }
+    private static T P2 { get; } = default!;
+    [MaybeNull] private static T P3 { get; }
+    [MaybeNull] private static T P4 { get; } = default;
+    private static U P5 { get; set; }
+    private static U P6 { get; set; } = default!;
+    private static U? P7 { get; }
+    private static U? P8 { get; } = default;
+    private static V P9 { get; set; }
+    private static V P10 { get; set; } = default;
+    private static V? P11 { get; }
+    private static V? P12 { get; } = default;
+}";
+            var comp = CreateCompilation(new[] { MaybeNullAttributeDefinition, source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,22): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //     private static T P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(7, 22),
+                // (9,34): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
+                //     [MaybeNull] private static T P3 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P3").WithArguments("property", "P3").WithLocation(9, 34),
+                // (10,48): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                //     [MaybeNull] private static T P4 { get; } = default;
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(10, 48),
+                // (11,22): warning CS8618: Non-nullable property 'P5' is uninitialized. Consider declaring the property as nullable.
+                //     private static U P5 { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P5").WithArguments("property", "P5").WithLocation(11, 22));
+        }
+
+        [Fact]
+        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        public void StaticEvents()
+        {
+            var source =
+@"#pragma warning disable 0067
+#pragma warning disable 0414
+delegate void D();
+class C
+{
+    private static event D E1;
+    private static event D E2 = null!;
+    private static event D E3;
+    private static event D E4;
+    private static event D? E5;
+    private static event D? E6 = null;
+    static C()
+    {
+        D d = () => { };
+        E1 = d;
+        E3 += d;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,12): warning CS8618: Non-nullable event 'E4' is uninitialized. Consider declaring the event as nullable.
+                //     static C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("event", "E4").WithLocation(12, 12));
+        }
+
+        [Fact]
+        [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
+        public void StaticFields_NotAllPaths()
+        {
+            var source =
+@"#pragma warning disable 0169
+class C
+{
+    private static bool F() => true;
+    private static object F1;
+    private static object F2;
+    private static object F3;
+    static C()
+    {
+        if (F()) F1 = new object();
+        else F2 = new object();
+        F3 = new object();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //     static C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12),
+                // (8,12): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
+                //     static C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(8, 12));
+        }
+
+        [Fact]
+        public void NestedType()
+        {
+            var source =
+@"#pragma warning disable 0067
+#pragma warning disable 0169
+#pragma warning disable 0414
+delegate void D();
+struct S
+{
+    class C
+    {
+        static object F1;
+        static object P1 { get; }
+        static event D E1;
+        object F2;
+        object P2 { get; }
+        event D E2;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,23): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //         static object F1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(9, 23),
+                // (10,23): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //         static object P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(10, 23),
+                // (11,24): warning CS8618: Non-nullable event 'E1' is uninitialized. Consider declaring the event as nullable.
+                //         static event D E1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E1").WithArguments("event", "E1").WithLocation(11, 24),
+                // (12,16): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
+                //         object F2;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F2").WithArguments("field", "F2").WithLocation(12, 16),
+                // (13,16): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
+                //         object P2 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(13, 16),
+                // (14,17): warning CS8618: Non-nullable event 'E2' is uninitialized. Consider declaring the event as nullable.
+                //         event D E2;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E2").WithArguments("event", "E2").WithLocation(14, 17));
         }
 
         // Each constructor is handled in isolation.
@@ -453,8 +802,10 @@ class C
 class C
 {
     private object P1 { get { throw new NotImplementedException(); } }
-    private object P3 { set { } }
     private object[] P2 { get { throw new NotImplementedException(); } set { } }
+    private object P3 { set { } }
+    private static object P4 { get { throw new NotImplementedException(); } }
+    private static object P5 { set { } }
     internal C()
     {
     }
@@ -464,14 +815,17 @@ class C
         }
 
         [Fact]
+        [WorkItem(37511, "https://github.com/dotnet/roslyn/issues/37511")]
         public void GenericType()
         {
             var source =
-@"class C<T>
+@"using System.Diagnostics.CodeAnalysis;
+class C<T>
 {
 #pragma warning disable 0169
     private readonly T F1;
     private readonly T F2;
+    [MaybeNull] private readonly T F3;
     private T P1 { get; }
     private T P2 { get; set; }
     internal T P3 { get; }
@@ -483,17 +837,20 @@ class C
         P4 = t;
     }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { MaybeNullAttributeDefinition, source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,13): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
+                // (12,13): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
                 //     private C(T t)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(10, 13),
-                // (10,13): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(12, 13),
+                // (12,13): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
                 //     private C(T t)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(10, 13),
-                // (10,13): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(12, 13),
+                // (12,13): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
                 //     private C(T t)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P3").WithLocation(10, 13));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(12, 13),
+                // (12,13): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
+                //     private C(T t)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P3").WithLocation(12, 13));
         }
 
         [Fact]
@@ -802,6 +1159,109 @@ class C
     private int i;
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ValueType_NoConstructors()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+struct S
+{
+    object F1;
+    static object F2;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,19): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
+                //     static object F2;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F2").WithArguments("field", "F2").WithLocation(6, 19));
+        }
+
+        [Fact]
+        public void ValueType_InstanceConstructor()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+struct S
+{
+    object F1;
+    static object F2;
+    S(int i)
+    {
+        F1 = new object();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,19): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
+                //     static object F2;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F2").WithArguments("field", "F2").WithLocation(6, 19));
+        }
+
+        [Fact]
+        public void ValueType_StaticConstructor()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+struct S
+{
+    object F1;
+    static object F2;
+    static object F3;
+    static S()
+    {
+        F2 = new object();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
+                //     static S()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F3").WithLocation(8, 12));
+        }
+
+        [Fact]
+        public void Interface()
+        {
+            var source =
+@"#nullable enable
+interface I
+{
+    object F1;
+    public static object F2;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0525: Interfaces cannot contain instance fields
+                //     object F1;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 12),
+                // (4,12): warning CS0649: Field 'I.F1' is never assigned to, and will always have its default value null
+                //     object F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("I.F1", "null").WithLocation(4, 12),
+                // (5,26): error CS8701: Target runtime doesn't support default interface implementation.
+                //     public static object F2;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F2").WithLocation(5, 26),
+                // (5,26): warning CS0649: Field 'I.F2' is never assigned to, and will always have its default value null
+                //     public static object F2;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F2").WithArguments("I.F2", "null").WithLocation(5, 26));
+        }
+
+        [Fact]
+        public void Enum()
+        {
+            var source =
+@"#nullable enable
+enum E
+{
+    A,
+    B = A,
+}";
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 

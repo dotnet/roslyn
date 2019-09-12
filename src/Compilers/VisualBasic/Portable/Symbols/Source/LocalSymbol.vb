@@ -391,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ILocalSymbol_NullableAnnotation As NullableAnnotation Implements ILocalSymbol.NullableAnnotation
             Get
-                Return NullableAnnotation.NotApplicable
+                Return NullableAnnotation.None
             End Get
         End Property
 

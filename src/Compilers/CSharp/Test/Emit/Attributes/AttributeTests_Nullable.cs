@@ -934,6 +934,40 @@ C
         }
 
         [Fact]
+        public void EmitAttribute_TypeParameters()
+        {
+            var source =
+@"#nullable enable
+public interface I<T, U, V>
+    where U : class
+    where V : struct
+{
+    T F1();
+    U F2();
+    U? F3();
+    V F4();
+    V? F5();
+#nullable disable
+    T F6();
+    U F7();
+    U? F8();
+    V F9();
+    V? F10();
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"I<T, U, V> where U : class! where V : struct
+    [Nullable(2)] T
+    [Nullable(1)] U
+    [NullableContext(1)] T F1()
+    [NullableContext(1)] U! F2()
+    [NullableContext(2)] U? F3()
+    [NullableContext(2)] U? F8()
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_Constraint_Nullable()
         {
             var source =
@@ -1695,6 +1729,37 @@ public class Program
         [Nullable({ 0, 2 })] System.Object?[] o
     System.IAsyncResult BeginInvoke(System.Object?[] o, System.AsyncCallback callback, System.Object @object)
         [Nullable({ 0, 2 })] System.Object?[] o
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        public void EmitAttribute_NestedEnum()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    public enum E
+    {
+        A,
+        B
+    }
+    public object F1;
+    public object F2;
+    public object F3;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] Program
+    System.Object! F1
+    System.Object! F2
+    System.Object! F3
+    Program()
+    [NullableContext(0)] Program.E
+        A
+        B
+        E()
 ";
             AssertNullableAttributes(comp, expected);
         }

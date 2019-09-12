@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -209,6 +210,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
                     // We have a field reference for a disposable field.
                     // Check if it is being assigned a locally created disposable object.
+                    // PERF: Do not perform interprocedural analysis for this detection.
                     if (fieldReference.Parent is ISimpleAssignmentOperation simpleAssignmentOperation &&
                         simpleAssignmentOperation.Target == fieldReference)
                     {
@@ -217,6 +219,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                             if (_disposeAnalysisHelper.TryGetOrComputeResult(
                                 operationBlockStartContext, containingMethod,
                                 s_disposableFieldsShouldBeDisposedRule,
+                                InterproceduralAnalysisKind.None,
                                 trackInstanceFields: false,
                                 out _, out var pointsToAnalysisResult) &&
                                 pointsToAnalysisResult != null)
@@ -253,11 +256,13 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
                     // Perform dataflow analysis to compute dispose value of disposable fields at the end of dispose method.
                     if (_disposeAnalysisHelper.TryGetOrComputeResult(operationBlockStartContext, containingMethod,
-                        s_disposableFieldsShouldBeDisposedRule, trackInstanceFields: true,
+                        s_disposableFieldsShouldBeDisposedRule,
+                        InterproceduralAnalysisKind.ContextSensitive,
+                        trackInstanceFields: true,
                         disposeAnalysisResult: out var disposeAnalysisResult,
                         pointsToAnalysisResult: out var pointsToAnalysisResult))
                     {
-                        var exitBlock = disposeAnalysisResult.ControlFlowGraph.GetExit();
+                        var exitBlock = disposeAnalysisResult.ControlFlowGraph.ExitBlock();
                         foreach (var fieldWithPointsToValue in disposeAnalysisResult.TrackedInstanceFieldPointsToMap)
                         {
                             var field = fieldWithPointsToValue.Key;

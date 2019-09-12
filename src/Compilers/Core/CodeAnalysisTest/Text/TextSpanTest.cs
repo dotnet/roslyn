@@ -198,12 +198,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TextSpan span2 = new TextSpan(0, 10);
 
             Assert.True(span1.Equals(span2));
-            Assert.NotNull(span1);
+            Assert.NotEqual(default, span1);
             Assert.True(span1 == span2, span1.ToString() + " : " + span2.ToString());
             Assert.False(span1 != span2, span1.ToString() + " : " + span2.ToString());
 
             Assert.True(span2.Equals(span1));
-            Assert.NotNull(span2);
+            Assert.NotEqual(default, span2);
             Assert.True(span2 == span1, span2.ToString() + " : " + span1.ToString());
             Assert.False(span2 != span1, span2.ToString() + " : " + span1.ToString());
         }

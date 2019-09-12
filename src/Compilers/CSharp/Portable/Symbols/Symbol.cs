@@ -1256,6 +1256,67 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value != containingValue;
         }
 
+        /// <summary>
+        /// True if the symbol is declared outside of the scope of the containing
+        /// symbol
+        /// </summary>
+        internal static bool IsCaptured(Symbol variable, SourceMethodSymbol containingSymbol)
+        {
+            switch (variable.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                // Range variables are not captured, but their underlying parameters
+                // may be. If this is a range underlying parameter it will be a
+                // ParameterSymbol, not a RangeVariableSymbol.
+                case SymbolKind.RangeVariable:
+                    return false;
+
+                case SymbolKind.Local:
+                    if (((LocalSymbol)variable).IsConst)
+                    {
+                        return false;
+                    }
+                    break;
+
+                case SymbolKind.Parameter:
+                    break;
+
+                case SymbolKind.Method:
+                    if (variable is LocalFunctionSymbol localFunction)
+                    {
+                        // calling a static local function doesn't require capturing state
+                        if (localFunction.IsStatic)
+                        {
+                            return false;
+                        }
+
+                        break;
+                    }
+
+                    throw ExceptionUtilities.UnexpectedValue(variable);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(variable.Kind);
+            }
+
+            // Walk up the containing symbols until we find the target function, in which
+            // case the variable is not captured by the target function, or null, in which
+            // case it is.
+            for (var currentFunction = variable.ContainingSymbol;
+                 (object)currentFunction != null;
+                 currentFunction = currentFunction.ContainingSymbol)
+            {
+                if (ReferenceEquals(currentFunction, containingSymbol))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         #region ISymbol Members
 
         public string Language
@@ -1421,6 +1482,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor);
 
         #endregion
+
+        protected static ImmutableArray<TypeWithAnnotations> ConstructTypeArguments(ITypeSymbol[] typeArguments)
+        {
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArguments.Length);
+            foreach (var typeArg in typeArguments)
+            {
+                var type = typeArg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
+                builder.Add(TypeWithAnnotations.Create(type));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        protected static ImmutableArray<TypeWithAnnotations> ConstructTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+        {
+            if (typeArguments.IsDefault)
+            {
+                throw new ArgumentException(nameof(typeArguments));
+            }
+
+            int n = typeArguments.Length;
+            if (!typeArgumentNullableAnnotations.IsDefault && typeArgumentNullableAnnotations.Length != n)
+            {
+                throw new ArgumentException(nameof(typeArgumentNullableAnnotations));
+            }
+
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                var type = typeArguments[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
+                var annotation = typeArgumentNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : typeArgumentNullableAnnotations[i].ToInternalAnnotation();
+                builder.Add(TypeWithAnnotations.Create(type, annotation));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
 
         string IFormattable.ToString(string format, IFormatProvider formatProvider)
         {

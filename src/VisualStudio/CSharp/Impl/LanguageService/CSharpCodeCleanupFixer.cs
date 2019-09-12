@@ -199,8 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             ICodeCleanUpExecutionContext context,
             string contextName)
         {
-            var description = string.Format(EditorFeaturesResources.Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail, contextName);
-            using (var scope = context.OperationContext.AddScope(allowCancellation: true, description))
+            using (var scope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
             {
                 var workspaceStatusService = workspace.Services.GetService<IWorkspaceStatusService>();
                 if (workspaceStatusService != null)

@@ -322,13 +322,20 @@ End Class")
         End Function
 
         <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-        Public Async Function TestMissingWithSelectionOnEntireToBeInterpolatedString() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestWithSelectionOnEntireToBeInterpolatedString() As Task
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
         dim v = [|""string"" & 1|]
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""string{1}""
     End Sub
 End Class")
         End Function
@@ -346,13 +353,20 @@ End Class")
         End Function
 
         <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-        Public Async Function TestMissingWithSelectionExceedingToBeInterpolatedString() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestWithSelectionExceedingToBeInterpolatedString() As Task
+            Await TestInRegularAndScriptAsync(
 "
 Public Class C
     Sub M()
         [|dim v = ""string"" & 1|]
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""string{1}""
     End Sub
 End Class")
         End Function
@@ -461,6 +475,68 @@ End Class",
 Public Class C
     Sub M()
         dim v = $""{3}string{1}string""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationWithChar() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Private Sub M()
+        Dim hello = ""hello""
+        Dim world = ""world""
+        Dim str = hello [||]& "" ""c & world
+    End Sub
+End Class",
+"
+Public Class C
+    Private Sub M()
+        Dim hello = ""hello""
+        Dim world = ""world""
+        Dim str = $""{hello} {world}""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationWithCharAfterStringLiteral() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Private Sub M()
+        Dim world = ""world""
+        Dim str = ""hello"" [||]& "" ""c & world
+    End Sub
+End Class",
+"
+Public Class C
+    Private Sub M()
+        Dim world = ""world""
+        Dim str = $""hello {world}""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationWithCharBeforeStringLiteral() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Private Sub M()
+        Dim hello = ""hello""
+        Dim str = hello [||]& "" ""c & ""world""
+    End Sub
+End Class",
+"
+Public Class C
+    Private Sub M()
+        Dim hello = ""hello""
+        Dim str = $""{hello} world""
     End Sub
 End Class")
         End Function

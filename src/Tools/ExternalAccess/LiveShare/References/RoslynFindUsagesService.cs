@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
 {
     internal class RoslynFindUsagesService : IFindUsagesService
     {
-        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
-        public RoslynFindUsagesService(RoslynLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
+        public RoslynFindUsagesService(AbstractLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(remoteLanguageServiceWorkspace));

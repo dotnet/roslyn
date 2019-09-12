@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Does the client of "pipeStream" have the same identity and elevation as we do? The <see cref="CreateClient"/> and 
-        /// <see cref="CreateServer(string)" /> methods will already guarantee that the identity of the client and server are the 
+        /// <see cref="CreateServer(string, PipeDirection?)" /> methods will already guarantee that the identity of the client and server are the 
         /// same. This method is attempting to validate that the elevation level is the same between both ends of the 
         /// named pipe (want to disallow low priv session sending compilation requests to an elevated one).
         /// </summary>
@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a server for the current user only
         /// </summary>
-        internal static NamedPipeServerStream CreateServer(string pipeName)
+        internal static NamedPipeServerStream CreateServer(string pipeName, PipeDirection? pipeDirection = null)
         {
             var pipeOptions = PipeOptions.Asynchronous | PipeOptions.WriteThrough;
             return CreateServer(
                 pipeName,
-                PipeDirection.InOut,
+                pipeDirection ?? PipeDirection.InOut,
                 NamedPipeServerStream.MaxAllowedServerInstances,
                 PipeTransmissionMode.Byte,
                 pipeOptions,

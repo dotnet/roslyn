@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string FormatDocument = "Format Document Command Handler";
 
         /// <summary>
+        /// Command handler name for Go to Base.
+        /// </summary>
+        public const string GoToBase = "Go To Base Command Handler";
+
+        /// <summary>
         /// Command handler name for Go to Definition.
         /// </summary>
         public const string GoToDefinition = "Go To Definition Command Handler";
@@ -140,6 +145,18 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Command handler name for a Signature Help command handler executing after <see cref="Completion"/>.
         /// </summary>
         public const string SignatureHelpAfterCompletion = "Signature Help After Completion Command Handler";
+
+        /// <summary>
+        /// Command handler name for Toggle Block Comments.
+        /// </summary>
+        /// <remarks></remarks>
+        public const string ToggleBlockComment = "Toggle Block Comment Command Handler";
+
+        /// <summary>
+        /// Command handler name for Toggle Line Comments.
+        /// </summary>
+        /// <remarks></remarks>
+        public const string ToggleLineComment = "Toggle Line Comment Command Handler";
 
         /// <summary>
         /// Command handler name for Paste Content in Interactive Format. 

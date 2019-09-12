@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
     ///        ... sb.ToString() ...
     ///        inst.Free();
     /// </summary>
-    internal class PooledStringBuilder
+    internal sealed partial class PooledStringBuilder
     {
         public readonly StringBuilder Builder = new StringBuilder();
         private readonly ObjectPool<PooledStringBuilder> _pool;

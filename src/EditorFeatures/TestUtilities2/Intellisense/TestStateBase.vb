@@ -195,6 +195,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Function GetCompletionItemFilters() As ImmutableArray(Of CompletionItemFilter)
 
+        Public MustOverride Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+
+        Public MustOverride Sub SetCompletionItemExpanderState(isSelected As Boolean)
+
         Public MustOverride Function HasSuggestedItem() As Boolean
 
         Public MustOverride Function IsSoftSelected() As Boolean
@@ -213,17 +217,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Overloads Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
 
-        Public Sub AssertCompletionItemsContainAll(displayText As String())
-            AssertNoAsynchronousOperationsRunning()
-            Dim items = GetCompletionItems()
-            Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
-        End Sub
+        Public MustOverride Function AssertCompletionItemsContainAll(displayText As String()) As Task
 
-        Public Sub AssertCompletionItemsDoNotContainAny(displayText As String())
-            AssertNoAsynchronousOperationsRunning()
-            Dim items = GetCompletionItems()
-            Assert.False(displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v)))
-        End Sub
+        Public MustOverride Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
+
+        Public MustOverride Function AssertCompletionItemsDoNotContainAny(displayText As String()) As Task
 
         Public MustOverride Overloads Sub AssertItemsInOrder(expectedOrder As String())
 
@@ -255,6 +253,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing,
                                Optional inlineDescription As String = Nothing,
+                               Optional automationText As String = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
 
         Public MustOverride Function WaitForUIRenderedAsync() As Task
@@ -310,11 +309,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return CurrentSignatureHelpPresenterSession.SignatureHelpItems
         End Function
 
-        Public Sub AssertSignatureHelpItemsContainAll(displayText As String())
-            AssertNoAsynchronousOperationsRunning()
+        Public Async Function AssertSignatureHelpItemsContainAll(displayText As String()) As Task
+            Await WaitForAsynchronousOperationsAsync()
             Assert.True(displayText.All(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
                                             Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v)))
-        End Sub
+        End Function
 
         Public Async Function AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
                                Optional documentation As String = Nothing,

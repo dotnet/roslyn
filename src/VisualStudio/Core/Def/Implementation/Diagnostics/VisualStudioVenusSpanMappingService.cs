@@ -131,8 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         public static LinePosition GetAdjustedLineColumn(Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
         {
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
+            if (!(workspace is VisualStudioWorkspaceImpl vsWorkspace))
             {
                 return new LinePosition(mappedLine, mappedColumn);
             }

@@ -2259,6 +2259,7 @@ moreArguments:
             // otherwise default to ExternalScope (ordinary values)
             switch (expr.Kind)
             {
+                case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
@@ -2575,6 +2576,7 @@ moreArguments:
 
             switch (expr.Kind)
             {
+                case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
@@ -2855,6 +2857,7 @@ moreArguments:
                     // returning "false" seems safer than throwing.
                     // we will still assert to make sure that all nodes are accounted for.
                     Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
+                    diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
                     return false;
 
                     #region "cannot produce ref-like values"
@@ -3072,7 +3075,7 @@ moreArguments:
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
-            Debug.Assert(!(method is null));
+            Debug.Assert(method is object);
 
             switch (expression.Kind)
             {
@@ -3199,7 +3202,7 @@ moreArguments:
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
-            Debug.Assert(!(method is null));
+            Debug.Assert(method is object);
 
             FieldSymbol field = fieldAccess.FieldSymbol;
 

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
-using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Formatting;
@@ -35,35 +35,44 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SemanticModel semanticModel,
             CancellationToken cancellationToken);
 
-        // Telemetry shows that the average processing time with cache warmed up for 99th percentile is ~700ms.
-        // Therefore we set the timeout to 1s to ensure it only applies to the case that cache is cold.
-        internal int TimeoutInMilliseconds => 1000;
+        protected abstract Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken);
 
+        internal override bool IsExpandItemProvider => true;
+        
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             var cancellationToken = completionContext.CancellationToken;
             var document = completionContext.Document;
             var workspace = document.Project.Solution.Workspace;
 
-            var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-
-            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
-            if (importCompletionOptionValue == false ||
-                (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(workspace)))
-            {
-                return;
-            }
-
+            // We need to check for context before option values, so we can tell completion service that we are in a context to provide expanded items
+            // even though import completion might be disabled. This would show the expander in completion list which user can then use to explicitly ask for unimported items.
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
             if (!syntaxContext.IsTypeContext)
             {
                 return;
             }
 
+            completionContext.ExpandItemsAvailable = true;
+
+            // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via expander in completion list)
+            var isExpandedCompletion = completionContext.Options.GetOption(CompletionServiceOptions.IsExpandedCompletion);
+            if (!isExpandedCompletion)
+            {
+                var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
+
+                // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
+                if (importCompletionOptionValue == false ||
+                    (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(workspace)))
+                {
+                    return;
+                }
+            }
+
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             using (var telemetryCounter = new TelemetryCounter())
             {
-                await AddCompletionItemsAsync(completionContext, syntaxContext, telemetryCounter, cancellationToken).ConfigureAwait(false);
+                await AddCompletionItemsAsync(completionContext, syntaxContext, isExpandedCompletion, telemetryCounter, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -78,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isTypeImportCompletionExperimentEnabled == true;
         }
 
-        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
+        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, bool isExpandedCompletion, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
         {
             var document = completionContext.Document;
             var project = document.Project;
@@ -106,13 +115,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             tasksToGetCompletionItems.AddRange(
                 referencedAssemblySymbols.Select(symbol => Task.Run(() => HandleReferenceAsync(symbol))));
 
-            // We want to timebox the operation that might need to traverse all the type symbols and populate the cache, 
-            // the idea is not to block completion for too long (likely to happen the first time import completion is triggered).
+            // We want to timebox the operation that might need to traverse all the type symbols and populate the cache. 
+            // The idea is not to block completion for too long (likely to happen the first time import completion is triggered).
             // The trade-off is we might not provide unimported types until the cache is warmed up.
+            var timeoutInMilliseconds = completionContext.Options.GetOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion);
             var combinedTask = Task.WhenAll(tasksToGetCompletionItems.ToImmutableAndFree());
-            if (await Task.WhenAny(combinedTask, Task.Delay(TimeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
+
+            if (isExpandedCompletion ||
+                timeoutInMilliseconds != 0 && await Task.WhenAny(combinedTask, Task.Delay(timeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
             {
-                // No timeout. We now have all completion items ready. 
+                // Either there's no timeout, and we now have all completion items ready,
+                // or user asked for unimported type explicitly so we need to wait until they are calculated.
                 var completionItemsToAdd = await combinedTask.ConfigureAwait(false);
                 foreach (var completionItems in completionItemsToAdd)
                 {
@@ -209,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(completionItem);
             Debug.Assert(containingNamespace != null);
 
-            if (ShouldCompleteWithFullyQualifyTypeName(document))
+            if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
                 var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
                 var change = new TextChange(completionListSpan, fullyQualifiedName);
@@ -261,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
             }
 
-            static bool ShouldCompleteWithFullyQualifyTypeName(Document document)
+            async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
                 var workspace = document.Project.Solution.Workspace;
 
@@ -272,8 +285,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 // During an EnC session, adding import is not supported.
-                var encService = workspace.Services.GetService<IDebuggingWorkspaceService>()?.EditAndContinueServiceOpt;
-                if (encService?.EditSession != null)
+                var encService = workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+                if (encService?.IsDebuggingSessionInProgress == true)
                 {
                     return true;
                 }
@@ -285,7 +298,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return true;
                 }
 
-                return false;
+                // We might need to qualify unimported types to use them in an import directive, because they only affect members of the containing
+                // import container (e.g. namespace/class/etc. declarations).
+                //
+                // For example, `List` and `StringBuilder` both need to be fully qualified below: 
+                // 
+                //      using CollectionOfStringBuilders = System.Collections.Generic.List<System.Text.StringBuilder>;
+                //
+                // However, if we are typing in an C# using directive that is inside a nested import container (i.e. inside a namespace declaration block), 
+                // then we can add an using in the outer import container instead (this is not allowed in VB). 
+                //
+                // For example:
+                //
+                //      using System.Collections.Generic;
+                //      using System.Text;
+                //
+                //      namespace Foo
+                //      {
+                //          using CollectionOfStringBuilders = List<StringBuilder>;
+                //      }
+                //
+                // Here we will always choose to qualify the unimported type, just to be consistent and keeps things simple.
+                return await IsInImportsDirectiveAsync(document, completionListSpan.Start, cancellationToken).ConfigureAwait(false);
             }
         }
 

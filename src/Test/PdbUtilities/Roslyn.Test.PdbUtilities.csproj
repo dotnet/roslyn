@@ -33,7 +33,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.Converter" Version="$(MicrosoftDiaSymReaderConverterVersion)" />
@@ -64,4 +63,5 @@
       </ReferencePath>
     </ItemGroup>
   </Target>
+  <Import Project="$(RepositoryEngineeringDir)targets\DiaSymReaderNative.targets" />
 </Project>

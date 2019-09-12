@@ -239,6 +239,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 private readonly string _genericTypeSuffix;
                 private readonly Checksum _checksum;
 
+                private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
+
                 public Builder(Checksum checksum, string language, string genericTypeSuffix)
                 {
                     _checksum = checksum;
@@ -247,8 +249,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
                     _itemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
                 }
-
-                private ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
 
                 public ReferenceCacheEntry ToReferenceCacheEntry()
                 {
@@ -271,10 +271,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     var isAttribute = symbol.Name.HasAttributeSuffix(isCaseSensitive: false) && symbol.IsAttribute();
 
                     var item = TypeImportCompletionItem.Create(symbol, containingNamespace, _genericTypeSuffix);
-                    item.IsCached = true;
-
                     _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute));
-                    return;
                 }
             }
 

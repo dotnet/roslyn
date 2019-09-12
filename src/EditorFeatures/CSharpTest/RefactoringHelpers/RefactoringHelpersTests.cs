@@ -263,6 +263,25 @@ class C
 }";
             await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestInEmptySyntaxNode()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N(0, N(0, [||]{|result:|}, 0)); 
+    }
+
+    int N(int a, int b, int c)
+    {
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText);
+        }
         #endregion
 
         #region Selections
@@ -496,6 +515,90 @@ class C
 
         #region Attributes
         [Fact]
+        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        public async Task TestMissingEmptyMember()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    [][||]
+}";
+            await TestMissingAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38502, "https://github.com/dotnet/roslyn/issues/38502")]
+        public async Task TestIncompleteAttribute()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    {|result:void foo([[||]bar) {}|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38502, "https://github.com/dotnet/roslyn/issues/38502")]
+        public async Task TestIncompleteAttribute2()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    {|result:void foo([[||]Class1 arg1) {}|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(37837, "https://github.com/dotnet/roslyn/issues/37837")]
+        public async Task TestEmptyParameter()
+        {
+            var testText = @"
+using System;
+public class TestAttribute : Attribute { }
+public class Class1
+{
+    static void foo({|result:[Test][||]
+|}    {
+
+    }
+}";
+            await TestAsync<ParameterSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        public async Task TestMissingEmptyMember2()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    [||]// Comment 
+    []
+}";
+            await TestMissingAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
+        public async Task TestEmptyAttributeList()
+        {
+            var testText = @"
+using System;
+public class Class1
+{
+    {|result:[]
+    [||]void a() {}|}
+}";
+            await TestAsync<MethodDeclarationSyntax>(testText);
+        }
+
+        [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestClimbLeftEdgeBeforeAttribute()
         {
@@ -693,7 +796,6 @@ class C
 }";
             await TestAsync<MethodDeclarationSyntax>(testText);
         }
-
         #endregion
 
         #region Extractions general
@@ -808,6 +910,38 @@ class C
 
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractFromDeclarator()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        var [|a = {|result:new object()|}|];
+    }
+}";
+            await TestAsync<ObjectCreationExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestExtractFromDeclarator2()
+        {
+            var testText = @"
+using System;
+class C
+{
+    void M()
+    {
+        {|result:var [|a = new object()|];|}
+    }
+}";
+            await TestAsync<LocalDeclarationStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestExtractInHeaderOfProperty()
         {
             var testText = @"
@@ -883,6 +1017,131 @@ class C
     }
 }";
             await TestAsync<LocalDeclarationStatementSyntax>(testText);
+        }
+        #endregion
+
+        #region TestHidden
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestNextToHidden()
+        {
+            var testText = @"
+#line default
+class C
+{
+    void M()
+    {
+#line hidden
+        var a = b;
+#line default
+        {|result:C [||]LocalFunction(C c)
+        {
+            return null;
+        }|}
+    }
+}";
+            await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestNextToHidden2()
+        {
+            var testText = @"
+#line default
+class C
+{
+    void M()
+    {
+#line hidden
+        var a = b;
+#line default
+        {|result:C [||]LocalFunction(C c)
+        {
+            return null;
+        }|}
+#line hidden
+        var a = b;
+#line default
+    }
+}";
+            await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingHidden()
+        {
+            var testText = @"
+#line default
+class C
+{
+    void M()
+    {
+#line hidden
+        C LocalFunction(C c)
+#line default
+        {
+            return null;
+        }[||]
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+        #endregion
+
+        #region Test predicate
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingPredicate()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N([||]2+3);
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestMissingAsync<ArgumentSyntax>(testText, n => n.Parent is TupleExpressionSyntax);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestArgument()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N({|result:[||]2+3|});
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestPredicate()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        var a = ({|result:[||]2 + 3|}, 2 + 3);
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText, n => n.Parent is TupleExpressionSyntax);
         }
         #endregion
 
@@ -1264,6 +1523,67 @@ class C
 }");
         }
 
+        #endregion
+
+        #region Test Deep in expression
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestDeepIn()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N({|result:2+[||]3+4|});
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestMissingDeepInSecondRow()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N(2
+            +[||]3+4);
+    }
+
+    void N(int a)
+    {
+    }
+}";
+            await TestMissingAsync<ArgumentSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestDeepInExpression()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        var b = ({|result:N(2[||])|}, 0);
+    }
+
+    int N(int a)
+    {
+        return a;
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText, predicate: n => n.Parent is TupleExpressionSyntax);
+        }
         #endregion
     }
 }

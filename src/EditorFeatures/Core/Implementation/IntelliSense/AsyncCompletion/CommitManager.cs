@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -124,11 +122,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            if (!session.Properties.TryGetProperty(CompletionSource.TriggerSnapshot, out ITextSnapshot triggerSnapshot))
+            if (!Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation))
             {
                 // Need the trigger snapshot to calculate the span when the commit changes to be applied.
-                // It should be inserted into a property bag within GetCompletionContextAsync for each item created by Roslyn.
-                // If not found here, Roslyn should not make a commit.
+                // They should always be available from VS. Just to be defensive, if it's not found here, Roslyn should not make a commit.
                 return CommitResultUnhandled;
             }
 
@@ -137,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            var triggerDocument = triggerSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var triggerDocument = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (triggerDocument == null)
             {
                 return CommitResultUnhandled;
@@ -148,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 AsyncCompletionLogger.LogCommitWithTypeImportCompletionEnabled();
 
-                if (roslynItem.IsCached)
+                if (roslynItem.Flags.IsCached())
                 {
                     AsyncCompletionLogger.LogCommitOfTypeImportCompletionItem();
                 }
@@ -169,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
                 triggerDocument, completionService, session.TextView, subjectBuffer,
-                roslynItem, completionListSpan, commitChar, triggerSnapshot, serviceRules,
+                roslynItem, completionListSpan, commitChar, triggerLocation.Snapshot, serviceRules,
                 filterText, cancellationToken);
 
             _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
@@ -341,6 +338,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 case EnterKeyRule.Always:
                     return true;
                 case EnterKeyRule.AfterFullyTypedWord:
+                    // textTypedSoFar is concatenated from individual chars typed.
+                    // '\n' is the enter char.
+                    // That is why, there is no need to check for '\r\n'.
+                    if (textTypedSoFar.LastOrDefault() == '\n')
+                    {
+                        textTypedSoFar = textTypedSoFar.Substring(0, textTypedSoFar.Length - 1);
+                    }
+
                     return item.GetEntireDisplayText() == textTypedSoFar;
             }
         }

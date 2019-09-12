@@ -1047,19 +1047,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestRoundTripGuid()
         {
-            TestRoundTripGuid(Guid.Empty);
-            TestRoundTripGuid(new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
-            TestRoundTripGuid(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
-            TestRoundTripGuid(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+            void test(Guid guid)
+            {
+                TestRoundTrip(guid, (w, v) => w.WriteGuid(v), r => r.ReadGuid());
+            }
+
+            test(Guid.Empty);
+            test(new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
+            test(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
+            test(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
             for (int i = 0; i < 10; i++)
             {
-                TestRoundTripGuid(Guid.NewGuid());
+                test(Guid.NewGuid());
             }
-        }
-
-        private void TestRoundTripGuid(Guid guid)
-        {
-            TestRoundTrip(guid, (w, v) => w.WriteGuid(v), r => r.ReadGuid());
         }
 
         [Fact]

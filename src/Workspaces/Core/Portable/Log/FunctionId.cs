@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CommandHandler_ExecuteHandlers,
         CommandHandler_FormatCommand,
         CommandHandler_CompleteStatement,
+        CommandHandler_ToggleBlockComment,
+        CommandHandler_ToggleLineComment,
 
         Workspace_SourceText_GetChangeRanges,
         Workspace_Recoverable_RecoverRootAsync,
@@ -456,7 +458,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         Intellisense_AsyncCompletion_Data,
         Intellisense_CompletionProviders_Data,
-
         SnapshotService_IsExperimentEnabledAsync,
+        PartialLoad_FullyLoaded,
+        Liveshare_UnknownCodeAction,
+        Liveshare_LexicalClassifications,
+        Liveshare_SyntacticClassifications,
+
+        CommandHandler_GoToBase,
     }
 }

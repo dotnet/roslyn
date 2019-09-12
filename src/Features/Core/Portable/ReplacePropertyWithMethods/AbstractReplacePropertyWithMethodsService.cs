@@ -30,11 +30,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         protected abstract TExpressionSyntax UnwrapCompoundAssignment(SyntaxNode compoundAssignment, TExpressionSyntax readExpression);
         public async Task<SyntaxNode> GetPropertyDeclarationAsync(CodeRefactoringContext context)
-        {
-            var property = await context.TryGetSelectedNodeAsync<TPropertySyntax>().ConfigureAwait(false);
-
-            return property;
-        }
+            => await context.TryGetRelevantNodeAsync<TPropertySyntax>().ConfigureAwait(false);
 
         protected static SyntaxNode GetFieldReference(SyntaxGenerator generator, IFieldSymbol propertyBackingField)
         {

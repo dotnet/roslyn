@@ -1865,7 +1865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (source.ConstantValue.HasValue && source.ConstantValue.Value is null && destination.IsReferenceType)
                 {
                     constantValue = source.ConstantValue;
-                    return Conversion.DefaultOrNullLiteral;
+                    return Conversion.NullLiteral;
                 }
 
                 return Conversion.NoConversion;
@@ -3326,7 +3326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool ShouldEmitNullableAttributes(Symbol symbol)
         {
-            Debug.Assert(!(symbol is null));
+            Debug.Assert(symbol is object);
             Debug.Assert(symbol.IsDefinition);
 
             if (symbol.ContainingModule != SourceModule)

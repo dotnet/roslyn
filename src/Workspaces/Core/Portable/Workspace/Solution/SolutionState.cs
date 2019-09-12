@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the <see cref="Project"/> associated with an assembly symbol.
         /// </summary>
-        public ProjectState? GetProjectState(IAssemblySymbol? assemblySymbol, CancellationToken cancellationToken)
+        public ProjectState? GetProjectState(IAssemblySymbol? assemblySymbol)
         {
             if (assemblySymbol == null)
             {
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                builder[documentState.FilePath] = builder.TryGetValue(documentState.FilePath, out var documentIdsWithPath)
+                builder[documentState.FilePath!] = builder.TryGetValue(documentState.FilePath!, out var documentIdsWithPath)
                     ? documentIdsWithPath.Add(documentState.Id)
                     : ImmutableArray.Create(documentState.Id);
             }
@@ -587,18 +587,18 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (!builder.TryGetValue(documentState.FilePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
+                if (!builder.TryGetValue(documentState.FilePath!, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
                 {
                     throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
                 }
 
                 if (documentIdsWithPath.Length == 1)
                 {
-                    builder.Remove(documentState.FilePath);
+                    builder.Remove(documentState.FilePath!);
                 }
                 else
                 {
-                    builder[documentState.FilePath] = documentIdsWithPath.Remove(documentState.Id);
+                    builder[documentState.FilePath!] = documentIdsWithPath.Remove(documentState.Id);
                 }
             }
 
@@ -1233,12 +1233,12 @@ namespace Microsoft.CodeAnalysis
 
             var oldProject = this.GetProjectState(documentId.ProjectId)!;
             var newProject = oldProject.RemoveAnalyzerConfigDocument(documentId);
-            var documentStates = SpecializedCollections.SingletonEnumerable(oldProject.GetAnalyzerConfigDocumentState(documentId));
+            var removedDocumentStates = SpecializedCollections.SingletonEnumerable(oldProject.GetAnalyzerConfigDocumentState(documentId)!);
 
             return this.ForkProject(
                 newProject,
                 new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject),
-                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentStates));
+                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStates));
         }
 
         /// <summary>
@@ -1251,12 +1251,12 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(documentId.ProjectId)!;
             var oldDocument = oldProject.GetDocumentState(documentId);
             var newProject = oldProject.RemoveDocument(documentId);
-            var documentStates = SpecializedCollections.SingletonEnumerable(oldProject.GetDocumentState(documentId));
+            var removedDocumentStates = SpecializedCollections.SingletonEnumerable(oldProject.GetDocumentState(documentId)!);
 
             return this.ForkProject(
                 newProject,
                 new CompilationTranslationAction.RemoveDocumentAction(oldDocument),
-                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentStates));
+                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStates));
         }
 
         /// <summary>
@@ -2013,7 +2013,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return state.GetPartialMetadataReference(this, fromProject, projectReference, cancellationToken);
+            return state.GetPartialMetadataReference(this, fromProject, projectReference);
         }
 
         public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, string name, SymbolFilter filter, CancellationToken cancellationToken)

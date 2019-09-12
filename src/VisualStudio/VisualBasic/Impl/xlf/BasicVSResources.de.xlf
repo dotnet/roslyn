@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces (experimental)</source>
-        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <target state="translated">Elemente aus nicht importierten Namespaces anzeigen (experimentell)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -275,6 +275,11 @@
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
         <target state="translated">VB-Codierungskonvention</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_language_server_client">
+        <source>Visual Basic Language Server Client</source>
+        <target state="translated">Client des Visual Basic-Sprachservers</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

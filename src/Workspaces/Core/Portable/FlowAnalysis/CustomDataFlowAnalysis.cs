@@ -45,10 +45,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             var initialAnalysisData = analyzer.GetCurrentAnalysisData(blocks[0]);
-            if (initialAnalysisData == default)
-            {
-                initialAnalysisData = analyzer.GetEmptyAnalysisData();
-            }
 
             var result = RunCore(blocks, analyzer, firstBlockOrdinal, lastBlockOrdinal,
                                  initialAnalysisData,

@@ -233,6 +233,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add null checks for all parameters.
+        /// </summary>
+        internal static string Add_null_checks_for_all_parameters {
+            get {
+                return ResourceManager.GetString("Add_null_checks_for_all_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameter to constructor.
         /// </summary>
         internal static string Add_optional_parameter_to_constructor {
@@ -721,14 +730,14 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
+        ///   Looks up a localized string similar to Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
         /// </summary>
-        internal static string Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names {
+        internal static string Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names {
             get {
-                return ResourceManager.GetString("Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_ch" +
-                        "ange_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_i" +
-                        "nteger_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbo" +
-                        "l_names", resourceCulture);
+                return ResourceManager.GetString("Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_chan" +
+                        "ge_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_int" +
+                        "eger_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_" +
+                        "names", resourceCulture);
             }
         }
         
@@ -747,6 +756,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string can_t_not_construct_final_tree {
             get {
                 return ResourceManager.GetString("can_t_not_construct_final_tree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot apply changes -- unexpected error: &apos;{0}&apos;.
+        /// </summary>
+        internal static string CannotApplyChangesUnexpectedError {
+            get {
+                return ResourceManager.GetString("CannotApplyChangesUnexpectedError", resourceCulture);
             }
         }
         
@@ -821,6 +839,44 @@ namespace Microsoft.CodeAnalysis {
         internal static string Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime {
             get {
                 return ResourceManager.GetString("Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes are not allowed while stopped at exception.
+        /// </summary>
+        internal static string ChangesDisallowedWhileStoppedAtException {
+            get {
+                return ResourceManager.GetString("ChangesDisallowedWhileStoppedAtException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes made in project &apos;{0}&apos; will not be applied while the application is running.
+        /// </summary>
+        internal static string ChangesNotAppliedWhileRunning {
+            get {
+                return ResourceManager.GetString("ChangesNotAppliedWhileRunning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing &apos;{0}&apos; from asynchronous to synchronous will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_c" +
+                        "ontinuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing because it changes the shape of the state machine..
+        /// </summary>
+        internal static string Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine {
+            get {
+                return ResourceManager.GetString("Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes" +
+                        "_the_shape_of_the_state_machine", resourceCulture);
             }
         }
         
@@ -1273,29 +1329,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit And Continue.
+        ///   Looks up a localized string similar to Edit and Continue.
         /// </summary>
-        internal static string Edit_And_Continue {
+        internal static string EditAndContinue {
             get {
-                return ResourceManager.GetString("Edit_And_Continue", resourceCulture);
+                return ResourceManager.GetString("EditAndContinue", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit and Continue.
+        ///   Looks up a localized string similar to Edit and Continue disallowed by module.
         /// </summary>
-        internal static string Edit_and_Continue1 {
+        internal static string EditAndContinueDisallowedByModule {
             get {
-                return ResourceManager.GetString("Edit_and_Continue1", resourceCulture);
+                return ResourceManager.GetString("EditAndContinueDisallowedByModule", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit and Continue.
+        ///   Looks up a localized string similar to Changes made in project &apos;{0}&apos; will prevent the debug session from continuing: {1}.
         /// </summary>
-        internal static string Edit_and_Continue2 {
+        internal static string EditAndContinueDisallowedByProject {
             get {
-                return ResourceManager.GetString("Edit_and_Continue2", resourceCulture);
+                return ResourceManager.GetString("EditAndContinueDisallowedByProject", resourceCulture);
             }
         }
         
@@ -1359,6 +1415,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Enums {
             get {
                 return ResourceManager.GetString("Enums", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error while reading file &apos;{0}&apos;: {1}.
+        /// </summary>
+        internal static string ErrorReadingFile {
+            get {
+                return ResourceManager.GetString("ErrorReadingFile", resourceCulture);
             }
         }
         
@@ -2534,6 +2599,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a switch expression will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_fro" +
+                        "m_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing..
         /// </summary>
         internal static string Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing {
@@ -3492,6 +3567,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rude edit.
+        /// </summary>
+        internal static string RudeEdit {
+            get {
+                return ResourceManager.GetString("RudeEdit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Separate nibbles.
         /// </summary>
         internal static string Separate_nibbles {
@@ -3991,12 +4075,12 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Updating a &apos;{0}&apos; statement around an active statement will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Updating a &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
         /// </summary>
-        internal static string Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
+        internal static string Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_" +
-                        "from_continuing", resourceCulture);
+                return ResourceManager.GetString("Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_conti" +
+                        "nuing", resourceCulture);
             }
         }
         

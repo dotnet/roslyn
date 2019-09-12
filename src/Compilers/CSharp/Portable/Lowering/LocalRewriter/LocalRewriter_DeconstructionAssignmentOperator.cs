@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     compilation: _compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default);
 
                 return new BoundConvertedTupleLiteral(
-                    right.Syntax, sourceTuple: null, arguments: builder.ToImmutableAndFree(), argumentNamesOpt: default, inferredNamesOpt: default, tupleType);
+                    right.Syntax, sourceTuple: null, wasTargetTyped: false, arguments: builder.ToImmutableAndFree(), argumentNamesOpt: default, inferredNamesOpt: default, tupleType);
             }
             else
             {

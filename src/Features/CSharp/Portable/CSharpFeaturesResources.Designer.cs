@@ -232,6 +232,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assign &apos;out&apos; parameters.
+        /// </summary>
+        internal static string Assign_out_parameters {
+            get {
+                return ResourceManager.GetString("Assign_out_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assign &apos;out&apos; parameters (at start).
+        /// </summary>
+        internal static string Assign_out_parameters_at_start {
+            get {
+                return ResourceManager.GetString("Assign_out_parameters_at_start", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to asynchronous foreach statement.
+        /// </summary>
+        internal static string asynchronous_foreach_statement {
+            get {
+                return ResourceManager.GetString("asynchronous_foreach_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to asynchronous using declaration.
+        /// </summary>
+        internal static string asynchronous_using_declaration {
+            get {
+                return ResourceManager.GetString("asynchronous_using_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to attribute target.
         /// </summary>
         internal static string attribute_target {
@@ -800,6 +836,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to local variable declaration.
+        /// </summary>
+        internal static string local_variable_declaration {
+            get {
+                return ResourceManager.GetString("local_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to lock statement.
         /// </summary>
         internal static string lock_statement {
@@ -1241,6 +1286,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to switch statement.
+        /// </summary>
+        internal static string switch_statement {
+            get {
+                return ResourceManager.GetString("switch_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to switch statement case clause.
+        /// </summary>
+        internal static string switch_statement_case_clause {
+            get {
+                return ResourceManager.GetString("switch_statement_case_clause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name &apos;{0}&apos; does not exist in the current context..
         /// </summary>
         internal static string The_name_0_does_not_exist_in_the_current_context {
@@ -1423,6 +1486,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to using declaration.
+        /// </summary>
+        internal static string using_declaration {
+            get {
+                return ResourceManager.GetString("using_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to using directive.
         /// </summary>
         internal static string using_directive {
@@ -1477,15 +1549,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to C# 7 enhanced switch statement.
-        /// </summary>
-        internal static string v7_switch {
-            get {
-                return ResourceManager.GetString("v7_switch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Warning: Moving using directives may change code meaning..
         /// </summary>
         internal static string Warning_colon_Moving_using_directives_may_change_code_meaning {
@@ -1504,6 +1567,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Inlining temporary into conditional method call..
+        /// </summary>
+        internal static string Warning_Inlining_temporary_into_conditional_method_call {
+            get {
+                return ResourceManager.GetString("Warning_Inlining_temporary_into_conditional_method_call", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to where clause.
         /// </summary>
         internal static string where_clause {
@@ -1513,11 +1585,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to yield statement.
+        ///   Looks up a localized string similar to yield break statement.
         /// </summary>
-        internal static string yield_statement {
+        internal static string yield_break_statement {
             get {
-                return ResourceManager.GetString("yield_statement", resourceCulture);
+                return ResourceManager.GetString("yield_break_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to yield return statement.
+        /// </summary>
+        internal static string yield_return_statement {
+            get {
+                return ResourceManager.GetString("yield_return_statement", resourceCulture);
             }
         }
     }

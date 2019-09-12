@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
-        <target state="new">Adding analyzer config documents is not supported.</target>
+        <target state="translated">분석기 구성 문서 추가는 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
-        <target state="new">Changing analyzer config documents is not supported.</target>
+        <target state="translated">분석기 구성 문서 변경은 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">명명 규칙</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_styles">
         <source>Naming styles</source>
-        <target state="new">Naming styles</target>
+        <target state="translated">명명 스타일</target>
         <note />
       </trans-unit>
       <trans-unit id="New_line_preferences">
@@ -104,102 +104,102 @@
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
         <source>All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</source>
-        <target state="new">All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</target>
+        <target state="translated">모든 제어 문자입니다. Cc, Cf, Cs, Co 및 Cn 범주가 포함됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_short">
         <source>all control characters</source>
-        <target state="new">all control characters</target>
+        <target state="translated">모든 제어 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_diacritic_marks_long">
         <source>All diacritic marks. This includes the Mn, Mc, and Me categories.</source>
-        <target state="new">All diacritic marks. This includes the Mn, Mc, and Me categories.</target>
+        <target state="translated">모든 분음 부호입니다. Mn, Mc 및 Me 범주가 포함됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_diacritic_marks_short">
         <source>all diacritic marks</source>
-        <target state="new">all diacritic marks</target>
+        <target state="translated">모든 분음 부호</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_letter_characters_long">
         <source>All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</source>
-        <target state="new">All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</target>
+        <target state="translated">모든 문자입니다. Lu, Ll, Lt, Lm 및 Lo 문자가 포함됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_letter_characters_short">
         <source>all letter characters</source>
-        <target state="new">all letter characters</target>
+        <target state="translated">모든 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_numbers_long">
         <source>All numbers. This includes the Nd, Nl, and No categories.</source>
-        <target state="new">All numbers. This includes the Nd, Nl, and No categories.</target>
+        <target state="translated">모든 숫자입니다. Nd, Nl 및 No 범주가 포함됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_numbers_short">
         <source>all numbers</source>
-        <target state="new">all numbers</target>
+        <target state="translated">모든 숫자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_punctuation_characters_long">
         <source>All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</source>
-        <target state="new">All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</target>
+        <target state="translated">모든 문장 부호 문자입니다. Pc, Pd, Ps, Pe, Pi, Pf 및 Po 범주가 포함됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_punctuation_characters_short">
         <source>all punctuation characters</source>
-        <target state="new">all punctuation characters</target>
+        <target state="translated">모든 문장 부호 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_separator_characters_long">
         <source>All separator characters. This includes the Zs, Zl, and Zp categories.</source>
-        <target state="new">All separator characters. This includes the Zs, Zl, and Zp categories.</target>
+        <target state="translated">모든 구분 문자입니다. Zs, Zl 및 Zp 범주가 포함됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_separator_characters_short">
         <source>all separator characters</source>
-        <target state="new">all separator characters</target>
+        <target state="translated">모든 구분 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_symbols_long">
         <source>All symbols. This includes the Sm, Sc, Sk, and So categories.</source>
-        <target state="new">All symbols. This includes the Sm, Sc, Sk, and So categories.</target>
+        <target state="translated">모든 기호입니다. Sm, Sc, Sk 및 So 범주가 포함됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_symbols_short">
         <source>all symbols</source>
-        <target state="new">all symbols</target>
+        <target state="translated">모든 기호</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_alternation_long">
         <source>You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.</source>
-        <target state="new">You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.</target>
+        <target state="translated">세로 막대(|) 문자를 사용하여 일련의 패턴 중 하나를 일치시킬 수 있습니다. 여기서 | 문자는 각 패턴을 구분합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_alternation_short">
         <source>alternation</source>
-        <target state="new">alternation</target>
+        <target state="translated">대체</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_any_character_group_long">
         <source>The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</source>
-        <target state="new">The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</target>
+        <target state="translated">마침표(.) 문자는 \n(줄 바꿈 문자, \u000A)을 제외한 모든 문자와 일치시킵니다. 정규식 패턴이 RegexOptions.Singleline 옵션으로 수정되거나 . 문자 클래스가 포함된 패턴의 일부가 's' 옵션으로 수정된 경우 .는 모든 문자와 일치시킵니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_any_character_group_short">
         <source>any character</source>
-        <target state="new">any character</target>
+        <target state="translated">모든 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_long">
         <source>Matches a backspace character, \u0008</source>
-        <target state="new">Matches a backspace character, \u0008</target>
+        <target state="translated">백스페이스 문자 \u0008과 일치시킵니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_short">
         <source>backspace character</source>
-        <target state="new">backspace character</target>
+        <target state="translated">백스페이스 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
@@ -208,205 +208,205 @@
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="new">A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+        <target state="translated">균형 조정 그룹 정의는 이전에 정의된 그룹의 정의를 삭제하고, 이전에 정의된 그룹과 현재 그룹 사이의 간격을 현재 그룹에 저장합니다.
     
-'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+'name1'은 현재 그룹이고(선택 사항), 'name2'는 이전에 정의된 그룹이며, 'subexpression'은 유효한 정규식 패턴입니다. 균형 조정 그룹 정의는 name2의 정의를 삭제하고 name2와 name1 사이의 간격을 name1에 저장합니다. name2 그룹이 정의되어 있지 않으면 일치에서 역추적합니다. name2의 마지막 정의를 삭제하면 name2의 이전 정의가 표시되므로 이 구문을 통해 name2 그룹에 대한 캡처 스택을 괄호 또는 여는 대괄호 및 닫는 대괄호와 같은 중첩 구문을 추적하기 위한 카운터로 사용할 수 있습니다.
 
-The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</target>
+균형 조정 그룹 정의에서는 'name2'를 스택으로 사용합니다. 각 중첩 구문의 시작 문자는 그룹 및 해당 Group.Captures 컬렉션에 배치됩니다. 닫는 문자가 일치되면 해당하는 여는 문자가 그룹에서 제거되고 Captures 컬렉션이 하나 감소합니다. 모든 중첩 구문의 여는 문자와 닫는 문자가 일치되고 나면 'name1'은 비어 있는 상태가 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
         <source>balancing group</source>
-        <target state="new">balancing group</target>
+        <target state="translated">균형 조정 그룹</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_base_group">
         <source>base-group</source>
-        <target state="new">base-group</target>
+        <target state="translated">기본 그룹</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_bell_character_long">
         <source>Matches a bell (alarm) character, \u0007</source>
-        <target state="new">Matches a bell (alarm) character, \u0007</target>
+        <target state="translated">벨(경보) 문자 \u0007과 일치시킵니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_bell_character_short">
         <source>bell character</source>
-        <target state="new">bell character</target>
+        <target state="translated">벨 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_long">
         <source>Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</source>
-        <target state="new">Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</target>
+        <target state="translated">캐리지 리턴 문자 \u000D와 일치시킵니다. \r은 줄 바꿈 문자 \n과 같지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_short">
         <source>carriage-return character</source>
-        <target state="new">carriage-return character</target>
+        <target state="translated">캐리지 리턴 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_class_subtraction_long">
         <source>Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
 
 'base_group' is a positive or negative character group or range. The 'excluded_group' component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</source>
-        <target state="new">Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+        <target state="translated">문자 클래스 빼기를 사용하면 한 문자 클래스의 문자를 다른 문자 클래스에서 제외한 결과인 문자 집합을 얻게 됩니다.
 
-'base_group' is a positive or negative character group or range. The 'excluded_group' component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</target>
+'base_group'은 긍정 또는 부정 문자 그룹이거나 문자 범위입니다. 'excluded_group' 구성 요소는 다른 긍정 또는 부정 문자 그룹이거나 다른 문자 클래스 빼기 식입니다(즉, 문자 클래스 빼기 식을 중첩할 수 있음).</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_class_subtraction_short">
         <source>character class subtraction</source>
-        <target state="new">character class subtraction</target>
+        <target state="translated">문자 클래스 빼기</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_group">
         <source>character-group</source>
-        <target state="new">character-group</target>
+        <target state="translated">문자 그룹</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_comment">
         <source>comment</source>
-        <target state="new">comment</target>
+        <target state="translated">주석</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_expression_match_long">
         <source>This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
 
 'expression' is the initial pattern to match, 'yes' is the pattern to match if expression is matched, and 'no' is the optional pattern to match if expression is not matched.</source>
-        <target state="new">This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
+        <target state="translated">이 언어 요소는 초기 패턴과 일치시킬 수 있는지 여부에 따라 두 패턴 중 하나와 일치시키려고 시도합니다.
 
-'expression' is the initial pattern to match, 'yes' is the pattern to match if expression is matched, and 'no' is the optional pattern to match if expression is not matched.</target>
+'expression'은 일치시킬 초기 패턴이며 'yes'는 식이 일치하는 경우 일치시킬 패턴이고 'no'는 식이 일치하지 않는 경우 일치시킬 선택적 패턴입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_expression_match_short">
         <source>conditional expression match</source>
-        <target state="new">conditional expression match</target>
+        <target state="translated">조건식 일치</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_group_match_long">
         <source>This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
 
 'name' is the name (or number) of a capturing group, 'yes' is the expression to match if 'name' (or 'number') has a match, and 'no' is the optional expression to match if it does not.</source>
-        <target state="new">This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
+        <target state="translated">이 언어 요소는 지정한 캡처링 그룹과 일치시켰는지 여부에 따라 두 패턴 중 하나와 일치시키려고 시도합니다.
 
-'name' is the name (or number) of a capturing group, 'yes' is the expression to match if 'name' (or 'number') has a match, and 'no' is the optional expression to match if it does not.</target>
+'name'은 캡처링 그룹의 이름(또는 번호)이며 'yes'는 'name'(또는 'number')에 일치 항목이 있는 경우 일치시킬 식이고 'no'는 일치 항목이 없는 경우 일치시킬 선택적 식입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_group_match_short">
         <source>conditional group match</source>
-        <target state="new">conditional group match</target>
+        <target state="translated">조건 그룹 일치</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_contiguous_matches_long">
         <source>The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</source>
-        <target state="new">The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</target>
+        <target state="translated">\G 앵커는 이전 일치 항목 찾기가 끝난 지점에서 일치 항목을 찾도록 지정합니다. 이 앵커를 Regex.Matches 또는 Match.NextMatch 메서드와 함께 사용하면 모든 일치 항목이 연속되도록 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_contiguous_matches_short">
         <source>contiguous matches</source>
-        <target state="new">contiguous matches</target>
+        <target state="translated">연속 일치</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_control_character_long">
         <source>Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</source>
-        <target state="new">Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</target>
+        <target state="translated">ASCII 제어 문자와 일치시킵니다. 여기서, X는 제어 문자의 문자입니다. 예를 들어 \cC는 CTRL-C입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_control_character_short">
         <source>control character</source>
-        <target state="new">control character</target>
+        <target state="translated">제어 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_decimal_digit_character_long">
         <source>\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
 
 If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</source>
-        <target state="new">\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
+        <target state="translated">\d는 10진수와 일치시킵니다. 표준 10진수 0-9와 여러 다른 문자 집합의 10진수를 포함한 \p{Nd} 정규식 패턴과 같습니다.
 
-If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</target>
+ECMAScript 규격 동작을 지정한 경우 \d는 [0-9]와 같습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_decimal_digit_character_short">
         <source>decimal-digit character</source>
-        <target state="new">decimal-digit character</target>
+        <target state="translated">10진수 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_line_comment_long">
         <source>A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</source>
-        <target state="new">A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</target>
+        <target state="translated">숫자 기호(#)는 정규식 패턴의 끝에 있는 이스케이프되지 않은 # 문자에서 시작하고 줄의 끝까지 계속되는 x-모드 주석을 표시합니다. 이 구문을 사용하려면 인라인 옵션을 통해 x 옵션을 사용해야 합니다. 또는 Regex 개체를 인스턴스화하거나 정적 Regex 메서드를 호출할 때 RegexOptions.IgnorePatternWhitespace 값을 옵션 매개 변수에 제공해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_line_comment_short">
         <source>end-of-line comment</source>
-        <target state="new">end-of-line comment</target>
+        <target state="translated">줄의 끝 주석</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_only_long">
         <source>The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</source>
-        <target state="new">The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</target>
+        <target state="translated">\z 앵커는 입력 문자열의 끝부분에서 일치 항목을 찾도록 지정합니다. $ 언어 요소와 마찬가지로, \z는 RegexOptions.Multiline 옵션을 무시합니다. 하지만 \Z 언어 요소와 달리 \z는 문자열의 끝에 있는 \n 문자와 일치시키지 않습니다. 따라서 입력 문자열의 마지막 줄만 일치시킬 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_only_short">
         <source>end of string only</source>
-        <target state="new">end of string only</target>
+        <target state="translated">문자열의 끝만</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_before_ending_newline_long">
         <source>The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
 
 The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</source>
-        <target state="new">The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
+        <target state="translated">\Z 앵커는 입력 문자열의 끝부분이나 입력 문자열의 끝부분에 있는 \n 앞에서 일치 항목을 찾도록 지정합니다. \Z는 RegexOptions.Multiline 옵션을 무시한다는 점을 제외하고는 $ 앵커와 동일합니다. 따라서 여러 줄 문자열에서는 마지막 줄의 끝이나 \n 앞의 마지막 줄만 일치시킬 수 있습니다.
 
-The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</target>
+\Z 앵커는 \n은 일치시키지만 \r\n(CR/LF 문자 조합)은 일치시키지 않습니다. CR/LF와 일치시키려면 정규식 패턴에 \r?\Z를 포함하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_before_ending_newline_short">
         <source>end of string or before ending newline</source>
-        <target state="new">end of string or before ending newline</target>
+        <target state="translated">문자열의 끝 또는 줄 바꿈 종료 전</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_line_long">
         <source>The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
 
 The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</source>
-        <target state="new">The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
+        <target state="translated">$ 앵커는 입력 문자열의 끝부분이나 입력 문자열의 끝부분에 있는 \n 앞에 이전 패턴이 오도록 지정합니다. RegexOptions.Multiline 옵션과 함께 $를 사용하면 줄의 끝부분에서도 일치 항목을 찾을 수 있습니다.
 
-The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</target>
+$ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자 조합 또는 CR/LF)은 일치시키지 않습니다. CR/LF 문자 조합과 일치시키려면 정규식 패턴에 \r?$를 포함하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_line_short">
         <source>end of string or line</source>
-        <target state="new">end of string or line</target>
+        <target state="translated">문자열 또는 줄의 끝</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_escape_character_long">
         <source>Matches an escape character, \u001B</source>
-        <target state="new">Matches an escape character, \u001B</target>
+        <target state="translated">이스케이프 문자 \u001B와 일치시킵니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_escape_character_short">
         <source>escape character</source>
-        <target state="new">escape character</target>
+        <target state="translated">이스케이프 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_excluded_group">
         <source>excluded-group</source>
-        <target state="new">excluded-group</target>
+        <target state="translated">제외된 그룹</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="new">expression</target>
+        <target state="translated">식</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
         <source>Matches a form-feed character, \u000C</source>
-        <target state="new">Matches a form-feed character, \u000C</target>
+        <target state="translated">용지 공급 문자 \u000C와 일치시킵니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_short">
         <source>form-feed character</source>
-        <target state="new">form-feed character</target>
+        <target state="translated">용지 공급 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_group_options_long">
@@ -421,42 +421,42 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 	named or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="new">This grouping construct applies or disables the specified options within a subexpression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+        <target state="translated">이 그룹화 구문은 하위 식 내에서 지정된 옵션을 적용하거나 사용하지 않도록 설정합니다. 사용하도록 설정하는 옵션은 물음표 뒤에 지정되며 사용하지 않도록 설정하는 옵션은 빼기 기호 뒤에 지정됩니다. 허용되는 옵션은 다음과 같습니다.
 
-    i	Use case-insensitive matching.
-    m	Use multiline mode, where ^ and $ match the beginning and end of each line
-	(instead of the beginning and end of the input string).
-    s	Use single-line mode, where the period (.) matches every character
-	(instead of every character except \n).
-    n	Do not capture unnamed groups. The only valid captures are explicitly
-	named or numbered groups of the form (?&lt;name&gt; subexpression).
-    x	Exclude unescaped white space from the pattern, and enable comments
-	after a number sign (#).</target>
+    i	대/소문자를 구분하지 않는 일치를 사용합니다.
+    m	여러 줄 모드를 사용합니다. 여기서, ^ 및 $는 각 줄의 시작 및 끝과 일치시킵니다(입력
+	문자열의 시작 및 끝이 아님).
+    s	한 줄 모드를 사용합니다. 여기서, 마침표(.)는 모든 문자(\n을 제외한
+	모든 문자가 아님)와 일치시킵니다.
+    n	명명되지 않은 그룹을 캡처하지 않습니다. 양식(?&lt;이름&gt; 하위 식)의 명시적으로 명명된 그룹
+	또는 번호가 매겨진 그룹만 유효한 캡처입니다.
+    x	이스케이프되지 않은 공백은 패턴에서 제외하고 주석은 숫자 기호(#) 다음에
+	사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_group_options_short">
         <source>group options</source>
-        <target state="new">group options</target>
+        <target state="translated">그룹 옵션</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_long">
         <source>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</source>
-        <target state="new">Matches an ASCII character, where ## is a two-digit hexadecimal character code.</target>
+        <target state="translated">ASCII 문자와 일치시킵니다. 여기서, ##은 두 자리 16진수 문자 코드입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexidecimal escape</source>
-        <target state="new">hexidecimal escape</target>
+        <target state="translated">16진수 이스케이프</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
         <source>The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</source>
-        <target state="new">The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</target>
+        <target state="translated">(?# comment) 구문에서는 정규식에 인라인 주석을 포함할 수 있습니다. Regex.ToString 메서드에서 반환된 문자열에 주석이 포함되어 있어도 정규식 엔진은 패턴 일치에 주석의 어떤 부분도 사용하지 않습니다. 주석은 첫 번째 닫는 괄호에서 종료됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_short">
         <source>inline comment</source>
-        <target state="new">inline comment</target>
+        <target state="translated">인라인 주석</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_options_long">
@@ -471,226 +471,226 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 	or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="new">Enables or disables specific pattern matching options for the remainder of a regular expression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+        <target state="translated">정규식의 나머지 부분에 대해 특정 패턴 일치 옵션을 사용하거나 사용하지 않도록 설정합니다. 사용하도록 설정하는 옵션은 물음표 뒤에 지정되며 사용하지 않도록 설정하는 옵션은 빼기 기호 뒤에 지정됩니다. 허용되는 옵션은 다음과 같습니다.
 
-    i	Use case-insensitive matching.
-    m	Use multiline mode, where ^ and $ match the beginning and end of each line
-	(instead of the beginning and end of the input string).
-    s	Use single-line mode, where the period (.) matches every character
-	(instead of every character except \n).
-    n	Do not capture unnamed groups. The only valid captures are explicitly named
-	or numbered groups of the form (?&lt;name&gt; subexpression).
-    x	Exclude unescaped white space from the pattern, and enable comments
-	after a number sign (#).</target>
+    i	대/소문자를 구분하지 않는 일치를 사용합니다.
+    m	여러 줄 모드를 사용합니다. 여기서, ^ 및 $는 각 줄의 시작 및 끝과 일치시킵니다(입력
+	문자열의 시작 및 끝이 아님).
+    s	한 줄 모드를 사용합니다. 여기서, 마침표(.)는 모든 문자(\n을 제외한
+	모든 문자가 아님)와 일치시킵니다.
+    n	명명되지 않은 그룹을 캡처하지 않습니다. 양식(?&lt;이름&gt; 하위 식)의 명시적으로 명명된 그룹
+	또는 번호가 매겨진 그룹만 유효한 캡처입니다.
+    x	이스케이프되지 않은 공백은 패턴에서 제외하고 주석은 숫자 기호(#) 다음에
+	사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_options_short">
         <source>inline options</source>
-        <target state="new">inline options</target>
+        <target state="translated">인라인 옵션</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_lowercase">
         <source>letter, lowercase</source>
-        <target state="new">letter, lowercase</target>
+        <target state="translated">문자, 소문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_modifier">
         <source>letter, modifier</source>
-        <target state="new">letter, modifier</target>
+        <target state="translated">문자, 한정자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_other">
         <source>letter, other</source>
-        <target state="new">letter, other</target>
+        <target state="translated">문자, 기타</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_titlecase">
         <source>letter, titlecase</source>
-        <target state="new">letter, titlecase</target>
+        <target state="translated">문자, 첫 글자만 대문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_uppercase">
         <source>letter, uppercase</source>
-        <target state="new">letter, uppercase</target>
+        <target state="translated">문자, 대문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_enclosing">
         <source>mark, enclosing</source>
-        <target state="new">mark, enclosing</target>
+        <target state="translated">표시, 묶음</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_nonspacing">
         <source>mark, nonspacing</source>
-        <target state="new">mark, nonspacing</target>
+        <target state="translated">표시, 공간을 차지하지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_spacing_combining">
         <source>mark, spacing combining</source>
-        <target state="new">mark, spacing combining</target>
+        <target state="translated">표시, 간격 결합</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_long">
         <source>The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</source>
-        <target state="new">The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</target>
+        <target state="translated">{n,}? 한정사는 n번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 여기서, n은 정수입니다. 최대 한정사 {n,}에 대응되는 지연 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_short">
         <source>match at least 'n' times (lazy)</source>
-        <target state="new">match at least 'n' times (lazy)</target>
+        <target state="translated">'n'번 이상 일치(지연)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_long">
         <source>The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</source>
-        <target state="new">The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</target>
+        <target state="translated">{n,} 한정사는 n번 이상 이전 요소와 일치시킵니다. 여기서, n은 정수입니다. {n,}는 해당 지연 한정사가 {n,}?인 최대 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_short">
         <source>match at least 'n' times</source>
-        <target state="new">match at least 'n' times</target>
+        <target state="translated">'n'번 이상 일치</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_long">
         <source>The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</source>
-        <target state="new">The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</target>
+        <target state="translated">{n,m}? 한정사는 n 및 m번 사이로 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 여기서, n 및 m은 정수입니다. 최대 한정사 {n,m}에 대응되는 지연 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_short">
         <source>match at least 'n' times (lazy)</source>
-        <target state="new">match at least 'n' times (lazy)</target>
+        <target state="translated">'n'번 이상 일치(지연)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_long">
         <source>The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</source>
-        <target state="new">The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</target>
+        <target state="translated">{n,m} 한정사는 n번 이상 m번 이하로 이전 요소와 일치시킵니다. 여기서, n 및 m은 정수입니다. {n,m}는 해당 지연 한정사가 {n,m}?인 최대 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_short">
         <source>match between 'm' and 'n' times</source>
-        <target state="new">match between 'm' and 'n' times</target>
+        <target state="translated">'m'에서 'n'번 사이 일치</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_long">
         <source>The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</source>
-        <target state="new">The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</target>
+        <target state="translated">{n}? 한정사는 정확히 n번을 이전 요소와 일치시킵니다. 여기서, n은 정수입니다. 최대 한정사 {n}+에 대응되는 지연 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_short">
         <source>match exactly 'n' times (lazy)</source>
-        <target state="new">match exactly 'n' times (lazy)</target>
+        <target state="translated">정확하게 'n'번 일치(지연)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_long">
         <source>The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</source>
-        <target state="new">The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</target>
+        <target state="translated">{n} 한정사는 정확히 n번을 이전 요소와 일치시킵니다. 여기서, n은 정수입니다. {n}는 해당 지연 한정사가 {n}?인 최대 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_short">
         <source>match exactly 'n' times</source>
-        <target state="new">match exactly 'n' times</target>
+        <target state="translated">정확하게 'n'번 일치</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_long">
         <source>The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</source>
-        <target state="new">The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</target>
+        <target state="translated">+? 한정사는 1번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 최대 한정사 +에 대응되는 지연 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_short">
         <source>match one or more times (lazy)</source>
-        <target state="new">match one or more times (lazy)</target>
+        <target state="translated">1번 이상 일치(지연)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_long">
         <source>The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</source>
-        <target state="new">The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</target>
+        <target state="translated">+ 한정사는 1번 이상 이전 요소와 일치시킵니다. {1,} 한정사와 같습니다. +는 해당 지연 한정사가 +?인 최대 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_short">
         <source>match one or more times</source>
-        <target state="new">match one or more times</target>
+        <target state="translated">1번 이상 일치</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_long">
         <source>The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</source>
-        <target state="new">The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</target>
+        <target state="translated">*? 한정사는 0번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 최대 한정사 *에 대응되는 지연 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_short">
         <source>match zero or more times (lazy)</source>
-        <target state="new">match zero or more times (lazy)</target>
+        <target state="translated">0번 이상 일치(지연)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_long">
         <source>The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</source>
-        <target state="new">The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</target>
+        <target state="translated">* 한정사는 0번 이상 이전 요소와 일치시킵니다. {0,} 한정사와 같습니다. *는 해당 지연 한정사가 *?인 최대 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_short">
         <source>match zero or more times</source>
-        <target state="new">match zero or more times</target>
+        <target state="translated">0번 이상 일치</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_long">
         <source>The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</source>
-        <target state="new">The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</target>
+        <target state="translated">?? 한정사는 0번 이상 이전 요소와 일치시키지만 가능한 한 적은 횟수로 일치시킵니다. 최대 한정사 ?에 대응되는 지연 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_short">
         <source>match zero or one time (lazy)</source>
-        <target state="new">match zero or one time (lazy)</target>
+        <target state="translated">0 또는 1번 일치(지연)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_long">
         <source>The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</source>
-        <target state="new">The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</target>
+        <target state="translated">? 한정사는 0번 이상 이전 요소와 일치시킵니다. {0,1} 한정사와 같습니다. ?는 해당 지연 한정사가 ??인 최대 한정사입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_short">
         <source>match zero or one time</source>
-        <target state="new">match zero or one time</target>
+        <target state="translated">0 또는 1번 일치</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_long">
         <source>This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</source>
-        <target state="new">This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</target>
+        <target state="translated">이 그룹화 구문은 일치하는 'subexpression'을 캡처합니다. 여기서, 'subexpression'은 임의의 유효한 정규식 패턴입니다. 괄호를 사용하는 캡처는 정규식의 여는 괄호 순서를 기준으로 왼쪽에서 오른쪽으로 1부터 자동으로 번호가 매겨집니다. 0으로 번호가 매겨진 캡처는 전체 정규식 패턴과 일치하는 텍스트입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_short">
         <source>matched subexpression</source>
-        <target state="new">matched subexpression</target>
+        <target state="translated">일치하는 하위 식</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="new">name</target>
+        <target state="translated">이름</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
         <source>name1</source>
-        <target state="new">name1</target>
+        <target state="translated">name1</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name2">
         <source>name2</source>
-        <target state="new">name2</target>
+        <target state="translated">name2</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name_or_number">
         <source>name-or-number</source>
-        <target state="new">name-or-number</target>
+        <target state="translated">이름 또는 번호</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_backreference_long">
         <source>A named or numbered backreference.
 
 'name' is the name of a capturing group defined in the regular expression pattern.</source>
-        <target state="new">A named or numbered backreference.
+        <target state="translated">명명되거나 번호가 매겨진 역참조입니다.
 
-'name' is the name of a capturing group defined in the regular expression pattern.</target>
+'name'은 정규식 패턴에 정의된 캡처링 그룹의 이름입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_backreference_short">
         <source>named backreference</source>
-        <target state="new">named backreference</target>
+        <target state="translated">명명된 역참조</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_matched_subexpression_long">
@@ -699,107 +699,107 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 'name' is a valid group name, and 'subexpression' is any valid regular expression pattern. 'name' must not contain any punctuation characters and cannot begin with a number.
 
 If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing groups.</source>
-        <target state="new">Captures a matched subexpression and lets you access it by name or by number.
+        <target state="translated">일치하는 하위 식을 캡처하고 이름 또는 번호를 통해 해당 하위 식에 액세스할 수 있도록 허용합니다.
 
-'name' is a valid group name, and 'subexpression' is any valid regular expression pattern. 'name' must not contain any punctuation characters and cannot begin with a number.
+'name'은 유효한 그룹 이름이고 'subexpression'은 유효한 정규식 패턴입니다. 'name'은 문장 부호 문자를 사용하지 않아야 하며 숫자로 시작할 수 없습니다.
 
-If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing groups.</target>
+정규식 패턴 일치 메서드의 RegexOptions 매개 변수에 RegexOptions.ExplicitCapture 플래그가 포함되어 있거나 이 하위 식에 n 옵션이 적용되는 경우 하위 식을 캡처하는 유일한 방법은 명시적으로 캡처링 그룹 이름을 지정하는 것입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_matched_subexpression_short">
         <source>named matched subexpression</source>
-        <target state="new">named matched subexpression</target>
+        <target state="translated">명명된 일치하는 하위 식</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_group_long">
         <source>A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
 
 Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</source>
-        <target state="new">A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
+        <target state="translated">부정 문자 그룹은 일치 항목을 찾을 입력 문자열에 표시되지 않아야 하는 문자 목록을 지정합니다. 문자 목록은 개별적으로 지정됩니다.
 
-Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</target>
+둘 이상의 문자 범위를 연결할 수 있습니다. 예를 들어 "0"에서 "9"까지의 10진수 범위, "a"에서 "f"까지의 소문자 범위 및 "A"에서 "F"까지의 대문자 범위를 지정하려면 [0-9a-fA-F]를 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_group_short">
         <source>negative character group</source>
-        <target state="new">negative character group</target>
+        <target state="translated">부정 문자 그룹</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_range_long">
         <source>A negative character range specifies a list of characters that must not appear in an input string for a match to occur. 'firstCharacter' is the character that begins the range, and 'lastCharacter' is the character that ends the range.
 
 Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</source>
-        <target state="new">A negative character range specifies a list of characters that must not appear in an input string for a match to occur. 'firstCharacter' is the character that begins the range, and 'lastCharacter' is the character that ends the range.
+        <target state="translated">부정 문자 범위는 일치 항목을 찾을 입력 문자열에 표시되지 않아야 하는 문자 목록을 지정합니다. 'firstCharacter'는 범위를 시작하는 문자이고 'lastCharacter'는 범위를 끝내는 문자입니다.
 
-Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</target>
+둘 이상의 문자 범위를 연결할 수 있습니다. 예를 들어 "0"에서 "9"까지의 10진수 범위, "a"에서 "f"까지의 소문자 범위 및 "A"에서 "F"까지의 대문자 범위를 지정하려면 [0-9a-fA-F]를 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_range_short">
         <source>negative character range</source>
-        <target state="new">negative character range</target>
+        <target state="translated">부정 문자 범위</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
         <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="new">The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</target>
+        <target state="translated">정규식 구문 \P{ name }는 유니코드 일반 범주 또는 명명된 블록에 속하지 않는 모든 문자와 일치시킵니다. 여기서, name은 범주 약어 또는 명명된 블록 이름입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_short">
         <source>negative unicode category</source>
-        <target state="new">negative unicode category</target>
+        <target state="translated">부정 유니코드 범주</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_new_line_character_long">
         <source>Matches a new-line character, \u000A</source>
-        <target state="new">Matches a new-line character, \u000A</target>
+        <target state="translated">줄 바꿈 문자 \u000A와 일치시킵니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_new_line_character_short">
         <source>new-line character</source>
-        <target state="new">new-line character</target>
+        <target state="translated">줄 바꿈 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="new">no</target>
+        <target state="translated">아니요</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
         <source>\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
 
 If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</source>
-        <target state="new">\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
+        <target state="translated">\D는 숫자가 아닌 문자와 일치시킵니다. \P{Nd} 정규식 패턴과 같습니다.
 
-If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</target>
+ECMAScript 규격 동작을 지정한 경우 \D는 [^0-9]와 같습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_short">
         <source>non-digit character</source>
-        <target state="new">non-digit character</target>
+        <target state="translated">숫자가 아닌 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_white_space_character_long">
         <source>\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
 
 If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</source>
-        <target state="new">\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
+        <target state="translated">\S는 공백이 아닌 문자와 일치시킵니다. [^\f\n\r\t\v\x85\p{Z}] 정규식 패턴과 같거나, 공백 문자와 일치시키는 \s와 같은 정규식 패턴과 반대됩니다.
 
-If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</target>
+ECMAScript 규격 동작을 지정한 경우 \S는 [^ \f\n\r\t\v]와 같습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_white_space_character_short">
         <source>non-white-space character</source>
-        <target state="new">non-white-space character</target>
+        <target state="translated">공백이 아닌 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_boundary_long">
         <source>The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</source>
-        <target state="new">The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</target>
+        <target state="translated">\B 앵커는 단어 경계에서 일치 항목을 찾도록 지정합니다. \b 앵커와 반대입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_boundary_short">
         <source>non-word boundary</source>
-        <target state="new">non-word boundary</target>
+        <target state="translated">단어가 아닌 경계</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_character_long">
@@ -815,37 +815,37 @@ If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</source>
-        <target state="new">\W matches any non-word character. It matches any character except for those in the following Unicode categories:
+        <target state="translated">\W는 단어가 아닌 문자와 일치시킵니다. 다음 유니코드 범주의 문자를 제외한 모든 문자와 일치시킵니다.
 
-    Ll	Letter, Lowercase
-    Lu	Letter, Uppercase
-    Lt	Letter, Titlecase
-    Lo	Letter, Other
-    Lm	Letter, Modifier
-    Mn	Mark, Nonspacing
-    Nd	Number, Decimal Digit
-    Pc	Punctuation, Connector
+    Ll	문자, 소문자
+    Lu	문자, 대문자
+    Lt	문자, 첫 글자만 대문자
+    Lo	문자, 기타
+    Lm	문자, 한정자
+    Mn	표시, 공간을 차지하지 않는 문자
+    Nd	숫자, 10진수
+    Pc	문장 부호, 연결선
 
-If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</target>
+ECMAScript 규격 동작을 지정한 경우 \W는 [^a-zA-Z_0-9]와 같습니다.</target>
         <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized. </note>
       </trans-unit>
       <trans-unit id="Regex_non_word_character_short">
         <source>non-word character</source>
-        <target state="new">non-word character</target>
+        <target state="translated">단어가 아닌 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_long">
         <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
 
 This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
-        <target state="new">This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+        <target state="translated">이 구문은 역추적을 사용하지 않도록 설정합니다. 정규식 엔진은 입력 문자열에서 가능한 한 많은 문자와 일치시킵니다. 더 이상 일치 항목을 찾을 수 없으면 대체 패턴 일치 항목 찾기를 시도하도록 역추적하지 않습니다. 즉, 하위 식은 해당 하위 식 단독으로 일치되는 문자열만 일치시킵니다. 해당 하위 식과 그 뒤에 오는 하위 식을 기반으로 문자열을 일치시키지 않습니다.
 
-This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</target>
+이 옵션은 역추적이 성공하지 못할 것을 알고 있는 경우에 사용하는 것이 좋습니다. 정규식 엔진이 불필요한 검색을 수행하지 않도록 하면 성능이 향상됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_short">
         <source>nonbacktracking subexpression</source>
-        <target state="new">nonbacktracking subexpression</target>
+        <target state="translated">역추적하지 않는 하위 식</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_long">
@@ -854,230 +854,230 @@ This option is recommended if you know that backtracking will not succeed. Preve
 The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
 
 If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</source>
-        <target state="new">This construct does not capture the substring that is matched by a subexpression:
+        <target state="translated">이 구문은 하위 식으로 일치되는 하위 문자열을 캡처하지 않습니다.
 
-The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
+한정사가 그룹에 적용되는 경우 일반적으로 비캡처링 그룹 구문이 사용되지만 그룹에서 캡처된 하위 문자열과는 관련이 없습니다.
 
-If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</target>
+정규식에 중첩 그룹화 구문이 포함되는 경우 외부 비캡처링 그룹 구문은 내부 중첩 그룹 구문에 적용되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_short">
         <source>noncapturing group</source>
-        <target state="new">noncapturing group</target>
+        <target state="translated">비캡처링 그룹</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_decimal_digit">
         <source>number, decimal digit</source>
-        <target state="new">number, decimal digit</target>
+        <target state="translated">숫자, 10진수</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_letter">
         <source>number, letter</source>
-        <target state="new">number, letter</target>
+        <target state="translated">숫자, 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_other">
         <source>number, other</source>
-        <target state="new">number, other</target>
+        <target state="translated">숫자, 기타</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_numbered_backreference_long">
         <source>A numbered backreference, where 'number' is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
 
 There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</source>
-        <target state="new">A numbered backreference, where 'number' is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
+        <target state="translated">번호가 매겨진 역참조입니다. 여기서 'number'는 정규식에 있는 캡처링 그룹의 서수 위치입니다. 예를 들어 \4는 네 번째 캡처링 그룹의 콘텐츠와 일치시킵니다.
 
-There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</target>
+8진수 이스케이프 코드(예: \16) 및 동일한 표기법을 사용하는 \number 역참조 사이에는 모호성이 있습니다. 모호성 문제가 발생하는 경우 명확하며 8진수 문자 코드와 혼동되지 않는 \k&lt;이름&gt; 표기법을 사용할 수 있습니다. 마찬가지로, \xdd와 같은 16진수 코드는 명확하며 역참조와 혼동되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_numbered_backreference_short">
         <source>numbered backreference</source>
-        <target state="new">numbered backreference</target>
+        <target state="translated">번호가 매겨진 역참조</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_control">
         <source>other, control</source>
-        <target state="new">other, control</target>
+        <target state="translated">기타, 제어</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_format">
         <source>other, format</source>
-        <target state="new">other, format</target>
+        <target state="translated">기타, 형식</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_not_assigned">
         <source>other, not assigned</source>
-        <target state="new">other, not assigned</target>
+        <target state="translated">기타, 할당되지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_private_use">
         <source>other, private use</source>
-        <target state="new">other, private use</target>
+        <target state="translated">기타, 프라이빗 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_surrogate">
         <source>other, surrogate</source>
-        <target state="new">other, surrogate</target>
+        <target state="translated">기타, 서로게이트</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_group_long">
         <source>A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur.</source>
-        <target state="new">A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur.</target>
+        <target state="translated">긍정 문자 그룹은 일치 항목을 찾을 입력 문자열에 표시될 수 있는 문자 목록을 지정합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_group_short">
         <source>positive character group</source>
-        <target state="new">positive character group</target>
+        <target state="translated">긍정 문자 그룹</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_range_long">
         <source>A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  'firstCharacter' is the character that begins the range and 'lastCharacter' is the character that ends the range. </source>
-        <target state="new">A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  'firstCharacter' is the character that begins the range and 'lastCharacter' is the character that ends the range. </target>
+        <target state="translated">긍정 문자 범위는 일치 항목을 찾을 입력 문자열에 표시될 수 있는 문자 범위를 지정합니다. 'firstCharacter'는 범위를 시작하는 문자이고 'lastCharacter'는 범위를 끝내는 문자입니다. </target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_range_short">
         <source>positive character range</source>
-        <target state="new">positive character range</target>
+        <target state="translated">긍정 문자 범위</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_close">
         <source>punctuation, close</source>
-        <target state="new">punctuation, close</target>
+        <target state="translated">문장 부호, 닫기</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_connector">
         <source>punctuation, connector</source>
-        <target state="new">punctuation, connector</target>
+        <target state="translated">문장 부호, 연결선</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_dash">
         <source>punctuation, dash</source>
-        <target state="new">punctuation, dash</target>
+        <target state="translated">문장 부호, 대시</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_final_quote">
         <source>punctuation, final quote</source>
-        <target state="new">punctuation, final quote</target>
+        <target state="translated">문장 부호, 마지막 따옴표</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_initial_quote">
         <source>punctuation, initial quote</source>
-        <target state="new">punctuation, initial quote</target>
+        <target state="translated">문장 부호, 처음 따옴표</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_open">
         <source>punctuation, open</source>
-        <target state="new">punctuation, open</target>
+        <target state="translated">문장 부호, 열기</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_other">
         <source>punctuation, other</source>
-        <target state="new">punctuation, other</target>
+        <target state="translated">문장 부호, 기타</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_line">
         <source>separator, line</source>
-        <target state="new">separator, line</target>
+        <target state="translated">구분 기호, 줄</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_paragraph">
         <source>separator, paragraph</source>
-        <target state="new">separator, paragraph</target>
+        <target state="translated">구분 기호, 단락</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_space">
         <source>separator, space</source>
-        <target state="new">separator, space</target>
+        <target state="translated">구분 기호, 공백</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_only_long">
         <source>The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</source>
-        <target state="new">The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</target>
+        <target state="translated">\A 앵커는 입력 문자열의 시작 부분에서 일치 항목을 찾도록 지정합니다. \A가 RegexOptions.Multiline 옵션을 무시한다는 점을 제외하고는 ^ 앵커와 동일합니다. 따라서 여러 줄 입력 문자열에서 첫 번째 줄의 시작 부분만 찾을 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_only_short">
         <source>start of string only</source>
-        <target state="new">start of string only</target>
+        <target state="translated">문자열의 시작만</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_or_line_long">
         <source>The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</source>
-        <target state="new">The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</target>
+        <target state="translated">^ 앵커는 다음 패턴이 문자열의 첫 번째 문자 위치에서 시작하도록 지정합니다. ^ 기호를 RegexOptions.Multiline 옵션과 함께 사용하는 경우 각 줄의 시작 부분에 일치 항목이 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_or_line_short">
         <source>start of string or line</source>
-        <target state="new">start of string or line</target>
+        <target state="translated">문자열 또는 줄의 시작</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_subexpression">
         <source>subexpression</source>
-        <target state="new">subexpression</target>
+        <target state="translated">하위 식</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_currency">
         <source>symbol, currency</source>
-        <target state="new">symbol, currency</target>
+        <target state="translated">기호, 통화</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_math">
         <source>symbol, math</source>
-        <target state="new">symbol, math</target>
+        <target state="translated">기호, 수학</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_modifier">
         <source>symbol, modifier</source>
-        <target state="new">symbol, modifier</target>
+        <target state="translated">기호, 한정자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_other">
         <source>symbol, other</source>
-        <target state="new">symbol, other</target>
+        <target state="translated">기호, 기타</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_tab_character_long">
         <source>Matches a tab character, \u0009</source>
-        <target state="new">Matches a tab character, \u0009</target>
+        <target state="translated">탭 문자 \u0009와 일치시킵니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_tab_character_short">
         <source>tab character</source>
-        <target state="new">tab character</target>
+        <target state="translated">탭 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_long">
         <source>The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="new">The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</target>
+        <target state="translated">정규식 구문 \p{ name }는 유니코드 일반 범주 또는 명명된 블록에 속하는 모든 문자와 일치시킵니다. 여기서, name은 범주 약어 또는 명명된 블록 이름입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_short">
         <source>unicode category</source>
-        <target state="new">unicode category</target>
+        <target state="translated">유니코드 범주</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_escape_long">
         <source>Matches a UTF-16 code unit whose value is #### hexadecimal.</source>
-        <target state="new">Matches a UTF-16 code unit whose value is #### hexadecimal.</target>
+        <target state="translated">값이 #### 16진수인 UTF-16 코드 단위와 일치시킵니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_escape_short">
         <source>unicode escape</source>
-        <target state="new">unicode escape</target>
+        <target state="translated">유니코드 이스케이프</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_general_category_0">
         <source>Unicode General Category: {0}</source>
-        <target state="new">Unicode General Category: {0}</target>
+        <target state="translated">유니코드 일반 범주: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_vertical_tab_character_long">
         <source>Matches a vertical-tab character, \u000B</source>
-        <target state="new">Matches a vertical-tab character, \u000B</target>
+        <target state="translated">세로 탭 문자 \u000B와 일치시킵니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_vertical_tab_character_short">
         <source>vertical-tab character</source>
-        <target state="new">vertical-tab character</target>
+        <target state="translated">세로 탭 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_white_space_character_long">
@@ -1092,36 +1092,36 @@ There is an ambiguity between octal escape codes (such as \16) and \number backr
     \p{Z}	Matches any separator character
 
 If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</source>
-        <target state="new">\s matches any white-space character. It is equivalent to the following escape sequences and Unicode categories:
+        <target state="translated">\s는 공백 문자와 일치시킵니다. 다음 이스케이프 시퀀스 및 유니코드 범주와 같습니다.
 
-    \f	The form feed character, \u000C
-    \n	The newline character, \u000A
-    \r	The carriage return character, \u000D
-    \t	The tab character, \u0009
-    \v	The vertical tab character, \u000B
-    \x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
-    \p{Z}	Matches any separator character
+    \f	용지 공급 문자, \u000C
+    \n	줄 바꿈 문자, \u000A
+    \r	캐리지 리턴 문자, \u000D
+    \t	탭 문자, \u0009
+    \v	세로 탭 문자, \u000B
+    \x85	줄임표 또는 NEXT LINE(NEL) 문자(…), \u0085
+    \p{Z}	구분 문자와 일치시킵니다.
 
-If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</target>
+ECMAScript와 호환되는 동작을 지정한 경우 \s는 [ \f\n\r\t\v]와 같습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_white_space_character_short">
         <source>white-space character</source>
-        <target state="new">white-space character</target>
+        <target state="translated">공백 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_boundary_long">
         <source>The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
 
 The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</source>
-        <target state="new">The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
+        <target state="translated">\b 앵커는 단어 문자(\w 언어 요소)와 단어가 아닌 문자(\W 언어 요소) 사이의 경계에서 일치 항목을 찾도록 지정합니다. 단어 문자는 영숫자 문자 및 밑줄로 구성되고, 단어가 아닌 문자는 영숫자나 밑줄이 아닌 모든 문자입니다. 문자열의 시작 또는 끝부분 단어 경계에서 일치 항목을 찾을 수도 있습니다.
 
-The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</target>
+\b 앵커는 하위 식이 단어의 시작 또는 끝부분이 아닌 전체 단어를 일치시키도록 하는 데 자주 사용됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_boundary_short">
         <source>word boundary</source>
-        <target state="new">word boundary</target>
+        <target state="translated">단어 경계</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_character_long">
@@ -1137,84 +1137,84 @@ The \b anchor is frequently used to ensure that a subexpression matches an entir
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</source>
-        <target state="new">\w matches any word character. A word character is a member of any of the following Unicode categories:
+        <target state="translated">\w는 단어 문자와 일치시킵니다. 단어 문자는 다음 유니코드 범주의 멤버입니다.
 
-    Ll	Letter, Lowercase
-    Lu	Letter, Uppercase
-    Lt	Letter, Titlecase
-    Lo	Letter, Other
-    Lm	Letter, Modifier
-    Mn	Mark, Nonspacing
-    Nd	Number, Decimal Digit
-    Pc	Punctuation, Connector
+    Ll	문자, 소문자
+    Lu	문자, 대문자
+    Lt	문자, 첫 글자만 대문자
+    Lo	문자, 기타
+    Lm	문자, 한정자
+    Mn	표시, 공간을 차지하지 않는 문자
+    Nd	숫자, 10진수
+    Pc	문장 부호, 연결선
 
-If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</target>
+ECMAScript 규격 동작을 지정한 경우 \w는 [a-zA-Z_0-9]와 같습니다.</target>
         <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized.</note>
       </trans-unit>
       <trans-unit id="Regex_word_character_short">
         <source>word character</source>
-        <target state="new">word character</target>
+        <target state="translated">단어 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="new">yes</target>
+        <target state="translated">예</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
         <source>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
 
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
-        <target state="new">A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
+        <target state="translated">너비가 0인 부정 lookahead 어설션입니다. 여기서, 일치 항목을 찾으려면 입력 문자열이 하위 식의 정규식 패턴과 일치하면 안 됩니다. 일치하는 문자열은 일치 결과에 포함되지 않습니다.
 
-A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</target>
+너비가 0인 부정 lookahead 어설션은 일반적으로 정규식의 시작 부분이나 끝부분에 사용됩니다. 정규식의 시작 부분에서는 일치시켜야 하는 유사하지만 보다 일반적인 패턴을 정의할 때 일치시키면 안 되는 특정 패턴을 정의할 수 있습니다. 이 경우 보통 역추적을 제한하는 데 사용됩니다. 정규식의 끝부분에서는 일치 항목의 끝부분에 있으면 안 되는 하위 식을 정의할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
         <source>zero-width negative lookahead assertion</source>
-        <target state="new">zero-width negative lookahead assertion</target>
+        <target state="translated">너비가 0인 부정 lookahead 어설션</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_long">
         <source>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
 
 Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</source>
-        <target state="new">A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
+        <target state="translated">너비가 0인 부정 lookbehind 어설션입니다. 여기서, 일치 항목을 찾으려면 입력 문자열에서 현재 위치 왼쪽에 'subexpression'이 없어야 합니다. 'subexpression'과 일치하지 않는 하위 문자열은 일치 결과에 포함되지 않습니다.
 
-Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</target>
+너비가 0인 부정 lookbehind 어설션은 일반적으로 정규식의 시작 부분에 사용됩니다. 어설션이 정의하는 패턴은 뒤에 오는 문자열에 일치 항목이 없도록 합니다. 캡처된 그룹에 있는 마지막 문자가 해당 그룹의 정규식 패턴과 일치하는 하나 이상의 문자가 아니어야 하는 경우 역추적을 제한하는 데도 사용됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_short">
         <source>zero-width negative lookbehind assertion</source>
-        <target state="new">zero-width negative lookbehind assertion</target>
+        <target state="translated">너비가 0인 부정 lookbehind 어설션</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_long">
         <source>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
 
 Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</source>
-        <target state="new">A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+        <target state="translated">너비가 0인 긍정 lookahead 어설션입니다. 여기서, 일치 항목을 찾으려면 입력 문자열이 'subexpression'의 정규식 패턴과 일치해야 합니다. 일치된 하위 문자열은 일치 결과에 포함되지 않습니다. 너비가 0인 긍정 lookahead 어설션은 역추적하지 않습니다.
 
-Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</target>
+일반적으로 너비가 0인 긍정 lookahead 어설션은 정규식 패턴 끝에 있습니다. 이 어설션은 일치 항목을 찾을 문자열 끝에 있어야 하지만 일치에 포함되면 안 되는 하위 문자열을 정의합니다. 또한, 과도한 역추적을 방지하는 데에도 유용합니다. 너비가 0인 긍정 lookahead 어설션을 사용하면 캡처된 특정 그룹이 이 캡처된 그룹에 정의된 패턴의 하위 집합과 일치하는 텍스트로 시작하도록 할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_short">
         <source>zero-width positive lookahead assertion</source>
-        <target state="new">zero-width positive lookahead assertion</target>
+        <target state="translated">너비가 0인 긍정 lookahead 어설션</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_long">
         <source>A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
 
 Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</source>
-        <target state="new">A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
+        <target state="translated">너비가 0인 긍정 lookbehind 어설션입니다. 여기서, 일치 항목을 찾으려면 입력 문자열에서 현재 위치 왼쪽에 'subexpression'이 있어야 합니다. 'subexpression'은 일치 결과에 포함되지 않습니다. 너비가 0인 긍정 lookbehind 어설션은 역추적하지 않습니다.
 
-Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</target>
+너비가 0인 긍정 lookbehind 어설션은 일반적으로 정규식의 시작 부분에 사용됩니다. 어설션이 정의하는 패턴은 일치 항목의 사전 조건이지만 일치 결과에 포함되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
         <source>zero-width positive lookbehind assertion</source>
-        <target state="new">zero-width positive lookbehind assertion</target>
+        <target state="translated">너비가 0인 긍정 lookbehind 어설션</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
@@ -1224,7 +1224,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
-        <target state="new">Removing analyzer config documents is not supported.</target>
+        <target state="translated">분석기 구성 문서 제거는 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -1304,47 +1304,47 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Symbol_specifications">
         <source>Symbol specifications</source>
-        <target state="new">Symbol specifications</target>
+        <target state="translated">기호 사양</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">
         <source>Base Type</source>
-        <target state="new">Base Type</target>
+        <target state="translated">기본 형식</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Construct">
         <source>Construct</source>
-        <target state="new">Construct</target>
+        <target state="translated">구문</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Declare">
         <source>Declare</source>
-        <target state="new">Declare</target>
+        <target state="translated">선언</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Import">
         <source>Import</source>
-        <target state="new">Import</target>
+        <target state="translated">가져오기</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
         <source>Qualify</source>
-        <target state="new">Qualify</target>
+        <target state="translated">한정</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
         <source>Type Argument</source>
-        <target state="new">Type Argument</target>
+        <target state="translated">형식 인수</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
         <source>Type Constraint</source>
-        <target state="new">Type Constraint</target>
+        <target state="translated">형식 제약 조건</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Name">
         <source>Name</source>
-        <target state="new">Name</target>
+        <target state="translated">이름</target>
         <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
@@ -1949,17 +1949,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Private_Method">
         <source>Private Method</source>
-        <target state="translated">전용 메서드</target>
+        <target state="translated">프라이빗 메서드</target>
         <note>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
       <trans-unit id="Private_or_Internal_Field">
         <source>Private or Internal Field</source>
-        <target state="translated">전용 또는 내부 필드</target>
+        <target state="translated">프라이빗 또는 내부 필드</target>
         <note>{locked: private}{locked: internal}{locked:field}</note>
       </trans-unit>
       <trans-unit id="Private_or_Internal_Static_Field">
         <source>Private or Internal Static Field</source>
-        <target state="translated">전용 또는 내부 정적 필드</target>
+        <target state="translated">프라이빗 또는 내부 정적 필드</target>
         <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
       </trans-unit>
       <trans-unit id="Property">
@@ -2244,17 +2244,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Read">
         <source>Read</source>
-        <target state="needs-review-translation">읽기</target>
+        <target state="translated">읽기</target>
         <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Reference">
         <source>Reference</source>
-        <target state="needs-review-translation">참조</target>
+        <target state="translated">참조</target>
         <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Write">
         <source>Write</source>
-        <target state="needs-review-translation">쓰기</target>
+        <target state="translated">쓰기</target>
         <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Parameter_preferences">

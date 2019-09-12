@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -118,58 +119,35 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 }
             }
 
-            context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
-                FeaturesResources.Convert_to_struct,
-                scopes.ToImmutableAndFree(),
-                isInlinable: false));
+            context.RegisterRefactoring(
+                new CodeAction.CodeActionWithNestedActions(
+                    FeaturesResources.Convert_to_struct,
+                    scopes.ToImmutableAndFree(),
+                    isInlinable: false),
+                tupleExprOrTypeNode.Span);
         }
 
         private CodeAction CreateAction(CodeRefactoringContext context, Scope scope)
             => new MyCodeAction(GetTitle(scope), c => ConvertToStructAsync(context.Document, context.Span, scope, c));
 
         private static string GetTitle(Scope scope)
-        {
-            switch (scope)
+            => scope switch
             {
-                case Scope.ContainingMember: return FeaturesResources.updating_usages_in_containing_member;
-                case Scope.ContainingType: return FeaturesResources.updating_usages_in_containing_type;
-                case Scope.ContainingProject: return FeaturesResources.updating_usages_in_containing_project;
-                case Scope.DependentProjects: return FeaturesResources.updating_usages_in_dependent_projects;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(scope);
-            }
-        }
+                Scope.ContainingMember => FeaturesResources.updating_usages_in_containing_member,
+                Scope.ContainingType => FeaturesResources.updating_usages_in_containing_type,
+                Scope.ContainingProject => FeaturesResources.updating_usages_in_containing_project,
+                Scope.DependentProjects => FeaturesResources.updating_usages_in_dependent_projects,
+                _ => throw ExceptionUtilities.UnexpectedValue(scope),
+            };
 
         private async Task<(SyntaxNode, INamedTypeSymbol)> TryGetTupleInfoAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-
-            // Span actually has to be within the token (i.e. not in trivia around it).
-            if (!token.Span.IntersectsWith(position))
-            {
-                return default;
-            }
-
-            if (!span.IsEmpty && span != token.Span)
-            {
-                // if there is a selection, it has to be of the whole token.
-                return default;
-            }
-
-            var tupleExprNode = token.Parent as TTupleExpressionSyntax;
-            var tupleTypeNode = token.Parent as TTupleTypeSyntax;
-            if (tupleExprNode == null && tupleTypeNode == null)
-            {
-                return default;
-            }
-
-            var expressionOrType = tupleExprNode ?? (SyntaxNode)tupleTypeNode;
-
-            // The position/selection must be of the open paren for the tuple, or the entire tuple.
-            if (expressionOrType.GetFirstToken() != token)
+            // Enable refactoring either for TupleExpression or TupleType
+            var expressionOrType =
+                await document.TryGetRelevantNodeAsync<TTupleTypeSyntax>(span, cancellationToken).ConfigureAwait(false) as SyntaxNode ??
+                await document.TryGetRelevantNodeAsync<TTupleExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
+            if (expressionOrType == null)
             {
                 return default;
             }
@@ -337,22 +315,17 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             Document document, SyntaxNode tupleExprOrTypeNode,
             INamedTypeSymbol tupleType, Scope scope, CancellationToken cancellationToken)
         {
-            switch (scope)
+            return scope switch
             {
-                case Scope.ContainingMember:
-                    return GetDocumentsToUpdateForContainingMember(document, tupleExprOrTypeNode);
-                case Scope.ContainingType:
-                    return await GetDocumentsToUpdateForContainingTypeAsync(
-                        document, tupleExprOrTypeNode, cancellationToken).ConfigureAwait(false);
-                case Scope.ContainingProject:
-                    return await GetDocumentsToUpdateForContainingProjectAsync(
-                        document.Project, tupleType, cancellationToken).ConfigureAwait(false);
-                case Scope.DependentProjects:
-                    return await GetDocumentsToUpdateForDependentProjectAsync(
-                        document.Project, tupleType, cancellationToken).ConfigureAwait(false);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(scope);
-            }
+                Scope.ContainingMember => GetDocumentsToUpdateForContainingMember(document, tupleExprOrTypeNode),
+                Scope.ContainingType => await GetDocumentsToUpdateForContainingTypeAsync(
+                    document, tupleExprOrTypeNode, cancellationToken).ConfigureAwait(false),
+                Scope.ContainingProject => await GetDocumentsToUpdateForContainingProjectAsync(
+                    document.Project, tupleType, cancellationToken).ConfigureAwait(false),
+                Scope.DependentProjects => await GetDocumentsToUpdateForDependentProjectAsync(
+                    document.Project, tupleType, cancellationToken).ConfigureAwait(false),
+                _ => throw ExceptionUtilities.UnexpectedValue(scope),
+            };
         }
 
         private static async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForDependentProjectAsync(
@@ -496,7 +469,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 var options = new CodeGenerationOptions(
                     generateMembers: true,
                     sortMembers: false,
-                    autoInsertionLocation: false);
+                    autoInsertionLocation: false,
+                    parseOptions: root.SyntaxTree.Options);
 
                 return codeGenService.AddNamedType(
                     currentContainer, namedTypeSymbol, options, cancellationToken);
@@ -567,8 +541,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var changed = false;
             foreach (var childCreation in childCreationNodes)
             {
-                var childType = semanticModel.GetTypeInfo(childCreation, cancellationToken).Type as INamedTypeSymbol;
-                if (childType == null)
+                if (!(semanticModel.GetTypeInfo(childCreation, cancellationToken).Type is INamedTypeSymbol childType))
                 {
                     Debug.Fail("We should always be able to get an tuple type for any tuple expression node.");
                     continue;
@@ -676,8 +649,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var changed = false;
             foreach (var childTupleType in childTupleNodes)
             {
-                var childType = semanticModel.GetTypeInfo(childTupleType, cancellationToken).Type as INamedTypeSymbol;
-                if (childType == null)
+                if (!(semanticModel.GetTypeInfo(childTupleType, cancellationToken).Type is INamedTypeSymbol childType))
                 {
                     Debug.Fail("We should always be able to get an tuple type for any tuple type syntax node.");
                     continue;

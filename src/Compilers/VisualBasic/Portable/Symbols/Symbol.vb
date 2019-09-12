@@ -1212,6 +1212,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #End Region
 
+        Protected Shared Function ConstructTypeArguments(ParamArray typeArguments() As ITypeSymbol) As ImmutableArray(Of TypeSymbol)
+            Dim builder = ArrayBuilder(Of TypeSymbol).GetInstance(typeArguments.Length)
+            For Each typeArg In typeArguments
+                builder.Add(typeArg.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(typeArguments)))
+            Next
+            Return builder.ToImmutableAndFree()
+        End Function
+
+        Protected Shared Function ConstructTypeArguments(typeArguments As ImmutableArray(Of ITypeSymbol), typeArgumentNullableAnnotations As ImmutableArray(Of CodeAnalysis.NullableAnnotation)) As ImmutableArray(Of TypeSymbol)
+            If typeArguments.IsDefault Then
+                Throw New ArgumentException(NameOf(typeArguments))
+            End If
+
+            Dim n = typeArguments.Length
+            If Not typeArgumentNullableAnnotations.IsDefault AndAlso typeArgumentNullableAnnotations.Length <> n Then
+                Throw New ArgumentException(NameOf(typeArgumentNullableAnnotations))
+            End If
+
+            Return typeArguments.SelectAsArray(Function(typeArg) typeArg.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(typeArguments)))
+        End Function
+
         Private Overloads Function IFormattable_ToString(format As String, formatProvider As IFormatProvider) As String Implements IFormattable.ToString
             Return ToString()
         End Function

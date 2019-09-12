@@ -43,16 +43,11 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="$(MicrosoftDiagnosticsRuntimeVersion)" />
-    <!-- 
-      Required to avoid double write of System.Threading.Tasks.Dataflow.dll caused by both 
-      Microsoft.VisualStudio.ProjectSystem and Microsoft.VisualStudio.Composition containing it.
-      This is tracked by CPS issue https://devdiv.visualstudio.com/DevDiv/_workitems/edit/547065.
-      Remove this reference once it's fixed.
-     -->
-    <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Test\Diagnostics\Roslyn.Hosting.Diagnostics.csproj">

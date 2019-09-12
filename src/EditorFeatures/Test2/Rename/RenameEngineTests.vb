@@ -6187,6 +6187,37 @@ End Class
             End Using
         End Sub
 
+        <WorkItem(963225, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/963225")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameShouldIgnoreUnchangeableDocument()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#">
+                        <Document>
+                            class [|$$A|]
+                            {
+                                void M()
+                                {
+                                    [|A|] a = new [|A|]();
+                                }
+                            }
+                        </Document>
+                        <Document CanApplyChange="false">
+                            class B
+                            {
+                                void M()
+                                {
+                                    {|stmt:A|} a;
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="C")
+
+                result.AssertLabeledSpansAre("stmt", "A", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
 #Region "Rename in strings/comments"
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>

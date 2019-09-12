@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var lambda = await context.TryGetSelectedNodeAsync<LambdaExpressionSyntax>().ConfigureAwait(false);
+            var lambda = await context.TryGetRelevantNodeAsync<LambdaExpressionSyntax>().ConfigureAwait(false);
             if (lambda == null)
             {
                 return;
@@ -48,12 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Simplify_lambda_expression,
-                    c => SimplifyLambdaAsync(document, lambda, c)));
+                    c => SimplifyLambdaAsync(document, lambda, c)),
+                lambda.Span);
 
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Simplify_all_occurrences,
-                    c => SimplifyAllLambdasAsync(document, c)));
+                    c => SimplifyAllLambdasAsync(document, c)),
+                lambda.Span);
         }
 
         private async Task<Document> SimplifyLambdaAsync(
@@ -150,10 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 // Don't offer this if there are any errors or ambiguities.
                 return false;
             }
-
-            var lambdaMethod = lambdaSemanticInfo.Symbol as IMethodSymbol;
-            var invocationMethod = invocationSemanticInfo.Symbol as IMethodSymbol;
-            if (lambdaMethod == null || invocationMethod == null)
+            if (!(lambdaSemanticInfo.Symbol is IMethodSymbol lambdaMethod) || !(invocationSemanticInfo.Symbol is IMethodSymbol invocationMethod))
             {
                 return false;
             }

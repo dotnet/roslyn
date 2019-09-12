@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (ReferenceEquals(_lazyDeclaredBaseType, ErrorTypeSymbol.UnknownResultType))
             {
                 var baseType = MakeDeclaredBaseType();
-                if (!(baseType is null))
+                if (baseType is object)
                 {
                     if (skipTransformsIfNecessary)
                     {
@@ -1692,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
             }
 
-            if (BaseTypeAnalysis.ClassDependsOn(declaredBase, this))
+            if (BaseTypeAnalysis.TypeDependsOn(declaredBase, this))
             {
                 return CyclicInheritanceError(this, declaredBase);
             }
@@ -1711,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return declaredInterfaces
-                .SelectAsArray(t => BaseTypeAnalysis.InterfaceDependsOn(t, this) ? CyclicInheritanceError(this, t) : t);
+                .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, this) ? CyclicInheritanceError(this, t) : t);
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))

@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddRequiredParentheses = "CodeActions.AddRequiredParentheses";
             public const string CodeActionsAddShadows = "CodeActions.AddShadows";
             public const string CodeActionsAliasAmbiguousType = "CodeActions.AliasAmbiguousType";
+            public const string CodeActionsAssignOutParameters = "CodeActions.AssignOutParameters";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
             public const string CodeActionsChangeToIEnumerable = "CodeActions.ChangeToIEnumerable";
             public const string CodeActionsChangeToYield = "CodeActions.ChangeToYield";
@@ -256,12 +257,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
             public const string TodoComments = nameof(TodoComments);
+            public const string ToggleBlockComment = nameof(ToggleBlockComment);
+            public const string ToggleLineComment = nameof(ToggleLineComment);
             public const string TypeInferenceService = nameof(TypeInferenceService);
             public const string ValidateFormatString = nameof(ValidateFormatString);
             public const string ValidateRegexString = nameof(ValidateRegexString);
             public const string Venus = nameof(Venus);
             public const string VsLanguageBlock = nameof(VsLanguageBlock);
             public const string VsNavInfo = nameof(VsNavInfo);
+            public const string VsSearch = nameof(VsSearch);
             public const string WinForms = nameof(WinForms);
             public const string Workspace = nameof(Workspace);
             public const string XmlTagCompletion = nameof(XmlTagCompletion);

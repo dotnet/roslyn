@@ -151,9 +151,11 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
         private void RegisterRefactoring(
             CodeRefactoringContext context, TextSpan expandedSpan, string replacement)
         {
-            context.RegisterRefactoring(new MyCodeAction(
-                string.Format(FeaturesResources.Use_0, replacement),
-                c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    string.Format(FeaturesResources.Use_0, replacement),
+                    c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c)),
+                expandedSpan);
         }
 
         private async Task<Document> ReplaceTextAsync(

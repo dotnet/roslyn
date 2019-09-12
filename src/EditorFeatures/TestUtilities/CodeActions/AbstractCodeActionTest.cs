@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
             var actions = refactoring == null
                 ? ImmutableArray<CodeAction>.Empty
-                : refactoring.Actions;
+                : refactoring.CodeActions.Select(n => n.action).AsImmutable();
             actions = MassageActions(actions);
             return (actions, actions.IsDefaultOrEmpty ? null : actions[parameters.index]);
         }
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var documentsWithSelections = workspace.Documents.Where(d => !d.IsLinkFile && d.SelectedSpans.Count == 1);
             Debug.Assert(documentsWithSelections.Count() == 1, "One document must have a single span annotation");
             var span = documentsWithSelections.Single().SelectedSpans.Single();
-            var actions = ArrayBuilder<CodeAction>.GetInstance();
+            var actions = ArrayBuilder<(CodeAction, TextSpan?)>.GetInstance();
             var document = workspace.CurrentSolution.GetDocument(documentsWithSelections.Single().Id);
-            var context = new CodeRefactoringContext(document, span, actions.Add, CancellationToken.None);
+            var context = new CodeRefactoringContext(document, span, (a, t) => actions.Add((a, t)), isBlocking: false, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);
 
             var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable()) : null;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeAction action,
             string expectedPreviewContents = null)
         {
-            var operations = await VerifyActionAndGetOperationsAsync(action, default);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
 
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 

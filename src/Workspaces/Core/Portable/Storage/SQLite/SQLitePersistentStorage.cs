@@ -233,64 +233,62 @@ namespace Microsoft.CodeAnalysis.SQLite
         public void Initialize(Solution solution)
         {
             // Create a connection to the DB and ensure it has tables for the types we care about. 
-            using (var pooledConnection = GetPooledConnection())
-            {
-                var connection = pooledConnection.Connection;
+            using var pooledConnection = GetPooledConnection();
+            var connection = pooledConnection.Connection;
 
-                // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
-                // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
-                // Also, WAL allows for relaxed ("normal") "synchronous" mode, see below.
-                connection.ExecuteCommand("pragma journal_mode=wal", throwOnError: false);
+            // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
+            // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
+            // Also, WAL allows for relaxed ("normal") "synchronous" mode, see below.
+            connection.ExecuteCommand("pragma journal_mode=wal", throwOnError: false);
 
-                // Set "synchronous" mode to "normal" instead of default "full" to reduce the amount of buffer flushing syscalls,
-                // significantly reducing both the blocked time and the amount of context switches.
-                // When coupled with WAL, this (according to https://sqlite.org/pragma.html#pragma_synchronous and 
-                // https://www.sqlite.org/wal.html#performance_considerations) is unlikely to significantly affect durability,
-                // while significantly increasing performance, because buffer flushing is done for each checkpoint, instead of each
-                // transaction. While some writes can be lost, they are never reordered, and higher layers will recover from that.
-                connection.ExecuteCommand("pragma synchronous=normal", throwOnError: false);
+            // Set "synchronous" mode to "normal" instead of default "full" to reduce the amount of buffer flushing syscalls,
+            // significantly reducing both the blocked time and the amount of context switches.
+            // When coupled with WAL, this (according to https://sqlite.org/pragma.html#pragma_synchronous and 
+            // https://www.sqlite.org/wal.html#performance_considerations) is unlikely to significantly affect durability,
+            // while significantly increasing performance, because buffer flushing is done for each checkpoint, instead of each
+            // transaction. While some writes can be lost, they are never reordered, and higher layers will recover from that.
+            connection.ExecuteCommand("pragma synchronous=normal", throwOnError: false);
 
-                // First, create all our tables
-                connection.ExecuteCommand(
+            // First, create all our tables
+            connection.ExecuteCommand(
 $@"create table if not exists ""{StringInfoTableName}"" (
     ""{DataIdColumnName}"" integer primary key autoincrement not null,
     ""{DataColumnName}"" varchar)");
 
-                // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
-                // We don't allow duplicate strings in this table.
-                connection.ExecuteCommand(
+            // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
+            // We don't allow duplicate strings in this table.
+            connection.ExecuteCommand(
 $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on ""{StringInfoTableName}""(""{DataColumnName}"")");
 
-                connection.ExecuteCommand(
+            connection.ExecuteCommand(
 $@"create table if not exists ""{SolutionDataTableName}"" (
     ""{DataIdColumnName}"" varchar primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
-                connection.ExecuteCommand(
+            connection.ExecuteCommand(
 $@"create table if not exists ""{ProjectDataTableName}"" (
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
-                connection.ExecuteCommand(
+            connection.ExecuteCommand(
 $@"create table if not exists ""{DocumentDataTableName}"" (
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
-                // Also get the known set of string-to-id mappings we already have in the DB.
-                // Do this in one batch if possible.
-                var fetched = TryFetchStringTable(connection);
+            // Also get the known set of string-to-id mappings we already have in the DB.
+            // Do this in one batch if possible.
+            var fetched = TryFetchStringTable(connection);
 
-                // If we weren't able to retrieve the entire string table in one batch,
-                // attempt to retrieve it for each 
-                var fetchStringTable = !fetched;
+            // If we weren't able to retrieve the entire string table in one batch,
+            // attempt to retrieve it for each 
+            var fetchStringTable = !fetched;
 
-                // Try to bulk populate all the IDs we'll need for strings/projects/documents.
-                // Bulk population is much faster than trying to do everything individually.
-                BulkPopulateIds(connection, solution, fetchStringTable);
-            }
+            // Try to bulk populate all the IDs we'll need for strings/projects/documents.
+            // Bulk population is much faster than trying to do everything individually.
+            BulkPopulateIds(connection, solution, fetchStringTable);
         }
     }
 }

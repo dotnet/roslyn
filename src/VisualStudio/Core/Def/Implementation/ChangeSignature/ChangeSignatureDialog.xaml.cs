@@ -129,8 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             if (Members.SelectedIndex >= 0)
             {
-                var row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as DataGridRow;
-                if (row == null)
+                if (!(Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is DataGridRow row))
                 {
                     Members.ScrollIntoView(Members.SelectedItem);
                     row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as DataGridRow;

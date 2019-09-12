@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                c => ConvertToClassAsync(document, textSpan, c)));
+                c => ConvertToClassAsync(document, textSpan, c)),
+                anonymousObject.Span);
         }
 
         private async Task<(TAnonymousObjectCreationExpressionSyntax, INamedTypeSymbol)> TryGetAnonymousObjectAsync(
@@ -71,9 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // Due to the way `TryGetSelectedNodeAsync` works and how `TAnonymousObjectCreationExpressionSyntax` is e.g. for C# constructed
             // it matches even when caret is next to some tokens within the anonymous object creation node.
             // E.g.: `var a = new [||]{ b=1,[||] c=2 };` both match due to the caret being next to `,` and `{`.
-            var helper = document.GetLanguageService<IRefactoringHelpersService>();
-            var anonymousObject = await helper.TryGetSelectedNodeAsync<TAnonymousObjectCreationExpressionSyntax>(
-                document, span, cancellationToken).ConfigureAwait(false);
+            var anonymousObject = await document.TryGetRelevantNodeAsync<TAnonymousObjectCreationExpressionSyntax>(
+                span, cancellationToken).ConfigureAwait(false);
             if (anonymousObject == null)
             {
                 return default;
@@ -140,7 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 var options = new CodeGenerationOptions(
                     generateMembers: true,
                     sortMembers: false,
-                    autoInsertionLocation: false);
+                    autoInsertionLocation: false,
+                    parseOptions: root.SyntaxTree.Options);
 
                 return codeGenService.AddNamedType(
                     currentContainer, namedTypeSymbol, options, cancellationToken);
@@ -170,8 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                     continue;
                 }
 
-                var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).GetAnySymbol() as IPropertySymbol;
-                if (symbol == null)
+                if (!(semanticModel.GetSymbolInfo(identifier, cancellationToken).GetAnySymbol() is IPropertySymbol symbol))
                 {
                     continue;
                 }

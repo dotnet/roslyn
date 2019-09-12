@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseNamedArguments
 {
@@ -29,35 +30,8 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             {
                 var (document, textSpan, cancellationToken) = context;
 
-                var argument = await context.TryGetSelectedNodeAsync<TSimpleArgumentSyntax>().ConfigureAwait(false);
-                if (argument == null && textSpan.IsEmpty)
-                {
-                    // For arguments we want to enable cursor anywhere in the expressions (even deep within) as long as
-                    // it is on the first line of said expression. Since the `TryGetSelectedNodeAsync` doesn't do such
-                    // traversing up & checking line numbers -> need to do it manually.
-                    // The rationale for only first line is that arg. expressions can be arbitrarily large. 
-                    // see: https://github.com/dotnet/roslyn/issues/18848
-
-                    var position = textSpan.Start;
-                    var token = root.FindToken(position);
-
-                    argument = root.FindNode(token.Span).FirstAncestorOrSelfUntil<TBaseArgumentSyntax>(node => node is TArgumentListSyntax) as TSimpleArgumentSyntax;
-                    if (argument == null)
-                    {
-                        return;
-                    }
-
-                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                    var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
-                    var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
-
-                    if (argumentStartLine != caretLine)
-                    {
-                        return;
-                    }
-                }
-
+                var potentialArguments = await document.GetRelevantNodesAsync<TBaseArgumentSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
+                var argument = potentialArguments.FirstOrDefault(n => n?.Parent is TArgumentListSyntax) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;
@@ -93,8 +67,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     return;
                 }
 
-                var argumentList = argument.Parent as TArgumentListSyntax;
-                if (argumentList == null)
+                if (!(argument.Parent is TArgumentListSyntax argumentList))
                 {
                     return;
                 }
@@ -128,19 +101,22 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     context.RegisterRefactoring(
                         new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false)));
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false)),
+                        argument.Span);
 
                     context.RegisterRefactoring(
                         new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0_including_trailing_arguments, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)));
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)),
+                        argument.Span);
                 }
                 else
                 {
                     context.RegisterRefactoring(
                         new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)));
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)),
+                        argument.Span);
                 }
             }
 

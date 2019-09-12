@@ -80,14 +80,16 @@
     <ProjectReference Include="..\..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
-    <ProjectReference Include="..\..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" Aliases="InteractiveHost" />
+    <ProjectReference Include="..\..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" PrivateAssets="all" Aliases="InteractiveHost" />
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.TestWindow.CodeLens" Key="$(UnitTestingKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" WorkItem="https://github.com/dotnet/roslyn/issues/35078" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" WorkItem="https://github.com/dotnet/roslyn/issues/35078" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
@@ -111,6 +113,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
+    <internalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.IntegrationTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ErrorList.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
@@ -177,6 +180,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion)" />
     <PackageReference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" Version="$(MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="$(MicrosoftVisualStudioProgressionCodeSchemaVersion)" />
