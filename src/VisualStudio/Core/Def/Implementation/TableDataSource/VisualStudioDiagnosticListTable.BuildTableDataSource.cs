@@ -71,10 +71,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return data;
                 }
 
-                public override object Key => _source._key;
-                public override string BuildTool => PredefinedBuildTools.Build;
-                public override DocumentId TrackingDocumentId => null;
-
                 public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
                 {
                     return new TableEntriesSource(this);
@@ -106,7 +102,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     public override object Key => _source._key;
                     public override string BuildTool => PredefinedBuildTools.Build;
-                    public override bool SupportSpanTracking => false;
                     public override DocumentId TrackingDocumentId => Contract.FailWithReturn<DocumentId>("This should never be called");
 
                     public override ImmutableArray<DiagnosticTableItem> GetItems()

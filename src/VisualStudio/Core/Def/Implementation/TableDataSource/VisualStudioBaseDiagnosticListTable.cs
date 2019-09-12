@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -112,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return false;
                 }
 
-                return this.DocumentIds == other.DocumentIds && this.Analyzer == other.Analyzer && this.Kind == other.Kind;
+                return DocumentIds == other.DocumentIds && Analyzer == other.Analyzer && Kind == other.Kind;
             }
 
             public override int GetHashCode()

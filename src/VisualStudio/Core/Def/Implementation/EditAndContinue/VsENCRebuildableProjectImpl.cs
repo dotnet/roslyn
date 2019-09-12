@@ -765,7 +765,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 if (!delta.EmitResult.Success)
                 {
                     var errors = delta.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
-                    _diagnosticProvider.ReportDiagnostics(_workspace, _projectBeingEmitted.Solution, _project.Id, errors);
+                    // _diagnosticProvider.ReportDiagnostics(_workspace, _projectBeingEmitted.Solution, _project.Id, errors);
                     _encService.EditSession.LogEmitProjectDeltaErrors(errors.Select(e => e.Id));
 
                     return VSConstants.E_FAIL;
@@ -1020,11 +1020,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     isEnabledByDefault: true,
                     customTags: DiagnosticCustomTags.EditAndContinue);
 
-                _diagnosticProvider.ReportDiagnostics(
-                    _workspace,
-                    _encService.DebuggingSession.InitialSolution,
-                    _project.Id,
-                    new[] { Diagnostic.Create(descriptor, Location.None, args) });
+                //_diagnosticProvider.ReportDiagnostics(
+                //    _workspace,
+                //    _encService.DebuggingSession.InitialSolution,
+                //    _project.Id,
+                //    new[] { Diagnostic.Create(descriptor, Location.None, args) });
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {

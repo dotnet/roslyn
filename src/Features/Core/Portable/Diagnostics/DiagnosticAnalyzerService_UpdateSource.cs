@@ -102,13 +102,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         bool IDiagnosticUpdateSource.SupportGetDiagnostics => true;
 
         ImmutableArray<DiagnosticData> IDiagnosticUpdateSource.GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-        {
-            if (id != null)
-            {
-                return GetSpecificCachedDiagnosticsAsync(workspace, id, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-            }
-
-            return GetCachedDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-        }
+            => GetSpecificCachedDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
     }
 }

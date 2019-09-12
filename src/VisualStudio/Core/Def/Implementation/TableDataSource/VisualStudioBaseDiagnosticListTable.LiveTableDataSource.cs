@@ -111,13 +111,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return GetItemKey(data);
                 }
 
-                if (!(args.Id is LiveDiagnosticUpdateArgsId liveArgsId))
+#if F
+                if (args.Id is LiveDiagnosticUpdateArgsId liveArgsId)
                 {
-                    return GetItemKey(data);
+                    var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
+                    return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
                 }
 
-                var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
-                return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
+#endif
+                return GetItemKey(data);
             }
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
@@ -408,7 +410,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override bool TryNavigateTo(int index, bool previewTab)
                     => TryNavigateToItem(index, previewTab);
 
-                #region IWpfTableEntriesSnapshot
+#region IWpfTableEntriesSnapshot
 
                 public bool CanCreateDetailsContent(int index)
                 {
@@ -512,12 +514,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return false;
                 }
 
-                #endregion
+#endregion
             }
 
             private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
             {
                 var id = e.Id.ToString();
+#if TODO
                 if (e.Id is LiveDiagnosticUpdateArgsId live)
                 {
                     id = $"{live.Analyzer.ToString()}/{live.Kind}";
@@ -526,7 +529,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                     id = analyzer.Analyzer.ToString();
                 }
-
+#endif
                 return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, e.Diagnostics)})";
             }
         }

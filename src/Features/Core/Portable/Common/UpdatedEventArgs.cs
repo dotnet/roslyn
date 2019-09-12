@@ -8,12 +8,12 @@ namespace Microsoft.CodeAnalysis.Common
     internal class UpdatedEventArgs : EventArgs
     {
         /// <summary>
-        /// The identity of update group. 
+        /// The identity of update group.
         /// </summary>
         public object Id { get; }
 
         /// <summary>
-        /// Optional name of the build tool. 
+        /// Optional name of the build tool.
         /// </summary>
         public string BuildTool { get; }
 

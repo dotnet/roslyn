@@ -168,11 +168,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Workspace workspace, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(workspace, out var analyzer))
             {
-                return analyzer.GetSpecificCachedDiagnosticsAsync(workspace.CurrentSolution, id, includeSuppressedDiagnostics, cancellationToken);
+                return analyzer.GetSpecificCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();

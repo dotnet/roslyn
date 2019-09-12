@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,14 +12,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
-            return new IDECachedDiagnosticGetter(this, solution, id, includeSuppressedDiagnostics).GetSpecificDiagnosticsAsync(cancellationToken);
+            return new IDECachedDiagnosticGetter(this, solution, projectId, documentId, id, includeSuppressedDiagnostics).GetSpecificDiagnosticsAsync(cancellationToken);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
-            return new IDECachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics).GetDiagnosticsAsync(cancellationToken);
+            return new IDECachedDiagnosticGetter(this, solution, projectId, documentId, id: null, includeSuppressedDiagnostics).GetDiagnosticsAsync(cancellationToken);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
@@ -70,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Id = id;
                 IncludeSuppressedDiagnostics = includeSuppressedDiagnostics;
 
+#if TODO
                 // try to retrieve projectId/documentId from id if possible.
                 if (id is LiveDiagnosticUpdateArgsId argsId)
                 {
@@ -77,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     CurrentProjectId ??= (argsId.Key as ProjectId) ?? CurrentDocumentId.ProjectId;
                 }
 
+#endif
                 _builder = null;
             }
 
@@ -102,6 +105,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
+#if TODO
+<<<<<<< HEAD
                 if (!(Id is LiveDiagnosticUpdateArgsId argsId))
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
@@ -127,6 +132,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 return FilterSuppressedDiagnostics(diagnostics.Value);
+#endif
+                throw null;
             }
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(CancellationToken cancellationToken)
@@ -232,13 +239,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private class IDECachedDiagnosticGetter : DiagnosticGetter
         {
-            public IDECachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, object id, bool includeSuppressedDiagnostics)
-                : base(owner, solution, projectId: null, documentId: null, id: id, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
-            {
-            }
+            public IDECachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics)
+                : base(owner, solution, projectId, documentId, id, includeSuppressedDiagnostics)
 
-            public IDECachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics)
-                : base(owner, solution, projectId, documentId, id: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
             {
             }
 

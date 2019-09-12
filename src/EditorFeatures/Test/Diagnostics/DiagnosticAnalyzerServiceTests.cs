@@ -322,9 +322,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     return;
                 }
 
+#if TODO
                 var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
                 Assert.False(liveId.Analyzer is ProjectDiagnosticAnalyzer);
-
+#endif
                 called = true;
             };
 
