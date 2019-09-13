@@ -37,21 +37,6 @@ class C
         }
 
         [Fact]
-        public async Task NotOfferedOnWrongOverloadOfToString()
-        {
-            await TestMissingInRegularAndScriptAsync(@"
-class A
-{
-    public virtual string ToString(int bar) => ""Foo"";
-}
-
-class B : A
-{
-    [||]public override string ToString(int bar) => ""Bar"";
-}");
-        }
-
-        [Fact]
         public async Task OfferedOnEmptyStruct()
         {
             await TestInRegularAndScriptAsync(@"
@@ -125,6 +110,48 @@ class C
     {
         return ToString();
     }
+}");
+        }
+
+        [Fact]
+        public async Task NotOfferedOnWrongOverloadOfToString()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class A
+{
+    public virtual string ToString(int bar = 0) => ""Foo"";
+}
+
+class B : A
+{
+    public override string [||]ToString(int bar = 0) => ""Bar"";
+}");
+        }
+
+        [Fact]
+        public async Task OfferedOnExistingDebuggerDisplayMethod()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    private string [||]GetDebuggerDisplay() => ""Foo"";
+}", @"
+using System.Diagnostics;
+
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+class C
+{
+    private string GetDebuggerDisplay() => ""Foo"";
+}");
+        }
+
+        [Fact]
+        public async Task NotOfferedOnWrongOverloadOfDebuggerDisplayMethod()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class A
+{
+    private string [||]GetDebuggerDisplay(int bar = 0) => ""Foo"";
 }");
         }
 

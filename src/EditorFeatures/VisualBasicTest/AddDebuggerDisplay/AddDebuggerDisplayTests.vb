@@ -30,24 +30,6 @@ End Class")
         End Function
 
         <Fact>
-        Public Async Function NotOfferedOnWrongOverloadOfToString() As Task
-            Await TestMissingInRegularAndScriptAsync("
-Class A
-    Public Overrides Function ToString(bar As Integer) As String
-        Return ""Foo""
-    End Function
-End Class
-
-Class B
-    Inherits A
-
-    [||]Public Overrides Function ToString(bar As Integer) As String
-        Return ""Bar""
-    End Function
-End Class")
-        End Function
-
-        <Fact>
         Public Async Function OfferedOnEmptyStruct() As Task
             Await TestInRegularAndScriptAsync("
 [||]Structure Foo
@@ -109,6 +91,52 @@ Class C
 
     Private Function GetDebuggerDisplay() As String
         Return ToString()
+    End Function
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function NotOfferedOnWrongOverloadOfToString() As Task
+            Await TestMissingInRegularAndScriptAsync("
+Class A
+    Public Overrides Function ToString(Optional bar As Integer = 0) As String
+        Return ""Foo""
+    End Function
+End Class
+
+Class B
+    Inherits A
+
+    Public Overrides Function [||]ToString(Optional bar As Integer = 0) As String
+        Return ""Bar""
+    End Function
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function OfferedOnExistingDebuggerDisplayMethod() As Task
+            Await TestInRegularAndScriptAsync("
+Class C
+    Private Function [||]GetDebuggerDisplay() As String
+        Return ""Foo""
+    End Function
+End Class", "
+Imports System.Diagnostics
+
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
+Class C
+    Private Function GetDebuggerDisplay() As String
+        Return ""Foo""
+    End Function
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function NotOfferedOnWrongOverloadOfDebuggerDisplayMethod() As Task
+            Await TestMissingInRegularAndScriptAsync("
+Class C
+    Private Function [||]GetDebuggerDisplay(Optional bar As Integer = 0) As String
+        Return ""Foo""
     End Function
 End Class")
         End Function
@@ -258,7 +286,7 @@ End Class")
         Public Async Function ExistingDebuggerDisplayMethodWithParameterIsNotUsed() As Task
             Await TestInRegularAndScriptAsync("
 [||]Class C
-    Private Function GetDebuggerDisplay(foo As Integer = 0) As String
+    Private Function GetDebuggerDisplay(Optional foo As Integer = 0) As String
         Return ""Foo""
     End Function
 End Class", "
@@ -266,7 +294,7 @@ Imports System.Diagnostics
 
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
-    Private Function GetDebuggerDisplay(foo As Integer = 0) As String
+    Private Function GetDebuggerDisplay(Optional foo As Integer = 0) As String
         Return ""Foo""
     End Function
 

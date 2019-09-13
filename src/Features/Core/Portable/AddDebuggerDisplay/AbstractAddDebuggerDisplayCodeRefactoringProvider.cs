@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
                 var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(method);
 
-                if (IsToStringOverride(methodSymbol))
+                if (IsToStringOverride(methodSymbol) || IsDebuggerDisplayMethod(methodSymbol))
                 {
                     return method.FirstAncestorOrSelf<TTypeDeclarationSyntax>();
                 }
@@ -65,6 +65,16 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 Parameters: { IsEmpty: true },
                 Name: nameof(ToString),
                 IsOverride: true
+            };
+        }
+
+        private static bool IsDebuggerDisplayMethod(IMethodSymbol methodSymbol)
+        {
+            return methodSymbol is
+            {
+                Arity: 0,
+                Parameters: { IsEmpty: true },
+                Name: DebuggerDisplayMethodName
             };
         }
 
@@ -102,8 +112,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             var typeSymbol = (ITypeSymbol)semanticModel.GetDeclaredSymbol(type, cancellationToken);
 
-            if (!typeSymbol.GetMembers().Any(m =>
-                m is IMethodSymbol { Name: DebuggerDisplayMethodName, Parameters: { IsEmpty: true } }))
+            if (!typeSymbol.GetMembers().OfType<IMethodSymbol>().Any(IsDebuggerDisplayMethod))
             {
                 modifiedType = generator.AddMembers(modifiedType,
                     generator.MethodDeclaration(
