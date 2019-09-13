@@ -20,7 +20,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
         Private _context As AbstractDebuggerIntelliSenseContext
         Private Shared ReadOnly s_roles As ImmutableArray(Of String) = ImmutableArray.Create(PredefinedTextViewRoles.Editable, "DEBUGVIEW", PredefinedTextViewRoles.Interactive)
-        Private ReadOnly _language As String
 
         Private Sub New(workspaceElement As XElement,
                         isImmediateWindow As Boolean,
@@ -38,8 +37,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             Dim languageServices = Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
-
-            _language = language
 
             Dim spanDocument = Workspace.Documents.First(Function(x) x.SelectedSpans.Any())
             Dim statementSpan = spanDocument.SelectedSpans.First()
