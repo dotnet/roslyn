@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -308,6 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 ProcessTriviaList(list, child.AsToken().TrailingTrivia);
             }
 
+            return;
+
             // Local functions
             static void ProcessTriviaList(List<SuppressOperation> list, SyntaxTriviaList triviaList)
             {
@@ -343,27 +347,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 var endDirective = pragmaWarningDirectiveTrivia.GetNextDirective(trivia => IsFormatDirective(trivia, SyntaxKind.RestoreKeyword));
                 var endToken = endDirective is null
-                    ? structure.SyntaxTree.GetRoot().GetLastToken(includeZeroWidth: true)
+                    ? ((CompilationUnitSyntax)structure.SyntaxTree.GetRoot(CancellationToken.None)).EndOfFileToken
                     : endDirective.GetFirstToken(includeDirectives: true);
 
-                if (startToken.IsKind(SyntaxKind.None) || endToken.IsKind(SyntaxKind.None))
-                {
-                    return;
-                }
-
-                var startTokenForWrappingSuppression = pragmaWarningDirectiveTrivia.GetFirstToken().GetPreviousToken();
-                var startSpanForWrappingSuppression = startTokenForWrappingSuppression.IsKind(SyntaxKind.None)
-                    ? pragmaWarningDirectiveTrivia.FullSpan.Start
-                    : startTokenForWrappingSuppression.Span.End;
-                var endTokenForWrappingSuppression = endToken.GetNextToken();
-                var endSpanForWrappingSuppression = endTokenForWrappingSuppression.IsKind(SyntaxKind.None)
-                    ? endToken.FullSpan.End
-                    : endTokenForWrappingSuppression.SpanStart;
-
-                // Spacing is suppressed within the #pragma region. Wrapping is suppressed from the non-trivia token
-                // preceding the #pragma region to the non-trivia token following the #pragma region.
+                Debug.Assert(!startToken.IsKind(SyntaxKind.None) && !endToken.IsKind(SyntaxKind.None));
                 var textSpan = TextSpan.FromBounds(startToken.Span.End, endToken.SpanStart);
-                var textSpanForWrappingSuppression = TextSpan.FromBounds(startSpanForWrappingSuppression, endSpanForWrappingSuppression);
                 list.Add(new SuppressOperation(startToken, endToken, textSpan, SuppressOption.DisableFormatting));
             }
         }
