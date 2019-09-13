@@ -56,13 +56,11 @@ namespace Microsoft.CodeAnalysis
 
                 case "1":
                 case "1.0":
-                case "1.0.0":
                     result = SarifVersion.Sarif1;
                     return true;
 
                 case "2":
                 case "2.1":
-                case "2.1.0":
                     result = SarifVersion.Sarif2;
                     return true;
 

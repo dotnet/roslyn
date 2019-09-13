@@ -123,7 +123,8 @@
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
                                   Specify a file to log all compiler and analyzer
                                   diagnostics in SARIF format.
-                                  sarif_version:{1|1.0|1.0.0|2|2.1|2.1.0} Default is 1.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
 
