@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         private async Task<Document> ApplyAsync(Document document, TTypeDeclarationSyntax type, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -60,18 +61,25 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 .Attribute("System.Diagnostics.DebuggerDisplayAttribute", compilation, generator.LiteralExpression("{" + DebuggerDisplayMethodName + "(),nq}"))
                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
-            var debuggerDisplayMethod = generator.MethodDeclaration(
-                DebuggerDisplayMethodName,
-                returnType: generator.TypeExpression(SpecialType.System_String),
-                accessibility: Accessibility.Private,
-                statements: new[]
-                {
-                    generator.ReturnStatement(generator.InvocationExpression(
-                        generator.MemberAccessExpression(generator.ThisExpression(), generator.IdentifierName("ToString"))))
-                });
-
             var modifiedType = generator.AddAttributes(type, newAttribute);
-            modifiedType = generator.AddMembers(modifiedType, debuggerDisplayMethod);
+
+            var typeSymbol = (ITypeSymbol)semanticModel.GetDeclaredSymbol(type, cancellationToken);
+
+            if (!typeSymbol.GetMembers().Any(m =>
+                m is IMethodSymbol { Name: DebuggerDisplayMethodName, Parameters: { IsEmpty: true } }))
+            {
+                modifiedType = generator.AddMembers(modifiedType,
+                    generator.MethodDeclaration(
+                        DebuggerDisplayMethodName,
+                        returnType: generator.TypeExpression(SpecialType.System_String),
+                        accessibility: Accessibility.Private,
+                        statements: new[]
+                        {
+                            generator.ReturnStatement(generator.InvocationExpression(
+                                generator.MemberAccessExpression(generator.ThisExpression(), generator.IdentifierName("ToString"))))
+                        }));
+            }
+
             modifiedType = modifiedType.WithAdditionalAnnotations(s_trackingAnnotation);
 
             syntaxRoot = syntaxRoot.ReplaceNode(type, modifiedType);

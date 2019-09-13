@@ -227,5 +227,45 @@ Class B
     End Function
 End Class")
         End Function
+
+        <Fact>
+        Public Async Function ExistingDebuggerDisplayMethodIsUsedEvenWhenPublicSharedNonString() As Task
+            Await TestInRegularAndScriptAsync("
+[||]Class C
+    Public Shared Function GetDebuggerDisplay() As Object
+        Return ""Foo""
+    End Function
+End Class", "
+Imports System.Diagnostics
+
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
+Class C
+    Public Shared Function GetDebuggerDisplay() As Object
+        Return ""Foo""
+    End Function
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function ExistingDebuggerDisplayMethodWithParameterIsNotUsed() As Task
+            Await TestInRegularAndScriptAsync("
+[||]Class C
+    Private Function GetDebuggerDisplay(foo As Integer = 0) As String
+        Return ""Foo""
+    End Function
+End Class", "
+Imports System.Diagnostics
+
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
+Class C
+    Private Function GetDebuggerDisplay(foo As Integer = 0) As String
+        Return ""Foo""
+    End Function
+
+    Private Function GetDebuggerDisplay() As String
+        Return ToString()
+    End Function
+End Class")
+        End Function
     End Class
 End Namespace

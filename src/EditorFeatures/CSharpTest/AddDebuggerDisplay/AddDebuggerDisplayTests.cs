@@ -268,5 +268,44 @@ class B : A
     }
 }");
         }
+
+        [Fact]
+        public async Task ExistingDebuggerDisplayMethodIsUsedEvenWhenPublicStaticNonString()
+        {
+            await TestInRegularAndScriptAsync(@"
+[||]class C
+{
+    public static object GetDebuggerDisplay() => ""Foo"";
+}", @"
+using System.Diagnostics;
+
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+class C
+{
+    public static object GetDebuggerDisplay() => ""Foo"";
+}");
+        }
+
+        [Fact]
+        public async Task ExistingDebuggerDisplayMethodWithParameterIsNotUsed()
+        {
+            await TestInRegularAndScriptAsync(@"
+[||]class C
+{
+    private string GetDebuggerDisplay(int foo = 0) => foo.ToString();
+}", @"
+using System.Diagnostics;
+
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+class C
+{
+    private string GetDebuggerDisplay(int foo = 0) => foo.ToString();
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
+}");
+        }
     }
 }
