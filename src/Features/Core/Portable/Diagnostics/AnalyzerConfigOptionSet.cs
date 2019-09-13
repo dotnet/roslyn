@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
 
@@ -7,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal class AnalyzerConfigOptionSet : OptionSet
     {
         private readonly AnalyzerConfigOptions _analyzerConfigOptions;
-        private readonly OptionSet _optionSet;
+        private readonly OptionSet? _optionSet;
 
-        public AnalyzerConfigOptionSet(AnalyzerConfigOptions analyzerConfigOptions, OptionSet optionSet)
+        public AnalyzerConfigOptionSet(AnalyzerConfigOptions analyzerConfigOptions, OptionSet? optionSet)
         {
             _analyzerConfigOptions = analyzerConfigOptions;
             _optionSet = optionSet;
