@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities

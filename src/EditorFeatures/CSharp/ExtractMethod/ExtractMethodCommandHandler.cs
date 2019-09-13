@@ -18,9 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod
         [ImportingConstructor]
         public ExtractMethodCommandHandler(
             ITextBufferUndoManagerProvider undoManager,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
             IInlineRenameService renameService)
-            : base(undoManager, editorOperationsFactoryService, renameService)
+            : base(undoManager, renameService)
         {
         }
     }

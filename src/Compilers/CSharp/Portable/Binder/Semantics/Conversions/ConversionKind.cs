@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExplicitTupleLiteral,
         ExplicitTuple,
         ImplicitNullable,
-        DefaultOrNullLiteral,
+        NullLiteral,
         ImplicitReference,
         Boxing,
         PointerToVoid,
@@ -52,5 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // It is used by lowering of "fixed" statements to represent conversion of an object reference (O) to an unmanaged pointer (*)
         // The conversion is unsafe and makes sense only if (O) is pinned.
         PinnedObjectToPointer,
+
+        DefaultLiteral, // a conversion from a `default` literal to any type
     }
 }

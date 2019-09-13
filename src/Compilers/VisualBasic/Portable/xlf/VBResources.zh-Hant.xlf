@@ -4,17 +4,37 @@
     <body>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">若要在行接續字元後使用註解，請使用 {0} 或更高的語言版本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">多個分析器組態檔無法處於相同目錄 ('{0}') 中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
+        <target state="new">Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">行接續符號後註解</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -185,8 +205,8 @@
 </source>
         <target state="translated">                  Visual Basic 編譯器選項
 
-                                  - 輸出檔案 -
--out:&lt;檔案&gt;                       指定輸出檔案名稱。
+                                  - 輸出檔 -
+-out:&lt;檔案&gt;                       指定輸出檔名稱。
 -target:exe                       建立主控台應用程式 (預設)。
                                   (簡短形式: -t)
 -target:winexe                    建立 Windows 應用程式。
@@ -200,7 +220,7 @@
 -doc:&lt;檔案&gt;                       將產生的 XML 文件檔案儲存至 &lt;檔案&gt;。
 -refout:&lt;檔案&gt;                    要產生的參考組件輸出
 
-                                  - 輸入檔案 -
+                                  - 輸入檔 -
 -addmodule:&lt;檔案清單&gt;            從指定的模組參考中繼資料
 -link:&lt;檔案清單&gt;                 從指定的 Interop 組件內嵌
                                   中繼資料。(簡短形式: -l)
@@ -3235,7 +3255,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">行接續字元 '_' 之前必須搭配至少一個空白字元，而且必須是該行的最後一個字元。</target>
+        <target state="translated">行接續字元 '_' 前面必須至少有一個空白字元，後面必須接著註解，否則 '_' 必須是該行的最後一個字元。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -8759,8 +8779,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">字串常數的長度超過目前的記憶體限制。請嘗試將字串分割成多個常數。</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">字串常數的長度超過目前的記憶體限制。請嘗試將字串分割成多個常數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -9105,7 +9125,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <target state="translated">檔案名稱 '{0}' 是空的、包含了無效字元、指定了磁碟機但不是絕對路徑，或太長了。</target>
         <note />
       </trans-unit>
     </body>

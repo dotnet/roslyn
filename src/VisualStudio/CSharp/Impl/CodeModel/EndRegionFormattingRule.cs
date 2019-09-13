@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
         }
 
-        private bool IsAfterEndRegionBeforeMethodDeclaration(SyntaxToken previousToken, SyntaxToken currentToken)
+        private bool IsAfterEndRegionBeforeMethodDeclaration(SyntaxToken previousToken)
         {
             if (previousToken.Kind() == SyntaxKind.EndOfDirectiveToken)
             {
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
         {
-            if (IsAfterEndRegionBeforeMethodDeclaration(previousToken, currentToken))
+            if (IsAfterEndRegionBeforeMethodDeclaration(previousToken))
             {
                 return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines);
             }

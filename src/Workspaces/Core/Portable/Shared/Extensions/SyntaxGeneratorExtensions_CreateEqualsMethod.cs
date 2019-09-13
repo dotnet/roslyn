@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 explicitInterfaceImplementations: default,
                 name: EqualsName,
                 typeParameters: default,
-                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object), ObjName)),
+                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object).WithNullability(NullableAnnotation.Annotated), ObjName)),
                 statements: statements);
         }
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 expressions.Add(factory.ReferenceNotEqualsExpression(localNameExpression, factory.NullLiteralExpression()));
             }
 
-            if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType, cancellationToken))
+            if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType))
             {
                 // If we're overriding something that also provided an overridden 'Equals',
                 // then ensure the base type thinks it is equals as well.
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      other != null
                 expressions.Add(factory.ReferenceNotEqualsExpression(otherNameExpression, factory.NullLiteralExpression()));
-                if (HasExistingBaseEqualsMethod(containingType, cancellationToken))
+                if (HasExistingBaseEqualsMethod(containingType))
                 {
                     // If we're overriding something that also provided an overridden 'Equals',
                     // then ensure the base type thinks it is equals as well.
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ITypeSymbol type)
         {
             var equalityComparerType = compilation.EqualityComparerOfTType();
-            var constructedType = equalityComparerType.Construct(type);
+            var constructedType = equalityComparerType.ConstructWithNullability(type);
             return factory.MemberAccessExpression(
                 factory.TypeExpression(constructedType),
                 factory.IdentifierName(DefaultName));
@@ -375,13 +375,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             switch (symbol)
             {
-                case IFieldSymbol field: return field.Type;
-                case IPropertySymbol property: return property.Type;
+                case IFieldSymbol field: return field.GetTypeWithAnnotatedNullability();
+                case IPropertySymbol property: return property.GetTypeWithAnnotatedNullability();
                 default: return compilation.GetSpecialType(SpecialType.System_Object);
             }
         }
 
-        private static bool HasExistingBaseEqualsMethod(INamedTypeSymbol containingType, CancellationToken cancellationToken)
+        private static bool HasExistingBaseEqualsMethod(INamedTypeSymbol containingType)
         {
             // Check if any of our base types override Equals.  If so, first check with them.
             var existingMethods =

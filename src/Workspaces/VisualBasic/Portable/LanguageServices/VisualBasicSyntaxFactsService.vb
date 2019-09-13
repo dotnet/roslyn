@@ -1362,6 +1362,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Kind() = SyntaxKind.StringLiteralExpression
         End Function
 
+        Public Function IsCharacterLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsCharacterLiteralExpression
+            Return node.Kind() = SyntaxKind.CharacterLiteralExpression
+        End Function
+
         Public Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimStringLiteral
             ' VB does not have verbatim strings
             Return False
@@ -1584,6 +1588,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, AwaitExpressionSyntax).Expression
         End Function
 
+        Public Function IsExpressionOfForeach(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfForeach
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, ForEachStatementSyntax)?.Expression Is node
+        End Function
+
         Public Function IsPossibleTupleContext(
             syntaxTree As SyntaxTree,
             position As Integer,
@@ -1700,6 +1708,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
+        Public Overrides Function IsSingleLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+        End Function
+
+        Public Overrides Function IsMultiLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
+            ' VB does not have multi-line comments.
+            Return False
+        End Function
+
         Public Overrides Function IsShebangDirectiveTrivia(trivia As SyntaxTrivia) As Boolean
             ' VB does not have shebang directives.
             Return False
@@ -1722,18 +1739,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsOnTypeHeader(root As SyntaxNode, position As Integer, ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnTypeHeader
-            Dim node = TryGetAncestorForLocation(Of TypeStatementSyntax)(position, root)
+            Dim node = TryGetAncestorForLocation(Of TypeStatementSyntax)(root, position)
             typeDeclaration = node
 
             If node Is Nothing Then
                 Return Nothing
             End If
 
-            Return IsOnHeader(position, node, If(node.TypeParameterList?.GetLastToken(), node.Identifier))
+            Return IsOnHeader(root, position, node, If(node.TypeParameterList?.GetLastToken(), node.Identifier))
         End Function
 
         Public Function IsOnPropertyDeclarationHeader(root As SyntaxNode, position As Integer, ByRef propertyDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnPropertyDeclarationHeader
-            Dim node = TryGetAncestorForLocation(Of PropertyStatementSyntax)(position, root)
+            Dim node = TryGetAncestorForLocation(Of PropertyStatementSyntax)(root, position)
             propertyDeclaration = node
 
             If propertyDeclaration Is Nothing Then
@@ -1741,25 +1758,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If node.AsClause IsNot Nothing Then
-                Return IsOnHeader(position, node, node.AsClause)
+                Return IsOnHeader(root, position, node, node.AsClause)
             End If
 
-            Return IsOnHeader(position, node, node.Identifier)
+            Return IsOnHeader(root, position, node, node.Identifier)
         End Function
 
         Public Function IsOnParameterHeader(root As SyntaxNode, position As Integer, ByRef parameter As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnParameterHeader
-            Dim node = TryGetAncestorForLocation(Of ParameterSyntax)(position, root)
+            Dim node = TryGetAncestorForLocation(Of ParameterSyntax)(root, position)
             parameter = node
 
             If parameter Is Nothing Then
                 Return False
             End If
 
-            Return IsOnHeader(position, node, node)
+            Return IsOnHeader(root, position, node, node)
         End Function
 
         Public Function IsOnMethodHeader(root As SyntaxNode, position As Integer, ByRef method As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnMethodHeader
-            Dim node = TryGetAncestorForLocation(Of MethodStatementSyntax)(position, root)
+            Dim node = TryGetAncestorForLocation(Of MethodStatementSyntax)(root, position)
             method = node
 
             If method Is Nothing Then
@@ -1767,14 +1784,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If node.HasReturnType() Then
-                Return IsOnHeader(position, method, node.GetReturnType())
+                Return IsOnHeader(root, position, method, node.GetReturnType())
             End If
 
             If node.ParameterList IsNot Nothing Then
-                Return IsOnHeader(position, method, node.ParameterList)
+                Return IsOnHeader(root, position, method, node.ParameterList)
             End If
 
-            Return IsOnHeader(position, node, node)
+            Return IsOnHeader(root, position, node, node)
         End Function
 
         Public Function IsOnLocalFunctionHeader(root As SyntaxNode, position As Integer, ByRef localFunction As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnLocalFunctionHeader
@@ -1783,7 +1800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsOnLocalDeclarationHeader(root As SyntaxNode, position As Integer, ByRef localDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnLocalDeclarationHeader
-            Dim node = TryGetAncestorForLocation(Of LocalDeclarationStatementSyntax)(position, root)
+            Dim node = TryGetAncestorForLocation(Of LocalDeclarationStatementSyntax)(root, position)
             localDeclaration = node
 
             If localDeclaration Is Nothing Then
@@ -1793,30 +1810,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim initializersExpressions = node.Declarators.
                 Where(Function(d) d.Initializer IsNot Nothing).
                 SelectAsArray(Function(initialized) initialized.Initializer.Value)
-            Return IsOnHeader(position, node, node, initializersExpressions)
+            Return IsOnHeader(root, position, node, node, initializersExpressions)
         End Function
 
         Public Function IsOnIfStatementHeader(root As SyntaxNode, position As Integer, ByRef ifStatement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnIfStatementHeader
             ifStatement = Nothing
 
-            Dim multipleLineNode = TryGetAncestorForLocation(Of MultiLineIfBlockSyntax)(position, root)
+            Dim multipleLineNode = TryGetAncestorForLocation(Of MultiLineIfBlockSyntax)(root, position)
             If multipleLineNode IsNot Nothing Then
                 ifStatement = multipleLineNode
-                Return IsOnHeader(position, multipleLineNode.IfStatement, multipleLineNode.IfStatement)
+                Return IsOnHeader(root, position, multipleLineNode.IfStatement, multipleLineNode.IfStatement)
             End If
 
-            Dim singleLineNode = TryGetAncestorForLocation(Of SingleLineIfStatementSyntax)(position, root)
+            Dim singleLineNode = TryGetAncestorForLocation(Of SingleLineIfStatementSyntax)(root, position)
             If singleLineNode IsNot Nothing Then
                 ifStatement = singleLineNode
-                Return IsOnHeader(position, singleLineNode, singleLineNode.Condition)
+                Return IsOnHeader(root, position, singleLineNode, singleLineNode.Condition)
             End If
 
             Return False
         End Function
 
-        Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
+        Public Function IsOnForeachHeader(root As SyntaxNode, position As Integer, ByRef foreachStatement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnForeachHeader
+            Dim node = TryGetAncestorForLocation(Of ForEachBlockSyntax)(root, position)
+            foreachStatement = node
+
+            If foreachStatement Is Nothing Then
+                Return False
+            End If
+
+            Return IsOnHeader(root, position, node, node.ForEachStatement)
+        End Function
+
+        Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer, ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBetweenTypeMembers
             Dim token = root.FindToken(position)
             Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)
+            typeDeclaration = typeDecl
+
             If typeDecl IsNot Nothing Then
                 Dim start = If(typeDecl.Implements.LastOrDefault()?.Span.End,
                                If(typeDecl.Inherits.LastOrDefault()?.Span.End,
@@ -2025,15 +2055,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicSyntaxGenerator.GetAttributeLists(node)
         End Function
 
-        Public Function IsOnForeachHeader(root As SyntaxNode, position As Integer, ByRef foreachStatement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOnForeachHeader
-            Dim node = TryGetAncestorForLocation(Of ForEachBlockSyntax)(position, root)
-            foreachStatement = node
-
-            If foreachStatement Is Nothing Then
-                Return False
-            End If
-
-            Return IsOnHeader(position, node, node.ForEachStatement)
+        Private Function ISyntaxFactsService_IsExpressionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionStatement
+            Return MyBase.IsExpressionStatement(node)
         End Function
     End Class
 End Namespace

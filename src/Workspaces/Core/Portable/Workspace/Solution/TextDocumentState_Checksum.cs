@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -9,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class TextDocumentState
     {
-        public bool TryGetStateChecksums(out DocumentStateChecksums stateChecksums)
+        public bool TryGetStateChecksums([NotNullWhen(returnValue: true)] out DocumentStateChecksums? stateChecksums)
         {
             return _lazyChecksums.TryGetValue(out stateChecksums);
         }
@@ -31,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var textAndVersionTask = GetTextAndVersionAsync(cancellationToken);
 
-                var serializer = solutionServices.Workspace.Services.GetService<ISerializerService>();
+                var serializer = solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
 
                 var infoChecksum = serializer.CreateChecksum(Attributes, cancellationToken);
                 var textChecksum = serializer.CreateChecksum((await textAndVersionTask.ConfigureAwait(false)).Text, cancellationToken);

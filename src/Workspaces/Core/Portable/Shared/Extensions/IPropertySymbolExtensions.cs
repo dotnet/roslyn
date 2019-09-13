@@ -37,16 +37,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.IsIndexer);
         }
 
-        public static IPropertySymbol RemoveAttributeFromParameters(
-            this IPropertySymbol property, INamedTypeSymbol?[]? attributesToRemove)
+        public static IPropertySymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
+            this IPropertySymbol property, ISymbol accessibleWithin, params INamedTypeSymbol[] attributesToRemove)
         {
-            if (attributesToRemove == null)
-            {
-                return property;
-            }
-
             bool shouldRemoveAttribute(AttributeData a) =>
-                attributesToRemove.Any(attr => attr?.Equals(a.AttributeClass) ?? false);
+                attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
 
             var someParameterHasAttribute = property.Parameters
                 .Any(p => p.GetAttributes().Any(shouldRemoveAttribute));
@@ -67,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
                         p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
-                        p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
+                        p.RefKind, p.IsParams, p.GetTypeWithAnnotatedNullability(), p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
                 property.GetMethod,
                 property.SetMethod,

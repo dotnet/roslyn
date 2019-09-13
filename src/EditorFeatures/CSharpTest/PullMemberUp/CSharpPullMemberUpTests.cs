@@ -29,22 +29,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
             string initialMarkup,
             TestParameters parameters = default)
         {
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+            var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
+            if (actions.Length == 1)
             {
-                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
-                if (actions.Length == 1)
-                {
-                    // The dialog shows up, not quick action
-                    Assert.Equal(actions.First().Title, FeaturesResources.Pull_members_up_to_base_type);
-                }
-                else if (actions.Length > 1)
-                {
-                    Assert.True(false, "Pull Members Up is provided via quick action");
-                }
-                else
-                {
-                    Assert.True(true);
-                }
+                // The dialog shows up, not quick action
+                Assert.Equal(actions.First().Title, FeaturesResources.Pull_members_up_to_base_type);
+            }
+            else if (actions.Length > 1)
+            {
+                Assert.True(false, "Pull Members Up is provided via quick action");
+            }
+            else
+            {
+                Assert.True(true);
             }
         }
 

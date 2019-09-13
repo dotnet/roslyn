@@ -2262,18 +2262,18 @@ class Derived : Base
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D*>.B { }
                 Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Base.D").WithLocation(13, 17),
-                // (13,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.D')
-                //     class F : A<D*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "D*").WithArguments("Base.D").WithLocation(13, 17),
                 // (13,11): error CS0306: The type 'Base.D*' may not be used as a type argument
                 //     class F : A<D*>.B { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("Base.D*").WithLocation(13, 11),
-                // (12,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
-                //     class E : A<C*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("Base.C").WithLocation(12, 17),
+                // (13,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.D')
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "F").WithArguments("Base.D").WithLocation(13, 11),
                 // (12,11): error CS0306: The type 'Base.C*' may not be used as a type argument
                 //     class E : A<C*>.B { }
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11),
+                // (12,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
+                //     class E : A<C*>.B { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
         }
     }
 }

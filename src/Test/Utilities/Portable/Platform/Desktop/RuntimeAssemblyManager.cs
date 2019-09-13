@@ -359,8 +359,8 @@ namespace Roslyn.Test.Utilities.Desktop
             catch (Exception ex)
             {
                 var builder = new StringBuilder();
-                builder.AppendLine($"Error getting signatures {fullyQualifiedTypeName}.{memberName}");
-                builder.AppendLine($"Assemblies");
+                builder.AppendLine($"Error getting signatures {fullyQualifiedTypeName}.{memberName}: {ex.Message}");
+                builder.AppendLine($"Assemblies:");
                 foreach (var module in _fullNameToAssemblyDataMap.Values)
                 {
                     builder.AppendLine($"\t{module.Id.SimpleName} {module.Id.Mvid} - {module.Kind} {_assemblyCache.GetOrDefault(module.Id, reflectionOnly: false) != null} {_assemblyCache.GetOrDefault(module.Id, reflectionOnly: true) != null}");

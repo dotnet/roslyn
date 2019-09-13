@@ -99,8 +99,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (options.OutputKind != OutputKind.DynamicallyLinkedLibrary)
             {
-                element = element ?? new XElement(CompilationOptionsElementName);
                 element.SetAttributeValue(OutputKindName, options.OutputKind);
+            }
+
+            if (options.NullableContextOptions != NullableContextOptions.Disable)
+            {
+                element.SetAttributeValue(NullableAttributeName, options.NullableContextOptions);
             }
 
             return element;

@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return IsSymbolAccessibleCore(((AliasSymbol)symbol).Target, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.Discard:
-                    return IsSymbolAccessibleCore(((DiscardSymbol)symbol).Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((DiscardSymbol)symbol).TypeWithAnnotations.Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.ErrorType:
                     // Always assume that error types are accessible.

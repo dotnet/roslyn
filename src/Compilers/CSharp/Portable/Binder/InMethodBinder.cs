@@ -169,14 +169,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var info = new IteratorInfo(elementType, elementTypeDiagnostics.ToReadOnlyAndFree());
 
-                Interlocked.CompareExchange(ref _iteratorInfo, info, IteratorInfo.Empty);
-            }
-
-            if (node == null)
-            {
-                // node==null indicates this we are being called from the top-level of processing of a method. We report
-                // the diagnostic, if any, at that time to ensure it is reported exactly once.
-                diagnostics.AddRange(_iteratorInfo.ElementTypeDiagnostics);
+                var oldInfo = Interlocked.CompareExchange(ref _iteratorInfo, info, IteratorInfo.Empty);
+                if (oldInfo == IteratorInfo.Empty)
+                {
+                    diagnostics.AddRange(_iteratorInfo.ElementTypeDiagnostics);
+                }
             }
 
             return _iteratorInfo.ElementType;
@@ -330,6 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(false, "what else could be defined in a method?");
+            diagnostics.Add(ErrorCode.ERR_InternalError, newLocation);
             return true;
         }
 

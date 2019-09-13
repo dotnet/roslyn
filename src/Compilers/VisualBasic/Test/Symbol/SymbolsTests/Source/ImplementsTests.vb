@@ -3355,7 +3355,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
 BC30149: Class 'B' must implement 'Sub Foo(x As A(Of A(Of A(Of T).B).B).B)' for interface 'I(Of B)'.
     Implements I(Of B.B)
-    ~~~~~~~~~~~~~~~~~~~~
+               ~~~~~~~~~
                                                             </expected>)
 
 
