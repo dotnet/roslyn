@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 {
                     using var outputChannelStore = await serviceBrokerClient.GetProxyAsync<IOutputChannelStore>(VisualStudioServices.VS2019_4.OutputChannelStore).ConfigureAwait(false);
                     await outputChannelStore.Proxy.WriteLineAsync(ServicesVSResources.IntelliSense, eventArgs.Diagnostic.ToString()).ConfigureAwait(false);
-                });
+                }).CompletesAsyncOperation(asyncToken);
             };
         }
 
