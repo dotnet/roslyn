@@ -81,6 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 engineResult = New RenameEngineResult(workspace, result, renameTo)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
+                engineResult.AssertChangedSymbolsAreAnnotated()
             Catch
                 ' Something blew up, so we still own the test workspace
                 If engineResult IsNot Nothing Then
@@ -141,6 +142,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     End If
                 End If
             Next
+        End Sub
+
+        Public Sub AssertChangedSymbolsAreAnnotated()
+            For Each location In _resolution.RelatedLocations
+                Dim documentId = location.DocumentId
+                Dim document = _resolution.NewSolution.GetDocument(documentId)
+                Dim root = document.GetSyntaxRootSynchronously(CancellationToken.None)
+
+                Dim renameAnnotatedNodes = root.GetAnnotatedNodes(RenameSymbolAnnotation.RenameSymbolKind)
+
+                ' Not all related locations will get annotated, we just need one
+                If renameAnnotatedNodes.Any() Then
+                    Return
+                End If
+            Next
+
+            Assert.True(False, "Did not find any rename annotated nodes")
         End Sub
 
         Private Function GetLabeledLocations(label As String) As IEnumerable(Of Location)

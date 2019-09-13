@@ -120,14 +120,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(documentsByProject);
                         using (baseSolution.Services.CacheService?.EnableCaching(documentsByProject.Key))
                         {
-                            // Rename is going to be in 5 phases.
-                            // 1st phase - Does a simple token replacement
+                            //
+                            // For the first few 3 iterations, the solution is updated gradually as changes are made. 
+                            // Iterative changes are broken into "phases":
                             // If the 1st phase results in conflict then we perform then:
                             //      2nd phase is to expand and simplify only the reference locations with conflicts
                             //      3rd phase is to expand and simplify all the conflict locations (both reference and non-reference)
-                            // If there are unresolved Conflicts after the 3rd phase then in 4th phase, 
-                            //      We complexify and resolve locations that were resolvable and for the other locations we perform the normal token replacement like the first the phase.
-                            // If the OptionSet has RenameFile to true, we rename files with the type declaration
+                            //
                             for (var phase = 0; phase < 4; phase++)
                             {
                                 // Step 1:
@@ -202,6 +201,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             await conflictResolution.RemoveAllRenameAnnotationsAsync(documentsByProject, _renameAnnotations, _cancellationToken).ConfigureAwait(false);
                         }
                     }
+                    //
+                    // If there are unresolved Conflicts after the iterations, 
+                    // we complexify and resolve locations that were resolvable and for the other locations we perform the normal token replacement like the first the phase.
+                    //
+
 
                     // This rename could break implicit references of this symbol (e.g. rename MoveNext on a collection like type in a 
                     // foreach/for each statement
@@ -231,22 +235,25 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     await DebugVerifyNoErrorsAsync(conflictResolution, _documentsIdsToBeCheckedForConflict).ConfigureAwait(false);
 #endif
 
-                    // Step 5: Rename declaration files
+                    //
+                    // If the OptionSet has RenameFile to true, we rename files with the type declaration
+                    //
                     if (_optionSet.GetOption(RenameOptions.RenameFile))
                     {
                         var definitionLocations = _renameLocationSet.Symbol.Locations;
-                        var definitionDocuments = definitionLocations
-                            .Select(l => conflictResolution.OldSolution.GetDocument(l.SourceTree))
-                            .Distinct();
+                        var definitionsAndOriginalDocuments = definitionLocations
+                            .Select(l => (l, conflictResolution.OldSolution.GetDocument(l.SourceTree)));
 
-                        if (definitionDocuments.Count() == 1)
+                        // At the moment, only single document renaming is allowed
+                        if (definitionsAndOriginalDocuments.Count() == 1)
                         {
-                            // At the moment, only single document renaming is allowed
-                            conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());
+                            conflictResolution.RenameDocumentToMatchNewSymbol(definitionsAndOriginalDocuments.Single().Item2);
                         }
                     }
 
-                    // Step 6: Drop changes made in unchangeable documents
+                    //
+                    // Drop changes made in unchangeable documents
+                    //
                     var (containsDisallowedChange, updatedSolution) = await conflictResolution.NewSolution.ExcludeDisallowedDocumentTextChangesAsync(conflictResolution.OldSolution, _cancellationToken).ConfigureAwait(false);
                     if (containsDisallowedChange)
                     {
@@ -746,11 +753,34 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 try
                 {
+                    var annotatedSolution = originalSolution;
+
+                    // Add the RenameSymbolAnnotation to the declarations
+                    foreach (var syntaxReference in _renameLocationSet.Symbol.DeclaringSyntaxReferences)
+                    {
+                        var document = annotatedSolution.GetDocument(syntaxReference.SyntaxTree);
+                        if (document is null)
+                        {
+                            continue;
+                        }
+
+                        var node = await syntaxReference.GetSyntaxAsync().ConfigureAwait(false);
+                        var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+
+                        var newRoot = root.ReplaceNode(
+                            node,
+                            node.WithoutAnnotations(RenameSymbolAnnotation.RenameSymbolKind)
+                                .WithAdditionalAnnotations(RenameSymbolAnnotation.Create(_renameLocationSet.Symbol)));
+
+                        var annotatedDocument = document.WithSyntaxRoot(newRoot);
+                        annotatedSolution = annotatedDocument.Project.Solution;
+                    }
+
                     foreach (var documentId in documentIdsToRename.ToList())
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var document = originalSolution.GetDocument(documentId);
+                        var document = annotatedSolution.GetDocument(documentId);
                         var semanticModel = await document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
@@ -783,7 +813,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             allTextSpansInSingleSourceTree,
                             stringAndCommentTextSpansInSingleSourceTree,
                             conflictLocationSpans,
-                            originalSolution,
+                            annotatedSolution,
                             _renameLocationSet.Symbol,
                             replacementTextValid,
                             renameSpansTracker,

@@ -11,11 +11,13 @@ using System.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -102,6 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
         private readonly IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> _documentOptionsProviderFactories;
+        private readonly IEnumerable<Lazy<IRefactorNotifyService>> _refactorNotifyServices;
         private bool _documentOptionsProvidersInitialized = false;
         private readonly Dictionary<ProjectId, CompilationOutputs> _projectCompilationOutputs = new Dictionary<ProjectId, CompilationOutputs>();
         private readonly object _projectCompilationOutputsGuard = new object();
@@ -119,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
             _documentOptionsProviderFactories = exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
+            _refactorNotifyServices = exportProvider.GetExports<IRefactorNotifyService>();
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
@@ -384,7 +388,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.EnsureEditableDocuments(changedDocs);
             }
 
-            return base.TryApplyChanges(newSolution, progressTracker);
+            if (base.TryApplyChanges(newSolution, progressTracker))
+            {
+                NotifyRefactorChanges(changedDocs, currentSolution);
+                return true;
+            }
+
+            return false;
 
             bool CanApplyChange(DocumentId documentId)
             {
@@ -396,6 +406,58 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 return document.CanApplyChange();
+            }
+        }
+
+        private void NotifyRefactorChanges(IEnumerable<DocumentId> changedDocs, CodeAnalysis.Solution oldSolution)
+        {
+            // Without any services to notify there's no need to dig through the documents
+            if (!_refactorNotifyServices.Any())
+            {
+                return;
+            }
+
+            foreach (var changedDocId in changedDocs)
+            {
+                var newDocument = CurrentSolution.GetDocument(changedDocId);
+
+                // Documents without syntax tree won't have the annotations attached
+                if (!newDocument.SupportsSyntaxTree)
+                {
+                    continue;
+                }
+
+                var syntaxRoot = newDocument.GetSyntaxRootSynchronously(CancellationToken.None);
+                var symbolRenameNodes = syntaxRoot.GetAnnotatedNodes(RenameSymbolAnnotation.RenameSymbolKind);
+
+                foreach (var node in symbolRenameNodes)
+                {
+                    foreach (var annotation in node.GetAnnotations(RenameSymbolAnnotation.RenameSymbolKind))
+                    {
+                        var oldDocument = oldSolution.GetDocument(changedDocId);
+
+                        if (!(newDocument.TryGetSemanticModel(out var newSemanticModel) && newSemanticModel is object))
+                        {
+                            continue;
+                        }
+
+                        if (!(oldDocument.TryGetSemanticModel(out var currentSemanticModel) && currentSemanticModel is object))
+                        {
+                            continue;
+                        }
+
+                        var oldSymbol = RenameSymbolAnnotation.ResolveSymbol(annotation, currentSemanticModel.Compilation);
+                        var newSymbol = newSemanticModel.GetSymbolInfo(node).Symbol;
+
+                        foreach (var refactorService in _refactorNotifyServices)
+                        {
+                            if (refactorService.Value.TryOnBeforeGlobalSymbolRenamed(this, changedDocs, oldSymbol, newSymbol.Name, throwOnFailure: false))
+                            {
+                                refactorService.Value.TryOnAfterGlobalSymbolRenamed(this, changedDocs, oldSymbol, newSymbol.Name, throwOnFailure: false);
+                            }
+                        }
+                    }
+                }
             }
         }
 
