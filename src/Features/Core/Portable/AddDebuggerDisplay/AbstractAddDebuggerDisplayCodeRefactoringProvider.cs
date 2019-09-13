@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
     {
         private static readonly SyntaxAnnotation s_trackingAnnotation = new SyntaxAnnotation();
 
+        private const string DebuggerDisplayMethodName = "GetDebuggerDisplay";
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var type = await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>().ConfigureAwait(false);
@@ -49,10 +51,24 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             var generator = SyntaxGenerator.GetGenerator(document);
 
             var newAttribute = generator
-                .Attribute("System.Diagnostics.DebuggerDisplayAttribute", compilation, generator.LiteralExpression("{ToString(),nq}"))
+                .Attribute("System.Diagnostics.DebuggerDisplayAttribute", compilation, generator.LiteralExpression("{" + DebuggerDisplayMethodName + "(),nq}"))
                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
-            syntaxRoot = syntaxRoot.ReplaceNode(type, generator.AddAttributes(type, newAttribute).WithAdditionalAnnotations(s_trackingAnnotation));
+            var debuggerDisplayMethod = generator.MethodDeclaration(
+                DebuggerDisplayMethodName,
+                returnType: generator.TypeExpression(SpecialType.System_String),
+                accessibility: Accessibility.Private,
+                statements: new[]
+                {
+                    generator.ReturnStatement(generator.InvocationExpression(
+                        generator.MemberAccessExpression(generator.ThisExpression(), generator.IdentifierName("ToString"))))
+                });
+
+            var modifiedType = generator.AddAttributes(type, newAttribute);
+            modifiedType = generator.AddMembers(modifiedType, debuggerDisplayMethod);
+            modifiedType = modifiedType.WithAdditionalAnnotations(s_trackingAnnotation);
+
+            syntaxRoot = syntaxRoot.ReplaceNode(type, modifiedType);
 
             syntaxRoot = await EnsureNamespaceImportAsync(
                 document,

@@ -24,10 +24,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddDebuggerDisplay
 End Class", "
 Imports System.Diagnostics
 
-<DebuggerDisplay(""{ToString(),nq}"")>
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Public Overrides Function ToString() As String
         Return ""Foo""
+    End Function
+
+    Private Function GetDebuggerDisplay() As String
+        Return ToString()
     End Function
 End Class")
         End Function
@@ -96,10 +100,14 @@ End Class")
 End Structure", "
 Imports System.Diagnostics
 
-<DebuggerDisplay(""{ToString(),nq}"")>
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Structure Foo
     Public Overrides Function ToString() As String
         Return ""Foo""
+    End Function
+
+    Private Function GetDebuggerDisplay() As String
+        Return ToString()
     End Function
 End Structure")
         End Function
@@ -155,10 +163,14 @@ Class C
 End Class", "
 Imports System.Diagnostics
 
-<DebuggerDisplay(""{ToString(),nq}"")>
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Public Overrides Function ToString() As String
         Return ""Foo""
+    End Function
+
+    Private Function GetDebuggerDisplay() As String
+        Return ToString()
     End Function
 End Class")
         End Function
@@ -175,10 +187,14 @@ Imports System.Diagnostics
 End Class", "
 Imports System.Diagnostics
 
-<DebuggerDisplay(""{ToString(),nq}"")>
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Public Overrides Function ToString() As String
         Return ""Foo""
+    End Function
+
+    Private Function GetDebuggerDisplay() As String
+        Return ToString()
     End Function
 End Class")
         End Function
@@ -196,10 +212,14 @@ End Class", "
 Imports System.Diagnostics
 Imports System.Xml
 
-<DebuggerDisplay(""{ToString(),nq}"")>
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Public Overrides Function ToString() As String
         Return ""Foo""
+    End Function
+
+    Private Function GetDebuggerDisplay() As String
+        Return ToString()
     End Function
 End Class")
         End Function
@@ -263,10 +283,14 @@ Imports System.Diagnostics
 Imports DD = System.Diagnostics.DebuggerDisplayAttribute
 
 <DD(""Foo"")>
-<DD(""{ToString(),nq}"")>
+<DD(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Public Overrides Function ToString() As String
         Return ""Foo""
+    End Function
+
+    Private Function GetDebuggerDisplay() As String
+        Return ToString()
     End Function
 End Class")
         End Function
@@ -299,12 +323,16 @@ Class A
     End Function
 End Class
 
-<DebuggerDisplay(""{ToString(),nq}"")>
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class B
     Inherits A
 
     Public Overrides Function ToString() As String
         Return MyBase.ToString()
+    End Function
+
+    Private Function GetDebuggerDisplay() As String
+        Return ToString()
     End Function
 End Class")
         End Function

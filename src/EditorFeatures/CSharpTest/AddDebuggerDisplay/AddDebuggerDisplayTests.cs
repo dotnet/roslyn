@@ -27,10 +27,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddDebuggerDisplay
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{ToString(),nq}"")]
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
 class C
 {
     public override string ToString() => ""Foo"";
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
 }");
         }
 
@@ -96,10 +101,15 @@ class A
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{ToString(),nq}"")]
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
 struct Foo
 {
     public override string ToString() => ""Foo"";
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
 }");
         }
 
@@ -161,10 +171,15 @@ class C
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{ToString(),nq}"")]
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
 class C
 {
     public override string ToString() => ""Foo"";
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
 }");
         }
 
@@ -180,10 +195,15 @@ using System.Diagnostics;
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{ToString(),nq}"")]
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
 class C
 {
     public override string ToString() => ""Foo"";
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
 }");
         }
 
@@ -200,10 +220,15 @@ using System.Xml;
 using System.Diagnostics;
 using System.Xml;
 
-[DebuggerDisplay(""{ToString(),nq}"")]
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
 class C
 {
     public override string ToString() => ""Foo"";
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
 }");
         }
 
@@ -269,10 +294,15 @@ using System.Diagnostics;
 using DD = System.Diagnostics.DebuggerDisplayAttribute;
 
 [DD(""Foo"")]
-[DD(""{ToString(),nq}"")]
+[DD(""{GetDebuggerDisplay(),nq}"")]
 class C
 {
     public override string ToString() => ""Foo"";
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
 }");
         }
 
@@ -300,10 +330,15 @@ class A
     public override string ToString() => ""Foo"";
 }
 
-[DebuggerDisplay(""{ToString(),nq}"")]
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
 class B : A
 {
     public override string ToString() => base.ToString();
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
 }");
         }
     }
