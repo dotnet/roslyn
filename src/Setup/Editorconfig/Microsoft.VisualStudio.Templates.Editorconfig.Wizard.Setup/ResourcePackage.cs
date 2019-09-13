@@ -7,7 +7,6 @@ using Task = System.Threading.Tasks.Task;
 namespace EditorconfigResourcePackage
 {
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = false, RegisterUsing = RegistrationMethod.CodeBase)]
-    [InstalledProductRegistration("#110", "#112", "1.0")]
     [Guid(PackageGuidString)]
     public sealed class EditorconfigResourcePackage : AsyncPackage
     {
