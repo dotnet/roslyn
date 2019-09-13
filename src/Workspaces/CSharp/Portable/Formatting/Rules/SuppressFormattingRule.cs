@@ -291,6 +291,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddFormatSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
+            if (!node.ContainsDirectives)
+            {
+                return;
+            }
+
             foreach (var child in node.ChildNodesAndTokens())
             {
                 if (!child.IsToken)
