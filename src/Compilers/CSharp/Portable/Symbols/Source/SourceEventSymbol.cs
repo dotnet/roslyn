@@ -674,9 +674,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (Symbol interfaceMember in @interface.GetMembers(this.Name))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     if (interfaceMember.Kind == SymbolKind.Event && //quick check (necessary, not sufficient)
-                        this == this.containingType.FindImplementationForInterfaceMember(interfaceMember, ref useSiteDiagnostics)) //slow check (necessary and sufficient)
+                        interfaceMember.IsImplementableInterfaceMember() &&
+                        this == this.containingType.FindImplementationForInterfaceMemberInNonInterface(interfaceMember, ignoreImplementationInInterfacesIfResultIsNotReady: true)) //slow check (necessary and sufficient)
                     {
                         sawImplicitImplementation = true;
 
