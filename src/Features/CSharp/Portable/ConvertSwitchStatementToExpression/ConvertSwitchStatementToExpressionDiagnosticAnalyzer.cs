@@ -40,10 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
             var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
             var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferSwitchExpression);
             if (!styleOption.Value)

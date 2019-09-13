@@ -60,10 +60,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             var syntaxTree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
             var parenthesizedExpression = (TParenthesizedExpressionSyntax)context.Node;
 

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             var optionSet = await options.GetAnalyzerOptionSetAsync(sourceTree, cancellationToken).ConfigureAwait(false);
-            return optionSet?.GetOption(SimplificationOptions.NamingPreferences, compilation.Language);
+            return optionSet.GetOption(SimplificationOptions.NamingPreferences, compilation.Language);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

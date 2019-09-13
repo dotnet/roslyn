@@ -64,12 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
+            var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             var option = optionSet.GetOption(CodeStyleOptions.PreferInlinedVariableDeclaration, argumentNode.Language);
             if (!option.Value)
             {

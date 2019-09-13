@@ -36,12 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var options = syntaxContext.Options;
             var syntaxTree = syntaxContext.Node.SyntaxTree;
             var cancellationToken = syntaxContext.CancellationToken;
-            var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
+            var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall);
             if (!styleOption.Value)
             {

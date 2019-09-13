@@ -39,11 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(context.Node.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             var option = optionSet.GetOption(CodeStyleOptions.PreferDeconstructedVariableDeclaration, context.Node.Language);
             if (!option.Value)
             {

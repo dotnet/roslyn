@@ -51,11 +51,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // Don't even bother doing the analysis if the user doesn't even want auto-props.
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(
                 semanticModel.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             var option = optionSet.GetOption(CodeStyleOptions.PreferAutoProperties, semanticModel.Language);
             if (!option.Value)
             {
@@ -305,10 +300,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(
                 result.FieldDeclaration.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
             // Now add diagnostics to both the field and the property saying we can convert it to 
             // an auto property.  For each diagnostic store both location so we can easily retrieve

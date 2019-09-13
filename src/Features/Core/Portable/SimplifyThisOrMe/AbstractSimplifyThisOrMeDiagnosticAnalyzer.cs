@@ -63,10 +63,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             var syntaxTree = node.SyntaxTree;
             var optionSet = analyzerOptions.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
             var model = context.SemanticModel;
             if (!CanSimplifyTypeNameExpression(

@@ -197,10 +197,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
             options = null;
             var optionSet = analyzerOptions.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return false;
-            }
 
             var unusedParametersOption = optionSet.GetOption(CodeStyleOptions.UnusedParameters, language);
             var (unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity) = GetPreferenceAndSeverity(UnusedValueExpressionStatementOption);

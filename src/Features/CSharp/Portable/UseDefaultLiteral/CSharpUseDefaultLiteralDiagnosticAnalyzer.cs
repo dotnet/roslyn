@@ -30,13 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var cancellationToken = context.CancellationToken;
-
             var syntaxTree = context.Node.SyntaxTree;
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var defaultExpression = (DefaultExpressionSyntax)context.Node;

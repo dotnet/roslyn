@@ -101,11 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 }
 
                 var optionSet = analyzerOptionsOpt.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-                if (optionSet is null)
-                {
-                    return default;
-                }
-
                 option = optionSet.GetOption(CSharpCodeStyleOptions.PreferRangeOperator);
                 if (!option.Value)
                 {

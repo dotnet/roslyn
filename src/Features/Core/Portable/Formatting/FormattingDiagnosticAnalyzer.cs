@@ -35,11 +35,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             var cancellationToken = context.CancellationToken;
 
             var options = context.Options.GetAnalyzerOptionSetAsync(tree, cancellationToken).GetAwaiter().GetResult();
-            if (options == null)
-            {
-                return;
-            }
-
             var workspace = workspaceAnalyzerOptions.Services.Workspace;
             FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, workspace, Descriptor, options);
         }

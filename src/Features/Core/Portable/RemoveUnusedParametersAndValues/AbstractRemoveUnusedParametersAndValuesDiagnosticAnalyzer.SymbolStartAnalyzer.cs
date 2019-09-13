@@ -129,11 +129,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 var location = parameter.Locations[0];
                 var optionSet = analyzerOptions.GetAnalyzerOptionSetAsync(location.SourceTree, cancellationToken).GetAwaiter().GetResult();
-                if (optionSet == null)
-                {
-                    return;
-                }
-
                 var option = optionSet.GetOption(CodeStyleOptions.UnusedParameters, parameter.Language);
                 if (option.Notification.Severity == ReportDiagnostic.Suppress ||
                     !ShouldReportUnusedParameters(parameter.ContainingSymbol, option.Value, option.Notification.Severity))

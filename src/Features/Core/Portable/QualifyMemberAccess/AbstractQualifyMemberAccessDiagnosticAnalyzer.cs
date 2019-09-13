@@ -121,10 +121,6 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             var syntaxTree = context.Operation.Syntax.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(operation);
             var optionValue = optionSet.GetOption(applicableOption, context.Operation.Syntax.Language);

@@ -94,10 +94,6 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
             var syntaxTree = node.SyntaxTree;
             var optionSet = analyzerOptions.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return false;
-            }
 
             if (!CanSimplifyTypeNameExpressionCore(
                     model, node, optionSet,

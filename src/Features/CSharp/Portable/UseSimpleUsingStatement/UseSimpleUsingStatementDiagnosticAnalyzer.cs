@@ -114,11 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             }
 
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement);
             if (!option.Value)
             {

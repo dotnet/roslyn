@@ -80,10 +80,6 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             var syntaxTree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
             var binaryLike = (TBinaryLikeExpressionSyntax)context.Node;
             var parent = TryGetParentExpression(binaryLike);

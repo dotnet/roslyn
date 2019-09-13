@@ -49,10 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
             var semanticModel = context.SemanticModel;
             var declaredType = Helper.FindAnalyzableType(declarationStatement, semanticModel, cancellationToken);

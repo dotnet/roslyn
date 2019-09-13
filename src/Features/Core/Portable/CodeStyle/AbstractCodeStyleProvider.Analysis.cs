@@ -117,11 +117,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
             {
                 var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-                if (optionSet == null)
-                {
-                    return;
-                }
-
                 var optionValue = optionSet.GetOption(provider._option);
                 var severity = GetOptionSeverity(optionValue);
                 switch (severity)

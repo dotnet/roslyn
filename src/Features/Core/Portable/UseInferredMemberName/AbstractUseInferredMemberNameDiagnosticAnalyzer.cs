@@ -27,10 +27,6 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
 
             var syntaxTree = context.Node.SyntaxTree;
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
             LanguageSpecificAnalyzeSyntax(context, syntaxTree, optionSet);
         }

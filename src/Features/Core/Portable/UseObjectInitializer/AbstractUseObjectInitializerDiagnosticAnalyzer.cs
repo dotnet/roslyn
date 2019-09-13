@@ -54,10 +54,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;

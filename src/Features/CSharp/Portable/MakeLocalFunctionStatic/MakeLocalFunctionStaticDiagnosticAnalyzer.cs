@@ -43,11 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction);
             if (!option.Value)
             {

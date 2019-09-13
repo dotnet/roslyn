@@ -89,11 +89,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var options = context.Options;
             var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             var option = optionSet.GetOption(CodeStyleOptions.PreferThrowExpression, throwStatementSyntax.Language);
             if (!option.Value)
             {

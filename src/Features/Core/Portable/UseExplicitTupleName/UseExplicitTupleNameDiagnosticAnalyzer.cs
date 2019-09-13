@@ -32,10 +32,6 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             var syntaxTree = context.Operation.Syntax.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
             // We only create a diagnostic if the option's value is set to true.
             var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
