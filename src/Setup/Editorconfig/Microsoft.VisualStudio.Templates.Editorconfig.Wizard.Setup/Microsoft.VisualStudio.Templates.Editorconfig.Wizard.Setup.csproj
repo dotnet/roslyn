@@ -11,6 +11,8 @@
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\Editorconfig\Wizard</ExtensionInstallationFolder>
     <VisualStudioInsertionComponent>Templates.Editorconfig.Setup</VisualStudioInsertionComponent>
+    <UseCodebase>true</UseCodebase>
+    <Ngen>false</Ngen>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="VSPackage.resx">

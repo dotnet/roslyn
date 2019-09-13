@@ -4,11 +4,9 @@ using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
-[assembly:ProvideBindingRedirection(AssemblyName = "Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Setup", CodeBase = "Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Setup.dll", OldVersionLowerBound ="0.0.0.0")]
-
 namespace EditorconfigResourcePackage
 {
-    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = false, RegisterUsing = RegistrationMethod.CodeBase)]
     [InstalledProductRegistration("#110", "#112", "1.0")]
     [Guid(PackageGuidString)]
     public sealed class EditorconfigResourcePackage : AsyncPackage
