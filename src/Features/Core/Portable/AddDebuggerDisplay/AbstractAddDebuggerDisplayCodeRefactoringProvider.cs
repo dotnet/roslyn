@@ -36,24 +36,31 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             var typeSymbol = (ITypeSymbol)semanticModel.GetDeclaredSymbol(type, context.CancellationToken);
 
-            var debuggerDisplayAttributeClass = semanticModel.Compilation.GetTypeByMetadataName("System.Diagnostics.DebuggerDisplayAttribute");
-
-            if (typeSymbol.GetAttributes()
-                .Select(data => data.AttributeClass)
-                .Contains(debuggerDisplayAttributeClass))
+            if (IsClassOrStruct(typeSymbol) && !HasDebuggerDisplayAttribute(typeSymbol, semanticModel.Compilation))
             {
-                return;
+                context.RegisterRefactoring(new MyCodeAction(
+                    FeaturesResources.Add_DebuggerDisplay,
+                    cancellationToken => ApplyAsync(context.Document, type, cancellationToken)));
             }
+        }
 
+        private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
+        {
             switch (typeSymbol.TypeKind)
             {
                 case TypeKind.Class:
                 case TypeKind.Struct:
-                    context.RegisterRefactoring(new MyCodeAction(
-                        FeaturesResources.Add_DebuggerDisplay,
-                        cancellationToken => ApplyAsync(context.Document, type, cancellationToken)));
-                    break;
+                    return true;
+                default:
+                    return false;
             }
+        }
+
+        private static bool HasDebuggerDisplayAttribute(ITypeSymbol typeSymbol, Compilation compilation)
+        {
+            return typeSymbol.GetAttributes()
+                .Select(data => data.AttributeClass)
+                .Contains(compilation.GetTypeByMetadataName("System.Diagnostics.DebuggerDisplayAttribute"));
         }
 
         private async Task<Document> ApplyAsync(Document document, TTypeDeclarationSyntax type, CancellationToken cancellationToken)
