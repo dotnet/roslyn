@@ -9,10 +9,11 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -265,8 +266,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal static string GenerateDataFieldName(ImmutableArray<byte> data)
         {
-            // TODO: replace SHA1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
-            var hash = CryptographicHashProvider.ComputeSha1(data);
+            var hash = CryptographicHashProvider.ComputeHash(SourceHashAlgorithmUtils.DefaultHashAlgorithm, data);
             char[] c = new char[hash.Length * 2];
             int i = 0;
             foreach (var b in hash)

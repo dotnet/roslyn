@@ -200,5 +200,20 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());
             }
         }
+
+        internal static ImmutableArray<byte> ComputeHash(SourceHashAlgorithm hashAlgorithm, ImmutableArray<byte> bytes)
+        {
+            var algorithmName = GetAlgorithmName(hashAlgorithm);
+            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
+            {
+                incrementalHash.AppendData(bytes.ToArray());
+                return ImmutableArray.Create(incrementalHash.GetHashAndReset());
+            }
+        }
+
+        internal static ImmutableArray<byte> ComputeHash(SourceHashAlgorithm hashAlgorithm, IEnumerable<Blob> bytes)
+        {
+            return ComputeHash(GetAlgorithmName(hashAlgorithm), bytes);
+        }
     }
 }

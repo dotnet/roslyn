@@ -5170,7 +5170,7 @@ expectedOutput:="3b").VerifyIL("M1.Main",
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.0
   IL_0012:  ldc.i4.2

@@ -15,9 +15,10 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
 using static Microsoft.CodeAnalysis.SigningUtilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
-using Microsoft.DiaSymReader;
 
 namespace Microsoft.Cci
 {
@@ -140,9 +141,8 @@ namespace Microsoft.Cci
                 sizeOfHeapReserve: properties.SizeOfHeapReserve,
                 sizeOfHeapCommit: properties.SizeOfHeapCommit);
 
-            // TODO: replace SHA1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
             var peIdProvider = isDeterministic ?
-                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeHash(HashAlgorithmName.SHA1, content))) :
+                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeHash(SourceHashAlgorithmUtils.DefaultHashAlgorithm, content))) :
                 null;
 
             // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
