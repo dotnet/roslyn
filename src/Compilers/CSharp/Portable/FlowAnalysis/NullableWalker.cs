@@ -5864,7 +5864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundPropertyAccess property => GetRValueAnnotations(property.PropertySymbol),
                     BoundIndexerAccess indexer => GetRValueAnnotations(indexer.Indexer),
-                    _ => FlowAnalysisAnnotations.None
+                    _ => throw ExceptionUtilities.UnexpectedValue(expr.Kind)
                 };
             }
         }
