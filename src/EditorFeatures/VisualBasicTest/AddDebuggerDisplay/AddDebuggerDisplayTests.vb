@@ -165,38 +165,46 @@ End Class")
         End Function
 
         <Fact>
-        Public Async Function NotOfferedWhenAnyAttributeWithTheSameNameIsSpecified() As Task
-            Await TestMissingInRegularAndScriptAsync("
-<BrokenCode.DebuggerDisplay(""Foo"")>
-[||]Class C
-End Class")
-        End Function
-
-        <Fact>
-        Public Async Function NotOfferedWhenAnyAttributeWithTheSameNameIsSpecifiedWithSuffix() As Task
-            Await TestMissingInRegularAndScriptAsync("
-<BrokenCode.DebuggerDisplay(""Foo"")>
-[||]Class C
-End Class")
-        End Function
-
-        <Fact>
-        Public Async Function AliasedTypeIsNotRecognized() As Task
+        Public Async Function OfferedWhenAttributeWithTheSameNameIsSpecified() As Task
             Await TestInRegularAndScriptAsync("
-Imports DD = System.Diagnostics.DebuggerDisplayAttribute
-
-<DD(""Foo"")>
+<BrokenCode.DebuggerDisplay(""Foo"")>
 [||]Class C
 End Class", "
 Imports System.Diagnostics
-Imports DD = System.Diagnostics.DebuggerDisplayAttribute
 
-<DD(""Foo"")>
-<DD(""{GetDebuggerDisplay(),nq}"")>
+<BrokenCode.DebuggerDisplay(""Foo"")>
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Private Function GetDebuggerDisplay() As String
         Return ToString()
     End Function
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function OfferedWhenAttributeWithTheSameNameIsSpecifiedWithSuffix() As Task
+            Await TestInRegularAndScriptAsync("
+<BrokenCode.DebuggerDisplayAttribute(""Foo"")>
+[||]Class C
+End Class", "
+Imports System.Diagnostics
+
+<BrokenCode.DebuggerDisplayAttribute(""Foo"")>
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
+Class C
+    Private Function GetDebuggerDisplay() As String
+        Return ToString()
+    End Function
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function AliasedTypeIsRecognized() As Task
+            Await TestMissingInRegularAndScriptAsync("
+Imports DD = System.Diagnostics.DebuggerDisplayAttribute
+
+<DD(""Foo"")>
+[||]Class C
 End Class")
         End Function
 

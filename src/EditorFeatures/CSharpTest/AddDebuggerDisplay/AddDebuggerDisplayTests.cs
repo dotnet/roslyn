@@ -192,49 +192,56 @@ class C
         }
 
         [Fact]
-        public async Task NotOfferedWhenAnyAttributeWithTheSameNameIsSpecified()
+        public async Task OfferedWhenAttributeWithTheSameNameIsSpecified()
         {
-            await TestMissingInRegularAndScriptAsync(@"
-[BrokenCode.DebuggerDisplay(""Foo"")]
-[||]class C
-{
-}");
-        }
-
-        [Fact]
-        public async Task NotOfferedWhenAnyAttributeWithTheSameNameIsSpecifiedWithSuffix()
-        {
-            await TestMissingInRegularAndScriptAsync(@"
-[BrokenCode.DebuggerDisplay(""Foo"")]
-[||]class C
-{
-}");
-        }
-
-        [Fact]
-        public async Task AliasedTypeIsNotRecognized()
-        {
-            // This situation seems sufficiently unlikely that there is no need to make the majority of cases where
-            // there is an attribute wait for the semantic model.
-
             await TestInRegularAndScriptAsync(@"
-using DD = System.Diagnostics.DebuggerDisplayAttribute;
-
-[DD(""Foo"")]
+[BrokenCode.DebuggerDisplay(""Foo"")]
 [||]class C
 {
 }", @"
 using System.Diagnostics;
-using DD = System.Diagnostics.DebuggerDisplayAttribute;
 
-[DD(""Foo"")]
-[DD(""{GetDebuggerDisplay(),nq}"")]
-class C
+[BrokenCode.DebuggerDisplay(""Foo"")]
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[||]class C
 {
     private string GetDebuggerDisplay()
     {
         return ToString();
     }
+}");
+        }
+
+        [Fact]
+        public async Task OfferedWhenAttributeWithTheSameNameIsSpecifiedWithSuffix()
+        {
+            await TestInRegularAndScriptAsync(@"
+[BrokenCode.DebuggerDisplayAttribute(""Foo"")]
+[||]class C
+{
+}", @"
+using System.Diagnostics;
+
+[BrokenCode.DebuggerDisplayAttribute(""Foo"")]
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[||]class C
+{
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
+}");
+        }
+
+        [Fact]
+        public async Task AliasedTypeIsRecognized()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using DD = System.Diagnostics.DebuggerDisplayAttribute;
+
+[DD(""Foo"")]
+[||]class C
+{
 }");
         }
 

@@ -32,11 +32,18 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 type = method.FirstAncestorOrSelf<TTypeDeclarationSyntax>();
             }
 
-            if (HasDebuggerDisplayAttribute(type)) return;
-
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
             var typeSymbol = (ITypeSymbol)semanticModel.GetDeclaredSymbol(type, context.CancellationToken);
+
+            var debuggerDisplayAttributeClass = semanticModel.Compilation.GetTypeByMetadataName("System.Diagnostics.DebuggerDisplayAttribute");
+
+            if (typeSymbol.GetAttributes()
+                .Select(data => data.AttributeClass)
+                .Contains(debuggerDisplayAttributeClass))
+            {
+                return;
+            }
 
             switch (typeSymbol.TypeKind)
             {
@@ -53,12 +60,11 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
             var newAttribute = generator
-                .Attribute("System.Diagnostics.DebuggerDisplayAttribute", compilation, generator.LiteralExpression("{" + DebuggerDisplayMethodName + "(),nq}"))
+                .Attribute("System.Diagnostics.DebuggerDisplayAttribute", semanticModel.Compilation, generator.LiteralExpression("{" + DebuggerDisplayMethodName + "(),nq}"))
                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
             var modifiedType = generator.AddAttributes(type, newAttribute);
@@ -125,14 +131,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 cancellationToken);
         }
 
-        protected abstract bool HasDebuggerDisplayAttribute(TTypeDeclarationSyntax typeDeclaration);
-
         protected abstract bool IsToStringOverride(TMethodDeclarationSyntax methodDeclaration);
-
-        protected bool IsDebuggerDisplayAttributeIdentifier(SyntaxToken name)
-        {
-            return name.ValueText == "DebuggerDisplay" || name.ValueText == "DebuggerDisplayAttribute";
-        }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
