@@ -1525,6 +1525,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             newContextNode = contextNode
         End Sub
 
+        Public Function IsNamespaceDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNamespaceDeclaration
+            Return node.IsKind(SyntaxKind.NamespaceBlock)
+        End Function
+
         Public Function GetObjectCreationInitializer(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetObjectCreationInitializer
             Return DirectCast(node, ObjectCreationExpressionSyntax).Initializer
         End Function

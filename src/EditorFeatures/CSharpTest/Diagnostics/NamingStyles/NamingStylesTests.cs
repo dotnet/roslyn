@@ -8,9 +8,12 @@ using Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.Workspaces;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,6 +22,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
     public class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+
+        private static readonly IExportProviderFactory ExportProviderFactory =
+            ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestRefactorNotify)));
+
+        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
+            => CreateWorkspaceFromFile(initialMarkup, parameters, ExportProviderFactory);
+
+        protected TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters, IExportProviderFactory exportProviderFactory)
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, exportProvider: exportProviderFactory.CreateExportProvider());
+
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpNamingStyleDiagnosticAnalyzer(), new NamingStyleCodeFixProvider());
@@ -1217,17 +1231,42 @@ namespace Microsoft.CodeAnalysis.Host
             var testParameters = new TestParameters(options: options.ClassNamesArePascalCase);
 
             using var workspace = CreateWorkspaceFromOptions(markup, testParameters);
+
+            var refactorNotify = workspace.GetService<IRefactorNotifyService>() as TestRefactorNotify;
+            Assert.NotNull(refactorNotify);
+
+            var beforeCalled = false;
+            var afterCalled = false;
+            TestRefactorNotify.SymbolRenamedEventHandler beforeRename = (args) =>
+            {
+                Assert.Equal("C", args.NewName);
+                Assert.False(beforeCalled);
+                beforeCalled = true;
+            };
+
+            TestRefactorNotify.SymbolRenamedEventHandler afterRename = (args) =>
+            {
+                Assert.Equal("C", args.NewName);
+                Assert.False(afterCalled);
+                afterCalled = true;
+            };
+
+            refactorNotify.OnBeforeRename += beforeRename;
+            refactorNotify.OnAfterRename += afterRename;
+
             var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
+            var operations = await action.GetOperationsAsync(CancellationToken.None);
 
-            var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
-            Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
+            foreach (var operation in operations)
+            {
+                operation.Apply(workspace, CancellationToken.None);
+            }
 
-            var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
-            Assert.Equal(2, commitOperations.Length);
+            Assert.True(beforeCalled);
+            Assert.True(afterCalled);
 
-            var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
-            Assert.Equal("c", symbolRenamedOperation._symbol.Name);
-            Assert.Equal("C", symbolRenamedOperation._newName);
+            refactorNotify.OnBeforeRename -= beforeRename;
+            refactorNotify.OnAfterRename -= afterRename;
         }
     }
 }

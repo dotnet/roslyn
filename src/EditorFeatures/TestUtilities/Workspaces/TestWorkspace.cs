@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         private readonly Dictionary<string, ITextBuffer> _createdTextBuffers = new Dictionary<string, ITextBuffer>();
+        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         public TestWorkspace()
             : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
@@ -70,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _backgroundParser.Start();
 
             _metadataAsSourceFileService = exportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
+            _refactorNotifyServices = exportProvider.GetExportedValues<IRefactorNotifyService>();
 
             RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
         }
@@ -703,6 +706,51 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 return textBuffer;
             });
+        }
+
+        internal override bool TryApplyChanges(
+            Solution newSolution,
+            IProgressTracker progressTracker)
+        {
+            var oldSolution = CurrentSolution;
+            if (base.TryApplyChanges(newSolution, progressTracker))
+            {
+                var projectChanges = newSolution.GetChanges(oldSolution).GetProjectChanges().ToList();
+                var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).ToList();
+
+                NotifyRefactorChanges(changedDocs, newSolution, oldSolution);
+                return true;
+            }
+
+            return false;
+        }
+
+        private void NotifyRefactorChanges(
+            IEnumerable<DocumentId> changedDocumentIds,
+            Solution newSolution,
+            Solution oldSolution,
+            CancellationToken cancellationToken = default)
+        {
+            // Without any services to notify there's no need to dig through the documents
+            if (!_refactorNotifyServices.Any())
+            {
+                return;
+            }
+
+            var changedSymbols = Rename.RenameSymbolAnnotation
+                .GatherChangedSymbolsInDocumentsAsync(changedDocumentIds, newSolution, oldSolution, cancellationToken)
+                .WaitAndGetResult_CanCallOnBackground(cancellationToken);
+
+            foreach (var (oldSymbol, newSymbol) in changedSymbols)
+            {
+                foreach (var refactorNotifyService in _refactorNotifyServices)
+                {
+                    if (refactorNotifyService.TryOnBeforeGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.ToDisplayString(), throwOnFailure: false))
+                    {
+                        refactorNotifyService.TryOnAfterGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.ToDisplayString(), throwOnFailure: false);
+                    }
+                }
+            }
         }
     }
 }

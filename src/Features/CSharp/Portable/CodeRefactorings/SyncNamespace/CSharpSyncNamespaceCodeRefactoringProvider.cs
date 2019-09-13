@@ -58,8 +58,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
             return null;
         }
-
-        protected override string EscapeIdentifier(string identifier)
-            => identifier.EscapeIdentifier();
     }
 }

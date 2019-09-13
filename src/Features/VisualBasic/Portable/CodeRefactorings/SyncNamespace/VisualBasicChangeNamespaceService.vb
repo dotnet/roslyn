@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
         End Function
 
         ' This is only reachable when called from a VB service, which is not implemented yet.
-        Protected Overrides Function ChangeNamespaceDeclaration(root As CompilationUnitSyntax, declaredNamespaceParts As ImmutableArray(Of String), targetNamespaceParts As ImmutableArray(Of String)) As CompilationUnitSyntax
+        Protected Overrides Function ChangeNamespaceDeclarationAsync(document As Document, declaredNamespaceParts As ImmutableArray(Of String), targetNamespaceParts As ImmutableArray(Of String), cancellationToken As CancellationToken) As Task(Of CompilationUnitSyntax)
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -98,6 +98,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
             Else
                 Return SyntaxFactory.SimpleMemberAccessExpression(CreateNamespaceAsMemberAccess(namespaceParts, index - 1), namePiece)
             End If
+        End Function
+
+        Protected Overrides Function EscapeIdentifier(identifier As String) As String
+            Return identifier.EscapeIdentifier()
         End Function
     End Class
 End Namespace

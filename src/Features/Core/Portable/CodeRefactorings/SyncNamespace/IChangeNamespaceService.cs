@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable 
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -51,5 +53,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// a no-op and original solution will be returned.
         /// </remarks>
         Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets the target namespace for a given document by using the path and any root namespace 
+        /// </summary>
+        string? GetTargetNamespaceFromDocument(Document document);
     }
 }

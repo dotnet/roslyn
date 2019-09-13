@@ -58,15 +58,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return document.Project.Solution;
             }
 
-            var suggestedFileNames = GetSuggestedFileNames(
-                state.TypeNode,
-                IsNestedType(state.TypeNode),
-                state.TypeName,
-                state.SemanticDocument.Document.Name,
-                state.SemanticDocument.SemanticModel,
-                cancellationToken);
+            var suggestedFileName = operationKind switch
+            {
+                MoveTypeOperationKind.RenameType => Path.GetFileNameWithoutExtension(document.Name),
+                MoveTypeOperationKind.MoveTypeNamespaceScope => document.Name,
+                _ => GetSuggestedFileNames(
+                    state.TypeNode,
+                    IsNestedType(state.TypeNode),
+                    state.TypeName,
+                    state.SemanticDocument.Document.Name,
+                    state.SemanticDocument.SemanticModel,
+                    cancellationToken).FirstOrDefault()
+            };
 
-            var editor = Editor.GetEditor(operationKind, (TService)this, state, suggestedFileNames.FirstOrDefault(), cancellationToken);
+            var editor = Editor.GetEditor(operationKind, (TService)this, state, suggestedFileName, cancellationToken);
             var modifiedSolution = await editor.GetModifiedSolutionAsync().ConfigureAwait(false);
             return modifiedSolution ?? document.Project.Solution;
         }

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -232,19 +233,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         ///     - if target namespace is "", then we try to move all members in declared 
         ///     namespace to global namespace (i.e. remove the namespace declaration).    
         /// </summary>
-        protected override CompilationUnitSyntax ChangeNamespaceDeclaration(
-            CompilationUnitSyntax root,
+        protected override async Task<CompilationUnitSyntax> ChangeNamespaceDeclarationAsync(
+            Document document,
             ImmutableArray<string> declaredNamespaceParts,
-            ImmutableArray<string> targetNamespaceParts)
+            ImmutableArray<string> targetNamespaceParts,
+            CancellationToken cancellationToken)
         {
             Debug.Assert(!declaredNamespaceParts.IsDefault && !targetNamespaceParts.IsDefault);
+            var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var container = root.GetAnnotatedNodes(ContainerAnnotation).Single();
 
             if (container is CompilationUnitSyntax compilationUnit)
             {
                 // Move everything from global namespace to a namespace declaration
                 Debug.Assert(IsGlobalNamespace(declaredNamespaceParts));
-                return MoveMembersFromGlobalToNamespace(compilationUnit, targetNamespaceParts);
+                return MoveMembersFromGlobalToNamespace(compilationUnit, targetNamespaceParts, semanticModel);
             }
 
             if (container is NamespaceDeclarationSyntax namespaceDecl)
@@ -260,8 +264,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                     namespaceDecl,
                     namespaceDecl.WithName(
                         CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
-                        .WithTriviaFrom(namespaceDecl.Name).WithAdditionalAnnotations(WarningAnnotation))
-                        .WithoutAnnotations(ContainerAnnotation));      // Make sure to remove the annotation we added
+                        .WithTriviaFrom(namespaceDecl.Name)
+                        .WithAdditionalAnnotations(WarningAnnotation))
+                    .WithoutAnnotations(ContainerAnnotation));      // Make sure to remove the annotation we added
             }
 
             throw ExceptionUtilities.Unreachable;
@@ -313,9 +318,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 eofToken);
         }
 
-        private static CompilationUnitSyntax MoveMembersFromGlobalToNamespace(CompilationUnitSyntax compilationUnit, ImmutableArray<string> targetNamespaceParts)
+        private static CompilationUnitSyntax MoveMembersFromGlobalToNamespace(
+            CompilationUnitSyntax compilationUnit,
+            ImmutableArray<string> targetNamespaceParts,
+            SemanticModel semanticModel)
         {
             Debug.Assert(!compilationUnit.Members.Any(m => m is NamespaceDeclarationSyntax));
+            compilationUnit = compilationUnit.ReplaceNodes(
+                compilationUnit.Members,
+                (original, current) => semanticModel.GetDeclaredSymbol(current) is null ? current : current.WithRenameSymbolAnnotation(semanticModel));
 
             var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
                 name: CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
@@ -479,5 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
             return (openingBuilder.ToImmutableAndFree(), closingBuilder.ToImmutableAndFree());
         }
+
+        protected override string EscapeIdentifier(string identifier)
+            => identifier.EscapeIdentifier();
     }
 }

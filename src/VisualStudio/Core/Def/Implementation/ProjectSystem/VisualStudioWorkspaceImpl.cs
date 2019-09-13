@@ -11,11 +11,13 @@ using System.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -102,6 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
         private readonly IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> _documentOptionsProviderFactories;
+        private readonly IEnumerable<Lazy<IRefactorNotifyService>> _refactorNotifyServices;
         private bool _documentOptionsProvidersInitialized = false;
         private readonly Dictionary<ProjectId, CompilationOutputs> _projectCompilationOutputs = new Dictionary<ProjectId, CompilationOutputs>();
         private readonly object _projectCompilationOutputsGuard = new object();
@@ -119,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
             _documentOptionsProviderFactories = exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
+            _refactorNotifyServices = exportProvider.GetExports<IRefactorNotifyService>();
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
@@ -366,7 +370,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         internal override bool TryApplyChanges(
-            Microsoft.CodeAnalysis.Solution newSolution,
+            CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
             if (!_foregroundObject.IsForeground())
@@ -384,7 +388,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.EnsureEditableDocuments(changedDocs);
             }
 
-            return base.TryApplyChanges(newSolution, progressTracker);
+            var changedSymbols = RenameSymbolAnnotation
+                .GatherChangedSymbolsInDocumentsAsync(changedDocs, CurrentSolution, currentSolution, CancellationToken.None)
+                .WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+
+            var notifyRefactorOnBeforeSucceeded = TryNotifyRefactorBeforeChanges(changedSymbols, changedDocs);
+
+            if (base.TryApplyChanges(newSolution, progressTracker))
+            {
+                if (notifyRefactorOnBeforeSucceeded)
+                {
+                    NotifyRefactorAfterChanges(changedSymbols, changedDocs);
+                }
+                return true;
+            }
+
+            return false;
 
             bool CanApplyChange(DocumentId documentId)
             {
@@ -397,6 +416,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 return document.CanApplyChange();
             }
+        }
+
+        private void NotifyRefactorAfterChanges(ImmutableDictionary<ISymbol, ISymbol> changedSymbols, List<DocumentId> changedDocumentIds)
+        {
+            foreach (var (oldSymbol, newSymbol) in changedSymbols)
+            {
+                foreach (var refactorNotifyService in _refactorNotifyServices)
+                {
+                    refactorNotifyService.Value.TryOnAfterGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.ToDisplayString(), throwOnFailure: false);
+                }
+            }
+        }
+
+        private bool TryNotifyRefactorBeforeChanges(ImmutableDictionary<ISymbol, ISymbol> changedSymbols, IEnumerable<DocumentId> changedDocumentIds)
+        {
+            foreach (var (oldSymbol, newSymbol) in changedSymbols)
+            {
+                foreach (var refactorNotifyService in _refactorNotifyServices)
+                {
+                    if (!refactorNotifyService.Value.TryOnBeforeGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.ToDisplayString(), throwOnFailure: false))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         public override bool CanOpenDocuments

@@ -5,10 +5,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MoveToNamespace;
+using Microsoft.CodeAnalysis.Test.Utilities.Workspaces;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
@@ -25,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             TestParameters? testParameters = null,
             string targetNamespace = null,
             bool optionCancelled = false,
-            bool testAnalysis = false,
-            IReadOnlyDictionary<string, string> expectedSymbolChanges = null
-            )
+            IReadOnlyDictionary<string, string> expectedSymbolChanges = null)
         {
             testParameters ??= new TestParameters();
 
@@ -41,58 +43,96 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             testState.TestMoveToNamespaceOptionsService.SetOptions(moveToNamespaceOptions);
             if (expectedSuccess)
             {
-                var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
-                        testState.InvocationDocument,
-                        testState.TestInvocationDocument.SelectedSpans.Single(),
-                        CancellationToken.None);
-
-                var operationTasks = actions
-                    .Cast<AbstractMoveToNamespaceCodeAction>()
-                    .Select(action => action.GetOperationsAsync(action.GetOptions(CancellationToken.None), CancellationToken.None));
-
-                foreach (var task in operationTasks)
-                {
-                    var operations = await task;
-
-                    if (optionCancelled || string.IsNullOrEmpty(targetNamespace))
-                    {
-                        Assert.Empty(operations);
-                    }
-                    else
-                    {
-                        Assert.NotEmpty(operations);
-                        var renamedCodeActionsOperations = operations
-                            .Where(operation => operation is TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)
-                            .Cast<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>()
-                            .ToImmutableArray();
-
-                        Assert.NotEmpty(renamedCodeActionsOperations);
-
-                        Assert.NotNull(expectedSymbolChanges);
-
-                        var checkedCodeActions = new HashSet<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>(renamedCodeActionsOperations.Length);
-                        foreach (var kvp in expectedSymbolChanges)
-                        {
-                            var originalName = kvp.Key;
-                            var newName = kvp.Value;
-
-                            var codeAction = renamedCodeActionsOperations.FirstOrDefault(a => a._symbol.ToDisplayString() == originalName);
-                            Assert.Equal(newName, codeAction?._newName);
-                            Assert.False(checkedCodeActions.Contains(codeAction));
-
-                            checkedCodeActions.Add(codeAction);
-                        }
-                    }
-                }
-
                 if (!optionCancelled && !string.IsNullOrEmpty(targetNamespace))
                 {
+                    await TestRefactorNotifyAsync(testState, workspace, targetNamespace, optionCancelled, expectedSymbolChanges);
                     await TestInRegularAndScriptAsync(markup, expectedMarkup);
                 }
             }
             else
             {
                 await TestMissingInRegularAndScriptAsync(markup, parameters: testParameters.Value);
+            }
+        }
+
+        private async Task TestRefactorNotifyAsync(
+            TestState testState,
+            TestWorkspace workspace,
+            string targetNamespace = null,
+            bool optionCancelled = false,
+            IReadOnlyDictionary<string, string> expectedSymbolChanges = null)
+        {
+            var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
+                        testState.InvocationDocument,
+                        testState.TestInvocationDocument.SelectedSpans.Single(),
+                        CancellationToken.None);
+
+            var operationTasks = actions
+                .Cast<AbstractMoveToNamespaceCodeAction>()
+                .Select(action => action.GetOperationsAsync(action.GetOptions(CancellationToken.None), CancellationToken.None));
+
+            var operations = new List<CodeActionOperation>();
+
+            foreach (var task in operationTasks)
+            {
+                var taskOperations = await task;
+
+                if (optionCancelled || string.IsNullOrEmpty(targetNamespace))
+                {
+                    Assert.Empty(taskOperations);
+                }
+                else
+                {
+                    Assert.NotEmpty(taskOperations);
+                }
+
+                operations.AddRange(taskOperations);
+            }
+
+            var refactorNotify = workspace.GetService<IRefactorNotifyService>() as TestRefactorNotify;
+
+            var expectedRenames = expectedSymbolChanges.Select(kvp => new RenameTracking()
+            {
+                Original = kvp.Key,
+                New = kvp.Value,
+                OnBeforeCalled = false,
+                OnAfterCalled = false
+            }).ToImmutableArray();
+
+            TestRefactorNotify.SymbolRenamedEventHandler beforeRename = (args) =>
+            {
+                var expectedRenameTracking = expectedRenames.First(r => r.New == args.NewName);
+                Assert.False(expectedRenameTracking.OnBeforeCalled);
+                expectedRenameTracking.OnBeforeCalled = true;
+            };
+
+            TestRefactorNotify.SymbolRenamedEventHandler afterRename = (args) =>
+            {
+                var expectedRenameTracking = expectedRenames.First(r => r.New == args.NewName);
+                expectedRenameTracking.OnAfterCalled = true;
+            };
+
+            if (refactorNotify is object)
+            {
+                refactorNotify.OnBeforeRename += beforeRename;
+                refactorNotify.OnAfterRename += afterRename;
+            }
+
+            foreach (var operation in operations)
+            {
+                operation.Apply(workspace, CancellationToken.None);
+            }
+
+            if (refactorNotify is object)
+            {
+                refactorNotify.OnBeforeRename -= beforeRename;
+                refactorNotify.OnAfterRename -= afterRename;
+            }
+
+            foreach (var expectedRename in expectedRenames)
+            {
+                Assert.True(expectedRename.OnBeforeCalled, $"{expectedRename.Original} => {expectedRename.New} :: on before was not called");
+                Assert.True(expectedRename.OnAfterCalled, $"{expectedRename.Original} => {expectedRename.New} :: on after was not called");
             }
         }
 
@@ -112,5 +152,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         }
 
         public Task TestCancelledOption(string markup) => TestMoveToNamespaceAsync(markup, expectedMarkup: markup, optionCancelled: true);
+
+        private class RenameTracking
+        {
+            public string Original { get; set; }
+            public string New { get; set; }
+            public bool OnBeforeCalled { get; set; }
+            public bool OnAfterCalled { get; set; }
+        }
     }
 }

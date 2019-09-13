@@ -273,5 +273,8 @@
   <ItemGroup>
     <VsdConfigXmlFiles Include="ManagedEditAndContinueService.vsdconfigxml" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Implementation\DocumentRefactoring\" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>
