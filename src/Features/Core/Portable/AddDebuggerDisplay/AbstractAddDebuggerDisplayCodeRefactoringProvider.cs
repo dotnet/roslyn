@@ -40,16 +40,32 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             }
         }
 
-        private async Task<TTypeDeclarationSyntax> GetRelevantTypeFromMethodAsync(CodeRefactoringContext context)
+        private static async Task<TTypeDeclarationSyntax> GetRelevantTypeFromMethodAsync(CodeRefactoringContext context)
         {
             var method = await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
-
-            if (IsToStringOverride(method))
+            if (method != null)
             {
-                return method.FirstAncestorOrSelf<TTypeDeclarationSyntax>();
+                var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+                var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(method);
+
+                if (IsToStringOverride(methodSymbol))
+                {
+                    return method.FirstAncestorOrSelf<TTypeDeclarationSyntax>();
+                }
             }
 
             return null;
+        }
+
+        private static bool IsToStringOverride(IMethodSymbol methodSymbol)
+        {
+            return methodSymbol is
+            {
+                Arity: 0,
+                Parameters: { IsEmpty: true },
+                Name: nameof(ToString),
+                IsOverride: true
+            };
         }
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
@@ -145,8 +161,6 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 placeSystemNamespaceFirst,
                 cancellationToken);
         }
-
-        protected abstract bool IsToStringOverride(TMethodDeclarationSyntax methodDeclaration);
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
