@@ -280,7 +280,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             else
             {
-                filePath = projectName +
+                // Prepend "./" because DocumentState expects the project to be within a directory when getting AnalyzerOptions.
+                filePath = "./" + projectName +
                     (language == LanguageNames.CSharp ? ".csproj" :
                      language == LanguageNames.VisualBasic ? ".vbproj" : ("." + language));
             }
