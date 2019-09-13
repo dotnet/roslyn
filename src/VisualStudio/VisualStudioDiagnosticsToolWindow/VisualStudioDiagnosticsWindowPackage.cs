@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
@@ -111,8 +112,9 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             var remoteService = workspace.Services.GetService<IRemoteHostClientService>();
 
             var brokeredServiceContainer = (IBrokeredServiceContainer)await GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(true);
+            var asyncOperationListenerProvider = componentModel.GetService<IAsynchronousOperationListenerProvider>();
 
-            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteService, brokeredServiceContainer);
+            PerformanceLoggersPage.SetLoggers(optionService, asyncOperationListenerProvider, _threadingContext, remoteService, brokeredServiceContainer);
         }
         #endregion
 

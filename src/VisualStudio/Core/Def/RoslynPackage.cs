@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -94,18 +95,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private async Task InitializeWorkspaceFailureOutputWindowAsync()
         {
             var threadingContext = _componentModel.GetService<IThreadingContext>();
+            var asyncListenerProvider = _componentModel.GetService<IAsynchronousOperationListenerProvider>();
+            var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.WorkspaceFailureLogger);
+
             var brokeredServiceContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
             Assumes.Present(brokeredServiceContainer);
             var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
             var serviceBrokerClient = new ServiceBrokerClient(serviceBroker, threadingContext.JoinableTaskFactory);
 
-#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
-            _workspace.WorkspaceFailed += async (sender, eventArgs) =>
+            _workspace.WorkspaceFailed += (sender, eventArgs) =>
             {
-                using var outputChannelStore = await serviceBrokerClient.GetProxyAsync<IOutputChannelStore>(VisualStudioServices.VS2019_4.OutputChannelStore).ConfigureAwait(false);
-                await outputChannelStore.Proxy.WriteLineAsync(ServicesVSResources.IntelliSense, eventArgs.Diagnostic.ToString()).ConfigureAwait(false);
+                var asyncToken = asyncListener.BeginAsyncOperation(nameof(InitializeWorkspaceFailureOutputWindowAsync));
+                Task.Run(async () =>
+                {
+                    using var outputChannelStore = await serviceBrokerClient.GetProxyAsync<IOutputChannelStore>(VisualStudioServices.VS2019_4.OutputChannelStore).ConfigureAwait(false);
+                    await outputChannelStore.Proxy.WriteLineAsync(ServicesVSResources.IntelliSense, eventArgs.Diagnostic.ToString()).ConfigureAwait(false);
+                });
             };
-#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
         }
 
         private void InitializeColors()

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -20,6 +21,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     [Guid(Guids.RoslynOptionPagePerformanceLoggersIdString)]
     internal class PerformanceLoggersPage : AbstractOptionPage
     {
+        private IAsynchronousOperationListenerProvider _asyncListenerProvider;
         private IGlobalOptionService _optionService;
         private IThreadingContext _threadingContext;
         private IRemoteHostClientService _remoteService;
@@ -30,6 +32,8 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             if (_optionService == null)
             {
                 var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+                _asyncListenerProvider = componentModel.GetService<IAsynchronousOperationListenerProvider>();
+
                 _brokeredServiceContainer = (IBrokeredServiceContainer)serviceProvider.GetService(typeof(SVsBrokeredServiceContainer));
 
                 _optionService = componentModel.GetService<IGlobalOptionService>();
@@ -46,10 +50,10 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         {
             base.OnApply(e);
 
-            SetLoggers(_optionService, _threadingContext, _remoteService, _brokeredServiceContainer);
+            SetLoggers(_optionService, _asyncListenerProvider, _threadingContext, _remoteService, _brokeredServiceContainer);
         }
 
-        public static void SetLoggers(IGlobalOptionService optionService, IThreadingContext threadingContext,
+        public static void SetLoggers(IGlobalOptionService optionService, IAsynchronousOperationListenerProvider asyncListenerProvider, IThreadingContext threadingContext,
             IRemoteHostClientService remoteService, IBrokeredServiceContainer brokeredServiceContainer)
         {
             var loggerTypes = GetLoggerTypes(optionService).ToList();
@@ -59,7 +63,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
             SetRoslynLogger(loggerTypes, () => new EtwLogger(options));
             SetRoslynLogger(loggerTypes, () => new TraceLogger(options));
-            SetRoslynLogger(loggerTypes, () => new OutputWindowLogger(options, threadingContext, brokeredServiceContainer));
+            SetRoslynLogger(loggerTypes, () => new OutputWindowLogger(options, asyncListenerProvider, threadingContext, brokeredServiceContainer));
 
             // second set RemoteHost options
             var client = threadingContext.JoinableTaskFactory.Run(() => remoteService.TryGetRemoteHostClientAsync(CancellationToken.None));

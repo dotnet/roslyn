@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string NavigateTo = nameof(NavigateTo);
         public const string NavigationBar = nameof(NavigationBar);
         public const string Outlining = nameof(Outlining);
+        public const string OutputWindowLogger = nameof(OutputWindowLogger);
         public const string QuickInfo = nameof(QuickInfo);
         public const string ReferenceHighlighting = nameof(ReferenceHighlighting);
         public const string Rename = nameof(Rename);
@@ -40,5 +41,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string TodoCommentList = nameof(TodoCommentList);
         public const string LanguageServerWorkspaceSymbolSearch = nameof(LanguageServerWorkspaceSymbolSearch);
         public const string Workspace = nameof(Workspace);
+        public const string WorkspaceFailureLogger = nameof(WorkspaceFailureLogger);
     }
 }

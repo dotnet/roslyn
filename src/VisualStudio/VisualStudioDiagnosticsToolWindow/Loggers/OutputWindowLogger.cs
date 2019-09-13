@@ -3,12 +3,12 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.RpcContracts.OutputChannel;
 using Microsoft.VisualStudio.Shell;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -19,16 +19,19 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         private readonly Func<FunctionId, bool> _loggingChecker;
 
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly ServiceBrokerClient _serviceBrokerClient;
         private readonly IThreadingContext _threadingContext;
 
-        public OutputWindowLogger(Func<FunctionId, bool> loggingChecker, IThreadingContext threadingContext, IBrokeredServiceContainer brokeredServiceContainer)
+        public OutputWindowLogger(Func<FunctionId, bool> loggingChecker, IAsynchronousOperationListenerProvider asyncListenerProvider,
+            IThreadingContext threadingContext, IBrokeredServiceContainer brokeredServiceContainer)
         {
             _loggingChecker = loggingChecker;
 
             Assumes.Present(brokeredServiceContainer);
             var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
+            _asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.OutputWindowLogger);
             _threadingContext = threadingContext;
             _serviceBrokerClient = new ServiceBrokerClient(serviceBroker, _threadingContext.JoinableTaskFactory);
         }
@@ -56,11 +59,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         private void WriteLine(string value)
         {
-            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(WriteLine));
+            Task.Run(async () =>
             {
                 using var outputChannelStore = await _serviceBrokerClient.GetProxyAsync<IOutputChannelStore>(VisualStudioServices.VS2019_4.OutputChannelStore).ConfigureAwait(false);
                 await outputChannelStore.Proxy.WriteLineAsync("Roslyn Logger Output", value).ConfigureAwait(false);
-            });
+            }).CompletesAsyncOperation(asyncToken);
         }
     }
 }
