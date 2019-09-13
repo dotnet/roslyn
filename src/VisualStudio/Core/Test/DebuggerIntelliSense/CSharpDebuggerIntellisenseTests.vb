@@ -112,7 +112,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("bar")
                 state.SendTab()
-                Assert.Equal("    bar", state.GetCurrentViewLineText())
+                Assert.Equal("bar", state.GetCurrentViewLineText())
             End Using
         End Function
 
@@ -143,6 +143,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 For i As Integer = 0 To 7
                     state.SendBackspace()
                 Next
+                Await state.AssertNoCompletionSession()
 
                 state.SendTypeChars("green")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -405,8 +406,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                        </Workspace>
 
             Using state = TestState.CreateCSharpTestState(text, False)
-                Await VerifyCompletionAndDotAfter("q", state)
-                Await VerifyCompletionAndDotAfter("OOO", state)
+                Await state.VerifyCompletionAndDotAfter("q")
+                Await state.VerifyCompletionAndDotAfter("OOO")
             End Using
         End Function
 
@@ -624,8 +625,6 @@ $$</Document>
         Public Async Sub CompletionOnTypeCharacterInLinkedFileContext()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>
-123123123123123123123123123 + $$</Document>
                                <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                            </Project>
                            <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
@@ -640,7 +639,7 @@ $$</Document>
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, True)
+            Using state = TestState.CreateCSharpTestState(text, True, <Document>123123123123123123123123123 + $$</Document>)
                 state.SendTypeChars("arg")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("123123123123123123123123123 + arg", state.GetCurrentViewLineText())
@@ -728,19 +727,5 @@ $$</Document>
                 Assert.False(state.HasSuggestedItem())
             End Using
         End Function
-
-        Private Async Function VerifyCompletionAndDotAfter(item As String, state As TestState) As Task
-            state.SendTypeChars(item)
-            Await state.WaitForAsynchronousOperationsAsync()
-            Await state.AssertSelectedCompletionItem(item)
-            state.SendTab()
-            state.SendTypeChars(".")
-            Await state.WaitForAsynchronousOperationsAsync()
-            Await state.AssertCompletionSession()
-            For i As Integer = 0 To item.Length
-                state.SendBackspace()
-            Next
-        End Function
-
     End Class
 End Namespace

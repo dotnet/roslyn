@@ -20,9 +20,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
         Private _context As AbstractDebuggerIntelliSenseContext
         Private Shared ReadOnly s_roles As ImmutableArray(Of String) = ImmutableArray.Create(PredefinedTextViewRoles.Editable, "DEBUGVIEW", PredefinedTextViewRoles.Interactive)
+        Private ReadOnly _language As String
 
         Private Sub New(workspaceElement As XElement,
-                        isImmediateWindow As Boolean)
+                        isImmediateWindow As Boolean,
+                        Optional cursorDocumentElement As XElement = Nothing)
 
             MyBase.New(
                 workspaceElement,
@@ -31,11 +33,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 extraExportedTypes:=Nothing,
                 workspaceKind:=WorkspaceKind.Debugger,
                 includeFormatCommandHandler:=False,
-                cursorDocumentElement:=<Document>$$</Document>,
+                cursorDocumentElement:=If(cursorDocumentElement, <Document>$$</Document>),
                 roles:=s_roles)
 
             Dim languageServices = Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
+
+            _language = language
 
             Dim spanDocument = Workspace.Documents.First(Function(x) x.SelectedSpans.Any())
             Dim statementSpan = spanDocument.SelectedSpans.First()
@@ -75,28 +79,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Get
         End Property
 
-        Public ReadOnly Property IsImmediateWindow As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
         Public Shared Function CreateVisualBasicTestState(
                 workspaceElement As XElement,
-                isImmediateWindow As Boolean) As TestState
+                isImmediateWindow As Boolean,
+                Optional cursorDocumentElement As XElement = Nothing) As TestState
 
-            Return New TestState(workspaceElement, isImmediateWindow)
+            Return New TestState(workspaceElement, isImmediateWindow, cursorDocumentElement)
         End Function
 
         Public Shared Function CreateCSharpTestState(
                 workspaceElement As XElement,
-                isImmediateWindow As Boolean) As TestState
+                isImmediateWindow As Boolean,
+                Optional cursorDocumentElement As XElement = Nothing) As TestState
 
-            Return New TestState(workspaceElement, isImmediateWindow)
+            Return New TestState(workspaceElement, isImmediateWindow, cursorDocumentElement)
         End Function
 
         Public Function GetCurrentViewLineText() As String
             Return Me.TextView.TextViewLines.Last().Extent.GetText()
+        End Function
+
+        Public Async Function VerifyCompletionAndDotAfter(item As String) As Task
+            SendTypeChars(item)
+            Await WaitForAsynchronousOperationsAsync()
+            Await AssertSelectedCompletionItem(item)
+            SendTab()
+            SendTypeChars(".")
+            Await WaitForAsynchronousOperationsAsync()
+            Await AssertCompletionSession()
+            For i As Integer = 0 To item.Length
+                SendBackspace()
+            Next
+
+            Await AssertNoCompletionSession()
         End Function
 
     End Class

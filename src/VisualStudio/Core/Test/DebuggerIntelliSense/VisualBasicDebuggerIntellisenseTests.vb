@@ -21,7 +21,7 @@ End Module</Document>
                            </Project>
                        </Workspace>
             Using state = TestState.CreateVisualBasicTestState(text, False)
-                Await VerifyCompletionAndDotAfter("x", state)
+                Await state.VerifyCompletionAndDotAfter("x")
             End Using
         End Function
 
@@ -37,8 +37,8 @@ End Module</Document>
                            </Project>
                        </Workspace>
             Using state = TestState.CreateVisualBasicTestState(text, False)
-                Await VerifyCompletionAndDotAfter("args", state)
-                Await VerifyCompletionAndDotAfter("z", state)
+                Await state.VerifyCompletionAndDotAfter("args")
+                Await state.VerifyCompletionAndDotAfter("z")
             End Using
         End Function
 
@@ -54,8 +54,8 @@ End Module</Document>
                            </Project>
                        </Workspace>
             Using state = TestState.CreateVisualBasicTestState(text, False)
-                Await VerifyCompletionAndDotAfter("args", state)
-                Await VerifyCompletionAndDotAfter("z", state)
+                Await state.VerifyCompletionAndDotAfter("args")
+                Await state.VerifyCompletionAndDotAfter("z")
             End Using
         End Function
 
@@ -72,7 +72,7 @@ End Module</Document>
                            </Project>
                        </Workspace>
             Using state = TestState.CreateVisualBasicTestState(text, False)
-                Await VerifyCompletionAndDotAfter("x", state)
+                Await state.VerifyCompletionAndDotAfter("x")
             End Using
         End Function
 
@@ -91,7 +91,7 @@ End Module</Document>
                            </Project>
                        </Workspace>
             Using state = TestState.CreateVisualBasicTestState(text, False)
-                Await VerifyCompletionAndDotAfter("x", state)
+                Await state.VerifyCompletionAndDotAfter("x")
             End Using
         End Function
 
@@ -109,9 +109,9 @@ End Module</Document>
                            </Project>
                        </Workspace>
             Using state = TestState.CreateVisualBasicTestState(text, False)
-                Await VerifyCompletionAndDotAfter("bar", state)
-                Await VerifyCompletionAndDotAfter("y", state)
-                Await VerifyCompletionAndDotAfter("z", state)
+                Await state.VerifyCompletionAndDotAfter("bar")
+                Await state.VerifyCompletionAndDotAfter("y")
+                Await state.VerifyCompletionAndDotAfter("z")
             End Using
         End Function
 
@@ -129,11 +129,11 @@ End Module</Document>
                            </Project>
                        </Workspace>
             Using state = TestState.CreateVisualBasicTestState(text, True)
-                Await VerifyCompletionAndDotAfter("bar", state)
-                Await VerifyCompletionAndDotAfter("y", state)
-                Await VerifyCompletionAndDotAfter("z", state)
+                Await state.VerifyCompletionAndDotAfter("bar")
+                Await state.VerifyCompletionAndDotAfter("y")
+                Await state.VerifyCompletionAndDotAfter("z")
                 state.SendReturn()
-                Await VerifyCompletionAndDotAfter("y", state)
+                Await state.VerifyCompletionAndDotAfter("y")
             End Using
         End Function
 
@@ -159,7 +159,11 @@ End Module</Document>
                     state.SendTypeChars(".")
                     Await state.WaitForAsynchronousOperationsAsync()
                     Await state.AssertCompletionSession()
+                    ' first return closes comlpetion
                     state.SendReturn()
+                    ' second return adds a new line
+                    state.SendReturn()
+                    Await state.AssertNoCompletionSession()
                 Next
             End Using
         End Sub
@@ -324,27 +328,11 @@ End Module</Document>
                            </Project>
                        </Workspace>
             Using state = TestState.CreateVisualBasicTestState(text, False)
-                Await VerifyCompletionAndDotAfter("q", state)
-                Await VerifyCompletionAndDotAfter("xx", state)
-                Await VerifyCompletionAndDotAfter("z", state)
+                Await state.VerifyCompletionAndDotAfter("q")
+                Await state.VerifyCompletionAndDotAfter("xx")
+                Await state.VerifyCompletionAndDotAfter("z")
             End Using
         End Sub
-
-        Private Async Function VerifyCompletionAndDotAfter(item As String, state As TestState) As Task
-            If state.IsImmediateWindow Then
-                state.SendTypeChars("?")
-            End If
-            state.SendTypeChars(item)
-            Await state.WaitForAsynchronousOperationsAsync()
-            Await state.AssertSelectedCompletionItem(item)
-            state.SendTab()
-            state.SendTypeChars(".")
-            Await state.WaitForAsynchronousOperationsAsync()
-            Await state.AssertCompletionSession()
-            For i As Integer = 0 To item.Length
-                state.SendBackspace()
-            Next
-        End Function
 
         <WorkItem(1044441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
@@ -358,7 +346,7 @@ End Module</Document>
                            </Project>
                        </Workspace>
             Using state = TestState.CreateVisualBasicTestState(text, False)
-                Await VerifyCompletionAndDotAfter("o", state)
+                Await state.VerifyCompletionAndDotAfter("o")
             End Using
         End Sub
 
@@ -379,7 +367,7 @@ End Class</Document>
                            </Project>
                        </Workspace>
             Using state = TestState.CreateVisualBasicTestState(text, False)
-                Await VerifyCompletionAndDotAfter("value", state)
+                Await state.VerifyCompletionAndDotAfter("value")
             End Using
         End Sub
     End Class
