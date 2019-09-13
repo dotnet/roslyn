@@ -1822,7 +1822,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (containingSlot >= 0 && (node as BoundObjectInitializerExpressionBase)?.Initializers.Length != 0)
                 {
-                    _ = ReportPossibleNullReceiverIfNeeded(node.Type, this.State[containingSlot], checkNullableValueType: false, node.Syntax, out _);
+                    if (!node.Type.IsValueType && State[containingSlot].MayBeNull())
+                    {
+                        ReportDiagnostic(ErrorCode.WRN_NullReferenceInitializer, node.Syntax, containingSymbol);
+                    }
                 }
             }
         }
