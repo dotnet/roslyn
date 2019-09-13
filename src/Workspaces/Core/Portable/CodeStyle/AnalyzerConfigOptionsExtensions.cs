@@ -40,17 +40,9 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var storageLocation in option.StorageLocations)
             {
-                if (!(storageLocation is EditorConfigStorageLocation<T> editorConfigStorageLocation))
-                {
-                    continue;
-                }
-
-                if (!analyzerConfigOptions.TryGetValue(editorConfigStorageLocation.KeyName, out var stringValue))
-                {
-                    continue;
-                }
-
-                if (editorConfigStorageLocation.TryGetOption(stringValue, typeof(T), out value))
+                if (storageLocation is EditorConfigStorageLocation<T> editorConfigStorageLocation &&
+                    analyzerConfigOptions.TryGetValue(editorConfigStorageLocation.KeyName, out var stringValue) &&
+                    editorConfigStorageLocation.TryGetOption(stringValue, typeof(T), out value))
                 {
                     return true;
                 }
