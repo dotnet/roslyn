@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,86 +14,120 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Wrapping;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 {
-    internal sealed class MakeLocalFunctionStaticHelper
+    internal static class MakeLocalFunctionStaticHelper
     {
-        internal static async Task<Document> CreateParameterSymbolAsync(Document document, LocalFunctionStatementSyntax localFunction, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(true);
-            var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
-            var dataFlow = semanticModel.AnalyzeDataFlow(localFunction);
-            var captures = dataFlow.CapturedInside;
+        public static bool IsStaticLocalFunctionSupported(SyntaxTree tree)
+            => tree.Options is CSharpParseOptions csharpOption && csharpOption.LanguageVersion >= LanguageVersion.CSharp8;
 
-            var parameters = CreateParameterSymbol(captures);
+        public static bool TryGetCaputuredSymbols(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
+        {
+            var dataFlow = semanticModel.AnalyzeDataFlow(localFunction);
+            captures = dataFlow.CapturedInside;
+
+            return dataFlow.Succeeded;
+        }
+
+        public static async Task<Document> MakeLocalFunctionStaticAsync(
+            LocalFunctionStatementSyntax localFunction,
+            ImmutableArray<ISymbol> captures,
+            SemanticModel semanticModel,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
+
+            var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
+            var parameters = CreateParameterSymbols(captures);
 
             // Finds all the call sites of the local function
-            var arrayNode = await SymbolFinder.FindReferencesAsync
-                (localFunctionSymbol, document.Project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var referencedSymbols = await SymbolFinder.FindReferencesAsync(
+                localFunctionSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
 
-            var rootOne = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(rootOne, CSharpSyntaxGenerator.Instance);
+            // Now we need to find all the refereces to the local function that we might need to fix.
+            var shouldWarn = false;
+            var invocationReferences = new List<InvocationExpressionSyntax>();
 
-            editor.TrackNode(localFunction);
-
-            var referencesBuilder = Analyzer.Utilities.PooledObjects.ArrayBuilder<InvocationExpressionSyntax>.GetInstance();
-            foreach (var referenceSymbol in arrayNode)
+            foreach (var referencedSymbol in referencedSymbols)
             {
-                foreach (var location in referenceSymbol.Locations)
+                foreach (var location in referencedSymbol.Locations)
                 {
-                    var root = await location.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var syntaxNode = root.FindNode(location.Location.SourceSpan); //Node for the identifier syntax
-
-                    var invocation = (syntaxNode as IdentifierNameSyntax).Parent as InvocationExpressionSyntax;
-                    if (invocation == null)
+                    // Since this is a local function, all reference must be in the same tree.
+                    var referenceNode = root.FindNode(location.Location.SourceSpan);
+                    if (!(referenceNode is IdentifierNameSyntax identifierNode))
                     {
-                        var annotation = WarningAnnotation.Create("Warning: Expression may have side effects. Code meaning may change.");
-                        editor.ReplaceNode(syntaxNode, syntaxNode.WithAdditionalAnnotations(annotation));
                         continue;
                     }
 
-                    editor.TrackNode(invocation);
-                    referencesBuilder.Add(invocation);
+                    if (identifierNode.Parent is InvocationExpressionSyntax invocation)
+                    {
+                        invocationReferences.Add(invocation);
+                    }
+                    else
+                    {
+                        // We won't be able to fix non-invocation references, 
+                        // e.g. creating a delegate. 
+                        shouldWarn = true;
+                    }
                 }
             }
 
-            foreach (var invocation in referencesBuilder.OrderByDescending(n => n.Span.Start))
+            var nodeToTrack = new List<SyntaxNode>(invocationReferences) { localFunction };
+            root = root.TrackNodes(nodeToTrack);
+
+            // Fix all invocations by passing in additional arguments.
+            foreach (var invocation in invocationReferences.OrderByDescending(n => n.Span.Start))
             {
-                var newArguments = parameters.Select
-                    (p => CSharpSyntaxGenerator.Instance.Argument(name: null, p.RefKind, p.Name.ToIdentifierName()) as ArgumentSyntax);
-                var newArgList = invocation.ArgumentList.WithArguments(invocation.ArgumentList.Arguments.AddRange(newArguments));
-                var newInvocation = invocation.WithArgumentList(newArgList);
-                editor.GetChangedRoot();
-                editor.ReplaceNode(invocation, newInvocation);
+                var currentInvocation = root.GetCurrentNode(invocation);
+
+                var seenNamedArgument = currentInvocation.ArgumentList.Arguments.Any(a => a.NameColon != null);
+                var seenDefaultArgumentValue = currentInvocation.ArgumentList.Arguments.Count < localFunction.ParameterList.Parameters.Count;
+
+                var newArguments = parameters.Select(
+                    p => CSharpSyntaxGenerator.Instance.Argument(
+                        seenNamedArgument || seenDefaultArgumentValue ? p.Name : null,
+                        p.RefKind,
+                        p.Name.ToIdentifierName()) as ArgumentSyntax);
+
+                var newArgList = currentInvocation.ArgumentList.WithArguments(currentInvocation.ArgumentList.Arguments.AddRange(newArguments));
+                var newInvocation = currentInvocation.WithArgumentList(newArgList);
+
+                root = root.ReplaceNode(currentInvocation, newInvocation);
             }
 
-            var rootWithFixedReferences = editor.GetChangedRoot();
-            var localFunctionWithFixedReferences = rootWithFixedReferences.GetCurrentNode(localFunction);
-            var documentWithFixedReferences = document.WithSyntaxRoot(rootWithFixedReferences);
-
-            // Updates the declaration with the variables passed in
-            var localFunctionWithFixedDeclaration = CodeGenerator.AddParameterDeclarations(
-                localFunctionWithFixedReferences,
+            // Updates the local function declaration with variables passed in as parameters
+            localFunction = root.GetCurrentNode(localFunction);
+            var localFunctionWithNewParameters = CodeGenerator.AddParameterDeclarations(
+                localFunction,
                 parameters,
-                documentWithFixedReferences.Project.Solution.Workspace);
+                document.Project.Solution.Workspace);
 
-            // Adds the modifier static
-            var modifiers = DeclarationModifiers.From(localFunctionSymbol).WithIsStatic(true);
-            var localFunctionWithStatic = (LocalFunctionStatementSyntax)CSharpSyntaxGenerator.Instance.WithModifiers(localFunctionWithFixedDeclaration, modifiers);
+            if (shouldWarn)
+            {
+                var annotation = WarningAnnotation.Create(CSharpFeaturesResources.Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code);
+                localFunctionWithNewParameters = localFunctionWithNewParameters.WithAdditionalAnnotations(annotation);
+            }
 
-            var finalRoot = rootWithFixedReferences.ReplaceNode(localFunctionWithFixedReferences, localFunctionWithStatic);
-            return documentWithFixedReferences.WithSyntaxRoot(finalRoot);
+            var fixedLocalFunction = AddStaticModifier(localFunctionWithNewParameters, CSharpSyntaxGenerator.Instance);
+            var fixedRoot = root.ReplaceNode(localFunction, fixedLocalFunction);
+
+            return document.WithSyntaxRoot(fixedRoot);
         }
 
-        // Creates a new parameter symbol for all variables captured in the local function
-        static ImmutableArray<IParameterSymbol> CreateParameterSymbol(ImmutableArray<ISymbol> captures)
+        public static SyntaxNode AddStaticModifier(SyntaxNode localFunction, SyntaxGenerator generator)
+            => generator.WithModifiers(
+                localFunction,
+                generator.GetModifiers(localFunction).WithIsStatic(true));
+
+        /// <summary>
+        /// Creates a new parameter symbol for each captured variables.
+        /// </summary>
+        private static ImmutableArray<IParameterSymbol> CreateParameterSymbols(ImmutableArray<ISymbol> captures)
         {
             var parameters = ArrayBuilder<IParameterSymbol>.GetInstance(captures.Length);
 
@@ -104,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                     type: symbol.GetSymbolType(),
                     name: symbol.Name.ToCamelCase()));
             }
+
             return parameters.ToImmutableAndFree();
         }
     }

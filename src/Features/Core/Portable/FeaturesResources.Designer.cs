@@ -2984,15 +2984,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pass in values explicitly.
-        /// </summary>
-        internal static string Pass_variable_explicitly {
-            get {
-                return ResourceManager.GetString("Pass_variable_explicitly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;Pending&gt;.
         /// </summary>
         internal static string Pending {

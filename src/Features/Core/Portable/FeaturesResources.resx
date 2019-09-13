@@ -1696,7 +1696,4 @@ This version used in: {2}</value>
   <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
     <value>Add null checks for all parameters</value>
   </data>
-  <data name="Pass_variable_explicitly" xml:space="preserve">
-    <value>Pass in values explicitly</value>
-  </data>
 </root>
