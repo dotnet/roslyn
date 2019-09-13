@@ -22,4 +22,4 @@ This is a page tracking the queries the compiler team uses to manage our GitHub 
 - [Oldest compiler questions - please answer and close](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+sort%3Acreated-asc+label%3AQuestion)
 
 ## Release Specific
-- [16.4](https://github.com/dotnet/roslyn/pulls?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+-label%3A%22PR+For+Personal+Review+Only%22+label%3Aarea-compilers++)
+- [16.4](https://github.com/dotnet/roslyn/issues?utf8=✓&q=is%3Aopen+is%3Aissue+milestone%3A16.4+label%3AArea-Compilers+-label%3Adocumentation)
