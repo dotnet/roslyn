@@ -227,7 +227,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (triviaInfo.SecondTokenIsFirstTokenOnLine &&
                     indentation != triviaInfo.Spaces)
                 {
-                    if (_context.IsFormattingDisabled(pairIndex))
+                    // Formatting can only be disabled for entire lines. This block only modifies the line containing
+                    // the second token of the current pair, so we only need to check for disabled formatting at the
+                    // starting position of the second token of the pair.
+                    if (_context.IsFormattingDisabled(new TextSpan(_context.TokenStream.GetToken(pairIndex + 1).SpanStart, 0)))
                     {
                         return false;
                     }
