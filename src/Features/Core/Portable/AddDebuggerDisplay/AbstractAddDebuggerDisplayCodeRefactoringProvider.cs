@@ -44,11 +44,12 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         private async Task<Document> ApplyAsync(Document document, TTypeDeclarationSyntax type, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
             var newAttribute = generator
-                .Attribute("System.Diagnostics.DebuggerDisplayAttribute", generator.LiteralExpression("{ToString(),nq}"))
+                .Attribute("System.Diagnostics.DebuggerDisplayAttribute", compilation, generator.LiteralExpression("{ToString(),nq}"))
                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
             syntaxRoot = syntaxRoot.ReplaceNode(type, generator.AddAttributes(type, newAttribute).WithAdditionalAnnotations(s_trackingAnnotation));
