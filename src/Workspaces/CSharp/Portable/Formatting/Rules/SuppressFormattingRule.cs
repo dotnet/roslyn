@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -386,8 +387,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     continue;
                 }
 
-                if (identifierName.Identifier.ValueText.Equals("format")
-                    || identifierName.Identifier.ValueText.Equals("IDE0055"))
+                if (identifierName.Identifier.ValueText.Equals(FormattingDiagnosticIds.FormatDocumentControlDiagnosticId)
+                    || identifierName.Identifier.ValueText.Equals(FormattingDiagnosticIds.FormattingDiagnosticId))
                 {
                     return true;
                 }

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Formatting;
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class IDEDiagnosticIds
@@ -86,8 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseCompoundAssignmentDiagnosticId = "IDE0054";
 
-        public const string FormattingDiagnosticId = "IDE0055";
-        public const string FormatDocumentControlDiagnosticId = "format";
+        public const string FormattingDiagnosticId = FormattingDiagnosticIds.FormattingDiagnosticId;
 
         public const string UseIndexOperatorDiagnosticId = "IDE0056";
         public const string UseRangeOperatorDiagnosticId = "IDE0057";

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             if (diagnostic.Id == IDEDiagnosticIds.FormattingDiagnosticId)
             {
                 includeTitle = false;
-                return IDEDiagnosticIds.FormatDocumentControlDiagnosticId;
+                return FormattingDiagnosticIds.FormatDocumentControlDiagnosticId;
             }
 
             includeTitle = true;
