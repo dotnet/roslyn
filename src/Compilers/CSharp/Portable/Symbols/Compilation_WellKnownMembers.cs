@@ -231,6 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetWellKnownTypeMember(member);
         }
 
+        internal override ITypeSymbol CommonGetWellKnownType(WellKnownType wellknownType)
+        {
+            return GetWellKnownType(wellknownType);
+        }
+
         internal static Symbol GetRuntimeMember(NamedTypeSymbol declaringType, ref MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
         {
             Symbol result = null;

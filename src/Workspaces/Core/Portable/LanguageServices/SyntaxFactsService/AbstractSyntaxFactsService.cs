@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -115,7 +114,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var shebangComment = Matcher.Single<SyntaxTrivia>(IsShebangDirectiveTrivia, "#!");
             var singleLineComment = Matcher.Single<SyntaxTrivia>(IsSingleLineCommentTrivia, "//");
             var multiLineComment = Matcher.Single<SyntaxTrivia>(IsMultiLineCommentTrivia, "/**/");
-            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment);
+            var singleLineDocumentationComment = Matcher.Single<SyntaxTrivia>(IsSingleLineDocCommentTrivia, "///");
+            var multiLineDocumentationComment = Matcher.Single<SyntaxTrivia>(IsMultiLineDocCommentTrivia, "/** */");
+            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment, singleLineDocumentationComment, multiLineDocumentationComment);
 
             var commentLine = Matcher.Sequence(whitespace, anyCommentMatcher, whitespace, endOfLine);
 
@@ -134,6 +135,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract bool IsEndOfLineTrivia(SyntaxTrivia trivia);
         public abstract bool IsSingleLineCommentTrivia(SyntaxTrivia trivia);
         public abstract bool IsMultiLineCommentTrivia(SyntaxTrivia trivia);
+        public abstract bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia);
+        public abstract bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia);
         public abstract bool IsShebangDirectiveTrivia(SyntaxTrivia trivia);
         public abstract bool IsPreprocessorDirective(SyntaxTrivia trivia);
 
@@ -162,11 +165,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             while (stack.Count > 0)
             {
-                var current = stack.Pop();
-                var currentNodeOrToken = current.nodeOrToken;
-                var currentLeading = current.leading;
-                var currentTrailing = current.trailing;
-
+                var (currentNodeOrToken, currentLeading, currentTrailing) = stack.Pop();
                 if (currentNodeOrToken.IsToken)
                 {
                     // If this token isn't on a single line, then the original node definitely
@@ -491,14 +490,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private bool SpansPreprocessorDirective(SyntaxTriviaList list)
             => list.Any(t => IsPreprocessorDirective(t));
 
-        public bool IsOnHeader(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader)
-            => IsOnHeader(position, ownerOfHeader, lastTokenOrNodeOfHeader, ImmutableArray<SyntaxNode>.Empty);
+        public bool IsOnHeader(SyntaxNode root, int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader)
+            => IsOnHeader(root, position, ownerOfHeader, lastTokenOrNodeOfHeader, ImmutableArray<SyntaxNode>.Empty);
 
-        public bool IsOnHeader<THoleSyntax>(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader, ImmutableArray<THoleSyntax> holes)
+        public bool IsOnHeader<THoleSyntax>(
+            SyntaxNode root,
+            int position,
+            SyntaxNode ownerOfHeader,
+            SyntaxNodeOrToken lastTokenOrNodeOfHeader,
+            ImmutableArray<THoleSyntax> holes)
             where THoleSyntax : SyntaxNode
         {
+            Debug.Assert(ownerOfHeader.FullSpan.Contains(lastTokenOrNodeOfHeader.Span));
+
             var headerSpan = TextSpan.FromBounds(
-                start: GetStartOfNodeExcludingAttributes(ownerOfHeader),
+                start: GetStartOfNodeExcludingAttributes(root, ownerOfHeader),
                 end: lastTokenOrNodeOfHeader.FullSpan.End);
 
             // Is in header check is inclusive, being on the end edge of an header still counts
@@ -522,7 +528,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// Tries to get an ancestor of a Token on current position or of Token directly to left:
         /// e.g.: tokenWithWantedAncestor[||]tokenWithoutWantedAncestor
         /// </summary>
-        protected TNode TryGetAncestorForLocation<TNode>(int position, SyntaxNode root) where TNode : SyntaxNode
+        protected TNode TryGetAncestorForLocation<TNode>(SyntaxNode root, int position) where TNode : SyntaxNode
         {
             var tokenToRightOrIn = root.FindToken(position);
             var nodeToRightOrIn = tokenToRightOrIn.GetAncestor<TNode>();
@@ -540,13 +546,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return tokenToRightOrIn.GetPreviousToken().GetAncestor<TNode>();
         }
 
-        protected int GetStartOfNodeExcludingAttributes(SyntaxNode node)
+        protected int GetStartOfNodeExcludingAttributes(SyntaxNode root, SyntaxNode node)
         {
             var attributeList = GetAttributeLists(node);
             if (attributeList.Any())
             {
                 var endOfAttributeLists = attributeList.Last().Span.End;
-                var afterAttributesToken = node.FindTokenOnRightOfPosition(endOfAttributeLists);
+                var afterAttributesToken = root.FindTokenOnRightOfPosition(endOfAttributeLists);
 
                 return Math.Min(afterAttributesToken.Span.Start, node.Span.End);
             }
@@ -572,9 +578,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
 
         public bool IsUsingStatement(SyntaxNode node)
-            => node.RawKind == SyntaxKinds.UsingStatement;
+            => node?.RawKind == SyntaxKinds.UsingStatement;
 
         public bool IsReturnStatement(SyntaxNode node)
-            => node.RawKind == SyntaxKinds.ReturnStatement;
+            => node?.RawKind == SyntaxKinds.ReturnStatement;
+
+        public bool IsExpressionStatement(SyntaxNode node)
+            => node?.RawKind == SyntaxKinds.ExpressionStatement;
     }
 }

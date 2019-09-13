@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string CheckOverflowAttributeName = "CheckOverflow";
         private const string AllowUnsafeAttributeName = "AllowUnsafe";
         private const string OutputKindName = "OutputKind";
+        private const string NullableAttributeName = "Nullable";
 
         /// <summary>
         /// Creates a single buffer in a workspace.

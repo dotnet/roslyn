@@ -96,8 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         {
             if (Members.SelectedIndex >= 0)
             {
-                var row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as ListViewItem;
-                if (row == null)
+                if (!(Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is ListViewItem row))
                 {
                     Members.ScrollIntoView(Members.SelectedItem);
                     row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as ListViewItem;

@@ -1048,7 +1048,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                              ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
                                                              location,
                                                              new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
-                                                     } :
+                                                     }
+                :
                                                      (Action<DiagnosticBag, MethodSymbol, MethodSymbol, ParameterSymbol, Location>)null,
                                                  overridingMemberLocation);
             }

@@ -233,10 +233,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 case TypeKind.Interface:
                     foreach (Symbol member in namedType.GetMembersUnordered())
                     {
-                        if (member.Kind != SymbolKind.NamedType && !member.IsAbstract)
+                        if (member.Kind != SymbolKind.NamedType)
                         {
-                            error = ErrorCode.ERR_DefaultInterfaceImplementationInNoPIAType;
-                            break;
+                            if (!member.IsAbstract)
+                            {
+                                error = ErrorCode.ERR_DefaultInterfaceImplementationInNoPIAType;
+                                break;
+                            }
+                            else if (member.IsSealed)
+                            {
+                                error = ErrorCode.ERR_ReAbstractionInNoPIAType;
+                                break;
+                            }
                         }
                     }
 

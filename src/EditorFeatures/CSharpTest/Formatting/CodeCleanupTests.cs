@@ -163,26 +163,24 @@ internal class Program
                     TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(CodeCleanupAnalyzerProviderService)))
                 .CreateExportProvider();
 
-            using (var workspace = TestWorkspace.CreateCSharp(code, exportProvider: exportProvider))
-            {
-                // register this workspace to solution crawler so that analyzer service associate itself with given workspace
-                var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
-                incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
+            using var workspace = TestWorkspace.CreateCSharp(code, exportProvider: exportProvider);
+            // register this workspace to solution crawler so that analyzer service associate itself with given workspace
+            var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
+            incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
 
-                var hostdoc = workspace.Documents.Single();
-                var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+            var hostdoc = workspace.Documents.Single();
+            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
-                var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+            var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
-                var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
+            var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
-                var newDoc = await codeCleanupService.CleanupAsync(
-                    document, enabledDiagnostics, new ProgressTracker(), CancellationToken.None);
+            var newDoc = await codeCleanupService.CleanupAsync(
+                document, enabledDiagnostics, new ProgressTracker(), CancellationToken.None);
 
-                var actual = await newDoc.GetTextAsync();
+            var actual = await newDoc.GetTextAsync();
 
-                Assert.Equal(expected, actual.ToString());
-            }
+            Assert.Equal(expected, actual.ToString());
         }
 
         [Export(typeof(IWorkspaceDiagnosticAnalyzerProviderService))]

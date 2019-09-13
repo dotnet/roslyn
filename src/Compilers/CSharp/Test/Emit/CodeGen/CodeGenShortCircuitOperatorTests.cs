@@ -2461,49 +2461,32 @@ False
 False");
             comp.VerifyIL("Program.Test<T>(System.Func<T>)", @"
 {
-  // Code size      110 (0x6e)
+  // Code size       62 (0x3e)
   .maxstack  2
-  .locals init (T V_0,
-                T V_1)
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  callvirt   ""T System.Func<T>.Invoke()""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  initobj    ""T""
-  IL_0011:  ldloc.1
-  IL_0012:  box        ""T""
-  IL_0017:  brtrue.s   IL_002c
-  IL_0019:  ldobj      ""T""
-  IL_001e:  stloc.1
-  IL_001f:  ldloca.s   V_1
-  IL_0021:  ldloc.1
-  IL_0022:  box        ""T""
-  IL_0027:  brtrue.s   IL_002c
-  IL_0029:  pop
-  IL_002a:  br.s       IL_0037
-  IL_002c:  constrained. ""T""
-  IL_0032:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0037:  ldarg.0
-  IL_0038:  callvirt   ""T System.Func<T>.Invoke()""
-  IL_003d:  stloc.0
-  IL_003e:  ldloca.s   V_0
-  IL_0040:  ldloca.s   V_1
-  IL_0042:  initobj    ""T""
-  IL_0048:  ldloc.1
-  IL_0049:  box        ""T""
-  IL_004e:  brtrue.s   IL_0062
-  IL_0050:  ldobj      ""T""
-  IL_0055:  stloc.1
-  IL_0056:  ldloca.s   V_1
-  IL_0058:  ldloc.1
-  IL_0059:  box        ""T""
-  IL_005e:  brtrue.s   IL_0062
-  IL_0060:  pop
-  IL_0061:  ret
-  IL_0062:  constrained. ""T""
-  IL_0068:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_006d:  ret
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  pop
+  IL_0012:  br.s       IL_001f
+  IL_0014:  constrained. ""T""
+  IL_001a:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_001f:  ldarg.0
+  IL_0020:  callvirt   ""T System.Func<T>.Invoke()""
+  IL_0025:  stloc.0
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  ldloc.0
+  IL_0029:  box        ""T""
+  IL_002e:  brtrue.s   IL_0032
+  IL_0030:  pop
+  IL_0031:  ret
+  IL_0032:  constrained. ""T""
+  IL_0038:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_003d:  ret
 }
 ");
         }

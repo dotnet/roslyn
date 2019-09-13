@@ -35,10 +35,6 @@ indent_size = 2
 end_of_line = lf
 indent_size = 2
 
-# Dotnet diagnostic settings
-[*.{cs,vb}]
-dotnet_diagnostic.xUnit2018.severity = none # "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now
-
 # Dotnet code style settings:
 [*.{cs,vb}]
 # Sort using and Import directives with System.* appearing first

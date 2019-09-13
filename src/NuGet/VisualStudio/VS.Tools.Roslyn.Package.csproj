@@ -49,7 +49,8 @@
   <Target Name="_Generate32BitCsc" 
           AfterTargets="Build"
           Inputs="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.exe"
-          Outputs="$(IntermediateOutputPath)csc.exe">
+          Outputs="$(IntermediateOutputPath)csc.exe"
+          Condition="'$(DotNetBuildFromSource)' != 'true'">
 
     <Copy SourceFiles="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.exe" DestinationFiles="$(IntermediateOutputPath)csc.exe"/>
     <Microsoft.DotNet.Arcade.Sdk.SetCorFlags FilePath="$(IntermediateOutputPath)csc.exe" AddFlags="Prefers32Bit,Requires32Bit" />

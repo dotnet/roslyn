@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                         disposeAnalysisResult: out var disposeAnalysisResult,
                         pointsToAnalysisResult: out var pointsToAnalysisResult))
                     {
-                        var exitBlock = disposeAnalysisResult.ControlFlowGraph.GetExit();
+                        var exitBlock = disposeAnalysisResult.ControlFlowGraph.ExitBlock();
                         foreach (var fieldWithPointsToValue in disposeAnalysisResult.TrackedInstanceFieldPointsToMap)
                         {
                             var field = fieldWithPointsToValue.Key;

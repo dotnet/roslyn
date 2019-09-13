@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -222,6 +225,66 @@ class Ext
 }";
 
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
+        }
+
+        [WorkItem(963225, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/963225")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task RemoveParameters_ReferenceInUnchangeableDocument()
+        {
+            var workspaceXml = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSharpAssembly"" CommonReferences=""true"">
+        <Document FilePath = ""C1.cs"">
+public class C1
+{
+    public static bool $$M(int x, int y)
+    {
+        return x > y;
+    }
+}</Document>
+        <Document FilePath = ""C2.cs"">
+public class C2
+{
+    bool _x = C1.M(1, 2); 
+}</Document>
+        <Document FilePath = ""C3.cs"" CanApplyChange=""false"">
+public class C3
+{
+    bool _x = C1.M(1, 2); 
+}</Document>
+    </Project>
+</Workspace>";
+
+            var updatedSignature = new[] { 1, 0 };
+
+            using (var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml)))
+            {
+                testState.TestChangeSignatureOptionsService.IsCancelled = false;
+                testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
+                var result = testState.ChangeSignature();
+
+                Assert.True(result.Succeeded);
+                Assert.Null(testState.ErrorMessage);
+
+                foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
+                {
+                    if (updatedDocument.Name == "C1.cs")
+                    {
+                        // declaration should be changed
+                        Assert.Contains("public static bool M(int y, int x)", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                    }
+                    else if (updatedDocument.Name == "C2.cs")
+                    {
+                        // changeable document should be changed
+                        Assert.Contains("bool _x = C1.M(2, 1);", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                    }
+                    else if (updatedDocument.Name == "C3.cs")
+                    {
+                        // shouldn't change unchangable document
+                        Assert.Contains("bool _x = C1.M(1, 2);", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                    }
+                }
+            }
         }
     }
 }

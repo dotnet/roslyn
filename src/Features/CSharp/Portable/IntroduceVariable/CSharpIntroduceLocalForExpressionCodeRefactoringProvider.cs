@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 return false;
             }
 
+            // We don't want to offer new local for an assignmentExpression `a = 42` -> `int newA = a = 42`
+            if (expressionStatement.Expression is AssignmentExpressionSyntax)
+            {
+                return false;
+            }
+
             return true;
         }
 
