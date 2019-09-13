@@ -24,11 +24,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         {
             var type = await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>().ConfigureAwait(false);
 
-            if (type != null)
-            {
-                if (!DeclaresToStringOverride(type)) return;
-            }
-            else
+            if (type is null)
             {
                 var method = await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
                 if (!IsToStringOverride(method)) return;
@@ -38,9 +34,19 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             if (HasDebuggerDisplayAttribute(type)) return;
 
-            context.RegisterRefactoring(new MyCodeAction(
-                FeaturesResources.Add_DebuggerDisplay,
-                cancellationToken => ApplyAsync(context.Document, type, cancellationToken)));
+            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+
+            var typeSymbol = (ITypeSymbol)semanticModel.GetDeclaredSymbol(type, context.CancellationToken);
+
+            switch (typeSymbol.TypeKind)
+            {
+                case TypeKind.Class:
+                case TypeKind.Struct:
+                    context.RegisterRefactoring(new MyCodeAction(
+                        FeaturesResources.Add_DebuggerDisplay,
+                        cancellationToken => ApplyAsync(context.Document, type, cancellationToken)));
+                    break;
+            }
         }
 
         private async Task<Document> ApplyAsync(Document document, TTypeDeclarationSyntax type, CancellationToken cancellationToken)
@@ -114,8 +120,6 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         protected abstract bool HasDebuggerDisplayAttribute(TTypeDeclarationSyntax typeDeclaration);
 
         protected abstract bool IsToStringOverride(TMethodDeclarationSyntax methodDeclaration);
-
-        protected abstract bool DeclaresToStringOverride(TTypeDeclarationSyntax typeDeclaration);
 
         protected bool IsDebuggerDisplayAttributeIdentifier(SyntaxToken name)
         {

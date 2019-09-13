@@ -15,61 +15,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddDebuggerDisplay
         End Function
 
         <Fact>
-        Public Async Function OfferedOnClassWithOverriddenToString() As Task
+        Public Async Function OfferedOnEmptyClass() As Task
             Await TestInRegularAndScriptAsync("
 [||]Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Class", "
 Imports System.Diagnostics
 
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
-
     Private Function GetDebuggerDisplay() As String
         Return ToString()
     End Function
 End Class")
-        End Function
-
-        <Fact>
-        Public Async Function NotOfferedWhenToStringIsNotOverriddenInSameClass() As Task
-            Await TestMissingAsync("
-Class A
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
-End Class
-
-[||]Class B
-    Inherits A
-End Class")
-        End Function
-
-        <Fact>
-        Public Async Function NotOfferedWhenToStringIsNotOverriddenInSameFile() As Task
-            Await TestMissingAsync("<Workspace>
-    <Project Language=""Visual Basic"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""Part1.vb""><![CDATA[
-Partial Class A
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
-End Class
-]]>
-        </Document>
-        <Document FilePath=""Part2.vb""><![CDATA[
-[||]Partial Class A
-    Public ReadOnly Property Foo As Integer
-End Class
-]]>
-        </Document>
-    </Project>
-</Workspace>")
         End Function
 
         <Fact>
@@ -81,42 +38,27 @@ Class A
     End Function
 End Class
 
-[||]Class B
+Class B
     Inherits A
 
-    Public Overrides Function ToString(bar As Integer) As String
+    [||]Public Overrides Function ToString(bar As Integer) As String
         Return ""Bar""
     End Function
 End Class")
         End Function
 
         <Fact>
-        Public Async Function OfferedOnStructWithOverriddenToString() As Task
+        Public Async Function OfferedOnEmptyStruct() As Task
             Await TestInRegularAndScriptAsync("
 [||]Structure Foo
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Structure", "
 Imports System.Diagnostics
 
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Structure Foo
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
-
     Private Function GetDebuggerDisplay() As String
         Return ToString()
     End Function
-End Structure")
-        End Function
-
-        <Fact>
-        Public Async Function NotOfferedWhenToStringIsNotOverriddenInStruct() As Task
-            Await TestMissingAsync("
-[||]Structure Foo
-    Public ReadOnly Property Bar As Integer
 End Structure")
         End Function
 
@@ -146,10 +88,6 @@ End Enum")
             Await TestMissingInRegularAndScriptAsync("
 Class C
     [||]Public ReadOnly Property Foo As Integer
-
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Class")
         End Function
 
@@ -181,18 +119,11 @@ End Class")
 Imports System.Diagnostics
 
 [||]Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Class", "
 Imports System.Diagnostics
 
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
-
     Private Function GetDebuggerDisplay() As String
         Return ToString()
     End Function
@@ -205,19 +136,12 @@ End Class")
 Imports System.Xml
 
 [||]Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Class", "
 Imports System.Diagnostics
 Imports System.Xml
 
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
-
     Private Function GetDebuggerDisplay() As String
         Return ToString()
     End Function
@@ -229,9 +153,6 @@ End Class")
             Await TestMissingInRegularAndScriptAsync("
 <System.Diagnostics.DebuggerDisplay(""Foo"")>
 [||]Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Class")
         End Function
 
@@ -240,9 +161,6 @@ End Class")
             Await TestMissingInRegularAndScriptAsync("
 <System.Diagnostics.DebuggerDisplayAttribute(""Foo"")>
 [||]Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Class")
         End Function
 
@@ -251,9 +169,6 @@ End Class")
             Await TestMissingInRegularAndScriptAsync("
 <BrokenCode.DebuggerDisplay(""Foo"")>
 [||]Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Class")
         End Function
 
@@ -262,9 +177,6 @@ End Class")
             Await TestMissingInRegularAndScriptAsync("
 <BrokenCode.DebuggerDisplay(""Foo"")>
 [||]Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Class")
         End Function
 
@@ -275,9 +187,6 @@ Imports DD = System.Diagnostics.DebuggerDisplayAttribute
 
 <DD(""Foo"")>
 [||]Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Class", "
 Imports System.Diagnostics
 Imports DD = System.Diagnostics.DebuggerDisplayAttribute
@@ -285,10 +194,6 @@ Imports DD = System.Diagnostics.DebuggerDisplayAttribute
 <DD(""Foo"")>
 <DD(""{GetDebuggerDisplay(),nq}"")>
 Class C
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
-
     Private Function GetDebuggerDisplay() As String
         Return ToString()
     End Function
@@ -302,34 +207,20 @@ Imports System.Diagnostics
 
 [DebuggerDisplay(""Foo"")]
 Class A
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Class
 
 [||]Class B
     Inherits A
-
-    Public Overrides Function ToString() As String
-        Return MyBase.ToString()
-    End Function
 End Class", "
 Imports System.Diagnostics
 
 [DebuggerDisplay(""Foo"")]
 Class A
-    Public Overrides Function ToString() As String
-        Return ""Foo""
-    End Function
 End Class
 
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class B
     Inherits A
-
-    Public Overrides Function ToString() As String
-        Return MyBase.ToString()
-    End Function
 
     Private Function GetDebuggerDisplay() As String
         Return ToString()

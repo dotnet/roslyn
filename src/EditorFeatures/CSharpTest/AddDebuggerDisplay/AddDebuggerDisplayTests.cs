@@ -18,62 +18,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddDebuggerDisplay
         }
 
         [Fact]
-        public async Task OfferedOnClassWithOverriddenToString()
+        public async Task OfferedOnEmptyClass()
         {
             await TestInRegularAndScriptAsync(@"
 [||]class C
 {
-    public override string ToString() => ""Foo"";
 }", @"
 using System.Diagnostics;
 
 [DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
 class C
 {
-    public override string ToString() => ""Foo"";
-
     private string GetDebuggerDisplay()
     {
         return ToString();
     }
 }");
-        }
-
-        [Fact]
-        public async Task NotOfferedWhenToStringIsNotOverriddenInSameClass()
-        {
-            await TestMissingAsync(@"
-class A
-{
-    public override string ToString() => ""Foo"";
-}
-
-[||]class B : A
-{
-}");
-        }
-
-        [Fact]
-        public async Task NotOfferedWhenToStringIsNotOverriddenInSameFile()
-        {
-            await TestMissingAsync(@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""Part1.cs""><![CDATA[
-partial class A
-{
-    public override string ToString() => ""Foo"";
-}
-]]>
-        </Document>
-        <Document FilePath=""Part2.cs""><![CDATA[
-[||]partial class A
-{
-    public int Foo { get; }
-}
-]]>
-        </Document>
-    </Project>
-</Workspace>");
         }
 
         [Fact]
@@ -85,41 +45,28 @@ class A
     public virtual string ToString(int bar) => ""Foo"";
 }
 
-[||]class B : A
+class B : A
 {
-    public override string ToString(int bar) => ""Bar"";
+    [||]public override string ToString(int bar) => ""Bar"";
 }");
         }
 
         [Fact]
-        public async Task OfferedOnStructWithOverriddenToString()
+        public async Task OfferedOnEmptyStruct()
         {
             await TestInRegularAndScriptAsync(@"
 [||]struct Foo
 {
-    public override string ToString() => ""Foo"";
 }", @"
 using System.Diagnostics;
 
 [DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
 struct Foo
 {
-    public override string ToString() => ""Foo"";
-
     private string GetDebuggerDisplay()
     {
         return ToString();
     }
-}");
-        }
-
-        [Fact]
-        public async Task NotOfferedWhenToStringIsNotOverriddenInStruct()
-        {
-            await TestMissingAsync(@"
-[||]struct Foo
-{
-    public int Bar { get; }
 }");
         }
 
@@ -156,8 +103,6 @@ struct Foo
 class C
 {
     [||]public int Foo { get; }
-
-    public override string ToString() => ""Foo"";
 }");
         }
 
@@ -191,15 +136,12 @@ using System.Diagnostics;
 
 [||]class C
 {
-    public override string ToString() => ""Foo"";
 }", @"
 using System.Diagnostics;
 
 [DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
 class C
 {
-    public override string ToString() => ""Foo"";
-
     private string GetDebuggerDisplay()
     {
         return ToString();
@@ -215,7 +157,6 @@ using System.Xml;
 
 [||]class C
 {
-    public override string ToString() => ""Foo"";
 }", @"
 using System.Diagnostics;
 using System.Xml;
@@ -223,8 +164,6 @@ using System.Xml;
 [DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
 class C
 {
-    public override string ToString() => ""Foo"";
-
     private string GetDebuggerDisplay()
     {
         return ToString();
@@ -239,7 +178,6 @@ class C
 [System.Diagnostics.DebuggerDisplay(""Foo"")]
 [||]class C
 {
-    public override string ToString() => ""Foo"";
 }");
         }
 
@@ -250,7 +188,6 @@ class C
 [System.Diagnostics.DebuggerDisplayAttribute(""Foo"")]
 [||]class C
 {
-    public override string ToString() => ""Foo"";
 }");
         }
 
@@ -261,7 +198,6 @@ class C
 [BrokenCode.DebuggerDisplay(""Foo"")]
 [||]class C
 {
-    public override string ToString() => ""Foo"";
 }");
         }
 
@@ -272,7 +208,6 @@ class C
 [BrokenCode.DebuggerDisplay(""Foo"")]
 [||]class C
 {
-    public override string ToString() => ""Foo"";
 }");
         }
 
@@ -288,7 +223,6 @@ using DD = System.Diagnostics.DebuggerDisplayAttribute;
 [DD(""Foo"")]
 [||]class C
 {
-    public override string ToString() => ""Foo"";
 }", @"
 using System.Diagnostics;
 using DD = System.Diagnostics.DebuggerDisplayAttribute;
@@ -297,8 +231,6 @@ using DD = System.Diagnostics.DebuggerDisplayAttribute;
 [DD(""{GetDebuggerDisplay(),nq}"")]
 class C
 {
-    public override string ToString() => ""Foo"";
-
     private string GetDebuggerDisplay()
     {
         return ToString();
@@ -315,26 +247,21 @@ using System.Diagnostics;
 [DebuggerDisplay(""Foo"")]
 class A
 {
-    public override string ToString() => ""Foo"";
 }
 
 [||]class B : A
 {
-    public override string ToString() => base.ToString();
 }", @"
 using System.Diagnostics;
 
 [DebuggerDisplay(""Foo"")]
 class A
 {
-    public override string ToString() => ""Foo"";
 }
 
 [DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
 class B : A
 {
-    public override string ToString() => base.ToString();
-
     private string GetDebuggerDisplay()
     {
         return ToString();

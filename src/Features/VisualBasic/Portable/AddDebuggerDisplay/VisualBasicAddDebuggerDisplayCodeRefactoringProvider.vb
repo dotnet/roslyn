@@ -47,9 +47,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay
 
             Return True
         End Function
-
-        Protected Overrides Function DeclaresToStringOverride(typeDeclaration As TypeBlockSyntax) As Boolean
-            Return typeDeclaration.Members.OfType(Of MethodBlockSyntax).Any(Function(b) IsToStringOverride(b.SubOrFunctionStatement))
-        End Function
     End Class
 End Namespace
