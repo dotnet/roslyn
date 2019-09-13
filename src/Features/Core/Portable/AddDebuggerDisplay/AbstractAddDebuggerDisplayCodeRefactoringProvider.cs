@@ -22,15 +22,11 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var type = await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>().ConfigureAwait(false);
+            var type =
+                await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>().ConfigureAwait(false)
+                ?? await GetRelevantTypeFromMethodAsync(context).ConfigureAwait(false);
 
-            if (type is null)
-            {
-                var method = await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
-                if (!IsToStringOverride(method)) return;
-
-                type = method.FirstAncestorOrSelf<TTypeDeclarationSyntax>();
-            }
+            if (type is null) return;
 
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -42,6 +38,18 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                     FeaturesResources.Add_DebuggerDisplay,
                     cancellationToken => ApplyAsync(context.Document, type, cancellationToken)));
             }
+        }
+
+        private async Task<TTypeDeclarationSyntax> GetRelevantTypeFromMethodAsync(CodeRefactoringContext context)
+        {
+            var method = await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
+
+            if (IsToStringOverride(method))
+            {
+                return method.FirstAncestorOrSelf<TTypeDeclarationSyntax>();
+            }
+
+            return null;
         }
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
