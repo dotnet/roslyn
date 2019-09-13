@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -18,7 +17,7 @@ Class Goo
     $$
 End Class]]></document>
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ColonDoesntTriggerSnippetInTupleLiteral() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interface")
                 state.SendTypeChars("Dim t = (Interfac")
@@ -26,7 +25,7 @@ End Class]]></document>
             End Using
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "intErfaCE")
                 state.SendTypeChars("Interfac")
@@ -37,7 +36,7 @@ End Class]]></document>
             End Using
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSubstringOfInsertedText() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfac")
                 state.SendTypeChars("Interfac")
@@ -47,7 +46,7 @@ End Class]]></document>
             End Using
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSuperstringOfInsertedText() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfaces")
                 state.SendTypeChars("Interfac")
@@ -57,7 +56,7 @@ End Class]]></document>
             End Using
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteNotAddedToDescription_DisplayTextMatchesShortcutButInsertionTextDoesNot() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "DisplayText")
 
@@ -67,7 +66,7 @@ End Class]]></document>
             End Using
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteAddedToDescription_DisplayTextDoesNotMatchShortcutButInsertionTextDoes() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "InsertionText")
 

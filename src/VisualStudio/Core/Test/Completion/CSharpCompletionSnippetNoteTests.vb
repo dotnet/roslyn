@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
@@ -22,7 +21,7 @@ class C
 }]]></document>
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
                 state.SendTypeChars("interfac")
@@ -33,7 +32,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ColonDoesntTriggerSnippetInTupleLiteral() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
                 state.SendTypeChars("var t = (interfac")
@@ -44,7 +43,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ColonDoesntTriggerSnippetInTupleLiteralAfterComma() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
                 state.SendTypeChars("var t = (1, interfac")
@@ -56,7 +55,7 @@ class C
         End Function
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "intErfaCE")
                 state.SendTypeChars("interfac")
@@ -67,7 +66,7 @@ class C
         End Function
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSubstringOfInsertedText()
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interfac")
                 state.SendTypeChars("interfac")
@@ -79,7 +78,7 @@ class C
         End Sub
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSuperstringOfInsertedText()
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interfaces")
                 state.SendTypeChars("interfac")
@@ -89,7 +88,7 @@ class C
         End Sub
 
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Sub SnippetExpansionNoteAddedToDescription_DisplayTextDoesNotMatchShortcutButInsertionTextDoes()
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "InsertionText")
 
@@ -99,7 +98,7 @@ class C
             End Using
         End Sub
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.Interactive)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Async Function SnippetExpansionNoteNotAddedToDescription_Interactive() As Task
             Dim workspaceXml =
                 <Workspace>

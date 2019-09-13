@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
@@ -103,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
             EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
-                Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandler")
+                Single(Function(e As VSCommanding.ICommandHandler) e.GetType().Name = PredefinedCompletionNames.CompletionCommandHandler)
         End Sub
 
         Private Overloads Shared Function GetExportProvider(excludedTypes As List(Of Type),
@@ -173,77 +172,57 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Overloads Sub SendEscape()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of EscapeKeyCommandArgs)
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of EscapeKeyCommandArgs))
-            MyBase.SendEscape(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendEscape(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendDownKey()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of DownKeyCommandArgs)
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of DownKeyCommandArgs))
             MyBase.SendDownKey(
-                Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c),
+                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c),
                 Sub()
                     EditorOperations.MoveLineDown(extendSelection:=False)
                 End Sub)
         End Sub
 
         Public Overloads Sub SendUpKey()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of UpKeyCommandArgs)
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of UpKeyCommandArgs))
             MyBase.SendUpKey(
-                Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c),
+                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c),
                 Sub()
                     EditorOperations.MoveLineUp(extendSelection:=False)
                 End Sub)
         End Sub
 
         Public Overloads Sub SendPageUp()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of PageUpKeyCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of PageUpKeyCommandArgs))
-            MyBase.SendPageUp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+            MyBase.SendPageUp(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendCut()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of CutCommandArgs)
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of CutCommandArgs))
-            MyBase.SendCut(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+            MyBase.SendCut(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendPaste()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of PasteCommandArgs)
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of PasteCommandArgs))
-            MyBase.SendPaste(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+            MyBase.SendPaste(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendInvokeCompletionList()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of InvokeCompletionListCommandArgs)
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of InvokeCompletionListCommandArgs))
-            MyBase.SendInvokeCompletionList(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+            MyBase.SendInvokeCompletionList(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendInsertSnippetCommand()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of InsertSnippetCommandArgs)
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of InsertSnippetCommandArgs))
-            MyBase.SendInsertSnippetCommand(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+            MyBase.SendInsertSnippetCommand(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendSurroundWithCommand()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of SurroundWithCommandArgs)
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of SurroundWithCommandArgs))
-            MyBase.SendSurroundWithCommand(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+            MyBase.SendSurroundWithCommand(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendSave()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of SaveCommandArgs)
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of SaveCommandArgs))
-            MyBase.SendSave(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+            MyBase.SendSave(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendSelectAll()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of SelectAllCommandArgs)
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of SelectAllCommandArgs))
-            MyBase.SendSelectAll(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+
+            MyBase.SendSelectAll(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendDeleteWordToLeft()
@@ -265,9 +244,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #Region "Completion Operations"
 
         Public Overloads Sub SendCommitUniqueCompletionListItem()
-            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of CommitUniqueCompletionListItemCommandArgs)
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of CommitUniqueCompletionListItemCommandArgs))
-            MyBase.SendCommitUniqueCompletionListItem(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+            MyBase.SendCommitUniqueCompletionListItem(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Async Function AssertNoCompletionSession() As Task
@@ -319,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim view = If(projectionsView, TextView)
 
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
-            Assert.True(session IsNot Nothing, "AssertCompletionSession")
+            Assert.NotNull(session)
         End Function
 
         Public Async Function AssertCompletionItemsDoNotContainAny(displayText As String()) As Task
