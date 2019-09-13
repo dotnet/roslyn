@@ -1484,6 +1484,16 @@
         <target state="translated">Null 参照割り当ての可能性があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer">
+        <source>Object or collection initializer implicitly dereferences possibly null reference member '{0}'.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null reference member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer_Title">
+        <source>Object or collection initializer implicitly dereferences possibly null reference member.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null reference member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
         <source>Possible null reference assignment to iteration variable</source>
         <target state="translated">繰り返し変数に対する null 参照代入の可能性があります</target>
