@@ -323,7 +323,7 @@ dotnet_style_object_initializer = true:suggestion
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected);
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
             [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
