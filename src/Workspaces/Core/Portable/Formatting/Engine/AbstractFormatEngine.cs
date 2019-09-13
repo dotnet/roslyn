@@ -301,6 +301,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             static void TriviaFormatter(int tokenPairIndex, FormattingContext ctx, ChainedFormattingRules formattingRules, CancellationToken ct)
             {
+                if (ctx.IsFormattingDisabled(tokenPairIndex))
+                {
+                    return;
+                }
+
                 var triviaInfo = ctx.TokenStream.GetTriviaData(tokenPairIndex);
                 triviaInfo.Format(
                     ctx,

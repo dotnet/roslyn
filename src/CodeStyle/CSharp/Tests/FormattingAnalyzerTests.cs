@@ -61,12 +61,12 @@ class MyClass
   $$}
 
 #pragma warning disable format
-  void MyMethod2()
+		void MyMethod2()
   {
   }
 #pragma warning restore format
 
-  $$void MyMethod3()
+  void MyMethod3()
   $${
   $$}
 }
@@ -79,12 +79,12 @@ class MyClass
     }
 
 #pragma warning disable format
-  void MyMethod2()
+		void MyMethod2()
   {
   }
 #pragma warning restore format
 
-    void MyMethod3()
+  void MyMethod3()
     {
     }
 }

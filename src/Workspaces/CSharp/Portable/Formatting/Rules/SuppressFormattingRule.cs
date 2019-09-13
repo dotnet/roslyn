@@ -358,8 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // preceding the #pragma region to the non-trivia token following the #pragma region.
                 var textSpan = TextSpan.FromBounds(startToken.Span.End, endToken.SpanStart);
                 var textSpanForWrappingSuppression = TextSpan.FromBounds(startSpanForWrappingSuppression, endSpanForWrappingSuppression);
-                list.Add(new SuppressOperation(startToken, endToken, textSpan, SuppressOption.NoSpacing));
-                list.Add(new SuppressOperation(startToken, endToken, textSpanForWrappingSuppression, SuppressOption.NoWrapping));
+                list.Add(new SuppressOperation(startToken, endToken, textSpan, SuppressOption.DisableFormatting));
             }
         }
 

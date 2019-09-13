@@ -68,6 +68,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // check whether current position is less than indentation
                 if (endColumnOfPreviousToken < indentation)
                 {
+                    if (_context.IsFormattingDisabled(pairIndex))
+                    {
+                        return false;
+                    }
+
                     _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithSpace(indentation - endColumnOfPreviousToken, _context, _formattingRules));
                     return true;
                 }
@@ -93,6 +98,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return false;
                 }
 
+                if (_context.IsFormattingDisabled(pairIndex))
+                {
+                    return false;
+                }
+
                 _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithSpace(space, _context, _formattingRules));
                 return true;
             }
@@ -102,6 +112,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var triviaInfo = _context.TokenStream.GetTriviaData(pairIndex);
 
                 if (triviaInfo.LineBreaks == 0 && triviaInfo.Spaces == operation.Space)
+                {
+                    return false;
+                }
+
+                if (_context.IsFormattingDisabled(pairIndex))
                 {
                     return false;
                 }
@@ -123,6 +138,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 Contract.ThrowIfFalse(triviaInfo.LineBreaks == 0);
 
                 if (triviaInfo.Spaces == space)
+                {
+                    return false;
+                }
+
+                if (_context.IsFormattingDisabled(pairIndex))
                 {
                     return false;
                 }
@@ -173,6 +193,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return true;
                 }
 
+                if (_context.IsFormattingDisabled(pairIndex))
+                {
+                    return false;
+                }
+
                 // well, force it regardless original content
                 _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithLine(operation.Line, indentation, _context, _formattingRules, cancellationToken));
                 return true;
@@ -188,6 +213,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var indentation = _context.GetBaseIndentation(_context.TokenStream.GetToken(pairIndex + 1));
                 if (operation.Line > triviaInfo.LineBreaks)
                 {
+                    if (_context.IsFormattingDisabled(pairIndex))
+                    {
+                        return false;
+                    }
+
                     // alright force them
                     _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithLine(operation.Line, indentation, _context, _formattingRules, cancellationToken));
                     return true;
@@ -197,6 +227,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (triviaInfo.SecondTokenIsFirstTokenOnLine &&
                     indentation != triviaInfo.Spaces)
                 {
+                    if (_context.IsFormattingDisabled(pairIndex))
+                    {
+                        return false;
+                    }
+
                     _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithIndentation(indentation, _context, _formattingRules, cancellationToken));
                     return true;
                 }
@@ -335,6 +370,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return;
                 }
 
+                if (_context.IsFormattingDisabled(spanBetweenTokens))
+                {
+                    return;
+                }
+
                 // okay, update indentation
                 _context.TokenStream.ApplyChange(
                     previousToken.IndexInStream,
@@ -448,6 +488,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return;
                 }
 
+                if (_context.IsFormattingDisabled(pairIndex))
+                {
+                    return;
+                }
+
                 // record the fact that this pair has been moved
                 Debug.Assert(!previousChangesMap.ContainsKey(currentToken));
                 previousChangesMap.Add(currentToken, triviaInfo.Spaces);
@@ -549,6 +594,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 if (triviaInfo.Spaces != indentation)
                 {
+                    if (_context.IsFormattingDisabled(pairIndex))
+                    {
+                        return false;
+                    }
+
                     // first save previous information
                     previousChangesMap.Add(firstTokenOnLine, triviaInfo.Spaces);
 
