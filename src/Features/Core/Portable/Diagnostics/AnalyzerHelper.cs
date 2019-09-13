@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static async ValueTask<OptionSet> GetAnalyzerOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             var configOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            var optionSet = await GetDocumentOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken);
+            var optionSet = await GetDocumentOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken).ConfigureAwait(false);
 
             return new AnalyzerConfigOptionSet(configOptions, optionSet);
         }
