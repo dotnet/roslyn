@@ -1704,20 +1704,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Visit(BoundNode node)
         {
-            bool originalExpressionIsRead = _expressionIsRead;
-            _expressionIsRead = true;
-
-            TakeIncrementalSnapshot(node);
-            var result = base.Visit(node);
-
-            _expressionIsRead = originalExpressionIsRead;
-            return result;
+            return Visit(node, expressionIsRead: true);
         }
 
-        public BoundNode VisitLValue(BoundNode node)
+        private BoundNode VisitLValue(BoundNode node)
+        {
+            return Visit(node, expressionIsRead: false);
+        }
+
+        private BoundNode Visit(BoundNode node, bool expressionIsRead)
         {
             bool originalExpressionIsRead = _expressionIsRead;
-            _expressionIsRead = false;
+            _expressionIsRead = expressionIsRead;
 
             TakeIncrementalSnapshot(node);
             var result = base.Visit(node);
@@ -3093,7 +3091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 returnState = returnState.WithNotNullState();
             }
-            ReportMaybeNullFromTypeParameterValueIfNeeded(node, method.ReturnType, GetRValueAnnotations(method));
+            ReportMaybeNullFromTypeParameterValueIfNeeded(node, returnState, GetRValueAnnotations(method));
 
             SetResult(node, returnState, method.ReturnTypeWithAnnotations);
             SetUpdatedSymbol(node, node.Method, method);
@@ -3103,9 +3101,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Members that return [MaybeNull]T values (for an unconstrained type parameter) produce a warning upon usage,
         /// just like default(T).
         /// </summary>
-        void ReportMaybeNullFromTypeParameterValueIfNeeded(BoundExpression expr, TypeSymbol type, FlowAnalysisAnnotations annotations)
+        private void ReportMaybeNullFromTypeParameterValueIfNeeded(BoundExpression expr, TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
         {
-            if (!expr.IsSuppressed && RequiresSafetyWarningWhenNullIntroduced(type, annotations))
+            if (!expr.IsSuppressed && !typeWithState.IsNotNull && RequiresSafetyWarningWhenNullIntroduced(typeWithState.Type, annotations))
             {
                 ReportDiagnostic(ErrorCode.WRN_ExpressionMayIntroduceNullT, expr.Syntax, GetTypeAsDiagnosticArgument(expr.Type));
             }
@@ -3733,7 +3731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), UseLegacyWarnings(argument, result.LValueType));
                         }
 
-                        ReportMaybeNullFromTypeParameterValueIfNeeded(argument, parameterType.Type, parameterAnnotations);
+                        ReportMaybeNullFromTypeParameterValueIfNeeded(argument, parameterWithState, parameterAnnotations);
                     }
                     break;
                 case RefKind.Out:
@@ -3762,7 +3760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // track state by assigning from a fictional value from the parameter to the argument.
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
 
-                        // If the LHS has annotations, we perform an additional check for nullable value types
+                        // If the argument type has annotations, we perform an additional check for nullable value types
                         CheckDisallowedNullAssignment(parameterWithState, leftAnnotations, argument.Syntax.Location);
 
                         AdjustSetValue(argument, declaredType, lValueType, ref parameterWithState);
@@ -3780,7 +3778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        ReportMaybeNullFromTypeParameterValueIfNeeded(argument, parameterType.Type, parameterAnnotations);
+                        ReportMaybeNullFromTypeParameterValueIfNeeded(argument, parameterWithState, parameterAnnotations);
                     }
                     break;
                 default:
@@ -5959,7 +5957,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitDeconstructMethodArguments(ArrayBuilder<DeconstructionVariable> variables, Conversion conversion, BoundExpression right, TypeWithState? rightResultOpt)
         {
-            int n = variables.Count;
             VisitRvalue(right);
 
             // If we were passed an explicit right result, use that rather than the visited result
@@ -5974,6 +5971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)deconstructMethod != null)
             {
+                int n = variables.Count;
                 if (!invocation.InvokedAsExtensionMethod)
                 {
                     _ = CheckPossibleNullReceiver(right);
@@ -6067,9 +6065,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var leftLValueType = variable.Type;
+                    var lvalueType = variable.Type;
                     var leftAnnotations = GetLValueAnnotations(variable.Expression);
-                    leftLValueType = ApplyLValueAnnotations(leftLValueType, leftAnnotations);
+                    lvalueType = ApplyLValueAnnotations(lvalueType, leftAnnotations);
 
                     TypeWithState operandType;
                     TypeWithState valueType;
@@ -6085,7 +6083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             operandType = default;
-                            valueType = VisitOptionalImplicitConversion(rightPart, leftLValueType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
+                            valueType = VisitOptionalImplicitConversion(rightPart, lvalueType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
                         }
                         valueSlot = MakeSlot(rightPart);
                     }
@@ -6096,7 +6094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             conversionOpt: null,
                             rightPart,
                             underlyingConversion,
-                            leftLValueType,
+                            lvalueType,
                             operandType,
                             checkConversion: true,
                             fromExplicitCast: false,
@@ -6112,19 +6110,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckDisallowedNullAssignment(valueType, leftAnnotations, right.Syntax.Location);
 
                     int targetSlot = MakeSlot(variable.Expression);
-                    AdjustSetValue(variable.Expression, variable.Type, leftLValueType, ref valueType);
-                    TrackNullableStateForAssignment(rightPart, leftLValueType, targetSlot, valueType, valueSlot);
+                    AdjustSetValue(variable.Expression, variable.Type, lvalueType, ref valueType);
+                    TrackNullableStateForAssignment(rightPart, lvalueType, targetSlot, valueType, valueSlot);
 
                     // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
                     if (targetSlot > 0 &&
                         underlyingConversion.Kind == ConversionKind.ImplicitNullable &&
-                        AreNullableAndUnderlyingTypes(leftLValueType.Type, operandType.Type, out TypeWithAnnotations underlyingType))
+                        AreNullableAndUnderlyingTypes(lvalueType.Type, operandType.Type, out TypeWithAnnotations underlyingType))
                     {
                         valueSlot = MakeSlot(rightPart);
                         if (valueSlot > 0)
                         {
                             var valueBeforeNullableWrapping = TypeWithState.Create(underlyingType.Type, NullableFlowState.NotNull);
-                            TrackNullableStateOfNullableValue(targetSlot, leftLValueType.Type, rightPart, valueBeforeNullableWrapping, valueSlot);
+                            TrackNullableStateOfNullableValue(targetSlot, lvalueType.Type, rightPart, valueBeforeNullableWrapping, valueSlot);
                         }
                     }
                 }
@@ -6577,7 +6575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_expressionIsRead)
             {
-                ReportMaybeNullFromTypeParameterValueIfNeeded(node, type.Type, GetRValueAnnotations(member));
+                ReportMaybeNullFromTypeParameterValueIfNeeded(node, resultType, GetRValueAnnotations(member));
             }
 
             SetResult(node, resultType, type);

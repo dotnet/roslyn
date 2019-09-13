@@ -1373,13 +1373,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">

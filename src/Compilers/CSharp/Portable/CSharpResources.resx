@@ -5469,10 +5469,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</value>
   </data>
   <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment" xml:space="preserve">
-    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+    <value>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</value>
   </data>
   <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title" xml:space="preserve">
-    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+    <value>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
