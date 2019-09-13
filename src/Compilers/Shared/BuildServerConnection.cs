@@ -161,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 CreateServerFunc createServerFunc,
                 CancellationToken cancellationToken)
             {
+                var originalThreadId = Thread.CurrentThread.ManagedThreadId;
                 var clientDir = buildPaths.ClientDirectory;
                 var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
                 var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
@@ -215,7 +216,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
                 finally
                 {
-                    clientMutex?.Dispose();
+                    try
+                    {
+                        clientMutex?.Dispose();
+                    }
+                    catch (ApplicationException e)
+                    {
+                        var releaseThreadId = Thread.CurrentThread.ManagedThreadId;
+                        var message = $"ReleaseMutex failed. WaitOne Id: {originalThreadId} Release Id: {releaseThreadId}";
+                        throw new Exception(message, e);
+                    }
                 }
             }
         }
