@@ -1904,6 +1904,7 @@ record B(int i) : A
 }", parseOptions: TestOptions.RegularPreview);
         }
 
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestFlowAnalysisAttributeOnNonNullableReferenceType()
         {
@@ -1947,6 +1948,7 @@ class Class : Base<string>
 }");
         }
 
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestFlowAnalysisAttributeOnNullableReferenceType()
         {
@@ -1990,6 +1992,7 @@ class Class : Base<string?>
 }");
         }
 
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestFlowAnalysisAttributeOnNonNullableValueType()
         {
@@ -2029,6 +2032,7 @@ class Class<T> : Base<T> where T : struct
 }");
         }
 
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestFlowAnalysisAttributeOnNullableValueType()
         {

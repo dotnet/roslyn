@@ -8608,6 +8608,7 @@ class C : [|I|]
 }", index: 1);
         }
 
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNonNullableReferenceType()
         {
@@ -8659,6 +8660,7 @@ class Class : IInterface<string>
 }}");
         }
 
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNullableReferenceType()
         {
@@ -8710,6 +8712,7 @@ class Class : IInterface<string?>
 }}");
         }
 
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNonNullableReferenceTypeByRef()
         {
@@ -8761,6 +8764,7 @@ class Class : IInterface<string>
 }}");
         }
 
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNullableReferenceTypeByRef()
         {
@@ -8813,6 +8817,7 @@ class Class : IInterface<string?>
         }
 
         // class Class<T> : IInterface<T?> where T : class
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNonNullableReferenceTypeConstraint()
         {
@@ -8865,6 +8870,7 @@ class Class<T> : IInterface<T?> where T : class
         }
 
         // class Class<T> : IInterface<T> where T : class?
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNullableReferenceTypeConstraint()
         {
@@ -8918,6 +8924,7 @@ class Class<T> : IInterface<T> where T : class?
 }}");
         }
 
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNonNullableValueType()
         {
@@ -8965,6 +8972,7 @@ class Class<T> : IInterface<T> where T : struct
 }}");
         }
 
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNullableValueType()
         {
