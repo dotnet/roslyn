@@ -1570,10 +1570,18 @@ class Test1 : I2, I1<string?>
                 Assert.Equal("void I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
 
                 compilation2.VerifyDiagnostics(
-                    // (4,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I2, I1<string?>
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
                     );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -1632,10 +1640,18 @@ class Test1 : I1<string?>, I2
                 Assert.Equal("void I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
 
                 compilation2.VerifyDiagnostics(
-                    // (4,7): error CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I1<string?>, I2
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
                     );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -1697,10 +1713,18 @@ class Test1 : I2, I3
                 Assert.Equal("void I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
 
                 compilation2.VerifyDiagnostics(
-                    // (4,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I2, I3
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
                     );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -1762,10 +1786,18 @@ class Test1 : I3, I2
                 Assert.Equal("void I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
 
                 compilation2.VerifyDiagnostics(
-                    // (4,7): error CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I3, I2
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
                     );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -31129,9 +31161,9 @@ class Test1 : I2, I3
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation2.VerifyDiagnostics(
-                // (2,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I2, I3
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
                 // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 15),
@@ -31153,9 +31185,9 @@ class Test1 : I2, I3
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation3.VerifyDiagnostics(
-                // (2,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I2, I3
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
                 // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 15),
@@ -31216,9 +31248,12 @@ class Test1 : I2, I3, I1<string>
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation2.VerifyDiagnostics(
-                // (2,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                // (2,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(2, 7),
                 // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 15),
@@ -31244,9 +31279,12 @@ class Test1 : I2, I3, I1<string>
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation3.VerifyDiagnostics(
-                // (2,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I2, I3, I1<string>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                // (2,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(2, 7),
                 // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 15),
@@ -31405,9 +31443,9 @@ class Test1 : I2, I3, I1<string?>
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation2.VerifyDiagnostics(
-                // (4,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I2, I3, I1<string?>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
                 // (4,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string?>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(4, 15),
@@ -31429,9 +31467,9 @@ class Test1 : I2, I3, I1<string?>
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation3.VerifyDiagnostics(
-                // (4,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I2, I3, I1<string?>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
                 // (4,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
                 // class Test1 : I2, I3, I1<string?>
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(4, 15),
@@ -31490,9 +31528,9 @@ class Test1 : I3
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics(
-                // (13,18): error CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
+                // (13,18): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
                 // public interface I3 : I2, I1<string?>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "I3").WithArguments("I1<string?>", "I3").WithLocation(13, 18),
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "I3").WithArguments("I1<string?>", "I3").WithLocation(13, 18),
                 // (13,18): error CS8646: 'I1<string>.M1()' is explicitly implemented more than once.
                 // public interface I3 : I2, I1<string?>
                 Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string>.M1()").WithLocation(13, 18),
@@ -31506,9 +31544,9 @@ class Test1 : I3
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation2.VerifyDiagnostics(
-                // (4,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I3
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
                 // (4,15): error CS0535: 'Test1' does not implement interface member 'I1<string>.M1()'
                 // class Test1 : I3
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 15),
@@ -31588,13 +31626,21 @@ class Test1 : I2, I3
                 Assert.Equal("void I3.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
 
                 compilation2.VerifyDiagnostics(
-                    // (4,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I2, I3
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
                     // (4,15): warning CS8644: 'Test1' does not implement interface member 'I1<string>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
                     // class Test1 : I2, I3
                     Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 15)
                     );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I3.M1
+I3.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -31660,13 +31706,21 @@ class Test1 : I3, I2
                 Assert.Equal("void I3.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
 
                 compilation2.VerifyDiagnostics(
-                    // (4,7): error CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I3, I2
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7),
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7),
                     // (4,19): warning CS8644: 'Test1' does not implement interface member 'I1<string>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
                     // class Test1 : I3, I2
                     Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 19)
                     );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I3.M1
+I3.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -31736,13 +31790,21 @@ class Test1 : I3, I4
                 Assert.Equal("void I2<System.String?>.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[5].GetMember("M1")).ToTestDisplayString());
 
                 compilation2.VerifyDiagnostics(
-                    // (4,7): error CS8645: 'I2<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // (4,7): warning CS8645: 'I2<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I3, I4
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string?>", "Test1").WithLocation(4, 7),
-                    // (4,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string?>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I3, I4
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
                     );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -31812,13 +31874,21 @@ class Test1 : I4, I3
                 Assert.Equal("void I2<System.String>.I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[5].GetMember("M1")).ToTestDisplayString());
 
                 compilation2.VerifyDiagnostics(
-                    // (4,7): error CS8645: 'I2<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // (4,7): warning CS8645: 'I2<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I4, I3
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string>", "Test1").WithLocation(4, 7),
-                    // (4,7): error CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I4, I3
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
                     );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -31938,13 +32008,21 @@ class Test1 : I2, I1<string?>
                                                         targetFramework: TargetFramework.NetStandardLatest);
 
                 compilation2.VerifyDiagnostics(
-                    // (4,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I2, I1<string?>
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
                     // (4,19): warning CS8644: 'Test1' does not implement interface member 'I1<string?>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
                     // class Test1 : I2, I1<string?>
                     Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I1<string?>").WithArguments("Test1", "I1<string?>.M1()").WithLocation(4, 19)
                     );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -32081,19 +32159,27 @@ class Test1 : I2<string>, I3<string>, I4
                 Assert.Equal("void I4.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[6].GetMember("M1")).ToTestDisplayString());
 
                 compilation2.VerifyDiagnostics(
-                    // (4,7): error CS8645: 'I2<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // (4,7): warning CS8645: 'I2<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I2<string>, I3<string>, I4
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string?>", "Test1").WithLocation(4, 7),
-                    // (4,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string?>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I2<string>, I3<string>, I4
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
-                    // (4,7): error CS8645: 'I3<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I3<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                     // class Test1 : I2<string>, I3<string>, I4
-                    Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I3<string?>", "Test1").WithLocation(4, 7),
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I3<string?>", "Test1").WithLocation(4, 7),
                     // (4,15): warning CS8644: 'Test1' does not implement interface member 'I1<string>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
                     // class Test1 : I2<string>, I3<string>, I4
                     Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2<string>").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 15)
                     );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I4.M1
+I4.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -34485,9 +34571,9 @@ class Test1 : I3
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics(
-                // (13,18): error CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
+                // (13,18): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
                 // public interface I3 : I2, I1<string?>
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "I3").WithArguments("I1<string?>", "I3").WithLocation(13, 18),
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "I3").WithArguments("I1<string?>", "I3").WithLocation(13, 18),
                 // (13,18): error CS8646: 'I1<string>.M1' is explicitly implemented more than once.
                 // public interface I3 : I2, I1<string?>
                 Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string>.M1").WithLocation(13, 18),
@@ -34504,9 +34590,9 @@ class Test1 : I3
                                                     targetFramework: TargetFramework.NetStandardLatest);
 
             compilation2.VerifyDiagnostics(
-                // (4,7): error CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
                 // class Test1 : I3
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
                 // (4,15): error CS0535: 'Test1' does not implement interface member 'I1<string>.M1'
                 // class Test1 : I3
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1<string>.M1").WithLocation(4, 15),

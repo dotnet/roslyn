@@ -3895,15 +3895,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in the interface list on type &apos;{1}&apos; with different nullability of reference types..
-        /// </summary>
-        internal static string ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList {
-            get {
-                return ResourceManager.GetString("ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in the interface list on type &apos;{2}&apos; with different tuple element names, as &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_DuplicateInterfaceWithTupleNamesInBaseList {
@@ -14053,6 +14044,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_DotOnDefault_Title {
             get {
                 return ResourceManager.GetString("WRN_DotOnDefault_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in the interface list on type &apos;{1}&apos; with different nullability of reference types..
+        /// </summary>
+        internal static string WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList {
+            get {
+                return ResourceManager.GetString("WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interface is already listed in the interface list with different nullability of reference types..
+        /// </summary>
+        internal static string WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title {
+            get {
+                return ResourceManager.GetString("WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title", resourceCulture);
             }
         }
         

@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase));
+            builder.Add(getId(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation));
             builder.Add(getId(ErrorCode.WRN_NullReferenceInitializer));
 
@@ -396,6 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation:
+                case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
                 case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
                 case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation:

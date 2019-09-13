@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if (!other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny))
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
+                                    diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
                                 }
                             }
                             else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
