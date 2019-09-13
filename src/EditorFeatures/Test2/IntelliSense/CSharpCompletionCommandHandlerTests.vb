@@ -4100,7 +4100,7 @@ class C
                 state.SendTypeChars("#")
 
                 Assert.Equal("#", state.GetLineFromCurrentCaretPosition().GetText())
-                Await state.AssertCompletionSessionAfterTypingHash()
+                Await state.AssertCompletionSession()
 
                 state.SendTypeChars("reg")
                 Await state.AssertSelectedCompletionItem(displayText:="region")
@@ -4114,7 +4114,7 @@ class C
                 state.SendTypeChars("#")
 
                 Assert.Equal("#", state.GetLineFromCurrentCaretPosition().GetText())
-                Await state.AssertCompletionSessionAfterTypingHash()
+                Await state.AssertCompletionSession()
 
                 state.SendTypeChars("endr")
                 Await state.AssertSelectedCompletionItem(displayText:="endregion")

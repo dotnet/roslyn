@@ -36,7 +36,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             New Lazy(Of ComposableCatalog)(Function()
                                                Return TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.
                                                WithoutPartsOfTypes({
-                                                                   GetType(IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession)),
                                                                    GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
                                                                    GetType(FormatCommandHandler)}).
                                                WithParts({
@@ -317,11 +316,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.True(items.Any(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix))
         End Function
 
-        Public Async Function AssertCompletionSessionAfterTypingHash() As Task
-            ' starting with the modern completion implementation, # is treated as an IntelliSense trigger
-            Await AssertCompletionSession()
-        End Function
-
         Public Sub AssertItemsInOrder(expectedOrder As String())
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
@@ -577,7 +571,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Private Shared Function CombineExcludedTypes(excludedTypes As IList(Of Type), includeFormatCommandHandler As Boolean) As IList(Of Type)
             Dim result = New List(Of Type) From {
-                GetType(IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession)),
                 GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))
             }
 
