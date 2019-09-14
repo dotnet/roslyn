@@ -58,36 +58,23 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         }
 
         private static bool IsToStringMethod(IMethodSymbol methodSymbol)
-        {
-            return methodSymbol is
+            => methodSymbol is
             {
                 Arity: 0,
                 Parameters: { IsEmpty: true },
                 Name: nameof(ToString)
             };
-        }
 
         private static bool IsDebuggerDisplayMethod(IMethodSymbol methodSymbol)
-        {
-            return methodSymbol is
+            => methodSymbol is
             {
                 Arity: 0,
                 Parameters: { IsEmpty: true },
                 Name: DebuggerDisplayMethodName
             };
-        }
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
-        {
-            switch (typeSymbol.TypeKind)
-            {
-                case TypeKind.Class:
-                case TypeKind.Struct:
-                    return true;
-                default:
-                    return false;
-            }
-        }
+            => typeSymbol.TypeKind == TypeKind.Class || typeSymbol.TypeKind == TypeKind.Struct;
 
         private static bool HasDebuggerDisplayAttribute(ITypeSymbol typeSymbol, Compilation compilation)
         {
