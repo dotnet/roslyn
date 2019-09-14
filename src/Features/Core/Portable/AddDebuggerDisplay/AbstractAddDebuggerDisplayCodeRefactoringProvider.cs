@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var type =
-                await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>().ConfigureAwait(false)
+            var typeAndPriority =
+                await GetRelevantTypeFromHeaderAsync(context).ConfigureAwait(false)
                 ?? await GetRelevantTypeFromMethodAsync(context).ConfigureAwait(false);
 
-            if (type is null) return;
+            if (!(typeAndPriority is var (type, priority))) return;
 
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -33,12 +33,21 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (IsClassOrStruct(typeSymbol) && !HasDebuggerDisplayAttribute(typeSymbol, semanticModel.Compilation))
             {
                 context.RegisterRefactoring(new MyCodeAction(
+                    priority,
                     FeaturesResources.Add_DebuggerDisplay,
                     cancellationToken => ApplyAsync(context.Document, type, cancellationToken)));
             }
         }
 
-        private static async Task<TTypeDeclarationSyntax> GetRelevantTypeFromMethodAsync(CodeRefactoringContext context)
+        private static async Task<(TTypeDeclarationSyntax type, CodeActionPriority priority)?> GetRelevantTypeFromHeaderAsync(CodeRefactoringContext context)
+        {
+            var type = await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>().ConfigureAwait(false);
+
+            if (type is null) return null;
+            return (type, CodeActionPriority.Low);
+        }
+
+        private static async Task<(TTypeDeclarationSyntax type, CodeActionPriority priority)?> GetRelevantTypeFromMethodAsync(CodeRefactoringContext context)
         {
             var method = await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
             if (method != null)
@@ -46,9 +55,13 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
                 var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(method);
 
-                if (IsToStringMethod(methodSymbol) || IsDebuggerDisplayMethod(methodSymbol))
+                var isDebuggerDisplayMethod = IsDebuggerDisplayMethod(methodSymbol);
+
+                if (isDebuggerDisplayMethod || IsToStringMethod(methodSymbol))
                 {
-                    return method.FirstAncestorOrSelf<TTypeDeclarationSyntax>();
+                    return (
+                        method.FirstAncestorOrSelf<TTypeDeclarationSyntax>(),
+                        isDebuggerDisplayMethod ? CodeActionPriority.Medium : CodeActionPriority.Low);
                 }
             }
 
@@ -158,9 +171,12 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+            internal override CodeActionPriority Priority { get; }
+
+            public MyCodeAction(CodeActionPriority priority, string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
+                Priority = priority;
             }
         }
     }
