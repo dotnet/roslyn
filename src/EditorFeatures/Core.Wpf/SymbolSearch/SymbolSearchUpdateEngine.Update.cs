@@ -232,19 +232,22 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     var (succeeded, delay) = await DownloadFullDatabaseWorkerAsync().ConfigureAwait(false);
                     if (succeeded)
                     {
-                        await _service._progressService.OnDownloadFullDatabaseSucceededAsync(_service._updateCancellationToken).ConfigureAwait(false);
+                        // Make sure the completion notification is sent even if cancellation is requested
+                        await _service._progressService.OnDownloadFullDatabaseSucceededAsync(CancellationToken.None).ConfigureAwait(false);
                     }
                     else
                     {
+                        // Make sure the completion notification is sent even if cancellation is requested
                         await _service._progressService.OnDownloadFullDatabaseFailedAsync(
-                            EditorFeaturesWpfResources.Downloading_index_failed, _service._updateCancellationToken).ConfigureAwait(false);
+                            EditorFeaturesWpfResources.Downloading_index_failed, CancellationToken.None).ConfigureAwait(false);
                     }
 
                     return delay;
                 }
                 catch (OperationCanceledException)
                 {
-                    await _service._progressService.OnDownloadFullDatabaseCanceledAsync(_service._updateCancellationToken).ConfigureAwait(false);
+                    // Make sure the completion notification is sent even if cancellation is requested
+                    await _service._progressService.OnDownloadFullDatabaseCanceledAsync(CancellationToken.None).ConfigureAwait(false);
                     throw;
                 }
                 catch (Exception e)
@@ -252,7 +255,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     var message = string.Format(
                         EditorFeaturesWpfResources.Downloading_index_failed_0,
                         "\r\n" + e.ToString());
-                    await _service._progressService.OnDownloadFullDatabaseFailedAsync(message, _service._updateCancellationToken).ConfigureAwait(false);
+                    // Make sure the completion notification is sent even if cancellation is requested
+                    await _service._progressService.OnDownloadFullDatabaseFailedAsync(message, CancellationToken.None).ConfigureAwait(false);
                     throw;
                 }
             }
