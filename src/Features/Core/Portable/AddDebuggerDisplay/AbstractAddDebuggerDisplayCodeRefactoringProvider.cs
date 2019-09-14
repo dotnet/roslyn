@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         where TTypeDeclarationSyntax : SyntaxNode
         where TMethodDeclarationSyntax : SyntaxNode
     {
-        private static readonly SyntaxAnnotation s_trackingAnnotation = new SyntaxAnnotation();
-
         private const string DebuggerDisplayMethodName = "GetDebuggerDisplay";
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -89,18 +87,19 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var generator = SyntaxGenerator.GetGenerator(document);
+            var editor = new SyntaxEditor(syntaxRoot, generator);
 
             var newAttribute = generator
                 .Attribute("System.Diagnostics.DebuggerDisplayAttribute", semanticModel.Compilation, generator.LiteralExpression("{" + DebuggerDisplayMethodName + "(),nq}"))
                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
-            var modifiedType = generator.AddAttributes(type, newAttribute);
+            editor.AddAttribute(type, newAttribute);
 
             var typeSymbol = (ITypeSymbol)semanticModel.GetDeclaredSymbol(type, cancellationToken);
 
             if (!typeSymbol.GetMembers().OfType<IMethodSymbol>().Any(IsDebuggerDisplayMethod))
             {
-                modifiedType = generator.AddMembers(modifiedType,
+                editor.AddMember(type,
                     generator.MethodDeclaration(
                         DebuggerDisplayMethodName,
                         returnType: generator.TypeExpression(SpecialType.System_String),
@@ -112,15 +111,15 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                         }));
             }
 
-            modifiedType = modifiedType.WithAdditionalAnnotations(s_trackingAnnotation);
+            editor.TrackNode(type);
 
-            syntaxRoot = syntaxRoot.ReplaceNode(type, modifiedType);
+            syntaxRoot = editor.GetChangedRoot();
 
             syntaxRoot = await EnsureNamespaceImportAsync(
                 document,
                 generator,
                 syntaxRoot,
-                contextLocation: syntaxRoot.GetAnnotatedNodes(s_trackingAnnotation).Single(),
+                contextLocation: syntaxRoot.GetCurrentNode(type),
                 "System.Diagnostics",
                 cancellationToken).ConfigureAwait(false);
 
