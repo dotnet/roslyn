@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundLocalDeclaration> declarationsOpt = default;
             BoundMultipleLocalDeclarations multipleDeclarationsOpt = null;
             BoundExpression expressionOpt = null;
-            AwaitableInfo awaitOpt = null;
+            BoundAwaitableInfo awaitOpt = null;
             TypeSymbol declarationTypeOpt = null;
             MethodSymbol disposeMethodOpt = null;
             TypeSymbol awaitableTypeOpt = null;

@@ -7737,6 +7737,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            SetUnknownResultNullability(node);
+            return null;
+        }
+
         protected override string Dump(LocalState state)
         {
             if (!state.Reachable)

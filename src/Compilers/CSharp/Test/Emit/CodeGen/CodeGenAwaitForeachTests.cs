@@ -4917,5 +4917,57 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
+
+        [Fact]
+        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
+        public void GetAwaiterBoxingConversion()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+interface I1 { }
+interface I2 { }
+struct StructAwaitable1 : I1 { }
+struct StructAwaitable2 : I2 { }
+
+class Enumerable
+{
+    public Enumerator GetAsyncEnumerator() => new Enumerator();
+    internal class Enumerator
+    {
+        public object Current => null;
+        public StructAwaitable1 MoveNextAsync() => new StructAwaitable1();
+        public StructAwaitable2 DisposeAsync() => new StructAwaitable2();
+    }
+}
+
+static class Extensions
+{
+    internal static TaskAwaiter<bool> GetAwaiter(this I1 x)
+    {
+        if (x == null) throw new ArgumentNullException(nameof(x));
+        return Task.FromResult(false).GetAwaiter();
+    }
+    internal static TaskAwaiter GetAwaiter(this I2 x)
+    {
+        if (x == null) throw new ArgumentNullException(nameof(x));
+        return Task.CompletedTask.GetAwaiter();
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        await foreach (var o in new Enumerable())
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "");
+        }
     }
 }

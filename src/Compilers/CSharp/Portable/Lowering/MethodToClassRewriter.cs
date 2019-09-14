@@ -359,13 +359,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            var awaitableInfo = (BoundAwaitableInfo)Visit(node.AwaitableInfo);
             TypeSymbol type = this.VisitType(node.Type);
 
-            AwaitableInfo info = node.AwaitableInfo;
-            return node.Update(
-                expression,
-                info.Update(VisitMethodSymbol(info.GetAwaiter), VisitPropertySymbol(info.IsCompleted), VisitMethodSymbol(info.GetResult)),
-                type);
+            return node.Update(expression, awaitableInfo, type);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)

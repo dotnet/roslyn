@@ -877,7 +877,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
             {
-                Fail(node);
+                // PROTOTYPE:
+                //Fail(node);
                 return null;
             }
 

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                        ImmutableArray<BoundLocalDeclaration> declarations,
                                                        Conversion iDisposableConversion,
                                                        MethodSymbol disposeMethodOpt,
-                                                       AwaitableInfo awaitOpt,
+                                                       BoundAwaitableInfo awaitOpt,
                                                        SyntaxToken awaitKeyword)
         {
             Debug.Assert(declarations != null);
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Assumes that the local symbol will be declared (i.e. in the LocalsOpt array) of an enclosing block.
         /// Assumes that using statements with multiple locals have already been split up into multiple using statements.
         /// </remarks>
-        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion iDisposableConversion, SyntaxToken awaitKeywordOpt, AwaitableInfo awaitOpt, MethodSymbol methodSymbol)
+        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion iDisposableConversion, SyntaxToken awaitKeywordOpt, BoundAwaitableInfo awaitOpt, MethodSymbol methodSymbol)
         {
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local, SyntaxToken awaitKeywordOpt, AwaitableInfo awaitOpt, MethodSymbol methodOpt)
+        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local, SyntaxToken awaitKeywordOpt, BoundAwaitableInfo awaitOpt, MethodSymbol methodOpt)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // "{ dynamic temp1 = x; IDisposable temp2 = (IDisposable) temp1; ... }". Rather, we elide
             // the completely unnecessary first temporary. 
 
-            Debug.Assert((awaitKeywordOpt == default) == (awaitOpt == default(AwaitableInfo)));
+            Debug.Assert((awaitKeywordOpt == default) == (awaitOpt is null));
             BoundExpression disposedExpression;
             bool isNullableValueType = local.Type.IsNullableType();
 
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return tryFinally;
         }
 
-        private BoundExpression GenerateDisposeCall(SyntaxNode syntax, BoundExpression disposedExpression, MethodSymbol methodOpt, AwaitableInfo awaitOpt, SyntaxToken awaitKeyword)
+        private BoundExpression GenerateDisposeCall(SyntaxNode syntax, BoundExpression disposedExpression, MethodSymbol methodOpt, BoundAwaitableInfo awaitOpt, SyntaxToken awaitKeyword)
         {
             Debug.Assert(awaitOpt is null || awaitKeyword != default);
 

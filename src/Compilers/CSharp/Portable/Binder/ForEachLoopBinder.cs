@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // These occur when special types are missing or malformed, or the patterns are incompletely implemented.
             hasErrors |= builder.IsIncomplete;
 
-            AwaitableInfo awaitInfo = null;
+            BoundAwaitableInfo awaitInfo = null;
             MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
             if (getEnumeratorMethod != null)
             {
