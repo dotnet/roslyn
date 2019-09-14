@@ -74,7 +74,7 @@ End Class")
         End Function
 
         <Fact>
-        Public Async Function OfferedOnOverriddenToString() As Task
+        Public Async Function OfferedOnToString() As Task
             Await TestInRegularAndScriptAsync("
 Class C
     Public Overrides Function [||]ToString() As String
@@ -86,6 +86,28 @@ Imports System.Diagnostics
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Public Overrides Function ToString() As String
+        Return ""Foo""
+    End Function
+
+    Private Function GetDebuggerDisplay() As String
+        Return ToString()
+    End Function
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function OfferedOnShadowedToString() As Task
+            Await TestInRegularAndScriptAsync("
+Class C
+    Public Shadows Function [||]ToString() As String
+        Return ""Foo""
+    End Function
+End Class", "
+Imports System.Diagnostics
+
+<DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
+Class C
+    Public Shadows Function ToString() As String
         Return ""Foo""
     End Function
 

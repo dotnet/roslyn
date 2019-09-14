@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
                 var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(method);
 
-                if (IsToStringOverride(methodSymbol) || IsDebuggerDisplayMethod(methodSymbol))
+                if (IsToStringMethod(methodSymbol) || IsDebuggerDisplayMethod(methodSymbol))
                 {
                     return method.FirstAncestorOrSelf<TTypeDeclarationSyntax>();
                 }
@@ -57,14 +57,13 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             return null;
         }
 
-        private static bool IsToStringOverride(IMethodSymbol methodSymbol)
+        private static bool IsToStringMethod(IMethodSymbol methodSymbol)
         {
             return methodSymbol is
             {
                 Arity: 0,
                 Parameters: { IsEmpty: true },
-                Name: nameof(ToString),
-                IsOverride: true
+                Name: nameof(ToString)
             };
         }
 

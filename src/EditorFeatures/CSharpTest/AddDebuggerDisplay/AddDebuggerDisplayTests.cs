@@ -92,7 +92,7 @@ class C
         }
 
         [Fact]
-        public async Task OfferedOnOverriddenToString()
+        public async Task OfferedOnToString()
         {
             await TestInRegularAndScriptAsync(@"
 class C
@@ -105,6 +105,28 @@ using System.Diagnostics;
 class C
 {
     public override string ToString() => ""Foo"";
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
+}");
+        }
+
+        [Fact]
+        public async Task OfferedOnShadowingToString()
+        {
+            await TestInRegularAndScriptAsync(@"
+class A
+{
+    public new string [||]ToString() => ""Foo"";
+}", @"
+using System.Diagnostics;
+
+[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+class A
+{
+    public new string ToString() => ""Foo"";
 
     private string GetDebuggerDisplay()
     {
