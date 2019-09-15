@@ -56817,6 +56817,12 @@ class C2 : C1, I1
                 // class C2 : C1, I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1").WithLocation(2, 16)
                 );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var c2 = compilation1.GetTypeByMetadataName("C2");
+            var p1 = i1.GetMember<PropertySymbol>("P1");
+            Assert.Null(c2.FindImplementationForInterfaceMember(p1.GetMethod));
+            Assert.Null(c2.FindImplementationForInterfaceMember(p1));
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
@@ -56886,10 +56892,16 @@ class C2 : C1, I1
 ";
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics(
-                // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1.get'
+                // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
                 // class C2 : C1, I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1.get").WithLocation(2, 16)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1").WithLocation(2, 16)
                 );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var c2 = compilation1.GetTypeByMetadataName("C2");
+            var p1 = i1.GetMember<PropertySymbol>("P1");
+            Assert.Null(c2.FindImplementationForInterfaceMember(p1.GetMethod));
+            Assert.Null(c2.FindImplementationForInterfaceMember(p1));
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]

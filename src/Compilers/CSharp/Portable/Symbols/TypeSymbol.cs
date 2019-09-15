@@ -770,8 +770,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ISymbol ITypeSymbol.FindImplementationForInterfaceMember(ISymbol interfaceMember)
         {
-            return interfaceMember is Symbol
-                ? FindImplementationForInterfaceMember((Symbol)interfaceMember)
+            return interfaceMember is Symbol symbol
+                ? FindImplementationForInterfaceMember(symbol)
                 : null;
         }
 
@@ -812,6 +812,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Interface member checks
 
+        /// <summary>
+        /// Locate implementation of the <paramref name="interfaceMember"/> in context of the current type.
+        /// The method is using cache to optimize subsequent calls for the same <paramref name="interfaceMember"/>.
+        /// </summary>
+        /// <param name="interfaceMember">Member for which an implementation should be found.</param>
+        /// <param name="ignoreImplementationInInterfacesIfResultIsNotReady">
+        /// The process of looking up an implementation for an accessor can involve figuring out how corresponding event/property is implemented,
+        /// <see cref="CheckForImplementationOfCorrespondingPropertyOrEvent"/>. And the process of looking up an implementation for a property can
+        /// involve figuring out how corresponding accessors are implemented, <see cref="FindMostSpecificImplementationInInterfaces"/>. This can 
+        /// lead to cycles, which could be avoided if we ignore the presence of implementations in interfaces for the purpose of
+        /// <see cref="CheckForImplementationOfCorrespondingPropertyOrEvent"/>. Fortunately, logic in it allows us to ignore the presence of
+        /// implementations in interfaces and we use that.
+        /// When the value of this parameter is true and the result that takes presence of implementations in interfaces into account is not
+        /// available from the cache, the lookup will be performed ignoring the presence of implementations in interfaces. Otherwise, result from
+        /// the cashe is returned.
+        /// When the value of the parameter is false, the result from the cache is returned, or calculated, taking presence of implementations
+        /// in interfaces into account and then cached.
+        /// This means that:
+        ///  - A symbol from an interface can still be returned even when <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> is true.
+        ///    A subsequent call with <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> false will return the same value. 
+        ///  - If symbol from a non-interface is returned for <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> is true. A subsequent
+        ///    call with <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> false will return the same value.
+        ///  - If no symbol is returned for <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> true. A subsequent call with
+        ///    <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> might return a symbol, but that symbol guaranteed to be from an interface.
+        ///  - If the first request is done with <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> true. A subsequent call
+        ///    is guaranted to return the same result regardless of <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> value.
+        /// </param>
         protected SymbolAndDiagnostics FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(Symbol interfaceMember, bool ignoreImplementationInInterfacesIfResultIsNotReady = false)
         {
             Debug.Assert((object)interfaceMember != null);
@@ -851,6 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                    out bool implementationInInterfacesMightChangeResult);
 
                     Debug.Assert(ignoreImplementationInInterfacesIfResultIsNotReady || !implementationInInterfacesMightChangeResult);
+                    Debug.Assert(!implementationInInterfacesMightChangeResult || result.Symbol is null); ;
                     if (!implementationInInterfacesMightChangeResult)
                     {
                         map.TryAdd(interfaceMember, result);
@@ -884,6 +912,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="interfaceMember">A non-null implementable member on an interface type.</param>
         /// <param name="implementingType">The type implementing the interface property (usually "this").</param>
         /// <param name="diagnostics">Bag to which to add diagnostics.</param>
+        /// <param name="ignoreImplementationInInterfaces">Do not consider implementation in an interface as a valid candidate for the purpose of this computation.</param>
+        /// <param name="implementationInInterfacesMightChangeResult">
+        /// Returns true when <paramref name="ignoreImplementationInInterfaces"/> is true, the method fails to locate an implementation and an implementation in
+        /// an interface, if any (its presence is not checked), could potentially be a candidate. Returns false otherwise.
+        /// When true is returned, a different call with <paramref name="ignoreImplementationInInterfaces"/> false might return a symbol. That symbol, if any,
+        /// is guaranteed to be from an interface.
+        /// This parameter is used to optimize caching in <see cref="FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics"/>.
+        /// </param>
         /// <returns>The implementing property or null, if there isn't one.</returns>
         private static Symbol ComputeImplementationForInterfaceMember(Symbol interfaceMember, TypeSymbol implementingType, DiagnosticBag diagnostics,
                                                                       bool ignoreImplementationInInterfaces, out bool implementationInInterfacesMightChangeResult)
@@ -940,9 +976,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                // WORKAROUND: see comment on method.
                 if (IsExplicitlyImplementedViaAccessors(interfaceMember, currType, out Symbol currTypeExplicitImpl))
                 {
+                    // We are looking for a property or event implementation and found an explicit implementation
+                    // for its accessor(s) in this type. Stop the process and return event/property assosiated
+                    // with the accessor(s), if any.
                     implementationInInterfacesMightChangeResult = false;
                     // NOTE: may be null.
                     return currTypeExplicitImpl;
@@ -1076,13 +1114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!implementingType.IsInterfaceType());
 
             // If we are dealing with a property or event and an implementation of at least one accessor is not from an interface, it 
-            // wouldn't be right to say that the event/property is implemented in an interface.
+            // wouldn't be right to say that the event/property is implemented in an interface because its accessor isn't.
             (MethodSymbol interfaceAccessor1, MethodSymbol interfaceAccessor2) = GetImplementableAccessors(interfaceMember);
 
-            if ((interfaceAccessor1 is object &&
-                 implementingType.FindImplementationForInterfaceMemberInNonInterface(interfaceAccessor1, ignoreImplementationInInterfacesIfResultIsNotReady: true)?.ContainingType.IsInterface == false) ||
-                (interfaceAccessor2 is object &&
-                 implementingType.FindImplementationForInterfaceMemberInNonInterface(interfaceAccessor2, ignoreImplementationInInterfacesIfResultIsNotReady: true)?.ContainingType.IsInterface == false))
+            if (stopLookup(interfaceAccessor1, implementingType) || stopLookup(interfaceAccessor2, implementingType))
             {
                 return null;
             }
@@ -1104,6 +1139,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return defaultImpl;
+
+            static bool stopLookup(MethodSymbol interfaceAccessor, TypeSymbol implementingType)
+            {
+                if (interfaceAccessor is null)
+                {
+                    return false;
+                }
+
+                SymbolAndDiagnostics symbolAndDiagnostics = implementingType.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceAccessor);
+
+                if (symbolAndDiagnostics.Symbol is object)
+                {
+                    return !symbolAndDiagnostics.Symbol.ContainingType.IsInterface;
+                }
+
+                // It is still possible that we actually looked for the accessor in interfaces, but failed due to an ambiguity.
+                // Let's try to look for a property to improve diagnostics in this scenareo.
+                return !symbolAndDiagnostics.Diagnostics.Any(d => d.Code == (int)ErrorCode.ERR_MostSpecificImplementationIsNotFound);
+            }
         }
 
         private static Symbol FindMostSpecificImplementation(Symbol interfaceMember, NamedTypeSymbol implementingInterface, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1452,7 +1506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The issue was that a type explicitly implemented the accessors of an interface event, but did not tie them together with
         /// an event declaration.  To make matters worse, it declared its own protected event with the same name as the interface
         /// event (presumably to back the explicit implementation).  As a result, when Roslyn was asked to find the implementing member
-        /// for the interface event, it found the protected event and reported an appropriate diagnostic.  Would it should have done
+        /// for the interface event, it found the protected event and reported an appropriate diagnostic.  What it should have done
         /// (and does do now) is recognize that no event associated with the accessors explicitly implementing the interface accessors
         /// and returned null.
         /// 
