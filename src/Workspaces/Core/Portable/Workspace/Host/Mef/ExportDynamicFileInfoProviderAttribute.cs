@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// Use this attribute to declare a <see cref="IDynamicFileInfoProvider"/> implementation for MEF
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class ExportDynamicFileInfoProviderAttribute : ExportAttribute
     {
         /// <summary>

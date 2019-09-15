@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// Use this attribute to declare a <see cref="IConfigurationFixProvider"/> implementation so that it can be discovered by the host.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class ExportConfigurationFixProviderAttribute : ExportAttribute
     {
         /// <summary>

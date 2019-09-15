@@ -6,7 +6,7 @@ using System.Composition;
 namespace Microsoft.CodeAnalysis.Organizing.Organizers
 {
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class ExportSyntaxNodeOrganizerAttribute : ExportAttribute
     {
         public ExportSyntaxNodeOrganizerAttribute(string languageName)

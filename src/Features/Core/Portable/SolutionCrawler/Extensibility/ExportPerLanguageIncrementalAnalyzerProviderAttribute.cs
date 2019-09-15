@@ -6,7 +6,7 @@ using System.Composition;
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class ExportPerLanguageIncrementalAnalyzerProviderAttribute : ExportAttribute
     {
         public string Name { get; }

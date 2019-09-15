@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     /// be found and used by the per language associated <see cref="QuickInfoService"/>.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal sealed class ExportQuickInfoProviderAttribute : ExportAttribute
     {
         public string Name { get; }

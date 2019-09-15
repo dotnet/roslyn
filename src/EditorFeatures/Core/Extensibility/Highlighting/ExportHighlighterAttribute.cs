@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Microsoft.CodeAnalysis.Editor
 {
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     [ExcludeFromCodeCoverage]
     internal class ExportHighlighterAttribute : ExportAttribute
     {

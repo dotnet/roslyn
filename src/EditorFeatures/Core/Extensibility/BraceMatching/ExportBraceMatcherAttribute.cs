@@ -6,7 +6,7 @@ using System.ComponentModel.Composition;
 namespace Microsoft.CodeAnalysis.Editor
 {
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class ExportBraceMatcherAttribute : ExportAttribute
     {
         public string Language { get; }

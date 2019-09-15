@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// Specifies the exact type of the service exported by the ILanguageService.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class ExportContentTypeLanguageServiceAttribute : ExportLanguageServiceAttribute
     {
         public string DefaultContentType { get; set; }
