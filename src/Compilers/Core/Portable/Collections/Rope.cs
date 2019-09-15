@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Two ropes are "the same" if they represent the same sequence of characters.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (!(obj is Rope other) || Length != other.Length)
                 return false;

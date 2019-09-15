@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// Information about a reference to a symbol.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public struct ReferenceLocation : IComparable<ReferenceLocation>, IEquatable<ReferenceLocation>
+    public readonly struct ReferenceLocation : IComparable<ReferenceLocation>, IEquatable<ReferenceLocation>
     {
         /// <summary>
         /// The document that the reference was found in.
@@ -45,13 +45,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Symbol usage info for this reference.
         /// </summary>
         internal SymbolUsageInfo SymbolUsageInfo { get; }
-
-        /// <summary>
-        /// Indicates if this location is a duplicate of some another ReferenceLocation.
-        /// In this case, it's acceptable for a presenter to not show this location and
-        /// intead prefer the latter.
-        /// </summary>
-        internal bool IsDuplicateReferenceLocation;
 
         public CandidateReason CandidateReason { get; }
 
