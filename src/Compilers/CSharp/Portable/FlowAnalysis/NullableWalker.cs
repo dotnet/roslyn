@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _disableDiagnostics = false;
 
         /// <summary>
-        /// Whether we are currently visiting as a regular expression or an l-value.
+        /// Whether we are going to read the currently visited expression.
         /// </summary>
         private bool _expressionIsRead = true;
 
@@ -3744,8 +3744,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var worstCaseParameterWithState = applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations);
 
                         var declaredType = result.LValueType;
-                        FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(argument);
-                        TypeWithAnnotations lValueType = ApplyLValueAnnotations(declaredType, leftAnnotations);
+                        var leftAnnotations = GetLValueAnnotations(argument);
+                        var lValueType = ApplyLValueAnnotations(declaredType, leftAnnotations);
                         if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
                             var varType = worstCaseParameterWithState.ToTypeWithAnnotations();
@@ -5833,7 +5833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// When the allowed output of a property/indexer is not-null but the allowed input is maybe-null, we store a not-null value instead.
-        /// This way, assignment of a legal intput value results in a legal output value.
+        /// This way, assignment of a legal input value results in a legal output value.
         /// This adjustment doesn't apply to oblivious properties/indexers.
         /// </summary>
         private void AdjustSetValue(BoundExpression left, TypeWithAnnotations declaredType, TypeWithAnnotations leftLValueType, ref TypeWithState rightState)
