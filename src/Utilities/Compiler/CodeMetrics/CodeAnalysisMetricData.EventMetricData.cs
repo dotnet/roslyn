@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
-    internal abstract partial class CodeAnalysisMetricData
+    public abstract partial class CodeAnalysisMetricData
     {
         private sealed class EventMetricData : CodeAnalysisMetricData
         {
