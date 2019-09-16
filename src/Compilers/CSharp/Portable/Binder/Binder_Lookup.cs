@@ -934,46 +934,54 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<NamedTypeSymbol> GetBaseInterfaces(NamedTypeSymbol type, ConsList<TypeSymbol> basesBeingResolved, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            ImmutableArray<NamedTypeSymbol> baseInterfaces;
             if (basesBeingResolved?.Any() != true)
             {
-                baseInterfaces = type.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
-            }
-            else
-            {
-                var interfacesLookedAt = new HashSet<NamedTypeSymbol>(TypeSymbol.EqualsConsiderEverything);
-                var baseInterfacesBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-
-                getBaseInterfaces(type, baseInterfacesBuilder, interfacesLookedAt, basesBeingResolved);
-
-                for (int i = 0; i < baseInterfacesBuilder.Count; i++)
-                {
-                    getBaseInterfaces(baseInterfacesBuilder[i], baseInterfacesBuilder, interfacesLookedAt, basesBeingResolved);
-                }
-
-                baseInterfaces = baseInterfacesBuilder.ToImmutableAndFree();
-
-                foreach (var candidate in baseInterfaces)
-                {
-                    candidate.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
-                }
+                return type.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             }
 
-            return baseInterfaces;
-
-            static void getBaseInterfaces(NamedTypeSymbol derived, ArrayBuilder<NamedTypeSymbol> baseInterfaces, HashSet<NamedTypeSymbol> interfacesLookedAt, ConsList<TypeSymbol> basesBeingResolved)
+            if (basesBeingResolved.ContainsReference(type.OriginalDefinition))
             {
-                if (basesBeingResolved.ContainsReference(derived.OriginalDefinition))
-                {
-                    return;
-                }
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
 
-                foreach (var @interface in derived.GetDeclaredInterfaces(basesBeingResolved))
+            var interfaces = type.GetDeclaredInterfaces(basesBeingResolved);
+
+            if (interfaces.IsEmpty)
+            {
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
+
+            // Consumers of the result depend on the sorting performed by AllInterfacesWithDefinitionUseSiteDiagnostics.
+            // Let's use similar sort algorithm.
+            var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            var visited = new HashSet<NamedTypeSymbol>(TypeSymbol.EqualsConsiderEverything);
+
+            for (int i = interfaces.Length - 1; i >= 0; i--)
+            {
+                addAllInterfaces(interfaces[i], visited, result, basesBeingResolved);
+            }
+
+            result.ReverseContents();
+
+            foreach (var candidate in result)
+            {
+                candidate.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+            }
+
+            return result.ToImmutableAndFree();
+
+            static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result, ConsList<TypeSymbol> basesBeingResolved)
+            {
+                if (@interface.IsInterface && visited.Add(@interface) && !basesBeingResolved.ContainsReference(@interface.OriginalDefinition))
                 {
-                    if (@interface.IsInterface && interfacesLookedAt.Add(@interface))
+                    ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.GetDeclaredInterfaces(basesBeingResolved);
+                    for (int i = baseInterfaces.Length - 1; i >= 0; i--)
                     {
-                        baseInterfaces.Add(@interface);
+                        var baseInterface = baseInterfaces[i];
+                        addAllInterfaces(baseInterface, visited, result, basesBeingResolved);
                     }
+
+                    result.Add(@interface);
                 }
             }
         }

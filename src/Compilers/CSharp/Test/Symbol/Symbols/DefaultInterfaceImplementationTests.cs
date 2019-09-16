@@ -55892,13 +55892,104 @@ interface D : A.E
                 // (4,11): warning CS8645: 'C<object>' is already listed in the interface list on type 'A' with different nullability of reference types.
                 // interface A : B, C<object>
                 Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "A").WithArguments("C<object>", "A").WithLocation(4, 11),
-                // (18,17): error CS0104: 'E' is an ambiguous reference between 'C<object>.E' and 'C<object?>.E'
+                // (18,17): error CS0104: 'E' is an ambiguous reference between 'C<object?>.E' and 'C<object>.E'
                 // interface D : A.E
-                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object>.E", "C<object?>.E").WithLocation(18, 17),
+                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object?>.E", "C<object>.E").WithLocation(18, 17),
                 // (20,7): error CS0104: 'E' is an ambiguous reference between 'C<object?>.E' and 'C<object>.E'
                 //     A.E Test();
                 Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object?>.E", "C<object>.E").WithLocation(20, 7)
                 );
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_31()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+        void Test(I2 x);
+    }
+}
+
+interface I4 : I1, I3
+{
+    class C1 : I2
+    {
+        public void Test(I2 x)
+        {}
+    }
+}
+
+interface I5 : I3, I1
+{
+    class C2 : I2
+    {
+        public void Test(I2 x)
+        {}
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_32()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+        void Test(I2 x);
+    }
+}
+
+interface I4 : I1, I3
+{
+    class C1 : I2
+    {
+        void I2.Test(I2 x)
+        {}
+    }
+}
+
+interface I5 : I3, I1
+{
+    class C2 : I2
+    {
+        void I2.Test(I2 x)
+        {}
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1);
         }
     }
 }
