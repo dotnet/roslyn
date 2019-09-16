@@ -2,7 +2,6 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -50,14 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             // Now we need to find all the refereces to the local function that we might need to fix.
             var shouldWarn = false;
-            var invocationReferences = new List<InvocationExpressionSyntax>();
+            using var builderDisposer = ArrayBuilder<InvocationExpressionSyntax>.GetInstance(out var builder);
 
             foreach (var referencedSymbol in referencedSymbols)
             {
                 foreach (var location in referencedSymbol.Locations)
                 {
-                    var referenceSpan = location.Location.SourceSpan;
-
                     // We limited the search scope to the single document, 
                     // so all reference should be in the same tree.
                     var referenceNode = root.FindNode(location.Location.SourceSpan);
@@ -70,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
                     if (identifierNode.Parent is InvocationExpressionSyntax invocation)
                     {
-                        invocationReferences.Add(invocation);
+                        builder.Add(invocation);
                     }
                     else
                     {
@@ -81,48 +78,84 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 }
             }
 
-            var nodeToTrack = new List<SyntaxNode>(invocationReferences) { localFunction };
-            root = root.TrackNodes(nodeToTrack);
-
             var parameterAndCapturedSymbols = CreateParameterSymbols(captures);
+            var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
             // Fix all invocations by passing in additional arguments.
-            foreach (var invocation in invocationReferences.OrderByDescending(n => n.Span.Start))
+            foreach (var invocation in builder)
             {
-                var currentInvocation = root.GetCurrentNode(invocation);
+                syntaxEditor.ReplaceNode(
+                    invocation,
+                    (node, generator) =>
+                    {
+                        var currentInvocation = (InvocationExpressionSyntax)node;
+                        var seenNamedArgument = currentInvocation.ArgumentList.Arguments.Any(a => a.NameColon != null);
+                        var seenDefaultArgumentValue = currentInvocation.ArgumentList.Arguments.Count < localFunction.ParameterList.Parameters.Count;
 
-                var seenNamedArgument = currentInvocation.ArgumentList.Arguments.Any(a => a.NameColon != null);
-                var seenDefaultArgumentValue = currentInvocation.ArgumentList.Arguments.Count < localFunction.ParameterList.Parameters.Count;
+                        var newArguments = parameterAndCapturedSymbols.Select(
+                            p => generator.Argument(
+                                seenNamedArgument || seenDefaultArgumentValue ? p.symbol.Name : null,
+                                p.symbol.RefKind,
+                                p.capture.Name.ToIdentifierName()) as ArgumentSyntax);
 
-                var newArguments = parameterAndCapturedSymbols.Select(
-                    p => CSharpSyntaxGenerator.Instance.Argument(
-                        seenNamedArgument || seenDefaultArgumentValue ? p.symbol.Name : null,
-                        p.symbol.RefKind,
-                        p.capture.Name.ToIdentifierName()) as ArgumentSyntax);
+                        var newArgList = currentInvocation.ArgumentList.WithArguments(currentInvocation.ArgumentList.Arguments.AddRange(newArguments));
+                        return currentInvocation.WithArgumentList(newArgList);
+                    });
+            }
 
-                var newArgList = currentInvocation.ArgumentList.WithArguments(currentInvocation.ArgumentList.Arguments.AddRange(newArguments));
-                var newInvocation = currentInvocation.WithArgumentList(newArgList);
+            // In case any of the captured variable isn't camel-cased,
+            // we need to change the referenced name inside local function to use the new parameter's name.
+            foreach (var (parameter, capture) in parameterAndCapturedSymbols)
+            {
+                if (parameter.Name == capture.Name)
+                {
+                    continue;
+                }
 
-                root = root.ReplaceNode(currentInvocation, newInvocation);
+                var referencedCaptureSymbols = await SymbolFinder.FindReferencesAsync(
+                    capture, document.Project.Solution, documentImmutableSet, cancellationToken).ConfigureAwait(false);
+
+                foreach (var referencedSymbol in referencedCaptureSymbols)
+                {
+                    foreach (var location in referencedSymbol.Locations)
+                    {
+                        var referenceSpan = location.Location.SourceSpan;
+                        if (!localFunction.FullSpan.Contains(referenceSpan))
+                        {
+                            continue;
+                        }
+
+                        var referenceNode = root.FindNode(referenceSpan);
+                        if (referenceNode is IdentifierNameSyntax identifierNode)
+                        {
+                            syntaxEditor.ReplaceNode(
+                                identifierNode,
+                                (node, generator) => generator.IdentifierName(parameter.Name.ToIdentifierToken()).WithTriviaFrom(node));
+                        }
+                    }
+                }
             }
 
             // Updates the local function declaration with variables passed in as parameters
-            localFunction = root.GetCurrentNode(localFunction);
-            var localFunctionWithNewParameters = CodeGenerator.AddParameterDeclarations(
+            syntaxEditor.ReplaceNode(
                 localFunction,
-                parameterAndCapturedSymbols.SelectAsArray(p => p.symbol),
-                document.Project.Solution.Workspace);
+                (node, generator) =>
+                {
+                    var localFunctionWithNewParameters = CodeGenerator.AddParameterDeclarations(
+                        node,
+                        parameterAndCapturedSymbols.SelectAsArray(p => p.symbol),
+                        document.Project.Solution.Workspace);
 
-            if (shouldWarn)
-            {
-                var annotation = WarningAnnotation.Create(CSharpFeaturesResources.Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code);
-                localFunctionWithNewParameters = localFunctionWithNewParameters.WithAdditionalAnnotations(annotation);
-            }
+                    if (shouldWarn)
+                    {
+                        var annotation = WarningAnnotation.Create(CSharpFeaturesResources.Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code);
+                        localFunctionWithNewParameters = localFunctionWithNewParameters.WithAdditionalAnnotations(annotation);
+                    }
 
-            var fixedLocalFunction = AddStaticModifier(localFunctionWithNewParameters, CSharpSyntaxGenerator.Instance);
-            var fixedRoot = root.ReplaceNode(localFunction, fixedLocalFunction);
+                    return AddStaticModifier(localFunctionWithNewParameters, CSharpSyntaxGenerator.Instance);
+                });
 
-            return document.WithSyntaxRoot(fixedRoot);
+            return document.WithSyntaxRoot(syntaxEditor.GetChangedRoot());
         }
 
         public static SyntaxNode AddStaticModifier(SyntaxNode localFunction, SyntaxGenerator generator)

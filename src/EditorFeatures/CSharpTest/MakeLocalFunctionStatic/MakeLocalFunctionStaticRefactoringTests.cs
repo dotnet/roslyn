@@ -443,6 +443,39 @@ parseOptions: CSharp8ParseOptions);
 }",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestNonCamelCaseCapture()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int N(int x)
+    {
+        int Static = 0;
+        return AddLocal();
+
+        int [||]AddLocal()
+        {
+            return Static + 1;
+        }
+    }  
+}",
+@"class C
+{
+    int N(int x)
+    {
+        int Static = 0;
+        return AddLocal(Static);
+
+        static int AddLocal(int @static)
+        {
+            return @static + 1;
+        }
+    }  
+}",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }
 
