@@ -31,14 +31,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public SymbolSearchUpdateEngine(
             ISymbolSearchLogService logService,
             ISymbolSearchProgressService progressService)
-            : this(logService, progressService, CancellationToken.None)
-        {
-        }
-
-        public SymbolSearchUpdateEngine(
-            ISymbolSearchLogService logService,
-            ISymbolSearchProgressService progressService,
-            CancellationToken updateCancellationToken)
             : this(logService,
                    progressService,
                    new RemoteControlService(),
@@ -48,7 +40,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new DatabaseFactoryService(),
                    // Report all exceptions we encounter, but don't crash on them.
                    FatalError.ReportWithoutCrash,
-                   updateCancellationToken)
+                   // In non-test scenarios, we're not cancellable.  Our lifetime will simply be
+                   // that of the OOP process itself.  i.e. when it goes away, it will just tear
+                   // down our update-loop itself.  So we don't need any additional controls over
+                   // it.
+                   testCancellationToken: CancellationToken.None)
         {
         }
 
