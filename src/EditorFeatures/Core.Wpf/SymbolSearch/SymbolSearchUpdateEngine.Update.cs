@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private readonly IDatabaseFactoryService _databaseFactoryService;
         private readonly Func<Exception, bool> _reportAndSwallowException;
 
-        private Task LogInfoAsync(string text) => _logService.LogInfoAsync(text, _updateCancellationToken);
+        private Task LogInfoAsync(string text) => _logService.LogInfoAsync(text);
 
-        private Task LogExceptionAsync(Exception e, string text) => _logService.LogExceptionAsync(e.ToString(), text, _updateCancellationToken);
+        private Task LogExceptionAsync(Exception e, string text) => _logService.LogExceptionAsync(e.ToString(), text);
 
         public Task UpdateContinuouslyAsync(string source, string localSettingsDirectory)
         {
@@ -227,24 +227,24 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 try
                 {
                     var title = string.Format(EditorFeaturesWpfResources.Downloading_IntelliSense_index_for_0, _source);
-                    await _service._progressService.OnDownloadFullDatabaseStartedAsync(title, _service._updateCancellationToken).ConfigureAwait(false);
+                    await _service._progressService.OnDownloadFullDatabaseStartedAsync(title).ConfigureAwait(false);
 
                     var (succeeded, delay) = await DownloadFullDatabaseWorkerAsync().ConfigureAwait(false);
                     if (succeeded)
                     {
-                        await _service._progressService.OnDownloadFullDatabaseSucceededAsync(_service._updateCancellationToken).ConfigureAwait(false);
+                        await _service._progressService.OnDownloadFullDatabaseSucceededAsync().ConfigureAwait(false);
                     }
                     else
                     {
                         await _service._progressService.OnDownloadFullDatabaseFailedAsync(
-                            EditorFeaturesWpfResources.Downloading_index_failed, _service._updateCancellationToken).ConfigureAwait(false);
+                            EditorFeaturesWpfResources.Downloading_index_failed).ConfigureAwait(false);
                     }
 
                     return delay;
                 }
                 catch (OperationCanceledException)
                 {
-                    await _service._progressService.OnDownloadFullDatabaseCanceledAsync(_service._updateCancellationToken).ConfigureAwait(false);
+                    await _service._progressService.OnDownloadFullDatabaseCanceledAsync().ConfigureAwait(false);
                     throw;
                 }
                 catch (Exception e)
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     var message = string.Format(
                         EditorFeaturesWpfResources.Downloading_index_failed_0,
                         "\r\n" + e.ToString());
-                    await _service._progressService.OnDownloadFullDatabaseFailedAsync(message, _service._updateCancellationToken).ConfigureAwait(false);
+                    await _service._progressService.OnDownloadFullDatabaseFailedAsync(message).ConfigureAwait(false);
                     throw;
                 }
             }
