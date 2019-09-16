@@ -140,6 +140,7 @@ static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifi
 static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerError(string identifier) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerWarning(string identifier) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.IVerifierExtensions.EqualOrDiff(this Microsoft.CodeAnalysis.Testing.IVerifier verifier, string expected, string actual, string message = null) -> void
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.MicrosoftVisualBasicReference.get -> Microsoft.CodeAnalysis.MetadataReference
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>> spans, int? cursor) -> string
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan> spans, int? cursor) -> string
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, int cursor) -> string
@@ -158,7 +159,6 @@ static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetSpans(string input
 static readonly Microsoft.CodeAnalysis.Testing.DiagnosticResult.EmptyDiagnosticResults -> Microsoft.CodeAnalysis.Testing.DiagnosticResult[]
 static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.CodeAnalysisReference -> Microsoft.CodeAnalysis.MetadataReference
 static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.CorlibReference -> Microsoft.CodeAnalysis.MetadataReference
-static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.MicrosoftVisualBasicReference -> Microsoft.CodeAnalysis.MetadataReference
 static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.SystemCollectionsImmutableReference -> Microsoft.CodeAnalysis.MetadataReference
 static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.SystemCoreReference -> Microsoft.CodeAnalysis.MetadataReference
 static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.SystemReference -> Microsoft.CodeAnalysis.MetadataReference
