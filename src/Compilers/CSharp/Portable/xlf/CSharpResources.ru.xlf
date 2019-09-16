@@ -1485,13 +1485,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer">
-        <source>Object or collection initializer implicitly dereferences possibly null reference member '{0}'.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null reference member '{0}'.</target>
+        <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
-        <source>Object or collection initializer implicitly dereferences possibly null reference member.</source>
-        <target state="new">Object or collection initializer implicitly dereferences possibly null reference member.</target>
+        <source>Object or collection initializer implicitly dereferences possibly null member.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
