@@ -37,6 +37,11 @@
         <target state="translated">Użycie typu odwołania dopuszczającego wartość null „{0}?” w wyrażeniu „as” jest niedozwolone. Zamiast tego użyj bazowego typu „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">Atrybut „{0}” nie jest prawidłowy w metodach dostępu zdarzenia. Jest on prawidłowy tylko w deklaracjach „{1}”.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Właściwość implementowana automatycznie „{0}” nie może być zadeklarowana jako „readonly”, ponieważ ma metodę dostępu „set”.</target>
@@ -45,11 +50,6 @@
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">Automatycznie implementowana metoda dostępu „set” „{0}” nie może być zadeklarowana jako „readonly”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="translated">Atrybut „{0}” nie jest prawidłowy w metodach dostępu zdarzenia. Jest on prawidłowy tylko w deklaracjach „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
+        <target state="translated">Nieprawidłowa opcja „{0}” dla parametru /nullable; należy użyć opcji „disable”, „enable”, „warnings” lub „annotations”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
-        <target state="new">Duplicate null suppression operator ('!')</target>
+        <target state="translated">Zduplikowany operator pomijania wartości null („!”)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">Oczekiwano opcji „warnings” lub „annotations” albo końca dyrektywy</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -639,42 +639,42 @@
 
                         - PLIKI WYJŚCIOWE -
 -out:&lt;plik&gt;                   Określ nazwę pliku wyjściowego (domyślnie: nazwa podstawowa 
-                               pliku z klasą główną lub pierwszym plikiem)
+                              pliku z klasą główną lub pierwszym plikiem)
 -target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (krótka 
-                               wersja: -t:exe)
+                              wersja: -t:exe)
 -target:winexe                Kompiluj plik wykonywalny systemu Windows (krótka wersja: 
-                               -t:winexe)
+                              -t:winexe)
 -target:library               Kompiluj bibliotekę (krótka wersja: -t:library)
 -target:module                Kompiluj moduł, który można dodać do innego 
-                               zestawu (krótka wersja: -t:module)
+                              zestawu (krótka wersja: -t:module)
 -target:appcontainerexe       Kompiluj plik wykonywalny kontenera aplikacji (krótka wersja: 
-                               -t:appcontainerexe)
+                              -t:appcontainerexe)
 -target:winmdobj              Kompiluj plik pośredni środowiska uruchomieniowego systemu Windows 
-                               przeznaczony dla narzędzia WinMDExp (krótka wersja: -t:winmdobj)
+                              przeznaczony dla narzędzia WinMDExp (krótka wersja: -t:winmdobj)
 -doc:&lt;plik&gt;                   Plik dokumentacji XML do wygenerowania
 -refout:&lt;plik&gt;                Dane wyjściowe zestawu odwołania do wygenerowania
 -platform:&lt;ciąg&gt;              Ogranicz platformy, na których można uruchamiać ten kod: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred lub 
-                               anycpu. Wartość domyślna to anycpu.
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred lub 
+                              anycpu. Wartość domyślna to anycpu.
 
                         - PLIKI WEJŚCIOWE -
--recurse:&lt;symbol wieloznaczny&gt; Dołącz wszystkie pliki zawarte w bieżącym katalogu i 
-                               jego podkatalogach zgodnie ze specyfikacją określoną przy użyciu 
+-recurse:&lt;symbol wieloznaczny&gt; Uwzględnij wszystkie pliki zawarte w bieżącym katalogu i 
+                               podkatalogach zgodnie ze specyfikacją określoną przy użyciu 
                                symboli wieloznacznych
 -reference:&lt;alias&gt;=&lt;plik&gt;     Odwołuj się do metadanych z określonego pliku 
-                               zestawu przy użyciu podanego aliasu (krótka wersja: -r)
+                              zestawu przy użyciu podanego aliasu (krótka wersja: -r)
 -reference:&lt;lista plików&gt;     Odwołuj się do metadanych z określonych 
-                               plików zestawów (krótka wersja: -r)
+                              plików zestawów (krótka wersja: -r)
 -addmodule:&lt;lista plików&gt;     Połącz określone moduły z tym zestawem
 -link:&lt;lista plików&gt;          Osadź metadane z określonych plików 
-                               zestawów międzyoperacyjnych (krótka wersja: -l)
+                              zestawów międzyoperacyjnych (krótka wersja: -l)
 -analyzer:&lt;lista plików&gt;      Uruchom analizatory z tego zestawu
-                               (krótka wersja: -a)
+                              (krótka wersja: -a)
 -additionalfile:&lt;lista plików&gt; Dodatkowe pliki, które nie mają bezpośredniego wpływu na generowanie
                                kodu, ale mogą być używane przez analizatory w celu tworzenia
                                komunikatów o błędach lub ostrzeżeń.
 -embed                        Osadź wszystkie pliki źródłowe w pliku PDB.
--embed:&lt;lista plików&gt;            Osadź określone pliki w pliku PDB
+-embed:&lt;lista plików&gt;         Osadź określone pliki w pliku PDB
 
                         - ZASOBY -
 -win32res:&lt;plik&gt;              Określ plik zasobu Win32 (res)
@@ -689,49 +689,51 @@
                         - GENEROWANIE KODU -
 -debug[+|-]                   Emituj informacje o debugowaniu
 -debug:{full|pdbonly|portable|embedded}
-                               Określ typ debugowania (wartość domyślna to „full”, 
-                               wartość „portable” to format międzyplatformowy,
-                               a wartość „embedded” to format międzyplatformowy wbudowany w 
-                               docelowym pliku DLL lub EXE)
+                              Określ typ debugowania (wartość domyślna to „full”, 
+                              wartość „portable” to format międzyplatformowy,
+                              a wartość „embedded” to format międzyplatformowy wbudowany w 
+                              docelowym pliku DLL lub EXE)
 -optimize[+|-]                Włącz optymalizacje (krótka wersja: -o)
 -deterministic                Utwórz zestaw deterministyczny
-                               (w tym sygnaturę czasową i identyfikator GUID wersji modułu)
+                              (zawierający sygnaturę czasową i identyfikator GUID wersji modułu)
 -refonly                      Utwórz zestaw odwołania zamiast głównych danych wyjściowych
 -instrument:TestCoverage      Utwórz zestaw instrumentowany w celu gromadzenia
-                               informacji o pokryciu
+                              informacji o pokryciu
 -sourcelink:&lt;plik&gt;            Informacje o linku źródłowym na potrzeby osadzenia w pliku PDB.
 
                         - BŁĘDY I OSTRZEŻENIA -
 -warnaserror[+|-]             Zgłaszaj wszystkie ostrzeżenia jako błędy
 -warnaserror[+|-]:&lt;lista ostrzeżeń&gt; Zgłaszaj określone ostrzeżenia jako błędy
--warn:&lt;n&gt;                     Ustaw poziom ostrzeżenia (0–4) (krótka wersja: -w)
+-warn:&lt;n&gt;                     Ustaw poziom ostrzeżeń (0–4) (krótka wersja: -w)
 -nowarn:&lt;lista ostrzeżeń&gt;     Wyłącz określone komunikaty ostrzeżeń
 -ruleset:&lt;plik&gt;               Określ plik zestawu reguł wyłączający określone
-                               funkcje diagnostyczne.
--errorlog:&lt;plik&gt;              Określ plik, w którym mają zostać zarejestrowane dane diagnostyczne
-                               wszystkich kompilatorów i analizatorów.
+                              funkcje diagnostyczne.
+-errorlog:&lt;plik&gt;              Określ plik w celu rejestrowania wszystkich
+                              danych diagnostycznych kompilatora i analizatora.
 -reportanalyzer               Zgłaszaj dodatkowe informacje analizatora, takie jak
-                               czas wykonywania.
+                              czas wykonywania.
  
                         -JĘZYK -
 -checked[+|-]                 Generuj operacje sprawdzenia przepełnienia
 -unsafe[+|-]                  Zezwalaj na niebezpieczny kod
--define:&lt;lista symboli&gt;       Definiuj symbole kompilacji warunkowej (krótka 
-                               wersja: -d)
+-define:&lt;lista symboli&gt;       Zdefiniuj symbole kompilacji warunkowej (krótka 
+                              wersja: -d)
 -langversion:?                Wyświetl dozwolone wartości dla wersji języka
--langversion:&lt;ciąg&gt;         Określ wersję języka, na przykład
-                              „default” (najnowsza wersja główna)
-                              lub „latest” (najnowsza wersja z uwzględnieniem wersji pomocniczych)
+-langversion:&lt;ciąg&gt;           Określ wersję języka, na przykład
+                              „latest” (najnowsza wersja z uwzględnieniem wersji pomocniczych),
+                              „default” (to samo co „latest”),
+                              „latestmajor” (najnowsza wersja z pominięciem wersji pomocniczych),
+                              „preview” (najnowsza wersja z uwzględnieniem funkcji w nieobsługiwanej wersji zapoznawczej),
                               lub konkretną wersję, taką jak „6” lub „7.1”
 -nullable[+|-]                Określ, czy opcja kontekstu dopuszczającego wartość null jest włączona, czy wyłączona.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Określ opcję kontekstu dopuszczającego wartość null: enable|disable|safeonly|warnings|safeonlywarnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Określ opcję kontekstu dopuszczającego wartość null: enable|disable|warnings|annotations.
 
                         - ZABEZPIECZENIA -
 -delaysign[+|-]               Podpisz z opóźnieniem zestaw, używając tylko 
-                               części publicznej klucza o silnej nazwie
+                              części publicznej klucza o silnej nazwie
 -publicsign[+|-]              Podpisz publicznie zestaw, używając tylko
-                               części publicznej klucza o silnej nazwie
+                              części publicznej klucza o silnej nazwie
 -keyfile:&lt;plik&gt;               Określ plik klucza o silnej nazwie
 -keycontainer:&lt;ciąg&gt;          Określ kontener klucza o silnej nazwie
 -highentropyva[+|-]           Włącz losowe generowanie układu przestrzeni adresowej o wysokiej entropii
@@ -741,50 +743,50 @@
 -help                         Wyświetl ten komunikat dotyczący użycia (krótka wersja: -?)
 -nologo                       Pomiń komunikat kompilatora o prawach autorskich
 -noconfig                     Nie dołączaj automatycznie pliku CSC.RSP
--parallel[+|-]                Współbieżna kompilacja.
--version                      Wyświetl numer wersji kompilatora i wyjdź.
+-parallel[+|-]                Kompilacja współbieżna
+-version                      Wyświetl numer wersji kompilatora i zakończ
 
                         - ZAAWANSOWANE -
 -baseaddress:&lt;adres&gt;          Adres podstawowy dla biblioteki do skompilowania
 -checksumalgorithm:&lt;algorytm&gt; Określ algorytm do obliczania sumy kontrolnej
-                               pliku źródłowego przechowywanej w pliku PDB. Obsługiwane są następujące wartości:
-                               SHA1 (domyślnie) lub SHA256.
+                              pliku źródłowego przechowywanej w pliku PDB.
+                              Obsługiwane wartości: SHA1 lub SHA256 (domyślnie).
 -codepage:&lt;n&gt;                 Określ stronę kodową do użycia podczas otwierania 
-                               plików źródłowych
+                              plików źródłowych
 -utf8output                   Wyprowadź komunikaty kompilatora przy użyciu kodowania UTF-8
 -main:&lt;typ&gt;                   Określ typ zawierający punkt wejścia 
-                               (wszystkie pozostałe możliwe punkty wejścia zostaną zignorowane) (krótka 
-                               wersja: -m)
+                              (zignoruj wszystkie pozostałe możliwe punkty wejścia) (krótka 
+                              wersja: -m)
 -fullpaths                    Kompilator generuje w pełni kwalifikowane ścieżki
 -filealign:&lt;n&gt;                Określ wyrównanie stosowane dla sekcji 
-                               plików wyjściowych
+                              plików wyjściowych
 -pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,... 
-                               Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez 
-                               kompilator.
+                              Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez 
+                              kompilator.
 -pdb:&lt;plik&gt;                   Określ nazwę pliku z informacjami o debugowaniu (domyślnie: 
-                               nazwa pliku wyjściowego z rozszerzeniem pdb)
+                              nazwa pliku wyjściowego z rozszerzeniem pdb)
 -errorendlocation             Wyprowadź wiersz i kolumnę lokalizacji końcowej dla 
-                               każdego błędu
+                              każdego błędu
 -preferreduilang              Określ nazwę preferowanego języka wyjściowego.
 -nosdkpath                    Wyłącz przeszukiwanie domyślnej ścieżki zestawu SDK dla zestawów biblioteki standardowej.
 -nostdlib[+|-]                Nie odwołuj się do biblioteki standardowej (mscorlib.dll)
 -subsystemversion:&lt;ciąg&gt;      Określ wersję podsystemu tego zestawu
 -lib:&lt;lista plików&gt;           Określ dodatkowe katalogi do przeszukania pod kątem 
-                               odwołań
+                              odwołań
 -errorreport:&lt;ciąg&gt;           Określ, w jaki sposób obsługiwać wewnętrzne błędy kompilatora: 
-                               prompt, send, queue lub none. Wartość domyślna to 
-                               queue.
+                              prompt, send, queue lub none. Wartość domyślna to 
+                              queue.
 -appconfig:&lt;plik&gt;             Określ plik konfiguracji aplikacji 
-                               zawierający ustawienia powiązania zestawu
+                              zawierający ustawienia powiązania zestawu
 -moduleassemblyname:&lt;ciąg&gt;    Nazwa zestawu, którego częścią 
-                               ma być ten moduł
+                              ma być ten moduł
 -modulename:&lt;ciąg&gt;            Określ nazwę modułu źródłowego
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
+        <target state="translated">domyślna implementacja interfejsu</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
@@ -909,7 +911,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="new">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;wyrażenie przełącznika&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1434,7 +1436,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">Adnotacja dla typów referencyjnych dopuszczających wartość null powinna być używana tylko w kodzie z kontekstem adnotacji „#nullable”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
@@ -1449,7 +1451,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">Adnotacja dla typów referencyjnych dopuszczających wartość null powinna być używana tylko w kodzie z kontekstem adnotacji „#nullable”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1614,7 +1616,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru „{0}” „{1}” jest niezgodna z niejawnie implementowaną składową „{2}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1664,7 +1666,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym „{0}” jest niezgodna z niejawnie implementowaną składową „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1694,7 +1696,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie „{0}” jest niezgodna z niejawnie implementowaną składową „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
@@ -1704,12 +1706,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie jest niezgodna z przesłoniętą składową.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie jest niezgodna z przesłoniętą składową.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1834,12 +1836,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Element {0} „{1}” niedopuszczający wartości null jest niezainicjowany.</target>
+        <target state="translated">Element {0} „{1}” niedopuszczający wartości null jest niezainicjowany. Rozważ zadeklarowanie elementu {0} jako dopuszczającego wartości null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="needs-review-translation">Pole niedopuszczające wartości null jest niezainicjowane.</target>
+        <target state="translated">Pole niedopuszczające wartości null jest niezainicjowane. Rozważ zadeklarowanie go jako dopuszczającego wartości null.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5862,12 +5864,12 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected 'disable' or 'restore'</source>
-        <target state="needs-review-translation">Oczekiwano wartości disable, restore, enable lub safeonly</target>
+        <target state="translated">Oczekiwano elementu „disable” lub „restore”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected 'disable' or 'restore' after #pragma warning</source>
-        <target state="needs-review-translation">Po dyrektywie #pragma warning oczekiwano wartości disable, restore, enable lub safeonly</target>
+        <target state="translated">Oczekiwano elementu „disable” lub „restore” po ostrzeżeniu #pragma</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">

@@ -21,7 +21,7 @@
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
-        <target state="new">Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</target>
+        <target state="translated">对于给定的禁止显示描述符，禁止显示的诊断 ID“{0}”与可禁止显示的 ID“{1}”不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -41,7 +41,7 @@
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
         <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
-        <target state="new">Non-reported diagnostic with ID '{0}' cannot be suppressed.</target>
+        <target state="translated">不可禁止显示 ID 为“{0}”的未报告的诊断。</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -86,27 +86,27 @@
       </trans-unit>
       <trans-unit id="SupportedSuppressionsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</target>
+        <target state="translated">分析器“{0}”在其 "SupportedSuppressions" 中包含 null 描述符。</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
         <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
-        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</target>
+        <target state="translated">具有禁止显示 ID“{2}”和理由“{3}”的 DiagnosticSuppressor 已以编程方式禁止显示诊断“{0}: {1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">
         <source>Programmatic suppression of an analyzer diagnostic</source>
-        <target state="new">Programmatic suppression of an analyzer diagnostic</target>
+        <target state="translated">以编程方式禁止显示分析器诊断</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
         <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="new">A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</target>
+        <target state="translated">A SuppressionDescriptor 必须具有一个 ID，且该 ID 不为 null、不是空字符串且不是仅包含空格的字符串。</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
-        <target state="new">If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</target>
+        <target state="translated">如果已指定元组元素可以为 null 的注释，则注释的数量必须与元组基数相匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -241,7 +241,7 @@
       </trans-unit>
       <trans-unit id="UnsupportedSuppressionReported">
         <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
-        <target state="new">Reported suppression with ID '{0}' is not supported by the suppressor.</target>
+        <target state="translated">抑制器不支持已报告的 ID 为“{0}”的诊断。</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -10370,6 +10371,7 @@ namespace ClassLibrary9
             var textView = workspace.Documents.Single().GetTextView();
 
             var handler = new ExtractMethodCommandHandler(
+                workspace.GetService<IThreadingContext>(),
                 workspace.GetService<ITextBufferUndoManagerProvider>(),
                 workspace.GetService<IInlineRenameService>());
 

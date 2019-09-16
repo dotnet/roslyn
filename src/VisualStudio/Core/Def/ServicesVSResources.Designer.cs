@@ -153,15 +153,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Active.
-        /// </summary>
-        internal static string Active {
-            get {
-                return ResourceManager.GetString("Active", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add a naming rule.
         /// </summary>
         internal static string Add_a_naming_rule {
@@ -542,24 +533,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t apply changes -- module &apos;{0}&apos; has been unloaded..
-        /// </summary>
-        internal static string CantApplyChangesModuleHasBeenUnloaded {
-            get {
-                return ResourceManager.GetString("CantApplyChangesModuleHasBeenUnloaded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t apply changes -- unexpected error: &apos;{0}&apos;.
-        /// </summary>
-        internal static string CantApplyChangesUnexpectedError {
-            get {
-                return ResourceManager.GetString("CantApplyChangesUnexpectedError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Capitalization:.
         /// </summary>
         internal static string Capitalization_colon {
@@ -574,44 +547,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Change_Signature {
             get {
                 return ResourceManager.GetString("Change_Signature", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Changes are not allowed if the assembly has not been loaded..
-        /// </summary>
-        internal static string ChangesNotAllowedIFAssemblyHasNotBeenLoaded {
-            get {
-                return ResourceManager.GetString("ChangesNotAllowedIFAssemblyHasNotBeenLoaded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Changes are not allowed if the project wasn&apos;t built when debugging started..
-        /// </summary>
-        internal static string ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted {
-            get {
-                return ResourceManager.GetString("ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Changes are not allowed if the project wasn&apos;t loaded and built when debugging started.
-        ///
-        ///&apos;Lightweight solution load&apos; is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts..
-        /// </summary>
-        internal static string ChangesNotAllowedIfProjectWasntLoadedWhileDebugging {
-            get {
-                return ResourceManager.GetString("ChangesNotAllowedIfProjectWasntLoadedWhileDebugging", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Changes are not allowed while code is running..
-        /// </summary>
-        internal static string ChangesNotAllowedWhileCodeIsRunning {
-            get {
-                return ResourceManager.GetString("ChangesNotAllowedWhileCodeIsRunning", resourceCulture);
             }
         }
         
@@ -994,15 +929,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Error_reading_ruleset_file_0_1 {
             get {
                 return ResourceManager.GetString("Error_reading_ruleset_file_0_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error while reading file &apos;{0}&apos;: {1}.
-        /// </summary>
-        internal static string ErrorReadingFile {
-            get {
-                return ResourceManager.GetString("ErrorReadingFile", resourceCulture);
             }
         }
         
@@ -2102,15 +2028,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to N/A.
-        /// </summary>
-        internal static string NotApplicable {
-            get {
-                return ResourceManager.GetString("NotApplicable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
         internal static string OK {
@@ -3067,33 +2984,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Suppress_diagnostics {
             get {
                 return ResourceManager.GetString("Suppress_diagnostics", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suppressed.
-        /// </summary>
-        internal static string Suppressed {
-            get {
-                return ResourceManager.GetString("Suppressed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suppression State.
-        /// </summary>
-        internal static string Suppression_State {
-            get {
-                return ResourceManager.GetString("Suppression_State", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to &apos;Intellisense&apos; diagnostics for suppression..
-        /// </summary>
-        internal static string SuppressionNotSupportedToolTip {
-            get {
-                return ResourceManager.GetString("SuppressionNotSupportedToolTip", resourceCulture);
             }
         }
         

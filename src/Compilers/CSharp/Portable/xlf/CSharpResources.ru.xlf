@@ -37,6 +37,11 @@
         <target state="translated">Недопустимо использовать ссылочный тип "{0}", допускающий значения NULL, в выражении "as". Используйте вместо него базовый тип "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">Атрибут "{0}" запрещено использовать в методах доступа к событиям. Он допустим только для объявлений "{1}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Автоматически реализуемое свойство "{0}" не может быть помечено как readonly, так как имеет метод доступа set.</target>
@@ -45,11 +50,6 @@
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">Автоматически реализуемый метод доступа set "{0}" не может быть помечен как readonly.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="translated">Атрибут "{0}" запрещено использовать в методах доступа к событиям. Он допустим только для объявлений "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
+        <target state="translated">Недопустимый параметр "{0}" для /nullable. Допустимые значения: "disable", "enable", "warnings" или "annotations"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
-        <target state="new">Duplicate null suppression operator ('!')</target>
+        <target state="translated">Оператор подавления повторяющихся значений NULL ("!")</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
-        <target state="translated">Запрещено указывать модификаторы readonly для обоих методов доступа свойства или индексатора "{0}". Вместо этого укажите модификатор modifier для самого свойства.</target>
+        <target state="translated">Запрещено указывать модификаторы readonly для обоих методов доступа свойства или индексатора "{0}". Вместо этого укажите модификатор readonly для самого свойства.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">Ожидаемые значения: "warnings", "annotations" или конец директивы</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -638,24 +638,24 @@
                              Параметры компилятора Visual C#
 
                        - Выходные файлы -
--out:&lt;file&gt;                   Указывает имя выходного файла (по умолчанию: базовое имя
+-out:&lt;file&gt;                   Указать имя выходного файла (по умолчанию: базовое имя
                               файла с классом main или имя первого файла)
 -target:exe                   По умолчанию выполняет сборку консольного исполняемого файла (краткая
                               форма: -t:exe)
--target:winexe                Выполняет сборку исполняемого файла Windows (краткая форма:
+-target:winexe                Выполнить сборку исполняемого файла Windows (краткая форма:
                               -t:winexe)
--target:library               Выполняет сборку библиотеки (краткая форма: -t:library)
--target:module                Выполняет сборку модуля, который может быть добавлен в другую
+-target:library               Выполнить сборку библиотеки (краткая форма: -t:library)
+-target:module                Выполнить сборку модуля, который может быть добавлен в другую
                               сборку (краткая форма: -t:module)
--target:appcontainerexe       Выполняет сборку исполняемого файла контейнера приложений (краткая форма:
+-target:appcontainerexe       Выполнить сборку исполняемого файла контейнера приложений (краткая форма:
                               -t:appcontainerexe)
--target:winmdobj              Выполняет сборку промежуточного файла среды выполнения Windows,
+-target:winmdobj              Выполнить сборку промежуточного файла среды выполнения Windows,
                               используемого в WinMDExp (краткая форма: -t:winmdobj)
 -doc:&lt;file&gt;                   Создаваемый XML-файл документации
 -refout:&lt;file&gt;                Создаваемые выходные данные базовой сборки
 -platform:&lt;string&gt;            Ограничить платформы, на которых может выполняться этот код: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred или
-                              anycpu. Значение по умолчанию — anycpu.
+                              anycpu. Значение по умолчанию — anycpu.
 
                        - Входные файлы -
 -recurse:&lt;wildcard&gt;           Включить все файлы в текущем каталоге и
@@ -677,9 +677,9 @@
 -embed:&lt;file list&gt;            Внедрить указанные файлы в PDB.
 
                        - Ресурсы -
--win32res:&lt;file&gt;              Задает файл ресурсов Win32 (RES-файл)
+-win32res:&lt;file&gt;              Задать файл ресурсов Win32 (RES-файл)
 -win32icon:&lt;file&gt;             Использовать этот значок для вывода
--win32manifest:&lt;file&gt;         Задает файл манифеста Win32 (XML-файл)
+-win32manifest:&lt;file&gt;         Задать файл манифеста Win32 (XML-файл)
 -nowin32manifest              Не включать манифест Win32 по умолчанию
 -resource:&lt;resinfo&gt;           Внедрить указанный ресурс (краткая форма: -res)
 -linkresource:&lt;resinfo&gt;       Скомпоновать указанный ресурс вместе с этой сборкой
@@ -689,9 +689,9 @@
                        - Создание кода -
 -debug[+|-]                   Выдать отладочную информацию
 -debug:{full|pdbonly|portable|embedded}
-                              Задать тип отладки (по умолчанию —full,
-                              portable — кроссплатформенный формат,
-                              embedded — кроссплатформенный формат, внедряемый в
+                              Задать тип отладки (по умолчанию — "full",
+                              "portable"  — кроссплатформенный формат,
+                              "embedded" — кроссплатформенный формат, внедряемый в
                               целевой DLL- или EXE-файл)
 -optimize[+|-]                Включить оптимизацию (краткая форма: -o)
 -deterministic                Создать детерминированную сборку
@@ -720,12 +720,14 @@
                               форма: -d)
 -langversion:?                Отобразить разрешенные значения для версии языка
 -langversion:&lt;string&gt;         Указать версию языка, например
-                              default (последний основной номер версии) или
-                              latest (последняя версия, включая дополнительные номера версии),
+                              "latest" (последняя версия, включая дополнительные номера версии),
+                              "default" (то же что и "latest"),
+                              "latestmajor" (последняя версия, исключая дополнительные номера версии),
+                              "preview" (последняя версия, включая функции в неподдерживаемой предварительной версии)
                               либо конкретные версии, например "6" или "7.1"
 -nullable[+|-]                Указать параметр допускающего значение NULL контекста enable|disable.
--nullable:{enable|disable|warnings}
-                              Указать параметр допускающего значение NULL контекста enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Указать параметр допускающего значение NULL контекста enable|disable|warnings|annotations.
 
                        - Безопасность -
 -delaysign[+|-]               Использовать отложенную подпись для сборки, применяя только открытую
@@ -758,7 +760,7 @@
 -fullpaths                    Компилятор создает полные пути
 -filealign:&lt;n&gt;                Задать выравнивание для разделов выходных
                               файлов
--pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,…
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                               Задать сопоставление для выходных данных имен исходного пути по
                               компилятору.
 -pdb:&lt;file&gt;                   Задать имя файла для отладочной информации (по умолчанию:
@@ -784,7 +786,7 @@
       </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
+        <target state="translated">реализация интерфейса по умолчанию</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
@@ -909,7 +911,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="new">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;выражения для выбора вариантов&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1434,7 +1436,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">Аннотацию для ссылочных типов, допускающих значения NULL, следует использовать в коде только в контексте аннотаций "#nullable".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
@@ -1449,7 +1451,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">Аннотацию для ссылочных типов, допускающих значения NULL, следует использовать в коде только в контексте аннотаций "#nullable".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1614,7 +1616,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе параметра "{0}" объекта "{1}" не совпадает с явно реализованным членом "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1664,7 +1666,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе возвращаемого значения объекта "{0}" не совпадает с явно реализованным членом "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1694,7 +1696,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе объекта "{0}" не совпадает с явно реализованным членом "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
@@ -1704,12 +1706,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">Допустимость значения NULL для ссылочных типов в типе не совпадает с переопределенным членом.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">Допустимость значения NULL для ссылочных типов в типе не совпадает с переопределенным членом.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1834,12 +1836,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Не инициализировано {0} "{1}", не допускающее значение NULL.</target>
+        <target state="translated">{0} "{1}", не допускающий значение NULL, не инициализирован. Рекомендуется объявить {0} как допускающий значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="needs-review-translation">Не инициализировано поле, не допускающее значение NULL.</target>
+        <target state="translated">Поле, не допускающее значение NULL, не инициализировано. Рекомендуется объявить его как допускающее значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5862,12 +5864,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected 'disable' or 'restore'</source>
-        <target state="needs-review-translation">Ожидается disable, restore, enable или safeonly.</target>
+        <target state="translated">Ожидается "disable" или "restore"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected 'disable' or 'restore' after #pragma warning</source>
-        <target state="needs-review-translation">После #pragma warning ожидается disable, restore, enable или safeonly.</target>
+        <target state="translated">После предупреждения #pragma ожидается "disable" или "restore"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
