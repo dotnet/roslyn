@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
@@ -483,9 +484,80 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
+            private void HideContainingMemberAndTypeColumns()
+            {
+
+                // columnDefinitionManager will be null under unit test
+                var columnDefinitionManager = TableControl.ColumnDefinitionManager;
+                if (columnDefinitionManager == null)
+                {
+                    return;
+                }
+
+                // Get the new column states corresponding to the custom columns to display for custom data.
+                var newColumnStates = ArrayBuilder<ColumnState2>.GetInstance();
+                try
+                {
+                    lock (Gate)
+                    {
+                        var columnsToHide = new string[] { AbstractReferenceFinder.ContainingMemberInfoPropertyName, AbstractReferenceFinder.ContainingTypeInfoPropertyName };
+                        foreach (var customColumnName in columnsToHide)
+                        {
+                            // Get the matching custom column.
+                            if (!(columnDefinitionManager.GetColumnDefinition(customColumnName) is AbstractCustomColumnDefinition customColumnDefinition))
+                            {
+                                Debug.Fail($"{nameof(SourceReferenceItem.FindUsagesProperties)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractCustomColumnDefinition)}' with this name.");
+                                continue;
+                            }
+
+                            // Ensure that we flip the visibility to false for FSharp and true for other languages.
+                            // Note that the actual UI update happens outside the lock when we
+                            // invoke "TableControl.SetColumnStates" below.
+                            ColumnState2 newColumnStateOpt = null;
+                            if (_customColumnTitleToStatesMap.TryGetValue(customColumnDefinition.Name, out var columnState))
+                            {
+                                newColumnStateOpt = new ColumnState2(columnState.Name, isVisible: false, columnState.Width,
+                                    columnState.SortPriority, columnState.DescendingSort, columnState.GroupingPriority);
+                            }
+                            else
+                            {
+                                newColumnStateOpt = customColumnDefinition.DefaultColumnState;
+                            }
+
+                            if (newColumnStateOpt != null)
+                            {
+                                _customColumnTitleToStatesMap[customColumnDefinition.Name] = newColumnStateOpt;
+
+                                newColumnStates.Add(newColumnStateOpt);
+                            }
+                        }
+                    }
+
+                    // Update the column states if required.
+                    if (newColumnStates.Count > 0)
+                    {
+                        // SetColumnStates API forces a switch to UI thread, so it should be safe to call
+                        // from a background thread here.
+                        // Also note that we will call it only once for each new custom column to add for
+                        // each find references query - the lock above guarantees that newColumnStatesOpt is
+                        // going to be non-null only for the first result that has a non-empty column value.
+                        TableControl.SetColumnStates(newColumnStates.ToImmutable());
+                    }
+                }
+                finally
+                {
+                    newColumnStates.Free();
+                }
+            }
+
             public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)
             {
                 UpdateCustomColumnsVisibility(reference.AdditionalPropertiesWithMultipleValues);
+                if (reference.SourceSpan.Document.Project.Language == LanguageNames.FSharp)
+                {
+                    HideContainingMemberAndTypeColumns();
+                }
+
                 return OnReferenceFoundWorkerAsync(reference);
             }
 
