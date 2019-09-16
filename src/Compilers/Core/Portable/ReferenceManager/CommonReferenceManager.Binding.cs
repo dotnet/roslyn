@@ -255,11 +255,13 @@ namespace Microsoft.CodeAnalysis
                             out AssemblyMetadata resolvedAssemblyMetadata,
                             out PortableExecutableReference resolvedReference))
                         {
+                            // Note the failure, but do not commit it to implicitReferenceResolutions until we are done with resolving all missing references.
                             resolutionFailures.Add(binding.ReferenceIdentity);
                             continue;
                         }
 
-                        // one attempt for resolution succeeded (the attempt is cached in implicitReferenceResolutions, so further attempts won't fail and add it back):
+                        // One attempt for resolution succeeded. The attempt is cached in implicitReferenceResolutions, so further attempts won't fail and add it back.
+                        // Since the failures tracked in resolutionFailures do not affect binding thre is no need to revert any decisions made so far.
                         resolutionFailures.Remove(binding.ReferenceIdentity);
 
                         // The resolver may return different version than we asked for, so it may happen that 
@@ -467,7 +469,7 @@ namespace Microsoft.CodeAnalysis
         /// The method only records successful resolution results by updating <paramref name="implicitReferenceResolutions"/>.
         /// Failures are only recorded after all resolution attempts have been completed.
         /// 
-        /// This approach addresses teh following scenario. Consider a script:
+        /// This approach addresses the following scenario. Consider a script:
         /// <code>
         ///   #r "dir1\a.dll"
         ///   #r "dir2\b.dll"
@@ -480,7 +482,9 @@ namespace Microsoft.CodeAnalysis
         /// This behavior would ensure consistency and if the types from x.dll do leak thru to the script compilation, but it 
         /// would result in a missing assembly error. By recording the failure after all resolution attempts are complete
         /// we also achieve a consistent behavior but are able to bind the reference to "x.dll". Besides, this approach
-        /// also avoids dependency on the order in which we evaluate the assembly references.
+        /// also avoids dependency on the order in which we evaluate the assembly references in the scenario above.
+        /// In general, the result of the resolution may still depend on the order of #r - if there are different assemblies 
+        /// of the same identity in different directories.
         /// </summary>
         private bool TryResolveMissingReference(
             MetadataReference requestingReference,
