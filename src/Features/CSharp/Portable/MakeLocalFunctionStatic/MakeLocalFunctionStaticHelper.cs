@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             return dataFlow.Succeeded;
         }
 
+        public static bool CanMakeLocalFunctionStatic(ImmutableArray<ISymbol> captures)
+            => captures.Length > 0 && !captures.Any(s => s.IsThisParameter());
+
         public static async Task<Document> MakeLocalFunctionStaticAsync(
             Document document,
             SemanticModel semanticModel,

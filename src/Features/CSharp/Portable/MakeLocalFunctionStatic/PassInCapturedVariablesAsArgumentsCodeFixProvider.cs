@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 return;
             }
 
-            var localFunction = root.FindNode(diagnosticSpan).AncestorsAndSelf().OfType<LocalFunctionStatementSyntax>().First();
+            var localFunction = root.FindNode(diagnosticSpan).AncestorsAndSelf().OfType<LocalFunctionStatementSyntax>().FirstOrDefault();
             if (localFunction == null)
             {
                 return;
@@ -51,8 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
 
             if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbols(localFunction, semanticModel, out var captures) &&
-                captures.Length > 0 &&
-                !captures.Any(s => s.IsThisParameter()))
+                MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStatic(captures))
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(c => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(document, semanticModel, localFunction, captures, c)),

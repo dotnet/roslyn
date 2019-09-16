@@ -4,13 +4,11 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 {
@@ -41,8 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
 
             if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbols(localFunction, semanticModel, out var captures) &&
-                captures.Length > 0 &&
-                !captures.Any(s => s.IsThisParameter()))
+                MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStatic(captures))
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     FeaturesResources.Make_local_function_static,
