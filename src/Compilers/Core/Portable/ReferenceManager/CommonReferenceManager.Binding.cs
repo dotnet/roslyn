@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         // One attempt for resolution succeeded. The attempt is cached in implicitReferenceResolutions, so further attempts won't fail and add it back.
-                        // Since the failures tracked in resolutionFailures do not affect binding thre is no need to revert any decisions made so far.
+                        // Since the failures tracked in resolutionFailures do not affect binding there is no need to revert any decisions made so far.
                         resolutionFailures.Remove(binding.ReferenceIdentity);
 
                         // The resolver may return different version than we asked for, so it may happen that 
