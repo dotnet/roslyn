@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             IPatchService patchService,
             IDatabaseFactoryService databaseFactoryService,
             Func<Exception, bool> reportAndSwallowException,
-            CancellationToken updateCancellationToken)
+            CancellationToken testCancellationToken)
         {
             _delayService = delayService;
             _ioService = ioService;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _databaseFactoryService = databaseFactoryService;
             _reportAndSwallowException = reportAndSwallowException;
 
-            _updateCancellationToken = updateCancellationToken;
+            _testCancellationToken = testCancellationToken;
         }
 
         public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(

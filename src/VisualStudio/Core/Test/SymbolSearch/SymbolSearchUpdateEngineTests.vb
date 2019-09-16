@@ -3,14 +3,12 @@
 Imports System.IO
 Imports System.IO.Compression
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Elfie.Model
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.RemoteControl
 Imports Moq
-Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
     <[UseExportProvider]>
@@ -44,7 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await service.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -75,7 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await service.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -113,7 +111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -157,7 +155,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -193,7 +191,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -242,7 +240,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -286,7 +284,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=factoryMock.Object,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -334,7 +332,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=factoryMock.Object,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -393,7 +391,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=factoryMock.Object,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -439,7 +437,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -493,7 +491,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -553,7 +551,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=Nothing,
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()
@@ -609,7 +607,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     patchService:=patchMock.Object,
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    testCancellationToken:=cancellationTokenSource.Token)
 
                 Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
                 ioMock.Verify()

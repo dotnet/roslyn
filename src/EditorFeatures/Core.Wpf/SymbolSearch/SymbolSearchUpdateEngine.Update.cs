@@ -40,10 +40,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
 
         /// <summary>
-        /// Cancellation support for the task we use to keep the local database up to date.
-        /// When VS shuts down it will dispose us.  We'll cancel the task at that point.
+        /// Cancellation support for the task we use to keep the local database up to date. Used
+        /// only in tests so we can shutdown gracefully.  In normal VS+OOP scenarios we don't care
+        /// about this and we just get torn down when the OOP process goes down.
         /// </summary>
-        private readonly CancellationToken _updateCancellationToken;
+        private readonly CancellationToken _testCancellationToken;
 
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
 
                 // Keep on looping until we're told to shut down.
-                while (!_service._updateCancellationToken.IsCancellationRequested)
+                while (!_service._testCancellationToken.IsCancellationRequested)
                 {
                     await _service.LogInfoAsync("Starting update").ConfigureAwait(false);
                     try
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         var delayUntilNextUpdate = await UpdateDatabaseInBackgroundWorkerAsync().ConfigureAwait(false);
 
                         await _service.LogInfoAsync($"Waiting {delayUntilNextUpdate} until next update").ConfigureAwait(false);
-                        await Task.Delay(delayUntilNextUpdate, _service._updateCancellationToken).ConfigureAwait(false);
+                        await Task.Delay(delayUntilNextUpdate, _service._testCancellationToken).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException)
                     {
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     await _service.LogInfoAsync("Cache directory created").ConfigureAwait(false);
                 }
 
-                _service._updateCancellationToken.ThrowIfCancellationRequested();
+                _service._testCancellationToken.ThrowIfCancellationRequested();
             }
 
             private async Task<TimeSpan> DownloadFullDatabaseAsync()
@@ -535,14 +536,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // Poll the client every minute until we get the file.
                 while (true)
                 {
-                    _service._updateCancellationToken.ThrowIfCancellationRequested();
+                    _service._testCancellationToken.ThrowIfCancellationRequested();
 
                     var resultOpt = await TryDownloadFileAsync(client).ConfigureAwait(false);
                     if (resultOpt == null)
                     {
                         var delay = _service._delayService.CachePollDelay;
                         await _service.LogInfoAsync($"File not downloaded. Trying again in {delay}").ConfigureAwait(false);
-                        await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
+                        await Task.Delay(delay, _service._testCancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -592,7 +593,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 const int repeat = 6;
                 for (var i = 0; i < repeat; i++)
                 {
-                    _service._updateCancellationToken.ThrowIfCancellationRequested();
+                    _service._testCancellationToken.ThrowIfCancellationRequested();
 
                     try
                     {
@@ -610,7 +611,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                         var delay = _service._delayService.FileWriteDelay;
                         await _service.LogExceptionAsync(e, $"Operation failed. Trying again after {delay}").ConfigureAwait(false);
-                        await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
+                        await Task.Delay(delay, _service._testCancellationToken).ConfigureAwait(false);
                     }
                 }
             }
