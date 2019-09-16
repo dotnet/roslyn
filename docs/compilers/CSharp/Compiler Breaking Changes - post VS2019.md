@@ -52,7 +52,23 @@ Each entry should include a short description of the break, followed by either a
 
 7. https://github.com/dotnet/roslyn/issues/38226 When there exists a common type among those arms of a switch expression that have a type, but there are some arms that have an expression without a type (e.g. `null`) that cannot convert to that common type, the compiler improperly inferred that common type as the natural type of the switch expression. That would cause an error.  In Visual Studio 2019 Update 4, we fixed the compiler to no longer consider such a switch expression to have a common type.  This may permit some programs to compile without error that would produce an error in the previous version.
 
-8. https://github.com/dotnet/roslyn/issues/38469 While looking for a name in an interface in context where only types are allowed,
+8. User-defined unary and binary operators are re-inferred from the nullability of the arguments. This may result in additional warnings:
+    ```C#
+    struct S<T>
+    {
+        public static S<T> operator~(S<T> s) { ... }
+        public T F;
+    }
+    static S<T> Create<T>(T t) { ... }
+    static void F()
+    {
+        object o = null;
+        var s = ~Create(o);
+        s.F.ToString(); // warning: s.F may be null
+    }
+    ```
+
+9. https://github.com/dotnet/roslyn/issues/38469 While looking for a name in an interface in context where only types are allowed,
 compiler didn't look for the name in base interfaces of the interface. Lookup could succeed by finding a type up the containership
 hierarchy or through usings. We now look in base interfaces and find types declared within them, if any match the name. The type
 could be different than the one that compiler used to find.

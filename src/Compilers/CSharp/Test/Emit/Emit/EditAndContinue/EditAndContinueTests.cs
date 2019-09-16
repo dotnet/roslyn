@@ -7752,7 +7752,7 @@ public class C
     public static void F(dynamic d) { d.Bar(); }
 }";
 
-            var compilation0 = CreateCompilation(source0, targetFramework: TargetFramework.StandardAndCSharp, 
+            var compilation0 = CreateCompilation(source0, targetFramework: TargetFramework.StandardAndCSharp,
                 options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
 
             var compilation1 = compilation0.WithSource(source1);
