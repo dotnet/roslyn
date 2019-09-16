@@ -387,7 +387,7 @@ End Class
             MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2)
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
         Public Sub ImportedNoPiaTypes()
             Dim sourceLib =
 <compilation name="ImportedNoPiaTypesAssemblyName">

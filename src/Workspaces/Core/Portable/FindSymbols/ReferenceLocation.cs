@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// Information about a reference to a symbol.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public struct ReferenceLocation : IComparable<ReferenceLocation>, IEquatable<ReferenceLocation>
+    public readonly struct ReferenceLocation : IComparable<ReferenceLocation>, IEquatable<ReferenceLocation>
     {
         /// <summary>
         /// The document that the reference was found in.

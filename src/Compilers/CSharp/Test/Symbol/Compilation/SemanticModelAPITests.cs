@@ -137,7 +137,9 @@ class C
             var typeInfo = model.GetTypeInfo(indexerAccess);
             Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
             var symbolInfo = model.GetSymbolInfo(indexerAccess);
-            Assert.Null(symbolInfo.Symbol);
+            var propertySymbol = (IPropertySymbol)symbolInfo.Symbol;
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.True(propertySymbol.IsIndexer);
             Assert.Empty(symbolInfo.CandidateSymbols);
 
             indexerAccess = accesses[1];
@@ -145,7 +147,9 @@ class C
             typeInfo = model.GetTypeInfo(indexerAccess);
             Assert.Equal(SpecialType.System_Char, typeInfo.Type.SpecialType);
             symbolInfo = model.GetSymbolInfo(indexerAccess);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal(SymbolKind.Method, symbolInfo.Symbol.Kind);
+            Assert.Equal("Slice", symbolInfo.Symbol.Name);
             Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
@@ -1956,7 +1960,7 @@ foreach(short ele in a)
             Assert.NotNull(speculativeModel);
 
             ForEachStatementInfo info = speculativeModel.GetForEachStatementInfo(statement);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentProperty.GetMethod.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
@@ -1999,14 +2003,14 @@ foreach(short ele in a)
             Assert.Equal(position, speculativeModel.OriginalPositionForSpeculation);
 
             var typeInfo = speculativeModel.GetTypeInfo(expr);
-            Assert.NotNull(typeInfo);
+            Assert.NotEqual(default, typeInfo);
             Assert.Equal("Int32", typeInfo.Type.Name);
 
             var thisSyntax = expr.DescendantNodes().OfType<ThisExpressionSyntax>().Single();
             var symbolInfo = speculativeModel.GetSpeculativeSymbolInfo(
                 thisSyntax.SpanStart,
                 thisSyntax, SpeculativeBindingOption.BindAsExpression);
-            Assert.NotNull(symbolInfo);
+            Assert.NotEqual(default, symbolInfo);
             var candidates = symbolInfo.CandidateSymbols;
             Assert.Equal(1, candidates.Length);
             Assert.IsType<ThisParameterSymbol>(candidates[0]);

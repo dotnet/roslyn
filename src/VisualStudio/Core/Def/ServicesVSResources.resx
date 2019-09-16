@@ -1355,4 +1355,7 @@ I agree to all of the foregoing:</value>
   <data name="Paused_0_tasks_in_queue" xml:space="preserve">
     <value>Paused ({0} tasks in queue)</value>
   </data>
+  <data name="Naming_rules" xml:space="preserve">
+    <value>Naming rules</value>
+  </data>
 </root>

@@ -3816,5 +3816,75 @@ public ref struct S
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "{ P1: true }").WithArguments("S").WithLocation(9, 20)
                 );
         }
+
+        [Fact]
+        [WorkItem(37783, "https://github.com/dotnet/roslyn/issues/37783")]
+        public void ExpressionLambdaWithObjectInitializer()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static async Task Main()
+    {
+        int value = 42;
+        Console.WriteLine(await M(() => new Box<int>() { Value = value }));
+    }
+
+    static Task<int> M(Expression<Func<Box<int>>> e)
+    {
+        return Task.FromResult(e.Compile()().Value);
+    }
+}
+
+class Box<T>
+{
+    public T Value;
+}
+";
+            CompileAndVerify(source, expectedOutput: "42", options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: "42", options: TestOptions.ReleaseExe);
+        }
+
+        [Fact]
+        [WorkItem(38309, "https://github.com/dotnet/roslyn/issues/38309")]
+        public void ExpressionLambdaWithUserDefinedControlFlow()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+namespace RoslynFailFastReproduction
+{
+    static class Program
+    {
+        static async Task Main(string[] args)
+        {
+            await MainAsync(args);
+        }
+        static async Task MainAsync(string[] args)
+        {
+            Expression<Func<AltBoolean, AltBoolean>> expr = x => x && x;
+
+            var result = await Task.FromResult(true);
+            Console.WriteLine(result);
+        }
+
+        class AltBoolean
+        {
+            public static AltBoolean operator &(AltBoolean x, AltBoolean y) => default;
+            public static bool operator true(AltBoolean x) => default;
+            public static bool operator false(AltBoolean x) => default;
+        }
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "True", options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: "True", options: TestOptions.ReleaseExe);
+        }
     }
 }

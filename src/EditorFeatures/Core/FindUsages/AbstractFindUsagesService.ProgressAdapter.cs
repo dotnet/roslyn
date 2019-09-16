@@ -119,12 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
             {
-                // Ignore duplicate locations.  We don't want to clutter the UI with them.
-                if (location.IsDuplicateReferenceLocation)
-                {
-                    return;
-                }
-
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(
                     definitionItem, includeHiddenLocations: false,
