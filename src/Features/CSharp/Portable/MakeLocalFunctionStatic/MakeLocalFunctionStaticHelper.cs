@@ -41,13 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
-
             var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
-            var parameters = CreateParameterSymbols(captures);
+            var documentImmutableSet = ImmutableHashSet.Create(document);
 
             // Finds all the call sites of the local function
             var referencedSymbols = await SymbolFinder.FindReferencesAsync(
-                localFunctionSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                localFunctionSymbol, document.Project.Solution, documentImmutableSet, cancellationToken).ConfigureAwait(false);
 
             // Now we need to find all the refereces to the local function that we might need to fix.
             var shouldWarn = false;
@@ -59,15 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 {
                     var referenceSpan = location.Location.SourceSpan;
 
-                    // Since this is a local function, all reference should be in the same tree.
-                    // The check here is for future proof.
-                    if (!root.FullSpan.Contains(referenceSpan))
-                    {
-                        // Skip and warn.
-                        shouldWarn = true;
-                        continue;
-                    }
-
+                    // We limited the search scope to the single document, 
+                    // so all reference should be in the same tree.
                     var referenceNode = root.FindNode(location.Location.SourceSpan);
                     if (!(referenceNode is IdentifierNameSyntax identifierNode))
                     {
@@ -92,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var nodeToTrack = new List<SyntaxNode>(invocationReferences) { localFunction };
             root = root.TrackNodes(nodeToTrack);
 
+            var parameterAndCapturedSymbols = CreateParameterSymbols(captures);
+
             // Fix all invocations by passing in additional arguments.
             foreach (var invocation in invocationReferences.OrderByDescending(n => n.Span.Start))
             {
@@ -100,11 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 var seenNamedArgument = currentInvocation.ArgumentList.Arguments.Any(a => a.NameColon != null);
                 var seenDefaultArgumentValue = currentInvocation.ArgumentList.Arguments.Count < localFunction.ParameterList.Parameters.Count;
 
-                var newArguments = parameters.Select(
+                var newArguments = parameterAndCapturedSymbols.Select(
                     p => CSharpSyntaxGenerator.Instance.Argument(
-                        seenNamedArgument || seenDefaultArgumentValue ? p.Name : null,
-                        p.RefKind,
-                        p.Name.ToIdentifierName()) as ArgumentSyntax);
+                        seenNamedArgument || seenDefaultArgumentValue ? p.symbol.Name : null,
+                        p.symbol.RefKind,
+                        p.capture.Name.ToIdentifierName()) as ArgumentSyntax);
 
                 var newArgList = currentInvocation.ArgumentList.WithArguments(currentInvocation.ArgumentList.Arguments.AddRange(newArguments));
                 var newInvocation = currentInvocation.WithArgumentList(newArgList);
@@ -116,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             localFunction = root.GetCurrentNode(localFunction);
             var localFunctionWithNewParameters = CodeGenerator.AddParameterDeclarations(
                 localFunction,
-                parameters,
+                parameterAndCapturedSymbols.SelectAsArray(p => p.symbol),
                 document.Project.Solution.Workspace);
 
             if (shouldWarn)
@@ -137,20 +131,20 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 generator.GetModifiers(localFunction).WithIsStatic(true));
 
         /// <summary>
-        /// Creates a new parameter symbol for each captured variables.
+        /// Creates a new parameter symbol paired with the original captured symbol for each captured variables.
         /// </summary>
-        private static ImmutableArray<IParameterSymbol> CreateParameterSymbols(ImmutableArray<ISymbol> captures)
+        private static ImmutableArray<(IParameterSymbol symbol, ISymbol capture)> CreateParameterSymbols(ImmutableArray<ISymbol> captures)
         {
-            var parameters = ArrayBuilder<IParameterSymbol>.GetInstance(captures.Length);
+            var parameters = ArrayBuilder<(IParameterSymbol, ISymbol)>.GetInstance(captures.Length);
 
             foreach (var symbol in captures)
             {
-                parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                parameters.Add((CodeGenerationSymbolFactory.CreateParameterSymbol(
                     attributes: default,
                     refKind: RefKind.None,
                     isParams: false,
                     type: symbol.GetSymbolType(),
-                    name: symbol.Name.ToCamelCase()));
+                    name: symbol.Name.ToCamelCase()), symbol));
             }
 
             return parameters.ToImmutableAndFree();
