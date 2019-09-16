@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
-    internal abstract partial class CodeAnalysisMetricData
+    public abstract partial class CodeAnalysisMetricData
     {
         private sealed class AssemblyMetricData : CodeAnalysisMetricData
         {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 foreach (CodeAnalysisMetricData child in children)
                 {
                     MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, child.CoupledNamedTypes);
-                    linesOfCode += child.LinesOfCode;
+                    linesOfCode += child.SourceLines;
                     cyclomaticComplexity += child.CyclomaticComplexity;
                     depthOfInheritance = Math.Max(child.DepthOfInheritance.Value, depthOfInheritance);
 

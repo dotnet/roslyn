@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 
 #if LEGACY_CODE_METRICS_MODE
@@ -115,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             ComputationalComplexityMetrics computationalComplexityMetrics = ComputationalComplexityMetrics.Default;
 
             var nodesToProcess = new Queue<SyntaxNode>();
+            using var applicableAttributeNodes = PooledHashSet<SyntaxNode>.GetInstance();
 
             foreach (var declaration in declarations)
             {
@@ -141,10 +143,14 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
                 foreach (var attribute in attributes)
                 {
-                    if (attribute.ApplicationSyntaxReference != null)
+                    if (attribute.ApplicationSyntaxReference != null &&
+                        attribute.ApplicationSyntaxReference.SyntaxTree == declaration.SyntaxTree)
                     {
                         var attributeSyntax = await attribute.ApplicationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                        nodesToProcess.Enqueue(attributeSyntax);
+                        if (applicableAttributeNodes.Add(attributeSyntax))
+                        {
+                            nodesToProcess.Enqueue(attributeSyntax);
+                        }
                     }
                 }
 
@@ -175,6 +181,15 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                             case OperationKind.MethodBodyOperation:
                             case OperationKind.ConstructorBodyOperation:
                                 cyclomaticComplexity += 1;
+                                break;
+
+                            case OperationKind.None:
+                                // Skip non-applicable attributes.
+                                if (!applicableAttributeNodes.Contains(node))
+                                {
+                                    continue;
+                                }
+
                                 break;
                         }
 
