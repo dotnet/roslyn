@@ -98,9 +98,14 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(SymbolInfo other)
         {
-            return object.Equals(this.Symbol, other.Symbol)
-                && ((_candidateSymbols.IsDefault && other._candidateSymbols.IsDefault) || _candidateSymbols.SequenceEqual(other._candidateSymbols))
-                && this.CandidateReason == other.CandidateReason;
+            if (!object.Equals(this.Symbol, other.Symbol) ||
+                _candidateSymbols.IsDefault != other._candidateSymbols.IsDefault ||
+                this.CandidateReason != other.CandidateReason)
+            {
+                return false;
+            }
+
+            return _candidateSymbols.IsDefault || _candidateSymbols.SequenceEqual(other._candidateSymbols);
         }
 
         public override int GetHashCode()

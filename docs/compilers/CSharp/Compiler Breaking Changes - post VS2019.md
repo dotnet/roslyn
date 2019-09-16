@@ -50,7 +50,9 @@ Each entry should include a short description of the break, followed by either a
 
 6. https://github.com/dotnet/roslyn/issues/37527 The constant folding behavior of the compiler differed depending on your host architecture when converting a floating-point constant to an integral type where that conversion would be a compile-time error if not in an `unchecked` context.  We now yield a zero result for such conversions on all host architectures.
 
-7. https://github.com/dotnet/roslyn/issues/38469 While looking for a name in an interface in context where only types are allowed,
+7. https://github.com/dotnet/roslyn/issues/38226 When there exists a common type among those arms of a switch expression that have a type, but there are some arms that have an expression without a type (e.g. `null`) that cannot convert to that common type, the compiler improperly inferred that common type as the natural type of the switch expression. That would cause an error.  In Visual Studio 2019 Update 4, we fixed the compiler to no longer consider such a switch expression to have a common type.  This may permit some programs to compile without error that would produce an error in the previous version.
+
+8. https://github.com/dotnet/roslyn/issues/38469 While looking for a name in an interface in context where only types are allowed,
 compiler didn't look for the name in base interfaces of the interface. Lookup could succeed by finding a type up the containership
 hierarchy or through usings. We now look in base interfaces and find types declared within them, if any match the name. The type
 could be different than the one that compiler used to find.

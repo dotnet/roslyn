@@ -112,12 +112,12 @@ class C
             var doc = workspace.Documents.First();
             SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
-                var commandHandler = new CommentUncommentSelectionCommandHandler(
-                    workspace.ExportProvider.GetExportedValue<ITextUndoHistoryRegistry>(),
-                    workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
-                var textView = doc.GetTextView();
-                var textBuffer = doc.GetTextBuffer();
-                commandHandler.ExecuteCommand(textView, textBuffer, Operation.Uncomment, TestCommandExecutionContext.Create());
+            var commandHandler = new CommentUncommentSelectionCommandHandler(
+                workspace.ExportProvider.GetExportedValue<ITextUndoHistoryRegistry>(),
+                workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
+            var textView = doc.GetTextView();
+            var textBuffer = doc.GetTextBuffer();
+            commandHandler.ExecuteCommand(textView, textBuffer, Operation.Uncomment, TestCommandExecutionContext.Create());
 
             Assert.Equal(expected, doc.TextBuffer.CurrentSnapshot.GetText());
         }
