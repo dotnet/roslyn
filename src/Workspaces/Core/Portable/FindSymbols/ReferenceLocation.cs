@@ -53,13 +53,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         internal ImmutableArray<FindUsageProperty> FindUsagesProperties { get; }
 
-        /// <summary>
-        /// Indicates if this location is a duplicate of some another ReferenceLocation.
-        /// In this case, it's acceptable for a presenter to not show this location and
-        /// intead prefer the latter.
-        /// </summary>
-        internal bool IsDuplicateReferenceLocation;
-
         public CandidateReason CandidateReason { get; }
 
         internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableArray<FindUsageProperty> additionalProperties, CandidateReason candidateReason)
