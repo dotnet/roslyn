@@ -15782,7 +15782,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Object or collection initializer implicitly dereferences possibly null reference member &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Object or collection initializer implicitly dereferences possibly null member &apos;{0}&apos;..
         /// </summary>
         internal static string WRN_NullReferenceInitializer {
             get {
@@ -15791,7 +15791,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Object or collection initializer implicitly dereferences possibly null reference member..
+        ///   Looks up a localized string similar to Object or collection initializer implicitly dereferences possibly null member..
         /// </summary>
         internal static string WRN_NullReferenceInitializer_Title {
             get {
