@@ -631,7 +631,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
     internal interface IServerMutex : IDisposable
     {
         bool TryLock(int timeoutMs);
-        void Unlock();
         bool IsDisposed { get; }
     }
 
@@ -762,16 +761,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return IsLocked = Mutex.WaitOne(timeoutMs);
         }
 
-        public void Unlock()
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException("Mutex");
-            if (!IsLocked)
-                throw new InvalidOperationException("Lock not held");
-            Mutex.ReleaseMutex();
-            IsLocked = false;
-        }
-
         public void Dispose()
         {
             if (IsDisposed)
@@ -786,6 +775,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             finally
             {
                 Mutex.Dispose();
+                IsLocked = false;
             }
         }
     }
@@ -820,13 +810,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             if (IsDisposed)
                 throw new ObjectDisposedException("Mutex");
             return HeldMutex.TryLock(timeoutMs);
-        }
-
-        public void Unlock()
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException("Mutex");
-            HeldMutex.Unlock();
         }
 
         public void Dispose()
