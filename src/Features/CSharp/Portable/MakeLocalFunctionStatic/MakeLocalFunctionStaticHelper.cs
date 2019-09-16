@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         }
 
         public static async Task<Document> MakeLocalFunctionStaticAsync(
+            Document document,
+            SemanticModel semanticModel,
             LocalFunctionStatementSyntax localFunction,
             ImmutableArray<ISymbol> captures,
-            SemanticModel semanticModel,
-            Document document,
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
@@ -57,10 +57,22 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             {
                 foreach (var location in referencedSymbol.Locations)
                 {
-                    // Since this is a local function, all reference must be in the same tree.
+                    var referenceSpan = location.Location.SourceSpan;
+
+                    // Since this is a local function, all reference should be in the same tree.
+                    // The check here is for future proof.
+                    if (!root.FullSpan.Contains(referenceSpan))
+                    {
+                        // Skip and warn.
+                        shouldWarn = true;
+                        continue;
+                    }
+
                     var referenceNode = root.FindNode(location.Location.SourceSpan);
                     if (!(referenceNode is IdentifierNameSyntax identifierNode))
                     {
+                        // Unexpected scenario, skip and warn.
+                        shouldWarn = true;
                         continue;
                     }
 

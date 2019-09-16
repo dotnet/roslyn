@@ -412,6 +412,37 @@ parseOptions: CSharp8ParseOptions);
 }"
 , parseOptions: CSharp8ParseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestWarningAnnotation()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void N(int x)
+    {
+        Func<int> del = AddLocal;
+
+        int [||]AddLocal()
+        {
+            return x + 1;
+        }
+    }  
+}",
+@"class C
+{
+    void N(int x)
+    {
+        Func<int> del = AddLocal;
+
+        {|Warning:static int AddLocal(int x)
+        {
+            return x + 1;
+        }|}
+    }  
+}",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }
 

@@ -21,13 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         {
             var (document, textSpan, cancellationToken) = context;
 
-            var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
-            if (localFunction == null)
+            var syntaxTree = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
+            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(syntaxTree))
             {
                 return;
             }
 
-            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(localFunction.SyntaxTree))
+            var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
+            if (localFunction == null)
             {
                 return;
             }
@@ -43,8 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 captures.Length > 0 &&
                 !captures.Any(s => s.IsThisParameter()))
             {
-                context.RegisterRefactoring(new MyCodeAction
-                    (FeaturesResources.Make_local_function_static, c => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(localFunction, captures, semanticModel, document, c)));
+                context.RegisterRefactoring(new MyCodeAction(
+                    FeaturesResources.Make_local_function_static,
+                    c => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(document, semanticModel, localFunction, captures, c)));
             }
         }
 
