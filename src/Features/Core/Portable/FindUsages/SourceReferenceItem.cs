@@ -76,11 +76,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
             FindUsagesProperties = ImmutableArray<FindUsageProperty>.Empty;
         }
 
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableArray<FindUsageProperty> findUsagesProperty)
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableArray<FindUsageProperty> findUsagesProperties)
             : this(definition, sourceSpan, GetOrCreateAdditionalPropertiesWithMultipleValuesMap(symbolUsageInfo))
         {
             IsWrittenTo = symbolUsageInfo.IsWrittenTo();
-            FindUsagesProperties = findUsagesProperty.NullToEmpty();
+            FindUsagesProperties = findUsagesProperties.NullToEmpty();
         }
 
         private static AdditionalPropertiesWithMultipleValuesMap GetOrCreateAdditionalPropertiesWithMultipleValuesMap(SymbolUsageInfo symbolUsageInfo)

@@ -708,7 +708,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var additionalProperties = new ArrayBuilder<FindUsageProperty>();
 
-            if (GetInfo(syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart),
+            if (GetInfo(
+                syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart),
                 ContainingTypeInfoPropertyName,
                 semanticModel,
                 out var findUsagePropertyForContainingType))
