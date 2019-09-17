@@ -17,7 +17,8 @@
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
-    <RoslynPortableTargetFrameworks>net472;netcoreapp2.1</RoslynPortableTargetFrameworks>
+    <RoslynPortableTargetFrameworks>netcoreapp2.1</RoslynPortableTargetFrameworks>
+    <RoslynPortableTargetFrameworks Condition="'$(DotNetBuildFromSource)' != 'true'">$(RoslynPortableTargetFrameworks);net472</RoslynPortableTargetFrameworks>
     <RoslynEnforceCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true'">true</RoslynEnforceCodeStyle>
     <UseSharedCompilation>true</UseSharedCompilation>
 
