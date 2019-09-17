@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 
 #if NETSTANDARD1_5
@@ -22,11 +23,12 @@ namespace Microsoft.CodeAnalysis.Testing
         public static readonly MetadataReference SystemCoreReference = MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.Location);
         public static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).GetTypeInfo().Assembly.Location);
         public static readonly MetadataReference SystemCollectionsImmutableReference = MetadataReference.CreateFromFile(typeof(ImmutableArray).GetTypeInfo().Assembly.Location);
-        public static readonly MetadataReference MicrosoftVisualBasicReference = MetadataReference.CreateFromFile(typeof(Microsoft.VisualBasic.Strings).GetTypeInfo().Assembly.Location);
 
         internal static readonly MetadataReference? MscorlibFacadeReference;
         internal static readonly MetadataReference? SystemRuntimeReference;
         internal static readonly MetadataReference? SystemValueTupleReference;
+
+        private static MetadataReference? _microsoftVisualBasicReference;
 
         static MetadataReferences()
         {
@@ -67,6 +69,27 @@ namespace Microsoft.CodeAnalysis.Testing
 #else
 #error Unsupported target framework.
 #endif
+        }
+
+        public static MetadataReference MicrosoftVisualBasicReference
+        {
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            get
+            {
+                if (_microsoftVisualBasicReference is null)
+                {
+                    try
+                    {
+                        _microsoftVisualBasicReference = MetadataReference.CreateFromFile(typeof(Microsoft.VisualBasic.Strings).GetTypeInfo().Assembly.Location);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new PlatformNotSupportedException("Microsoft.VisualBasic is not supported on this platform", e);
+                    }
+                }
+
+                return _microsoftVisualBasicReference;
+            }
         }
     }
 }
