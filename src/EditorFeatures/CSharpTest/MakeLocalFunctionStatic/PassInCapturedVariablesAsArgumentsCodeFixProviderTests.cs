@@ -406,6 +406,62 @@ parseOptions: CSharp8ParseOptions);
 }",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestFixAll()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int x)
+    {
+        int y = 10;
+        var m = AddLocal(1, 2);
+        return AddLocal(m, m);
+
+        static int AddLocal(int a, int b)
+        {
+            return a + b + x + y;
+        }
+    }
+
+    int N(int x)
+    {
+        int y = 10;
+        return AddLocal(AddLocal(1, 2), AddLocal(3, 4));
+
+        static int AddLocal(int a, int b)
+        {
+            return AddLocal(a, b) + {|FixAllInDocument:|}x + y;
+        }
+    }
+}",
+@"class C
+{
+    int M(int x)
+    {
+        int y = 10;
+        var m = AddLocal(1, 2, x, y);
+        return AddLocal(m, m, x, y);
+
+        static int AddLocal(int a, int b, int x, int y)
+        {
+            return a + b + x + y;
+        }
+    }
+
+    int N(int x)
+    {
+        int y = 10;
+        return AddLocal(AddLocal(1, 2, x, y), AddLocal(3, 4, x, y), x, y);
+
+        static int AddLocal(int a, int b, int x, int y)
+        {
+            return AddLocal(a, b, x, y) + x + y;
+        }
+    }
+}", parseOptions: CSharp8ParseOptions);
+        }
     }
 }
 

@@ -43,6 +43,20 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
+            var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            await MakeLocalFunctionStaticAsync(document, semanticModel, localFunction, captures, syntaxEditor, cancellationToken).ConfigureAwait(false);
+            return document.WithSyntaxRoot(syntaxEditor.GetChangedRoot());
+        }
+
+        public static async Task MakeLocalFunctionStaticAsync(
+            Document document,
+            SemanticModel semanticModel,
+            LocalFunctionStatementSyntax localFunction,
+            ImmutableArray<ISymbol> captures,
+            SyntaxEditor syntaxEditor,
+            CancellationToken cancellationToken)
+        {
+            var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
             var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
             var documentImmutableSet = ImmutableHashSet.Create(document);
 
@@ -52,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             // Now we need to find all the refereces to the local function that we might need to fix.
             var shouldWarn = false;
-            using var builderDisposer = ArrayBuilder<InvocationExpressionSyntax>.GetInstance(out var builder);
+            using var builderDisposer = ArrayBuilder<InvocationExpressionSyntax>.GetInstance(out var invocations);
 
             foreach (var referencedSymbol in referencedSymbols)
             {
@@ -70,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
                     if (identifierNode.Parent is InvocationExpressionSyntax invocation)
                     {
-                        builder.Add(invocation);
+                        invocations.Add(invocation);
                     }
                     else
                     {
@@ -82,10 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var parameterAndCapturedSymbols = CreateParameterSymbols(captures);
-            var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
             // Fix all invocations by passing in additional arguments.
-            foreach (var invocation in builder)
+            foreach (var invocation in invocations)
             {
                 syntaxEditor.ReplaceNode(
                     invocation,
@@ -157,8 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
                     return AddStaticModifier(localFunctionWithNewParameters, CSharpSyntaxGenerator.Instance);
                 });
-
-            return document.WithSyntaxRoot(syntaxEditor.GetChangedRoot());
         }
 
         public static SyntaxNode AddStaticModifier(SyntaxNode localFunction, SyntaxGenerator generator)
