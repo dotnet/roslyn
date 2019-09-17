@@ -29461,18 +29461,18 @@ class C11
                 // (21,20): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
                 // interface I4 : I1, I2
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(21, 20),
-                // (23,5): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // (23,8): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'I4.MI4()'
                 //     I2 MI4();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(23, 5),
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "MI4").WithArguments("I4.MI4()", "I1.I2").WithLocation(23, 8),
                 // (26,19): error CS0122: 'I1.I2' is inaccessible due to its protection level
                 // interface I5 : I1.I2, I1
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(26, 19),
                 // (31,16): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
                 // interface I6 : I2, I1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(31, 16),
-                // (33,5): error CS0246: The type or namespace name 'I2' could not be found (are you missing a using directive or an assembly reference?)
+                // (33,8): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'I6.MI6()'
                 //     I2 MI6();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("I2").WithLocation(33, 5),
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "MI6").WithArguments("I6.MI6()", "I1.I2").WithLocation(33, 8),
                 // (36,19): error CS0122: 'I1.I2' is inaccessible due to its protection level
                 // class C3 : I1, I1.I2
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(36, 19),
@@ -55584,5 +55584,412 @@ class CA : IB.CQ
                 );
         }
 
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_24()
+        {
+            var source1 =
+@"
+interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+
+        public static void Test2()
+        {
+            System.Console.WriteLine(""I100.C100.Test2"");
+        }
+    }
+}
+
+interface I101 : I100
+{
+    private static C100 Test1() => new C100();
+
+    static void Main()
+    {
+        Test1().Test1();
+        C100.Test2();
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I100.C100.Test1
+I100.C100.Test2",
+                             verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_25()
+        {
+            var source1 =
+@"
+interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+
+        public static void Test2()
+        {
+            System.Console.WriteLine(""I100.C100.Test2"");
+        }
+    }
+}
+
+interface I101 : I100
+{
+    private static I100.C100 Test1() => new I100.C100();
+
+    static void Main()
+    {
+        Test1().Test1();
+        I100.C100.Test2();
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I100.C100.Test1
+I100.C100.Test2",
+                             verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_26()
+        {
+            var source1 =
+@"
+interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+
+        public static void Test2()
+        {
+            System.Console.WriteLine(""I100.C100.Test2"");
+        }
+    }
+}
+
+interface I101 : I100
+{
+    private static I101.C100 Test1() => new I101.C100();
+
+    static void Main()
+    {
+        Test1().Test1();
+        I101.C100.Test2();
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1,
+                             expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I100.C100.Test1
+I100.C100.Test2",
+                             verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_27()
+        {
+            var source1 =
+@"
+public interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+    }
+}
+
+public class C100
+{
+    public void Test1()
+    {
+        System.Console.WriteLine(""C100.Test1"");
+    }
+}
+
+public interface I101 : I100
+{
+    C100 Test1();
+}
+
+class Test : I101
+{
+    public virtual C100 Test1() => new C100();
+
+    static void Main()
+    {
+        I101 x = new Test();
+        x.Test1().Test1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (26,14): error CS0738: 'Test' does not implement interface member 'I101.Test1()'. 'Test.Test1()' cannot implement 'I101.Test1()' because it does not have the matching return type of 'I100.C100'.
+                // class Test : I101
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I101").WithArguments("Test", "I101.Test1()", "Test.Test1()", "I100.C100").WithLocation(26, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_28()
+        {
+            var source1 =
+@"
+public interface I100
+{
+    public class C100
+    {
+        public void Test1()
+        {
+            System.Console.WriteLine(""I100.C100.Test1"");
+        }
+    }
+}
+
+public class C100
+{
+    public void Test1()
+    {
+        System.Console.WriteLine(""C100.Test1"");
+    }
+}
+
+public interface I101 : I100
+{
+    C100 Test1();
+}
+
+class Test : I101
+{
+    public virtual I100.C100 Test1() => new I100.C100();
+
+    static void Main()
+    {
+        I101 x = new Test();
+        x.Test1().Test1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1, expectedOutput: "I100.C100.Test1");
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_29()
+        {
+            var source1 =
+@"
+interface A : C.E
+{
+}
+
+interface B : A
+{
+    public interface E
+    {}
+}
+
+interface C : B
+{
+    public interface E
+    {}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'C.E' causes a cycle in the interface hierarchy of 'A'
+                // interface A : C.E
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "A").WithArguments("A", "C.E").WithLocation(2, 11),
+                // (6,11): error CS0529: Inherited interface 'A' causes a cycle in the interface hierarchy of 'B'
+                // interface B : A
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "B").WithArguments("B", "A").WithLocation(6, 11),
+                // (12,11): error CS0529: Inherited interface 'B' causes a cycle in the interface hierarchy of 'C'
+                // interface C : B
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "C").WithArguments("C", "B").WithLocation(12, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_30()
+        {
+            var source1 =
+@"
+#nullable enable
+
+interface A : B, C<object>
+{
+}
+
+interface B : C<object?>
+{
+}
+
+interface C<T>
+{
+    public interface E
+    {}
+}
+
+interface D : A.E
+{
+    A.E Test();
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,11): warning CS8645: 'C<object>' is already listed in the interface list on type 'A' with different nullability of reference types.
+                // interface A : B, C<object>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "A").WithArguments("C<object>", "A").WithLocation(4, 11),
+                // (18,17): error CS0104: 'E' is an ambiguous reference between 'C<object?>.E' and 'C<object>.E'
+                // interface D : A.E
+                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object?>.E", "C<object>.E").WithLocation(18, 17),
+                // (20,7): error CS0104: 'E' is an ambiguous reference between 'C<object?>.E' and 'C<object>.E'
+                //     A.E Test();
+                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object?>.E", "C<object>.E").WithLocation(20, 7)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_31()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+        void Test(I2 x);
+    }
+}
+
+interface I4 : I1, I3
+{
+    class C1 : I2
+    {
+        public void Test(I2 x)
+        {}
+    }
+}
+
+interface I5 : I3, I1
+{
+    class C2 : I2
+    {
+        public void Test(I2 x)
+        {}
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1);
+        }
+
+        [Fact]
+        [WorkItem(38469, "https://github.com/dotnet/roslyn/issues/38469")]
+        public void NestedTypes_32()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+        void Test(I2 x);
+    }
+}
+
+interface I4 : I1, I3
+{
+    class C1 : I2
+    {
+        void I2.Test(I2 x)
+        {}
+    }
+}
+
+interface I5 : I3, I1
+{
+    class C2 : I2
+    {
+        void I2.Test(I2 x)
+        {}
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1);
+        }
     }
 }

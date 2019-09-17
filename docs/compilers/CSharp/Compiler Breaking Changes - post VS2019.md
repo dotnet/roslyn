@@ -67,3 +67,8 @@ Each entry should include a short description of the break, followed by either a
         s.F.ToString(); // warning: s.F may be null
     }
     ```
+
+9. https://github.com/dotnet/roslyn/issues/38469 While looking for a name in an interface in context where only types are allowed,
+compiler didn't look for the name in base interfaces of the interface. Lookup could succeed by finding a type up the containership
+hierarchy or through usings. We now look in base interfaces and find types declared within them, if any match the name. The type
+could be different than the one that compiler used to find.
