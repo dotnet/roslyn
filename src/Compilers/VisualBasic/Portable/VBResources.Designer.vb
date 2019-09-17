@@ -1557,6 +1557,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Command-line syntax error: &apos;{0}&apos; is not a valid value for the &apos;{1}&apos; option. The value must be of the form &apos;{2}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_BadSwitchValue() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadSwitchValue", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type argument &apos;{0}&apos; does not satisfy the &apos;Class&apos; constraint for type parameter &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_BadTypeArgForRefConstraint2() As String

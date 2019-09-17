@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol);
         internal abstract ImmutableArray<MetadataReference> ExplicitReferences { get; }
-        internal abstract ImmutableArray<MetadataReference> ImplicitReferences { get; }
-        internal abstract IEnumerable<KeyValuePair<AssemblyIdentity, PortableExecutableReference>> GetImplicitlyResolvedAssemblyReferences();
+        internal abstract ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> ImplicitReferenceResolutions { get; }
     }
 
     internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol> : CommonReferenceManager
@@ -115,7 +114,18 @@ namespace Microsoft.CodeAnalysis
         private ImmutableArray<MetadataReference> _lazyDirectiveReferences;
 
         private ImmutableArray<MetadataReference> _lazyExplicitReferences;
-        private ImmutableArray<MetadataReference> _lazyImplicitReferences;
+
+        /// <summary>
+        /// Stores the results of implicit reference resolutions.
+        /// If <see cref="MetadataReferenceResolver.ResolveMissingAssemblies"/> is true the reference manager attempts to resolve assembly identities,
+        /// that do not match any explicit metadata references passed to the compilation (or specified via #r directive).
+        /// For each such assembly identity <see cref="MetadataReferenceResolver.ResolveMissingAssembly(MetadataReference, AssemblyIdentity)"/> is called
+        /// and its result is captured in this map.
+        /// The map also stores failures - the reference is null if the assembly of the given identity is not found by the resolver.
+        /// This is important to maintain consistency, especially across multiple submissions (e.g. the reference is not found during compilation of the first submission
+        /// but then it is available when the second submission is compiled).
+        /// </summary>
+        private ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> _lazyImplicitReferenceResolutions;
 
         /// <summary>
         /// Diagnostics produced during reference resolution and binding.
@@ -235,12 +245,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal override ImmutableArray<MetadataReference> ImplicitReferences
+        internal override ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> ImplicitReferenceResolutions
         {
             get
             {
                 AssertBound();
-                return _lazyImplicitReferences;
+                return _lazyImplicitReferenceResolutions;
             }
         }
 
@@ -323,7 +333,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(_lazyReferencedModuleIndexMap == null);
             Debug.Assert(_lazyReferenceDirectiveMap == null);
             Debug.Assert(_lazyDirectiveReferences.IsDefault);
-            Debug.Assert(_lazyImplicitReferences.IsDefault);
+            Debug.Assert(_lazyImplicitReferenceResolutions == null);
             Debug.Assert(_lazyExplicitReferences.IsDefault);
             Debug.Assert(_lazyReferencedModules.IsDefault);
             Debug.Assert(_lazyReferencedModulesReferences.IsDefault);
@@ -342,7 +352,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(_lazyReferencedModuleIndexMap != null);
             Debug.Assert(_lazyReferenceDirectiveMap != null);
             Debug.Assert(!_lazyDirectiveReferences.IsDefault);
-            Debug.Assert(!_lazyImplicitReferences.IsDefault);
+            Debug.Assert(_lazyImplicitReferenceResolutions != null);
             Debug.Assert(!_lazyExplicitReferences.IsDefault);
             Debug.Assert(!_lazyReferencedModules.IsDefault);
             Debug.Assert(!_lazyReferencedModulesReferences.IsDefault);
@@ -377,7 +387,7 @@ namespace Microsoft.CodeAnalysis
             IDictionary<(string, string), MetadataReference> boundReferenceDirectiveMap,
             ImmutableArray<MetadataReference> directiveReferences,
             ImmutableArray<MetadataReference> explicitReferences,
-            ImmutableArray<MetadataReference> implicitReferences,
+            ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> implicitReferenceResolutions,
             bool containsCircularReferences,
             ImmutableArray<Diagnostic> diagnostics,
             TAssemblySymbol corLibraryOpt,
@@ -399,7 +409,7 @@ namespace Microsoft.CodeAnalysis
             _lazyReferenceDirectiveMap = boundReferenceDirectiveMap;
             _lazyDirectiveReferences = directiveReferences;
             _lazyExplicitReferences = explicitReferences;
-            _lazyImplicitReferences = implicitReferences;
+            _lazyImplicitReferenceResolutions = implicitReferenceResolutions;
 
             _lazyCorLibraryOpt = corLibraryOpt;
             _lazyReferencedModules = referencedModules;
@@ -675,14 +685,6 @@ namespace Microsoft.CodeAnalysis
         {
             var aliases = AliasesOfReferencedAssemblies[referencedAssemblyIndex];
             return aliases.Length == 0 || aliases.IndexOf(MetadataReferenceProperties.GlobalAlias, StringComparer.Ordinal) >= 0;
-        }
-
-        internal override IEnumerable<KeyValuePair<AssemblyIdentity, PortableExecutableReference>> GetImplicitlyResolvedAssemblyReferences()
-        {
-            foreach (PortableExecutableReference reference in ImplicitReferences)
-            {
-                yield return KeyValuePairUtil.Create(ReferencedAssemblies[ReferencedAssembliesMap[reference]].Identity, reference);
-            }
         }
 
         #endregion

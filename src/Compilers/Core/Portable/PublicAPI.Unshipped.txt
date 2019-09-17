@@ -1,3 +1,16 @@
+Microsoft.CodeAnalysis.CommandLineArguments.ErrorLogOptions.get -> Microsoft.CodeAnalysis.ErrorLogOptions
+*REMOVED*Microsoft.CodeAnalysis.CommandLineArguments.ErrorLogPath.get -> string
+Microsoft.CodeAnalysis.ErrorLogOptions
+Microsoft.CodeAnalysis.ErrorLogOptions.ErrorLogOptions(string path, Microsoft.CodeAnalysis.SarifVersion sarifVersion) -> void
+Microsoft.CodeAnalysis.ErrorLogOptions.Path.get -> string
+Microsoft.CodeAnalysis.ErrorLogOptions.SarifVersion.get -> Microsoft.CodeAnalysis.SarifVersion
+Microsoft.CodeAnalysis.SarifVersion
+Microsoft.CodeAnalysis.SarifVersion.Default = 1 -> Microsoft.CodeAnalysis.SarifVersion
+Microsoft.CodeAnalysis.SarifVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.SarifVersion
+Microsoft.CodeAnalysis.SarifVersion.Sarif1 = 1 -> Microsoft.CodeAnalysis.SarifVersion
+Microsoft.CodeAnalysis.SarifVersion.Sarif2 = 2 -> Microsoft.CodeAnalysis.SarifVersion
+Microsoft.CodeAnalysis.SarifVersionFacts
+static Microsoft.CodeAnalysis.SarifVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.SarifVersion result) -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsConditional.get -> bool
 Microsoft.CodeAnalysis.Operations.IForEachLoopOperation.IsAsynchronous.get -> bool
 Microsoft.CodeAnalysis.Operations.IUsingOperation.IsAsynchronous.get -> bool
