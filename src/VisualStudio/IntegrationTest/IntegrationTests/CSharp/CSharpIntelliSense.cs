@@ -267,7 +267,6 @@ class Class1
                 'M',
                 Shift(VirtualKey.Enter));
 
-            // Async completion commits the item and inserts a blank line
             VisualStudio.Editor.Verify.TextContains(@"
 class Class1
 {
@@ -298,7 +297,6 @@ class Class1
                 'M',
                 Shift(VirtualKey.Enter));
 
-            // Async completion commits the item (even in suggestion mode) and inserts a blank line
             VisualStudio.Editor.Verify.TextContains(@"
 class Class1
 {

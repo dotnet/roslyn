@@ -159,11 +159,10 @@ End Module</Document>
                     state.SendTypeChars(".")
                     Await state.WaitForAsynchronousOperationsAsync()
                     Await state.AssertCompletionSession()
-                    ' first return closes comlpetion
-                    state.SendReturn()
-                    ' second return adds a new line
                     state.SendReturn()
                     Await state.AssertNoCompletionSession()
+                    state.SendReturn()
+                    Assert.DoesNotContain("z", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 Next
             End Using
         End Sub

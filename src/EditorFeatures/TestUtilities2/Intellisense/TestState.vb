@@ -298,13 +298,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.NotNull(session)
         End Function
 
-        Public Async Function AssertCompletionItemsDoNotContainAny(displayText As String()) As Task
+        Public Async Function AssertCompletionItemsDoNotContainAny(ParamArray displayText As String()) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
             Assert.False(displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v)))
         End Function
 
-        Public Async Function AssertCompletionItemsContainAll(displayText As String()) As Task
+        Public Async Function AssertCompletionItemsContainAll(ParamArray displayText As String()) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
             Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             If Not session Is Nothing Then
-                Await AssertCompletionItemsDoNotContainAny({text})
+                Await AssertCompletionItemsDoNotContainAny(text)
             End If
         End Function
 

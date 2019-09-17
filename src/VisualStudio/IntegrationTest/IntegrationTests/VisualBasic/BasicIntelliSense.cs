@@ -98,7 +98,6 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            // extra undo step
             VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
             VisualStudio.Editor.Verify.TextContains(@"

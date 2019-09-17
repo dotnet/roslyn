@@ -578,8 +578,8 @@ Class c
     End Sub
 End Class</document>)
                 state.SendTypeChars("Sy")
-                Await state.AssertCompletionItemsContainAll(displayText:={"OperatingSystem", "System"})
-                Await state.AssertCompletionItemsDoNotContainAny(displayText:={"Exception", "Activator"})
+                Await state.AssertCompletionItemsContainAll("OperatingSystem", "System")
+                Await state.AssertCompletionItemsDoNotContainAny("Exception", "Activator")
             End Using
         End Function
 
@@ -593,7 +593,7 @@ Class c
     Inherits$$
 End Class</document>)
                 state.SendTypeChars(" ")
-                Await state.AssertCompletionItemsContainAll(displayText:={"Attribute", "Exception"})
+                Await state.AssertCompletionItemsContainAll("Attribute", "Exception")
             End Using
         End Function
 
@@ -635,11 +635,11 @@ End Module]]></Document>)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
-                Await state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List", "System"})
+                Await state.AssertCompletionItemsContainAll("LinkedList", "List", "System")
                 state.SendTypeChars("Li")
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
-                Await state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List"})
-                Await state.AssertCompletionItemsDoNotContainAny(displayText:={"System"})
+                Await state.AssertCompletionItemsContainAll("LinkedList", "List")
+                Await state.AssertCompletionItemsDoNotContainAny("System")
                 state.SendTypeChars("n")
                 Await state.AssertSelectedCompletionItem(displayText:="LinkedList", displayTextSuffix:="(Of " & ChrW(&H2026) & ")", isHardSelected:=True)
                 state.SendBackspace()
@@ -788,7 +788,7 @@ end class
                               </Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContainAll({"ToString"})
+                Await state.AssertCompletionItemsContainAll("ToString")
             End Using
         End Function
 
@@ -1449,7 +1449,7 @@ End Class
             ]]></Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("String")
-                Await state.AssertCompletionItemsContainAll({"Integer", "G"})
+                Await state.AssertCompletionItemsContainAll("Integer", "G")
             End Using
         End Function
 
@@ -1466,7 +1466,7 @@ End Class
             ]]></Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("String")
-                Await state.AssertCompletionItemsContainAll({"Integer", "G"})
+                Await state.AssertCompletionItemsContainAll("Integer", "G")
             End Using
         End Function
 
@@ -1499,7 +1499,7 @@ End Class
             ]]></Document>)
                 state.SendBackspace()
                 Await state.AssertSelectedCompletionItem("String")
-                Await state.AssertCompletionItemsContainAll({"Integer", "G"})
+                Await state.AssertCompletionItemsContainAll("Integer", "G")
             End Using
         End Function
 
@@ -1589,10 +1589,10 @@ End Class
             ]]></Document>)
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                Await state.AssertCompletionItemsContainAll({"AccessViolationException"})
+                Await state.AssertCompletionItemsContainAll("AccessViolationException")
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                Await state.AssertCompletionItemsContainAll({"AccessViolationException"})
+                Await state.AssertCompletionItemsContainAll("AccessViolationException")
             End Using
         End Function
 
@@ -2676,7 +2676,7 @@ End Class
                                                                                     SnippetsRule.AlwaysInclude)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContainAll({"x", "Shortcut"})
+                Await state.AssertCompletionItemsContainAll("x", "Shortcut")
             End Using
         End Function
 
@@ -2982,7 +2982,7 @@ End Class
                               </Document>)
 
                 state.SendBackspace()
-                Await state.AssertCompletionItemsContainAll({"WriteLine"})
+                Await state.AssertCompletionItemsContainAll("WriteLine")
             End Using
         End Function
 
