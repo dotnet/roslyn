@@ -31,12 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             return WrapFixAsync(
                 context.Document,
                 ImmutableArray.Create(diagnostic),
-                (document, semanticModel, localFunction, captures, cancellationToken) =>
+                (document, localFunction, captures) =>
                 {
                     context.RegisterCodeFix(
                         new MyCodeAction(c => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(
                             document,
-                            semanticModel,
                             localFunction,
                             captures,
                             c)),
@@ -51,19 +50,21 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             => WrapFixAsync(
                 document,
                 diagnostics,
-                (d, semanticModel, localFunction, captures, token) => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(
+                (d, localFunction, captures) => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(
                         d,
-                        semanticModel,
                         localFunction,
                         captures,
                         editor,
-                        token),
+                        cancellationToken),
                 cancellationToken);
 
+        // The purpose of this wrapper is to share some common logic between FixOne and FixAll.
+        // The main reason we chose this approach over the typical "FixOne calls FixAll" approach is
+        // to avoid duplicate code.
         private static async Task WrapFixAsync(
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
-            Func<Document, SemanticModel, LocalFunctionStatementSyntax, ImmutableArray<ISymbol>, CancellationToken, Task> fixer,
+            Func<Document, LocalFunctionStatementSyntax, ImmutableArray<ISymbol>, Task> fixer,
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
@@ -75,9 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 return;
             }
 
+            // Find all unique local functions that contain the error.
             var localFunctions = diagnostics
                 .Select(d => root.FindNode(d.Location.SourceSpan).AncestorsAndSelf().OfType<LocalFunctionStatementSyntax>().FirstOrDefault())
-                .Where(n => n != null)
+                .WhereNotNull()
                 .Distinct()
                 .ToImmutableArrayOrEmpty();
 
@@ -91,10 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             foreach (var localFunction in localFunctions)
             {
 
-                if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbols(localFunction, semanticModel, out var captures) &&
-                    MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStatic(captures))
+                if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbolsAndCheckApplicability(localFunction, semanticModel, out var captures))
                 {
-                    await fixer(document, semanticModel, localFunction, captures, cancellationToken).ConfigureAwait(false);
+                    await fixer(document, localFunction, captures).ConfigureAwait(false);
                 }
             }
         }

@@ -38,12 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
 
-            if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbols(localFunction, semanticModel, out var captures) &&
-                MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStatic(captures))
+            if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbolsAndCheckApplicability(localFunction, semanticModel, out var captures))
             {
                 context.RegisterRefactoring(new MyCodeAction(
                     FeaturesResources.Make_local_function_static,
-                    c => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(document, semanticModel, localFunction, captures, c)));
+                    c => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, c)));
             }
         }
 

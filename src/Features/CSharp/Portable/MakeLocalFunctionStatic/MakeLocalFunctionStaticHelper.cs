@@ -32,31 +32,33 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             return dataFlow.Succeeded;
         }
 
-        public static bool CanMakeLocalFunctionStatic(ImmutableArray<ISymbol> captures)
+        public static bool TryGetCaputuredSymbolsAndCheckApplicability(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
+            => TryGetCaputuredSymbols(localFunction, semanticModel, out captures) && CanMakeLocalFunctionStatic(captures);
+
+        private static bool CanMakeLocalFunctionStatic(ImmutableArray<ISymbol> captures)
             => captures.Length > 0 && !captures.Any(s => s.IsThisParameter());
 
         public static async Task<Document> MakeLocalFunctionStaticAsync(
             Document document,
-            SemanticModel semanticModel,
             LocalFunctionStatementSyntax localFunction,
             ImmutableArray<ISymbol> captures,
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
             var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            await MakeLocalFunctionStaticAsync(document, semanticModel, localFunction, captures, syntaxEditor, cancellationToken).ConfigureAwait(false);
+            await MakeLocalFunctionStaticAsync(document, localFunction, captures, syntaxEditor, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(syntaxEditor.GetChangedRoot());
         }
 
         public static async Task MakeLocalFunctionStaticAsync(
             Document document,
-            SemanticModel semanticModel,
             LocalFunctionStatementSyntax localFunction,
             ImmutableArray<ISymbol> captures,
             SyntaxEditor syntaxEditor,
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
+            var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
             var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
             var documentImmutableSet = ImmutableHashSet.Create(document);
 
