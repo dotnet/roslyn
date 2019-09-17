@@ -972,13 +972,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result, ConsList<TypeSymbol> basesBeingResolved)
             {
-                if (@interface.IsInterface && visited.Add(@interface) && !basesBeingResolved.ContainsReference(@interface.OriginalDefinition))
+                if (@interface.IsInterface && visited.Add(@interface))
                 {
-                    ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.GetDeclaredInterfaces(basesBeingResolved);
-                    for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                    if (!basesBeingResolved.ContainsReference(@interface.OriginalDefinition))
                     {
-                        var baseInterface = baseInterfaces[i];
-                        addAllInterfaces(baseInterface, visited, result, basesBeingResolved);
+                        ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.GetDeclaredInterfaces(basesBeingResolved);
+                        for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                        {
+                            var baseInterface = baseInterfaces[i];
+                            addAllInterfaces(baseInterface, visited, result, basesBeingResolved);
+                        }
                     }
 
                     result.Add(@interface);
