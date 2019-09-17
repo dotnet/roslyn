@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
             // implicit receiver can be shared between multiple bound nodes.
             // always return cloned one
-            if (boundNode.Kind == BoundKind.ImplicitReceiver)
+            if (boundNode.Kind == BoundKind.ImplicitReceiver ||
+                boundNode.Kind == BoundKind.LValuePlaceholder)
             {
                 return OperationCloner.CloneOperation(CreateInternal(boundNode));
             }
@@ -287,6 +288,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
                 case BoundKind.UsingLocalDeclarations:
                     return CreateUsingLocalDeclarationsOperation((BoundUsingLocalDeclarations)boundNode);
+                case BoundKind.LValuePlaceholder:
+                    return CreateLValuePlaceholderOperation((BoundLValuePlaceholder)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -2091,6 +2094,16 @@ namespace Microsoft.CodeAnalysis.Operations
                     // https://github.com/dotnet/roslyn/issues/33175
                     return OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit);
             }
+        }
+
+        private IInstanceReferenceOperation CreateLValuePlaceholderOperation(BoundLValuePlaceholder placeholder)
+        {
+            InstanceReferenceKind referenceKind = InstanceReferenceKind.ImplicitReceiver;
+            SyntaxNode syntax = placeholder.Syntax;
+            ITypeSymbol type = placeholder.Type;
+            Optional<object> constantValue = ConvertToOptional(placeholder.ConstantValue);
+            bool isImplicit = placeholder.WasCompilerGenerated;
+            return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
     }
 }
