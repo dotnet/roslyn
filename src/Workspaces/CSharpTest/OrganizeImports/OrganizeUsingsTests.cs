@@ -1,18 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
+namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
 {
     [UseExportProvider]
     public class OrganizeUsingsTests
@@ -23,12 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             bool separateImportGroups = false,
             CSharpParseOptions options = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(initial);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            using var workspace = new AdhocWorkspace();
+            var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+            var document = project.AddDocument("Document", initial.NormalizeLineEndings());
+
             workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
             workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
 
-            var newRoot = await (await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
+            var newRoot = await (await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
             Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
         }
 

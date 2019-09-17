@@ -52,6 +52,16 @@
         <target state="translated">Preferencje dopasowywania do wzorca</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_and_Sort_Usings">
+        <source>R&amp;emove and Sort Usings</source>
+        <target state="new">R&amp;emove and Sort Usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Usings">
+        <source>&amp;Sort Usings</source>
+        <target state="new">&amp;Sort Usings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Space_preferences">
         <source>Space preferences</source>
         <target state="translated">Preferencje dotyczące odstępów</target>

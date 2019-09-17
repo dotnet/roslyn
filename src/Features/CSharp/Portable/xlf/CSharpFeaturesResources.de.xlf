@@ -137,11 +137,6 @@
         <target state="translated">Nicht benötigte Using-Direktiven entfernen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_Usings">
-        <source>&amp;Sort Usings</source>
-        <target state="translated">Using-Anweisungen &amp;sortieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Zugriffsmodifizierer sortieren</target>
@@ -355,11 +350,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">Using-Direktiven organisieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_and_Sort_Usings">
-        <source>R&amp;emove and Sort Usings</source>
-        <target state="translated">&amp;Unnötige Using-Direktiven entfernen und sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_await">

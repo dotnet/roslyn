@@ -246,9 +246,6 @@
   <data name="Organize_Usings" xml:space="preserve">
     <value>Organize Usings</value>
   </data>
-  <data name="Remove_and_Sort_Usings" xml:space="preserve">
-    <value>R&amp;emove and Sort Usings</value>
-  </data>
   <data name="Insert_await" xml:space="preserve">
     <value>Insert 'await'.</value>
   </data>
@@ -615,9 +612,6 @@
   <data name="Make_ref_struct" xml:space="preserve">
     <value>Make 'ref struct'</value>
     <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
-  </data>
-  <data name="Sort_Usings" xml:space="preserve">
-    <value>&amp;Sort Usings</value>
   </data>
   <data name="Convert_switch_statement_to_expression" xml:space="preserve">
     <value>Convert switch statement to expression</value>

@@ -2,24 +2,28 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.OrganizeImports
+Imports Roslyn.Test.Utilities
+Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
+Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImports
     <[UseExportProvider]>
     Public Class OrganizeImportsTests
         Private Async Function CheckAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,
                                           Optional separateImportGroups As Boolean = False) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(initial.NormalizedValue)
-                Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
+            Using workspace = New AdhocWorkspace()
+                Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
+                Dim document = project.AddDocument("Document", SourceText.From(initial.Value.NormalizeLineEndings()))
+
                 workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
                 workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
 
-                Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync()
-                Assert.Equal(final.NormalizedValue, newRoot.ToFullString())
+                Dim newRoot = Await (Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync()
+                Assert.Equal(final.Value.NormalizeLineEndings(), newRoot.ToFullString())
             End Using
         End Function
 

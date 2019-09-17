@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -360,5 +361,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             return aggregateSpans;
         }
+
+        public static Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
+            => document.GetLanguageService<IOrganizeImportsService>().OrganizeImportsAsync(document, cancellationToken);
     }
 }

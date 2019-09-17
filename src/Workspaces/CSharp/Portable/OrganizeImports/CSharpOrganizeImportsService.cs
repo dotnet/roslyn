@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
         }
 
         public string SortImportsDisplayStringWithAccelerator =>
-            CSharpFeaturesResources.Sort_Usings;
+            CSharpWorkspaceResources.Sort_Usings;
 
         public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator =>
-            CSharpFeaturesResources.Remove_and_Sort_Usings;
+            CSharpWorkspaceResources.Remove_and_Sort_Usings;
     }
 }
