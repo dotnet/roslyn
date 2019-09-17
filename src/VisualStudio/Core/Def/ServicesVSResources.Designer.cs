@@ -153,15 +153,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Active.
-        /// </summary>
-        internal static string Active {
-            get {
-                return ResourceManager.GetString("Active", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add a naming rule.
         /// </summary>
         internal static string Add_a_naming_rule {
@@ -1649,6 +1640,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Naming rules.
+        /// </summary>
+        internal static string Naming_rules {
+            get {
+                return ResourceManager.GetString("Naming_rules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled..
         /// </summary>
         internal static string Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled {
@@ -2024,15 +2024,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Not_a_valid_value {
             get {
                 return ResourceManager.GetString("Not_a_valid_value", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to N/A.
-        /// </summary>
-        internal static string NotApplicable {
-            get {
-                return ResourceManager.GetString("NotApplicable", resourceCulture);
             }
         }
         
@@ -2993,33 +2984,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Suppress_diagnostics {
             get {
                 return ResourceManager.GetString("Suppress_diagnostics", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suppressed.
-        /// </summary>
-        internal static string Suppressed {
-            get {
-                return ResourceManager.GetString("Suppressed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suppression State.
-        /// </summary>
-        internal static string Suppression_State {
-            get {
-                return ResourceManager.GetString("Suppression_State", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to &apos;Intellisense&apos; diagnostics for suppression..
-        /// </summary>
-        internal static string SuppressionNotSupportedToolTip {
-            get {
-                return ResourceManager.GetString("SuppressionNotSupportedToolTip", resourceCulture);
             }
         }
         

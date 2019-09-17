@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim refOnly As Boolean = False
             Dim outputDirectory As String = baseDirectory
             Dim documentationPath As String = Nothing
-            Dim errorLogPath As String = Nothing
+            Dim errorLogOptions As ErrorLogOptions = Nothing
             Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             Dim outputKind As OutputKind = OutputKind.ConsoleApplication
             Dim ssVersion As SubsystemVersion = SubsystemVersion.None
@@ -558,10 +558,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "errorlog"
                             Dim unquoted = RemoveQuotesAndSlashes(value)
-                            If String.IsNullOrEmpty(unquoted) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ":<file>")
+                            If (String.IsNullOrWhiteSpace(unquoted)) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ErrorLogOptionFormat)
                             Else
-                                errorLogPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
+                                Dim diagnosticAlreadyReported As Boolean
+                                errorLogOptions = ParseErrorLogOptions(unquoted, diagnostics, baseDirectory, diagnosticAlreadyReported)
+                                If errorLogOptions Is Nothing And Not diagnosticAlreadyReported Then
+                                    AddDiagnostic(diagnostics, ERRID.ERR_BadSwitchValue, unquoted, "errorlog", ErrorLogOptionFormat)
+                                    Continue For
+                                End If
                             End If
 
                             Continue For
@@ -1344,7 +1349,7 @@ lVbRuntimePlus:
 
             ' We want to report diagnostics with source suppression in the error log file.
             ' However, these diagnostics won't be reported on the command line.
-            Dim reportSuppressedDiagnostics = errorLogPath IsNot Nothing
+            Dim reportSuppressedDiagnostics = errorLogOptions IsNot Nothing
 
             Dim options = New VisualBasicCompilationOptions(
                 outputKind:=outputKind,
@@ -1410,7 +1415,7 @@ lVbRuntimePlus:
                 .OutputRefFilePath = outputRefFileName,
                 .OutputDirectory = outputDirectory,
                 .DocumentationPath = documentationPath,
-                .ErrorLogPath = errorLogPath,
+                .ErrorLogOptions = errorLogOptions,
                 .SourceFiles = sourceFiles.AsImmutable(),
                 .PathMap = pathMap,
                 .Encoding = codepage,

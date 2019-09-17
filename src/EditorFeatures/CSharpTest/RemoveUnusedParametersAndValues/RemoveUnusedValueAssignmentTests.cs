@@ -7126,5 +7126,28 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task LocalFunction_OutParameter_UsedInCaller()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+public class C
+{
+    public void M()
+    {
+        if (GetVal(out var [|value|]))
+        {
+            var x = value;
+        }
+
+        bool GetVal(out string val)
+        {
+            val = string.Empty;
+            return true;
+        }
+    }
+}");
+        }
     }
 }

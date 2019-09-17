@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -33,8 +34,8 @@ namespace Microsoft.CodeAnalysis
         // PERF: diagnostic IDs will appear in the output options for every syntax tree in
         // the solution. We share string instances for each diagnostic ID to avoid creating
         // excess strings
-        private readonly SmallDictionary<ReadOnlyMemory<char>, string> _diagnosticIdCache =
-            new SmallDictionary<ReadOnlyMemory<char>, string>(CharMemoryEqualityComparer.Instance);
+        private readonly ConcurrentDictionary<ReadOnlyMemory<char>, string> _diagnosticIdCache =
+            new ConcurrentDictionary<ReadOnlyMemory<char>, string>(CharMemoryEqualityComparer.Instance);
 
         private readonly static DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
             = new DiagnosticDescriptor(
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis
         /// precedence rules if there are multiple rules for the same file.
         /// </summary>
         /// <param name="sourcePath">The path to a file such as a source file or additional file. Must be non-null.</param>
+        /// <remarks>This method is safe to call from multiple threads.</remarks>
         public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
         {
             if (sourcePath == null)
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis
                 AnalyzerOptions.Builder analyzerBuilder,
                 ArrayBuilder<Diagnostic> diagnosticBuilder,
                 string analyzerConfigPath,
-                SmallDictionary<ReadOnlyMemory<char>, string> diagIdCache)
+                ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache)
             {
                 const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
                 const string DiagnosticOptionSuffix = ".severity";
@@ -175,10 +177,17 @@ namespace Microsoft.CodeAnalysis
                     if (diagIdLength >= 0)
                     {
                         ReadOnlyMemory<char> idSlice = key.AsMemory().Slice(DiagnosticOptionPrefix.Length, diagIdLength);
+                        // PERF: this is similar to a double-checked locking pattern, and trying to fetch the ID first
+                        // lets us avoid an allocation if the id has already been added
                         if (!diagIdCache.TryGetValue(idSlice, out var diagId))
                         {
+                            // We use ReadOnlyMemory<char> to allow allocation-free lookups in the
+                            // dictionary, but the actual keys stored in the dictionary are trimmed
+                            // to avoid holding GC references to larger strings than necessary. The
+                            // GetOrAdd APIs do not allow the key to be manipulated between lookup
+                            // and insertion, so we separate the operations here in code.
                             diagId = idSlice.ToString();
-                            diagIdCache.Add(diagId.AsMemory(), diagId);
+                            diagId = diagIdCache.GetOrAdd(diagId.AsMemory(), diagId);
                         }
 
                         ReportDiagnostic? severity;

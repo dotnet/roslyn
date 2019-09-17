@@ -309,23 +309,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            private Task<LinkedFileMergeSessionResult> ComputeMergeResultAsync(Solution newSolution, CancellationToken cancellationToken)
-            {
-                var preMergeSolution = _session._baseSolution;
-
-                var diffMergingSession = new LinkedFileDiffMergingSession(preMergeSolution, newSolution, newSolution.GetChanges(preMergeSolution), logSessionInfo: true);
-                return diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken);
-            }
-
-            [Obsolete("Update code to call ComputeMergeResultAsync prior to calling the other overload of ApplyConflictResolutionEdits.")]
-            internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, IEnumerable<Document> documents, CancellationToken cancellationToken)
-            {
-                AssertIsForeground();
-
-                var mergeResult = ComputeMergeResultAsync(conflictResolution.NewSolution, cancellationToken).WaitAndGetResult(cancellationToken);
-                ApplyConflictResolutionEdits(conflictResolution, mergeResult, documents, cancellationToken);
-            }
-
             internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, LinkedFileMergeSessionResult mergeResult, IEnumerable<Document> documents, CancellationToken cancellationToken)
             {
                 AssertIsForeground();
