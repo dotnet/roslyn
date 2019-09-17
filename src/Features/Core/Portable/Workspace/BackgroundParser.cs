@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -79,7 +80,9 @@ namespace Microsoft.CodeAnalysis.Host
                     // this consumed around 2%-3% of the trace after some other optimizations I did. Most of that
                     // was actually walking the documents list since this was causing all the Documents to be realized.
                     // Since this is on the UI thread, it's best just to not do the work if we don't need it.
-                    if (oldProject.SupportsCompilation && !object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
+                    if (!ServiceFeatureOnOffOptions.IsPowerSaveModeEnabled(newProject) &&
+                        oldProject.SupportsCompilation &&
+                        !object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
                     {
                         foreach (var doc in newProject.Documents)
                         {
@@ -151,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         public void Parse(Document document)
         {
-            if (document != null)
+            if (document != null && !ServiceFeatureOnOffOptions.IsPowerSaveModeEnabled(document.Project))
             {
                 lock (_parseGate)
                 {

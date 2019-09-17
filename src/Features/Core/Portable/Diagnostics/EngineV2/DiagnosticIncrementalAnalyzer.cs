@@ -84,7 +84,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return e.Option.Feature == nameof(SimplificationOptions) ||
                    e.Option.Feature == nameof(CodeStyleOptions) ||
                    e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
-                   e.Option == RuntimeOptions.FullSolutionAnalysis;
+                   e.Option == RuntimeOptions.FullSolutionAnalysis ||
+                   e.Option == ServiceFeatureOnOffOptions.PowerSaveMode ||
+                   e.Option == ServiceFeatureOnOffOptions.DisableAnalyzers;
         }
 
         private void OnProjectAnalyzerReferenceChanged(object sender, ProjectAnalyzerReferenceChangedEventArgs e)

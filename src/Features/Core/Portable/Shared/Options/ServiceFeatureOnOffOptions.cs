@@ -35,5 +35,34 @@ namespace Microsoft.CodeAnalysis.Shared.Options
 
             return option.Value;
         }
+
+        /// <summary>
+        /// Option to disable analyzer execution during live analysis.
+        /// </summary>
+        public static readonly Option<bool> DisableAnalyzers = new Option<bool>(
+            nameof(ServiceFeatureOnOffOptions), nameof(DisableAnalyzers), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation($"Options.DisableAnalyzers"));
+
+        /// <summary>
+        /// Option to turn off all background analysis to improve performance.
+        /// </summary>
+        public static readonly Option<bool> PowerSaveMode = new Option<bool>(
+            nameof(ServiceFeatureOnOffOptions), nameof(PowerSaveMode), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation($"Options.PowerSaveMode"));
+
+        /// <summary>
+        /// Enables forced power save mode when low VM is detected to improve performance.
+        /// </summary>
+        public static bool LowMemoryForcedPowerSaveMode = false;
+
+        public static bool IsPowerSaveModeEnabled(Project project)
+            => IsPowerSaveModeEnabled(project.Solution.Options);
+
+        public static bool IsPowerSaveModeEnabled(OptionSet options)
+            => options.GetOption(PowerSaveMode) || LowMemoryForcedPowerSaveMode;
+
+        public static bool IsAnalyzerExecutionDisabled(Project project)
+            => IsPowerSaveModeEnabled(project) ||
+               project.Solution.Options.GetOption(DisableAnalyzers);
     }
 }

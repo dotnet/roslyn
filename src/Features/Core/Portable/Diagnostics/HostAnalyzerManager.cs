@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -163,6 +164,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (options == null || IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
             {
                 return false;
+            }
+
+            // If user has disabled analyzer execution through options, we only want to execute required analyzers
+            // that report diagnostics with category "Compiler".
+            if (ServiceFeatureOnOffOptions.IsAnalyzerExecutionDisabled(project) &&
+                GetDiagnosticDescriptors(analyzer).All(d => d.Category != DiagnosticCategory.Compiler))
+            {
+                return true;
             }
 
             // don't capture project

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -97,6 +98,11 @@ namespace Microsoft.CodeAnalysis.Host
                 // Keep the previous compilations around so that we can incrementally
                 // build the current compilations without rebuilding the entire DeclarationTable
                 CancelBuild(releasePreviousCompilations: false);
+
+                if (ServiceFeatureOnOffOptions.IsPowerSaveModeEnabled(solution.Options))
+                {
+                    return;
+                }
 
                 var allProjects = _workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
 

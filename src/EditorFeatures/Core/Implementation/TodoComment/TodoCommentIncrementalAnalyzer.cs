@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -51,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             // but, can be called concurrently for different documents in future if we choose to.
             Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
 
-            if (!document.Project.Solution.Options.GetOption(InternalFeatureOnOffOptions.TodoComments))
+            if (!document.Project.Solution.Options.GetOption(InternalFeatureOnOffOptions.TodoComments) ||
+                ServiceFeatureOnOffOptions.IsPowerSaveModeEnabled(document.Project))
             {
                 return;
             }

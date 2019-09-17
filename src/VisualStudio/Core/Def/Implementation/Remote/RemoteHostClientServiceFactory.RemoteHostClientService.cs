@@ -10,8 +10,10 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -29,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
+            private readonly IOptionService _optionService;
 
             private readonly object _gate;
 
@@ -48,10 +51,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _listener = listener;
                 _workspace = workspace;
                 _analyzerService = analyzerService;
+                _optionService = workspace.Services.GetService<IOptionService>();
+                _optionService.OptionChanged += OnOptionChanged;
             }
 
             public Workspace Workspace => _workspace;
             public IAsynchronousOperationListener Listener => _listener;
+
+            private void OnOptionChanged(object sender, OptionChangedEventArgs e)
+            {
+                if (e.Option == ServiceFeatureOnOffOptions.PowerSaveMode)
+                {
+                    if (ServiceFeatureOnOffOptions.IsPowerSaveModeEnabled(_optionService.GetOptions()))
+                    {
+                        Disable();
+                    }
+                    else
+                    {
+                        Enable();
+                    }
+                }
+            }
+
+            private static bool IsDisabledWithOptions(OptionSet options)
+            {
+                // Remote host service is disabled under power save mode.
+                if (ServiceFeatureOnOffOptions.IsPowerSaveModeEnabled(options))
+                {
+                    return true;
+                }
+
+                // We enable the remote host if either RemoteHostTest or RemoteHost are on.
+                return !options.GetOption(RemoteHostOptions.RemoteHostTest) &&
+                    !options.GetOption(RemoteHostOptions.RemoteHost);
+            }
 
             public void Enable()
             {
@@ -63,9 +96,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
-                    // We enable the remote host if either RemoteHostTest or RemoteHost are on.
-                    if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest) &&
-                        !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                    // We enable the remote host if either RemoteHostTest or RemoteHost are on and PowerSaveMode is off.
+                    if (IsDisabledWithOptions(_workspace.Options))
                     {
                         // not turned on
                         return;
@@ -139,11 +171,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             bool IRemoteHostClientService.IsEnabled()
             {
-                // We enable the remote host if either RemoteHostTest or RemoteHost are on.
-                if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest)
-                    && !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                if (IsDisabledWithOptions(_workspace.Options))
                 {
-                    // not turned on
                     return false;
                 }
 

@@ -2,7 +2,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Runtime;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -11,11 +10,14 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using RemoteHostClientService = Microsoft.VisualStudio.LanguageServices.Remote.RemoteHostClientServiceFactory.RemoteHostClientService;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -30,10 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const long MemoryThreshold = 200 * 1024 * 1024;
 
         // low vm more info page link
-        private const string LowVMMoreInfoLink = "http://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
+        private const string LowVMMoreInfoLink = "https://docs.microsoft.com/visualstudio/code-quality/automatic-feature-suspension";
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly WorkspaceCacheService _workspaceCacheService;
+        private readonly RemoteHostClientService _remoteHostService;
 
         private bool _alreadyLogged;
 
@@ -47,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             _workspace = workspace;
             _workspaceCacheService = workspace.Services.GetService<IWorkspaceCacheService>() as WorkspaceCacheService;
+            _remoteHostService = workspace.Services.GetService<IRemoteHostClientService>() as RemoteHostClientService;
 
             if (GCSettings.IsServerGC)
             {
@@ -91,26 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                         _workspaceCacheService?.FlushCaches();
 
-                        // turn off full solution analysis only if user option is on.
-                        if (ShouldTurnOffFullSolutionAnalysis((long)wParam))
+                        if (ShouldDisableBackgroundAnalysis((long)wParam))
                         {
-                            // turn our full solution analysis option off.
-                            // if user full solution analysis option is on, then we will show info bar to users to restore it.
-                            // if user full solution analysis option is off, then setting this doesn't matter. full solution analysis is already off.
-                            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, false);
-
-                            if (IsUserOptionOn())
-                            {
-                                // let user know full analysis is turned off due to memory concern.
-                                // make sure we show info bar only once for the same solution.
-                                _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysisInfoBarShown, true);
-
-                                _workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
-                                    new InfoBarUI(ServicesVSResources.Re_enable, InfoBarUI.UIKind.Button, () =>
-                                        _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true)),
-                                    new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink, () =>
-                                        BrowserHelper.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));
-                            }
+                            DisableBackgroundAnalysis();
+                            ShowInfoBarIfRequired();
                         }
 
                         // turn off low latency GC mode.
@@ -126,32 +114,51 @@ namespace Microsoft.VisualStudio.LanguageServices
             return VSConstants.S_OK;
         }
 
-        private bool ShouldTurnOffFullSolutionAnalysis(long availableMemory)
+        private bool ShouldDisableBackgroundAnalysis(long availableMemory)
         {
             // conditions
-            // 1. if available memory is less than the threshold and 
-            // 2. if full solution analysis memory monitor is on (user can set it off using registery, when he does, we will never show info bar) and
-            // 3. if our full solution analysis option is on (not user full solution analysis option, but our internal one) and
-            // 4. if infobar is never shown to users for this solution
+            // 1. Available memory is less than the threshold and 
+            // 2. Power save mode is not already enabled and
+            // 3. Background analysis memory monitor is on (user can set it off using registry to prevent turning off background analysis)
+
             return availableMemory < MemoryThreshold &&
-                  _workspace.Options.GetOption(InternalFeatureOnOffOptions.FullSolutionAnalysisMemoryMonitor) &&
-                  _workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis) &&
-                  !_workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysisInfoBarShown);
+                !ServiceFeatureOnOffOptions.IsPowerSaveModeEnabled(_workspace.Options) &&
+                _workspace.Options.GetOption(InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor);
         }
 
-        private bool IsUserOptionOn()
+        private void DisableBackgroundAnalysis()
         {
-            // check languages currently on solution. since we only show info bar once, we don't need to track solution changes.
-            var languages = _workspace.CurrentSolution.Projects.Select(p => p.Language).Distinct();
-            foreach (var language in languages)
+            // Turn on forced power save mode, which disables all background analysis for the current VS session.
+            // Also disable the remote host service to reduce memory consumption.
+            ServiceFeatureOnOffOptions.LowMemoryForcedPowerSaveMode = true;
+            _remoteHostService?.Disable();
+        }
+
+        private void RenableBackgroundAnalysis()
+        {
+            // Turn off forced power save mode, which re-enables all background analysis for the current VS session.
+            // Also re-enable the remote host service which was disabled earlier.
+            ServiceFeatureOnOffOptions.LowMemoryForcedPowerSaveMode = false;
+            _remoteHostService?.Enable();
+        }
+
+        private void ShowInfoBarIfRequired()
+        {
+            if (_workspace.Options.GetOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown))
             {
-                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, language))
-                {
-                    return true;
-                }
+                // Info bar already shown.
+                return;
             }
 
-            return false;
+            // Show info bar.
+            _workspace.Services.GetService<IErrorReportingService>()
+                .ShowGlobalErrorInfo(ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
+                    new InfoBarUI(ServicesVSResources.Re_enable, InfoBarUI.UIKind.Button, RenableBackgroundAnalysis),
+                    new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink,
+                        () => BrowserHelper.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));
+
+            // Update info bar shown state.
+            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, true);
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -161,10 +168,8 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return;
             }
 
-            // first make sure full solution analysis is on. (not user options but our internal options. even if our option is on, if user option is off
-            // full solution analysis won't run. also, reset infobar state.
-            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysisInfoBarShown, false)
-                                                   .WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true);
+            // For newly opened solution, reset the info bar state.
+            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, false);
         }
     }
 }

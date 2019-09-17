@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -18,6 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     /// if the user has not enabled the features that need it.  That helps us avoid loading
     /// dlls unnecessarily and bloating the VS memory space.
     /// </summary>
+    /// <remarks>
+    /// NOTE: Current implementation turns off this service if <see cref="ServiceFeatureOnOffOptions.IsPowerSaveModeEnabled(OptionSet)"/> is <code>true</code>
+    ///       when <see cref="Connect(string)"/> is invoked for a specific language.
+    /// </remarks>
     internal abstract class AbstractDelayStartedService : ForegroundThreadAffinitizedObject
     {
         private readonly List<string> _registeredLanguageNames = new List<string>();
@@ -53,7 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             this.AssertIsForeground();
 
             var options = Workspace.Options;
-            if (!options.GetOption(_serviceOnOffOption))
+            if (!options.GetOption(_serviceOnOffOption) ||
+                ServiceFeatureOnOffOptions.IsPowerSaveModeEnabled(options))
             {
                 // Feature is totally disabled.  Do nothing.
                 return;

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -319,7 +320,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return false;
                 }
 
-                return RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace);
+                return RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace) &&
+                    !ServiceFeatureOnOffOptions.IsPowerSaveModeEnabled(project);
             }
         }
     }

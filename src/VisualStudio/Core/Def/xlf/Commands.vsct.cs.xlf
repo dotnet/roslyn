@@ -2,6 +2,91 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../Commands.vsct">
     <body>
+      <trans-unit id="cmdidAddAnalyzer|ButtonText">
+        <source>Add &amp;Analyzer...</source>
+        <target state="new">Add &amp;Analyzer...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddAnalyzer|LocCanonicalName">
+        <source>AddAnalyzer</source>
+        <target state="new">AddAnalyzer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddSuppressionsContextMenu|ButtonText">
+        <source>S&amp;uppress</source>
+        <target state="new">S&amp;uppress</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddSuppressionsContextMenu|CommandName">
+        <source>S&amp;uppress</source>
+        <target state="new">S&amp;uppress</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddSuppressionsContextMenu|LocCanonicalName">
+        <source>S&amp;uppress</source>
+        <target state="new">S&amp;uppress</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddSuppressionsInSource|ButtonText">
+        <source>In &amp;Source</source>
+        <target state="new">In &amp;Source</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddSuppressionsInSource|CommandName">
+        <source>AddSuppressionsInSource</source>
+        <target state="new">AddSuppressionsInSource</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddSuppressionsInSource|LocCanonicalName">
+        <source>AddSuppressionsInSource</source>
+        <target state="new">AddSuppressionsInSource</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddSuppressionsInSuppressionFile|ButtonText">
+        <source>In&amp; Suppression File</source>
+        <target state="new">In&amp; Suppression File</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddSuppressionsInSuppressionFile|CommandName">
+        <source>AddSuppressionsInSuppressionFile</source>
+        <target state="new">AddSuppressionsInSuppressionFile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddSuppressionsInSuppressionFile|LocCanonicalName">
+        <source>AddSuppressionsInSuppressionFile</source>
+        <target state="new">AddSuppressionsInSuppressionFile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalyzerContextMenu|ButtonText">
+        <source>Analyzer</source>
+        <target state="new">Analyzer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalyzerContextMenu|LocCanonicalName">
+        <source>Analyzer</source>
+        <target state="new">Analyzer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalyzerFolderContextMenu|ButtonText">
+        <source>Analyzers</source>
+        <target state="new">Analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalyzerFolderContextMenu|LocCanonicalName">
+        <source>Analyzers</source>
+        <target state="new">Analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidCSharpOrganizeRemoveAndSort|ButtonText">
+        <source>Remove &amp;and Sort</source>
+        <target state="new">Remove &amp;and Sort</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidCSharpOrganizeRemoveAndSort|LocCanonicalName">
+        <source>RemoveAndSort</source>
+        <target state="new">RemoveAndSort</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
         <source>Sort &amp;Usings</source>
         <target state="new">Sort &amp;Usings</target>
@@ -14,352 +99,267 @@
       </trans-unit>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|ButtonText">
         <source>Remove &amp;and Sort</source>
-        <target state="translated">Odebrat &amp;a seřadit</target>
+        <target state="new">Remove &amp;and Sort</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|LocCanonicalName">
         <source>RemoveAndSort</source>
-        <target state="translated">RemoveAndSort</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidCSharpOrganizeRemoveAndSort|ButtonText">
-        <source>Remove &amp;and Sort</source>
-        <target state="translated">Odebrat &amp;a seřadit</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidCSharpOrganizeRemoveAndSort|LocCanonicalName">
-        <source>RemoveAndSort</source>
-        <target state="translated">RemoveAndSort</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">
-        <source>&amp;Analyzer...</source>
-        <target state="translated">&amp;Analyzátor...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidProjectContextAddAnalyzer|LocCanonicalName">
-        <source>AddAnalyzer</source>
-        <target state="translated">AddAnalyzer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidProjectAddAnalyzer|ButtonText">
-        <source>Add &amp;Analyzer...</source>
-        <target state="translated">Přidat &amp;analyzátor...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidProjectAddAnalyzer|LocCanonicalName">
-        <source>AddAnalyzer</source>
-        <target state="translated">AddAnalyzer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidReferencesContextAddAnalyzer|ButtonText">
-        <source>Add &amp;Analyzer...</source>
-        <target state="translated">Přidat &amp;analyzátor...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidReferencesContextAddAnalyzer|LocCanonicalName">
-        <source>AddAnalyzer</source>
-        <target state="translated">AddAnalyzer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAddAnalyzer|ButtonText">
-        <source>Add &amp;Analyzer...</source>
-        <target state="translated">Přidat &amp;analyzátor...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAddAnalyzer|LocCanonicalName">
-        <source>AddAnalyzer</source>
-        <target state="translated">AddAnalyzer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidRemoveAnalyzer|ButtonText">
-        <source>&amp;Remove</source>
-        <target state="translated">O&amp;debrat</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidRemoveAnalyzer|LocCanonicalName">
-        <source>RemoveAnalyzer</source>
-        <target state="translated">RemoveAnalyzer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidRemoveAnalyzer|CommandName">
-        <source>RemoveAnalyzer</source>
-        <target state="translated">RemoveAnalyzer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidOpenRuleSet|ButtonText">
-        <source>&amp;Open Active Rule Set</source>
-        <target state="translated">&amp;Otevřít aktivní sadu pravidel</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidOpenRuleSet|LocCanonicalName">
-        <source>OpenActiveRuleSet</source>
-        <target state="translated">OpenActiveRuleSet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidOpenRuleSet|CommandName">
-        <source>OpenActiveRuleSet</source>
-        <target state="translated">OpenActiveRuleSet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityDefault|ButtonText">
-        <source>&amp;Default</source>
-        <target state="translated">&amp;Výchozí</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityDefault|LocCanonicalName">
-        <source>Default</source>
-        <target state="translated">Výchozí</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityDefault|CommandName">
-        <source>SetSeverityDefault</source>
-        <target state="translated">SetSeverityDefault</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityError|ButtonText">
-        <source>&amp;Error</source>
-        <target state="translated">&amp;Chyba</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityError|LocCanonicalName">
-        <source>Error</source>
-        <target state="translated">Chyba</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityError|CommandName">
-        <source>SetSeverityError</source>
-        <target state="translated">SetSeverityError</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityWarning|ButtonText">
-        <source>&amp;Warning</source>
-        <target state="translated">&amp;Upozornění</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityWarning|LocCanonicalName">
-        <source>Warning</source>
-        <target state="translated">Upozornění</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityWarning|CommandName">
-        <source>SetSeverityWarning</source>
-        <target state="translated">SetSeverityWarning</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityInfo|ButtonText">
-        <source>&amp;Info</source>
-        <target state="translated">&amp;Informace</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
-        <source>Info</source>
-        <target state="translated">Informace</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityInfo|CommandName">
-        <source>SetSeverityInfo</source>
-        <target state="translated">SetSeverityInfo</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityHidden|ButtonText">
-        <source>&amp;Hidden</source>
-        <target state="translated">&amp;Skryté</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityHidden|LocCanonicalName">
-        <source>Hidden</source>
-        <target state="translated">Skryté</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityHidden|CommandName">
-        <source>SetSeverityHidden</source>
-        <target state="translated">SetSeverityHidden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityNone|ButtonText">
-        <source>&amp;None</source>
-        <target state="translated">Žád&amp;ná</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityNone|LocCanonicalName">
-        <source>None</source>
-        <target state="translated">žádné</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetSeverityNone|CommandName">
-        <source>SetSeverityNone</source>
-        <target state="translated">SetSeverityNone</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidOpenDiagnosticHelpLink|ButtonText">
-        <source>&amp;View Help...</source>
-        <target state="translated">&amp;Zobrazit nápovědu...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidOpenDiagnosticHelpLink|LocCanonicalName">
-        <source>ViewHelp</source>
-        <target state="translated">ViewHelp</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidOpenDiagnosticHelpLink|CommandName">
-        <source>ViewHelp</source>
-        <target state="translated">ViewHelp</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetActiveRuleSet|ButtonText">
-        <source>&amp;Set as Active Rule Set</source>
-        <target state="translated">Nas&amp;tavit jako aktivní sadu pravidel</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetActiveRuleSet|LocCanonicalName">
-        <source>SetAsActiveRuleSet</source>
-        <target state="translated">SetAsActiveRuleSet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSetActiveRuleSet|CommandName">
-        <source>SetAsActiveRuleSet</source>
-        <target state="translated">SetAsActiveRuleSet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidRemoveSuppressions|ButtonText">
-        <source>Remove&amp; Suppression(s)</source>
-        <target state="translated">Odebrat&amp; potlačení</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidRemoveSuppressions|LocCanonicalName">
-        <source>RemoveSuppressions</source>
-        <target state="translated">RemoveSuppressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidRemoveSuppressions|CommandName">
-        <source>RemoveSuppressions</source>
-        <target state="translated">RemoveSuppressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAddSuppressionsInSource|ButtonText">
-        <source>In &amp;Source</source>
-        <target state="translated">Ve &amp;zdroji</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAddSuppressionsInSource|LocCanonicalName">
-        <source>AddSuppressionsInSource</source>
-        <target state="translated">AddSuppressionsInSource</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAddSuppressionsInSource|CommandName">
-        <source>AddSuppressionsInSource</source>
-        <target state="translated">AddSuppressionsInSource</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAddSuppressionsInSuppressionFile|ButtonText">
-        <source>In&amp; Suppression File</source>
-        <target state="translated">V&amp; souboru potlačení</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAddSuppressionsInSuppressionFile|LocCanonicalName">
-        <source>AddSuppressionsInSuppressionFile</source>
-        <target state="translated">AddSuppressionsInSuppressionFile</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAddSuppressionsInSuppressionFile|CommandName">
-        <source>AddSuppressionsInSuppressionFile</source>
-        <target state="translated">AddSuppressionsInSuppressionFile</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidGoToImplementation|ButtonText">
-        <source>Go To Implementation</source>
-        <target state="translated">Přejít na implementaci</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidGoToImplementation|LocCanonicalName">
-        <source>GoToImplementation</source>
-        <target state="translated">GoToImplementation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidGoToImplementation|CommandName">
-        <source>GoToImplementation</source>
-        <target state="translated">GoToImplementation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">
-        <source>Initialize Interactive with Project</source>
-        <target state="translated">Inicializovat Interactive přes projekt</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|LocCanonicalName">
-        <source>ResetC#InteractiveFromProject</source>
-        <target state="translated">ResetC#InteractiveFromProject</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="guidVisualBasicInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">
-        <source>Reset Visual Basic Interactive from Project</source>
-        <target state="translated">Resetovat Visual Basic Interactive z projektu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="guidVisualBasicInteractiveCommandSet|cmdidResetInteractiveFromProject|LocCanonicalName">
-        <source>ResetVisualBasicInteractiveFromProject</source>
-        <target state="translated">ResetVisualBasicInteractiveFromProject</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalyzerContextMenu|ButtonText">
-        <source>Analyzer</source>
-        <target state="translated">Analyzátor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalyzerContextMenu|LocCanonicalName">
-        <source>Analyzer</source>
-        <target state="translated">Analyzátor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalyzerFolderContextMenu|ButtonText">
-        <source>Analyzers</source>
-        <target state="translated">Analyzátory</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidAnalyzerFolderContextMenu|LocCanonicalName">
-        <source>Analyzers</source>
-        <target state="translated">Analyzátory</target>
+        <target state="new">RemoveAndSort</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDiagnosticContextMenu|ButtonText">
         <source>Diagnostic</source>
-        <target state="translated">Diagnostický</target>
+        <target state="new">Diagnostic</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDiagnosticContextMenu|LocCanonicalName">
         <source>Diagnostic</source>
-        <target state="translated">Diagnostický</target>
+        <target state="new">Diagnostic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidGoToImplementation|ButtonText">
+        <source>Go To Implementation</source>
+        <target state="new">Go To Implementation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidGoToImplementation|CommandName">
+        <source>GoToImplementation</source>
+        <target state="new">GoToImplementation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidGoToImplementation|LocCanonicalName">
+        <source>GoToImplementation</source>
+        <target state="new">GoToImplementation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidOpenDiagnosticHelpLink|ButtonText">
+        <source>&amp;View Help...</source>
+        <target state="new">&amp;View Help...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidOpenDiagnosticHelpLink|CommandName">
+        <source>ViewHelp</source>
+        <target state="new">ViewHelp</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidOpenDiagnosticHelpLink|LocCanonicalName">
+        <source>ViewHelp</source>
+        <target state="new">ViewHelp</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidOpenRuleSet|ButtonText">
+        <source>&amp;Open Active Rule Set</source>
+        <target state="new">&amp;Open Active Rule Set</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidOpenRuleSet|CommandName">
+        <source>OpenActiveRuleSet</source>
+        <target state="new">OpenActiveRuleSet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidOpenRuleSet|LocCanonicalName">
+        <source>OpenActiveRuleSet</source>
+        <target state="new">OpenActiveRuleSet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidProjectAddAnalyzer|ButtonText">
+        <source>Add &amp;Analyzer...</source>
+        <target state="new">Add &amp;Analyzer...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidProjectAddAnalyzer|LocCanonicalName">
+        <source>AddAnalyzer</source>
+        <target state="new">AddAnalyzer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">
+        <source>&amp;Analyzer...</source>
+        <target state="new">&amp;Analyzer...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidProjectContextAddAnalyzer|LocCanonicalName">
+        <source>AddAnalyzer</source>
+        <target state="new">AddAnalyzer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidReferencesContextAddAnalyzer|ButtonText">
+        <source>Add &amp;Analyzer...</source>
+        <target state="new">Add &amp;Analyzer...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidReferencesContextAddAnalyzer|LocCanonicalName">
+        <source>AddAnalyzer</source>
+        <target state="new">AddAnalyzer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveAnalyzer|ButtonText">
+        <source>&amp;Remove</source>
+        <target state="new">&amp;Remove</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveAnalyzer|CommandName">
+        <source>RemoveAnalyzer</source>
+        <target state="new">RemoveAnalyzer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveAnalyzer|LocCanonicalName">
+        <source>RemoveAnalyzer</source>
+        <target state="new">RemoveAnalyzer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveSuppressions|ButtonText">
+        <source>Remove&amp; Suppression(s)</source>
+        <target state="new">Remove&amp; Suppression(s)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveSuppressions|CommandName">
+        <source>RemoveSuppressions</source>
+        <target state="new">RemoveSuppressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveSuppressions|LocCanonicalName">
+        <source>RemoveSuppressions</source>
+        <target state="new">RemoveSuppressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetActiveRuleSet|ButtonText">
+        <source>&amp;Set as Active Rule Set</source>
+        <target state="new">&amp;Set as Active Rule Set</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetActiveRuleSet|CommandName">
+        <source>SetAsActiveRuleSet</source>
+        <target state="new">SetAsActiveRuleSet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetActiveRuleSet|LocCanonicalName">
+        <source>SetAsActiveRuleSet</source>
+        <target state="new">SetAsActiveRuleSet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityDefault|ButtonText">
+        <source>&amp;Default</source>
+        <target state="new">&amp;Default</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityDefault|CommandName">
+        <source>SetSeverityDefault</source>
+        <target state="new">SetSeverityDefault</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityDefault|LocCanonicalName">
+        <source>Default</source>
+        <target state="new">Default</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityError|ButtonText">
+        <source>&amp;Error</source>
+        <target state="new">&amp;Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityError|CommandName">
+        <source>SetSeverityError</source>
+        <target state="new">SetSeverityError</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityError|LocCanonicalName">
+        <source>Error</source>
+        <target state="new">Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityHidden|ButtonText">
+        <source>&amp;Hidden</source>
+        <target state="new">&amp;Hidden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityHidden|CommandName">
+        <source>SetSeverityHidden</source>
+        <target state="new">SetSeverityHidden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityHidden|LocCanonicalName">
+        <source>Hidden</source>
+        <target state="new">Hidden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityInfo|ButtonText">
+        <source>&amp;Info</source>
+        <target state="new">&amp;Info</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityInfo|CommandName">
+        <source>SetSeverityInfo</source>
+        <target state="new">SetSeverityInfo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
+        <source>Info</source>
+        <target state="new">Info</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityNone|ButtonText">
+        <source>&amp;None</source>
+        <target state="new">&amp;None</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityNone|CommandName">
+        <source>SetSeverityNone</source>
+        <target state="new">SetSeverityNone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSetSeverityNone|LocCanonicalName">
+        <source>None</source>
+        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|ButtonText">
         <source>Set Rule Set Severity</source>
-        <target state="translated">Nastavit závažnost sady pravidel</target>
+        <target state="new">Set Rule Set Severity</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|CommandName">
         <source>Set Rule Set Severity</source>
-        <target state="translated">Nastavit závažnost sady pravidel</target>
+        <target state="new">Set Rule Set Severity</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|LocCanonicalName">
         <source>Set Rule Set Severity</source>
-        <target state="translated">Nastavit závažnost sady pravidel</target>
+        <target state="new">Set Rule Set Severity</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddSuppressionsContextMenu|ButtonText">
-        <source>S&amp;uppress</source>
-        <target state="translated">&amp;Potlačit</target>
+      <trans-unit id="cmdidSetSeverityWarning|ButtonText">
+        <source>&amp;Warning</source>
+        <target state="new">&amp;Warning</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddSuppressionsContextMenu|LocCanonicalName">
-        <source>S&amp;uppress</source>
-        <target state="translated">&amp;Potlačit</target>
+      <trans-unit id="cmdidSetSeverityWarning|CommandName">
+        <source>SetSeverityWarning</source>
+        <target state="new">SetSeverityWarning</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddSuppressionsContextMenu|CommandName">
-        <source>S&amp;uppress</source>
-        <target state="translated">&amp;Potlačit</target>
+      <trans-unit id="cmdidSetSeverityWarning|LocCanonicalName">
+        <source>Warning</source>
+        <target state="new">Warning</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">
+        <source>Initialize Interactive with Project</source>
+        <target state="new">Initialize Interactive with Project</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|LocCanonicalName">
+        <source>ResetC#InteractiveFromProject</source>
+        <target state="new">ResetC#InteractiveFromProject</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="guidVisualBasicInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">
+        <source>Reset Visual Basic Interactive from Project</source>
+        <target state="new">Reset Visual Basic Interactive from Project</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="guidVisualBasicInteractiveCommandSet|cmdidResetInteractiveFromProject|LocCanonicalName">
+        <source>ResetVisualBasicInteractiveFromProject</source>
+        <target state="new">ResetVisualBasicInteractiveFromProject</target>
         <note />
       </trans-unit>
     </body>

@@ -879,6 +879,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disable analyzers.
+        /// </summary>
+        internal static string Disable_analyzers {
+            get {
+                return ResourceManager.GetString("Disable_analyzers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to DocumentPath is illegal.
         /// </summary>
         internal static string DocumentPath_is_illegal {
@@ -947,6 +956,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Enable_nullable_reference_analysis_IDE_features {
             get {
                 return ResourceManager.GetString("Enable_nullable_reference_analysis_IDE_features", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable power save mode (disables all background analysis).
+        /// </summary>
+        internal static string Enable_power_save_mode {
+            get {
+                return ResourceManager.GetString("Enable_power_save_mode", resourceCulture);
             }
         }
         

@@ -1358,4 +1358,10 @@ I agree to all of the foregoing:</value>
   <data name="Naming_rules" xml:space="preserve">
     <value>Naming rules</value>
   </data>
+  <data name="Enable_power_save_mode" xml:space="preserve">
+    <value>Enable power save mode (disables all background analysis)</value>
+  </data>
+  <data name="Disable_analyzers" xml:space="preserve">
+    <value>Disable analyzers</value>
+  </data>
 </root>

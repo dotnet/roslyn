@@ -16,6 +16,10 @@
             <GroupBox x:Uid="AnalysisGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Analysis}">
                 <StackPanel>
+                    <CheckBox x:Name="Enable_power_save_mode"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_power_save_mode}" />
+                    <CheckBox x:Name="Disable_analyzers"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Disable_analyzers}" />
                     <CheckBox x:Name="Enable_full_solution_analysis"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_full_solution_analysis}" />
                     <CheckBox x:Name="Use_editorconfig_compatibility_mode"

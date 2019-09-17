@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Telemetry;
 
@@ -49,6 +50,11 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
 
             public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
+                if (ServiceFeatureOnOffOptions.IsPowerSaveModeEnabled(project))
+                {
+                    return;
+                }
+
                 lock (_reported)
                 {
                     // to make sure that we don't report while solution load, we do this heuristic.
