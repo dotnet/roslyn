@@ -1717,21 +1717,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.FloatRemainder:
                     return valueLeft.SingleValue % valueRight.SingleValue;
                 case BinaryOperatorKind.IntLeftShift:
-                    return valueLeft.Int32Value << valueRight.Int32Value;
+                    return valueLeft.Int32Value << (valueRight.Int32Value % 32);
                 case BinaryOperatorKind.LongLeftShift:
-                    return valueLeft.Int64Value << valueRight.Int32Value;
+                    return valueLeft.Int64Value << (valueRight.Int32Value % 64);
                 case BinaryOperatorKind.UIntLeftShift:
-                    return valueLeft.UInt32Value << valueRight.Int32Value;
+                    return valueLeft.UInt32Value << (valueRight.Int32Value % 32);
                 case BinaryOperatorKind.ULongLeftShift:
-                    return valueLeft.UInt64Value << valueRight.Int32Value;
+                    return valueLeft.UInt64Value << (valueRight.Int32Value % 64);
                 case BinaryOperatorKind.IntRightShift:
-                    return valueLeft.Int32Value >> valueRight.Int32Value;
+                    return valueLeft.Int32Value >> (valueRight.Int32Value % 32);
                 case BinaryOperatorKind.LongRightShift:
-                    return valueLeft.Int64Value >> valueRight.Int32Value;
+                    return valueLeft.Int64Value >> (valueRight.Int32Value % 64);
                 case BinaryOperatorKind.UIntRightShift:
-                    return valueLeft.UInt32Value >> valueRight.Int32Value;
+                    return valueLeft.UInt32Value >> (valueRight.Int32Value % 32);
                 case BinaryOperatorKind.ULongRightShift:
-                    return valueLeft.UInt64Value >> valueRight.Int32Value;
+                    return valueLeft.UInt64Value >> (valueRight.Int32Value % 64);
                 case BinaryOperatorKind.BoolAnd:
                     return valueLeft.BooleanValue & valueRight.BooleanValue;
                 case BinaryOperatorKind.IntAnd:
