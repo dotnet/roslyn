@@ -120,10 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        lambda: this,
                                        (Conversions)conversions,
                                        diagnostics,
-                                       delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
+                                       delegateInvokeMethodOpt: delegateType?.DelegateInvokeMethod,
                                        initialState: nullableState,
                                        analyzedNullabilityMapOpt: null,
-                                       updatedSymbolMapOpt: null,
                                        snapshotBuilderOpt: null,
                                        returnTypes);
                 diagnostics.Free();
@@ -132,6 +131,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return inferredReturnType.TypeWithAnnotations;
             }
         }
+
+        internal LambdaSymbol CreateLambdaSymbol(NamedTypeSymbol delegateType, Symbol containingSymbol) =>
+            UnboundLambda.Data.CreateLambdaSymbol(delegateType, containingSymbol);
+
+        internal LambdaSymbol CreateLambdaSymbol(
+            Symbol containingSymbol,
+            TypeWithAnnotations returnType,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            RefKind refKind)
+            => UnboundLambda.Data.CreateLambdaSymbol(
+                containingSymbol,
+                returnType,
+                diagnostics: null,
+                parameterTypes,
+                parameterRefKinds.IsDefault ? Enumerable.Repeat(RefKind.None, parameterTypes.Length).ToImmutableArray() : parameterRefKinds,
+                refKind);
 
         /// <summary>
         /// Indicates the type of return statement with no expression. Used in InferReturnType.
@@ -483,33 +499,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundLambda ReallyBind(NamedTypeSymbol delegateType)
         {
-            var invokeMethod = DelegateInvokeMethod(delegateType);
-            RefKind refKind;
-            var returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out refKind);
-
-            LambdaSymbol lambdaSymbol;
-            Binder lambdaBodyBinder;
-            BoundBlock block;
-
-            var diagnostics = DiagnosticBag.GetInstance();
-            var compilation = Binder.Compilation;
-
-            var cacheKey = ReturnInferenceCacheKey.Create(Binder, delegateType, IsAsync);
-
             // When binding for real (not for return inference), we cannot reuse a body of a lambda
             // previously bound for return type inference because we have not converted the returned
             // expression(s) to the return type.
 
-            lambdaSymbol = new LambdaSymbol(
-                compilation,
+            LambdaSymbol lambdaSymbol = CreateLambdaSymbol(
+                delegateType,
                 Binder.ContainingMemberOrLambda,
-                _unboundLambda,
-                cacheKey.ParameterTypes,
-                cacheKey.ParameterRefKinds,
-                refKind,
-                returnType,
-                diagnostics);
-            lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
+                out MethodSymbol invokeMethod,
+                out TypeWithAnnotations returnType,
+                out DiagnosticBag diagnostics,
+                out ReturnInferenceCacheKey cacheKey);
+
+            CSharpCompilation compilation = Binder.Compilation;
+            Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
 
             if (lambdaSymbol.RefKind == CodeAnalysis.RefKind.RefReadOnly)
             {
@@ -532,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterHelpers.EnsureNullableAttributeExists(compilation, lambdaSymbol, lambdaParameters, diagnostics, modifyCompilation: false);
             // Note: we don't need to warn on annotations used in #nullable disable context for lambdas, as this is handled in binding already
 
-            block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
+            BoundBlock block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 
             ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
@@ -573,6 +576,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 
             return result;
+        }
+
+        private LambdaSymbol CreateLambdaSymbol(NamedTypeSymbol delegateType, Symbol containingSymbol, out MethodSymbol invokeMethod, out TypeWithAnnotations returnType, out DiagnosticBag diagnostics, out ReturnInferenceCacheKey cacheKey)
+        {
+            invokeMethod = DelegateInvokeMethod(delegateType);
+            returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out RefKind refKind);
+            diagnostics = DiagnosticBag.GetInstance();
+            cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
+
+            return CreateLambdaSymbol(containingSymbol, returnType, diagnostics, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, refKind);
+        }
+
+        internal LambdaSymbol CreateLambdaSymbol(
+            Symbol containingSymbol,
+            TypeWithAnnotations returnType,
+            DiagnosticBag diagnostics,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            RefKind refKind)
+            => new LambdaSymbol(
+                Binder.Compilation,
+                containingSymbol,
+                _unboundLambda,
+                parameterTypes,
+                parameterRefKinds,
+                refKind,
+                returnType,
+                diagnostics);
+
+        internal LambdaSymbol CreateLambdaSymbol(NamedTypeSymbol delegateType, Symbol containingSymbol)
+        {
+            return CreateLambdaSymbol(delegateType, containingSymbol, out _, out _, out _, out _);
         }
 
         private void ValidateUnsafeParameters(DiagnosticBag diagnostics, ImmutableArray<TypeWithAnnotations> targetParameterTypes)
@@ -664,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public BoundLambda BindForReturnTypeInference(NamedTypeSymbol delegateType)
         {
-            var cacheKey = ReturnInferenceCacheKey.Create(Binder, delegateType, IsAsync);
+            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
 
             BoundLambda result;
             if (!_returnInferenceCache.TryGetValue(cacheKey, out result))
@@ -734,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value;
             }
 
-            public static ReturnInferenceCacheKey Create(Binder binder, NamedTypeSymbol delegateType, bool isAsync)
+            public static ReturnInferenceCacheKey Create(NamedTypeSymbol delegateType, bool isAsync)
             {
                 // delegateType or DelegateInvokeMethod can be null in cases of malformed delegates
                 // in such case we would want something trivial with no parameters
