@@ -826,17 +826,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// implementations in interfaces and we use that.
         /// When the value of this parameter is true and the result that takes presence of implementations in interfaces into account is not
         /// available from the cache, the lookup will be performed ignoring the presence of implementations in interfaces. Otherwise, result from
-        /// the cashe is returned.
+        /// the cache is returned.
         /// When the value of the parameter is false, the result from the cache is returned, or calculated, taking presence of implementations
         /// in interfaces into account and then cached.
         /// This means that:
         ///  - A symbol from an interface can still be returned even when <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> is true.
         ///    A subsequent call with <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> false will return the same value. 
-        ///  - If symbol from a non-interface is returned for <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> is true. A subsequent
+        ///  - If symbol from a non-interface is returned when <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> is true. A subsequent
         ///    call with <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> false will return the same value.
         ///  - If no symbol is returned for <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> true. A subsequent call with
         ///    <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> might return a symbol, but that symbol guaranteed to be from an interface.
-        ///  - If the first request is done with <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> true. A subsequent call
+        ///  - If the first request is done with <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> false. A subsequent call
         ///    is guaranted to return the same result regardless of <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> value.
         /// </param>
         protected SymbolAndDiagnostics FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(Symbol interfaceMember, bool ignoreImplementationInInterfacesIfResultIsNotReady = false)
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (IsExplicitlyImplementedViaAccessors(interfaceMember, currType, out Symbol currTypeExplicitImpl))
                 {
                     // We are looking for a property or event implementation and found an explicit implementation
-                    // for its accessor(s) in this type. Stop the process and return event/property assosiated
+                    // for its accessor(s) in this type. Stop the process and return event/property associated
                     // with the accessor(s), if any.
                     implementationInInterfacesMightChangeResult = false;
                     // NOTE: may be null.
@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // It is still possible that we actually looked for the accessor in interfaces, but failed due to an ambiguity.
-                // Let's try to look for a property to improve diagnostics in this scenareo.
+                // Let's try to look for a property to improve diagnostics in this scenario.
                 return !symbolAndDiagnostics.Diagnostics.Any(d => d.Code == (int)ErrorCode.ERR_MostSpecificImplementationIsNotFound);
             }
         }
@@ -1221,7 +1221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If we simply look for a more specific implementing property/event, we might find one with not most specific implementing accessors.
             // Returning a property/event like that would be incorrect because runtime will use most specific accessor, or it will fail because there will
             // be an ambiguity for the accessor implementation.
-            // So, for events and properties we look for most specific implementaion of corresponding accessors and then try to tie them back to
+            // So, for events and properties we look for most specific implementation of corresponding accessors and then try to tie them back to
             // an event/property, if any.
             (MethodSymbol interfaceAccessor1, MethodSymbol interfaceAccessor2) = GetImplementableAccessors(interfaceMember);
 
@@ -1595,11 +1595,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Do not make any adjustments based on presence of default interface implementation for the property or event.
             // We don't want an addition of default interface implementation to change an error situation to success for
             // scenarios where the default interface implementation wouldn't actually be used at runtime.
-            // When we find an implicit inplementation candidate, we don't want to not discard it if we would discard it when
+            // When we find an implicit implementation candidate, we don't want to not discard it if we would discard it when
             // default interface implementation was missing. Why would presence of default interface implementation suddenly
             // make the candidate suiatable to implement the interface? Also, if we discard the candidate, we don't want default interface 
             // implementation to take over later, since runtime might still use the discarded candidate.
-            // When we don't find any implicit inplementation candidate, returning accessor of default interface implementation
+            // When we don't find any implicit implementation candidate, returning accessor of default interface implementation
             // doesn't actually help much because we would find it anyway (it is implemented explicitly).
             Symbol implementingPropertyOrEvent = implementingType.FindImplementationForInterfaceMemberInNonInterface(associatedInterfacePropertyOrEvent,
                                                                                                                      ignoreImplementationInInterfacesIfResultIsNotReady: true); // NB: uses cache
