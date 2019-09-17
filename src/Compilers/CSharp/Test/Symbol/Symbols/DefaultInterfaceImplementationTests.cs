@@ -29513,6 +29513,37 @@ class C11
         }
 
         [Fact]
+        [WorkItem(38735, "https://github.com/dotnet/roslyn/issues/38735")]
+        public void NestedTypes_52()
+        {
+            var source1 =
+@"
+interface I1 : IA<int>.NF { }
+
+interface IQ<T> { }
+
+interface IA<T> : IB<IQ<T>> { }
+
+interface IB<T> : IA<IQ<T>> { }
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (2,24): error CS0426: The type name 'NF' does not exist in the type 'IA<int>'
+                // interface I1 : IA<int>.NF { }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "NF").WithArguments("NF", "IA<int>").WithLocation(2, 24),
+                // (6,11): error CS0529: Inherited interface 'IB<IQ<T>>' causes a cycle in the interface hierarchy of 'IA<T>'
+                // interface IA<T> : IB<IQ<T>> { }
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IA").WithArguments("IA<T>", "IB<IQ<T>>").WithLocation(6, 11),
+                // (8,11): error CS0529: Inherited interface 'IA<IQ<T>>' causes a cycle in the interface hierarchy of 'IB<T>'
+                // interface IB<T> : IA<IQ<T>> { }
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "IB").WithArguments("IB<T>", "IA<IQ<T>>").WithLocation(8, 11)
+                );
+        }
+
+        [Fact]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
         public void MethodImplementationInDerived_01()
         {
