@@ -271,8 +271,7 @@ End Class";
                 TestWorkspace.CreateVisualBasic(code, parseOptions: options, exportProvider: TestHostServices.CreateExportProvider());
 
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
-                                     .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true)
-                                     .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, true);
+                                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution);
 
             return workspace;
         }

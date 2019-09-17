@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -25,7 +26,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 // extra info
                 public readonly SyntaxPath ActiveMember;
-                public readonly ImmutableHashSet<IIncrementalAnalyzer> Analyzers;
+
+                /// <summary>
+                /// Non-empty if this work item is intended to be executed only for specific incremental analyzer(s).
+                /// Otherwise, the work item is applicable to all relevant incremental analyzers.
+                /// </summary>
+                public readonly ImmutableHashSet<IIncrementalAnalyzer> SpecificAnalyzers;
+
+                /// <summary>
+                /// Gets all the applicable analyzers to execute for this work item.
+                /// If this work item has any specific analyzer(s), then returns the intersection of <see cref="SpecificAnalyzers"/>
+                /// and the given <paramref name="allAnalyzers"/>.
+                /// Otherwise, returns <paramref name="allAnalyzers"/>.
+                /// </summary>
+                public IEnumerable<IIncrementalAnalyzer> GetApplicableAnalyzers(ImmutableArray<IIncrementalAnalyzer> allAnalyzers)
+                    => SpecificAnalyzers.Count > 0 ? SpecificAnalyzers.Where(allAnalyzers.Contains) : allAnalyzers;
 
                 // retry
                 public readonly bool IsRetry;
@@ -52,7 +67,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     InvocationReasons invocationReasons,
                     bool isLowPriority,
                     SyntaxPath activeMember,
-                    ImmutableHashSet<IIncrementalAnalyzer> analyzers,
+                    ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers,
                     bool retry,
                     IAsyncToken asyncToken)
                 {
@@ -63,7 +78,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     IsLowPriority = isLowPriority;
 
                     ActiveMember = activeMember;
-                    Analyzers = analyzers;
+                    SpecificAnalyzers = specificAnalyzers;
 
                     IsRetry = retry;
 
@@ -102,21 +117,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     if (analyzers.IsEmpty)
                     {
-                        return Analyzers;
+                        return SpecificAnalyzers;
                     }
 
-                    if (Analyzers.IsEmpty)
+                    if (SpecificAnalyzers.IsEmpty)
                     {
                         return analyzers;
                     }
 
-                    return Analyzers.Union(analyzers);
+                    return SpecificAnalyzers.Union(analyzers);
                 }
 
                 public WorkItem Retry(IAsyncToken asyncToken)
                 {
                     return new WorkItem(
-                        DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, Analyzers,
+                        DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, SpecificAnalyzers,
                         retry: true, asyncToken: asyncToken);
                 }
 
@@ -140,7 +155,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 public WorkItem With(IAsyncToken asyncToken)
                 {
                     return new WorkItem(
-                        DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, Analyzers,
+                        DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, SpecificAnalyzers,
                         retry: false, asyncToken: asyncToken);
                 }
 
@@ -154,14 +169,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         InvocationReasons,
                         IsLowPriority,
                         ActiveMember,
-                        Analyzers,
+                        SpecificAnalyzers,
                         IsRetry,
                         asyncToken);
                 }
 
+                public WorkItem With(ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers)
+                {
+                    return new WorkItem(DocumentId, ProjectId, Language, InvocationReasons,
+                        IsLowPriority, ActiveMember, specificAnalyzers, IsRetry, AsyncToken);
+                }
+
                 public override string ToString()
                 {
-                    return $"{DocumentId?.ToString() ?? ProjectId.ToString()}, ({InvocationReasons.ToString()}), LowPriority:{IsLowPriority}, ActiveMember:{ActiveMember != null}, Retry:{IsRetry}, ({string.Join("|", Analyzers.Select(a => a.GetType().Name))})";
+                    return $"{DocumentId?.ToString() ?? ProjectId.ToString()}, ({InvocationReasons.ToString()}), LowPriority:{IsLowPriority}, ActiveMember:{ActiveMember != null}, Retry:{IsRetry}, ({string.Join("|", SpecificAnalyzers.Select(a => a.GetType().Name))})";
                 }
             }
         }

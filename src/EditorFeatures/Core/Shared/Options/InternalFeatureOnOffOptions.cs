@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option<bool> DesignerAttributes = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(DesignerAttributes), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Designer Attribute"));
 
-        public static readonly Option<bool> FullSolutionAnalysisMemoryMonitor = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(FullSolutionAnalysisMemoryMonitor), defaultValue: true,
+        public static readonly Option<bool> BackgroundAnalysisMemoryMonitor = new Option<bool>(nameof(InternalFeatureOnOffOptions), "FullSolutionAnalysisMemoryMonitor", defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Full Solution Analysis Memory Monitor"));
 
         public static readonly Option<bool> ProjectReferenceConversion = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(ProjectReferenceConversion), defaultValue: true,
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             InternalFeatureOnOffOptions.Snippets,
             InternalFeatureOnOffOptions.TodoComments,
             InternalFeatureOnOffOptions.DesignerAttributes,
-            InternalFeatureOnOffOptions.FullSolutionAnalysisMemoryMonitor,
+            InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor,
             InternalFeatureOnOffOptions.ProjectReferenceConversion);
     }
 }

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -382,13 +382,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return true;
                 }
 
-                if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) ||
-                    !project.Solution.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
-                {
-                    return false;
-                }
-
-                return true;
+                return SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(

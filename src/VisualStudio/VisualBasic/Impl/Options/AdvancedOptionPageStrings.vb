@@ -18,8 +18,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Analysis As String =
             ServicesVSResources.Analysis
 
-        Public ReadOnly Property Option_Enable_full_solution_analysis As String =
-            ServicesVSResources.Enable_full_solution_analysis
+        Public ReadOnly Property Option_Background_analysis_scope As String =
+            ServicesVSResources.Background_analysis_scope_colon
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Active_File As String =
+            ServicesVSResources.Active_file
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_And_Projects As String =
+            ServicesVSResources.Open_files_and_projects
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution As String =
+            ServicesVSResources.Full_solution
 
         Public ReadOnly Property Option_use_editorconfig_compatibility_mode As String = ServicesVSResources.Use_editorconfig_compatibility_mode
 

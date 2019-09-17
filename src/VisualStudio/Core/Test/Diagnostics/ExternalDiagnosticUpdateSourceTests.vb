@@ -254,7 +254,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim waiter = New AsynchronousOperationListener()
 
                 ' turn on FSA
-                workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, True)
+                workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution)
 
                 Dim project = workspace.CurrentSolution.Projects.First()
 

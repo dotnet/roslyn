@@ -5,17 +5,17 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.Shared.Options
+namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     [ExportOptionProvider, Shared]
-    internal class ServiceFeatureOnOffOptionsProvider : IOptionProvider
+    internal class SolutionCrawlerOnOffOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
-        public ServiceFeatureOnOffOptionsProvider()
+        public SolutionCrawlerOnOffOptionsProvider()
         {
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            ServiceFeatureOnOffOptions.ClosedFileDiagnostic);
+            SolutionCrawlerOptions.BackgroundAnalysisScopeOption);
     }
 }

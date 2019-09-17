@@ -12,6 +12,11 @@
         <target state="translated">新しい名前空間が作成されます</target>
         <note />
       </trans-unit>
+      <trans-unit id="Active_file">
+        <source>Active file</source>
+        <target state="new">Active file</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
         <target state="translated">現在のファイルに追加(_C)</target>
@@ -60,6 +65,11 @@
       <trans-unit id="Back">
         <source>Back</source>
         <target state="translated">戻る</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Background_analysis_scope_colon">
+        <source>Background analysis scope:</source>
+        <target state="new">Background analysis scope:</target>
         <note />
       </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
@@ -115,6 +125,11 @@
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">終了</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Full_solution">
+        <source>Full solution</source>
+        <target state="new">Full solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
@@ -345,6 +360,11 @@
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">パブリックでないメソッド</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Open_files_and_projects">
+        <source>Open files and projects</source>
+        <target state="new">Open files and projects</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -1881,11 +1901,6 @@ Additional information: {1}</source>
       <trans-unit id="Analysis">
         <source>Analysis</source>
         <target state="translated">解析</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_full_solution_analysis">
-        <source>Enable full solution _analysis</source>
-        <target state="translated">完全ソリューション解析を有効にする(_A)</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">

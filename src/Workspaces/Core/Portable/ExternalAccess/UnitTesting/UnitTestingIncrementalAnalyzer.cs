@@ -44,5 +44,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 
         public void RemoveProject(ProjectId projectId)
             => _implementation.RemoveProject(projectId);
+
+        // Unit testing incremental analyzer only supports full solution analysis scope.
+        // In future, we should add a separate option to allow users to configure background analysis scope for unit testing.
+        public BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet _) => BackgroundAnalysisScope.FullSolution;
     }
 }

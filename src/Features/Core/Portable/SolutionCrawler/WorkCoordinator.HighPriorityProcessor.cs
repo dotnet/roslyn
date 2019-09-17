@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Start();
                     }
 
+                    public ImmutableArray<IIncrementalAnalyzer> Analyzers => _lazyAnalyzers.Value;
+
                     public Task Running => _running;
 
                     public int WorkItemCount => _workItemQueue.WorkItemCount;
@@ -51,9 +53,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     public void AddAnalyzer(IIncrementalAnalyzer analyzer)
                     {
-                        var analyzers = _lazyAnalyzers.Value;
-
-                        _lazyAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
+                        var analyzers = this.Analyzers;
+                        Interlocked.Exchange(ref _lazyAnalyzers, new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer)));
                     }
 
                     public void Enqueue(WorkItem item)
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             var solution = _processor.CurrentSolution;
 
                             // okay now we have work to do
-                            await ProcessDocumentAsync(solution, _lazyAnalyzers.Value, workItem, documentCancellation).ConfigureAwait(false);
+                            await ProcessDocumentAsync(solution, Analyzers, workItem, documentCancellation).ConfigureAwait(false);
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {

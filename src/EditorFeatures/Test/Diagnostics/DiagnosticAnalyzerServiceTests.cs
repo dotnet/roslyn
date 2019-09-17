@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task TestHasSuccessfullyLoadedBeingFalseFSAOn()
         {
             var workspace = new AdhocWorkspace();
-            workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true);
+            workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution);
             var document = GetDocumentFromIncompleteProject(workspace);
 
             // open document
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task TestHasSuccessfullyLoadedBeingFalseWithCompilerAnalyzerFSAOn()
         {
             var workspace = new AdhocWorkspace();
-            workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true);
+            workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution);
             var document = GetDocumentFromIncompleteProject(workspace);
 
             await TestAnalyzerAsync(workspace, document, new CSharpCompilerDiagnosticAnalyzer(), CompilerAnalyzerResultSetter, expectedSyntax: true, expectedSemantic: false);
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                       loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A {}"), VersionStamp.Create(), filePath: "test.cs")),
                                       filePath: "test.cs")}));
 
-            workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, project.Language, true);
+            workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution);
 
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();

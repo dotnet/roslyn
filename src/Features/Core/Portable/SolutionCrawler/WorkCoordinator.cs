@@ -3,12 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -18,13 +20,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         private partial class WorkCoordinator
         {
-            private const int MinimumDelayInMS = 50;
-
             private readonly Registration _registration;
 
             private readonly LogAggregator _logAggregator;
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
+            private readonly IDocumentTrackingService _documentTrackingService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource;
             private readonly CancellationToken _shutdownToken;
@@ -33,6 +34,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             // points to processor task
             private readonly IncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
             private readonly SemanticChangeProcessor _semanticChangeProcessor;
+
+            private Document _lastActiveDocument;
 
             public WorkCoordinator(
                  IAsynchronousOperationListener listener,
@@ -46,6 +49,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _listener = listener;
                 _optionService = _registration.GetService<IOptionService>();
+                _documentTrackingService = _registration.GetService<IDocumentTrackingService>();
 
                 // event and worker queues
                 _shutdownNotificationSource = new CancellationTokenSource();
@@ -77,6 +81,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // subscribe to option changed event after all required fields are set
                 // otherwise, we can get null exception when running OnOptionChanged handler
                 _optionService.OptionChanged += OnOptionChanged;
+
+                // subscribe to active document changed event for active file background analysis scope.
+                if (_documentTrackingService != null)
+                {
+                    _lastActiveDocument = _documentTrackingService.GetActiveDocument(_registration.Workspace.CurrentSolution);
+                    _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
+                }
             }
 
             public int CorrelationId => _registration.CorrelationId;
@@ -94,6 +105,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public void Shutdown(bool blockingShutdown)
             {
                 _optionService.OptionChanged -= OnOptionChanged;
+
+                if (_documentTrackingService != null)
+                {
+                    _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
+                }
 
                 // detach from the workspace
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
@@ -125,6 +141,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnOptionChanged(object sender, OptionChangedEventArgs e)
             {
+                var forceReanalysis = false;
                 // if solution crawler got turned off or on.
                 if (e.Option == InternalSolutionCrawlerOptions.SolutionCrawler)
                 {
@@ -145,11 +162,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     SolutionCrawlerLogger.LogOptionChanged(CorrelationId, value);
                     return;
                 }
+                else if (e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption)
+                {
+                    forceReanalysis = true;
+                }
 
-                ReanalyzeOnOptionChange(sender, e);
+                ReanalyzeOnOptionChange(sender, e, forceReanalysis);
             }
 
-            private void ReanalyzeOnOptionChange(object sender, OptionChangedEventArgs e)
+            private void ReanalyzeOnOptionChange(object sender, OptionChangedEventArgs e, bool forceReanalysis)
             {
                 // get off from option changed event handler since it runs on UI thread
                 // getting analyzer can be slow for the very first time since it is lazily initialized
@@ -159,7 +180,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // let each analyzer decide what they want on option change
                     foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
                     {
-                        if (analyzer.NeedsReanalysisOnOptionChanged(sender, e))
+                        if (forceReanalysis || analyzer.NeedsReanalysisOnOptionChanged(sender, e))
                         {
                             var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
                             Reanalyze(analyzer, scope);
@@ -181,6 +202,28 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     var solution = _registration.CurrentSolution;
                     SolutionCrawlerLogger.LogReanalyze(
                         CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution), highPriority);
+                }
+            }
+
+            private void OnActiveDocumentChanged(object sender, DocumentId activeDocumentId)
+            {
+                IAsyncToken asyncToken;
+                if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(_registration.Workspace.Options) == BackgroundAnalysisScope.ActiveFile &&
+                    activeDocumentId != null)
+                {
+                    var activeDocument = _registration.Workspace.CurrentSolution.GetDocument(activeDocumentId);
+                    if (activeDocument != null)
+                    {
+                        var lastActiveDocument = Interlocked.Exchange(ref _lastActiveDocument, activeDocument);
+                        if (lastActiveDocument != null)
+                        {
+                            asyncToken = _listener.BeginAsyncOperation("OnDocumentClosed");
+                            EnqueueEvent(lastActiveDocument.Project.Solution, lastActiveDocument.Id, InvocationReasons.DocumentClosed, asyncToken);
+                        }
+
+                        asyncToken = _listener.BeginAsyncOperation("OnDocumentChanged");
+                        EnqueueEvent(activeDocument.Project.Solution, activeDocument.Id, InvocationReasons.DocumentChanged, asyncToken);
+                    }
                 }
             }
 

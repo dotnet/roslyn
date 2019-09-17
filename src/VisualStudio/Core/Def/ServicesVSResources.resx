@@ -933,9 +933,6 @@ Additional information: {1}</value>
   <data name="Analysis" xml:space="preserve">
     <value>Analysis</value>
   </data>
-  <data name="Enable_full_solution_analysis" xml:space="preserve">
-    <value>Enable full solution _analysis</value>
-  </data>
   <data name="Fade_out_unreachable_code" xml:space="preserve">
     <value>Fade out unreachable code</value>
   </data>
@@ -1343,5 +1340,17 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
     <value>Code analysis completed for Solution.</value>
+  </data>
+  <data name="Background_analysis_scope_colon" xml:space="preserve">
+    <value>Background analysis scope:</value>
+  </data>
+  <data name="Active_file" xml:space="preserve">
+    <value>Active file</value>
+  </data>
+  <data name="Open_files_and_projects" xml:space="preserve">
+    <value>Open files and projects</value>
+  </data>
+  <data name="Full_solution" xml:space="preserve">
+    <value>Full solution</value>
   </data>
 </root>

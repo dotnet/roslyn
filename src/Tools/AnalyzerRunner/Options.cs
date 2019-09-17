@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.Shared.Options;
 
 namespace AnalyzerRunner
 {
@@ -26,7 +27,7 @@ namespace AnalyzerRunner
 
         // Options specific to incremental analyzers
         public readonly bool UsePersistentStorage;
-        public readonly bool FullSolutionAnalysis;
+        public readonly BackgroundAnalysisScope AnalysisScope;
         public readonly ImmutableList<string> IncrementalAnalyzerNames;
 
         private Options(
@@ -44,7 +45,7 @@ namespace AnalyzerRunner
             string logFileName,
             string profileRoot,
             bool usePersistentStorage,
-            bool fullSolutionAnalysis,
+            BackgroundAnalysisScope analysisScope,
             ImmutableList<string> incrementalAnalyzerNames)
         {
             AnalyzerPath = analyzerPath;
@@ -61,7 +62,7 @@ namespace AnalyzerRunner
             LogFileName = logFileName;
             ProfileRoot = profileRoot;
             UsePersistentStorage = usePersistentStorage;
-            FullSolutionAnalysis = fullSolutionAnalysis;
+            AnalysisScope = analysisScope;
             IncrementalAnalyzerNames = incrementalAnalyzerNames;
         }
 
@@ -81,7 +82,7 @@ namespace AnalyzerRunner
             string logFileName = null;
             string profileRoot = null;
             var usePersistentStorage = false;
-            var fullSolutionAnalysis = false;
+            var analysisScope = BackgroundAnalysisScope.OpenFiles;
             var incrementalAnalyzerNames = ImmutableList.CreateBuilder<string>();
 
             int i = 0;
@@ -131,7 +132,7 @@ namespace AnalyzerRunner
                         usePersistentStorage = true;
                         break;
                     case "/fsa":
-                        fullSolutionAnalysis = true;
+                        analysisScope = BackgroundAnalysisScope.FullSolution;
                         break;
                     case "/ia":
                         incrementalAnalyzerNames.Add(ReadValue());
@@ -180,7 +181,7 @@ namespace AnalyzerRunner
                 logFileName: logFileName,
                 profileRoot: profileRoot,
                 usePersistentStorage: usePersistentStorage,
-                fullSolutionAnalysis: fullSolutionAnalysis,
+                analysisScope: analysisScope,
                 incrementalAnalyzerNames: incrementalAnalyzerNames.ToImmutable());
         }
     }

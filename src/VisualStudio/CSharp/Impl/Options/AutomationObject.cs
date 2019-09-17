@@ -80,25 +80,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, value); }
         }
 
-        [Obsolete("This SettingStore option has now been deprecated in favor of CSharpClosedFileDiagnostics")]
+        [Obsolete("This SettingStore option has now been deprecated")]
         public int ClosedFileDiagnostics
         {
-            get { return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
-            set
-            {
-                // Even though this option has been deprecated, we want to respect the setting if the user has explicitly turned off closed file diagnostics (which is the non-default value for 'ClosedFileDiagnostics').
-                // So, we invoke the setter only for value = 0.
-                if (value == 0)
-                {
-                    SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value);
-                }
-            }
+            get { return 0; }
+            set { }
         }
 
+        [Obsolete("This SettingStore option has now been deprecated")]
         public int CSharpClosedFileDiagnostics
         {
-            get { return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
-            set { SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value); }
+            get { return 0; }
+            set { }
         }
 
         public int DisplayLineSeparators

@@ -1984,7 +1984,7 @@ class MyClass
                        </Workspace>
 
             Using workspace = TestWorkspace.CreateWorkspace(test)
-                workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, True)
+                workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution)
 
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
