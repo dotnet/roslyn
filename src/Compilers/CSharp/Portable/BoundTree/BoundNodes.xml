@@ -111,6 +111,9 @@
   <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
+  <Node Name="BoundLValuePlaceholder" Base="BoundValuePlaceholderBase">
+  </Node>
+
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
@@ -1640,6 +1643,7 @@
   </Node>
 
   <Node Name="BoundCollectionInitializerExpression" Base="BoundObjectInitializerExpressionBase">
+    <Field Name="PlaceholderOpt" Type="BoundLValuePlaceholder" Null="allow" />
   </Node>
 
   <Node Name="BoundCollectionElementInitializer" Base="BoundExpression">

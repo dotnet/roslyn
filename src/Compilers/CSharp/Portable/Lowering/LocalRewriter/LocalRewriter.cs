@@ -294,6 +294,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return PlaceholderReplacement(node);
         }
 
+        public override BoundNode VisitLValuePlaceholder(BoundLValuePlaceholder node)
+        {
+            return PlaceholderReplacement(node);
+        }
+
         /// <summary>
         /// Returns substitution currently used by the rewriter for a placeholder node.
         /// Each occurrence of the placeholder node is replaced with the node returned.

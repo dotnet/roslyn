@@ -1882,7 +1882,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             (var reinferredMethod, _, _) = VisitArguments(node, node.Arguments, refKindsOpt: default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod);
             if (node.ImplicitReceiverOpt != null)
             {
-                Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ImplicitReceiver);
                 SetAnalyzedNullability(node.ImplicitReceiverOpt, new VisitResult(node.ImplicitReceiverOpt.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
             }
             SetUnknownResultNullability(node);
@@ -7563,6 +7562,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
             SetNotNullResult(node);
+            return null;
+        }
+
+        public override BoundNode VisitLValuePlaceholder(BoundLValuePlaceholder node)
+        {
+            SetUnknownResultNullability(node);
             return null;
         }
 

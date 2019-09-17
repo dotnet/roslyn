@@ -2858,6 +2858,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitLValuePlaceholder(BoundLValuePlaceholder node)
+        {
+            return null;
+        }
+
         public override sealed BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
         {
             throw ExceptionUtilities.Unreachable;
