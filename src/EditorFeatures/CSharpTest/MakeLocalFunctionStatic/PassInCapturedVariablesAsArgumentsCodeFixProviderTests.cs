@@ -342,6 +342,70 @@ parseOptions: CSharp8ParseOptions);
 }"
 , parseOptions: CSharp8ParseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestWarningAnnotation()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void N(int x)
+    {
+        Func<int> del = AddLocal;
+
+        static int AddLocal()
+        {
+            return [||]x + 1;
+        }
+    }  
+}",
+@"class C
+{
+    void N(int x)
+    {
+        Func<int> del = AddLocal;
+
+        {|Warning:static int AddLocal(int x)
+        {
+            return x + 1;
+        }|}
+    }  
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestNonCamelCaseCapture()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int N(int x)
+    {
+        int Static = 0;
+        return AddLocal();
+
+        static int AddLocal()
+        {
+            return [||]Static + 1;
+        }
+    }  
+}",
+@"class C
+{
+    int N(int x)
+    {
+        int Static = 0;
+        return AddLocal(Static);
+
+        static int AddLocal(int @static)
+        {
+            return @static + 1;
+        }
+    }  
+}",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }
 
