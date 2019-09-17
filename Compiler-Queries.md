@@ -23,17 +23,17 @@ This is a page tracking the queries the compiler team uses to manage our GitHub 
 
 ## Triaged Issues
 - [Bug](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3ABug)
+- [Tenet-Performance](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3ATenet-Performance)
+- [Code Gen Quality](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3A%22Code+Gen+Quality%22)
+- [Investigation Required](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3A%22Investigation+Required%22)
+- [Investigating](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3AInvestigating)
+- [Feature](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3A%22Feature+Request%22)
+- [Question](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3AQuestion)
 - [Test](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3ATest)
 - [Story](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3AStory)
 - [Documentation](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3ADocumentation)
-- [Feature](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3A%22Feature+Request%22)
-- [Question](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3AQuestion)
-- [Investigation Required](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3A%22Investigation+Required%22)
-- [Investigating](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3AInvestigating)
 - [Need More Info](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3A%22Need+More+Info%22)
 - [Blocked](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3ABlocked)
-- [Tenet-Performance](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3ATenet-Performance)
-- [Code Gen Quality](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3AArea-Compilers+label%3A%22Code+Gen+Quality%22)
 
 ## Release Specific
 - [16.4](https://github.com/dotnet/roslyn/issues?utf8=✓&q=is%3Aopen+is%3Aissue+milestone%3A16.4+label%3AArea-Compilers+-label%3Adocumentation)
