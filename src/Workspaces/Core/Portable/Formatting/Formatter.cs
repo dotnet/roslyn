@@ -362,7 +362,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             return aggregateSpans;
         }
 
-        public static Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
+        /// <summary>
+        /// Organizes the imports in the document.
+        /// </summary>
+        /// <param name="document">The document to organize.</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>The document with organized imports.</returns>
+        public static Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken = default)
         {
             var organizeImportsService = document.GetLanguageService<IOrganizeImportsService>();
             if (organizeImportsService is null)
