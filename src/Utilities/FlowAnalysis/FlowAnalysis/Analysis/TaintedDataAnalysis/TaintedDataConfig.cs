@@ -204,10 +204,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return ZipSlipSources.SourceInfos;
 
                 case SinkKind.HardcodedEncryptionKey:
-                    return HardcodedEncryptionKeySources.SourceInfos;
+                    return HardcodedBytesSources.SourceInfos;
 
                 case SinkKind.HardcodedCertificate:
-                    return HardcodedCertificateSources.SourceInfos;
+                    return HardcodedCertificateSources.SourceInfos.AddRange(HardcodedBytesSources.SourceInfos);
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");

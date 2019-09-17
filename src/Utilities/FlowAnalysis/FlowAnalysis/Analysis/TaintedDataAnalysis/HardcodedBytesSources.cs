@@ -7,17 +7,17 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    internal static class HardcodedEncryptionKeySources
+    internal static class HardcodedBytesSources
     {
         /// <summary>
-        /// <see cref="SourceInfo"/>s for hardcoded key tainted data sources.
+        /// <see cref="SourceInfo"/>s for hardcoded certificate tainted data sources.
         /// </summary>
         public static ImmutableHashSet<SourceInfo> SourceInfos { get; }
 
         /// <summary>
         /// Statically constructs.
         /// </summary>
-        static HardcodedEncryptionKeySources()
+        static HardcodedBytesSources()
         {
             var builder = PooledHashSet<SourceInfo>.GetInstance();
 
