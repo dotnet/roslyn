@@ -54,12 +54,12 @@
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
-        <target state="new">R&amp;emove and Sort Usings</target>
+        <target state="translated">Ri&amp;muovi e ordina using</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Usings">
         <source>&amp;Sort Usings</source>
-        <target state="new">&amp;Sort Usings</target>
+        <target state="translated">Or&amp;dina using</target>
         <note />
       </trans-unit>
       <trans-unit id="Space_preferences">

@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Imports">
         <source>R&amp;emove and Sort Imports</source>
-        <target state="new">R&amp;emove and Sort Imports</target>
+        <target state="translated">Import-Direktiven &amp;entfernen und sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Imports">
         <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
+        <target state="translated">Importe &amp;sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="event_">

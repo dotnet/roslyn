@@ -54,12 +54,12 @@
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
-        <target state="new">R&amp;emove and Sort Usings</target>
+        <target state="translated">У&amp;далить и отсортировать директивы using</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Usings">
         <source>&amp;Sort Usings</source>
-        <target state="new">&amp;Sort Usings</target>
+        <target state="translated">&amp;Сортировать директивы using</target>
         <note />
       </trans-unit>
       <trans-unit id="Space_preferences">
