@@ -363,6 +363,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public static Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
-            => document.GetLanguageService<IOrganizeImportsService>().OrganizeImportsAsync(document, cancellationToken);
+        {
+            var organizeImportsService = document.GetLanguageService<IOrganizeImportsService>();
+            if (organizeImportsService is null)
+            {
+                return SpecializedTasks.FromResult(document);
+            }
+
+            return organizeImportsService.OrganizeImportsAsync(document, cancellationToken);
+        }
     }
 }
