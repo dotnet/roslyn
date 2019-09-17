@@ -95,11 +95,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly ReadOnlyCollection<string> FormatSpecifiers;
         public readonly string ChildFullNamePrefix;
         public readonly DkmEvaluationResultCategory Category;
-        public readonly DkmEvaluationResultFlags Flags;
         public readonly string EditableValue;
         public readonly DkmInspectionContext InspectionContext;
-        public readonly bool CanFavorite;
         public readonly bool IsFavorite;
+        public DkmEvaluationResultFlags Flags { get; private set; }
+        public bool CanFavorite { get; private set; }
 
         public string FullName
         {
@@ -197,6 +197,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 FullNameWithoutFormatSpecifiers,
                 ChildFullNamePrefix,
                 FormatSpecifiers);
+        }
+
+        internal void DisableCanAddFavorite()
+        {
+            CanFavorite = false;
+            Flags &= ~DkmEvaluationResultFlags.CanFavorite;
         }
 
         private static DkmEvaluationResultFlags GetFlags(DkmClrValue value, DkmInspectionContext inspectionContext, Expansion expansion, bool canFavorite, bool isFavorite)

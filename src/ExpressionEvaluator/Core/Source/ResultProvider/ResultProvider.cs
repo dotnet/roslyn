@@ -533,7 +533,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmEvaluationResultFlags flags,
             DkmEvaluationFlags evalFlags,
             bool canFavorite,
-            bool isFavorite)
+            bool isFavorite,
+            bool supportsFavorites)
         {
             if ((evalFlags & DkmEvaluationFlags.ShowValueRaw) != 0)
             {
@@ -601,7 +602,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     expansion = value.HasExceptionThrown()
                         ? this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(value.Type), value, expansionFlags, supportsFavorites: false)
-                        : this.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, expansionFlags, supportsFavorites: true);
+                        : this.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, expansionFlags, supportsFavorites: supportsFavorites);
                 }
             }
 
@@ -759,7 +760,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         flags: value.EvalFlags,
                         evalFlags: inspectionContext.EvaluationFlags,
                         canFavorite: favortiesDataItem?.CanFavorite ?? false,
-                        isFavorite: favortiesDataItem?.IsFavorite ?? false);
+                        isFavorite: favortiesDataItem?.IsFavorite ?? false,
+                        supportsFavorites: true);
                     GetResultAndContinue(dataItem, workList, declaredType, declaredTypeInfo, inspectionContext, useDebuggerDisplay, completionRoutine);
                 }
             }
@@ -779,6 +781,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (value.TryGetDebuggerDisplayInfo(out DebuggerDisplayInfo displayInfo))
             {
                 void onException(Exception e) => completionRoutine(CreateEvaluationResultFromException(e, result, inspectionContext));
+
+                if (displayInfo.Name != null)
+                {
+                    // Favorites currently dependes on the name matching the member name
+                    result.DisableCanAddFavorite();
+                }
 
                 var innerWorkList = workList.InnerWorkList;
                 EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, displayInfo.Name,

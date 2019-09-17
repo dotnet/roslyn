@@ -93,7 +93,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 flags: element.EvalFlags,
                 evalFlags: inspectionContext.EvaluationFlags,
                 canFavorite: false,
-                isFavorite: false);
+                isFavorite: false,
+                supportsFavorites: true);
         }
 
         private int[] GetIndices(int index)

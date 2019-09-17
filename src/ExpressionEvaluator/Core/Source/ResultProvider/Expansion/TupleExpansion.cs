@@ -171,7 +171,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 flags: flags,
                 evalFlags: DkmEvaluationFlags.None,
                 canFavorite: false,
-                isFavorite: false);
+                isFavorite: false,
+                supportsFavorites: true);
         }
 
         private static DkmClrValue GetValueAndFullName(

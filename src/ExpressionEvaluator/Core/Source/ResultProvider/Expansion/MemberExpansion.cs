@@ -322,7 +322,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 memberValue,
                 parent,
                 customTypeInfoMap,
-                ExpansionFlags.All);
+                ExpansionFlags.All,
+                supportsFavorites: true);
         }
 
         /// <summary>
@@ -462,7 +463,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrValue memberValue,
             EvalResultDataItem parent,
             CustomTypeInfoTypeArgumentMap customTypeInfoMap,
-            ExpansionFlags flags)
+            ExpansionFlags flags,
+            bool supportsFavorites)
         {
             var fullNameProvider = resultProvider.FullNameProvider;
             var declaredType = member.Type;
@@ -507,7 +509,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 flags: memberValue.EvalFlags,
                 evalFlags: DkmEvaluationFlags.None,
                 canFavorite: member.CanFavorite,
-                isFavorite: member.IsFavorite);
+                isFavorite: member.IsFavorite,
+                supportsFavorites: supportsFavorites);
         }
 
         private static string MakeFullName(
