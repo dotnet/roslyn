@@ -39,12 +39,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new PatchService(),
                    new DatabaseFactoryService(),
                    // Report all exceptions we encounter, but don't crash on them.
-                   FatalError.ReportWithoutCrash,
-                   // In non-test scenarios, we're not cancellable.  Our lifetime will simply be
-                   // that of the OOP process itself.  i.e. when it goes away, it will just tear
-                   // down our update-loop itself.  So we don't need any additional controls over
-                   // it.
-                   testCancellationToken: CancellationToken.None)
+                   FatalError.ReportWithoutCrash)
         {
         }
 
@@ -59,8 +54,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             IIOService ioService,
             IPatchService patchService,
             IDatabaseFactoryService databaseFactoryService,
-            Func<Exception, bool> reportAndSwallowException,
-            CancellationToken testCancellationToken)
+            Func<Exception, bool> reportAndSwallowException)
         {
             _delayService = delayService;
             _ioService = ioService;
@@ -70,8 +64,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
             _reportAndSwallowException = reportAndSwallowException;
-
-            _testCancellationToken = testCancellationToken;
         }
 
         public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(

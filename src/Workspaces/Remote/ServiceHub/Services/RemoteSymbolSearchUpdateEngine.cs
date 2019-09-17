@@ -28,7 +28,10 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(() =>
             {
-                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
+                // In non-test scenarios, we're not cancellable.  Our lifetime will simply be that
+                // of the OOP process itself.  i.e. when it goes away, it will just tear down our
+                // update-loop itself.  So we don't need any additional controls over it.
+                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, CancellationToken.None);
             }, CancellationToken.None);
         }
 
