@@ -55991,5 +55991,784 @@ interface I5 : I3, I1
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1);
         }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_33()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    interface I2
+    {
+    }
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (10,15): warning CS0108: 'I3.I2' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     interface I2
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2").WithLocation(10, 15),
+                // (23,22): warning CS0108: 'C3.I4' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public interface I4
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4").WithLocation(23, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_34()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+    }
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    new public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_35()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I2();
+}
+
+interface I3 : I1
+{
+    interface I2
+    {
+    }
+}
+
+class C1
+{
+    public void I4()
+    { }
+}
+
+class C3 : C1
+{
+    public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (9,15): warning CS0108: 'I3.I2' hides inherited member 'I1.I2()'. Use the new keyword if hiding was intended.
+                //     interface I2
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2()").WithLocation(9, 15),
+                // (22,22): warning CS0108: 'C3.I4' hides inherited member 'C1.I4()'. Use the new keyword if hiding was intended.
+                //     public interface I4
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4()").WithLocation(22, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_36()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I2();
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+    }
+}
+
+class C1
+{
+    public void I4()
+    { }
+}
+
+class C3 : C1
+{
+    new public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_37()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    {
+    }
+}
+
+interface I3 : I1
+{
+    void I2();
+}
+
+class C1
+{
+    public interface I4
+    {
+    }
+}
+
+class C3 : C1
+{
+    public void I4()
+    { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (11,10): warning CS0108: 'I3.I2()' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     void I2();
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2()", "I1.I2").WithLocation(11, 10),
+                // (23,17): warning CS0108: 'C3.I4()' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public void I4()
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4()", "C1.I4").WithLocation(23, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_38()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    {
+    }
+}
+
+interface I3 : I1
+{
+    new void I2();
+}
+
+class C1
+{
+    public interface I4
+    {
+    }
+}
+
+class C3 : C1
+{
+    new public void I4()
+    { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_39()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 0;
+}
+
+interface I3 : I1
+{
+    static int I2 = 1;
+}
+
+class C1
+{
+    public static int I4 = 2;
+}
+
+class C3 : C1
+{
+    public static int I4 = 3;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (9,16): warning CS0108: 'I3.I2' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     static int I2 = 1;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2").WithLocation(9, 16),
+                // (19,23): warning CS0108: 'C3.I4' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public static int I4 = 3;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4").WithLocation(19, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_40()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 0;
+}
+
+interface I3 : I1
+{
+    new static int I2 = 1;
+}
+
+class C1
+{
+    public static int I4 = 2;
+}
+
+class C3 : C1
+{
+    new public static int I4 = 3;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_41()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I2();
+}
+
+interface I3 : I1
+{
+    static int I2 = 0;
+}
+
+class C1
+{
+    public void I4()
+    { }
+}
+
+class C3 : C1
+{
+    public static int I4 = 1;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (9,16): warning CS0108: 'I3.I2' hides inherited member 'I1.I2()'. Use the new keyword if hiding was intended.
+                //     static int I2 = 0;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2()").WithLocation(9, 16),
+                // (20,23): warning CS0108: 'C3.I4' hides inherited member 'C1.I4()'. Use the new keyword if hiding was intended.
+                //     public static int I4 = 1;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4()").WithLocation(20, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_42()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I2();
+}
+
+interface I3 : I1
+{
+    new static int I2 = 0;
+}
+
+class C1
+{
+    public void I4()
+    { }
+}
+
+class C3 : C1
+{
+    new public static int I4 = 1;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_43()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 0;
+}
+
+interface I3 : I1
+{
+    void I2();
+}
+
+class C1
+{
+    public static int I4 = 1;
+}
+
+class C3 : C1
+{
+    public void I4()
+    { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (9,10): warning CS0108: 'I3.I2()' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     void I2();
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2()", "I1.I2").WithLocation(9, 10),
+                // (19,17): warning CS0108: 'C3.I4()' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public void I4()
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4()", "C1.I4").WithLocation(19, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_44()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 0;
+}
+
+interface I3 : I1
+{
+    new void I2();
+}
+
+class C1
+{
+    public static int I4 = 1;
+}
+
+class C3 : C1
+{
+    new public void I4()
+    { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_45()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    interface I2<T>
+    {
+    }
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    public interface I4<T>
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_46()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new interface I2<T>
+    {
+    }
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    public new interface I4<T>
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (10,19): warning CS0109: The member 'I3.I2<T>' does not hide an accessible member. The new keyword is not required.
+                //     new interface I2<T>
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "I2").WithArguments("I3.I2<T>").WithLocation(10, 19),
+                // (23,26): warning CS0109: The member 'C3.I4<T>' does not hide an accessible member. The new keyword is not required.
+                //     public new interface I4<T>
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "I4").WithArguments("C3.I4<T>").WithLocation(23, 26)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_47()
+        {
+            var source1 =
+@"
+interface I1<T>
+{
+    interface I2
+    { }
+
+    interface I2<U>
+    { }
+}
+
+interface I3 : I1<int>
+{
+    interface I2
+    {
+    }
+}
+
+class C1<T>
+{
+    public interface I4
+    { }
+
+    public interface I4<U>
+    { }
+}
+
+class C3 : C1<int>
+{
+    public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (13,15): warning CS0108: 'I3.I2' hides inherited member 'I1<int>.I2'. Use the new keyword if hiding was intended.
+                //     interface I2
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1<int>.I2").WithLocation(13, 15),
+                // (29,22): warning CS0108: 'C3.I4' hides inherited member 'C1<int>.I4'. Use the new keyword if hiding was intended.
+                //     public interface I4
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1<int>.I4").WithLocation(29, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_48()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 1;
+}
+
+interface I3 : I1
+{
+    interface I2
+    {
+    }
+}
+
+class C1
+{
+    public static int I4 = 2;
+}
+
+class C3 : C1
+{
+    public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (9,15): warning CS0108: 'I3.I2' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     interface I2
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2").WithLocation(9, 15),
+                // (21,22): warning CS0108: 'C3.I4' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public interface I4
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4").WithLocation(21, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_49()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static int I2 = 1;
+}
+
+interface I3 : I1
+{
+    new interface I2
+    {
+    }
+}
+
+class C1
+{
+    public static int I4 = 2;
+}
+
+class C3 : C1
+{
+    new public interface I4
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_50()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    static int I2 = 0;
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    public static int I4 = 2;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (10,16): warning CS0108: 'I3.I2' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
+                //     static int I2 = 0;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I2").WithArguments("I3.I2", "I1.I2").WithLocation(10, 16),
+                // (21,23): warning CS0108: 'C3.I4' hides inherited member 'C1.I4'. Use the new keyword if hiding was intended.
+                //     public static int I4 = 2;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I4").WithArguments("C3.I4", "C1.I4").WithLocation(21, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem(38711, "https://github.com/dotnet/roslyn/issues/38711")]
+        public void NestedTypes_51()
+        {
+            var source1 =
+@"
+interface I1
+{
+    interface I2
+    { }
+}
+
+interface I3 : I1
+{
+    new static int I2 = 0;
+}
+
+class C1
+{
+    public interface I4
+    { }
+}
+
+class C3 : C1
+{
+    new public static int I4 = 2;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
     }
 }
