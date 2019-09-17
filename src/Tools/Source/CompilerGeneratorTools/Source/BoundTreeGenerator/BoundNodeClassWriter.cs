@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
@@ -991,7 +992,8 @@ namespace BoundTreeGenerator
 
         private static bool TypeIsTypeSymbol(Field field) => field.Type.TrimEnd('?') == "TypeSymbol";
 
-        private static bool TypeIsSymbol(Field field) => field.Type.TrimEnd('?').EndsWith("Symbol");
+        private static bool TypeIsSymbol(Field field) => TypeIsSymbol(field.Type);
+        private static bool TypeIsSymbol(string type) => type.TrimEnd('?').EndsWith("Symbol");
 
         private string StripBound(string name)
         {
@@ -1200,7 +1202,7 @@ namespace BoundTreeGenerator
                                     Write("new TreeDumperNode(\"{0}\", null, new TreeDumperNode[] {{ Visit(node.{1}, null) }})", ToCamelCase(field.Name), field.Name);
                                 else if (IsListOfDerived("BoundNode", field.Type))
                                 {
-                                    if (IsImmutableArray(field.Type) && FieldNullHandling(node, field.Name) == NullHandling.Disallow)
+                                    if (IsImmutableArray(field.Type, out _) && FieldNullHandling(node, field.Name) == NullHandling.Disallow)
                                     {
                                         Write("new TreeDumperNode(\"{0}\", null, from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
                                     }
@@ -1511,6 +1513,10 @@ namespace BoundTreeGenerator
                                         {
                                             return $"GetUpdatedSymbol(node, node.{field.Name})";
                                         }
+                                        else if (IsImmutableArray(field.Type, out var arrayType) && TypeIsSymbol(arrayType) && typeIsUpdated(arrayType))
+                                        {
+                                            return $"GetUpdatedArray(node, node.{field.Name})";
+                                        }
                                         else
                                         {
                                             return $"node.{field.Name}";
@@ -1529,7 +1535,12 @@ namespace BoundTreeGenerator
 
                                 if (f.Name == "Type") return false;
 
-                                switch (f.Type.TrimEnd('?'))
+                                return typeIsUpdated(f.Type);
+                            }
+
+                            static bool typeIsUpdated(string type)
+                            {
+                                switch (type.TrimEnd('?'))
                                 {
                                     case "LocalSymbol":
                                     case "LabelSymbol":
@@ -1563,17 +1574,23 @@ namespace BoundTreeGenerator
             return IsNodeList(derivedType) && IsDerivedType(baseType, GetElementType(derivedType));
         }
 
-        private bool IsImmutableArray(string typeName)
+        private bool IsImmutableArray(string typeName, out string arrayType)
         {
-            switch (_targetLang)
+            string immutableArrayPrefix = _targetLang switch
             {
-                case TargetLanguage.CSharp:
-                    return typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal);
-                case TargetLanguage.VB:
-                    return typeName.StartsWith("ImmutableArray(Of", StringComparison.OrdinalIgnoreCase);
-                default:
-                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+                TargetLanguage.CSharp => "ImmutableArray<",
+                TargetLanguage.VB => "ImmutableArray(Of ",
+                _ => throw new InvalidOperationException($"Unknown target language {_targetLang}")
+            };
+
+            if (typeName.StartsWith(immutableArrayPrefix, StringComparison.Ordinal))
+            {
+                arrayType = typeName[immutableArrayPrefix.Length..^1];
+                return true;
             }
+
+            arrayType = null;
+            return false;
         }
 
         private bool IsNodeList(string typeName)
