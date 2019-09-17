@@ -14012,7 +14012,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A possible null value may not be passed to a target marked with the [DisallowNull] attribute.
+        ///   Looks up a localized string similar to A possible null value may not be assigned to a target marked with the [DisallowNull] attribute.
         /// </summary>
         internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment {
             get {
@@ -14021,7 +14021,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A possible null value may not be passed to a target marked with the [DisallowNull] attribute.
+        ///   Looks up a localized string similar to A possible null value may not be assigned to a target marked with the [DisallowNull] attribute.
         /// </summary>
         internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title {
             get {
@@ -14287,6 +14287,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_ExplicitImplCollision_Title {
             get {
                 return ResourceManager.GetString("WRN_ExplicitImplCollision_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A member returning a [MaybeNull] value introduces a null value when &apos;{0}&apos; is a non-nullable reference type..
+        /// </summary>
+        internal static string WRN_ExpressionMayIntroduceNullT {
+            get {
+                return ResourceManager.GetString("WRN_ExpressionMayIntroduceNullT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A member returning a [MaybeNull] value introduces a null value for a type parameter..
+        /// </summary>
+        internal static string WRN_ExpressionMayIntroduceNullT_Title {
+            get {
+                return ResourceManager.GetString("WRN_ExpressionMayIntroduceNullT_Title", resourceCulture);
             }
         }
         
