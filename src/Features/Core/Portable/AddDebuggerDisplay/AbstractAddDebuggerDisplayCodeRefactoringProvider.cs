@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
+            var debuggerAttributeTypeSymbol = semanticModel.Compilation.GetTypeByMetadataName("System.Diagnostics.DebuggerDisplayAttribute");
+            if (debuggerAttributeTypeSymbol is null) return;
+
             var typeSymbol = (ITypeSymbol)semanticModel.GetDeclaredSymbol(type, context.CancellationToken);
 
             if (IsClassOrStruct(typeSymbol) && !HasDebuggerDisplayAttribute(typeSymbol, semanticModel.Compilation))
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 context.RegisterRefactoring(new MyCodeAction(
                     priority,
                     FeaturesResources.Add_DebuggerDisplay,
-                    cancellationToken => ApplyAsync(context.Document, type, cancellationToken)));
+                    cancellationToken => ApplyAsync(context.Document, type, debuggerAttributeTypeSymbol, cancellationToken)));
             }
         }
 
@@ -94,7 +97,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 .Contains(compilation.GetTypeByMetadataName("System.Diagnostics.DebuggerDisplayAttribute"));
         }
 
-        private async Task<Document> ApplyAsync(Document document, TTypeDeclarationSyntax type, CancellationToken cancellationToken)
+        private async Task<Document> ApplyAsync(Document document, TTypeDeclarationSyntax type, INamedTypeSymbol debuggerAttributeTypeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             var editor = new SyntaxEditor(syntaxRoot, generator);
 
             var newAttribute = generator
-                .Attribute("System.Diagnostics.DebuggerDisplayAttribute", semanticModel.Compilation, generator.LiteralExpression("{" + DebuggerDisplayMethodName + "(),nq}"))
+                .Attribute(generator.TypeExpression(debuggerAttributeTypeSymbol), new[] { generator.LiteralExpression("{" + DebuggerDisplayMethodName + "(),nq}") })
                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
             editor.AddAttribute(type, newAttribute);
