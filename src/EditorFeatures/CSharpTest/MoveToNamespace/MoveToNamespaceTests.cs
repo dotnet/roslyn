@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.MoveToNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MoveToNamespace;
@@ -1112,5 +1110,59 @@ class MyClass
 
             Assert.Empty(actions);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        public Task MoveToNamespace_MoveOnlyTypeInGlobalNamespace()
+        => TestMoveToNamespaceAsync(
+@"class MyClass[||]
+{
+}",
+expectedMarkup: @"namespace {|Warning:A|}
+{
+    class MyClass
+    {
+    }
+}",
+targetNamespace: "A",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"MyClass", "A.MyClass" }
+});
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        public async Task MoveToNamespace_MoveOnlyTypeToGlobalNamespace()
+        {
+            // We will not get "" as target namespace in VS, but the refactoring should be able
+            // to handle it w/o crashing.
+            await TestMoveToNamespaceAsync(
+
+  @"namespace A
+    class MyClass[||]
+    {
+    }
+}",
+  expectedMarkup: @"namespace A
+{
+    class MyClass
+    {
+    }
+}",
+      targetNamespace: "");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        public Task MoveToNamespace_MoveOneTypeInGlobalNamespace()
+            => TestMoveToNamespaceAsync(
+@"class MyClass1[||]
+{
+}
+
+class MyClass2
+{
+}",
+    expectedSuccess: false);
     }
 }

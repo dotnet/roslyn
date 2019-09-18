@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
@@ -25,10 +26,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         IMoveToNamespaceOptionsService OptionsService { get; }
     }
 
-    internal abstract class AbstractMoveToNamespaceService<TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
+    internal abstract class AbstractMoveToNamespaceService<TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax, TCompilationUnitSyntax>
         : IMoveToNamespaceService
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TNamedTypeDeclarationSyntax : SyntaxNode
+        where TCompilationUnitSyntax : SyntaxNode
 
     {
         protected abstract string GetNamespaceName(TNamespaceDeclarationSyntax namespaceSyntax);
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 return null;
             }
 
-            if (ContainsNamespaceDeclaration(declarationSyntax) || ContainsMultipleNamespaceInSpine(declarationSyntax))
+            if (ContainsNamespaceDeclaration(declarationSyntax) || GetNamespaceInSpineCount(declarationSyntax) > 1)
             {
                 return MoveToNamespaceAnalysisResult.Invalid;
             }
@@ -107,10 +109,24 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         private async Task<MoveToNamespaceAnalysisResult> TryAnalyzeNamedTypeAsync(
             Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
+            var namespaceInSpineCount = GetNamespaceInSpineCount(node);
+
             // Multiple nested namespaces are currently not supported
-            if (ContainsMultipleNamespaceInSpine(node) || ContainsMultipleTypesInSpine(node))
+            if (namespaceInSpineCount > 1 || ContainsMultipleTypesInSpine(node))
             {
                 return MoveToNamespaceAnalysisResult.Invalid;
+            }
+
+            // Moving one of the many members declared in global namespace is not currently supported
+            if (namespaceInSpineCount == 0)
+            {
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+                if (syntaxFacts.GetMembersOfCompilationUnit(root).Count > 1)
+                {
+                    return MoveToNamespaceAnalysisResult.Invalid;
+                }
             }
 
             if (node is TNamedTypeDeclarationSyntax namedTypeDeclarationSyntax)
@@ -126,8 +142,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         private bool ContainsNamespaceDeclaration(SyntaxNode node)
             => node.DescendantNodes().OfType<TNamespaceDeclarationSyntax>().Any();
 
-        private static bool ContainsMultipleNamespaceInSpine(SyntaxNode node)
-            => node.AncestorsAndSelf().OfType<TNamespaceDeclarationSyntax>().Count() > 1;
+        private static int GetNamespaceInSpineCount(SyntaxNode node)
+            => node.AncestorsAndSelf().OfType<TNamespaceDeclarationSyntax>().Count();
 
         private static bool ContainsMultipleTypesInSpine(SyntaxNode node)
             => node.AncestorsAndSelf().OfType<TNamedTypeDeclarationSyntax>().Count() > 1;
@@ -153,17 +169,35 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             }
         }
 
+        private static async Task<ImmutableArray<ISymbol>> GetMemberSymbolsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            switch (container)
+            {
+                case TNamespaceDeclarationSyntax namespaceNode:
+                    var containerSymbol = (INamespaceSymbol)semanticModel.GetDeclaredSymbol(container);
+                    return containerSymbol.GetMembers().SelectAsArray(m => (ISymbol)m);
+
+                case TCompilationUnitSyntax compilationUnit:
+                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                    var members = syntaxFacts.GetMembersOfCompilationUnit(compilationUnit);
+                    Debug.Assert(members.Count == 1);
+                    return members.SelectAsArray(member => semanticModel.GetDeclaredSymbol(member));
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(container);
+            }
+        }
+
         private static async Task<MoveToNamespaceResult> MoveItemsInNamespaceAsync(
             Document document,
             SyntaxNode container,
             string targetNamespace,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var containerSymbol = (INamespaceSymbol)semanticModel.GetDeclaredSymbol(container);
-            var members = containerSymbol.GetMembers();
-            var newNameOriginalSymbolMapping = members
-                .ToImmutableDictionary(symbol => GetNewSymbolName(symbol, targetNamespace), symbol => (ISymbol)symbol);
+            var memberSymbols = await GetMemberSymbolsAsync(document, container, cancellationToken).ConfigureAwait(false);
+            var newNameOriginalSymbolMapping = memberSymbols
+                .ToImmutableDictionary(symbol => GetNewSymbolName(symbol, targetNamespace), symbol => symbol);
 
             var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
             if (changeNamespaceService == null)
@@ -172,7 +206,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             }
 
             var originalSolution = document.Project.Solution;
-            var typeDeclarationsInContainer = container.DescendantNodes(syntaxNode => syntaxNode is TNamedTypeDeclarationSyntax).ToImmutableArray();
 
             var changedSolution = await changeNamespaceService.ChangeNamespaceAsync(
                 document,
@@ -211,7 +244,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             var syntaxNode = syntaxRoot.GetAnnotatedNodes(AbstractMoveTypeService.NamespaceScopeMovedAnnotation).SingleOrDefault();
             if (syntaxNode == null)
             {
-                syntaxNode = container.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>();
+                // The type might be declared in global namespace
+                syntaxNode = container.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>() ?? syntaxRoot;
             }
 
             return await MoveItemsInNamespaceAsync(
@@ -223,8 +257,13 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         private static string GetNewSymbolName(ISymbol symbol, string targetNamespace)
         {
-            Debug.Assert(symbol != null);
-            return targetNamespace + symbol.ToDisplayString().Substring(symbol.ContainingNamespace.ToDisplayString().Length);
+            Debug.Assert(symbol != null && !string.IsNullOrEmpty(targetNamespace));
+
+            var offset = symbol.ContainingNamespace.IsGlobalNamespace
+                ? 0
+                : symbol.ContainingNamespace.ToDisplayString().Length + 1;
+
+            return $"{targetNamespace}.{symbol.ToDisplayString().Substring(offset)}";
         }
 
         private static readonly SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(
