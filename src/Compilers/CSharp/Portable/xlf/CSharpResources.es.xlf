@@ -1376,13 +1376,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">No se puede pasar un posible valor NULL a un destino marcado con el atributo [DisallowNull]</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">No se puede pasar un posible valor NULL a un destino marcado con el atributo [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">No se puede pasar un posible valor NULL a un destino marcado con el atributo [DisallowNull]</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">No se puede pasar un posible valor NULL a un destino marcado con el atributo [DisallowNull]</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1393,6 +1393,16 @@
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
         <source>Interface is already listed in the interface list with different nullability of reference types.</source>
         <target state="translated">La interfaz ya está en la lista de interfaces con una nulabilidad diferente de los tipos de referencia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExpressionMayIntroduceNullT">
+        <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
+        <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
+        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1493,6 +1503,16 @@
       <trans-unit id="WRN_NullReferenceAssignment_Title">
         <source>Possible null reference assignment.</source>
         <target state="translated">Posible asignación de referencia nula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer">
+        <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer_Title">
+        <source>Object or collection initializer implicitly dereferences possibly null member.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">

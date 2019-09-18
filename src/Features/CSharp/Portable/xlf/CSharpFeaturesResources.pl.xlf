@@ -112,6 +112,11 @@
         <target state="translated">Ustaw jako „ref struct”</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Pass_in_captured_variables_as_arguments">
+        <source>Pass in captured variables as arguments</source>
+        <target state="new">Pass in captured variables as arguments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">Usuń niepotrzebne rzutowania</target>
@@ -160,6 +165,11 @@
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="new">Warning: Inlining temporary into conditional method call.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
+        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
+        <target state="new">Warning: Adding parameters to local function declaration may produce invalid code.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">

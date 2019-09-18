@@ -625,6 +625,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
         }
 
+        public static bool Equals(Symbol first, Symbol second, TypeCompareKind compareKind)
+        {
+            if (first is null)
+            {
+                return second is null;
+            }
+
+            return first.Equals(second, compareKind);
+        }
+
         /// <summary>
         /// Returns a string representation of this symbol, suitable for debugging purposes, or
         /// for placing in an error message.
