@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            var cycleGuard = ImmutableHashSet.Create(type.OriginalDefinition);
+            var cycleGuard = ConsList<NamedTypeSymbol>.Empty.Prepend(type.OriginalDefinition);
 
             // Consumers of the result depend on the sorting performed by AllInterfacesWithDefinitionUseSiteDiagnostics.
             // Let's use similar sort algorithm.
@@ -972,17 +972,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result.ToImmutableAndFree();
 
-            static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result, ConsList<TypeSymbol> basesBeingResolved, ImmutableHashSet<NamedTypeSymbol> cycleGuard)
+            static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result, ConsList<TypeSymbol> basesBeingResolved, ConsList<NamedTypeSymbol> cycleGuard)
             {
-                if (@interface.IsInterface && !cycleGuard.Contains(@interface.OriginalDefinition) && visited.Add(@interface))
+                NamedTypeSymbol originalDefinition;
+
+                if (@interface.IsInterface && !cycleGuard.ContainsReference(originalDefinition = @interface.OriginalDefinition) && visited.Add(@interface))
                 {
-                    if (!basesBeingResolved.ContainsReference(@interface.OriginalDefinition))
+                    if (!basesBeingResolved.ContainsReference(originalDefinition))
                     {
                         ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.GetDeclaredInterfaces(basesBeingResolved);
 
                         if (!baseInterfaces.IsEmpty)
                         {
-                            cycleGuard = cycleGuard.Add(@interface.OriginalDefinition);
+                            cycleGuard = cycleGuard.Prepend(originalDefinition);
                             for (int i = baseInterfaces.Length - 1; i >= 0; i--)
                             {
                                 var baseInterface = baseInterfaces[i];
