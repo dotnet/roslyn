@@ -3430,6 +3430,7 @@ static class Program
     static void Add(this IAppend x, object y)
     {
         x.Append(y);
+        Console.Write(y);
     }
     static void Main()
     {
@@ -3437,7 +3438,7 @@ static class Program
     }
 }";
             var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "");
+            CompileAndVerify(comp, expectedOutput: "12");
         }
 
         [Fact]
@@ -3464,6 +3465,7 @@ static class Program
     static void Add(this IAppend x, object y)
     {
         x.Append(y);
+        Console.Write(y);
     }
     static T F<T>() where T : IEnumerable, IAppend, new()
     {
@@ -3475,7 +3477,7 @@ static class Program
     }
 }";
             var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "");
+            CompileAndVerify(comp, expectedOutput: "12");
         }
 
         #endregion

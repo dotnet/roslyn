@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundObjectInitializerExpression objectInitializer:
                     return objectInitializer.Update(newInitializers, initializerExpression.Type);
                 case BoundCollectionInitializerExpression collectionInitializer:
-                    return collectionInitializer.Update(collectionInitializer.PlaceholderOpt, newInitializers, initializerExpression.Type);
+                    return collectionInitializer.Update(collectionInitializer.Placeholder, newInitializers, initializerExpression.Type);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(initializerExpression.Kind);
             }
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
 
                 case BoundCollectionInitializerExpression collectionInitializer:
-                    var placeholder = collectionInitializer.PlaceholderOpt;
+                    var placeholder = collectionInitializer.Placeholder;
                     AddPlaceholderReplacement(placeholder, rewrittenReceiver);
                     AddCollectionInitializers(ref dynamicSiteInitializers, result, rewrittenReceiver, collectionInitializer.Initializers);
                     RemovePlaceholderReplacement(placeholder);

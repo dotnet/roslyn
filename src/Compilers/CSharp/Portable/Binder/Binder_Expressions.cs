@@ -4159,7 +4159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.CollectionInitializerExpression:
                     {
-                        var implicitReceiver = new BoundLValuePlaceholder(typeSyntax, type) { WasCompilerGenerated = true };
+                        var implicitReceiver = new BoundCollectionValuePlaceholder(typeSyntax, type) { WasCompilerGenerated = true };
                         return BindCollectionInitializerExpression(syntax, type, diagnostics, implicitReceiver);
                     }
 
@@ -4552,7 +4552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerExpressionSyntax initializerSyntax,
             TypeSymbol initializerType,
             DiagnosticBag diagnostics,
-            BoundLValuePlaceholder implicitReceiver)
+            BoundCollectionValuePlaceholder implicitReceiver)
         {
             // SPEC:    7.6.10.3 Collection initializers
             //
@@ -4637,7 +4637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasEnumerableInitializerType,
             Binder collectionInitializerAddMethodBinder,
             DiagnosticBag diagnostics,
-            BoundLValuePlaceholder implicitReceiver)
+            BoundCollectionValuePlaceholder implicitReceiver)
         {
             // SPEC:    Each element initializer specifies an element to be added to the collection object being initialized, and consists of
             // SPEC:    a list of expressions enclosed by { and } tokens and separated by commas.
@@ -4681,7 +4681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool hasEnumerableInitializerType,
             Binder collectionInitializerAddMethodBinder = null,
-            BoundLValuePlaceholder implicitReceiver = null)
+            BoundCollectionValuePlaceholder implicitReceiver = null)
         {
             var elementInitializerExpressions = elementInitializer.Expressions;
 
@@ -4721,7 +4721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasEnumerableInitializerType,
             Binder collectionInitializerAddMethodBinder,
             DiagnosticBag diagnostics,
-            BoundLValuePlaceholder implicitReceiver)
+            BoundCollectionValuePlaceholder implicitReceiver)
         {
             // SPEC:    For each specified element in order, the collection initializer invokes an Add method on the target object
             // SPEC:    with the expression list of the element initializer as argument list, applying normal overload resolution for each invocation.

@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return PlaceholderReplacement(node);
         }
 
-        public override BoundNode VisitLValuePlaceholder(BoundLValuePlaceholder node)
+        public override BoundNode VisitCollectionValuePlaceholder(BoundCollectionValuePlaceholder node)
         {
             return PlaceholderReplacement(node);
         }

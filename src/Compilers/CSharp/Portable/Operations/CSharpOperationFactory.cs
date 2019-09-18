@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // implicit receiver can be shared between multiple bound nodes.
             // always return cloned one
             if (boundNode.Kind == BoundKind.ImplicitReceiver ||
-                boundNode.Kind == BoundKind.LValuePlaceholder)
+                boundNode.Kind == BoundKind.CollectionValuePlaceholder)
             {
                 return OperationCloner.CloneOperation(CreateInternal(boundNode));
             }
@@ -288,8 +288,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
                 case BoundKind.UsingLocalDeclarations:
                     return CreateUsingLocalDeclarationsOperation((BoundUsingLocalDeclarations)boundNode);
-                case BoundKind.LValuePlaceholder:
-                    return CreateLValuePlaceholderOperation((BoundLValuePlaceholder)boundNode);
+                case BoundKind.CollectionValuePlaceholder:
+                    return CreateCollectionValuePlaceholderOperation((BoundCollectionValuePlaceholder)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -2096,7 +2096,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private IInstanceReferenceOperation CreateLValuePlaceholderOperation(BoundLValuePlaceholder placeholder)
+        private IInstanceReferenceOperation CreateCollectionValuePlaceholderOperation(BoundCollectionValuePlaceholder placeholder)
         {
             InstanceReferenceKind referenceKind = InstanceReferenceKind.ImplicitReceiver;
             SyntaxNode syntax = placeholder.Syntax;
