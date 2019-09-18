@@ -207,6 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
+            if (node is NamespaceDeclarationSyntax && !optionSet.GetOption(CSharpFormattingOptions.IndentNamespace))
+            {
+                // do not add indent operation for namespace
+                return;
+            }
+
             AddIndentBlockOperation(list, bracePair.Item1.GetNextToken(includeZeroWidth: true), bracePair.Item2.GetPreviousToken(includeZeroWidth: true));
         }
 

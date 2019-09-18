@@ -291,6 +291,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 EditorConfigStorageLocation.ForBoolOption("csharp_indent_block_contents"),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentBlock")});
 
+        public static Option<bool> IndentNamespace { get; } = CreateOption(
+            CSharpFormattingOptionGroups.Indentation, nameof(IndentNamespace),
+            defaultValue: IndentBlock.DefaultValue,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolOption("csharp_indent_namespace_contents"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentNamespace")});
+
         public static Option<bool> IndentSwitchSection { get; } = CreateOption(
             CSharpFormattingOptionGroups.Indentation, nameof(IndentSwitchSection),
             defaultValue: true,
