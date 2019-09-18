@@ -880,13 +880,14 @@ Module Program
     <Extension>
     Sub Add(x As IAppend, y As Object)
         x.Append(y)
+        Console.Write(y)
     End Sub
     Sub Main()
         Dim s = New S() From { 1, 2 }
     End Sub
 End Module"
             Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
-            CompileAndVerify(comp, expectedOutput:="")
+            CompileAndVerify(comp, expectedOutput:="12")
         End Sub
 
         <Fact>
@@ -913,6 +914,7 @@ Module Program
     <Extension>
     Sub Add(x As IAppend, y As Object)
         x.Append(y)
+        Console.Write(y)
     End Sub
     Function F(Of T As {IEnumerable, IAppend, New})() As T
         Return New T() From { 1, 2 }
@@ -922,7 +924,7 @@ Module Program
     End Sub
 End Module"
             Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
-            CompileAndVerify(comp, expectedOutput:="")
+            CompileAndVerify(comp, expectedOutput:="12")
         End Sub
     End Class
 End Namespace
