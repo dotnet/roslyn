@@ -634,15 +634,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckNewModifier(Symbol symbol, bool isNew, DiagnosticBag diagnostics)
         {
-            // for error cases
-            if ((object)this.BaseTypeNoUseSiteDiagnostics == null)
-            {
-                return;
-            }
+            Debug.Assert(symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.NamedType);
 
             // Do not give warnings about missing 'new' modifier for implicitly declared members,
             // e.g. backing fields for auto-properties
             if (symbol.IsImplicitlyDeclared)
+            {
+                return;
+            }
+
+            if (symbol.ContainingType.IsInterface)
+            {
+                CheckNonOverrideMember(symbol, isNew,
+                                       OverriddenOrHiddenMembersHelpers.MakeInterfaceOverriddenOrHiddenMembers(symbol, memberIsFromSomeCompilation: true),
+                                       diagnostics, out _);
+                return;
+            }
+
+            // for error cases
+            if ((object)this.BaseTypeNoUseSiteDiagnostics == null)
             {
                 return;
             }
