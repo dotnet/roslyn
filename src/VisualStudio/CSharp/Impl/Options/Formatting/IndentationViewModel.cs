@@ -61,6 +61,16 @@ class MyClass
     }
 }";
 
+        private const string NamespacePreview = @"
+//[
+namespace MyNamespace {
+    class MyClass
+    {
+    }
+
+}
+//]";
+
         private const string GotoLabelPreview = @"
 class MyClass
 {
@@ -80,6 +90,7 @@ class MyClass
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchCaseSection, CSharpVSResources.Indent_case_contents, SwitchCasePreview, this, optionStore));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock, CSharpVSResources.Indent_case_contents_when_block, SwitchCaseWhenBlockPreview, this, optionStore));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchSection, CSharpVSResources.Indent_case_labels, SwitchCasePreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentNamespace, CSharpVSResources.Indent_namespace_contents, NamespacePreview, this, optionStore));
 
             Items.Add(new TextBlock() { Text = CSharpVSResources.Label_Indentation });
 

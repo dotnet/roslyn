@@ -150,6 +150,9 @@
   <data name="Indent_block_contents" xml:space="preserve">
     <value>Indent block contents</value>
   </data>
+  <data name="Indent_namespace_contents" xml:space="preserve">
+    <value>Indent namespace contents</value>
+  </data>
   <data name="Indent_open_and_close_braces" xml:space="preserve">
     <value>Indent open and close braces</value>
   </data>

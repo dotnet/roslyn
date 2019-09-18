@@ -430,6 +430,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indent namespace contents.
+        /// </summary>
+        internal static string Indent_namespace_contents {
+            get {
+                return ResourceManager.GetString("Indent_namespace_contents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Indent open and close braces.
         /// </summary>
         internal static string Indent_open_and_close_braces {

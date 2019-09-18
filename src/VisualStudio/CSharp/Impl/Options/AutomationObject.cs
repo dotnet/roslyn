@@ -199,6 +199,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
         }
 
+        public int Indent_NamespaceContents
+        {
+            get { return GetBooleanOption(CSharpFormattingOptions.IndentNamespace); }
+            set { SetBooleanOption(CSharpFormattingOptions.IndentNamespace, value); }
+        }
+
         public int Indent_UnindentLabels
         {
             get
