@@ -103,13 +103,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly VisitResult VisitResult;
             public readonly Optional<LocalState> StateForLambda;
+            public readonly ParameterSymbol Parameter;
+            public readonly BoundExpression Argument;
             public TypeWithState RValueType => VisitResult.RValueType;
             public TypeWithAnnotations LValueType => VisitResult.LValueType;
 
-            public VisitArgumentResult(VisitResult visitResult, Optional<LocalState> stateForLambda)
+            public VisitArgumentResult(VisitResult visitResult, Optional<LocalState> stateForLambda, ParameterSymbol parameter, BoundExpression argument)
             {
                 VisitResult = visitResult;
                 StateForLambda = stateForLambda;
+                Parameter = parameter;
+                Argument = argument;
             }
         }
 
@@ -3400,7 +3404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (ImmutableArray<BoundExpression> argumentsNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
 
             // Visit the arguments and collect results
-            ImmutableArray<VisitArgumentResult> results = VisitArgumentsEvaluate(argumentsNoConversions, refKindsOpt, parameters, argsToParamsOpt, expanded);
+            ImmutableArray<VisitArgumentResult> results = VisitArgumentsEvaluate(node.Syntax, argumentsNoConversions, refKindsOpt, parameters, argsToParamsOpt, expanded);
 
             // Re-infer method type parameters
             if ((object)method != null && method.IsGenericMethod)
@@ -3423,7 +3427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Visit conversions, inbound assignments including pre-conditions
                 ImmutableHashSet<string> returnNotNullIfParameterNotNull = IsAnalyzingAttribute ? null : method?.ReturnNotNullIfParameterNotNull;
-                for (int i = 0; i < argumentsNoConversions.Length; i++)
+                for (int i = 0; i < results.Length; i++)
                 {
                     (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
                         GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
@@ -3432,11 +3436,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var argumentNoConversion = argumentsNoConversions[i];
+                    // TODO: better way to store the converted and unconverted forms of the argument?
+                    var argumentNoConversion = i < argumentsNoConversions.Length ? argumentsNoConversions[i] : results[i].Argument;
+                    var argument = i < arguments.Length ? arguments[i] : results[i].Argument;
                     VisitArgumentConversionAndInboundAssignmentsAndPreConditions(
-                        GetConversionIfApplicable(arguments[i], argumentNoConversion),
+                        GetConversionIfApplicable(argument, argumentNoConversion),
                         argumentNoConversion,
-                        conversions.IsDefault ? Conversion.Identity : conversions[i],
+                        conversions.IsDefault || i >= conversions.Length ? Conversion.Identity : conversions[i],
                         GetRefKind(refKindsOpt, i),
                         parameter,
                         parameterType,
@@ -3500,26 +3506,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (method, results, shouldReturnNotNull);
         }
 
-        private ImmutableArray<VisitArgumentResult> VisitArgumentsEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, bool expanded)
+        private ImmutableArray<VisitArgumentResult> VisitArgumentsEvaluate(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, bool expanded)
         {
             Debug.Assert(!IsConditionalState);
             int n = arguments.Length;
-            if (n == 0)
+            if (n == 0 && parameters.Length == 0)
             {
                 return ImmutableArray<VisitArgumentResult>.Empty;
             }
-            var builder = ArrayBuilder<VisitArgumentResult>.GetInstance(n);
+            var builder = ArrayBuilder<VisitArgumentResult>.GetInstance(parameters.Length);
             for (int i = 0; i < n; i++)
             {
-                FlowAnalysisAnnotations parameterAnnotations = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded).Annotations;
-                builder.Add(VisitArgumentEvaluate(arguments[i], GetRefKind(refKindsOpt, i), parameterAnnotations));
+                // TODO: put expanded in a params [] (can we do all the analysis we want if we always put the params arguments into an array?)
+                (ParameterSymbol parameter, TypeWithAnnotations _, FlowAnalysisAnnotations parameterAnnotations, bool _) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                builder.Add(VisitArgumentEvaluate(arguments[i], GetRefKind(refKindsOpt, i), parameterAnnotations, parameter));
             }
+
+
+            var previousDisableNullabilityAnalysis = _disableNullabilityAnalysis;
+            _disableNullabilityAnalysis = true;
+            for (int i = n; i < parameters.Length; i++)
+            {
+                // fill in optional arguments
+                // TODO: this isn't compatible with debugVerifier. Either set _disableNullabilityAnalysis to true or push effective arguments up to bind-time.
+                var parameter = parameters[i];
+
+                var annotations = GetCorrespondingParameter(i, parameters, argsToParamsOpt: default, expanded).Annotations;
+                var argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, ThreeState.Unknown, localRewriter: null, _binder, Diagnostics);
+                builder.Add(VisitArgumentEvaluate(argument, RefKind.None, annotations, parameter));
+            }
+            _disableNullabilityAnalysis = previousDisableNullabilityAnalysis;
 
             SetInvalidResult();
             return builder.ToImmutableAndFree();
         }
 
-        private VisitArgumentResult VisitArgumentEvaluate(BoundExpression argument, RefKind refKind, FlowAnalysisAnnotations annotations)
+        private VisitArgumentResult VisitArgumentEvaluate(BoundExpression argument, RefKind refKind, FlowAnalysisAnnotations annotations, ParameterSymbol parameter)
         {
             Debug.Assert(!IsConditionalState);
             var savedState = (argument.Kind == BoundKind.Lambda) ? this.State.Clone() : default(Optional<LocalState>);
@@ -3567,7 +3589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!IsConditionalState);
-            return new VisitArgumentResult(_visitResult, savedState);
+            return new VisitArgumentResult(_visitResult, savedState, parameter, argument);
         }
 
         /// <summary>
@@ -3963,7 +3985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                int parameterOrdinal = argsToParamsOpt[argumentOrdinal];
+                int parameterOrdinal = (argumentOrdinal < argsToParamsOpt.Length) ? argsToParamsOpt[argumentOrdinal] : argumentOrdinal;
 
                 if (parameterOrdinal < n)
                 {
@@ -5926,7 +5948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             VisitArgumentConversionAndInboundAssignmentsAndPreConditions(conversionOpt: null, variable.Expression, underlyingConversion, parameter.RefKind,
-                                parameter, parameter.TypeWithAnnotations, GetParameterAnnotations(parameter), new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
+                                parameter, parameter.TypeWithAnnotations, GetParameterAnnotations(parameter), new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default, parameter, variable.Expression),
                                 extensionMethodThisArgument: false);
                         }
                     }
@@ -5940,7 +5962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             VisitArgumentOutboundAssignmentsAndPostConditions(
                                 variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
-                                new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default), notNullParametersOpt: null);
+                                new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default, parameter, variable.Expression), notNullParametersOpt: null);
                         }
                     }
                 }
@@ -7124,7 +7146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
         {
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
+            VisitArgumentsEvaluate(node.Syntax, node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
             Debug.Assert(node.Type is null);
             SetNotNullResult(node);
             return null;
@@ -7221,7 +7243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType: false);
             }
 
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
+            VisitArgumentsEvaluate(node.Syntax, node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(node.Type.IsReferenceType);
             var result = TypeWithAnnotations.Create(node.Type, NullableAnnotation.Oblivious);
@@ -7253,7 +7275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             var arguments = node.Arguments;
-            var argumentResults = VisitArgumentsEvaluate(arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
+            var argumentResults = VisitArgumentsEvaluate(node.Syntax, arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
             VisitObjectOrDynamicObjectCreation(node, arguments, argumentResults, node.InitializerExpressionOpt);
             return null;
         }
@@ -7334,7 +7356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
             // after indices have been visited, and only if the receiver has not changed.
             _ = CheckPossibleNullReceiver(receiver);
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
+            VisitArgumentsEvaluate(node.Syntax, node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
             Debug.Assert(node.Type.IsDynamic());
             var result = TypeWithAnnotations.Create(node.Type, NullableAnnotation.Oblivious);
             SetLvalueResultType(node, result);
@@ -7400,8 +7422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter,
                 parameter.TypeWithAnnotations,
                 GetParameterAnnotations(parameter),
-                new VisitArgumentResult(new VisitResult(result),
-                stateForLambda: default),
+                new VisitArgumentResult(new VisitResult(result), stateForLambda: default, parameter, expr),
                 extensionMethodThisArgument: true);
         }
 
