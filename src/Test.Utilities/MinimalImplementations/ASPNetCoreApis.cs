@@ -8,7 +8,7 @@ namespace Test.Utilities.MinimalImplementations
 using System;
 using System.Threading.Tasks;
 
-class MyValidateAntiForgeryAttribute : Attribute
+public class MyValidateAntiForgeryAttribute : Attribute
 {
 }
 
@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore
 
             public interface IAuthorizationFilter : IFilterMetadata
             {
-                Task OnAuthorization (AuthorizationFilterContext context);
+                void OnAuthorization (AuthorizationFilterContext context);
             }
         }
         

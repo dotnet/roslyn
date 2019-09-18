@@ -73,5 +73,10 @@ namespace Analyzer.Utilities
         /// Do not use the OR operator to represent the bitwise combination of its member values, use the integeral value directly.
         /// </summary>
         public const string UnsafeDllImportSearchPathBits = "unsafe_DllImportSearchPath_bits";
+
+        /// <summary>
+        /// Boolean option to configure if only look at Controller-derived classes when considering CSRF.
+        /// </summary>
+        public const string OnlyLookAtDerivedClassesOfController = "only_look_at_derived_classes_of_Controller";
     }
 }
