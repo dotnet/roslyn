@@ -114,5 +114,16 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         internal abstract string TryGetRuleSetPathForProject(ProjectId projectId);
+
+        /// <summary>
+        /// Attempts to sync a named type name and namespace based on file path. PreviousFilePath is 
+        /// used to determine how the policy might be applied, assuming that matching types with previous
+        /// indicates a user wants the type to match with the new location or name.
+        /// May fail if:
+        /// - The appropriate type for naming policy cannot be found
+        /// - The type is partial and spread across multiple files
+        /// - The solution changes during the operation
+        /// </summary>
+        public abstract void TrySyncNamedTypeToFilePath(DocumentId documentId, string previousFilePath);
     }
 }
