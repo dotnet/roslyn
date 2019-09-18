@@ -11433,6 +11433,76 @@ class C
             string binaryPath = Path.Combine(dir.Path, "temp.dll");
             Assert.True(File.Exists(binaryPath) == !warnAsError);
         }
+
+        // Currently, configuring no location diagnostics through editorconfig is not supported.
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/38042")]
+        [InlineData(ReportDiagnostic.Error, true)]
+        [InlineData(ReportDiagnostic.Error, false)]
+        [InlineData(ReportDiagnostic.Warn, true)]
+        [InlineData(ReportDiagnostic.Warn, false)]
+        [InlineData(ReportDiagnostic.Info, true)]
+        [InlineData(ReportDiagnostic.Info, false)]
+        [InlineData(ReportDiagnostic.Hidden, true)]
+        [InlineData(ReportDiagnostic.Hidden, false)]
+        [InlineData(ReportDiagnostic.Suppress, true)]
+        [InlineData(ReportDiagnostic.Suppress, false)]
+        public void AnalyzerConfigRespectedForNoLocationDiagnostic(ReportDiagnostic reportDiagnostic, bool isEnabledByDefault)
+        {
+            var analyzer = new AnalyzerWithNoLocationDiagnostics(isEnabledByDefault);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic);
+        }
+
+        [WorkItem(37876, "https://github.com/dotnet/roslyn/issues/37876")]
+        [Theory]
+        [InlineData(ReportDiagnostic.Error, true)]
+        [InlineData(ReportDiagnostic.Error, false)]
+        [InlineData(ReportDiagnostic.Warn, true)]
+        [InlineData(ReportDiagnostic.Warn, false)]
+        [InlineData(ReportDiagnostic.Info, true)]
+        [InlineData(ReportDiagnostic.Info, false)]
+        [InlineData(ReportDiagnostic.Hidden, true)]
+        [InlineData(ReportDiagnostic.Hidden, false)]
+        [InlineData(ReportDiagnostic.Suppress, true)]
+        [InlineData(ReportDiagnostic.Suppress, false)]
+        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault)
+        {
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity);
+        }
+
+        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+[*.cs]
+dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerConfigString()}");
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path },
+                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+
+            var expectedErrorCode = analyzerConfigSeverity == ReportDiagnostic.Error ? 1 : 0;
+            Assert.Equal(expectedErrorCode, exitCode);
+
+            if (analyzerConfigSeverity == ReportDiagnostic.Error || analyzerConfigSeverity == ReportDiagnostic.Warn || analyzerConfigSeverity == ReportDiagnostic.Info)
+            {
+                var prefix = analyzerConfigSeverity == ReportDiagnostic.Error ? "error" : analyzerConfigSeverity == ReportDiagnostic.Warn ? "warning" : "info";
+                Assert.Contains($"{prefix} {descriptor.Id}: {descriptor.MessageFormat}", outWriter.ToString());
+            }
+            else
+            {
+                Assert.DoesNotContain(descriptor.Id.ToString(), outWriter.ToString());
+            }
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

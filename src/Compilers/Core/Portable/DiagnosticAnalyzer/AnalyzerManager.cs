@@ -313,6 +313,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
                 }
+                else if (isEnabledWithAnalyzerConfigOptions(diag.Id, analyzerExecutor.Compilation))
+                {
+                    isSuppressed = false;
+                }
 
                 if (!isSuppressed)
                 {
@@ -332,6 +336,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return true;
+
+            static bool isEnabledWithAnalyzerConfigOptions(string diagnosticId, Compilation compilation)
+            {
+                if (compilation != null)
+                {
+                    foreach (var tree in compilation.SyntaxTrees)
+                    {
+                        if (tree.DiagnosticOptions.TryGetValue(diagnosticId, out var configuredValue) &&
+                            configuredValue != ReportDiagnostic.Suppress)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
         internal static bool HasNotConfigurableTag(IEnumerable<string> customTags)
