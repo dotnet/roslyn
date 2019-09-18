@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
         public const int cmdidStartIntegrationTestService = 0x5201;
         public const int cmdidStopIntegrationTestService = 0x5204;
-        public const int cmdidDisableAsyncCompletion = 0x5203;
 
         public static readonly Guid guidTestWindowCmdSet = new Guid("1E198C22-5980-4E7E-92F3-F73168D1FB63");
         #endregion

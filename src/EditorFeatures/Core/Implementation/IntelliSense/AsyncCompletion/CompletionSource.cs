@@ -436,27 +436,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         private ImmutableArray<AsyncCompletionData.CompletionFilter> GetFilters(RoslynCompletionItem item)
-        {
-            var listBuilder = new ArrayBuilder<AsyncCompletionData.CompletionFilter>();
-            foreach (var filter in CompletionItemFilter.AllFilters)
-            {
-                if (filter.Matches(item))
-                {
-                    if (!s_filterCache.TryGetValue(filter.DisplayText, out var itemFilter))
-                    {
-                        var imageId = filter.Tags.GetFirstGlyph().GetImageId();
-                        itemFilter = new AsyncCompletionData.CompletionFilter(
-                            filter.DisplayText,
-                            filter.AccessKey.ToString(),
-                            new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
-                        s_filterCache[filter.DisplayText] = itemFilter;
-                    }
+            => CompletionItemFilter.AllFilters.WhereAsArray(f => f.Matches(item)).SelectAsArray(f => GetOrCreateFilter(f));
 
-                    listBuilder.Add(itemFilter);
-                }
+        internal static AsyncCompletionData.CompletionFilter GetOrCreateFilter(CompletionItemFilter filter)
+        {
+            if (!s_filterCache.TryGetValue(filter.DisplayText, out var itemFilter))
+            {
+                var imageId = filter.Tags.GetFirstGlyph().GetImageId();
+                itemFilter = new AsyncCompletionData.CompletionFilter(
+                    filter.DisplayText,
+                    filter.AccessKey.ToString(),
+                    new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
+                s_filterCache[filter.DisplayText] = itemFilter;
             }
 
-            return listBuilder.ToImmutableAndFree();
+            return itemFilter;
         }
 
         internal static bool QuestionMarkIsPrecededByIdentifierAndWhitespace(

@@ -423,16 +423,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return If(item IsNot Nothing, DirectCast(item.Properties(RoslynItem), CompletionItem), Nothing)
         End Function
 
-        Public Sub RaiseFiltersChanged(args As CompletionItemFilterStateChangedEventArgs)
+        Public Sub RaiseFiltersChanged(args As ImmutableArray(Of Data.CompletionFilterWithState))
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
-            Dim newArray = args.FilterState.Select(Function(f) New Data.CompletionFilterWithState(New Data.CompletionFilter(f.Key.DisplayText, f.Key.AccessKey, image:=Nothing), isAvailable:=True, isSelected:=f.Value)).ToImmutableArrayOrEmpty()
-            Dim newArgs = New Data.CompletionFilterChangedEventArgs(newArray)
+            Dim newArgs = New Data.CompletionFilterChangedEventArgs(args)
             presenter.TriggerFiltersChanged(Me, newArgs)
         End Sub
 
-        Public Function GetCompletionItemFilters() As ImmutableArray(Of CompletionItemFilter)
+        Public Function GetCompletionItemFilters() As ImmutableArray(Of Data.CompletionFilterWithState)
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
-            Return presenter.GetFilters().Select(Function(f) New CompletionItemFilter(f.Filter.DisplayText, "", f.Filter.AccessKey(0))).ToImmutableArray()
+            Return presenter.GetFilters()
         End Function
 
         Public Function HasSuggestedItem() As Boolean

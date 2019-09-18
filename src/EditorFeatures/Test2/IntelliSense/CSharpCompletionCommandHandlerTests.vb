@@ -4,13 +4,15 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
@@ -3744,19 +3746,19 @@ class C
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                Dim filters = state.GetCompletionItemFilters()
-                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
-                For Each f In filters
-                    dict(f) = False
+                Dim oldFilters = state.GetCompletionItemFilters()
+                Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+                For Each f In oldFilters
+                    Assert.NotEqual(CompletionItemFilter.InterfaceFilter.DisplayText, f.Filter.DisplayText)
+                    newFilters.Add(f.WithSelected(False))
                 Next
 
-                dict(CompletionItemFilter.InterfaceFilter) = True
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
-                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
-                state.RaiseFiltersChanged(args)
+                state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
+
                 Await state.WaitForUIRenderedAsync()
                 Assert.Null(state.GetSelectedItem())
-
             End Using
         End Function
 
@@ -3777,21 +3779,20 @@ class C
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
-                Dim filters = state.GetCompletionItemFilters()
-                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
-                For Each f In filters
-                    dict(f) = False
+                Dim oldFilters = state.GetCompletionItemFilters()
+                Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+                For Each f In oldFilters
+                    Assert.NotEqual(CompletionItemFilter.InterfaceFilter.DisplayText, f.Filter.DisplayText)
+                    newFilters.Add(f.WithSelected(False))
                 Next
 
-                dict(CompletionItemFilter.InterfaceFilter) = True
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
-                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
-                state.RaiseFiltersChanged(args)
+                state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
                 Assert.Null(state.GetSelectedItem())
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-
             End Using
         End Function
 
@@ -3812,21 +3813,20 @@ class C
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
-                Dim filters = state.GetCompletionItemFilters()
-                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
-                For Each f In filters
-                    dict(f) = False
+                Dim oldFilters = state.GetCompletionItemFilters()
+                Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+                For Each f In oldFilters
+                    Assert.NotEqual(CompletionItemFilter.InterfaceFilter.DisplayText, f.Filter.DisplayText)
+                    newFilters.Add(f.WithSelected(False))
                 Next
 
-                dict(CompletionItemFilter.InterfaceFilter) = True
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
-                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
-                state.RaiseFiltersChanged(args)
+                state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
                 Assert.Null(state.GetSelectedItem())
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
-
             End Using
         End Function
 
@@ -3847,16 +3847,16 @@ class C
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
-                Dim filters = state.GetCompletionItemFilters()
-                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
-                For Each f In filters
-                    dict(f) = False
+                Dim oldFilters = state.GetCompletionItemFilters()
+                Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+                For Each f In oldFilters
+                    Assert.NotEqual(CompletionItemFilter.InterfaceFilter.DisplayText, f.Filter.DisplayText)
+                    newFilters.Add(f.WithSelected(False))
                 Next
 
-                dict(CompletionItemFilter.InterfaceFilter) = True
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
-                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
-                state.RaiseFiltersChanged(args)
+                state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
                 Assert.Null(state.GetSelectedItem())
                 state.SendTypeChars(".")
@@ -3924,6 +3924,61 @@ class AAttribute: Attribute
                 state.SendTypeChars(" ")
                 Await state.AssertNoCompletionSession()
                 Assert.Equal("[A(Skip )]", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(362890, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=362890")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFilteringAfterSimpleInvokeShowsAllItemsMatchingFilter() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+static class Color
+{
+    public const uint Red = 1;
+    public const uint Green = 2;
+    public const uint Blue = 3;
+}
+
+class C
+{
+    void M()
+    {
+        Color.Re$$d
+    }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                Await state.AssertSelectedCompletionItem("Red")
+                Await state.AssertCompletionItemsContainAll("Red", "Green", "Blue", "Equals")
+
+                Dim oldFilters = state.GetCompletionItemFilters()
+                Dim newFiltersBuilder = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+                For Each f In oldFilters
+                    newFiltersBuilder.Add(f.WithSelected(f.Filter.DisplayText = CompletionItemFilter.ConstantFilter.DisplayText))
+                Next
+
+                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
+
+                Await state.WaitForUIRenderedAsync()
+                Await state.AssertSelectedCompletionItem("Red")
+                Await state.AssertCompletionItemsContainAll("Red", "Green", "Blue")
+                Await state.AssertCompletionItemsDoNotContainAny("Equals")
+
+                oldFilters = state.GetCompletionItemFilters()
+                newFiltersBuilder = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+                For Each f In oldFilters
+                    newFiltersBuilder.Add(f.WithSelected(False))
+                Next
+
+                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
+
+                Await state.WaitForUIRenderedAsync()
+                Await state.AssertSelectedCompletionItem("Red")
+                Await state.AssertCompletionItemsContainAll({"Red", "Green", "Blue", "Equals"})
             End Using
         End Function
 
