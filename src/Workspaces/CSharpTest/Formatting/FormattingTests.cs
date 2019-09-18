@@ -1427,6 +1427,64 @@ l:
 }", changedOptionSet: changingOptions);
         }
 
+        [Fact]
+        public async Task IndentNamespaceOn()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                {  IndentNamespace, true },
+            };
+
+            await AssertFormatAsync(
+code:
+@"namespace MyNamespace
+{
+using System;
+class MyClass
+{
+    int f;
+}
+}",
+expected:
+@"namespace MyNamespace
+{
+    using System;
+    class MyClass
+    {
+        int f;
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact]
+        public async Task NoIndentNamespace()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                {  IndentNamespace, false },
+            };
+
+            await AssertFormatAsync(
+code:
+@"namespace MyNamespace
+{
+    using System;
+    class MyClass
+        {
+        int f;
+        }
+}",
+expected:
+@"namespace MyNamespace
+{
+using System;
+class MyClass
+{
+    int f;
+}
+}", changedOptionSet: changingOptions);
+        }
+
         [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoIndentSwitch_NoIndentCase_NoIndentWhenBlock()
