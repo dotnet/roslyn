@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         internal abstract bool IsExternal { get; }
 
+        // F# uses this
         protected DefinitionItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
