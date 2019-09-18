@@ -2,29 +2,29 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
-    [ExportWorkspaceServiceFactory(typeof(IUnitTestingExperimentationServiceAccessor))]
+    [ExportWorkspaceServiceFactory(typeof(IUnitTestingSolutionCrawlerServiceAccessor))]
     [Shared]
-    internal class UnitTestingExperimentationServiceAccessorFactory
+    internal sealed class UnitTestingSolutionCrawlerServiceAccessorFactory : IWorkspaceServiceFactory
     {
-        private readonly IExperimentationService _experimentationService;
+        private readonly ISolutionCrawlerService _implementation;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public UnitTestingExperimentationServiceAccessorFactory(IExperimentationService experimentationService)
-            => _experimentationService = experimentationService;
+        public UnitTestingSolutionCrawlerServiceAccessorFactory(ISolutionCrawlerService implementation)
+            => _implementation = implementation;
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var experimentationService = workspaceServices.GetRequiredService<IExperimentationService>();
-            return new UnitTestingExperimentationServiceAccessor(experimentationService);
+            var implementation = workspaceServices.GetRequiredService<ISolutionCrawlerService>();
+            return new UnitTestingSolutionCrawlerServiceAccessor(implementation);
         }
     }
 }

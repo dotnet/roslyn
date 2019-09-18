@@ -2,7 +2,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
@@ -17,6 +16,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvovationReasonsWrapper reasons, CancellationToken cancellationToken);
         void RemoveDocument(DocumentId documentId);
         void RemoveProject(ProjectId projectId);
-        bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e);
+        bool NeedsReanalysisOnOptionChanged(object sender, UnitTestingOptionChangedEventArgsWrapper e);
     }
 }

@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal readonly struct UnitTestingRemoteHostClientExtensionWrapper
+    internal readonly struct UnitTestingRemoteHostClientWrapper
     {
-        internal UnitTestingRemoteHostClientExtensionWrapper(RemoteHostClient underlyingObject)
+        internal UnitTestingRemoteHostClientWrapper(RemoteHostClient underlyingObject)
             => UnderlyingObject = underlyingObject ?? throw new ArgumentNullException(nameof(underlyingObject));
 
         internal RemoteHostClient UnderlyingObject { get; }

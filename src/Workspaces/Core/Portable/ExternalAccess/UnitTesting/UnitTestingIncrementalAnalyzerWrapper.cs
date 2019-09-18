@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
             => _implementation.DocumentResetAsync(document, cancellationToken);
 
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            => _implementation.NeedsReanalysisOnOptionChanged(sender, e);
+            => _implementation.NeedsReanalysisOnOptionChanged(sender, new UnitTestingOptionChangedEventArgsWrapper(e));
 
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             => _implementation.NewSolutionSnapshotAsync(solution, cancellationToken);

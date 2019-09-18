@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         internal KeepAliveSession UnderlyingObject { get; }
 
+        public Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+            => UnderlyingObject.TryInvokeAsync<T>(targetName, solution, arguments, cancellationToken);
+
         public Task<bool> TryInvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             => UnderlyingObject.TryInvokeAsync(targetName, arguments, cancellationToken);
 
