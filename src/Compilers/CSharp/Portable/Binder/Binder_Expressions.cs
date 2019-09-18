@@ -2150,23 +2150,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteDiagnostics);
 
             var conversionGroup = new ConversionGroup(conversion, targetTypeWithAnnotations);
-            if (operand.HasAnyErrors || targetType.IsErrorType() || !conversion.IsValid || targetType.IsStatic)
+            bool suppressErrors = operand.HasAnyErrors || targetType.IsErrorType();
+            bool hasErrors = !conversion.IsValid || targetType.IsStatic;
+            if (hasErrors && !suppressErrors)
             {
                 GenerateExplicitConversionErrors(diagnostics, node, conversion, operand, targetType);
-
-                return new BoundConversion(
-                    node,
-                    operand,
-                    conversion,
-                    @checked: CheckOverflowAtRuntime,
-                    explicitCastInCode: true,
-                    conversionGroup,
-                    constantValueOpt: ConstantValue.NotAvailable,
-                    type: targetType,
-                    hasErrors: true);
             }
 
-            return CreateConversion(node, operand, conversion, isCast: true, conversionGroup, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics);
+            return CreateConversion(node, operand, conversion, isCast: true, conversionGroupOpt: conversionGroup, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics, hasErrors: hasErrors | suppressErrors);
         }
 
         private void GenerateExplicitConversionErrors(

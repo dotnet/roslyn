@@ -1386,5 +1386,38 @@ class Program
 ";
             CompileAndVerify(CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(), expectedOutput: "null");
         }
+
+        [Fact, WorkItem(38686, "https://github.com/dotnet/roslyn/issues/38686")]
+        public void TargetTypedSwitch_AnyTypedSwitchWithoutTargetType()
+        {
+            var source = @"
+using System;
+#nullable enable
+public static class C {
+    static object o;
+    static void Main() {
+       // either of these would crash
+        _= (C)(o switch { _ => default }); 
+        _= (C)(o switch { _ => throw null! }); 
+    }
+}";
+            CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1),
+                // (5,19): warning CS8618: Non-nullable field 'o' is uninitialized. Consider declaring the field as nullable.
+                //     static object o;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "o").WithArguments("field", "o").WithLocation(5, 19),
+                // (5,19): warning CS0649: Field 'C.o' is never assigned to, and will always have its default value null
+                //     static object o;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "o").WithArguments("C.o", "null").WithLocation(5, 19),
+                // (8,12): error CS0716: Cannot convert to static type 'C'
+                //         _= (C)(o switch { _ => default }); 
+                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)(o switch { _ => default })").WithArguments("C").WithLocation(8, 12),
+                // (9,12): error CS0716: Cannot convert to static type 'C'
+                //         _= (C)(o switch { _ => throw null! }); 
+                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)(o switch { _ => throw null! })").WithArguments("C").WithLocation(9, 12)
+                );
+        }
     }
 }
