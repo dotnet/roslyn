@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
@@ -1501,7 +1500,11 @@ namespace BoundTreeGenerator
                                     allSpecifiableFields,
                                     field =>
                                     {
-                                        if (IsDerivedOrListOfDerived("BoundNode", field.Type))
+                                        if (SkipInNullabilityRewriter(field))
+                                        {
+                                            return $"node.{field.Name}";
+                                        }
+                                        else if (IsDerivedOrListOfDerived("BoundNode", field.Type))
                                         {
                                             return ToCamelCase(field.Name);
                                         }
@@ -1513,7 +1516,7 @@ namespace BoundTreeGenerator
                                         {
                                             return $"GetUpdatedSymbol(node, node.{field.Name})";
                                         }
-                                        else if (IsImmutableArray(field.Type, out var arrayType) && TypeIsSymbol(arrayType) && typeIsUpdated(arrayType))
+                                        else if (IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType) && typeIsUpdated(elementType))
                                         {
                                             return $"GetUpdatedArray(node, node.{field.Name})";
                                         }
@@ -1574,7 +1577,7 @@ namespace BoundTreeGenerator
             return IsNodeList(derivedType) && IsDerivedType(baseType, GetElementType(derivedType));
         }
 
-        private bool IsImmutableArray(string typeName, out string arrayType)
+        private bool IsImmutableArray(string typeName, out string elementType)
         {
             string immutableArrayPrefix = _targetLang switch
             {
@@ -1585,11 +1588,11 @@ namespace BoundTreeGenerator
 
             if (typeName.StartsWith(immutableArrayPrefix, StringComparison.Ordinal))
             {
-                arrayType = typeName[immutableArrayPrefix.Length..^1];
+                elementType = typeName[immutableArrayPrefix.Length..^1];
                 return true;
             }
 
-            arrayType = null;
+            elementType = null;
             return false;
         }
 
@@ -1729,6 +1732,11 @@ namespace BoundTreeGenerator
         private static bool SkipInNullabilityRewriter(Node n)
         {
             return string.Compare(n.SkipInNullabilityRewriter, "true", true) == 0;
+        }
+
+        private static bool SkipInNullabilityRewriter(Field f)
+        {
+            return string.Compare(f.SkipInNullabilityRewriter, "true", ignoreCase: true) == 0;
         }
 
         private string ToCamelCase(string name)

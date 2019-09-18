@@ -143,7 +143,7 @@
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     
     <!-- These symbols will be returned from the GetSemanticInfo API if it examines this bound node. -->
-    <Field Name="Symbols" Type="ImmutableArray&lt;Symbol&gt;"/>
+    <Field Name="Symbols" Type="ImmutableArray&lt;Symbol?&gt;" SkipInNullabilityRewriter="true"/>
 
     <!-- Any child bound nodes that we need to preserve are put here. -->
     <Field Name="ChildBoundNodes" Type="ImmutableArray&lt;BoundExpression&gt;"/>
@@ -273,7 +273,7 @@
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
         was unable to choose a best method.-->
-    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
   <Node Name="BoundIncrementOperator" Base="BoundExpression">
@@ -290,7 +290,7 @@
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
         was unable to choose a best method.-->
-    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
   <!-- Not really an operator since overload resolution is never required. -->
@@ -373,7 +373,7 @@
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
         was unable to choose a best method.-->
-    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
   <Node Name="BoundTupleBinaryOperator" Base="BoundExpression">
@@ -394,7 +394,7 @@
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
         was unable to choose a best method.-->
-    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
   <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression">
@@ -436,7 +436,7 @@
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
         was unable to choose a best method.-->
-    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
+    <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
   
   <Node Name="BoundAssignmentOperator" Base="BoundExpression">
@@ -675,7 +675,7 @@
     <!--The set of method symbols from which this conversion's method was chosen.
         Only kept in the tree if the conversion was an error and overload resolution
         was unable to choose a best method.-->
-    <Field Name="OriginalUserDefinedConversionsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
+    <Field Name="OriginalUserDefinedConversionsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
   <!--
@@ -1486,7 +1486,7 @@
     <!--The set of method symbols from which this call's method was chosen.
         Only kept in the tree if the call was an error and overload resolution
         was unable to choose a best method.-->
-    <Field Name="OriginalMethodsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow"/>
+    <Field Name="OriginalMethodsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
     
     <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
     <Field Name="BinderOpt" Type="Binder?"/>
@@ -1810,7 +1810,7 @@
     <!--The set of indexer symbols from which this call's indexer was chosen.
         Only kept in the tree if the call was an error and overload resolution
         was unable to choose a best indexer.-->
-    <Field Name="OriginalIndexersOpt" Type="ImmutableArray&lt;PropertySymbol&gt;" Null="allow"/>
+    <Field Name="OriginalIndexersOpt" Type="ImmutableArray&lt;PropertySymbol&gt;" Null="allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
   <Node Name="BoundIndexOrRangePatternIndexerAccess" Base="BoundExpression">
