@@ -16,7 +16,11 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         where TTypeDeclarationSyntax : SyntaxNode
         where TMethodDeclarationSyntax : SyntaxNode
     {
+        private const string DebuggerDisplayPrefix = "{";
         private const string DebuggerDisplayMethodName = "GetDebuggerDisplay";
+        private const string DebuggerDisplaySuffix = "(),nq}";
+
+        protected abstract bool CanNameofAccessNonPublicMembersFromAttributeArgument { get; }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -105,8 +109,19 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             var generator = SyntaxGenerator.GetGenerator(document);
             var editor = new SyntaxEditor(syntaxRoot, generator);
 
+            var attributeArgument = CanNameofAccessNonPublicMembersFromAttributeArgument
+                ? generator.AddExpression(
+                    generator.AddExpression(
+                        generator.LiteralExpression(DebuggerDisplayPrefix),
+                        generator.NameOfExpression(generator.IdentifierName(DebuggerDisplayMethodName))),
+                    generator.LiteralExpression(DebuggerDisplaySuffix))
+                : generator.LiteralExpression(
+                    DebuggerDisplayPrefix
+                    + DebuggerDisplayMethodName
+                    + DebuggerDisplaySuffix);
+
             var newAttribute = generator
-                .Attribute(generator.TypeExpression(debuggerAttributeTypeSymbol), new[] { generator.LiteralExpression("{" + DebuggerDisplayMethodName + "(),nq}") })
+                .Attribute(generator.TypeExpression(debuggerAttributeTypeSymbol), new[] { attributeArgument })
                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
             editor.AddAttribute(type, newAttribute);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddDebuggerDisplay
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 class C
 {
     private string GetDebuggerDisplay()
@@ -45,7 +45,7 @@ class C
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 struct Foo
 {
     private string GetDebuggerDisplay()
@@ -101,7 +101,7 @@ class C
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 class C
 {
     public override string ToString() => ""Foo"";
@@ -123,7 +123,7 @@ class A
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 class A
 {
     public new string ToString() => ""Foo"";
@@ -160,7 +160,7 @@ class C
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 class C
 {
     private string GetDebuggerDisplay() => ""Foo"";
@@ -188,7 +188,7 @@ using System.Diagnostics;
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 class C
 {
     private string GetDebuggerDisplay()
@@ -210,7 +210,7 @@ using System.Xml;
 using System.Diagnostics;
 using System.Xml;
 
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 class C
 {
     private string GetDebuggerDisplay()
@@ -251,7 +251,7 @@ class C
 using System.Diagnostics;
 
 [BrokenCode.DebuggerDisplay(""Foo"")]
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 [||]class C
 {
     private string GetDebuggerDisplay()
@@ -272,7 +272,7 @@ using System.Diagnostics;
 using System.Diagnostics;
 
 [BrokenCode.DebuggerDisplayAttribute(""Foo"")]
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 [||]class C
 {
     private string GetDebuggerDisplay()
@@ -315,7 +315,7 @@ class A
 {
 }
 
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 class B : A
 {
     private string GetDebuggerDisplay()
@@ -335,7 +335,7 @@ class B : A
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 class C
 {
     public static object GetDebuggerDisplay() => ""Foo"";
@@ -352,7 +352,7 @@ class C
 }", @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")]
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
 class C
 {
     private string GetDebuggerDisplay(int foo = 0) => foo.ToString();

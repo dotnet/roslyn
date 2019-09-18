@@ -10,5 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpAddDebuggerDisplayCodeRefactoringProvider)), Shared]
     internal sealed class CSharpAddDebuggerDisplayCodeRefactoringProvider : AbstractAddDebuggerDisplayCodeRefactoringProvider<TypeDeclarationSyntax, MethodDeclarationSyntax>
     {
+        protected override bool CanNameofAccessNonPublicMembersFromAttributeArgument => true;
     }
 }
