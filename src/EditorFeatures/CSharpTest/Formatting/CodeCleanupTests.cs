@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
@@ -84,7 +85,7 @@ internal class Program
             return AssertCodeCleanupResult(expected, code);
         }
 
-        [Fact]
+        [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task GroupUsings()
         {
@@ -129,7 +130,7 @@ namespace M
             return AssertCodeCleanupResult(expected, code, systemUsingsFirst: false, separateUsingGroups: true);
         }
 
-        [Fact]
+        [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task SortAndGroupUsings()
         {
