@@ -174,22 +174,22 @@
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="new">'{0}' is not null here.</target>
+        <target state="translated">'{0}' não é nulo aqui.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="new">'{0}' may be null here.</target>
+        <target state="translated">'{0}' pode ser nulo aqui.</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
-        <target state="new">asynchronous foreach statement</target>
+        <target state="translated">instrução foreach assíncrona</target>
         <note>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="asynchronous_using_declaration">
         <source>asynchronous using declaration</source>
-        <target state="new">asynchronous using declaration</target>
+        <target state="translated">declaração using assíncrona</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="local_variable_declaration">
         <source>local variable declaration</source>
-        <target state="new">local variable declaration</target>
+        <target state="translated">declaração de variável local</target>
         <note />
       </trans-unit>
       <trans-unit id="member_name">
@@ -434,12 +434,12 @@
       </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
-        <target state="new">switch statement</target>
+        <target state="translated">instrução switch</target>
         <note>{Locked="switch"} "switch" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="switch_statement_case_clause">
         <source>switch statement case clause</source>
-        <target state="new">switch statement case clause</target>
+        <target state="translated">cláusula case da instrução switch</target>
         <note>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="try_block">
@@ -469,7 +469,7 @@
       </trans-unit>
       <trans-unit id="using_declaration">
         <source>using declaration</source>
-        <target state="new">using declaration</target>
+        <target state="translated">declaração using</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_statement">
@@ -854,12 +854,12 @@
       </trans-unit>
       <trans-unit id="yield_break_statement">
         <source>yield break statement</source>
-        <target state="new">yield break statement</target>
+        <target state="translated">instrução yield break</target>
         <note>{Locked="yield break"} "yield break" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_return_statement">
         <source>yield return statement</source>
-        <target state="new">yield return statement</target>
+        <target state="translated">instrução yield return</target>
         <note>{Locked="yield return"} "yield return" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>
