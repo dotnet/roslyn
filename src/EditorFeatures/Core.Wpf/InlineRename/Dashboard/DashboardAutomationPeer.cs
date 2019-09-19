@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         protected override AutomationControlType GetAutomationControlTypeCore()
         {
-            return AutomationControlType.Pane;
+            return AutomationControlType.Custom;
         }
     }
 }

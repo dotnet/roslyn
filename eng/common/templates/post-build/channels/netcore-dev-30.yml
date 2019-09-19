@@ -1,5 +1,4 @@
 parameters:
-  enableSymbolValidation: true
   symbolPublishingAdditionalParameters: ''
   artifactsPublishingAdditionalParameters: ''
   publishInstallersAndChecksums: false
@@ -98,14 +97,8 @@ stages:
             /p:IsInternalBuild=$(IsInternalBuild)
             /p:RepositoryName=$(Build.Repository.Name)
             /p:CommitSha=$(Build.SourceVersion)
-            /p:StaticInternalFeed=$(StaticInternalFeed)
-            /p:InternalChecksumsTargetStaticFeed=$(InternalChecksumsBlobFeedUrl)
-            /p:InternalChecksumsTargetStaticFeedKey=$(InternalChecksumsBlobFeedKey)
-            /p:InternalInstallersTargetStaticFeed=$(InternalInstallersBlobFeedUrl)
-            /p:InternalInstallersTargetStaticFeedKey=$(InternalInstallersBlobFeedKey)
             /p:NugetPath=$(NuGetExeToolPath)
             /p:AzdoTargetFeedPAT='$(dn-bot-dnceng-universal-packages-rw)' 
-            /p:TargetFeedPAT='$(dn-bot-dnceng-universal-packages-rw)' 
             /p:AzureStorageTargetFeedPAT='$(dotnetfeed-storage-access-key-1)' 
             /p:BARBuildId=$(BARBuildId) 
             /p:MaestroApiEndpoint='$(MaestroApiEndPoint)' 
@@ -119,36 +112,15 @@ stages:
             /p:InstallersAzureAccountKey=$(dotnetcli-storage-key)
             /p:ChecksumsTargetStaticFeed=$(ChecksumsBlobFeedUrl)
             /p:ChecksumsAzureAccountKey=$(dotnetclichecksums-storage-key)
+            /p:PublishToAzureDevOpsNuGetFeeds=true
+            /p:AzureDevOpsStaticShippingFeed='https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet3/nuget/v3/index.json'
+            /p:AzureDevOpsStaticShippingFeedKey='$(dn-bot-dnceng-artifact-feeds-rw)'
+            /p:AzureDevOpsStaticTransportFeed='https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet3-transport/nuget/v3/index.json'
+            /p:AzureDevOpsStaticTransportFeedKey='$(dn-bot-dnceng-artifact-feeds-rw)'
+            /p:AzureDevOpsStaticSymbolsFeed='https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet3-symbols/nuget/v3/index.json'
+            /p:AzureDevOpsStaticSymbolsFeedKey='$(dn-bot-dnceng-artifact-feeds-rw)'
             ${{ parameters.artifactsPublishingAdditionalParameters }}
 
-
-- stage: NetCore_Dev30_Publish_Validation
-  displayName: .NET Core 3.0 Dev Publish Validation
-  variables:
-    - template: ../common-variables.yml
-  jobs:
-  - template: ../setup-maestro-vars.yml
-
-  - ${{ if eq(parameters.enableSymbolValidation, 'true') }}:
-    - job:
-      displayName: Symbol Availability
-      dependsOn: setupMaestroVars
-      condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.PublicDevRelease_30_Channel_Id))
-      pool:
-        vmImage: 'windows-2019'
-      steps:
-        - task: DownloadBuildArtifacts@0
-          displayName: Download Package Artifacts
-          inputs:
-            buildType: current
-            artifactName: PackageArtifacts
-
-        - task: PowerShell@2
-          displayName: Check Symbol Availability
-          inputs:
-            filePath: $(Build.SourcesDirectory)/eng/common/post-build/symbols-validation.ps1
-            arguments: -InputPath $(Build.ArtifactStagingDirectory)/PackageArtifacts/ -ExtractPath $(Agent.BuildDirectory)/Temp/ -DotnetSymbolVersion $(SymbolToolVersion)
-
-  - template: ../promote-build.yml
-    parameters:
-      ChannelId: ${{ variables.PublicDevRelease_30_Channel_Id }}
+      - template: ../../steps/promote-build.yml
+        parameters:
+          ChannelId: ${{ variables.PublicDevRelease_30_Channel_Id }}

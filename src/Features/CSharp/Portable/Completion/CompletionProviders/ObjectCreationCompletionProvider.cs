@@ -78,6 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return (symbol.Name, "", symbol.Name);
             }
 
+            if (symbol is ITypeSymbol typeSymbol)
+            {
+                return base.GetDisplayAndSuffixAndInsertionText(typeSymbol.WithNullability(NullableAnnotation.None), context);
+            }
+
             return base.GetDisplayAndSuffixAndInsertionText(symbol, context);
         }
 

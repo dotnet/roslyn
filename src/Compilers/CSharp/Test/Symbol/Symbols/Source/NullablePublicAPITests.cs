@@ -1399,7 +1399,6 @@ class C
         [Fact]
         public void SpeculativeGetTypeInfo_Basic()
         {
-
             var source = @"
 class C
 {
@@ -2449,6 +2448,522 @@ class C<T>
             symInfo = model.GetSymbolInfo(memberAccess[1]);
             Assert.Equal(PublicNullableAnnotation.Annotated, ((IEventSymbol)symInfo.Symbol).NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, symInfo.Symbol.ContainingType.TypeArgumentNullableAnnotations[0]);
+        }
+
+        [Fact]
+        public void GetSymbolInfo_ReinferredCollectionInitializerAdd_InstanceMethods()
+        {
+            var source = @"
+using System.Collections;
+class C : IEnumerable
+{
+    public void Add<T>(T t) => throw null!;
+    public IEnumerator GetEnumerator() => throw null!;
+    public static T Identity<T>(T t) => t;
+
+    static void M(object? o1, string o2)
+    {
+        _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var collectionInitializer = root.DescendantNodes().OfType<InitializerExpressionSyntax>().Single();
+
+            verifyAnnotation(collectionInitializer.Expressions[0], PublicNullableAnnotation.Annotated);
+            verifyAnnotation(collectionInitializer.Expressions[1], PublicNullableAnnotation.NotAnnotated);
+            verifyAnnotation(collectionInitializer.Expressions[2], PublicNullableAnnotation.NotAnnotated);
+            verifyAnnotation(collectionInitializer.Expressions[3], PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(ExpressionSyntax expr, PublicNullableAnnotation expectedAnnotation)
+            {
+                var symbolInfo = model.GetCollectionInitializerSymbolInfo(expr);
+                Assert.Equal(expectedAnnotation, ((IMethodSymbol)symbolInfo.Symbol).TypeArgumentNullableAnnotations[0]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_ReinferredCollectionInitializerAdd_ExtensionMethod01()
+        {
+            var source = @"
+using System.Collections;
+class C : IEnumerable
+{
+    public IEnumerator GetEnumerator() => throw null!;
+    public static T Identity<T>(T t) => t;
+
+    static void M(object? o1, string o2)
+    {
+        _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
+    }
+}
+static class CExt
+{
+    public static void Add<T>(this C c, T t) => throw null!;
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var collectionInitializer = root.DescendantNodes().OfType<InitializerExpressionSyntax>().Single();
+
+            verifyAnnotation(collectionInitializer.Expressions[0], PublicNullableAnnotation.Annotated);
+            verifyAnnotation(collectionInitializer.Expressions[1], PublicNullableAnnotation.NotAnnotated);
+            verifyAnnotation(collectionInitializer.Expressions[2], PublicNullableAnnotation.NotAnnotated);
+            verifyAnnotation(collectionInitializer.Expressions[3], PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(ExpressionSyntax expr, PublicNullableAnnotation expectedAnnotation)
+            {
+                var symbolInfo = model.GetCollectionInitializerSymbolInfo(expr);
+                Assert.Equal(expectedAnnotation, ((IMethodSymbol)symbolInfo.Symbol).TypeArgumentNullableAnnotations[0]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_ReinferredCollectionInitializerAdd_ExtensionMethod02()
+        {
+            var source = @"
+using System.Collections;
+class C : IEnumerable
+{
+    public IEnumerator GetEnumerator() => throw null!;
+    public static T Identity<T>(T t) => t;
+
+    static void M(object? o1, string o2)
+    {
+        _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
+    }
+}
+static class CExt
+{
+    public static void Add<T, U>(this T t, U u) => throw null!;
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var collectionInitializer = root.DescendantNodes().OfType<InitializerExpressionSyntax>().Single();
+
+            verifyAnnotation(collectionInitializer.Expressions[0], PublicNullableAnnotation.Annotated);
+            verifyAnnotation(collectionInitializer.Expressions[1], PublicNullableAnnotation.NotAnnotated);
+            verifyAnnotation(collectionInitializer.Expressions[2], PublicNullableAnnotation.NotAnnotated);
+            verifyAnnotation(collectionInitializer.Expressions[3], PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(ExpressionSyntax expr, PublicNullableAnnotation expectedAnnotation)
+            {
+                var symbolInfo = model.GetCollectionInitializerSymbolInfo(expr);
+                Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((IMethodSymbol)symbolInfo.Symbol).TypeArgumentNullableAnnotations[0]);
+                Assert.Equal(expectedAnnotation, ((IMethodSymbol)symbolInfo.Symbol).TypeArgumentNullableAnnotations[1]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_ReinferredCollectionInitializerAdd_MultipleOverloads()
+        {
+            var source = @"
+using System.Collections;
+class C : IEnumerable
+{
+    public IEnumerator GetEnumerator() => throw null!;
+    public static T Identity<T>(T t) => t;
+
+    static void M(object? o1, string o2)
+    {
+        _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
+    }
+}
+static class CExt1
+{
+    public static void Add<T>(this C c, T t) => throw null!;
+}
+static class CExt2
+{
+    public static void Add<T>(this C c, T t) => throw null!;
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,23): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<T>(C, T)' and 'CExt2.Add<T>(C, T)'
+                //         _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o1").WithArguments("CExt1.Add<T>(C, T)", "CExt2.Add<T>(C, T)").WithLocation(10, 23),
+                // (10,27): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<T>(C, T)' and 'CExt2.Add<T>(C, T)'
+                //         _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Identity(o1 ??= new object())").WithArguments("CExt1.Add<T>(C, T)", "CExt2.Add<T>(C, T)").WithLocation(10, 27),
+                // (10,58): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<T>(C, T)' and 'CExt2.Add<T>(C, T)'
+                //         _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o1").WithArguments("CExt1.Add<T>(C, T)", "CExt2.Add<T>(C, T)").WithLocation(10, 58),
+                // (10,62): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<T>(C, T)' and 'CExt2.Add<T>(C, T)'
+                //         _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o2").WithArguments("CExt1.Add<T>(C, T)", "CExt2.Add<T>(C, T)").WithLocation(10, 62));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var collectionInitializer = root.DescendantNodes().OfType<InitializerExpressionSyntax>().Single();
+
+            verifyAnnotation(collectionInitializer.Expressions[0]);
+            verifyAnnotation(collectionInitializer.Expressions[1]);
+            verifyAnnotation(collectionInitializer.Expressions[2]);
+            verifyAnnotation(collectionInitializer.Expressions[3]);
+
+            void verifyAnnotation(ExpressionSyntax expr)
+            {
+                var symbolInfo = model.GetCollectionInitializerSymbolInfo(expr);
+                Assert.Null(symbolInfo.Symbol);
+                foreach (var symbol in symbolInfo.CandidateSymbols)
+                {
+                    Assert.Equal(PublicNullableAnnotation.None, ((IMethodSymbol)symbol).TypeArgumentNullableAnnotations[0]);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_ReinferredCollectionInitializerAdd_MultiElementAdds()
+        {
+            var source = @"
+using System.Collections;
+class C : IEnumerable
+{
+    public IEnumerator GetEnumerator() => throw null!;
+    public static T Identity<T>(T t) => t;
+
+    static void M(object? o1, string o2)
+    {
+        _ = new C() { { o1, o2 }, { o2, o1 }, { Identity(o1 ??= new object()), o2 } };
+    }
+}
+static class CExt
+{
+    public static void Add<T, U>(this C c, T t, U u) => throw null!;
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var collectionInitializer = root.DescendantNodes().OfType<InitializerExpressionSyntax>().First();
+
+            verifyAnnotation(collectionInitializer.Expressions[0], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.NotAnnotated);
+            verifyAnnotation(collectionInitializer.Expressions[1], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
+            verifyAnnotation(collectionInitializer.Expressions[2], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(ExpressionSyntax expr, PublicNullableAnnotation annotation1, PublicNullableAnnotation annotation2)
+            {
+                var symbolInfo = model.GetCollectionInitializerSymbolInfo(expr);
+                var methodSymbol = ((IMethodSymbol)symbolInfo.Symbol);
+                Assert.Equal(annotation1, methodSymbol.TypeArgumentNullableAnnotations[0]);
+                Assert.Equal(annotation2, methodSymbol.TypeArgumentNullableAnnotations[1]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_ReinferredCollectionInitializerAdd_MultiElementAdds_LinkedTypes()
+        {
+            var source = @"
+using System.Collections;
+class C : IEnumerable
+{
+    public IEnumerator GetEnumerator() => throw null!;
+    public static T Identity<T>(T t) => t;
+
+    static void M(object? o1, string o2)
+    {
+        _ = new C() { { o1, o2 }, { o2, o1 }, { Identity(o1 ??= new object()), o2 } };
+    }
+}
+static class CExt
+{
+    public static void Add<T>(this C c, T t1, T t2) => throw null!;
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var collectionInitializer = root.DescendantNodes().OfType<InitializerExpressionSyntax>().First();
+
+            verifyAnnotation(collectionInitializer.Expressions[0], PublicNullableAnnotation.Annotated);
+            verifyAnnotation(collectionInitializer.Expressions[1], PublicNullableAnnotation.Annotated);
+            verifyAnnotation(collectionInitializer.Expressions[2], PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(ExpressionSyntax expr, PublicNullableAnnotation annotation)
+            {
+                var symbolInfo = model.GetCollectionInitializerSymbolInfo(expr);
+                var methodSymbol = ((IMethodSymbol)symbolInfo.Symbol);
+                Assert.Equal(annotation, methodSymbol.TypeArgumentNullableAnnotations[0]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_ReinferredIndexer()
+        {
+            var source = @"
+class C<T, U>
+{
+    public T this[U u] { get => throw null!; set => throw null!; }
+    
+    public static void M(object? o1, object o2)
+    {
+        var c1 = CExt.Create(o1, o2);
+        c1[o1] = o2;
+        _ = c1[o1];
+        
+        var c2 = CExt.Create(o2, o1);
+        c2[o2] = o1;
+        _ = c2[o2];
+        
+        var c3 = CExt.Create(o1 ?? o2, o2);
+        c3[o1] = o2;
+        _ = c3[o1];
+    }
+}
+static class CExt
+{
+    public static C<T, U> Create<T, U>(T t, U u) => throw null!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,12): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
+                //         c1[o1] = o2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(9, 12),
+                // (10,16): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
+                //         _ = c1[o1];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(10, 16),
+                // (13,18): warning CS8601: Possible null reference assignment.
+                //         c2[o2] = o1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "o1").WithLocation(13, 18),
+                // (17,12): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
+                //         c3[o1] = o2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(17, 12),
+                // (18,16): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
+                //         _ = c3[o1];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(18, 16));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var indexers = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray().AsSpan();
+            verifyAnnotation(indexers.Slice(0, 2), PublicNullableAnnotation.Annotated, PublicNullableAnnotation.NotAnnotated);
+            verifyAnnotation(indexers.Slice(2, 2), PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
+            verifyAnnotation(indexers.Slice(4, 2), PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(Span<ElementAccessExpressionSyntax> indexers, PublicNullableAnnotation firstAnnotation, PublicNullableAnnotation secondAnnotation)
+            {
+                var propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[0]).Symbol;
+                verifyIndexer(propertySymbol);
+                propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[1]).Symbol;
+                verifyIndexer(propertySymbol);
+
+                void verifyIndexer(IPropertySymbol propertySymbol)
+                {
+                    Assert.True(propertySymbol.IsIndexer);
+                    Assert.Equal(firstAnnotation, propertySymbol.NullableAnnotation);
+                    Assert.Equal(secondAnnotation, propertySymbol.Parameters[0].NullableAnnotation);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_IndexReinferred()
+        {
+            var source = @"
+class C<T>
+{
+    public int Length { get; }
+    public T this[int i] { get => throw null!; set => throw null!; }
+    public static C<TT> Create<TT>(TT t) => throw null!;
+
+    public static void M(object? o)
+    {
+        var c1 = Create(o);
+        c1[^1] = new object();
+        _ = c1[^1];
+
+        var c2 = Create(o ?? new object());
+        c2[^1] = new object();
+        _ = c2[^1];
+    }
+}";
+
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var elementAccesses = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray().AsSpan();
+            verifyAnnotation(elementAccesses.Slice(0, 2), PublicNullableAnnotation.Annotated);
+            verifyAnnotation(elementAccesses.Slice(2, 2), PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(Span<ElementAccessExpressionSyntax> indexers, PublicNullableAnnotation annotation)
+            {
+                var propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[0]).Symbol;
+                verifyIndexer(propertySymbol);
+                propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[1]).Symbol;
+                verifyIndexer(propertySymbol);
+
+                void verifyIndexer(IPropertySymbol propertySymbol)
+                {
+                    Assert.True(propertySymbol.IsIndexer);
+                    Assert.Equal(annotation, propertySymbol.NullableAnnotation);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_RangeReinferred()
+        {
+            var source = @"
+using System;
+
+class C<T>
+{
+    public int Length { get; }
+    public Span<T> Slice(int start, int length) => throw null!;
+    public static C<TT> Create<TT>(TT t) => throw null!;
+
+    public static void M(object? o)
+    {
+        var c1 = Create(o);
+        _ = c1[..^1];
+
+        var c2 = Create(o ?? new object());
+        _ = c2[..^1];
+    }
+}";
+
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var elementAccesses = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray();
+            verifyAnnotation(elementAccesses[0], PublicNullableAnnotation.Annotated);
+            verifyAnnotation(elementAccesses[1], PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(ElementAccessExpressionSyntax indexer, PublicNullableAnnotation annotation)
+            {
+                var propertySymbol = (IMethodSymbol)model.GetSymbolInfo(indexer).Symbol;
+                Assert.NotNull(propertySymbol);
+                var spanType = (INamedTypeSymbol)propertySymbol.ReturnType;
+                Assert.Equal(annotation, spanType.TypeArgumentNullableAnnotations[0]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_UnaryOperator()
+        {
+            var source =
+@"#nullable enable
+struct S<T>
+{
+    public static S<T> operator~(S<T> s) => s;
+}
+class Program
+{
+    static S<T> Create1<T>(T t) => new S<T>();
+    static S<T>? Create2<T>(T t) => null;
+    static void F<T>() where T : class, new()
+    {
+        T x = null;
+        var sx = Create1(x);
+        _ = ~sx;
+        T? y = new T();
+        var sy = Create2(y);
+        _ = ~sy;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 15));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+            var operators = root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().ToList();
+            verifyAnnotations(operators[0], PublicNullableAnnotation.Annotated, "S<T?> S<T?>.operator ~(S<T?> s)");
+            verifyAnnotations(operators[1], PublicNullableAnnotation.NotAnnotated, "S<T!> S<T!>.operator ~(S<T!> s)");
+
+            void verifyAnnotations(PrefixUnaryExpressionSyntax syntax, PublicNullableAnnotation annotation, string expected)
+            {
+                var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
+                Assert.Equal(expected, method.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal(annotation, method.ContainingType.TypeArgumentNullableAnnotations[0]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_BinaryOperator()
+        {
+            var source =
+@"#nullable enable
+struct S<T>
+{
+    public static S<T> operator+(S<T> x, S<T> y) => x;
+}
+class Program
+{
+    static S<T> Create1<T>(T t) => new S<T>();
+    static S<T>? Create2<T>(T t) => null;
+    static void F<T>() where T : class, new()
+    {
+        T x = null;
+        var sx = Create1(x);
+        _ = sx + sx;
+        T? y = new T();
+        var sy = Create2(y);
+        _ = sy + sy;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 15));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+            var operators = root.DescendantNodes().OfType<BinaryExpressionSyntax>().ToList();
+            verifyAnnotations(operators[0], PublicNullableAnnotation.Annotated, "S<T?> S<T?>.operator +(S<T?> x, S<T?> y)");
+            verifyAnnotations(operators[1], PublicNullableAnnotation.NotAnnotated, "S<T!> S<T!>.operator +(S<T!> x, S<T!> y)");
+
+            void verifyAnnotations(BinaryExpressionSyntax syntax, PublicNullableAnnotation annotation, string expected)
+            {
+                var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
+                Assert.Equal(expected, method.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal(annotation, method.ContainingType.TypeArgumentNullableAnnotations[0]);
+            }
         }
     }
 }

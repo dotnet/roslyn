@@ -9,17 +9,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBTupleTests : CSharpPDBTestBase
     {
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Local()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C
 {
     static void F()
     {
         (int A, int B, (int C, int), int, int, int G, int H, int I) t = (1, 2, (3, 4), 5, 6, 7, 8, 9);
     }
-}";
+}");
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
@@ -52,10 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Constant()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C<T>
 {
     static (int, int) F;
@@ -66,7 +66,7 @@ class C
     {
         const C<(int A, int B)> c = null;
     }
-}";
+}");
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
@@ -95,10 +95,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TuplesAndDynamic()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C<T>
 {
 }
@@ -118,7 +118,7 @@ class C
             const C<(object, dynamic B)> y = null;
         }
     }
-}";
+}");
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
@@ -175,17 +175,17 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void MultiByteCharacters()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C
 {
     static void F()
     {
         (int \u1234, int, int \u005f\u1200\u005f) \u1200 = (1, 2, 3);
     }
-}";
+}");
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 string.Format(@"<symbols>
@@ -221,10 +221,10 @@ string.Format(@"<symbols>
     "\u1200"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DeconstructionForeach()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C
 {
     static void F(System.Collections.Generic.IEnumerable<(int a, int b)> ie)
@@ -236,7 +236,7 @@ string.Format(@"<symbols>
         { //9,9
         } //10,9
     } //11,5
-}";
+}");
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 string.Format(@"<symbols>
@@ -280,10 +280,10 @@ string.Format(@"<symbols>
         }
 
         [WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void VariablesAndConstantsInUnreachableCode()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 class C
 {
     void F()
@@ -302,7 +302,7 @@ class C
         }
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
