@@ -1402,16 +1402,6 @@
         <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
-        <source>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</source>
-        <target state="translated">'{0}' figure déjà dans la liste des interfaces du type '{1}' avec différentes possibilités de valeur null des types référence.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
-        <source>Interface is already listed in the interface list with different nullability of reference types.</source>
-        <target state="translated">L'interface figure déjà dans la liste des interfaces avec différentes possibilités de valeur null des types référence.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
         <source>The given expression always matches the provided constant.</source>
         <target state="translated">L'expression donnée correspond toujours à la constante fournie.</target>

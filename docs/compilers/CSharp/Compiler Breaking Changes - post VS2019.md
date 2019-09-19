@@ -68,13 +68,15 @@ Each entry should include a short description of the break, followed by either a
     }
     ```
 
-
 9. https://github.com/dotnet/roslyn/issues/38469 While looking for a name in an interface in context where only types are allowed,
 the compiler didn't look for the name in base interfaces of the interface. Lookup could succeed by finding a type up the containership
 hierarchy or through usings. We now look in base interfaces and find types declared within them, if any match the name. The type
 could be different than the one that compiler used to find.
 
-9. https://github.com/dotnet/roslyn/issues/38427 C# `7.0` incorrectly allowed duplicate type constraints with tuple name differences. In *Visual Studio 2019 version 16.4* we will make it an error.
+10. https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-09-11.md In C# `8.0` no warning is reported at the production or dereference of a maybe-null value for a type that is a type parameter that cannot be annotated with `?`, except if the value was produced by `default(T)`.
+In Visual Studio version 16.4, the nullable analysis will be more stringent for such values. Whenever such a value is produced, as warning will be reported. For instance, when invoking a method that returns a `[MaybeNull]T`.
+
+11. https://github.com/dotnet/roslyn/issues/38427 C# `7.0` incorrectly allowed duplicate type constraints with tuple name differences. In *Visual Studio 2019 version 16.4* we will make it an error.
     ```C#
     class C<T> where T : I<(int a, int b)>, I<(int c, int d)> { } // error
     ```
