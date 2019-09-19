@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// available but unselected, whereas it means available and selected for an expander. Note that even though VS supports 
         /// having multiple expanders, we only support one.
         /// </summary>
-        private class FilterSet
+        internal class FilterSet
         {
             // Cache all the VS completion filters which essentially make them singletons.
             // Because all items that should be filtered using the same filter button must 

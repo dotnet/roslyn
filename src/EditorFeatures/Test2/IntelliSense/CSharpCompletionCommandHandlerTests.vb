@@ -3754,7 +3754,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.FilterSet.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
 
@@ -3787,7 +3787,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.FilterSet.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
@@ -3821,7 +3821,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.FilterSet.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
@@ -3855,7 +3855,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.FilterSet.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
@@ -4973,7 +4973,7 @@ namespace NS2
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExpanderWithImportCompletionDisabled() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(CompletionImplementation.Modern,
+            Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
 {
@@ -4998,7 +4998,7 @@ namespace NS2
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' select expander
@@ -5014,7 +5014,7 @@ namespace NS2
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' select expander again
@@ -5029,7 +5029,7 @@ namespace NS2
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExpanderWithImportCompletionEnabled() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(CompletionImplementation.Modern,
+            Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
 {
@@ -5064,7 +5064,7 @@ namespace NS2
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' select expander
@@ -5080,14 +5080,14 @@ namespace NS2
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExpanderAndTimeboxWithImportCompletionEnabled() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(CompletionImplementation.Modern,
+            Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
 {
@@ -5116,7 +5116,7 @@ namespace NS2
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' select expander
@@ -5133,7 +5133,7 @@ namespace NS2
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExpanderAndTimeboxWithImportCompletionDisabled() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(CompletionImplementation.Modern,
+            Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
 {
@@ -5159,7 +5159,7 @@ namespace NS2
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny(displayText:={"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' set timeout to 0 (always timeout)
@@ -5179,7 +5179,7 @@ namespace NS2
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function NoExpanderAvailableWhenNotInTypeContext() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(CompletionImplementation.Modern,
+            Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
 {
@@ -5540,10 +5540,9 @@ class C
         End Function
 
         <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NonExpandedItemShouldAlwaysBePreferred_DisplayTextMatch(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NonExpandedItemShouldAlwaysBePreferred_DisplayTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
 {
@@ -5604,10 +5603,9 @@ namespace NS2
         End Function
 
         <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NonExpandedItemShouldAlwaysBePreferred_FullDisplayTextMatch(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NonExpandedItemShouldAlwaysBePreferred_FullDisplayTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
 {
@@ -5668,10 +5666,9 @@ namespace NS2
         End Function
 
         <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NonExpandedItemShouldBePreferred_ExpandedItemHasBetterButNotCompleteMatch(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NonExpandedItemShouldBePreferred_ExpandedItemHasBetterButNotCompleteMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
 {
@@ -5732,10 +5729,9 @@ namespace NS2
         End Function
 
         <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NonExpandedItemShouldBePreferred_BothExpandedAndNonExpandedItemsHaveCompleteMatch(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NonExpandedItemShouldBePreferred_BothExpandedAndNonExpandedItemsHaveCompleteMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
 {
@@ -5796,10 +5792,9 @@ namespace NS2
         End Function
 
         <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function ExpandedItemShouldBePreferred_IfIsOnlyCompleteMatch(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ExpandedItemShouldBePreferred_IfIsOnlyCompleteMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
 {
@@ -5862,10 +5857,9 @@ namespace NS2
         End Function
 
         <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
-        <InlineData(CompletionImplementation.Modern)>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SortItemsByPatternMatchIfExperimentEnabled(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SortItemsByPatternMatchIfExperimentEnabled() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 namespace NS
 {
@@ -5918,10 +5912,9 @@ namespace NS
         End Function
 
         <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
-        <InlineData(CompletionImplementation.Modern)>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SortItemsAlphabeticallyIfExperimentDisabled(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SortItemsAlphabeticallyIfExperimentDisabled() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 namespace NS
 {
