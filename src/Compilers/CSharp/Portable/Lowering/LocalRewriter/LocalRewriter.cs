@@ -294,11 +294,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return PlaceholderReplacement(node);
         }
 
-        public override BoundNode VisitCollectionValuePlaceholder(BoundCollectionValuePlaceholder node)
+        public override BoundNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
         {
             if (_inExpressionLambda)
             {
-                // Expression trees do not include the 'this' argument for Add calls.
+                // Expression trees do not include the 'this' argument for members.
                 return node;
             }
             return PlaceholderReplacement(node);

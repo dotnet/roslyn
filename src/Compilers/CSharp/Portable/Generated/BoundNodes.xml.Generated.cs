@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         TupleOperandPlaceholder,
         AwaitableValuePlaceholder,
         DisposableValuePlaceholder,
-        CollectionValuePlaceholder,
+        ObjectOrCollectionValuePlaceholder,
         Dup,
         PassByCopy,
         BadExpression,
@@ -549,18 +549,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundCollectionValuePlaceholder : BoundValuePlaceholderBase
+    internal sealed partial class BoundObjectOrCollectionValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundCollectionValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.CollectionValuePlaceholder, syntax, type, hasErrors)
+        public BoundObjectOrCollectionValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ObjectOrCollectionValuePlaceholder, syntax, type, hasErrors)
         {
 
             Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundCollectionValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.CollectionValuePlaceholder, syntax, type)
+        public BoundObjectOrCollectionValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.ObjectOrCollectionValuePlaceholder, syntax, type)
         {
 
             Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -568,13 +568,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionValuePlaceholder(this);
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitObjectOrCollectionValuePlaceholder(this);
 
-        public BoundCollectionValuePlaceholder Update(TypeSymbol type)
+        public BoundObjectOrCollectionValuePlaceholder Update(TypeSymbol type)
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionValuePlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundObjectOrCollectionValuePlaceholder(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5660,28 +5660,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundObjectInitializerExpressionBase : BoundExpression
     {
-        protected BoundObjectInitializerExpressionBase(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+        protected BoundObjectInitializerExpressionBase(BoundKind kind, SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
             : base(kind, syntax, type, hasErrors)
         {
 
+            Debug.Assert(placeholder is object, "Field 'placeholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
+            this.Placeholder = placeholder;
             this.Initializers = initializers;
         }
 
 
         public new TypeSymbol Type => base.Type!;
 
+        public BoundObjectOrCollectionValuePlaceholder Placeholder { get; }
+
         public ImmutableArray<BoundExpression> Initializers { get; }
     }
 
     internal sealed partial class BoundObjectInitializerExpression : BoundObjectInitializerExpressionBase
     {
-        public BoundObjectInitializerExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ObjectInitializerExpression, syntax, initializers, type, hasErrors || initializers.HasErrors())
+        public BoundObjectInitializerExpression(SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ObjectInitializerExpression, syntax, placeholder, initializers, type, hasErrors || placeholder.HasErrors() || initializers.HasErrors())
         {
 
+            Debug.Assert(placeholder is object, "Field 'placeholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
@@ -5690,11 +5695,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitObjectInitializerExpression(this);
 
-        public BoundObjectInitializerExpression Update(ImmutableArray<BoundExpression> initializers, TypeSymbol type)
+        public BoundObjectInitializerExpression Update(BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type)
         {
-            if (initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (placeholder != this.Placeholder || initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundObjectInitializerExpression(this.Syntax, initializers, type, this.HasErrors);
+                var result = new BoundObjectInitializerExpression(this.Syntax, placeholder, initializers, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5808,23 +5813,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionInitializerExpression : BoundObjectInitializerExpressionBase
     {
-        public BoundCollectionInitializerExpression(SyntaxNode syntax, BoundCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionInitializerExpression, syntax, initializers, type, hasErrors || placeholder.HasErrors() || initializers.HasErrors())
+        public BoundCollectionInitializerExpression(SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CollectionInitializerExpression, syntax, placeholder, initializers, type, hasErrors || placeholder.HasErrors() || initializers.HasErrors())
         {
 
             Debug.Assert(placeholder is object, "Field 'placeholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             Debug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
-            this.Placeholder = placeholder;
         }
 
-
-        public BoundCollectionValuePlaceholder Placeholder { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionInitializerExpression(this);
 
-        public BoundCollectionInitializerExpression Update(BoundCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type)
+        public BoundCollectionInitializerExpression Update(BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type)
         {
             if (placeholder != this.Placeholder || initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -7369,8 +7371,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitAwaitableValuePlaceholder((BoundAwaitableValuePlaceholder)node, arg);
                 case BoundKind.DisposableValuePlaceholder: 
                     return VisitDisposableValuePlaceholder((BoundDisposableValuePlaceholder)node, arg);
-                case BoundKind.CollectionValuePlaceholder: 
-                    return VisitCollectionValuePlaceholder((BoundCollectionValuePlaceholder)node, arg);
+                case BoundKind.ObjectOrCollectionValuePlaceholder: 
+                    return VisitObjectOrCollectionValuePlaceholder((BoundObjectOrCollectionValuePlaceholder)node, arg);
                 case BoundKind.Dup: 
                     return VisitDup((BoundDup)node, arg);
                 case BoundKind.PassByCopy: 
@@ -7741,7 +7743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitCollectionValuePlaceholder(BoundCollectionValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDup(BoundDup node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPassByCopy(BoundPassByCopy node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitBadExpression(BoundBadExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -7931,7 +7933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitCollectionValuePlaceholder(BoundCollectionValuePlaceholder node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDup(BoundDup node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPassByCopy(BoundPassByCopy node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitBadExpression(BoundBadExpression node) => this.DefaultVisit(node);
@@ -8137,7 +8139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node) => null;
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node) => null;
         public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node) => null;
-        public override BoundNode? VisitCollectionValuePlaceholder(BoundCollectionValuePlaceholder node) => null;
+        public override BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node) => null;
         public override BoundNode? VisitDup(BoundDup node) => null;
         public override BoundNode? VisitPassByCopy(BoundPassByCopy node)
         {
@@ -8746,6 +8748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
         {
+            this.Visit(node.Placeholder);
             this.VisitList(node.Initializers);
             return null;
         }
@@ -8996,7 +8999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(type);
         }
-        public override BoundNode? VisitCollectionValuePlaceholder(BoundCollectionValuePlaceholder node)
+        public override BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
         {
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(type);
@@ -9770,9 +9773,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
         {
+            BoundObjectOrCollectionValuePlaceholder placeholder = (BoundObjectOrCollectionValuePlaceholder)this.Visit(node.Placeholder);
             ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(initializers, type);
+            return node.Update(placeholder, initializers, type);
         }
         public override BoundNode? VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
@@ -9789,7 +9793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node)
         {
-            BoundCollectionValuePlaceholder placeholder = (BoundCollectionValuePlaceholder)this.Visit(node.Placeholder);
+            BoundObjectOrCollectionValuePlaceholder placeholder = (BoundObjectOrCollectionValuePlaceholder)this.Visit(node.Placeholder);
             ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(placeholder, initializers, type);
@@ -10128,14 +10132,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitCollectionValuePlaceholder(BoundCollectionValuePlaceholder node)
+        public override BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
         {
             if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
                 return node;
             }
 
-            BoundCollectionValuePlaceholder updatedNode = node.Update(infoAndType.Type);
+            BoundObjectOrCollectionValuePlaceholder updatedNode = node.Update(infoAndType.Type);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -11409,17 +11413,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
         {
+            BoundObjectOrCollectionValuePlaceholder placeholder = (BoundObjectOrCollectionValuePlaceholder)this.Visit(node.Placeholder);
             ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
             BoundObjectInitializerExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(initializers, infoAndType.Type);
+                updatedNode = node.Update(placeholder, initializers, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(initializers, node.Type);
+                updatedNode = node.Update(placeholder, initializers, node.Type);
             }
             return updatedNode;
         }
@@ -11455,7 +11460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node)
         {
-            BoundCollectionValuePlaceholder placeholder = (BoundCollectionValuePlaceholder)this.Visit(node.Placeholder);
+            BoundObjectOrCollectionValuePlaceholder placeholder = (BoundObjectOrCollectionValuePlaceholder)this.Visit(node.Placeholder);
             ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
             BoundCollectionInitializerExpression updatedNode;
 
@@ -12090,7 +12095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
-        public override TreeDumperNode VisitCollectionValuePlaceholder(BoundCollectionValuePlaceholder node, object? arg) => new TreeDumperNode("collectionValuePlaceholder", null, new TreeDumperNode[]
+        public override TreeDumperNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node, object? arg) => new TreeDumperNode("objectOrCollectionValuePlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
@@ -13306,6 +13311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node, object? arg) => new TreeDumperNode("objectInitializerExpression", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("placeholder", null, new TreeDumperNode[] { Visit(node.Placeholder, null) }),
             new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),

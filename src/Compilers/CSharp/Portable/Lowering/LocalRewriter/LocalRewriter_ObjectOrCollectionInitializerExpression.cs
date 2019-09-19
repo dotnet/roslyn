@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (initializerExpression)
             {
                 case BoundObjectInitializerExpression objectInitializer:
-                    return objectInitializer.Update(newInitializers, initializerExpression.Type);
+                    return objectInitializer.Update(objectInitializer.Placeholder, newInitializers, initializerExpression.Type);
                 case BoundCollectionInitializerExpression collectionInitializer:
                     return collectionInitializer.Update(collectionInitializer.Placeholder, newInitializers, initializerExpression.Type);
                 default:

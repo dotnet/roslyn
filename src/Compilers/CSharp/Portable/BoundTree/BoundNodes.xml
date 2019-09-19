@@ -111,8 +111,8 @@
   <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
-  <!-- The implicit collection in a collection initializer expression. -->
-  <Node Name="BoundCollectionValuePlaceholder" Base="BoundValuePlaceholderBase">
+  <!-- The implicit collection in an object or collection initializer expression. -->
+  <Node Name="BoundObjectOrCollectionValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
   <!-- only used by codegen -->
@@ -1608,7 +1608,8 @@
   <AbstractNode Name="BoundObjectInitializerExpressionBase" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
+    <!-- An expression placeholder value representing the initialized object or collection. -->
+    <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder" Null="disallow" />
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </AbstractNode>
 
@@ -1644,8 +1645,6 @@
   </Node>
 
   <Node Name="BoundCollectionInitializerExpression" Base="BoundObjectInitializerExpressionBase">
-    <!-- An expression placeholder value representing the initialized collection. -->
-    <Field Name="Placeholder" Type="BoundCollectionValuePlaceholder" Null="disallow" />
   </Node>
 
   <Node Name="BoundCollectionElementInitializer" Base="BoundExpression">

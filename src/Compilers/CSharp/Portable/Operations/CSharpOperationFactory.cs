@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // implicit receiver can be shared between multiple bound nodes.
             // always return cloned one
             if (boundNode.Kind == BoundKind.ImplicitReceiver ||
-                boundNode.Kind == BoundKind.CollectionValuePlaceholder)
+                boundNode.Kind == BoundKind.ObjectOrCollectionValuePlaceholder)
             {
                 return OperationCloner.CloneOperation(CreateInternal(boundNode));
             }
@@ -288,8 +288,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
                 case BoundKind.UsingLocalDeclarations:
                     return CreateUsingLocalDeclarationsOperation((BoundUsingLocalDeclarations)boundNode);
-                case BoundKind.CollectionValuePlaceholder:
-                    return CreateCollectionValuePlaceholderOperation((BoundCollectionValuePlaceholder)boundNode);
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
+                    return CreateCollectionValuePlaceholderOperation((BoundObjectOrCollectionValuePlaceholder)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             switch (receiver)
             {
-                case BoundCollectionValuePlaceholder implicitReceiver:
+                case BoundObjectOrCollectionValuePlaceholder implicitReceiver:
                     return CreateBoundDynamicMemberAccessOperation(implicitReceiver, typeArgumentsOpt: ImmutableArray<TypeSymbol>.Empty, memberName: "Add",
                                                                    implicitReceiver.Syntax, type: null, value: default, isImplicit: true);
 
@@ -2096,7 +2096,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private IInstanceReferenceOperation CreateCollectionValuePlaceholderOperation(BoundCollectionValuePlaceholder placeholder)
+        private IInstanceReferenceOperation CreateCollectionValuePlaceholderOperation(BoundObjectOrCollectionValuePlaceholder placeholder)
         {
             InstanceReferenceKind referenceKind = InstanceReferenceKind.ImplicitReceiver;
             SyntaxNode syntax = placeholder.Syntax;

@@ -1805,6 +1805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                         }
                     }
+                    SetNotNullResult(objectInitializer.Placeholder);
                     break;
                 case BoundCollectionInitializerExpression collectionInitializer:
                     checkImplicitReceiver();
@@ -1883,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (var reinferredMethod, _, _) = VisitArguments(node, node.Arguments, refKindsOpt: default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod);
             if (node.ImplicitReceiverOpt != null)
             {
-                Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.CollectionValuePlaceholder);
+                Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ObjectOrCollectionValuePlaceholder);
                 SetAnalyzedNullability(node.ImplicitReceiverOpt, new VisitResult(node.ImplicitReceiverOpt.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
             }
             SetUnknownResultNullability(node);
@@ -7567,7 +7568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitCollectionValuePlaceholder(BoundCollectionValuePlaceholder node)
+        public override BoundNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
         {
             SetNotNullResult(node);
             return null;
