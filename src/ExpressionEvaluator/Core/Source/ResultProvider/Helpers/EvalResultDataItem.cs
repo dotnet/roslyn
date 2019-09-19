@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
     internal sealed class EvalResult
     {
+        // The flags we were constructed with before adding our additional flags
+        private readonly DkmEvaluationResultFlags m_rawFlags;
+
         public readonly ExpansionKind Kind;
         public readonly string Name;
         public readonly TypeAndCustomInfo TypeDeclaringMemberAndInfo;
@@ -95,11 +98,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly ReadOnlyCollection<string> FormatSpecifiers;
         public readonly string ChildFullNamePrefix;
         public readonly DkmEvaluationResultCategory Category;
+        public readonly DkmEvaluationResultFlags Flags;
         public readonly string EditableValue;
         public readonly DkmInspectionContext InspectionContext;
+        public readonly bool CanFavorite;
         public readonly bool IsFavorite;
-        public DkmEvaluationResultFlags Flags { get; private set; }
-        public bool CanFavorite { get; private set; }
 
         public string FullName
         {
@@ -164,6 +167,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(formatSpecifiers != null);
             Debug.Assert((flags & DkmEvaluationResultFlags.Expandable) == 0);
 
+            m_rawFlags = flags;
+
             this.Kind = kind;
             this.Name = name;
             this.TypeDeclaringMemberAndInfo = typeDeclaringMemberAndInfo;
@@ -199,10 +204,30 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 FormatSpecifiers);
         }
 
-        internal void DisableCanAddFavorite()
+        internal EvalResult WithDisableCanAddFavorite()
         {
-            CanFavorite = false;
-            Flags &= ~DkmEvaluationResultFlags.CanFavorite;
+            return new EvalResult(
+                kind: Kind,
+                name: Name,
+                typeDeclaringMemberAndInfo: TypeDeclaringMemberAndInfo,
+                declaredTypeAndInfo: DeclaredTypeAndInfo,
+                useDebuggerDisplay: UseDebuggerDisplay,
+                value: Value,
+                displayValue: DisplayValue,
+                expansion: Expansion,
+                childShouldParenthesize: ChildShouldParenthesize,
+                fullName: FullName,
+                childFullNamePrefixOpt: ChildFullNamePrefix,
+                formatSpecifiers: FormatSpecifiers,
+                category: Category,
+                flags: m_rawFlags,
+                editableValue: EditableValue,
+                inspectionContext: InspectionContext,
+                displayName: DisplayName,
+                displayType: DisplayType,
+                canFavorite: false,
+                isFavorite: IsFavorite);
+
         }
 
         private static DkmEvaluationResultFlags GetFlags(DkmClrValue value, DkmInspectionContext inspectionContext, Expansion expansion, bool canFavorite, bool isFavorite)

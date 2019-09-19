@@ -785,7 +785,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 if (displayInfo.Name != null)
                 {
                     // Favorites currently dependes on the name matching the member name
-                    result.DisableCanAddFavorite();
+                    result = result.WithDisableCanAddFavorite();
                 }
 
                 var innerWorkList = workList.InnerWorkList;

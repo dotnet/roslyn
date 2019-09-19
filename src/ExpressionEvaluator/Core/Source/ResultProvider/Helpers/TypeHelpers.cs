@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                 previousDeclaration,
                                 inheritanceLevel,
                                 canFavorite: supportsFavorites,
-                                isFavorite: (favoritesMemberNames?.ContainsKey(memberName) == true)));
+                                isFavorite: favoritesMemberNames?.ContainsKey(memberName) == true));
                     }
                 }
 
@@ -588,14 +588,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrObjectFavoritesInfo favoritesInfo = clrType.GetFavorites();
             if (favoritesInfo != null)
             {
-                displayInfo.ApplyFavorities(favoritesInfo);
+                displayInfo = displayInfo.WithFavoritesInfo(favoritesInfo);
             }
 
             DkmClrType attributeTarget;
             DkmClrDebuggerDisplayAttribute attribute;
             if (clrType.TryGetEvalAttribute(out attributeTarget, out attribute)) // First, as in dev12.
             {
-                displayInfo.ApplyEvalAttribute(attribute, attributeTarget);
+                displayInfo = displayInfo.WithDebuggerDisplayAttribute(attribute, attributeTarget);
             }
 
             return displayInfo.HasValues;

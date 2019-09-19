@@ -10,19 +10,36 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal class DebuggerDisplayInfo
     {
         private readonly DkmClrType m_targetType;
-        private DebuggerDisplayItemInfo m_value;
-        private DebuggerDisplayItemInfo m_simpleValue;
+        private readonly DebuggerDisplayItemInfo m_value;
+        private readonly DebuggerDisplayItemInfo m_simpleValue;
+
+        private bool m_hasFavoritesInfo = false;
+
+        public readonly DebuggerDisplayItemInfo Name;
+        public readonly DebuggerDisplayItemInfo TypeName;
 
         public DebuggerDisplayInfo(DkmClrType targetType)
         {
             m_targetType = targetType;
         }
 
+        private DebuggerDisplayInfo(
+            DkmClrType targetType,
+            DebuggerDisplayItemInfo name,
+            DebuggerDisplayItemInfo value,
+            DebuggerDisplayItemInfo simpleValue,
+            DebuggerDisplayItemInfo typeName,
+            bool hasFavoritesInfo)
+            : this(targetType)
+        {
+            Name = name;
+            m_value = value;
+            m_simpleValue = simpleValue;
+            TypeName = typeName;
+            m_hasFavoritesInfo = hasFavoritesInfo;
+        }
+
         public bool HasValues { get { return (Name != null || TypeName != null || m_value != null); } }
-
-        public DebuggerDisplayItemInfo Name { get; private set; }
-
-        public DebuggerDisplayItemInfo TypeName { get; private set; }
 
         public DebuggerDisplayItemInfo GetValue(DkmInspectionContext inspectionContext)
         {
@@ -34,35 +51,58 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return m_value;
         }
 
-        internal void ApplyFavorities(DkmClrObjectFavoritesInfo favoritesInfo)
+        public DebuggerDisplayInfo WithFavoritesInfo(DkmClrObjectFavoritesInfo favoritesInfo)
         {
+            var value = m_value;
+            var simpleValue = m_simpleValue;
+
             if (favoritesInfo.DisplayString != null)
             {
-                m_value = new DebuggerDisplayItemInfo(favoritesInfo.DisplayString, m_targetType);
-
-                if (favoritesInfo.SimpleDisplayString != null)
-                {
-                    m_simpleValue = new DebuggerDisplayItemInfo(favoritesInfo.SimpleDisplayString, m_targetType);
-                }
+                value = new DebuggerDisplayItemInfo(favoritesInfo.DisplayString, m_targetType);
+                simpleValue = favoritesInfo.SimpleDisplayString != null ?
+                    new DebuggerDisplayItemInfo(favoritesInfo.SimpleDisplayString, m_targetType) : null;
             }
+
+            return new DebuggerDisplayInfo(
+                targetType: m_targetType,
+                name: Name,
+                value: value,
+                simpleValue: simpleValue,
+                typeName: TypeName,
+                hasFavoritesInfo: true);
         }
 
-        internal void ApplyEvalAttribute(DkmClrDebuggerDisplayAttribute attribute, DkmClrType attributeTarget)
+        public DebuggerDisplayInfo WithDebuggerDisplayAttribute(DkmClrDebuggerDisplayAttribute attribute, DkmClrType attributeTarget)
         {
+            var name = Name;
+            var value = m_value;
+            var simpleValue = m_simpleValue;
+            var typeName = TypeName;
+
             if (attribute.Name != null)
             {
-                Name = new DebuggerDisplayItemInfo(attribute.Name, attributeTarget);
+                name = new DebuggerDisplayItemInfo(attribute.Name, attributeTarget);
             }
 
-            if (attribute.Value != null && m_value == null && m_simpleValue == null) // Favorites display string takes priority for Value
+            // Favorites info takes priority for value and simple value
+            if (!m_hasFavoritesInfo && attribute.Value != null)
             {
-                m_value = new DebuggerDisplayItemInfo(attribute.Value, attributeTarget);
+                value = new DebuggerDisplayItemInfo(attribute.Value, attributeTarget);
+                simpleValue = null;
             }
 
             if (attribute.TypeName != null)
             {
-                TypeName = new DebuggerDisplayItemInfo(attribute.TypeName, attributeTarget);
+                typeName = new DebuggerDisplayItemInfo(attribute.TypeName, attributeTarget);
             }
+
+            return new DebuggerDisplayInfo(
+                targetType: m_targetType,
+                name: name,
+                value: value,
+                simpleValue: simpleValue,
+                typeName: typeName,
+                hasFavoritesInfo: m_hasFavoritesInfo);
         }
     }
 

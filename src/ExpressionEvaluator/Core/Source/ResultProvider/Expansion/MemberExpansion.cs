@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var includeInherited = (flags & ExpansionFlags.IncludeBaseMembers) == ExpansionFlags.IncludeBaseMembers;
             var hideNonPublic = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.HideNonPublicMembers) == DkmEvaluationFlags.HideNonPublicMembers;
             var includeCompilerGenerated = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.ShowValueRaw) == DkmEvaluationFlags.ShowValueRaw;
-            var favoritesInfo = (supportsFavorites) ? type.GetFavorites() : null;
+            var favoritesInfo = supportsFavorites ? type.GetFavorites() : null;
             runtimeType.AppendTypeMembers(allMembers, predicate, declaredTypeAndInfo.Type, appDomain, includeInherited, hideNonPublic, isProxyType, includeCompilerGenerated, supportsFavorites, favoritesInfo);
 
             var favoritesMembersByName = new Dictionary<string, MemberAndDeclarationInfo>();
