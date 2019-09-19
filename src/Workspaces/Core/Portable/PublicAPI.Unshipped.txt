@@ -1,2 +1,3 @@
 *REMOVED*Microsoft.CodeAnalysis.TextDocument.Project.set -> void
 *REMOVED*Microsoft.CodeAnalysis.TextDocument.TextDocument() -> void
+static Microsoft.CodeAnalysis.Formatting.Formatter.OrganizeImportsAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>

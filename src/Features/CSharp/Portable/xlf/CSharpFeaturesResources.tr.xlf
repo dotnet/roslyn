@@ -142,11 +142,6 @@
         <target state="translated">Gereksiz Kullanımları Kaldır</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_Usings">
-        <source>&amp;Sort Usings</source>
-        <target state="translated">&amp;Using’leri Sırala</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Erişilebilirlik değiştiricilerini sırala</target>
@@ -365,11 +360,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">Kullanımları Düzenle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_and_Sort_Usings">
-        <source>R&amp;emove and Sort Usings</source>
-        <target state="translated">&amp;Kaldır ve Sıralama Usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_await">

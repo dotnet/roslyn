@@ -142,11 +142,6 @@
         <target state="translated">不要な using の削除</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_Usings">
-        <source>&amp;Sort Usings</source>
-        <target state="translated">using の並べ替え(&amp;S)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">アクセシビリティ修飾子を並べ替える</target>
@@ -365,11 +360,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">using の整理</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_and_Sort_Usings">
-        <source>R&amp;emove and Sort Usings</source>
-        <target state="translated">Using の削除と並び替え(&amp;E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_await">
