@@ -30,12 +30,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
         Private Async Function CheckWithFormatAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,
                                           Optional separateImportGroups As Boolean = False) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(initial.NormalizedValue)
-                Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
+            Using workspace = New AdhocWorkspace()
+                Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
+                Dim document = project.AddDocument("Document", SourceText.From(initial.Value.NormalizeLineEndings()))
+
                 workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
                 workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
 
-                Dim organizedDocument = Await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)
+                Dim organizedDocument = Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)
                 Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, workspace.Options, CancellationToken.None)
 
                 Dim newRoot = Await formattedDocument.GetSyntaxRootAsync()
