@@ -304,12 +304,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start);
             }
-
-            if (AsyncCompletionCondition.Instance.ShouldSkip
-                && dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_DisableAsyncCompletion).IsAvailable)
-            {
-                dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_DisableAsyncCompletion);
-            }
         }
 
         private void StopRemoteIntegrationService()

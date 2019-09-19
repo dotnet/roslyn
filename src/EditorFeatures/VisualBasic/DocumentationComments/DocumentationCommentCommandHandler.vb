@@ -15,7 +15,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.DocumentationComments)>
     <Order(After:=PredefinedCommandHandlerNames.Rename)>
-    <Order(After:=PredefinedCommandHandlerNames.Completion)>
     <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class DocumentationCommentCommandHandler
         Inherits AbstractDocumentationCommentCommandHandler(Of DocumentationCommentTriviaSyntax, DeclarationStatementSyntax)
