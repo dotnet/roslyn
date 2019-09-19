@@ -16,11 +16,14 @@ parameters:
   signingValidationAdditionalParameters: ''
 
   # Which stages should finish execution before post-build stages start
-  dependsOn: [build]
+  validateDependsOn:
+  - Build
+  publishDependsOn: 
+  - Validate
 
 stages:
-- stage: validate
-  dependsOn: ${{ parameters.dependsOn }}
+- stage: Validate
+  dependsOn: ${{ parameters.validateDependsOn }}
   displayName: Validate
   jobs:
   - ${{ if eq(parameters.enableNugetValidation, 'true') }}:
@@ -97,46 +100,47 @@ stages:
 
 - template: \eng\common\templates\post-build\channels\netcore-dev-5.yml
   parameters:
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
+    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
-
-- template: \eng\common\templates\post-build\channels\netcore-dev-30.yml
-  parameters:
     symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
 
 - template: \eng\common\templates\post-build\channels\netcore-dev-31.yml
   parameters:
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
+    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
+    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
 
 - template: \eng\common\templates\post-build\channels\netcore-tools-latest.yml
   parameters:
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
+    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
+    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
 
 - template: \eng\common\templates\post-build\channels\public-validation-release.yml
   parameters:
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
+    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
 
 - template: \eng\common\templates\post-build\channels\netcore-release-30.yml
   parameters:
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
+    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
+    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
 
 - template: \eng\common\templates\post-build\channels\netcore-release-31.yml
   parameters:
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
+    dependsOn: ${{ parameters.publishDependsOn }}
     publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
+    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
 
 - template: \eng\common\templates\post-build\channels\netcore-internal-30.yml
   parameters:
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
     artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
+    dependsOn: ${{ parameters.publishDependsOn }}
+    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
