@@ -297,49 +297,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async Task<HashSet<ISymbol>> GetAllAddedSymbolsAsync(Project project, CancellationToken cancellationToken)
-        {
-            try
-            {
-                (Document Document, AsyncLazy<DocumentAnalysisResults> Results)[] analyses;
-                lock (_analysesGuard)
-                {
-                    analyses = _analyses.Values.ToArray();
-                }
-
-                HashSet<ISymbol> addedSymbols = null;
-                foreach (var (document, lazyResults) in analyses)
-                {
-                    // Only consider analyses for documents that belong the currently analyzed project.
-                    if (document.Project == project)
-                    {
-                        var results = await lazyResults.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                        if (!results.HasChangesAndErrors)
-                        {
-                            foreach (var edit in results.SemanticEdits)
-                            {
-                                if (edit.Kind == SemanticEditKind.Insert)
-                                {
-                                    if (addedSymbols == null)
-                                    {
-                                        addedSymbols = new HashSet<ISymbol>();
-                                    }
-
-                                    addedSymbols.Add(edit.NewSymbol);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return addedSymbols;
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
         public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document document)
         {
             lock (_analysesGuard)
@@ -552,6 +509,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var allEdits = ArrayBuilder<SemanticEdit>.GetInstance();
                 var allLineEdits = ArrayBuilder<(DocumentId, ImmutableArray<LineChange>)>.GetInstance();
                 var activeStatementsInChangedDocuments = ArrayBuilder<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)>.GetInstance();
+                var allAddedSymbols = ArrayBuilder<ISymbol>.GetInstance();
 
                 foreach (var (documentId, asyncResult) in changedDocumentAnalyses)
                 {
@@ -566,6 +524,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Debug.Assert(!result.HasChangesAndErrors);
 
                     allEdits.AddRange(result.SemanticEdits);
+
+                    if (!result.HasChangesAndErrors)
+                    {
+                        foreach (var edit in result.SemanticEdits)
+                        {
+                            if (edit.Kind == SemanticEditKind.Insert)
+                            {
+                                allAddedSymbols.Add(edit.NewSymbol);
+                            }
+                        }
+                    }
+
                     if (result.LineEdits.Length > 0)
                     {
                         allLineEdits.Add((documentId, result.LineEdits));
@@ -577,7 +547,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
 
-                return new ProjectChanges(allEdits.ToImmutableAndFree(), allLineEdits.ToImmutableAndFree(), activeStatementsInChangedDocuments.ToImmutableAndFree());
+                var allAddedSymbolResult = allAddedSymbols.ToImmutableHashSet();
+                allAddedSymbols.Free();
+
+                return new ProjectChanges(
+                    allEdits.ToImmutableAndFree(),
+                    allLineEdits.ToImmutableAndFree(),
+                    allAddedSymbolResult,
+                    activeStatementsInChangedDocuments.ToImmutableAndFree());
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {
@@ -665,7 +642,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     var projectChanges = await GetProjectChangesAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
                     var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var allAddedSymbols = await GetAllAddedSymbolsAsync(project, cancellationToken).ConfigureAwait(false);
                     var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     var baseActiveExceptionRegions = await BaseActiveExceptionRegions.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     var lineEdits = projectChanges.LineChanges.SelectAsArray((lineChange, p) => (p.GetDocument(lineChange.DocumentId).FilePath, lineChange.Changes), project);
@@ -719,7 +695,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var emitResult = currentCompilation.EmitDifference(
                             baseline,
                             projectChanges.SemanticEdits,
-                            s => allAddedSymbols?.Contains(s) ?? false,
+                            projectChanges.AddedSymbols.Contains,
                             metadataStream,
                             ilStream,
                             pdbStream,
