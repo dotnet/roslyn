@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 _editSession = editSession;
                 _trackingSpans = new Dictionary<DocumentId, ActiveStatementTrackingSpan[]>();
 
-                editSession.BaseSolution.Workspace.DocumentOpened += DocumentOpened;
+                editSession.DebuggingSession.Workspace.DocumentOpened += DocumentOpened;
 
                 // fire and forget on a background thread:
                 try
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             public void EndTracking()
             {
-                _editSession.BaseSolution.Workspace.DocumentOpened -= DocumentOpened;
+                _editSession.DebuggingSession.Workspace.DocumentOpened -= DocumentOpened;
 
                 lock (_trackingSpans)
                 {
@@ -189,12 +189,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 try
                 {
                     var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(_editSession.CancellationToken).ConfigureAwait(false);
+                    var solution = _editSession.DebuggingSession.LastCommittedSolution;
 
                     lock (_trackingSpans)
                     {
                         foreach (var (documentId, documentActiveStatements) in baseActiveStatements.DocumentMap)
                         {
-                            var document = _editSession.BaseSolution.GetDocument(documentId);
+                            var document = solution.GetDocument(documentId);
                             if (TryGetSnapshot(document, out var snapshot))
                             {
                                 TrackActiveSpansNoLock(document, snapshot, documentActiveStatements);
@@ -329,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                 // We might be asked for spans in a different workspace than 
                 // the one we maintain tracking spans for (for example, a preview).
-                if (document.Project.Solution.Workspace != _editSession.BaseSolution.Workspace)
+                if (document.Project.Solution.Workspace != _editSession.DebuggingSession.Workspace)
                 {
                     return SpecializedCollections.EmptyEnumerable<ActiveStatementTextSpan>();
                 }

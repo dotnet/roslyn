@@ -207,8 +207,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return GetRunModeDocumentDiagnostics(document, newSyntaxTree, changedSpans);
                 }
 
-                // No changes made in the entire workspace since the edit session started:
-                if (editSession.BaseSolution.WorkspaceVersion == project.Solution.WorkspaceVersion)
+                // No changes made in the entire workspace since the last committed solution snapshot:
+                if (debuggingSession.LastCommittedSolution.WorkspaceVersion == project.Solution.WorkspaceVersion)
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }

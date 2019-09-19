@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly DebuggingSession DebuggingSession;
         internal readonly EditSessionTelemetry Telemetry;
 
-        /// <summary>
-        /// The solution captured when entering the break state.
-        /// </summary>
-        internal readonly Solution BaseSolution;
-
         private readonly ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> _nonRemappableRegions;
 
         /// <summary>
@@ -80,11 +75,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(telemetry != null);
 
             DebuggingSession = debuggingSession;
-
-            _nonRemappableRegions = debuggingSession.NonRemappableRegions;
-
             Telemetry = telemetry;
-            BaseSolution = debuggingSession.LastCommittedSolution;
+            _nonRemappableRegions = debuggingSession.NonRemappableRegions;
 
             BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true);
             BaseActiveExceptionRegions = new AsyncLazy<ImmutableArray<ActiveStatementExceptionRegions>>(GetBaseActiveExceptionRegionsAsync, cacheResult: true);
@@ -136,14 +128,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return result;
         }
 
-        private Project GetBaseProject(ProjectId id)
-            => BaseSolution.GetProject(id);
+        private Project GetLastCommittedProject(ProjectId id)
+            => DebuggingSession.LastCommittedSolution.GetProject(id);
 
         private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(CancellationToken cancellationToken)
         {
             try
             {
-                return CreateActiveStatementsMap(BaseSolution, await DebuggingSession.ActiveStatementProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
+                // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
+                return CreateActiveStatementsMap(DebuggingSession.LastCommittedSolution, await DebuggingSession.ActiveStatementProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -256,13 +249,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var solution = DebuggingSession.LastCommittedSolution;
                 var instructionMap = baseActiveStatements.InstructionMap;
                 using var builderDisposer = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count, out var builder);
                 builder.Count = instructionMap.Count;
 
                 foreach (var activeStatement in instructionMap.Values)
                 {
-                    var document = BaseSolution.GetDocument(activeStatement.PrimaryDocumentId);
+                    var document = solution.GetDocument(activeStatement.PrimaryDocumentId);
 
                     var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -374,9 +368,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             documentBaseActiveStatements = ImmutableArray<ActiveStatement>.Empty;
                         }
 
-                        var trackingService = BaseSolution.Workspace.Services.GetService<IActiveStatementTrackingService>();
+                        var trackingService = DebuggingSession.Workspace.Services.GetService<IActiveStatementTrackingService>();
 
-                        var baseProject = GetBaseProject(document.Project.Id);
+                        var baseProject = GetLastCommittedProject(document.Project.Id);
                         return await analyzer.AnalyzeDocumentAsync(baseProject, documentBaseActiveStatements, document, trackingService, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -436,7 +430,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var baseProject = GetBaseProject(project.Id);
+                    var baseProject = GetLastCommittedProject(project.Id);
 
                     // When debugging session is started some projects might not have been loaded to the workspace yet. 
                     // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
@@ -614,7 +608,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var baseProject = GetBaseProject(project.Id);
+                    var baseProject = GetLastCommittedProject(project.Id);
 
                     // TODO (https://github.com/dotnet/roslyn/issues/1204):
                     // When debugging session is started some projects might not have been loaded to the workspace yet. 

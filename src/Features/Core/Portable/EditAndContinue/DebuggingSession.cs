@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal sealed class DebuggingSession : IDisposable
     {
+        public readonly Workspace Workspace;
         public readonly IActiveStatementProvider ActiveStatementProvider;
         public readonly IDebuggeeModuleMetadataProvider DebugeeModuleMetadataProvider;
         public readonly ICompilationOutputsProviderService CompilationOutputsProvider;
@@ -89,6 +90,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(workspace != null);
             Debug.Assert(debugeeModuleMetadataProvider != null);
 
+            Workspace = workspace;
             DebugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
             CompilationOutputsProvider = compilationOutputsProvider;
             _projectModuleIds = new Dictionary<ProjectId, (Guid, Diagnostic)>();
