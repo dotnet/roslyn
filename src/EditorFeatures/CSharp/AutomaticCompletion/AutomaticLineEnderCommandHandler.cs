@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.AutomaticLineEnder)]
-    [Order(After = PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class AutomaticLineEnderCommandHandler : AbstractAutomaticLineEnderCommandHandler
     {

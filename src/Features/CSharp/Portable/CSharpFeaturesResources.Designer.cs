@@ -1016,6 +1016,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pass in captured variables as arguments.
+        /// </summary>
+        internal static string Pass_in_captured_variables_as_arguments {
+            get {
+                return ResourceManager.GetString("Pass_in_captured_variables_as_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
         internal static string Properties {
@@ -1545,6 +1554,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string using_statement {
             get {
                 return ResourceManager.GetString("using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Adding parameters to local function declaration may produce invalid code..
+        /// </summary>
+        internal static string Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code {
+            get {
+                return ResourceManager.GetString("Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid" +
+                        "_code", resourceCulture);
             }
         }
         

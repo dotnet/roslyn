@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.Commit)>
     <Order(Before:=PredefinedCommandHandlerNames.EndConstruct)>
-    <Order(Before:=PredefinedCommandHandlerNames.Completion)>
     <Order(Before:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class CommitCommandHandler
         Implements IChainedCommandHandler(Of ReturnKeyCommandArgs)

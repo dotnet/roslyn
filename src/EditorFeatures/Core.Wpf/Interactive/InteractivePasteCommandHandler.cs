@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Commit)]
-    [Order(After = PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal sealed class InteractivePasteCommandHandler : VSCommanding.ICommandHandler<PasteCommandArgs>
     {
