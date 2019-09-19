@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             switch (receiver)
             {
-                case BoundImplicitReceiver implicitReceiver:
+                case BoundCollectionValuePlaceholder implicitReceiver:
                     return CreateBoundDynamicMemberAccessOperation(implicitReceiver, typeArgumentsOpt: ImmutableArray<TypeSymbol>.Empty, memberName: "Add",
                                                                    implicitReceiver.Syntax, type: null, value: default, isImplicit: true);
 

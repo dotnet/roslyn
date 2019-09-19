@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Operations
                && (!receiverOpt.WasCompilerGenerated
                    || (receiverOpt.Kind != BoundKind.ThisReference
                       && receiverOpt.Kind != BoundKind.BaseReference
-                      && receiverOpt.Kind != BoundKind.ImplicitReceiver)))
+                      && receiverOpt.Kind != BoundKind.CollectionValuePlaceholder)))
             {
                 builder.Add(receiverOpt);
             }

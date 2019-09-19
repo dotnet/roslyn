@@ -1789,11 +1789,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
         {
             TakeIncrementalSnapshot(node);
-            switch (node.Kind)
+            switch (node)
             {
-                case BoundKind.ObjectInitializerExpression:
+                case BoundObjectInitializerExpression objectInitializer:
                     checkImplicitReceiver();
-                    foreach (var initializer in ((BoundObjectInitializerExpression)node).Initializers)
+                    foreach (var initializer in objectInitializer.Initializers)
                     {
                         switch (initializer.Kind)
                         {
@@ -1806,9 +1806,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
-                case BoundKind.CollectionInitializerExpression:
+                case BoundCollectionInitializerExpression collectionInitializer:
                     checkImplicitReceiver();
-                    foreach (var initializer in ((BoundCollectionInitializerExpression)node).Initializers)
+                    foreach (var initializer in collectionInitializer.Initializers)
                     {
                         switch (initializer.Kind)
                         {
@@ -1820,6 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                         }
                     }
+                    SetNotNullResult(collectionInitializer.Placeholder);
                     break;
                 default:
                     Debug.Assert((object)containingSymbol != null);
