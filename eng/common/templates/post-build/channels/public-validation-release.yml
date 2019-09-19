@@ -1,12 +1,10 @@
 parameters:
   artifactsPublishingAdditionalParameters: ''
-  dependsOn:
-  - Validate
   publishInstallersAndChecksums: false
 
 stages:
 - stage: PVR_Publish
-  dependsOn: ${{ parameters.dependsOn }}
+  dependsOn: validate
   variables:
     - template: ../common-variables.yml
   displayName: .NET Tools - Validation Publishing

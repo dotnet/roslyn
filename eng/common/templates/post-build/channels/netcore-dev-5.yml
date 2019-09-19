@@ -1,13 +1,11 @@
 parameters:
-  artifactsPublishingAdditionalParameters: ''
-  dependsOn:
-  - Validate
-  publishInstallersAndChecksums: false
   symbolPublishingAdditionalParameters: ''
+  artifactsPublishingAdditionalParameters: ''
+  publishInstallersAndChecksums: false
 
 stages:
 - stage: NetCore_Dev5_Publish
-  dependsOn: ${{ parameters.dependsOn }}
+  dependsOn: validate
   variables:
     - template: ../common-variables.yml
   displayName: .NET Core 5 Dev Publishing
