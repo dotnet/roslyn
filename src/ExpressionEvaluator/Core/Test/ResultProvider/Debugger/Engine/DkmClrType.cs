@@ -34,14 +34,16 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         private readonly DkmClrAppDomain _appDomain;
         private readonly Type _lmrType;
         private readonly ReadOnlyCollection<DkmClrEvalAttribute> _evalAttributes;
+        private readonly DkmClrObjectFavoritesInfo _favorites;
         private ReadOnlyCollection<DkmClrType> _lazyGenericArguments;
 
-        internal DkmClrType(DkmClrModuleInstance module, DkmClrAppDomain appDomain, Type lmrType)
+        internal DkmClrType(DkmClrModuleInstance module, DkmClrAppDomain appDomain, Type lmrType, DkmClrObjectFavoritesInfo favorites = null)
         {
             _module = module;
             _appDomain = appDomain;
             _lmrType = lmrType;
             _evalAttributes = GetEvalAttributes(lmrType);
+            _favorites = favorites;
         }
 
         internal DkmClrType(Type lmrType) :
@@ -78,7 +80,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             var type = new DkmClrType(
                 _module,
                 _appDomain,
-                _lmrType.MakeGenericType(genericArguments.Select(t => t._lmrType).ToArray()));
+                _lmrType.MakeGenericType(genericArguments.Select(t => t._lmrType).ToArray()),
+                _favorites);
             type._lazyGenericArguments = new ReadOnlyCollection<DkmClrType>(genericArguments);
             return type;
         }
@@ -362,6 +365,6 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             return builder.ToArrayAndFree();
         }
 
-        public DkmClrObjectFavoritesInfo GetFavorites() => null;
+        public DkmClrObjectFavoritesInfo GetFavorites() => _favorites;
     }
 }
