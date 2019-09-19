@@ -1,0 +1,785 @@
+<Themes>
+    <Theme Name="Light" GUID="{de3dbbcd-f642-433c-8353-8f1df4370aba}">
+        <Category Name="Roslyn Text Editor MEF Items" GUID="{75a05685-00a8-4ded-bae5-e7a50bfa929a}">
+            <Color Name="preprocessor text">
+                <Foreground Type="CT_RAW" Source="FF000000" />
+            </Color>
+            <Color Name="punctuation">
+                <Foreground Type="CT_RAW" Source="FF000000" />
+            </Color>
+            <Color Name="string - verbatim">
+                <Foreground Type="CT_RAW" Source="FF800000" />
+            </Color>
+<!--
+            <Color Name="keyword - control">
+            </Color>
+            <Color Name="operator - overloaded">
+            </Color>
+-->
+            <Color Name="class name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="delegate name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="enum name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="interface name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="module name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="struct name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="type parameter name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+<!--
+            <Color Name="field name">
+            </Color>
+            <Color Name="enum member name">
+            </Color>
+            <Color Name="constant name">
+            </Color>
+            <Color Name="local name">
+            </Color>
+            <Color Name="parameter name">
+            </Color>
+            <Color Name="method name">
+            </Color>
+            <Color Name="extension method name">
+            </Color>
+            <Color Name="property name">
+            </Color>
+            <Color Name="event name">
+            </Color>
+            <Color Name="namespace name">
+            </Color>
+            <Color Name="label name">
+            </Color>
+-->
+            <Color Name="xml doc comment - attribute name">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - attribute quotes">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - attribute value">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - cdata section">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - comment">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - delimiter">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - entity reference">
+                <Foreground Type="CT_RAW" Source="FF008000" />
+            </Color>
+            <Color Name="xml doc comment - name">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - processing instruction">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - text">
+                <Foreground Type="CT_RAW" Source="FF008000" />
+            </Color>
+            <Color Name="regex - comment">
+                <Foreground Type="CT_RAW" Source="FF008000" />
+            </Color>
+            <Color Name="regex - character class">
+                <Foreground Type="CT_RAW" Source="FF0073FF" />
+            </Color>
+            <Color Name="regex - anchor">
+                <Foreground Type="CT_RAW" Source="FFFF00C1" />
+            </Color>
+            <Color Name="regex - quantifier">
+                <Foreground Type="CT_RAW" Source="FFFF00C1" />
+            </Color>
+            <Color Name="regex - grouping">
+                <Foreground Type="CT_RAW" Source="FF05C3BA" />
+            </Color>
+            <Color Name="regex - alternation">
+                <Foreground Type="CT_RAW" Source="FF05C3BA" />
+            </Color>
+            <Color Name="regex - text">
+                <Foreground Type="CT_RAW" Source="FF800000" />
+            </Color>
+            <Color Name="regex - self escaped character">
+                <Foreground Type="CT_RAW" Source="FF800000" />
+            </Color>
+            <Color Name="regex - other escape">
+                <Foreground Type="CT_RAW" Source="FF9E5B71" />
+            </Color>
+            <Color Name="xml literal - attribute name">
+                <Foreground Type="CT_RAW" Source="FFB96464" />
+            </Color>
+            <Color Name="xml literal - attribute quotes">
+                <Foreground Type="CT_RAW" Source="FF555555" />
+            </Color>
+            <Color Name="xml literal - attribute value">
+                <Foreground Type="CT_RAW" Source="FF6464B9" />
+            </Color>
+            <Color Name="xml literal - cdata section">
+                <Foreground Type="CT_RAW" Source="FFC0C0C0" />
+            </Color>
+            <Color Name="xml literal - comment">
+                <Foreground Type="CT_RAW" Source="FF629755" />
+            </Color>
+            <Color Name="xml literal - delimiter">
+                <Foreground Type="CT_RAW" Source="FF6464B9" />
+            </Color>
+            <Color Name="xml literal - embedded expression">
+                <Background Type="CT_RAW" Source="FFFFFEBF" />
+                <Foreground Type="CT_RAW" Source="FF555555" />
+            </Color>
+            <Color Name="xml literal - entity reference">
+                <Foreground Type="CT_RAW" Source="FFB96464" />
+            </Color>
+            <Color Name="xml literal - name">
+                <Foreground Type="CT_RAW" Source="FF844646" />
+            </Color>
+            <Color Name="xml literal - processing instruction">
+                <Foreground Type="CT_RAW" Source="FFC0C0C0" />
+            </Color>
+            <Color Name="xml literal - text">
+                <Foreground Type="CT_RAW" Source="FF555555" />
+            </Color>
+        </Category>
+    </Theme>
+    <Theme Name="Blue" GUID="{a4d6a176-b948-4b29-8c66-53c97a1ed7d0}">
+        <Category Name="Roslyn Text Editor MEF Items" GUID="{75a05685-00a8-4ded-bae5-e7a50bfa929a}">
+            <Color Name="preprocessor text">
+                <Foreground Type="CT_RAW" Source="FF000000" />
+            </Color>
+            <Color Name="punctuation">
+                <Foreground Type="CT_RAW" Source="FF000000" />
+            </Color>
+            <Color Name="string - verbatim">
+                <Foreground Type="CT_RAW" Source="FF800000" />
+            </Color>
+<!--
+            <Color Name="keyword - control">
+            </Color>
+            <Color Name="operator - overloaded">
+            </Color>
+-->
+            <Color Name="class name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="delegate name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="enum name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="interface name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="module name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="struct name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="type parameter name">
+                <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+<!--
+            <Color Name="field name">
+            </Color>
+            <Color Name="enum member name">
+            </Color>
+            <Color Name="constant name">
+            </Color>
+            <Color Name="local name">
+            </Color>
+            <Color Name="parameter name">
+            </Color>
+            <Color Name="method name">
+            </Color>
+            <Color Name="extension method name">
+            </Color>
+            <Color Name="property name">
+            </Color>
+            <Color Name="event name">
+            </Color>
+            <Color Name="namespace name">
+            </Color>
+            <Color Name="label name">
+            </Color>
+-->
+            <Color Name="xml doc comment - attribute name">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - attribute quotes">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - attribute value">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - cdata section">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - comment">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - delimiter">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - entity reference">
+                <Foreground Type="CT_RAW" Source="FF008000" />
+            </Color>
+            <Color Name="xml doc comment - name">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - processing instruction">
+                <Foreground Type="CT_RAW" Source="FF808080" />
+            </Color>
+            <Color Name="xml doc comment - text">
+                <Foreground Type="CT_RAW" Source="FF008000" />
+            </Color>
+            <Color Name="regex - comment">
+                <Foreground Type="CT_RAW" Source="FF008000" />
+            </Color>
+            <Color Name="regex - character class">
+                <Foreground Type="CT_RAW" Source="FF0073FF" />
+            </Color>
+            <Color Name="regex - anchor">
+                <Foreground Type="CT_RAW" Source="FFFF00C1" />
+            </Color>
+            <Color Name="regex - quantifier">
+                <Foreground Type="CT_RAW" Source="FFFF00C1" />
+            </Color>
+            <Color Name="regex - grouping">
+                <Foreground Type="CT_RAW" Source="FF05C3BA" />
+            </Color>
+            <Color Name="regex - alternation">
+                <Foreground Type="CT_RAW" Source="FF05C3BA" />
+            </Color>
+            <Color Name="regex - text">
+                <Foreground Type="CT_RAW" Source="FF800000" />
+            </Color>
+            <Color Name="regex - self escaped character">
+                <Foreground Type="CT_RAW" Source="FF800000" />
+            </Color>
+            <Color Name="regex - other escape">
+                <Foreground Type="CT_RAW" Source="FF9E5B71" />
+            </Color>
+            <Color Name="xml literal - attribute name">
+                <Foreground Type="CT_RAW" Source="FFB96464" />
+            </Color>
+            <Color Name="xml literal - attribute quotes">
+                <Foreground Type="CT_RAW" Source="FF555555" />
+            </Color>
+            <Color Name="xml literal - attribute value">
+                <Foreground Type="CT_RAW" Source="FF6464B9" />
+            </Color>
+            <Color Name="xml literal - cdata section">
+                <Foreground Type="CT_RAW" Source="FFC0C0C0" />
+            </Color>
+            <Color Name="xml literal - comment">
+                <Foreground Type="CT_RAW" Source="FF629755" />
+            </Color>
+            <Color Name="xml literal - delimiter">
+                <Foreground Type="CT_RAW" Source="FF6464B9" />
+            </Color>
+            <Color Name="xml literal - embedded expression">
+                <Background Type="CT_RAW" Source="FFFFFEBF" />
+                <Foreground Type="CT_RAW" Source="FF555555" />
+            </Color>
+            <Color Name="xml literal - entity reference">
+                <Foreground Type="CT_RAW" Source="FFB96464" />
+            </Color>
+            <Color Name="xml literal - name">
+                <Foreground Type="CT_RAW" Source="FF844646" />
+            </Color>
+            <Color Name="xml literal - processing instruction">
+                <Foreground Type="CT_RAW" Source="FFC0C0C0" />
+            </Color>
+            <Color Name="xml literal - text">
+                <Foreground Type="CT_RAW" Source="FF555555" />
+            </Color>
+        </Category>
+    </Theme>
+    <Theme Name="AdditionalContrast" GUID="{ce94d289-8481-498b-8ca9-9b6191a315b9}">
+        <Category Name="Roslyn Text Editor MEF Items" GUID="{75a05685-00a8-4ded-bae5-e7a50bfa929a}">
+            <Color Name="preprocessor text">
+                <Foreground Type="CT_RAW" Source="FF000000" />
+            </Color>
+            <Color Name="punctuation">
+                <Foreground Type="CT_RAW" Source="FF000000" />
+            </Color>
+            <Color Name="string - verbatim">
+                <Foreground Type="CT_RAW" Source="FF800000" />
+            </Color>
+<!--
+            <Color Name="keyword - control">
+            </Color>
+            <Color Name="operator - overloaded">
+            </Color>
+-->
+            <Color Name="class name">
+                <Foreground Type="CT_RAW" Source="FF066555" />
+            </Color>
+            <Color Name="delegate name">
+                <Foreground Type="CT_RAW" Source="FF066555" />
+            </Color>
+            <Color Name="enum name">
+                <Foreground Type="CT_RAW" Source="FF066555" />
+            </Color>
+            <Color Name="interface name">
+                <Foreground Type="CT_RAW" Source="FF066555" />
+            </Color>
+            <Color Name="module name">
+                <Foreground Type="CT_RAW" Source="FF066555" />
+            </Color>
+            <Color Name="struct name">
+                <Foreground Type="CT_RAW" Source="FF066555" />
+            </Color>
+            <Color Name="type parameter name">
+                <Foreground Type="CT_RAW" Source="FF066555" />
+            </Color>
+<!--
+            <Color Name="field name">
+            </Color>
+            <Color Name="enum member name">
+            </Color>
+            <Color Name="constant name">
+            </Color>
+            <Color Name="local name">
+            </Color>
+            <Color Name="parameter name">
+            </Color>
+            <Color Name="method name">
+            </Color>
+            <Color Name="extension method name">
+            </Color>
+            <Color Name="property name">
+            </Color>
+            <Color Name="event name">
+            </Color>
+            <Color Name="namespace name">
+            </Color>
+            <Color Name="label name">
+            </Color>
+-->
+            <Color Name="xml doc comment - attribute name">
+                <Foreground Type="CT_RAW" Source="FF5B5B5B" />
+            </Color>
+            <Color Name="xml doc comment - attribute quotes">
+                <Foreground Type="CT_RAW" Source="FF5B5B5B" />
+            </Color>
+            <Color Name="xml doc comment - attribute value">
+                <Foreground Type="CT_RAW" Source="FF5B5B5B" />
+            </Color>
+            <Color Name="xml doc comment - cdata section">
+                <Foreground Type="CT_RAW" Source="FF5B5B5B" />
+            </Color>
+            <Color Name="xml doc comment - comment">
+                <Foreground Type="CT_RAW" Source="FF5B5B5B" />
+            </Color>
+            <Color Name="xml doc comment - delimiter">
+                <Foreground Type="CT_RAW" Source="FF5B5B5B" />
+            </Color>
+            <Color Name="xml doc comment - entity reference">
+                <Foreground Type="CT_RAW" Source="FF066555" />
+            </Color>
+            <Color Name="xml doc comment - name">
+                <Foreground Type="CT_RAW" Source="FF5B5B5B" />
+            </Color>
+            <Color Name="xml doc comment - processing instruction">
+                <Foreground Type="CT_RAW" Source="FF5B5B5B" />
+            </Color>
+            <Color Name="xml doc comment - text">
+                <Foreground Type="CT_RAW" Source="FF066555" />
+            </Color>
+            <Color Name="regex - comment">
+                <Foreground Type="CT_RAW" Source="FF066555" />
+            </Color>
+            <Color Name="regex - character class">
+                <Foreground Type="CT_RAW" Source="FF043BB3" />
+            </Color>
+            <Color Name="regex - anchor">
+                <Foreground Type="CT_RAW" Source="FF83146C" />
+            </Color>
+            <Color Name="regex - quantifier">
+                <Foreground Type="CT_RAW" Source="FF83146C" />
+            </Color>
+            <Color Name="regex - grouping">
+                <Foreground Type="CT_RAW" Source="FF204F4B" />
+            </Color>
+            <Color Name="regex - alternation">
+                <Foreground Type="CT_RAW" Source="FF204F4B" />
+            </Color>
+            <Color Name="regex - text">
+                <Foreground Type="CT_RAW" Source="FF800000" />
+            </Color>
+            <Color Name="regex - self escaped character">
+                <Foreground Type="CT_RAW" Source="FF800000" />
+            </Color>
+            <Color Name="regex - other escape">
+                <Foreground Type="CT_RAW" Source="FF72324E" />
+            </Color>
+            <Color Name="xml literal - attribute name">
+                <Foreground Type="CT_RAW" Source="FF863434" />
+            </Color>
+            <Color Name="xml literal - attribute quotes">
+                <Foreground Type="CT_RAW" Source="FF3F3F3F" />
+            </Color>
+            <Color Name="xml literal - attribute value">
+                <Foreground Type="CT_RAW" Source="FF5245A9" />
+            </Color>
+            <Color Name="xml literal - cdata section">
+                <Foreground Type="CT_RAW" Source="FF5B5B5B" />
+            </Color>
+            <Color Name="xml literal - comment">
+                <Foreground Type="CT_RAW" Source="FF066555" />
+            </Color>
+            <Color Name="xml literal - delimiter">
+                <Foreground Type="CT_RAW" Source="FF5245A9" />
+            </Color>
+            <Color Name="xml literal - embedded expression">
+                <Background Type="CT_RAW" Source="FFEDE0D1" />
+                <Foreground Type="CT_RAW" Source="FF3F3F3F" />
+            </Color>
+            <Color Name="xml literal - entity reference">
+                <Foreground Type="CT_RAW" Source="FF863434" />
+            </Color>
+            <Color Name="xml literal - name">
+                <Foreground Type="CT_RAW" Source="FF863434" />
+            </Color>
+            <Color Name="xml literal - processing instruction">
+                <Foreground Type="CT_RAW" Source="FF5B5B5B" />
+            </Color>
+            <Color Name="xml literal - text">
+                <Foreground Type="CT_RAW" Source="FF3F3F3F" />
+            </Color>
+       </Category>
+    </Theme>
+    <Theme Name="Dark" GUID="{1ded0138-47ce-435e-84ef-9ec1f439b749}">
+        <Category Name="Roslyn Text Editor MEF Items" GUID="{75a05685-00a8-4ded-bae5-e7a50bfa929a}">
+            <Color Name="preprocessor text">
+                <Foreground Type="CT_RAW" Source="FFDCDCDC" />
+            </Color>
+            <Color Name="punctuation">
+                <Foreground Type="CT_RAW" Source="FFDCDCDC" />
+            </Color>
+            <Color Name="string - verbatim">
+                <Foreground Type="CT_RAW" Source="FFD69D85" />
+            </Color>
+<!--
+            <Color Name="keyword - control">
+            </Color>
+            <Color Name="operator - overloaded">
+            </Color>
+-->
+            <Color Name="class name">
+                <Foreground Type="CT_RAW" Source="FF4EC9B0" />
+            </Color>
+            <Color Name="delegate name">
+                <Foreground Type="CT_RAW" Source="FF4EC9B0" />
+            </Color>
+            <Color Name="enum name">
+                <Foreground Type="CT_RAW" Source="FFB8D7A3" />
+            </Color>
+            <Color Name="interface name">
+                <Foreground Type="CT_RAW" Source="FFB8D7A3" />
+            </Color>
+            <Color Name="module name">
+                <Foreground Type="CT_RAW" Source="FF4EC9B0" />
+            </Color>
+            <Color Name="struct name">
+                <Foreground Type="CT_RAW" Source="FF4EC9B0" />
+            </Color>
+            <Color Name="type parameter name">
+                <Foreground Type="CT_RAW" Source="FFB8D7A3" />
+            </Color>
+<!--
+            <Color Name="field name">
+            </Color>
+            <Color Name="enum member name">
+            </Color>
+            <Color Name="constant name">
+            </Color>
+            <Color Name="local name">
+            </Color>
+            <Color Name="parameter name">
+            </Color>
+            <Color Name="method name">
+            </Color>
+            <Color Name="extension method name">
+            </Color>
+            <Color Name="property name">
+            </Color>
+            <Color Name="event name">
+            </Color>
+            <Color Name="namespace name">
+            </Color>
+            <Color Name="label name">
+            </Color>
+-->
+            <Color Name="xml doc comment - attribute name">
+                <Foreground Type="CT_RAW" Source="FFC8C8C8" />
+            </Color>
+            <Color Name="xml doc comment - attribute quotes">
+                <Foreground Type="CT_RAW" Source="FFC8C8C8" />
+            </Color>
+            <Color Name="xml doc comment - attribute value">
+                <Foreground Type="CT_RAW" Source="FFC8C8C8" />
+            </Color>
+            <Color Name="xml doc comment - cdata section">
+                <Foreground Type="CT_RAW" Source="FFE9D585" />
+            </Color>
+            <Color Name="xml doc comment - comment">
+                <Foreground Type="CT_RAW" Source="FF608B4E" />
+            </Color>
+            <Color Name="xml doc comment - delimiter">
+                <Foreground Type="CT_RAW" Source="FF608B4E" />
+            </Color>
+            <Color Name="xml doc comment - entity reference">
+                <Foreground Type="CT_RAW" Source="FF608B4E" />
+            </Color>
+            <Color Name="xml doc comment - name">
+                <Foreground Type="CT_RAW" Source="FF608B4E" />
+            </Color>
+            <Color Name="xml doc comment - processing instruction">
+                <Foreground Type="CT_RAW" Source="FF608B4E" />
+            </Color>
+            <Color Name="xml doc comment - text">
+                <Foreground Type="CT_RAW" Source="FF608B4E" />
+            </Color>
+            <Color Name="regex - comment">
+                <Foreground Type="CT_RAW" Source="FF57A64A" />
+            </Color>
+            <Color Name="regex - character class">
+                <Foreground Type="CT_RAW" Source="FF2EABFE" />
+            </Color>
+            <Color Name="regex - anchor">
+                <Foreground Type="CT_RAW" Source="FFF979AE" />
+            </Color>
+            <Color Name="regex - quantifier">
+                <Foreground Type="CT_RAW" Source="FFF979AE" />
+            </Color>
+            <Color Name="regex - grouping">
+                <Foreground Type="CT_RAW" Source="FF05C3BA" />
+            </Color>
+            <Color Name="regex - alternation">
+                <Foreground Type="CT_RAW" Source="FF05C3BA" />
+            </Color>
+            <Color Name="regex - text">
+                <Foreground Type="CT_RAW" Source="FFD69D85" />
+            </Color>
+            <Color Name="regex - self escaped character">
+                <Foreground Type="CT_RAW" Source="FFD69D85" />
+            </Color>
+            <Color Name="regex - other escape">
+                <Foreground Type="CT_RAW" Source="FFFFD68F" />
+            </Color>
+            <Color Name="xml literal - attribute name">
+                <Foreground Type="CT_RAW" Source="FFC8C8C8" />
+            </Color>
+            <Color Name="xml literal - attribute quotes">
+                <Foreground Type="CT_RAW" Source="FF92CAF4" />
+            </Color>
+            <Color Name="xml literal - attribute value">
+                <Foreground Type="CT_RAW" Source="FFC8C8C8" />
+            </Color>
+            <Color Name="xml literal - cdata section">
+                <Foreground Type="CT_RAW" Source="FFE9D585" />
+            </Color>
+            <Color Name="xml literal - comment">
+                <Foreground Type="CT_RAW" Source="FF608B4E" />
+            </Color>
+            <Color Name="xml literal - delimiter">
+                <Foreground Type="CT_RAW" Source="FF89BB82" />
+            </Color>
+            <Color Name="xml literal - embedded expression">
+                <Background Type="CT_RAW" Source="FFEDE0D1" />
+                <Foreground Type="CT_RAW" Source="FF717171" />
+            </Color>
+            <Color Name="xml literal - entity reference">
+                <Foreground Type="CT_RAW" Source="FF92CAF4" />
+            </Color>
+            <Color Name="xml literal - name">
+                <Foreground Type="CT_RAW" Source="FF569CD6" />
+            </Color>
+            <Color Name="xml literal - processing instruction">
+                <Foreground Type="CT_RAW" Source="FFAEAEAE" />
+            </Color>
+            <Color Name="xml literal - text">
+                <Foreground Type="CT_RAW" Source="FFC8C8C8" />
+            </Color>
+        </Category>
+    </Theme>
+    <Theme Name="HighContrast" GUID="{a5c004b4-2d4b-494e-bf01-45fc492522c7}">
+        <Category Name="Roslyn Text Editor MEF Items" GUID="{75a05685-00a8-4ded-bae5-e7a50bfa929a}">
+            <Color Name="preprocessor text">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="punctuation">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="string - verbatim">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="keyword - control">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="operator - overloaded">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="class name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="delegate name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="enum name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="interface name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="module name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="struct name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="type parameter name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="field name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="enum member name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="constant name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="local name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="parameter name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="method name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="extension method name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="property name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="event name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="namespace name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="label name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml doc comment - attribute name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml doc comment - attribute quotes">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml doc comment - attribute value">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml doc comment - cdata section">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml doc comment - comment">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml doc comment - delimiter">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml doc comment - entity reference">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml doc comment - name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml doc comment - processing instruction">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml doc comment - text">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="regex - comment">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="regex - character class">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="regex - anchor">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="regex - quantifier">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="regex - grouping">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="regex - alternation">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="regex - text">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="regex - self escaped character">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="regex - other escape">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml literal - attribute name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml literal - attribute quotes">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml literal - attribute value">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml literal - cdata section">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml literal - comment">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml literal - delimiter">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml literal - embedded expression">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml literal - entity reference">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml literal - name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml literal - processing instruction">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="xml literal - text">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+        </Category>
+    </Theme>
+</Themes>

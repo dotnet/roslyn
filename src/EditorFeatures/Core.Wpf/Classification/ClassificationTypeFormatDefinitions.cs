@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public UserTypeModulesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Modules;
-                this.ForegroundColor = Color.FromRgb(43, 145, 175);
+                this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
@@ -681,14 +681,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
         private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x8a, 0xff);
         private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xd7, 0x45, 0x8c);
-        private static readonly Color s_regexCommentColor = Color.FromRgb(87, 166, 74);
+        private static readonly Color s_regexCommentColor = Color.FromRgb(0x61, 0xa6, 0x4a);
 #else
         private static readonly Color s_regexTextColor = Color.FromRgb(0x80, 0x00, 0x00);
         private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0x9e, 0x5b, 0x71);
         private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
         private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x73, 0xff);
         private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xff, 0x00, 0xc1);
-        private static readonly Color s_regexCommentColor = Color.FromRgb(0, 128, 0);
+        private static readonly Color s_regexCommentColor = Color.FromRgb(0x00, 0x80, 0x00);
 #endif
 
         [Export(typeof(EditorFormatDefinition))]
@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public XmlLiteralAttributeNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Name;
-                this.ForegroundColor = Color.FromRgb(185, 100, 100); // HC_LIGHTRED
+                this.ForegroundColor = Color.FromRgb(0xB9, 0x64, 0x64); // HC_LIGHTRED
             }
         }
         #endregion
@@ -877,7 +877,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public XmlLiteralAttributeQuotesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Quotes;
-                this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
+                this.ForegroundColor = Color.FromRgb(0x55, 0x55, 0x55); // HC_LIGHTBLACK
             }
         }
         #endregion
@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public XmlLiteralAttributeValueFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Value;
-                this.ForegroundColor = Color.FromRgb(100, 100, 185); // HC_LIGHTBLUE
+                this.ForegroundColor = Color.FromRgb(0x64, 0x64, 0xB9); // HC_LIGHTBLUE
             }
         }
         #endregion
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public XmlLiteralCDataSectionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_CData_Section;
-                this.ForegroundColor = Color.FromRgb(192, 192, 192); // HC_LIGHTGRAY
+                this.ForegroundColor = Color.FromRgb(0xC0, 0xC0, 0xC0); // HC_LIGHTGRAY
             }
         }
         #endregion
@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public XmlLiteralCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Comment;
-                this.ForegroundColor = Color.FromRgb(98, 151, 85); // HC_LIGHTGREEN
+                this.ForegroundColor = Color.FromRgb(0x62, 0x97, 0x55); // HC_LIGHTGREEN
             }
         }
         #endregion
@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public XmlLiteralDelimiterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Delimiter;
-                this.ForegroundColor = Color.FromRgb(100, 100, 185); // HC_LIGHTBLUE
+                this.ForegroundColor = Color.FromRgb(0x64, 0x64, 0xB9); // HC_LIGHTBLUE
             }
         }
         #endregion
@@ -957,8 +957,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public XmlLiteralEmbeddedExpressionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Embedded_Expression;
-                this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
-                this.BackgroundColor = Color.FromRgb(255, 254, 191); // HC_LIGHTYELLOW
+                this.ForegroundColor = Color.FromRgb(0x55, 0x55, 0x55); // HC_LIGHTBLACK
+                this.BackgroundColor = Color.FromRgb(0xFF, 0xFE, 0xBF); // HC_LIGHTYELLOW
             }
         }
         #endregion
@@ -974,7 +974,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public XmlLiteralEntityReferenceFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Entity_Reference;
-                this.ForegroundColor = Color.FromRgb(185, 100, 100); // HC_LIGHTRED
+                this.ForegroundColor = Color.FromRgb(0xB9, 0x64, 0x64); // HC_LIGHTRED
             }
         }
         #endregion
@@ -990,7 +990,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public XmlLiteralNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Name;
-                this.ForegroundColor = Color.FromRgb(132, 70, 70); // HC_LIGHTMAROON
+                this.ForegroundColor = Color.FromRgb(0x84, 0x46, 0x46); // HC_LIGHTMAROON
             }
         }
         #endregion
@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public XmlLiteralProcessingInstructionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Processing_Instruction;
-                this.ForegroundColor = Color.FromRgb(192, 192, 192); // HC_LIGHTGRAY
+                this.ForegroundColor = Color.FromRgb(0xC0, 0xC0, 0xC0); // HC_LIGHTGRAY
             }
         }
         #endregion
@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public XmlLiteralTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Text;
-                this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
+                this.ForegroundColor = Color.FromRgb(0x55, 0x55, 0x55); // HC_LIGHTBLACK
             }
         }
         #endregion

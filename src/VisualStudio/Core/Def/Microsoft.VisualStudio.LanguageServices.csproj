@@ -189,6 +189,7 @@
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.16.0.DesignTime" Version="$(MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="$(MicrosoftVisualStudioVsInteractiveWindowVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.VsixColorCompiler" Version="$(MicrosoftVisualStudioVsixColorCompilerVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="$(MicrosoftVisualStudioDesignerInterfacesVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.MSXML" Version="$(MicrosoftMSXMLVersion)" />
@@ -278,5 +279,20 @@
   <ItemGroup>
     <VsdConfigXmlFiles Include="ManagedEditAndContinueService.vsdconfigxml" />
   </ItemGroup>
+  <!-- Editor Color Scheme support-->
+  <PropertyGroup>
+    <EnhancedThemePath>$(OutputPath)$(TargetFramework)\Enhanced.pkgdef</EnhancedThemePath>
+    <VisualStudio2017ThemePath>$(OutputPath)$(TargetFramework)\VisualStudio2017.pkgdef</VisualStudio2017ThemePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <VsTheme Include="ColorSchemes\Enhanced.xml" />
+    <VsTheme Include="ColorSchemes\VisualStudio2017.xml" />
+  </ItemGroup>
+  <Target Name="CompileRoslynEditorColors" BeforeTargets="BeforeBuild" DependsOnTargets="CompileVsThemeToPkgdef">
+    <ItemGroup>
+      <EmbeddedResource Include="$(EnhancedThemePath)" />
+      <EmbeddedResource Include="$(VisualStudio2017ThemePath)" />
+    </ItemGroup>
+  </Target>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>
