@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var additionalProperties = new ArrayBuilder<FindUsageProperty>();
 
             var containingType = definition.ContainingType;
-            if (containingType != null && 
+            if (containingType != null &&
                 TryGetAdditionalProperty(ContainingTypeInfoPropertyName, containingType, out var findUsagePropertyForContainingType))
             {
                 additionalProperties.Add((FindUsageProperty)findUsagePropertyForContainingType);
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             // Containing member should only include fields, properties, methods, or events.  Since ContainingSymbol can return other types, use the return value of GetMemberType to restrict to members only.)
             if (containingSymbol != null &&
-                containingSymbol.GetMemberType() != null && 
+                containingSymbol.GetMemberType() != null &&
                 TryGetAdditionalProperty(ContainingMemberInfoPropertyName, containingSymbol, out var findUsagePropertyForContainingMember))
             {
                 additionalProperties.Add((FindUsageProperty)findUsagePropertyForContainingMember);
