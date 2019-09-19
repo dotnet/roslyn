@@ -4,6 +4,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.OrganizeImports
 
@@ -19,6 +20,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
                 workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
 
                 Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync()
+                Assert.Equal(final.NormalizedValue, newRoot.ToFullString())
+            End Using
+        End Function
+
+        Private Async Function CheckWithFormatAsync(initial As XElement, final As XElement,
+                                          Optional placeSystemNamespaceFirst As Boolean = False,
+                                          Optional separateImportGroups As Boolean = False) As Task
+            Using workspace = TestWorkspace.CreateVisualBasic(initial.NormalizedValue)
+                Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
+                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
+                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
+
+                Dim organizedDocument = Await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)
+                Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, workspace.Options, CancellationToken.None)
+
+                Dim newRoot = Await formattedDocument.GetSyntaxRootAsync()
                 Assert.Equal(final.NormalizedValue, newRoot.ToFullString())
             End Using
         End Function
@@ -797,6 +814,84 @@ Imports <xmlns:zz="http://NextNamespace">
 ]]></content>
 
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
+        End Function
+
+        <WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestGroupingWithFormat() As Task
+            Dim initial =
+<content><![CDATA[Imports M
+Imports System
+
+Class Program
+    Console.WriteLine("Hello World!")
+
+    New Goo()
+End Class
+
+Namespace M
+    Class Goo
+    End Class
+End Namespace
+]]></content>
+
+            Dim final =
+<content><![CDATA[Imports M
+
+Imports System
+
+Class Program
+    Console.WriteLine("Hello World!")
+
+    New Goo()
+End Class
+
+Namespace M
+    Class Goo
+    End Class
+End Namespace
+]]></content>
+
+            Await CheckWithFormatAsync(initial, final, placeSystemNamespaceFirst:=False, separateImportGroups:=True)
+        End Function
+
+        <WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestSortingAndGroupingWithFormat() As Task
+            Dim initial =
+<content><![CDATA[Imports M
+Imports System
+
+Class Program
+    Console.WriteLine("Hello World!")
+
+    New Goo()
+End Class
+
+Namespace M
+    Class Goo
+    End Class
+End Namespace
+]]></content>
+
+            Dim final =
+<content><![CDATA[Imports System
+
+Imports M
+
+Class Program
+    Console.WriteLine("Hello World!")
+
+    New Goo()
+End Class
+
+Namespace M
+    Class Goo
+    End Class
+End Namespace
+]]></content>
+
+            Await CheckWithFormatAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
         End Function
     End Class
 End Namespace
