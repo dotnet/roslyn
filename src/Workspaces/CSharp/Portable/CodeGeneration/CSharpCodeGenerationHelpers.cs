@@ -26,12 +26,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (type.IsReferenceType)
             {
+                // The compiler does not allow 'T?' where 'T : class?'.
                 if (!(type is ITypeParameterSymbol typeParameter) ||
                     typeParameter.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.NotAnnotated)
                 {
                     // For [AllowNull]/[MaybeNull], add the nullable annotation.
+                    //
+                    // before                -> after
+                    // ---------------------    --------------------
                     // ([AllowNull] string?) -> (string?)
                     // ([AllowNull] string)  -> (string?)
+                    // ([AllowNull] T)       -> (T?) where T : class
                     var newAttributes = attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
                     if (newAttributes.Length != attributes.Length)
                     {
@@ -44,10 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                     if (isParameter)
                     {
-                        // The compiler does not allow parameter nullabilities to differ.
-                        // - ([DisallowNull] string?) -> (string)
-                        // + ([DisallowNull] string?) -> ([DisallowNull] string?)
-                        // ([DisallowNull] string)  -> (string)
+                        // The compiler does not currently allow parameter nullabilities to differ.
+                        //
+                        //           before                   -> after
+                        //           ------------------------    ------------------------
+                        // -desired: ([DisallowNull] string?) -> (string)
+                        // +current: ([DisallowNull] string?) -> ([DisallowNull] string?)
+                        //           ([DisallowNull] string)  -> (string)
                         if (nullableAnnotation == NullableAnnotation.NotAnnotated)
                         {
                             attributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
@@ -56,6 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     else
                     {
                         // For [DisallowNull]/[NotNull], remove the nullable annotation.
+                        //
+                        // before                   -> after
+                        // ------------------------    --------
                         // ([DisallowNull] string?) -> (string)
                         // ([DisallowNull] string)  -> (string)
                         newAttributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
@@ -73,6 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             else if (type.IsValueType)
             {
                 // Nullable<T> and T are incompatible in signature. Don't change the nullable annotation.
+                //
+                // before                -> after
+                // ---------------------    ---------------------
                 // ([AllowNull] int?)    -> (int?)
                 // ([DisallowNull] int?) -> ([DisallowNull] int?)
                 // ([AllowNull] int)     -> (int)
