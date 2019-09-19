@@ -663,4 +663,10 @@
     <value>switch statement case clause</value>
     <comment>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code" xml:space="preserve">
+    <value>Warning: Adding parameters to local function declaration may produce invalid code.</value>
+  </data>
+  <data name="Pass_in_captured_variables_as_arguments" xml:space="preserve">
+    <value>Pass in captured variables as arguments</value>
+  </data>
 </root>

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #nullable enable
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -82,6 +83,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return sym;
+        }
+
+        private ImmutableArray<T> GetUpdatedArray<T>(BoundNode expr, ImmutableArray<T> symbols) where T : Symbol
+        {
+            if (symbols.IsDefaultOrEmpty)
+            {
+                return symbols;
+            }
+
+            var builder = ArrayBuilder<T>.GetInstance(symbols.Length);
+            bool foundUpdate = false;
+            foreach (var originalSymbol in symbols)
+            {
+                if (_updatedSymbols.TryGetValue((expr, originalSymbol), out var updatedSymbol))
+                {
+                    foundUpdate = true;
+                    builder.Add((T)updatedSymbol);
+                }
+                else
+                {
+                    builder.Add(originalSymbol);
+                }
+            }
+
+            if (foundUpdate)
+            {
+                return builder.ToImmutableAndFree();
+            }
+            else
+            {
+                builder.Free();
+                return symbols;
+            }
         }
     }
 }
