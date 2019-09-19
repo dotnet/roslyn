@@ -3419,7 +3419,12 @@ interface IAppend
     void Append(object o);
 }
 
-struct S : IEnumerable, IAppend
+struct S1
+{
+    internal S2 S2;
+}
+
+struct S2 : IEnumerable, IAppend
 {
     IEnumerator IEnumerable.GetEnumerator() => null;
     void IAppend.Append(object o) { }
@@ -3434,11 +3439,12 @@ static class Program
     }
     static void Main()
     {
-        _ = new S() { 1, 2 };
+        _ = new S2() { 1, 2 };
+        _ = new S1() { S2 = { 3, 4 } };
     }
 }";
             var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "12");
+            CompileAndVerify(comp, expectedOutput: "1234");
         }
 
         [Fact]

@@ -296,6 +296,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionValuePlaceholder(BoundCollectionValuePlaceholder node)
         {
+            if (_inExpressionLambda)
+            {
+                // Expression trees do not include the 'this' argument for Add calls.
+                return node;
+            }
             return PlaceholderReplacement(node);
         }
 
