@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         IMoveToNamespaceOptionsService OptionsService { get; }
     }
 
-    internal abstract class AbstractMoveToNamespaceService<TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax, TCompilationUnitSyntax>
+    internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
         : IMoveToNamespaceService
+        where TCompilationUnitSyntax : SyntaxNode
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TNamedTypeDeclarationSyntax : SyntaxNode
-        where TCompilationUnitSyntax : SyntaxNode
 
     {
         protected abstract string GetNamespaceName(TNamespaceDeclarationSyntax namespaceSyntax);
@@ -94,7 +94,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 return null;
             }
 
-            if (ContainsNamespaceDeclaration(declarationSyntax) || GetNamespaceInSpineCount(declarationSyntax) > 1)
+            // The underlying ChangeNamespace service doesn't support nested namespace decalration.
+            if (GetNamespaceInSpineCount(declarationSyntax) > 1)
             {
                 return MoveToNamespaceAnalysisResult.Invalid;
             }
@@ -111,13 +112,14 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         {
             var namespaceInSpineCount = GetNamespaceInSpineCount(node);
 
-            // Multiple nested namespaces are currently not supported
+            // Nested namespaces are currently not supported by the underlying ChangeNamespace service
             if (namespaceInSpineCount > 1 || ContainsMultipleTypesInSpine(node))
             {
                 return MoveToNamespaceAnalysisResult.Invalid;
             }
 
-            // Moving one of the many members declared in global namespace is not currently supported
+            // Moving one of the many members declared in global namespace is not currently supported,
+            // but if it's the only member declared, then that's fine.
             if (namespaceInSpineCount == 0)
             {
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -139,11 +141,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             return null;
         }
 
-        private bool ContainsNamespaceDeclaration(SyntaxNode node)
-            => node.DescendantNodes().OfType<TNamespaceDeclarationSyntax>().Any();
-
         private static int GetNamespaceInSpineCount(SyntaxNode node)
-            => node.AncestorsAndSelf().OfType<TNamespaceDeclarationSyntax>().Count();
+            => node.AncestorsAndSelf().OfType<TNamespaceDeclarationSyntax>().Count() + node.DescendantNodes().OfType<TNamespaceDeclarationSyntax>().Count();
 
         private static bool ContainsMultipleTypesInSpine(SyntaxNode node)
             => node.AncestorsAndSelf().OfType<TNamedTypeDeclarationSyntax>().Count() > 1;
@@ -181,6 +180,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 case TCompilationUnitSyntax compilationUnit:
                     var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                     var members = syntaxFacts.GetMembersOfCompilationUnit(compilationUnit);
+                    // We are trying to move a selected type from global namespace to the target namespace.
+                    // This is supported if the selected type is the only member declared in the global namespace in this document.
+                    // (See `TryAnalyzeNamedTypeAsync`)
                     Debug.Assert(members.Count == 1);
                     return members.SelectAsArray(member => semanticModel.GetDeclaredSymbol(member));
 

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
 {
     [Export(typeof(IMoveToNamespaceOptionsService)), Shared]
     [PartNotDiscoverable]
-    class TestMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
+    internal class TestMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
     {
         private MoveToNamespaceOptionsResult OptionsResult { get; set; }
 
