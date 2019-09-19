@@ -1883,6 +1883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (var reinferredMethod, _, _) = VisitArguments(node, node.Arguments, refKindsOpt: default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod);
             if (node.ImplicitReceiverOpt != null)
             {
+                Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.CollectionValuePlaceholder);
                 SetAnalyzedNullability(node.ImplicitReceiverOpt, new VisitResult(node.ImplicitReceiverOpt.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
             }
             SetUnknownResultNullability(node);
