@@ -3753,7 +3753,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionItemFilter.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
 
@@ -3786,7 +3786,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionItemFilter.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
@@ -3820,7 +3820,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionItemFilter.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
@@ -3854,7 +3854,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionItemFilter.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
