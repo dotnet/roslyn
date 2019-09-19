@@ -676,22 +676,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// Call this method when a document is renamed in the host environment
-        /// </summary>
-        protected internal void OnDocumentRenamed(DocumentId documentId, string newFilePath)
-        {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckDocumentIsInCurrentSolution(documentId);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithDocumentFilePath(documentId, newFilePath));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
-            }
-        }
-
         protected virtual void CheckDocumentCanBeRemoved(DocumentId documentId)
         {
         }
@@ -975,15 +959,49 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected internal void OnAdditionalDocumentRenamed(DocumentId documentId, string newName)
+        /// <summary>
+        /// Call this method when the document info changes, such as the name, folders or file path.
+        /// </summary>
+        protected internal void OnAdditionalDocumentInfoChanged(DocumentId documentId, DocumentInfo newInfo)
         {
             using (_serializationLock.DisposableWait())
             {
                 CheckAdditionalDocumentIsInCurrentSolution(documentId);
 
                 var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithAdditionalDocumentFilePath(documentId, newName));
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
+
+                var newSolution = oldSolution;
+                var oldAttributes = oldSolution.GetAdditionalDocument(documentId)!.State.Attributes;
+
+                if (oldAttributes.Name != newInfo.Name)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (oldAttributes.Folders != newInfo.Folders)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (oldAttributes.FilePath != newInfo.FilePath)
+                {
+                    // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
+                    // filePath is null, but it's odd because we *do* support null file paths. The suppression here is to silence it
+                    // but should be removed when the bug is fixed.
+                    newSolution = newSolution.WithAdditionalDocumentFilePath(documentId, newInfo.FilePath!);
+                }
+
+                if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (newSolution != oldSolution)
+                {
+                    SetCurrentSolution(newSolution);
+
+                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentInfoChanged, oldSolution, newSolution, documentId: documentId);
+                }
             }
         }
 
@@ -1028,16 +1046,48 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Call this method when an analyzer config document is renamed in a project in the host environment.
+        /// Call this method when the document info changes, such as the name, folders or file path.
         /// </summary>
-        protected internal void OnAnalyzerConfigDocumentRenamed(DocumentId documentId, string newName)
+        protected internal void OnAnalyzerConfigDocumentInfoChanged(DocumentId documentId, DocumentInfo newInfo)
         {
             using (_serializationLock.DisposableWait())
             {
                 CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
+
                 var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(this.CurrentSolution.WithAnalyzerConfigDocumentFilePath(documentId, newName));
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId: documentId);
+
+                var newSolution = oldSolution;
+                var oldAttributes = oldSolution.GetAnalyzerConfigDocument(documentId)!.State.Attributes;
+
+                if (oldAttributes.Name != newInfo.Name)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (oldAttributes.Folders != newInfo.Folders)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (oldAttributes.FilePath != newInfo.FilePath)
+                {
+                    // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
+                    // filePath is null, but it's odd because we *do* support null file paths. The suppression here is to silence it
+                    // but should be removed when the bug is fixed.
+                    newSolution = newSolution.WithAnalyzerConfigDocumentFilePath(documentId, newInfo.FilePath!);
+                }
+
+                if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (newSolution != oldSolution)
+                {
+                    SetCurrentSolution(newSolution);
+
+                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentInfoChanged, oldSolution, newSolution, documentId: documentId);
+                }
             }
         }
 

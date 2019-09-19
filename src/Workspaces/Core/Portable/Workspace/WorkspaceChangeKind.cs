@@ -123,5 +123,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         AnalyzerConfigDocumentChanged = 21,
 
+        /// <summary>
+        /// An additional document in the current solution was changed; filepath
+        /// </summary>
+        AdditionalDocumentInfoChanged = 22,
+
+        /// <summary>
+        /// An analyzer config document in the current solution was changed; filepath
+        /// </summary>
+        AnalyzerConfigDocumentInfoChanged = 23
+
     }
 }

@@ -1,2 +1,8 @@
 *REMOVED*Microsoft.CodeAnalysis.TextDocument.Project.set -> void
 *REMOVED*Microsoft.CodeAnalysis.TextDocument.TextDocument() -> void
+Microsoft.CodeAnalysis.Solution.WithAdditionalDocumentFilePath(Microsoft.CodeAnalysis.DocumentId documentId, string filePath) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Solution.WithAnalyzerConfigDocumentFilePath(Microsoft.CodeAnalysis.DocumentId documentId, string filePath) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentInfoChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.DocumentInfo newInfo) -> void
+Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentInfoChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.DocumentInfo newInfo) -> void
+Microsoft.CodeAnalysis.WorkspaceChangeKind.AdditionalDocumentInfoChanged = 22 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
+Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentInfoChanged = 23 -> Microsoft.CodeAnalysis.WorkspaceChangeKind

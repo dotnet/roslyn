@@ -518,8 +518,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
+        => CreateFilePathToDocumentIdsMapWithAddedDocuments(_filePathToDocumentIdsMap, documentStates);
+
+        private static ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(
+            ImmutableDictionary<string, ImmutableArray<DocumentId>>  originalMap,
+            IEnumerable<TextDocumentState> documentStates)
         {
-            var builder = _filePathToDocumentIdsMap.ToBuilder();
+            var builder = originalMap.ToBuilder();
 
             foreach (var documentState in documentStates)
             {
@@ -577,8 +582,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
+            => CreateFilePathToDocumentIdsMapWithRemovedDocuments(_filePathToDocumentIdsMap, documentStates);
+
+        private static ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(
+            ImmutableDictionary<string, ImmutableArray<DocumentId>> originalMap,
+            IEnumerable<TextDocumentState> documentStates)
         {
-            var builder = _filePathToDocumentIdsMap.ToBuilder();
+            var builder = originalMap.ToBuilder();
 
             foreach (var documentState in documentStates)
             {
@@ -609,48 +619,9 @@ namespace Microsoft.CodeAnalysis
         => CreateFilePathToDocumentIdsMapWithRenamedDocuments(SpecializedCollections.SingletonEnumerable((originalState, newState)));
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRenamedDocuments(IEnumerable<(TextDocumentState originalState, TextDocumentState newState)> documentStates)
-        {
-            var builder = _filePathToDocumentIdsMap.ToBuilder();
-
-            foreach (var (originalState, newState) in documentStates)
-            {
-                if (originalState.FilePath == newState.FilePath)
-                {
-                    continue;
-                }
-
-                if (!string.IsNullOrEmpty(originalState.FilePath))
-                {
-                    if (!builder.TryGetValue(originalState.FilePath!, out var documentIdsWithPath) || !documentIdsWithPath.Contains(originalState.Id))
-                    {
-                        throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
-                    }
-
-                    if (documentIdsWithPath.Length == 1)
-                    {
-                        builder.Remove(originalState.FilePath!);
-                    }
-                    else
-                    {
-                        builder[originalState.FilePath!] = documentIdsWithPath.Remove(originalState.Id);
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(newState.FilePath))
-                {
-                    if (!builder.TryGetValue(newState.FilePath!, out var documentIdsWithPath))
-                    {
-                        builder[newState.FilePath!] = ImmutableArray.Create(newState.Id);
-                    }
-                    else if (!documentIdsWithPath.Contains(newState.Id))
-                    {
-                        builder[newState.FilePath!] = documentIdsWithPath.Add(newState.Id);
-                    }
-                }
-            }
-
-            return builder.ToImmutable();
-        }
+        => CreateFilePathToDocumentIdsMapWithAddedDocuments(
+                CreateFilePathToDocumentIdsMapWithRemovedDocuments(_filePathToDocumentIdsMap, documentStates.Select(s => s.originalState)),
+                documentStates.Select(s => s.newState));
 
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the new
@@ -1708,9 +1679,6 @@ namespace Microsoft.CodeAnalysis
             return this.TouchDocument(newDocument.Id, filePathsToDocumentIds, p => p.UpdateDocument(newDocument, textChanged, recalculateDependentVersions));
         }
 
-        private SolutionState TouchDocument(DocumentId documentId, Func<ProjectState, ProjectState> touchProject)
-        => TouchDocument(documentId, _filePathToDocumentIdsMap, touchProject);
-
         private SolutionState TouchDocument(DocumentId documentId, ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathsToDocumentIds, Func<ProjectState, ProjectState> touchProject)
         {
             Debug.Assert(this.ContainsDocument(documentId));
@@ -1731,7 +1699,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private SolutionState WithAdditionalDocumentState(TextDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
-        => WithAdditionalDocumentState(newDocument, _filePathToDocumentIdsMap, textChanged, recalculateDependentVersions);
+            => WithAdditionalDocumentState(newDocument, _filePathToDocumentIdsMap, textChanged, recalculateDependentVersions);
 
         private SolutionState WithAdditionalDocumentState(TextDocumentState newDocument, ImmutableDictionary<string, ImmutableArray<DocumentId>> fileToDocumentIdsMap, bool textChanged = false, bool recalculateDependentVersions = false)
         {

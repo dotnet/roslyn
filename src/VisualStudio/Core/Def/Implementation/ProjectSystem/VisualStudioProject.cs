@@ -133,21 +133,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 documentAlreadyInWorkspace: (s, d) => s.ContainsDocument(d),
                 documentAddAction: (w, d) => w.OnDocumentAdded(d),
                 documentRemoveAction: (w, documentId) => w.OnDocumentRemoved(documentId),
-                documentRenameAction: (w, documentId, newFileName) => w.OnDocumentRenamed(documentId, newFileName),
+                documentRenameAction: (w, documentId, newFileName) => w.OnDocumentInfoChanged(documentId, CreateDocInfoWithFilePath(w.CurrentSolution.GetDocument(documentId), newFileName)),
                 documentTextLoaderChangedAction: (w, d, loader) => w.OnDocumentTextLoaderChanged(d, loader));
 
             _additionalFiles = new BatchingDocumentCollection(this,
                 (s, d) => s.ContainsAdditionalDocument(d),
                 (w, d) => w.OnAdditionalDocumentAdded(d),
                 (w, documentId) => w.OnAdditionalDocumentRemoved(documentId),
-                (w, documentId, newFileName) => w.OnAdditionalDocumentRenamed(documentId, newFileName),
+                (w, documentId, newFileName) => w.OnAdditionalDocumentInfoChanged(documentId, CreateDocInfoWithFilePath(w.CurrentSolution.GetAdditionalDocument(documentId), newFileName)),
                 documentTextLoaderChangedAction: (w, d, loader) => w.OnAdditionalDocumentTextLoaderChanged(d, loader));
 
             _analyzerConfigFiles = new BatchingDocumentCollection(this,
                 (s, d) => s.ContainsAnalyzerConfigDocument(d),
                 (w, d) => w.OnAnalyzerConfigDocumentAdded(d),
                 (w, documentId) => w.OnAnalyzerConfigDocumentRemoved(documentId),
-                (w, documentId, newFileName) => w.OnAnalyzerConfigDocumentRenamed(documentId, newFileName),
+                (w, documentId, newFileName) => w.OnAnalyzerConfigDocumentInfoChanged(documentId, CreateDocInfoWithFilePath(w.CurrentSolution.GetAnalyzerConfigDocument(documentId), newFileName)),
                 documentTextLoaderChangedAction: (w, d, loader) => w.OnAnalyzerConfigDocumentTextLoaderChanged(d, loader));
         }
 
@@ -173,6 +173,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
         }
+
+        private DocumentInfo CreateDocInfoWithFilePath(TextDocument document, string newFilePath)
+        => new DocumentInfo(document.State.Attributes, loader: null, document.State.Services).WithFilePath(newFilePath);
 
         private void ChangeProjectOutputPath(ref string field, string newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
         {
@@ -1128,7 +1131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// The current list of documents that are to be renamed in this batch.
             /// </summary>
-            private readonly List<(DocumentId, string, string)> _documentsRenamedInbatch = new List<(DocumentId, string, string)>();
+            private readonly List<(DocumentId, string, string)> _documentsRenamedInBatch = new List<(DocumentId, string, string)>();
 
             /// <summary>
             /// The current list of document file paths that will be ordered in a batch.
@@ -1230,7 +1233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         if (_project._activeBatchScopes > 0)
                         {
-                            _documentsRenamedInbatch.Add((documentId, originalFilePath, newFilePath));
+                            _documentsRenamedInBatch.Add((documentId, originalFilePath, newFilePath));
                         }
                         else
                         {
@@ -1642,21 +1645,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ClearAndZeroCapacity(_documentsAddedInBatch);
 
                 // Document renaming...
-                foreach (var (documentId, oldPath, newPath) in _documentsRenamedInbatch)
+                foreach (var (documentId, oldPath, newPath) in _documentsRenamedInBatch)
                 {
-                    if (documentFileNamesAdded.Contains(oldPath))
-                    {
-                        documentFileNamesAdded.Remove(oldPath);
-                        documentFileNamesAdded.Add(newPath);
-                    }
-
                     solutionChanges.UpdateSolutionForDocumentAction(
                         newSolution: renameDocument(solutionChanges.Solution, documentId, newPath),
                         changeKind: renameChangeKind,
                         SpecializedCollections.SingletonEnumerable(documentId));
                 }
 
-                ClearAndZeroCapacity(_documentsRenamedInbatch);
+                ClearAndZeroCapacity(_documentsRenamedInBatch);
 
                 // Document removing...
                 foreach (var documentId in _documentsRemovedInBatch)
