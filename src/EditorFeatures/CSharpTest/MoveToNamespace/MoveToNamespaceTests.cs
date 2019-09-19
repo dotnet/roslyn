@@ -1137,8 +1137,8 @@ expectedSymbolChanges: new Dictionary<string, string>()
             // We will not get "" as target namespace in VS, but the refactoring should be able
             // to handle it w/o crashing.
             await TestMoveToNamespaceAsync(
-
-  @"namespace A
+ @"namespace A
+{
     class MyClass[||]
     {
     }
