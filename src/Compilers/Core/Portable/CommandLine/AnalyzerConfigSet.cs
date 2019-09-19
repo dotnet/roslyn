@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.AnalyzerConfig;
+using static Microsoft.CodeAnalysis.ImmutableArrayExtensions;
 using AnalyzerOptions = System.Collections.Immutable.ImmutableDictionary<string, string>;
 using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>;
 
@@ -36,6 +37,16 @@ namespace Microsoft.CodeAnalysis
         // excess strings
         private readonly ConcurrentDictionary<ReadOnlyMemory<char>, string> _diagnosticIdCache =
             new ConcurrentDictionary<ReadOnlyMemory<char>, string>(CharMemoryEqualityComparer.Instance);
+
+        // PERF: Most files will probably have the same options, so share the dictionary instances
+        private readonly ConcurrentCache<ImmutableArray<Section>, AnalyzerConfigOptionsResult> _optionsCache =
+            new ConcurrentCache<ImmutableArray<Section>, AnalyzerConfigOptionsResult>(50, SequenceEqualComparer<Section>.Instance); // arbitrary size
+
+        private readonly ObjectPool<TreeOptions.Builder> _treeOptionsPool =
+            new ObjectPool<TreeOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(CaseInsensitiveComparison.Comparer));
+
+        private readonly ObjectPool<AnalyzerOptions.Builder> _analyzerOptionsPool =
+            new ObjectPool<AnalyzerOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, string>(CaseInsensitiveComparison.Comparer));
 
         private readonly static DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
             = new DiagnosticDescriptor(
@@ -95,11 +106,10 @@ namespace Microsoft.CodeAnalysis
                 throw new System.ArgumentNullException(nameof(sourcePath));
             }
 
-            var treeOptionsBuilder = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(
-                CaseInsensitiveComparison.Comparer);
-            var analyzerOptionsBuilder = ImmutableDictionary.CreateBuilder<string, string>(
-                CaseInsensitiveComparison.Comparer);
+            var treeOptionsBuilder = _treeOptionsPool.Allocate();
+            var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
             var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
+            var sectionBuilder = ArrayBuilder<Section>.GetInstance();
 
             var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
 
@@ -143,15 +153,30 @@ namespace Microsoft.CodeAnalysis
                                 diagnosticBuilder,
                                 config.PathToFile,
                                 _diagnosticIdCache);
+                            sectionBuilder.Add(section);
                         }
                     }
                 }
             }
 
-            return new AnalyzerConfigOptionsResult(
-                treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
-                analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
-                diagnosticBuilder.ToImmutableAndFree());
+            // Try to avoid creating extra dictionaries if we've already seen an options result with the
+            // exact same options
+            var sectionKey = sectionBuilder.ToImmutableAndFree();
+            if (!_optionsCache.TryGetValue(sectionKey, out var result))
+            {
+                result = new AnalyzerConfigOptionsResult(
+                    treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
+                    analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
+                    diagnosticBuilder.ToImmutableAndFree());
+                _optionsCache.TryAdd(sectionKey, result);
+            }
+
+            treeOptionsBuilder.Clear();
+            analyzerOptionsBuilder.Clear();
+            _treeOptionsPool.Free(treeOptionsBuilder);
+            _analyzerOptionsPool.Free(analyzerOptionsBuilder);
+
+            return result;
 
             static void addOptions(
                 AnalyzerConfig.Section section,
