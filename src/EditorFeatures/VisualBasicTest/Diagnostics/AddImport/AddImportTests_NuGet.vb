@@ -16,10 +16,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
     Public Class AddImportNuGetTests
         Inherits AbstractAddImportTests
 
-        Const NugetOrgSource = "nuget.org"
+        Const NugetOrgSourceName = "nuget.org"
+        Const NugetOrgUri = "https://api.nuget.org/v3/index.json"
 
         Private Shared ReadOnly NugetPackageSources As ImmutableArray(Of PackageSource) =
-            ImmutableArray.Create(New PackageSource(NugetOrgSource, "http://nuget.org"))
+            ImmutableArray.Create(New PackageSource(NugetOrgSourceName, NugetOrgUri))
 
         Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
             Dim workspace = MyBase.CreateWorkspaceFromFile(initialMarkup, parameters)
@@ -57,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
                 Returns(Task.FromResult(Of IList(Of ReferenceAssemblyWithTypeResult))(New List(Of ReferenceAssemblyWithTypeResult)))
-            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgUri, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
             Await TestInRegularAndScriptAsync(
@@ -86,7 +87,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
                 Returns(Task.FromResult(Of IList(Of ReferenceAssemblyWithTypeResult))(New List(Of ReferenceAssemblyWithTypeResult)))
-            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgUri, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
             Await TestInRegularAndScriptAsync(
@@ -115,7 +116,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
                 Returns(Task.FromResult(Of IList(Of ReferenceAssemblyWithTypeResult))(New List(Of ReferenceAssemblyWithTypeResult)))
-            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgUri, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
             Await TestInRegularAndScriptAsync(
@@ -140,7 +141,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
                 Returns(Task.FromResult(Of IList(Of ReferenceAssemblyWithTypeResult))(New List(Of ReferenceAssemblyWithTypeResult)))
-            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgUri, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
             Await TestMissingInRegularAndScriptAsync(
@@ -165,7 +166,7 @@ New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
                 Returns(Task.FromResult(Of IList(Of ReferenceAssemblyWithTypeResult))(New List(Of ReferenceAssemblyWithTypeResult)))
-            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgUri, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
             Dim data = New ProviderData(installerServiceMock.Object, packageServiceMock.Object)
@@ -207,7 +208,7 @@ parameters:=New TestParameters(index:=2, fixProviderData:=data))
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
                 Returns(Task.FromResult(Of IList(Of ReferenceAssemblyWithTypeResult))(New List(Of ReferenceAssemblyWithTypeResult)))
-            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgUri, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
             Await TestInRegularAndScriptAsync(
@@ -239,7 +240,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
                 Returns(Task.FromResult(Of IList(Of ReferenceAssemblyWithTypeResult))(New List(Of ReferenceAssemblyWithTypeResult)))
-            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
+            packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgUri, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
             Await TestInRegularAndScriptAsync(
