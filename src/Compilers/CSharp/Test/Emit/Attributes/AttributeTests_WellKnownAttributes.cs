@@ -8930,6 +8930,49 @@ public class C
         #region SkipLocalsInitAttribute
 
         [Fact]
+        public void SkipLocalsInitRequiresUnsafe()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+[module: SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+[SkipLocalsInitAttribute]
+public class C
+{
+    [SkipLocalsInitAttribute]
+    public void M()
+    { }
+
+    [SkipLocalsInitAttribute]
+    public int P => 0;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,10): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // [module: SkipLocalsInitAttribute]
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "SkipLocalsInitAttribute").WithLocation(4, 10),
+                // (13,2): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // [SkipLocalsInitAttribute]
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "SkipLocalsInitAttribute").WithLocation(13, 2),
+                // (16,6): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     [SkipLocalsInitAttribute]
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "SkipLocalsInitAttribute").WithLocation(16, 6),
+                // (20,6): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     [SkipLocalsInitAttribute]
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "SkipLocalsInitAttribute").WithLocation(20, 6)
+                );
+        }
+
+        [Fact]
         public void SkipLocalsInitAttributeOnMethod()
         {
             var source = @"
@@ -8957,7 +9000,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.True(comp.HasLocalsInit("C.M_init", realIL: true));
             Assert.False(comp.HasLocalsInit("C.M_skip", realIL: true));
@@ -8992,7 +9035,7 @@ partial class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.M"));
         }
@@ -9176,7 +9219,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.<M>g__F|0_0"));
         }
@@ -9206,7 +9249,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.<>c.<M>b__0_0"));
         }
@@ -9266,7 +9309,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.<M>g__F|0_0")); // F
             Assert.False(comp.HasLocalsInit("C.<M>g__FF|0_2")); // FF
@@ -9304,7 +9347,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.IEnumerator.MoveNext"));
             Assert.True(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.IEnumerator.MoveNext"));
@@ -9352,7 +9395,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.<<M>g__F|0_0>d.System.Collections.IEnumerator.MoveNext"));
             Assert.False(comp.HasLocalsInit("C.<<M>g__F|0_0>d.System.Collections.Generic.IEnumerable<object>.GetEnumerator"));
@@ -9386,7 +9429,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.<M_skip>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
             Assert.True(comp.HasLocalsInit("C.<M_init>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
@@ -9423,7 +9466,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.<<M>g__F|0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
         }
@@ -9454,7 +9497,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.<>c.<<M>b__0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
         }
@@ -9499,8 +9542,8 @@ public class C
 }
 ";
 
-            var comp_init = CompileAndVerify(source_init);
-            var comp_skip = CompileAndVerify(source_skip, verify: Verification.Fails);
+            var comp_init = CompileAndVerify(source_init, options: TestOptions.UnsafeReleaseDll);
+            var comp_skip = CompileAndVerify(source_skip, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.Null(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.GetHashCode"));
             Assert.Null(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>..ctor"));
@@ -9537,7 +9580,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll);
 
             Assert.Null(comp.HasLocalsInit("C.<>c__DisplayClass0_0..ctor"));
         }
@@ -9580,8 +9623,8 @@ public class C
 }
 ";
 
-            var comp_init = CompileAndVerify(source_init);
-            var comp_skip = CompileAndVerify(source_skip);
+            var comp_init = CompileAndVerify(source_init, options: TestOptions.UnsafeReleaseDll);
+            var comp_skip = CompileAndVerify(source_skip, options: TestOptions.UnsafeReleaseDll);
 
             Assert.Null(comp_init.HasLocalsInit("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor"));
             Assert.Null(comp_init.HasLocalsInit("System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor"));
@@ -9623,7 +9666,7 @@ public class C_skip
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.True(comp.HasLocalsInit("C_init.M"));
             Assert.False(comp.HasLocalsInit("C_skip.M"));
@@ -9675,7 +9718,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.P_skip.get"));
             Assert.True(comp.HasLocalsInit("C.P_init.get"));
@@ -9747,7 +9790,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.P1.get"));
             Assert.True(comp.HasLocalsInit("C.P1.set"));
@@ -9782,7 +9825,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.<get_P>d__1.System.Collections.IEnumerator.MoveNext"));
             Assert.False(comp.HasLocalsInit("C.<get_P>d__1.System.Collections.Generic.IEnumerable<object>.GetEnumerator"));
@@ -9855,7 +9898,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.P1.get"));
             Assert.False(comp.HasLocalsInit("C.P1.set"));
@@ -9916,7 +9959,7 @@ public class C_skip
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.True(comp.HasLocalsInit("C_init.P.get"));
             Assert.False(comp.HasLocalsInit("C_skip.P.get"));
@@ -9945,7 +9988,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll);
 
             // No locals are expected. We are just making sure it still works.
 
@@ -9991,7 +10034,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll);
 
             // No locals are expected. We are just making sure it still works.
 
@@ -10081,7 +10124,7 @@ class C_init
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.True(comp.HasLocalsInit("C_init.P.get"));
             Assert.False(comp.HasLocalsInit("C_skip.P.get"));
@@ -10127,7 +10170,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.C2.M2"));
             Assert.False(comp.HasLocalsInit("C.C2.C3.M3"));
@@ -10182,7 +10225,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.C2.P2.get"));
             Assert.False(comp.HasLocalsInit("C.C2.P2.set"));
@@ -10240,7 +10283,7 @@ partial class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.P.get"));
             Assert.False(comp.HasLocalsInit("C.P.set"));
@@ -10287,7 +10330,7 @@ public class C_skip
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.True(comp.HasLocalsInit("C_init.C.M"));
             Assert.False(comp.HasLocalsInit("C_skip.C.M"));
@@ -10316,7 +10359,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.M"));
         }
@@ -10344,7 +10387,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.Main"));
         }
@@ -10372,7 +10415,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, options: TestOptions.DebugModule, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, options: TestOptions.DebugModule.WithAllowUnsafe(true), verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.M"));
         }
@@ -10402,7 +10445,7 @@ class C
 }
 ";
 
-            var metadata_comp = CreateCompilation(metadata_source, options: TestOptions.DebugModule);
+            var metadata_comp = CreateCompilation(metadata_source, options: TestOptions.DebugModule.WithAllowUnsafe(true));
             var comp = CompileAndVerify(source, references: new[] { metadata_comp.EmitToImageReference() });
 
             Assert.True(comp.HasLocalsInit("C.M"));

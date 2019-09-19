@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Information decoded from well-known custom attributes applied on a property.
     /// </summary>
-    internal sealed class PropertyWellKnownAttributeData : CommonPropertyWellKnownAttributeData
+    internal sealed class PropertyWellKnownAttributeData : CommonPropertyWellKnownAttributeData, ISkipLocalsInitAttributeTarget
     {
         private bool _hasDisallowNullAttribute;
         public bool HasDisallowNullAttribute

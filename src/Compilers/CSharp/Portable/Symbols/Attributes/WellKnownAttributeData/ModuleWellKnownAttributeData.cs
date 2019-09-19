@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Information decoded from well-known custom attributes applied on a module.
     /// </summary>
-    internal sealed class ModuleWellKnownAttributeData : CommonModuleWellKnownAttributeData
+    internal sealed class ModuleWellKnownAttributeData : CommonModuleWellKnownAttributeData, ISkipLocalsInitAttributeTarget
     {
         #region SkipLocalsInitAttribute
         private bool _hasSkipLocalsInitAttribute;
