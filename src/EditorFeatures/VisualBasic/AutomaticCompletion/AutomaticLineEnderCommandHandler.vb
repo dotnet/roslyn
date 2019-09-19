@@ -17,7 +17,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
     <Export(GetType(VSCommanding.ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.AutomaticLineEnder)>
-    <Order(Before:=PredefinedCommandHandlerNames.Completion)>
     <Order(Before:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class AutomaticLineEnderCommandHandler
         Inherits AbstractAutomaticLineEnderCommandHandler
