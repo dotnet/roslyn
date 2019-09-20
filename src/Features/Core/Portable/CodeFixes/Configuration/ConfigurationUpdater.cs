@@ -33,7 +33,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 
         // Regular expression for .editorconfig header.
         // For example: "[*.cs]    # Optional comment"
-        private static readonly Regex s_headerPattern = new Regex(@"\[\*([^#\[]*)\]([ ]*[;#].*)?");
+        //              "[*.{vb,cs}]"
+        //              "[*]    ; Optional comment"
+        //              "[ConsoleApp/Program.cs]"
+        private static readonly Regex s_headerPattern = new Regex(@"\[(\*|[^ #;\[\]]+\.({[^ #;{}\[\]]+}|[^ #;{}\[\]]+))\]\s*([#;].*)?");
 
         // Regular expression for .editorconfig code style option entry.
         // For example: "dotnet_style_object_initializer = true:suggestion   # Optional comment"
