@@ -2,6 +2,7 @@
 
 ## TOC
  * [Dev16](#prod-16)
+   * [Dev 16.3](#prod-16-3)
    * [Dev 16.2](#prod-16-2)
    * [Dev 16.1](#prod-16-1)
    * [Dev16.0](#prod-16-0)
@@ -15,10 +16,31 @@
 
 ## <a id="prod-16"></a> dev16
 
-### <a id="prod-16-2"></a> 16.2 Preview ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-preview) )
-* [Test Explorer improvements](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-preview#test-explorer-162P1)
+### <a id="prod-16-3"></a> 16.3 Preview ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-preview) )
+* Wrap chains of fluent calls with a refactoring
+* Introduce a local variable immediately after writing its initializer
+* Code Analysis page now in project properties. Right click on the project name within the solution explorer and select properties. Select Code Analysis to install analyzer packages and configure when to run code analysis.
+* Now, for users who turn off the completion for unimported types, it's much easier to get it back in the completion list with the new imported type filter added to the IntelliSense toggles.
+* There is now Quick Info style support for XML comments. Place the cursor over the method name. Quick Info will then display the supported styles from the XML comments above the code.
+* Rename a file when renaming an interface, enum, or class. Place the cursor in the class name and type (Ctrl + R,R) to open the Rename dialogue and check the ‘Rename file’ box.
+* There is now Edit and Continue support for multi-targeted projects which includes modules loaded multiple times in the same process on different domains or load contexts. In addition, developers can edit source files even when the containing project is not loaded or the application is running.
 
-### <a id="prod-16-1"></a> 16.1 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes))
+### <a id="prod-16-2"></a> 16.2 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-v16.2) )
+* Bring back Sort Usings as a separate command from Remove Usings. Available under Edit > IntelliSense.
+* Convert a switch statement to a [switch expression](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-8#switch-expressions) (verify you are using C# 8 to get the switch expression feature)
+* Generate a parameter 
+* [Test Explorer improvements](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes#test-explorer)
+  * Significant reduction in memory consumed by the Visual Studio process and faster test discovery for solutions with large numbers of tests
+  * Filter buttoms for passed, failed, not run tests
+  * Additional buttons for the 'Run Failed Tests' and 'Run Previous Test Run'
+  * Customize what columns are displayed in the Test Explorer
+  * Specify what is displayed in each tier of the test hierarchy. The default tiers are Project, Namespace, and then Class, but additional options include Outcome or Duration groupings.
+  * The test status window (the pane below the test list that displays the messages, output, etc.) is much more usable. Users can copy substrings of text, and the font-width is fixed for more readable output.
+  * Playlists can be displayed in multiple tabs and are much easier to create and discard as needed.
+  * Live Unit Testing now has its own view in the Test Explorer. It displays all tests currently included in Live Unit Testing (aka. the live test set), so testers can easily keep track of Live Unit Testing results separate from the manually run test results.
+  * There is a target framework column that can display multi-targeted test results.
+
+### <a id="prod-16-1"></a> 16.1 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-v16.1))
 * There is now experimental intellisense completion for unimported types! You now receive intellisense suggestions for types in dependencies in your project even if you have not yet added the import statement to your file. You must turn this option on in Tools > Options > Text Editor > C# > Intellisense.
 * Toggle Single Line Comment/Uncomment is now available through the keyboard shortcut (Ctrl+K,/). This command will add or remove a single line comment depending on whether your selection is already commented.
 * You can now export naming styles with the “Generate editorconfig” button located in Tools > Options > Text Editor > C# > Code Style.
