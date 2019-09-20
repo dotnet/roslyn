@@ -235,6 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var binder = new LocalScopeBinder(this);
                 bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);
                 var pNames = PooledHashSet<string>.GetInstance();
+                bool underscoreMeansDiscard = lambda.UnderscoreMeansDiscard;
+                bool seenDiscard = false;
 
                 for (int i = 0; i < lambda.ParameterCount; i++)
                 {
@@ -242,6 +244,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (string.IsNullOrEmpty(name))
                     {
+                        continue;
+                    }
+
+                    if (name == "_" && underscoreMeansDiscard)
+                    {
+                        if (seenDiscard)
+                        {
+                            MessageID.IDS_FeatureLambdaDiscardParameters.CheckFeatureAvailability(
+                                diagnostics,
+                                binder.Compilation,
+                                lambda.ParameterLocation(i));
+                        }
+
+                        seenDiscard = true;
                         continue;
                     }
 

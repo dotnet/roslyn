@@ -376,6 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
         public string ParameterName(int index) { return Data.ParameterName(index); }
+        public bool UnderscoreMeansDiscard { get { return Data.UnderscoreMeansDiscard; } }
     }
 
     internal abstract class UnboundLambdaState
@@ -415,6 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public abstract MessageID MessageID { get; }
         public abstract string ParameterName(int index);
+        public abstract bool UnderscoreMeansDiscard { get; }
         public abstract bool HasSignature { get; }
         public abstract bool HasExplicitlyTypedParameterList { get; }
         public abstract int ParameterCount { get; }
@@ -1095,6 +1097,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parameterTypesWithAnnotations = parameterTypesWithAnnotations;
             _parameterRefKinds = parameterRefKinds;
             _isAsync = isAsync;
+        }
+
+        public override bool UnderscoreMeansDiscard
+        {
+            get
+            {
+                bool foundOneUnderscore = false;
+                foreach (var name in _parameterNames)
+                {
+                    if (name == "_")
+                    {
+                        if (foundOneUnderscore)
+                        {
+                            // found multiple underscores
+                            return true;
+                        }
+
+                        foundOneUnderscore = true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         public override bool HasSignature { get { return !_parameterNames.IsDefault; } }

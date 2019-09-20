@@ -28,7 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RecordDefinitions(parameters);
                 foreach (var parameter in lambdaSymbol.Parameters)
                 {
-                    this.parameterMap.Add(parameter.Name, parameter);
+                    if (!(parameter is IDiscardSymbol))
+                    {
+                        this.parameterMap.Add(parameter.Name, parameter);
+                    }
                 }
             }
         }
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, ParameterSymbol>());
             foreach (var s in definitions)
             {
-                if (!declarationMap.ContainsKey(s.Name))
+                if (!(s is IDiscardSymbol) && !declarationMap.ContainsKey(s.Name))
                 {
                     declarationMap.Add(s.Name, s);
                 }

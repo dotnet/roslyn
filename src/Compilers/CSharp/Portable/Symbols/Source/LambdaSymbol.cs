@@ -332,6 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var hasExplicitlyTypedParameterList = unboundLambda.HasExplicitlyTypedParameterList;
             var numDelegateParameters = parameterTypes.Length;
 
+            bool underscoreMeansDiscard = unboundLambda.UnderscoreMeansDiscard;
             for (int p = 0; p < unboundLambda.ParameterCount; ++p)
             {
                 // If there are no types given in the lambda then used the delegate type.
@@ -361,7 +362,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
-                var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
+
+                var parameter = (underscoreMeansDiscard && name == "_")
+                    ? (ParameterSymbol)new DiscardParameterSymbol(owner: this, type, ordinal: p, refKind, locations)
+                    : new SourceSimpleParameterSymbol(owner: this, type, ordinal: p, refKind, name, locations);
 
                 builder.Add(parameter);
             }

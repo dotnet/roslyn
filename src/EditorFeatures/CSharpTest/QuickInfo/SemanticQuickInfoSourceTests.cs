@@ -2663,6 +2663,34 @@ class C
 }"); // No quick info (see issue #16667)
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestLambdaDiscardParameter_FirstDiscard()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        System.Func<string, int, int> f = ($$_, _) => 1;
+    }
+}",
+                MainDescription($"({FeaturesResources.parameter}) string "));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestLambdaDiscardParameter_SecondDiscard()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        System.Func<string, int, int> f = (_, $$_) => 1;
+    }
+}",
+                MainDescription($"({FeaturesResources.parameter}) int "));
+        }
+
         [WorkItem(540871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestLiterals()

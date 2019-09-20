@@ -9,9 +9,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A source parameter that has no default value, no attributes,
     /// and is not params.
     /// </summary>
-    internal sealed class SourceSimpleParameterSymbol : SourceParameterSymbol
+    internal sealed class SourceSimpleParameterSymbol : SourceSimpleParameterSymbolBase
     {
         public SourceSimpleParameterSymbol(
+                  Symbol owner,
+                  TypeWithAnnotations parameterType,
+                  int ordinal,
+                  RefKind refKind,
+                  string name,
+                  ImmutableArray<Location> locations)
+                  : base(owner, parameterType, ordinal, refKind, name, locations)
+        {
+        }
+    }
+
+    internal sealed class DiscardParameterSymbol : SourceSimpleParameterSymbolBase, IDiscardSymbol
+    {
+        public DiscardParameterSymbol(
+                Symbol owner,
+                TypeWithAnnotations parameterType,
+                int ordinal,
+                RefKind refKind,
+                ImmutableArray<Location> locations)
+                : base(owner, parameterType, ordinal, refKind, name: "", locations)
+        {
+        }
+
+        ITypeSymbol IDiscardSymbol.Type
+            => Type;
+
+        CodeAnalysis.NullableAnnotation IDiscardSymbol.NullableAnnotation
+            => TypeWithAnnotations.ToPublicAnnotation();
+    }
+
+    internal abstract class SourceSimpleParameterSymbolBase : SourceParameterSymbol
+    {
+        public SourceSimpleParameterSymbolBase(
             Symbol owner,
             TypeWithAnnotations parameterType,
             int ordinal,

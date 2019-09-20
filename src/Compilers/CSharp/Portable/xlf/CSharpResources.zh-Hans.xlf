@@ -839,6 +839,11 @@
         <target state="translated">正在编制可移动固定缓冲区的索引</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">在嵌套函数中的名称映射</target>

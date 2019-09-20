@@ -840,6 +840,11 @@
         <target state="translated">indexando búferes fijos movibles</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaDiscardParameters">
+        <source>lambda discard parameters</source>
+        <target state="new">lambda discard parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">sombreado de nombres en funciones anidadas</target>
