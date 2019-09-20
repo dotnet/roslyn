@@ -2697,8 +2697,8 @@ class C {
             Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
             Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
-            Assert.Equal(true, controlFlowAnalysisResults.StartPointIsReachable);
-            Assert.Equal(true, controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.True(controlFlowAnalysisResults.StartPointIsReachable);
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
             Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal("i, j, s", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));

@@ -2565,8 +2565,8 @@ public class C
                 Assert.Equal(CharSet.Unicode, info.CharacterSet);
                 Assert.True(info.ExactSpelling);
                 Assert.True(info.SetLastError);
-                Assert.Equal(true, info.BestFitMapping);
-                Assert.Equal(true, info.ThrowOnUnmappableCharacter);
+                Assert.True(info.BestFitMapping);
+                Assert.True(info.ThrowOnUnmappableCharacter);
 
                 Assert.Equal(
                     MethodImportAttributes.ExactSpelling |
@@ -4997,8 +4997,8 @@ namespace System
                 // Verify AttributeUsage
                 var attributeUsage = attrType.GetAttributeUsageInfo();
                 Assert.Equal(AttributeTargets.Class, attributeUsage.ValidTargets);
-                Assert.Equal(true, attributeUsage.AllowMultiple);
-                Assert.Equal(true, attributeUsage.Inherited);
+                Assert.True(attributeUsage.AllowMultiple);
+                Assert.True(attributeUsage.Inherited);
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.

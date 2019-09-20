@@ -910,8 +910,8 @@ public class Program
             var foreachNode = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var flow = semanticModel.AnalyzeDataFlow(foreachNode);
             Assert.Equal(2, flow.VariablesDeclared.Count());
-            Assert.Equal(true, flow.VariablesDeclared.Any((s) => s.Name == "b"));
-            Assert.Equal(true, flow.VariablesDeclared.Any((s) => s.Name == "s"));
+            Assert.True(flow.VariablesDeclared.Any((s) => s.Name == "b"));
+            Assert.True(flow.VariablesDeclared.Any((s) => s.Name == "s"));
         }
 
         #endregion

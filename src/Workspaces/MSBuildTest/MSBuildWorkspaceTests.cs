@@ -2045,7 +2045,7 @@ class C1
                 var sol = await workspace.OpenSolutionAsync(solutionFilePath);
                 var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
                 var options = (VB.VisualBasicParseOptions)project.ParseOptions;
-                Assert.Equal(true, options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
+                Assert.True(options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
 
                 var compilation = await project.GetCompilationAsync();
                 var metadataBytes = compilation.EmitToArray();
@@ -2070,7 +2070,7 @@ class C1
                 var sol = await workspace.OpenSolutionAsync(solutionFilePath);
                 var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
                 var options = (VB.VisualBasicParseOptions)project.ParseOptions;
-                Assert.Equal(false, options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
+                Assert.False(options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
 
                 var compilation = await project.GetCompilationAsync();
                 var metadataBytes = compilation.EmitToArray();
@@ -3247,7 +3247,7 @@ class C { }";
 
             var projFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             var projFileText = File.ReadAllText(projFile);
-            Assert.Equal(false, projFileText.Contains(@"System.Xaml"));
+            Assert.False(projFileText.Contains(@"System.Xaml"));
 
             using (var workspace = CreateMSBuildWorkspace())
             {
@@ -3278,11 +3278,11 @@ class C { }";
 
             var csProjFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             var csProjFileText = File.ReadAllText(csProjFile);
-            Assert.Equal(true, csProjFileText.Contains(@"<Reference Include=""System.Numerics"""));
+            Assert.True(csProjFileText.Contains(@"<Reference Include=""System.Numerics"""));
 
             var vbProjFile = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
             var vbProjFileText = File.ReadAllText(vbProjFile);
-            Assert.Equal(false, vbProjFileText.Contains(@"System.Numerics"));
+            Assert.False(vbProjFileText.Contains(@"System.Numerics"));
 
             using (var workspace = CreateMSBuildWorkspace())
             {
@@ -3312,7 +3312,7 @@ class C { }";
 
             var projFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             var projFileText = File.ReadAllText(projFile);
-            Assert.Equal(false, projFileText.Contains(@"MyAssembly"));
+            Assert.False(projFileText.Contains(@"MyAssembly"));
 
             using (var workspace = CreateMSBuildWorkspace())
             {
@@ -3345,7 +3345,7 @@ class C { }";
 
             var projFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             var projFileText = File.ReadAllText(projFile);
-            Assert.Equal(false, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));
+            Assert.False(projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));
 
             using (var workspace = CreateMSBuildWorkspace())
             {
@@ -3375,7 +3375,7 @@ class C { }";
 
             var projFile = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
             var projFileText = File.ReadAllText(projFile);
-            Assert.Equal(true, projFileText.Contains(@"<ProjectReference Include=""..\CSharpProject\CSharpProject.csproj"">"));
+            Assert.True(projFileText.Contains(@"<ProjectReference Include=""..\CSharpProject\CSharpProject.csproj"">"));
 
             using (var workspace = CreateMSBuildWorkspace())
             {

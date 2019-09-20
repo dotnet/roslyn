@@ -11600,7 +11600,7 @@ class Test
             Assert.Equal("global", aliasInfo.Name);
             Assert.Equal("<global namespace>", aliasInfo.Target.ToTestDisplayString());
             Assert.True(((NamespaceSymbol)(aliasInfo.Target)).IsGlobalNamespace);
-            Assert.Equal(false, aliasInfo.IsExtern);
+            Assert.False(aliasInfo.IsExtern);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -11634,7 +11634,7 @@ class Test
             Assert.Equal("global", aliasInfo.Name);
             Assert.Equal("<global namespace>", aliasInfo.Target.ToTestDisplayString());
             Assert.True(((NamespaceSymbol)(aliasInfo.Target)).IsGlobalNamespace);
-            Assert.Equal(false, aliasInfo.IsExtern);
+            Assert.False(aliasInfo.IsExtern);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }

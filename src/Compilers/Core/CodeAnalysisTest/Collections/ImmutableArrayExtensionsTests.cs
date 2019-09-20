@@ -161,20 +161,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void CompareToNull()
         {
             var roaNull = default(ImmutableArray<int>);
-            Assert.Equal(true, roaNull == null);
-            Assert.Equal(false, roaNull != null);
-            Assert.Equal(true, null == roaNull);
-            Assert.Equal(false, null != roaNull);
+            Assert.True(roaNull == null);
+            Assert.False(roaNull != null);
+            Assert.True(null == roaNull);
+            Assert.False(null != roaNull);
 
             var copy = roaNull;
-            Assert.Equal(true, copy == roaNull);
-            Assert.Equal(false, copy != roaNull);
+            Assert.True(copy == roaNull);
+            Assert.False(copy != roaNull);
 
             var notnull = ImmutableArray.Create<int>();
-            Assert.Equal(false, notnull == null);
-            Assert.Equal(true, notnull != null);
-            Assert.Equal(false, null == notnull);
-            Assert.Equal(true, null != notnull);
+            Assert.False(notnull == null);
+            Assert.True(notnull != null);
+            Assert.False(null == notnull);
+            Assert.True(null != notnull);
         }
 
         [Fact]

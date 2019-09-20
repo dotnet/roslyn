@@ -32,7 +32,7 @@ class A {
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
             Assert.NotNull(m);
-            Assert.Equal(true, m.ReturnsVoid);
+            Assert.True(m.ReturnsVoid);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
             Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
@@ -107,7 +107,7 @@ class A {
             var m = a.InstanceConstructors.Single();
             Assert.NotNull(m);
             Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m.Name);
-            Assert.Equal(true, m.ReturnsVoid);
+            Assert.True(m.ReturnsVoid);
             Assert.Equal(MethodKind.Constructor, m.MethodKind);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
@@ -131,7 +131,7 @@ class A {
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
             Assert.NotNull(m);
-            Assert.Equal(true, m.ReturnsVoid);
+            Assert.True(m.ReturnsVoid);
             Assert.Equal(MethodKind.Ordinary, m.MethodKind);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
