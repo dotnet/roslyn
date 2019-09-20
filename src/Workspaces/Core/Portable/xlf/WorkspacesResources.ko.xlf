@@ -445,8 +445,8 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">16진수 이스케이프</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">16진수 이스케이프</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
