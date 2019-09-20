@@ -542,7 +542,7 @@ class Program
 }";
             var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (6,23): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (6,23): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         return ref (b switch { true => ref x, false => ref y });
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 23),
                 // (6,40): error CS1525: Invalid expression term 'ref'
