@@ -40,14 +40,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (initializerExpression)
             {
                 case BoundObjectInitializerExpression objectInitializer:
-                    AddObjectInitializers(ref dynamicSiteInitializers, ref temps, result, rewrittenReceiver, objectInitializer.Initializers);
+                    {
+                        var placeholder = objectInitializer.Placeholder;
+                        AddPlaceholderReplacement(placeholder, rewrittenReceiver);
+                        AddObjectInitializers(ref dynamicSiteInitializers, ref temps, result, rewrittenReceiver, objectInitializer.Initializers);
+                        RemovePlaceholderReplacement(placeholder);
+                    }
                     return;
 
                 case BoundCollectionInitializerExpression collectionInitializer:
-                    var placeholder = collectionInitializer.Placeholder;
-                    AddPlaceholderReplacement(placeholder, rewrittenReceiver);
-                    AddCollectionInitializers(ref dynamicSiteInitializers, result, rewrittenReceiver, collectionInitializer.Initializers);
-                    RemovePlaceholderReplacement(placeholder);
+                    {
+                        var placeholder = collectionInitializer.Placeholder;
+                        AddPlaceholderReplacement(placeholder, rewrittenReceiver);
+                        AddCollectionInitializers(ref dynamicSiteInitializers, result, rewrittenReceiver, collectionInitializer.Initializers);
+                        RemovePlaceholderReplacement(placeholder);
+                    }
                     return;
 
                 default:

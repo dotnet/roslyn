@@ -477,6 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return true;
 
+                case BoundKind.ImplicitReceiver:
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     Debug.Assert(!RequiresRefAssignableVariable(valueKind));
                     return true;
@@ -2466,6 +2467,7 @@ moreArguments:
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;
 
+                case BoundKind.ImplicitReceiver:
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     // binder uses this as a placeholder when binding members inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
