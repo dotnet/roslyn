@@ -951,6 +951,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
+            var cycleGuard = ConsList<NamedTypeSymbol>.Empty.Prepend(type.OriginalDefinition);
+
             // Consumers of the result depend on the sorting performed by AllInterfacesWithDefinitionUseSiteDiagnostics.
             // Let's use similar sort algorithm.
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
@@ -958,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = interfaces.Length - 1; i >= 0; i--)
             {
-                addAllInterfaces(interfaces[i], visited, result, basesBeingResolved);
+                addAllInterfaces(interfaces[i], visited, result, basesBeingResolved, cycleGuard);
             }
 
             result.ReverseContents();
@@ -970,17 +972,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result.ToImmutableAndFree();
 
-            static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result, ConsList<TypeSymbol> basesBeingResolved)
+            static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result, ConsList<TypeSymbol> basesBeingResolved, ConsList<NamedTypeSymbol> cycleGuard)
             {
-                if (@interface.IsInterface && visited.Add(@interface))
+                NamedTypeSymbol originalDefinition;
+
+                if (@interface.IsInterface && !cycleGuard.ContainsReference(originalDefinition = @interface.OriginalDefinition) && visited.Add(@interface))
                 {
-                    if (!basesBeingResolved.ContainsReference(@interface.OriginalDefinition))
+                    if (!basesBeingResolved.ContainsReference(originalDefinition))
                     {
                         ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.GetDeclaredInterfaces(basesBeingResolved);
-                        for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+
+                        if (!baseInterfaces.IsEmpty)
                         {
-                            var baseInterface = baseInterfaces[i];
-                            addAllInterfaces(baseInterface, visited, result, basesBeingResolved);
+                            cycleGuard = cycleGuard.Prepend(originalDefinition);
+                            for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                            {
+                                var baseInterface = baseInterfaces[i];
+                                addAllInterfaces(baseInterface, visited, result, basesBeingResolved, cycleGuard);
+                            }
                         }
                     }
 

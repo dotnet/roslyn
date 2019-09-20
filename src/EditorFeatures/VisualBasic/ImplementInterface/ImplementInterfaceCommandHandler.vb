@@ -15,7 +15,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name("ImplementInterfaceCommandHandler")>
     <Order(Before:=PredefinedCommandHandlerNames.EndConstruct)>
-    <Order(After:=PredefinedCommandHandlerNames.Completion)>
     <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class ImplementInterfaceCommandHandler
         Inherits AbstractImplementAbstractClassOrInterfaceCommandHandler

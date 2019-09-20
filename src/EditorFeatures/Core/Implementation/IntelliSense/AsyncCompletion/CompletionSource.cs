@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly bool _isDebuggerTextView;
         private readonly ImmutableHashSet<string> _roles;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        private bool _snippetCompletionTriggeredIndirectly;
 
         internal CompletionSource(ITextView textView, Lazy<IStreamingFindUsagesPresenter> streamingPresenter, IThreadingContext threadingContext)
             : base(threadingContext)
@@ -105,6 +106,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
             _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
+
+            // Reset a flag which means a snippet triggerred by ? + Tab.
+            // Set it later if met the condition.
+            _snippetCompletionTriggeredIndirectly = false;
 
             CheckForExperimentStatus(_textView, document);
 
@@ -172,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return false;
         }
 
-        private static bool TryInvokeSnippetCompletion(
+        private bool TryInvokeSnippetCompletion(
             CompletionService completionService, Document document, SourceText text, int caretPoint)
         {
             var rules = completionService.GetRules();
@@ -198,6 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var textChange = new TextChange(TextSpan.FromBounds(caretPoint - 2, caretPoint), string.Empty);
             document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChange, CancellationToken.None);
 
+            _snippetCompletionTriggeredIndirectly = true;
             return true;
         }
 
@@ -247,6 +253,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var completionService = document.GetLanguageService<CompletionService>();
 
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
+            if (_snippetCompletionTriggeredIndirectly)
+            {
+                roslynTrigger = new CompletionTrigger(CompletionTriggerKind.Snippets);
+            }
 
             var workspace = document.Project.Solution.Workspace;
 
@@ -511,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// available but unselected, whereas it means available and selected for an expander. Note that even though VS supports 
         /// having multiple expanders, we only support one.
         /// </summary>
-        private class FilterSet
+        internal class FilterSet
         {
             // Cache all the VS completion filters which essentially make them singletons.
             // Because all items that should be filtered using the same filter button must 
@@ -584,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     var filter = Filters[i];
                     if (filter.Matches(item))
                     {
-                        listBuilder.Add(GetFilter(filter));
+                        listBuilder.Add(GetOrCreateFilter(filter));
 
                         var filterMask = s_filterMasks[i];
                         vectorForSingleItem[filterMask] = _vector[filterMask] = true;
@@ -617,7 +627,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     if (_vector[s_filterMasks[i]])
                     {
-                        var vsFilter = GetFilter(Filters[i]);
+                        var vsFilter = GetOrCreateFilter(Filters[i]);
                         listBuilder.Add(new AsyncCompletionData.CompletionFilterWithState(vsFilter, isAvailable: true, isSelected: false));
                     }
                 }
@@ -625,19 +635,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return listBuilder.ToImmutableAndFree();
             }
 
-            private static AsyncCompletionData.CompletionFilter GetFilter(CompletionItemFilter roslynFilter)
+            private ImmutableArray<AsyncCompletionData.CompletionFilter> GetFilters(RoslynCompletionItem item)
+                => CompletionItemFilter.AllFilters.WhereAsArray(f => f.Matches(item)).SelectAsArray(f => GetOrCreateFilter(f));
+
+            internal static AsyncCompletionData.CompletionFilter GetOrCreateFilter(CompletionItemFilter filter)
             {
-                if (!s_filterCache.TryGetValue(roslynFilter.DisplayText, out var vsFilter))
+                if (!s_filterCache.TryGetValue(filter.DisplayText, out var itemFilter))
                 {
-                    var imageId = roslynFilter.Tags.GetFirstGlyph().GetImageId();
-                    vsFilter = new AsyncCompletionData.CompletionFilter(
-                        roslynFilter.DisplayText,
-                        roslynFilter.AccessKey.ToString(),
+                    var imageId = filter.Tags.GetFirstGlyph().GetImageId();
+                    itemFilter = new AsyncCompletionData.CompletionFilter(
+                        filter.DisplayText,
+                        filter.AccessKey.ToString(),
                         new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
-                    s_filterCache[roslynFilter.DisplayText] = vsFilter;
+                    s_filterCache[filter.DisplayText] = itemFilter;
                 }
 
-                return vsFilter;
+                return itemFilter;
             }
         }
     }
