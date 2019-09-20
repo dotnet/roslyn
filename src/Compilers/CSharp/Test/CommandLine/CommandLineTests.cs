@@ -6826,7 +6826,7 @@ public class C
             var cmd = CreateCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keycontainer:bbb", });
             var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
-            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(DesktopStrongNameProvider));
+            Assert.Equal(typeof(DesktopStrongNameProvider), comp.Options.StrongNameProvider.GetType());
         }
 
         [Fact]
@@ -6848,7 +6848,7 @@ public class C
             var cmd = CreateCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyFile:key.snk", "/features:UseLegacyStrongNameProvider" });
             var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
-            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(DesktopStrongNameProvider));
+            Assert.Equal(typeof(DesktopStrongNameProvider), comp.Options.StrongNameProvider.GetType());
         }
 
         [Fact]

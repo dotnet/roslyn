@@ -2180,7 +2180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var qs = (QueryExpressionSyntax)expr;
             Assert.NotNull(qs.Body.SelectOrGroup);
-            Assert.IsType(typeof(GroupClauseSyntax), qs.Body.SelectOrGroup);
+            Assert.IsType<GroupClauseSyntax>(qs.Body.SelectOrGroup);
 
             var gs = (GroupClauseSyntax)qs.Body.SelectOrGroup;
             Assert.NotNull(gs.GroupExpression);

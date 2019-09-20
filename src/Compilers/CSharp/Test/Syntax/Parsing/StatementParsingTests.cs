@@ -3335,7 +3335,7 @@ class C
 
             var decl = (LocalDeclarationStatementSyntax)statement;
             Assert.Equal(keywordText, decl.Declaration.Type.ToString());
-            Assert.IsType(typeof(IdentifierNameSyntax), decl.Declaration.Type);
+            Assert.IsType<IdentifierNameSyntax>(decl.Declaration.Type);
             var name = (IdentifierNameSyntax)decl.Declaration.Type;
             Assert.Equal(kind, name.Identifier.ContextualKind());
             Assert.Equal(SyntaxKind.IdentifierToken, name.Identifier.Kind());
