@@ -4,8 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.LiveShare;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
     /// So for the liveshare case, call into the <see cref="RoslynSyntaxClassificationService"/> to handle lexical classifications.
     /// Otherwise forward to the original <see cref="IClassificationService"/> which will call into <see cref="ISyntaxClassificationService"/>
     /// </summary>
-    internal class RoslynClassificationService : IClassificationService
+    internal class RoslynClassificationService : IClassificationService, IRemoteClassificationService
     {
         private readonly IClassificationService _originalService;
         private readonly ISyntaxClassificationService _liveshareSyntaxClassificationService;
@@ -49,5 +52,26 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
         {
             return _originalService.AdjustStaleClassification(text, classifiedSpan);
         }
+
+        public async Task AddRemoteSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        {
+            using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger))
+            {
+                var internalService = (RoslynSyntaxClassificationService)_liveshareSyntaxClassificationService;
+
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                await internalService.AddRemoteClassificationsAsync(SyntaxClassificationsHandler.SyntaxClassificationsMethodName, document.FilePath, sourceText, textSpan, result.Add, cancellationToken).ConfigureAwait(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// special interface only used for <see cref="WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote"/>
+    /// 
+    /// this let syntactic classification to run on remote side in bulk
+    /// </summary>
+    internal interface IRemoteClassificationService
+    {
+        Task AddRemoteSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
     }
 }
