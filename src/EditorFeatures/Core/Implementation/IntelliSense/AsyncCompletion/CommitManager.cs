@@ -208,9 +208,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             }
-            catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken)
+            catch (OperationCancelledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportWithoutCrash(e))
             {
-                FatalError.ReportWithoutCrash(e);
                 return CommitResultUnhandled;
             }
 
