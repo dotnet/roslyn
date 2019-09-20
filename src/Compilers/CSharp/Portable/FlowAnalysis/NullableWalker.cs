@@ -1006,6 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Location location = null)
         {
             if (value == null ||
+                value.WasCompilerGenerated ||
                 !targetType.HasType ||
                 targetType.Type.IsValueType ||
                 targetType.CanBeAssignedNull ||
@@ -5113,6 +5114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (reportTopLevelWarnings &&
                         conversionOperand?.Kind == BoundKind.Literal &&
                         conversionOperand.ConstantValue?.IsNull == true &&
+                        !conversionOperand.WasCompilerGenerated &&
                         !isSuppressed &&
                         RequiresSafetyWarningWhenNullIntroduced(targetTypeWithNullability))
                     {
