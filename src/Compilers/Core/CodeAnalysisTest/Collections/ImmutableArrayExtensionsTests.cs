@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(1, a.Length);
             Assert.Equal(2, a[0]);
 
-            Assert.Throws(typeof(ArgumentNullException), () => ImmutableArray.CreateRange<int>((IEnumerable<int>)null));
+            Assert.Throws<ArgumentNullException>(() => ImmutableArray.CreateRange<int>((IEnumerable<int>)null));
 
             a = ImmutableArray.CreateRange<int>(Enumerable.Range(1, 2));
             Assert.Equal(2, a.Length);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             ImmutableArray<int> nullOrEmpty = default(ImmutableArray<int>);
             Assert.True(nullOrEmpty.IsDefault);
             Assert.True(nullOrEmpty.IsDefaultOrEmpty);
-            Assert.Throws(typeof(NullReferenceException), () => nullOrEmpty.IsEmpty);
+            Assert.Throws<NullReferenceException>(() => nullOrEmpty.IsEmpty);
 
             nullOrEmpty = ImmutableArray.Create<int>();
             Assert.True(nullOrEmpty.IsEmpty);
@@ -213,9 +213,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void Last()
         {
             var roa = new int?[] { }.AsImmutableOrNull();
-            Assert.Throws(typeof(InvalidOperationException), () => roa.Last());
+            Assert.Throws<InvalidOperationException>(() => roa.Last());
             roa = new int?[] { 1, 2, 3 }.AsImmutableOrNull();
-            Assert.Throws(typeof(InvalidOperationException), () => roa.Last(i => i < 1));
+            Assert.Throws<InvalidOperationException>(() => roa.Last(i => i < 1));
             Assert.Equal(3, roa.Last(i => i > 1));
         }
 
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             roa = new int?[] { 1 }.AsImmutableOrNull();
             Assert.Equal(1, roa.SingleOrDefault());
             roa = new int?[] { 1, 2, 3 }.AsImmutableOrNull();
-            Assert.Throws(typeof(InvalidOperationException), () => roa.SingleOrDefault());
+            Assert.Throws<InvalidOperationException>(() => roa.SingleOrDefault());
             roa = new int?[] { 1, 2, 3 }.AsImmutableOrNull();
             Assert.Equal(2, roa.SingleOrDefault(i => i == 2));
         }
@@ -294,25 +294,25 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal("one:1", dict["one"]);
             Assert.Equal("two:2", dict["two"]);
             Assert.Equal("three:3", dict["three"]);
-            Assert.Throws(typeof(KeyNotFoundException), () => dict["One"]);
+            Assert.Throws<KeyNotFoundException>(() => dict["One"]);
 
             dict = System.Linq.ImmutableArrayExtensions.ToDictionary(roa, s => s.Split(':').First(), StringComparer.OrdinalIgnoreCase);
             Assert.Equal("one:1", dict["one"]);
             Assert.Equal("two:2", dict["Two"]);
             Assert.Equal("three:3", dict["THREE"]);
-            Assert.Throws(typeof(KeyNotFoundException), () => dict[""]);
+            Assert.Throws<KeyNotFoundException>(() => dict[""]);
 
             dict = System.Linq.ImmutableArrayExtensions.ToDictionary(roa, s => s.Split(':').First(), s => s.Split(':').Last());
             Assert.Equal("1", dict["one"]);
             Assert.Equal("2", dict["two"]);
             Assert.Equal("3", dict["three"]);
-            Assert.Throws(typeof(KeyNotFoundException), () => dict["THREE"]);
+            Assert.Throws<KeyNotFoundException>(() => dict["THREE"]);
 
             dict = System.Linq.ImmutableArrayExtensions.ToDictionary(roa, s => s.Split(':').First(), s => s.Split(':').Last(), StringComparer.OrdinalIgnoreCase);
             Assert.Equal("1", dict["onE"]);
             Assert.Equal("2", dict["Two"]);
             Assert.Equal("3", dict["three"]);
-            Assert.Throws(typeof(KeyNotFoundException), () => dict["four"]);
+            Assert.Throws<KeyNotFoundException>(() => dict["four"]);
         }
 
         [Fact]

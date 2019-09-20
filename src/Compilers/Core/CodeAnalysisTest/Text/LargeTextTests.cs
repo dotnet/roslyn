@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void IndexerTest()
         {
             var text = CreateSourceText(HelloWorld);
-            Assert.Throws(typeof(IndexOutOfRangeException), () => text[-1]);
-            Assert.Throws(typeof(IndexOutOfRangeException), () => text[HelloWorld.Length]);
+            Assert.Throws<IndexOutOfRangeException>(() => text[-1]);
+            Assert.Throws<IndexOutOfRangeException>(() => text[HelloWorld.Length]);
             for (int i = HelloWorld.Length - 1; i >= 0; i--)
             {
                 Assert.Equal(HelloWorld[i], text[i]);
