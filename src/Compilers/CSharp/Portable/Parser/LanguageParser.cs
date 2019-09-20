@@ -8630,6 +8630,7 @@ tryAgain:
                 case SyntaxKind.ThrowKeyword:
                 case SyntaxKind.StackAllocKeyword:
                 case SyntaxKind.DotDotToken:
+                case SyntaxKind.RefKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
