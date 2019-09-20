@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             TestGetDirectoryNameAndCompareToDotnet(null, @"C:");
 
             // dotnet throws on empty argument.  But not on null... go figure.
-            Assert.Equal(
-                null,
-                PathUtilities.TestAccessor.GetDirectoryName(@"", isUnixLike: false));
+            Assert.Null(PathUtilities.TestAccessor.GetDirectoryName(@"", isUnixLike: false));
 
             TestGetDirectoryNameAndCompareToDotnet(null, null);
         }
@@ -69,16 +67,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
                 @"/",
                 PathUtilities.TestAccessor.GetDirectoryName(@"/temp", isUnixLike: true));
 
-            Assert.Equal(
-                null,
+            Assert.Null(
                 PathUtilities.TestAccessor.GetDirectoryName(@"/", isUnixLike: true));
 
-            Assert.Equal(
-                null,
+            Assert.Null(
                 PathUtilities.TestAccessor.GetDirectoryName(@"", isUnixLike: true));
 
-            Assert.Equal(
-                null,
+            Assert.Null(
                 PathUtilities.TestAccessor.GetDirectoryName(null, isUnixLike: true));
         }
 
@@ -109,12 +104,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
                 "",
                 PathUtilities.TestAccessor.GetDirectoryName(@"goo", isUnixLike: true));
 
-            Assert.Equal(
-                null,
+            Assert.Null(
                 PathUtilities.TestAccessor.GetDirectoryName(@"", isUnixLike: true));
 
-            Assert.Equal(
-                null,
+            Assert.Null(
                 PathUtilities.TestAccessor.GetDirectoryName(null, isUnixLike: true));
         }
 

@@ -1211,7 +1211,7 @@ End Class";
             Assert.NotEqual(oldVersion, solutionInfo.Version);
             Assert.Equal(newVersion, solutionInfo.Version);
 
-            Assert.Equal(null, solutionInfo.FilePath);
+            Assert.Null(solutionInfo.FilePath);
             var newFilePath = @"C:\test\fake.sln";
             solutionInfo = solutionInfo.WithFilePath(newFilePath);
             Assert.Equal(newFilePath, solutionInfo.FilePath);

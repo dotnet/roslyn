@@ -121,7 +121,7 @@ class A {
 
             var comp = CreateCompilation(text);
             var v = comp.GlobalNamespace.GetTypeMembers("MyDel", 0).Single();
-            Assert.NotEqual(null, v);
+            Assert.NotNull(v);
             Assert.Equal(SymbolKind.NamedType, v.Kind);
             Assert.Equal(TypeKind.Delegate, v.TypeKind);
             Assert.True(v.IsReferenceType);

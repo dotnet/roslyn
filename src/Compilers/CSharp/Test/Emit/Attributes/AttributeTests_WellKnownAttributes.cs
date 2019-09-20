@@ -2606,8 +2606,8 @@ public class C
                 Assert.Equal(CallingConvention.Winapi, info.CallingConvention);
                 Assert.False(info.ExactSpelling);
                 Assert.False(info.SetLastError);
-                Assert.Equal(null, info.BestFitMapping);
-                Assert.Equal(null, info.ThrowOnUnmappableCharacter);
+                Assert.Null(info.BestFitMapping);
+                Assert.Null(info.ThrowOnUnmappableCharacter);
 
                 var n = c.GetMember<MethodSymbol>("N");
                 Assert.Null(n.GetDllImportData());

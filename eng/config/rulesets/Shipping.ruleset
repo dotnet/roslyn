@@ -146,7 +146,6 @@
   <Rules AnalyzerId="xunit.analyzers" RuleNamespace="Xunit.Analyzers">
     <Rule Id="xUnit1004" Action="None" /> <!-- allow skipped tests -->
     <Rule Id="xUnit2000" Action="None" /> <!-- "literal or constant value should be first in Assert.Equal" is a valid assert, but very noisy. Will do the refactoring later -->
-    <Rule Id="xUnit2003" Action="None" /> <!-- "do not use Assert.Equal for null value" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2004" Action="None" /> <!-- "do not use Assert.Equal for boolean conditions" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2006" Action="None" /> <!-- "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2007" Action="None" /> <!-- "do not use Assert.IsType(typeof...)" is a valid assert, but very noisy right now -->

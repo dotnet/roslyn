@@ -970,8 +970,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("\uD800\uDC00", (String)reader.ReadValue()); // valid surrogate pair
             Assert.Equal("\uDC00\uD800", (String)reader.ReadValue()); // invalid surrogate pair
             Assert.Equal("\uD800", (String)reader.ReadValue()); // incomplete surrogate pair
-            Assert.Equal(null, reader.ReadValue());
-            Assert.Equal(null, reader.ReadValue());
+            Assert.Null(reader.ReadValue());
+            Assert.Null(reader.ReadValue());
 
             unchecked
             {

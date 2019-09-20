@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
         {
             var node = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(3));
             var syntaxTreeField = typeof(CSharpSyntaxNode).GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Single(f => f.FieldType == typeof(SyntaxTree));
-            Assert.Equal(null, syntaxTreeField.GetValue(node));
+            Assert.Null(syntaxTreeField.GetValue(node));
         }
 
         [Fact]

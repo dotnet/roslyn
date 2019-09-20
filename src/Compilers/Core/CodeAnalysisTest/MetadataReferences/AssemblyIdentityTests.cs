@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.Equal(new byte[0], an.GetPublicKeyToken());
             AssertEx.Equal(null, an.GetPublicKey());
             Assert.Equal(AssemblyNameFlags.None, an.Flags);
-            Assert.Equal(null, an.CodeBase);
+            Assert.Null(an.CodeBase);
 
             ai = new AssemblyIdentity("goo", new Version(1, 2, 3, 4), "en-US", RoPublicKey1,
                 hasPublicKey: true,
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.Equal(PublicKeyToken1, an.GetPublicKeyToken());
             AssertEx.Equal(PublicKey1, an.GetPublicKey());
             Assert.Equal(AssemblyNameFlags.PublicKey | AssemblyNameFlags.Retargetable, an.Flags);
-            Assert.Equal(null, an.CodeBase);
+            Assert.Null(an.CodeBase);
 
             // invalid characters are ok in the name, the FullName can't be built though:
             foreach (char c in ClrInvalidCharacters)

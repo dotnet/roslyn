@@ -709,7 +709,7 @@ class C
             parsedArgs = DefaultParse(new[] { "/win32Manifest:goo", "/noWin32Manifest", "a.cs" }, WorkingDirectory);
             Assert.Equal(0, parsedArgs.Errors.Length);
             Assert.True(parsedArgs.NoWin32Manifest);
-            Assert.Equal(null, parsedArgs.Win32Manifest);
+            Assert.Null(parsedArgs.Win32Manifest);
         }
 
         [Fact]
