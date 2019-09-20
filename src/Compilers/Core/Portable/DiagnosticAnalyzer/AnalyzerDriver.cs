@@ -95,6 +95,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableHashSet<DiagnosticAnalyzer> _unsuppressedAnalyzers;
 
         /// <summary>
+        /// Set of unsuppressed analyzers that report non-configurable diagnostics that cannot be suppressed with end user configuration. 
+        /// </summary>
+        private ImmutableHashSet<DiagnosticAnalyzer> _nonConfigurableAnalyzers;
+
+        /// <summary>
+        /// Set of analyzers that have registered symbol start analyzer actions. 
+        /// </summary>
+        private ImmutableHashSet<DiagnosticAnalyzer> _symbolStartAnalyzers;
+
+        /// <summary>
         /// True if all analyzers need to analyze and report diagnostics in generated code - we can assume all code to be non-generated code.
         /// </summary>
         private bool _treatAllCodeAsNonGeneratedCode;
@@ -113,6 +123,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Lazily populated dictionary from tree to declared symbols with GeneratedCodeAttribute.
         /// </summary>
         private Dictionary<SyntaxTree, ImmutableHashSet<ISymbol>> _lazyGeneratedCodeSymbolsForTreeMap;
+
+        /// <summary>
+        /// Lazily populated dictionary from tree to analyzers that are suppressed on the entire tree.
+        /// </summary>
+        private ConcurrentDictionary<SyntaxTree, ImmutableHashSet<DiagnosticAnalyzer>> _lazySuppressedAnalyzersForTreeMap;
 
         /// <summary>
         /// Lazily populated dictionary from symbol to a bool indicating if it is a generated code symbol.
@@ -196,6 +211,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     (AnalyzerActions, _unsuppressedAnalyzers) = await GetAnalyzerActionsAsync(Analyzers, AnalyzerManager, analyzerExecutor).ConfigureAwait(false);
                     _analyzerGateMap = await CreateAnalyzerGateMapAsync(_unsuppressedAnalyzers, AnalyzerManager, analyzerExecutor).ConfigureAwait(false);
+                    _nonConfigurableAnalyzers = ComputeNonConfigurableAnalyzers(_unsuppressedAnalyzers);
+                    _symbolStartAnalyzers = ComputeSymbolStartAnalyzers(_unsuppressedAnalyzers);
                     _generatedCodeAnalysisFlagsMap = await CreateGeneratedCodeAnalysisFlagsMapAsync(_unsuppressedAnalyzers, AnalyzerManager, analyzerExecutor).ConfigureAwait(false);
                     _doNotAnalyzeGeneratedCode = ComputeShouldSkipAnalysisOnGeneratedCode(_unsuppressedAnalyzers);
                     _treatAllCodeAsNonGeneratedCode = ComputeShouldTreatAllCodeAsNonGeneratedCode(_unsuppressedAnalyzers, _generatedCodeAnalysisFlagsMap);
@@ -203,6 +220,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _lazyGeneratedCodeSymbolsForTreeMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, ImmutableHashSet<ISymbol>>();
                     _lazyIsGeneratedCodeSymbolMap = _treatAllCodeAsNonGeneratedCode ? null : new ConcurrentDictionary<ISymbol, bool>();
                     _lazyTreesWithHiddenRegionsMap = _treatAllCodeAsNonGeneratedCode ? null : new ConcurrentDictionary<SyntaxTree, bool>();
+                    _lazySuppressedAnalyzersForTreeMap = new ConcurrentDictionary<SyntaxTree, ImmutableHashSet<DiagnosticAnalyzer>>();
                     _generatedCodeAttribute = analyzerExecutor.Compilation?.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
 
                     _symbolActionsByKind = MakeSymbolActionsByKind(this.AnalyzerActions);
@@ -290,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var analyzerExecutor = AnalyzerExecutor.Create(
                 compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addNotCategorizedDiagnosticOpt, newOnAnalyzerException, analysisOptions.AnalyzerExceptionFilter,
-                IsCompilerAnalyzer, AnalyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, IsGeneratedOrHiddenCodeLocation, GetAnalyzerGate,
+                IsCompilerAnalyzer, AnalyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, IsGeneratedOrHiddenCodeLocation, IsAnalyzerSuppressedForTree, GetAnalyzerGate,
                 getSemanticModel: tree => CurrentCompilationData.GetOrCreateCachedSemanticModel(tree, compilation, cancellationToken),
                 analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnosticOpt, addCategorizedNonLocalDiagnosticOpt, s => _programmaticSuppressions.Add(s), cancellationToken);
 
@@ -309,6 +327,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Concurrent analyzer.
             return null;
+        }
+
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeNonConfigurableAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
+            foreach (var analyzer in unsuppressedAnalyzers)
+            {
+                var desciptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor);
+                foreach (var descriptor in desciptors)
+                {
+                    if (descriptor.IsNotConfigurable())
+                    {
+                        builder.Add(analyzer);
+                        break;
+                    }
+                }
+            }
+
+            return builder.Count > 0 ? builder.ToImmutableHashSet() : ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+        }
+
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeSymbolStartAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
+            foreach (var action in this.AnalyzerActions.SymbolStartActions)
+            {
+                if (unsuppressedAnalyzers.Contains(action.Analyzer))
+                {
+                    builder.Add(action.Analyzer);
+                }
+            }
+
+            return builder.Count > 0 ? builder.ToImmutableHashSet() : ImmutableHashSet<DiagnosticAnalyzer>.Empty;
         }
 
         private bool ComputeShouldSkipAnalysisOnGeneratedCode(ImmutableHashSet<DiagnosticAnalyzer> analyzers)
@@ -900,6 +951,61 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             declarationInfoBuilder.Free();
             return generatedSymbolsBuilderOpt != null ? generatedSymbolsBuilderOpt.ToImmutable() : ImmutableHashSet<ISymbol>.Empty;
+        }
+
+        private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
+            => GetOrComputeSuppressedAnalyzersForTree(tree).Contains(analyzer);
+
+        private ImmutableHashSet<DiagnosticAnalyzer> GetOrComputeSuppressedAnalyzersForTree(SyntaxTree tree)
+        {
+            return _lazySuppressedAnalyzersForTreeMap.GetOrAdd(tree, computeSuppressedAnalyzersForTree);
+
+            ImmutableHashSet<DiagnosticAnalyzer> computeSuppressedAnalyzersForTree(SyntaxTree tree)
+            {
+                if (tree.DiagnosticOptions.IsEmpty)
+                {
+                    return ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+                }
+
+                ImmutableHashSet<DiagnosticAnalyzer>.Builder suppressedAnalyzersBuilderOpt = null;
+                foreach (var analyzer in _unsuppressedAnalyzers)
+                {
+                    if (_nonConfigurableAnalyzers.Contains(analyzer))
+                    {
+                        // Analyzers reporting non-configurable diagnostics cannot be suppressed as user configuration is ignored for these analyzers.
+                        continue;
+                    }
+
+                    if ((_symbolStartAnalyzers.Contains(analyzer) || _compilationEndActionsMap.ContainsKey(analyzer)) &&
+                        !ShouldSkipAnalysisOnGeneratedCode(analyzer))
+                    {
+                        // SymbolStart/End analyzers and CompilationStart/End analyzers that analyze generated code
+                        // cannot have any of their callbacks suppressed as they need to analyze the entire compilation for correctness.
+                        continue;
+                    }
+
+                    var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor);
+                    var hasUnsuppressedDiagnostic = false;
+                    foreach (var descriptor in descriptors)
+                    {
+                        if (!tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredSeverity) ||
+                            configuredSeverity != ReportDiagnostic.Suppress)
+                        {
+                            // Analyzer reports a diagnostic that is not suppressed by the diagnostic options for this tree.
+                            hasUnsuppressedDiagnostic = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasUnsuppressedDiagnostic)
+                    {
+                        suppressedAnalyzersBuilderOpt ??= ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
+                        suppressedAnalyzersBuilderOpt.Add(analyzer);
+                    }
+                }
+
+                return suppressedAnalyzersBuilderOpt != null ? suppressedAnalyzersBuilderOpt.ToImmutable() : ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+            }
         }
 
         /// <summary>
