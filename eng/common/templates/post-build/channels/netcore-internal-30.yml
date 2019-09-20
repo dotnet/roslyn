@@ -1,10 +1,12 @@
 parameters:
-  symbolPublishingAdditionalParameters: ''
   artifactsPublishingAdditionalParameters: ''
+  dependsOn:
+  - Validate
+  symbolPublishingAdditionalParameters: ''
 
 stages:
 - stage: NetCore_30_Internal_Servicing_Publishing
-  dependsOn: validate
+  dependsOn: ${{ parameters.dependsOn }}
   variables:
     - template: ../common-variables.yml
   displayName: .NET Core 3.0 Internal Servicing Publishing
