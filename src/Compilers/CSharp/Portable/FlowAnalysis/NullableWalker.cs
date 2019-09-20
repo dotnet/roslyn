@@ -103,16 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly VisitResult VisitResult;
             public readonly Optional<LocalState> StateForLambda;
+            public readonly BoundExpression ArgumentNoConversion;
 
-            public readonly BoundExpression Argument;
             public TypeWithState RValueType => VisitResult.RValueType;
             public TypeWithAnnotations LValueType => VisitResult.LValueType;
 
-            public VisitArgumentResult(VisitResult visitResult, Optional<LocalState> stateForLambda, BoundExpression argument)
+            public VisitArgumentResult(VisitResult visitResult, Optional<LocalState> stateForLambda, BoundExpression argumentNoConversion)
             {
                 VisitResult = visitResult;
                 StateForLambda = stateForLambda;
-                Argument = argument;
+                ArgumentNoConversion = argumentNoConversion;
             }
         }
 
@@ -3437,9 +3437,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    // TODO: better way to store the converted and unconverted forms of the argument?
-                    var argumentNoConversion = results[i].Argument;
-                    var argument = i < arguments.Length ? arguments[i] : results[i].Argument;
+                    var argumentNoConversion = results[i].ArgumentNoConversion;
+                    var argument = i < arguments.Length ? arguments[i] : results[i].ArgumentNoConversion;
                     VisitArgumentConversionAndInboundAssignmentsAndPreConditions(
                         GetConversionIfApplicable(argument, argumentNoConversion),
                         argumentNoConversion,
@@ -3527,7 +3526,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultsBuilder = ArrayBuilder<VisitArgumentResult>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
-                // TODO: put expanded in a params [] (can we do all the analysis we want if we always put the params arguments into an array?)
                 var (parameter, _, parameterAnnotations, _) = GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
 
                 resultsBuilder.Add(VisitArgumentEvaluate(arguments[i], GetRefKind(refKindsOpt, i), parameterAnnotations));
@@ -4193,7 +4191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argumentResult = visitArgumentResult.LValueType;
                 if (!argumentResult.HasType)
                     argumentResult = visitArgumentResult.RValueType.ToTypeWithAnnotations();
-                builder.Add(getArgumentForMethodTypeInference(argumentResults[i].Argument, argumentResult, lambdaState));
+                builder.Add(getArgumentForMethodTypeInference(argumentResults[i].ArgumentNoConversion, argumentResult, lambdaState));
             }
             return builder.ToImmutableAndFree();
 
