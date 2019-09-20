@@ -142,11 +142,6 @@
         <target state="translated">移除不必要的 Using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_Usings">
-        <source>&amp;Sort Usings</source>
-        <target state="translated">排序 Using(&amp;S)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">排序協助工具修飾詞</target>
@@ -365,11 +360,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">組合管理 Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_and_Sort_Usings">
-        <source>R&amp;emove and Sort Usings</source>
-        <target state="translated">移除和排序 Using(&amp;E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_await">
