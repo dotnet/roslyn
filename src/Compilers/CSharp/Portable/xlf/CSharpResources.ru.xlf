@@ -1753,8 +1753,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">Выражение switch обрабатывает не все возможные входные данные (оно не полное).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">Выражение switch обрабатывает не все возможные входные данные (оно не полное).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1768,8 +1768,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">Выражение switch обрабатывает не все возможные входные данные (оно не полное).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">Выражение switch обрабатывает не все возможные входные данные (оно не полное).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
