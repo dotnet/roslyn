@@ -4,8 +4,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
-                var newDocument = OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                var newDocument = Formatter.OrganizeImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {
                     ApplyTextChange(document, newDocument);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             if (document != null)
             {
                 var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-                newDocument = OrganizeImportsService.OrganizeImportsAsync(newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
+                newDocument = Formatter.OrganizeImportsAsync(newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {
                     ApplyTextChange(document, newDocument);

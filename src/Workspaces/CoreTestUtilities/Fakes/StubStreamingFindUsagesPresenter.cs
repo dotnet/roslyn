@@ -29,5 +29,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Fakes
         {
             return new SimpleFindUsagesContext(CancellationToken.None);
         }
+
+        public virtual FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+        {
+            return new SimpleFindUsagesContext(CancellationToken.None);
+        }
     }
 }

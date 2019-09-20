@@ -991,7 +991,8 @@ namespace BoundTreeGenerator
 
         private static bool TypeIsTypeSymbol(Field field) => field.Type.TrimEnd('?') == "TypeSymbol";
 
-        private static bool TypeIsSymbol(Field field) => field.Type.TrimEnd('?').EndsWith("Symbol");
+        private static bool TypeIsSymbol(Field field) => TypeIsSymbol(field.Type);
+        private static bool TypeIsSymbol(string type) => type.TrimEnd('?').EndsWith("Symbol");
 
         private string StripBound(string name)
         {
@@ -1200,7 +1201,7 @@ namespace BoundTreeGenerator
                                     Write("new TreeDumperNode(\"{0}\", null, new TreeDumperNode[] {{ Visit(node.{1}, null) }})", ToCamelCase(field.Name), field.Name);
                                 else if (IsListOfDerived("BoundNode", field.Type))
                                 {
-                                    if (IsImmutableArray(field.Type) && FieldNullHandling(node, field.Name) == NullHandling.Disallow)
+                                    if (IsImmutableArray(field.Type, out _) && FieldNullHandling(node, field.Name) == NullHandling.Disallow)
                                     {
                                         Write("new TreeDumperNode(\"{0}\", null, from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
                                     }
@@ -1499,7 +1500,11 @@ namespace BoundTreeGenerator
                                     allSpecifiableFields,
                                     field =>
                                     {
-                                        if (IsDerivedOrListOfDerived("BoundNode", field.Type))
+                                        if (SkipInNullabilityRewriter(field))
+                                        {
+                                            return $"node.{field.Name}";
+                                        }
+                                        else if (IsDerivedOrListOfDerived("BoundNode", field.Type))
                                         {
                                             return ToCamelCase(field.Name);
                                         }
@@ -1510,6 +1515,10 @@ namespace BoundTreeGenerator
                                         else if (symbolIsPotentiallyUpdated(field))
                                         {
                                             return $"GetUpdatedSymbol(node, node.{field.Name})";
+                                        }
+                                        else if (IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType) && typeIsUpdated(elementType))
+                                        {
+                                            return $"GetUpdatedArray(node, node.{field.Name})";
                                         }
                                         else
                                         {
@@ -1529,7 +1538,12 @@ namespace BoundTreeGenerator
 
                                 if (f.Name == "Type") return false;
 
-                                switch (f.Type.TrimEnd('?'))
+                                return typeIsUpdated(f.Type);
+                            }
+
+                            static bool typeIsUpdated(string type)
+                            {
+                                switch (type.TrimEnd('?'))
                                 {
                                     case "LocalSymbol":
                                     case "LabelSymbol":
@@ -1563,17 +1577,23 @@ namespace BoundTreeGenerator
             return IsNodeList(derivedType) && IsDerivedType(baseType, GetElementType(derivedType));
         }
 
-        private bool IsImmutableArray(string typeName)
+        private bool IsImmutableArray(string typeName, out string elementType)
         {
-            switch (_targetLang)
+            string immutableArrayPrefix = _targetLang switch
             {
-                case TargetLanguage.CSharp:
-                    return typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal);
-                case TargetLanguage.VB:
-                    return typeName.StartsWith("ImmutableArray(Of", StringComparison.OrdinalIgnoreCase);
-                default:
-                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+                TargetLanguage.CSharp => "ImmutableArray<",
+                TargetLanguage.VB => "ImmutableArray(Of ",
+                _ => throw new InvalidOperationException($"Unknown target language {_targetLang}")
+            };
+
+            if (typeName.StartsWith(immutableArrayPrefix, StringComparison.Ordinal))
+            {
+                elementType = typeName[immutableArrayPrefix.Length..^1];
+                return true;
             }
+
+            elementType = null;
+            return false;
         }
 
         private bool IsNodeList(string typeName)
@@ -1712,6 +1732,11 @@ namespace BoundTreeGenerator
         private static bool SkipInNullabilityRewriter(Node n)
         {
             return string.Compare(n.SkipInNullabilityRewriter, "true", true) == 0;
+        }
+
+        private static bool SkipInNullabilityRewriter(Field f)
+        {
+            return string.Compare(f.SkipInNullabilityRewriter, "true", ignoreCase: true) == 0;
         }
 
         private string ToCamelCase(string name)

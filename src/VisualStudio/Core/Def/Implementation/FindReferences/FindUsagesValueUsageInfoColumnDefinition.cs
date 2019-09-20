@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices.FindUsages;
+using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 
@@ -17,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     /// </summary>
     [Export(typeof(ITableColumnDefinition))]
     [Name(ColumnName)]
-    internal sealed class FindUsagesValueUsageInfoColumnDefinition : AbstractFindUsagesCustomColumnDefinition
+    internal sealed class FindUsagesValueUsageInfoColumnDefinition : AbstractCustomColumnDefinitionWithMultipleValues
     {
         // We can have only a handful of different values for ValueUsageInfo flags enum, so the maximum size of the below dictionaries are capped.
         // So, we store these as static dictionarys which will be held in memory for the lifetime of the process.
@@ -33,6 +35,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
         }
 
+        public override bool TryGetFilterItems(ITableEntryHandle entry, out IEnumerable<string> filterItems)
+        {
+            // Determine the constituent strings for the display value in column, which should be used for applying the filter.
+            // For example, if value "Read, Write" is displayed in column for an entry, we will return "Read" and "Write" here,
+            // so filtering based on individual filter terms can be done.
+            if (IsFilterable &&
+                entry.TryGetValue(Name, out var value) &&
+                value is string displayString &&
+                !string.IsNullOrEmpty(displayString))
+            {
+                filterItems = s_displayValueToConstituentValuesMap.GetOrAdd(displayString, SplitAndTrimValue);
+                return true;
+            }
+
+            return base.TryGetFilterItems(entry, out filterItems);
+        }
+
         // Allow filtering of the column by each allowed SymbolUsageInfo kind.
         public override IEnumerable<string> FilterPresets => SymbolUsageInfo.LocalizableStringsForAllAllowedValues;
         public override bool IsFilterable => true;
@@ -43,7 +62,5 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         public override string GetDisplayStringForColumnValues(ImmutableArray<string> values)
             => s_constituentValuesToDisplayValuesMap.GetOrAdd(values, JoinValues);
-        protected override ImmutableArray<string> SplitColumnDisplayValue(string displayValue)
-            => s_displayValueToConstituentValuesMap.GetOrAdd(displayValue, SplitAndTrimValue);
     }
 }

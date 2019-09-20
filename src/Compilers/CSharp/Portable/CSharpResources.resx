@@ -5414,6 +5414,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_DefaultExpressionMayIntroduceNullT_Title" xml:space="preserve">
     <value>A default expression introduces a null value for a type parameter.</value>
   </data>
+  <data name="WRN_ExpressionMayIntroduceNullT" xml:space="preserve">
+    <value>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</value>
+  </data>
+  <data name="WRN_ExpressionMayIntroduceNullT_Title" xml:space="preserve">
+    <value>A member returning a [MaybeNull] value introduces a null value for a type parameter.</value>
+  </data>
   <data name="WRN_NullLiteralMayIntroduceNullT" xml:space="preserve">
     <value>A null literal introduces a null value when '{0}' is a non-nullable reference type.</value>
   </data>
@@ -5463,10 +5469,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</value>
   </data>
   <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment" xml:space="preserve">
-    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+    <value>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</value>
   </data>
   <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title" xml:space="preserve">
-    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+    <value>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
@@ -5661,10 +5667,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustive" xml:space="preserve">
-    <value>The switch expression does not handle all possible inputs (it is not exhaustive).</value>
+    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustive_Title" xml:space="preserve">
-    <value>The switch expression does not handle all possible inputs (it is not exhaustive).</value>
+    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
   </data>
   <data name="WRN_CaseConstantNamedUnderscore" xml:space="preserve">
     <value>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</value>
