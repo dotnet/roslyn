@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             }
-            catch (OperationCancelledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportWithoutCrash(e))
+            catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportWithoutCrash(e))
             {
                 return CommitResultUnhandled;
             }
@@ -218,10 +218,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (GetCompletionProvider(completionService, roslynItem) is ICustomCommitCompletionProvider provider)
             {
                 provider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
-                return AsyncCompletionData.CommitBehavior.None;
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            var change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             var textChange = change.TextChange;
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
