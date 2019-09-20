@@ -1164,5 +1164,49 @@ class MyClass2
 {
 }",
     expectedSuccess: false);
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        public Task MoveToNamespace_PartialTypesInNamesapce_SelectType()
+            => TestMoveToNamespaceAsync(
+@"namespace NS
+{
+    partial class MyClass[||]
+    {
+    }
+
+    partial class MyClass
+    {
+    }
+}",
+    expectedSuccess: false);
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        public Task MoveToNamespace_PartialTypesInNamesapce_SelectNamespace()
+            => TestMoveToNamespaceAsync(
+@"namespace NS[||]
+{
+    partial class MyClass
+    {
+    }
+
+    partial class MyClass
+    {
+    }
+}",
+    expectedSuccess: false);
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(980758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
+        public Task MoveToNamespace_PartialTypesInGlobalNamesapce()
+            => TestMoveToNamespaceAsync(
+@"partial class MyClass[||]
+{
+}
+partial class MyClass
+{
+}",
+    expectedSuccess: false);
     }
 }

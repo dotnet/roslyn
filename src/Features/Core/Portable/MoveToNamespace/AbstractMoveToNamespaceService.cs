@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         where TNamedTypeDeclarationSyntax : SyntaxNode
 
     {
-        protected abstract string GetNamespaceName(TNamespaceDeclarationSyntax namespaceSyntax);
-        protected abstract string GetNamespaceName(TNamedTypeDeclarationSyntax namedTypeSyntax);
+        protected abstract string GetNamespaceName(SyntaxNode namespaceSyntax);
         protected abstract bool IsContainedInNamespaceDeclaration(TNamespaceDeclarationSyntax namespaceSyntax, int position);
 
         public IMoveToNamespaceOptionsService OptionsService { get; }
@@ -95,16 +94,19 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             }
 
             // The underlying ChangeNamespace service doesn't support nested namespace decalration.
-            if (GetNamespaceInSpineCount(declarationSyntax) > 1)
+            if (GetNamespaceInSpineCount(declarationSyntax) == 1)
             {
-                return MoveToNamespaceAnalysisResult.Invalid;
+                var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
+                if (await changeNamespaceService.CanChangeNamespaceAsync(document, declarationSyntax, cancellationToken).ConfigureAwait(false))
+                {
+                    var namespaceName = GetNamespaceName(declarationSyntax);
+                    var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
+
+                    return new MoveToNamespaceAnalysisResult(document, declarationSyntax, namespaceName, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.Namespace);
+                }
             }
-            else
-            {
-                var namespaceName = GetNamespaceName(declarationSyntax);
-                var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
-                return new MoveToNamespaceAnalysisResult(document, declarationSyntax, namespaceName, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.Namespace);
-            }
+
+            return MoveToNamespaceAnalysisResult.Invalid;
         }
 
         private async Task<MoveToNamespaceAnalysisResult> TryAnalyzeNamedTypeAsync(
@@ -118,14 +120,16 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 return MoveToNamespaceAnalysisResult.Invalid;
             }
 
+            SyntaxNode container = null;
+
             // Moving one of the many members declared in global namespace is not currently supported,
             // but if it's the only member declared, then that's fine.
             if (namespaceInSpineCount == 0)
             {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                container = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-                if (syntaxFacts.GetMembersOfCompilationUnit(root).Count > 1)
+                if (syntaxFacts.GetMembersOfCompilationUnit(container).Count > 1)
                 {
                     return MoveToNamespaceAnalysisResult.Invalid;
                 }
@@ -133,13 +137,22 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
             if (node is TNamedTypeDeclarationSyntax namedTypeDeclarationSyntax)
             {
-                var namespaceName = GetNamespaceName(namedTypeDeclarationSyntax);
-                var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
-                return new MoveToNamespaceAnalysisResult(document, namedTypeDeclarationSyntax, namespaceName, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.NamedType);
+                // If we are inside a namespace declaration, then find it as the container.
+                container ??= GetContainingNamespace(namedTypeDeclarationSyntax);
+                var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
+
+                if (await changeNamespaceService.CanChangeNamespaceAsync(document, container, cancellationToken).ConfigureAwait(false))
+                {
+                    var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
+                    return new MoveToNamespaceAnalysisResult(document, namedTypeDeclarationSyntax, GetNamespaceName(container), namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.NamedType);
+                }
             }
 
-            return null;
+            return MoveToNamespaceAnalysisResult.Invalid;
         }
+
+        private static TNamespaceDeclarationSyntax GetContainingNamespace(TNamedTypeDeclarationSyntax namedTypeSyntax)
+            => namedTypeSyntax.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>();
 
         private static int GetNamespaceInSpineCount(SyntaxNode node)
             => node.AncestorsAndSelf().OfType<TNamespaceDeclarationSyntax>().Count() + node.DescendantNodes().OfType<TNamespaceDeclarationSyntax>().Count();
