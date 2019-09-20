@@ -145,7 +145,6 @@
   </Rules>
   <Rules AnalyzerId="xunit.analyzers" RuleNamespace="Xunit.Analyzers">
     <Rule Id="xUnit1004" Action="None" /> <!-- allow skipped tests -->
-    <Rule Id="xUnit2000" Action="None" /> <!-- "literal or constant value should be first in Assert.Equal" is a valid assert, but very noisy. Will do the refactoring later -->
     <Rule Id="xUnit2006" Action="None" /> <!-- "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2009" Action="None" /> <!-- "do not use Assert.True to check for substrings" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2012" Action="None" /> <!-- "do not use Enumerable.Any() to check if a value exists in a collection" is a valid assert, but very noisy right now -->

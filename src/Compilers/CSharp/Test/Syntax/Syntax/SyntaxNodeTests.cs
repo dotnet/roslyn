@@ -494,7 +494,7 @@ a + b";
 
             // var node = t1.GetCompilationUnitRoot().Usings[0].GetTokens(new TextSpan(6, 3)).First();
             var node = t1.GetCompilationUnitRoot().DescendantTokens(new TextSpan(6, 3)).First();
-            Assert.Equal(node.ToString(), "Goo");
+            Assert.Equal("Goo", node.ToString());
         }
 
         [Fact]
@@ -3024,8 +3024,8 @@ class A { } #endregion";
 
             var list = (SeparatedSyntaxList<ParameterSyntax>)method.ParameterList.Parameters;
 
-            Assert.Equal(((SyntaxToken)list.GetSeparator(0)).Kind(), SyntaxKind.CommaToken);
-            Assert.Equal(((SyntaxToken)list.GetSeparator(1)).Kind(), SyntaxKind.CommaToken);
+            Assert.Equal(SyntaxKind.CommaToken, ((SyntaxToken)list.GetSeparator(0)).Kind());
+            Assert.Equal(SyntaxKind.CommaToken, ((SyntaxToken)list.GetSeparator(1)).Kind());
 
             foreach (var index in new int[] { -1, 2 })
             {
@@ -3044,21 +3044,21 @@ class A { } #endregion";
             var internalParameterList = (InternalSyntax.ParameterListSyntax)method.ParameterList.Green;
             var internalParameters = internalParameterList.Parameters;
 
-            Assert.Equal(internalParameters.SeparatorCount, 2);
-            Assert.Equal((new SyntaxToken(internalParameters.GetSeparator(0))).Kind(), SyntaxKind.CommaToken);
-            Assert.Equal((new SyntaxToken(internalParameters.GetSeparator(1))).Kind(), SyntaxKind.CommaToken);
+            Assert.Equal(2, internalParameters.SeparatorCount);
+            Assert.Equal(SyntaxKind.CommaToken, (new SyntaxToken(internalParameters.GetSeparator(0))).Kind());
+            Assert.Equal(SyntaxKind.CommaToken, (new SyntaxToken(internalParameters.GetSeparator(1))).Kind());
 
-            Assert.Equal(internalParameters.Count, 3);
-            Assert.Equal(internalParameters[0].Identifier.ValueText, "a");
-            Assert.Equal(internalParameters[1].Identifier.ValueText, "b");
-            Assert.Equal(internalParameters[2].Identifier.ValueText, "c");
+            Assert.Equal(3, internalParameters.Count);
+            Assert.Equal("a", internalParameters[0].Identifier.ValueText);
+            Assert.Equal("b", internalParameters[1].Identifier.ValueText);
+            Assert.Equal("c", internalParameters[2].Identifier.ValueText);
         }
 
         [Fact]
         public void ThrowIfUnderlyingNodeIsNullForList()
         {
             var list = new SyntaxNodeOrTokenList();
-            Assert.Equal(list.Count, 0);
+            Assert.Equal(0, list.Count);
 
             foreach (var index in new int[] { -1, 0, 23 })
             {

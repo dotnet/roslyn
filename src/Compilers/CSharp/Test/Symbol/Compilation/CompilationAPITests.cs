@@ -1142,7 +1142,7 @@ var a = new C2();
             Assert.True(comp.References.Contains(compRef1));
             Assert.True(comp.References.Contains(compRef2));
             var smb = comp.GetReferencedAssemblySymbol(compRef1);
-            Assert.Equal(smb.Kind, SymbolKind.Assembly);
+            Assert.Equal(SymbolKind.Assembly, smb.Kind);
             Assert.Equal("Test1", smb.Identity.Name, StringComparer.OrdinalIgnoreCase);
 
             // Mixed reference type

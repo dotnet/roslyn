@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (MemoryStream stream = new MemoryStream())
             {
                 var text = CreateSourceText(stream);
-                Assert.Equal(text.Length, 0);
+                Assert.Equal(0, text.Length);
             }
         }
 

@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var reader1 = md1.Reader;
 
             var s = MetadataTokens.StringHandle(0);
-            Assert.Equal(reader1.GetString(s), "");
+            Assert.Equal("", reader1.GetString(s));
 
             var b = MetadataTokens.BlobHandle(0);
             Assert.Equal(0, reader1.GetBlobBytes(b).Length);
 
             var us = MetadataTokens.UserStringHandle(0);
-            Assert.Equal(reader1.GetUserString(us), "");
+            Assert.Equal("", reader1.GetUserString(us));
         }
 
         [Fact]
@@ -389,7 +389,7 @@ class Bad : Bad
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
             var methods = diff1.TestData.GetMethodsByName();
-            Assert.Equal(methods.Count, 1);
+            Assert.Equal(1, methods.Count);
             Assert.True(methods.ContainsKey("C.M2()"));
 
             using var md1 = diff1.GetMetadata();
@@ -2836,7 +2836,7 @@ class C
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var n = compilation0.GetMembers("C.M").Length;
-            Assert.Equal(n, 14);
+            Assert.Equal(14, n);
 
             //static void M(A<B>.B<object> a)
             //{

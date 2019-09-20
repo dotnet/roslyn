@@ -132,7 +132,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) },
                     CancellationToken.None);
 
-                Assert.Equal(comments.Count, 1);
+                Assert.Equal(1, comments.Count);
             }
         }
 
@@ -154,7 +154,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     solution.Projects.First().DocumentIds.First(),
                     CancellationToken.None);
 
-                Assert.Equal(result.DesignerAttributeArgument, "Form");
+                Assert.Equal("Form", result.DesignerAttributeArgument);
             }
         }
 

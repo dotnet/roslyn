@@ -166,7 +166,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(0, ws.CurrentSolution.Projects.Count());
 
             var result = ws.TryApplyChanges(newSolution);
-            Assert.Equal(result, true);
+            Assert.True(result);
 
             Assert.Equal(1, ws.CurrentSolution.Projects.Count());
             var proj = ws.CurrentSolution.Projects.First();
@@ -484,7 +484,7 @@ language: LanguageNames.CSharp);
             using var ws = new AdhocWorkspace();
             var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
             var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
-            Assert.Equal(originalDoc.Name, "TestDocument");
+            Assert.Equal("TestDocument", originalDoc.Name);
 
             var newName = "ChangedName";
             var changedDoc = originalDoc.WithName(newName);
@@ -614,7 +614,7 @@ language: LanguageNames.CSharp);
             var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
 
             var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
-            Assert.Equal(originalDoc.Name, "TestDocument");
+            Assert.Equal("TestDocument", originalDoc.Name);
             Assert.Equal(0, originalDoc.Folders.Count);
             Assert.Null(originalDoc.FilePath);
 
@@ -644,7 +644,7 @@ language: LanguageNames.CSharp);
             using var ws = new AdhocWorkspace();
             var service = ws.Services.GetService<IDocumentTextDifferencingService>();
             Assert.NotNull(service);
-            Assert.Equal(service.GetType(), typeof(DefaultDocumentTextDifferencingService));
+            Assert.Equal(typeof(DefaultDocumentTextDifferencingService), service.GetType());
         }
     }
 }

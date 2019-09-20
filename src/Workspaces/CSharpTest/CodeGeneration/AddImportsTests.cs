@@ -554,8 +554,7 @@ class C
             var formatted = await Formatter.FormatAsync(imported, options);
             var actualText = (await formatted.GetTextAsync()).ToString();
 
-            Assert.Equal(actualText,
-@"using System;
+            Assert.Equal(@"using System;
 using N.M;
 
 class C
@@ -563,7 +562,8 @@ class C
     public void M1([global::N.M.A] String p1) { }
 
     public void M2([A] String p2) { }
-}");
+}",
+actualText);
         }
 
         private static MetadataReference GetInMemoryAssemblyReferenceForCode(string code)

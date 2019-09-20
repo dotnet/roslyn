@@ -774,14 +774,14 @@ class C
 
             Assert.False(lambda.ReturnsByRef);
             Assert.True(lambda.ReturnsByRefReadonly);
-            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.In);
+            Assert.Equal(RefKind.In, lambda.Parameters[0].RefKind);
 
             lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
             lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
 
             Assert.False(lambda.ReturnsByRef);
             Assert.True(lambda.ReturnsByRefReadonly);
-            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.In);
+            Assert.Equal(RefKind.In, lambda.Parameters[0].RefKind);
         }
     }
 }

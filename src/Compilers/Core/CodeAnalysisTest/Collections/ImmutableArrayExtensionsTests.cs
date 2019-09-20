@@ -67,12 +67,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             builder.Insert(1, "banana");
             builder.Insert(0, "$$$");
 
-            Assert.Equal(builder[0], "$$$");
-            Assert.Equal(builder[1], "apple");
-            Assert.Equal(builder[2], "banana");
-            Assert.Equal(builder[3], "candy");
-            Assert.Equal(builder[4], "drum");
-            Assert.Equal(builder[5], "elephant");
+            Assert.Equal("$$$", builder[0]);
+            Assert.Equal("apple", builder[1]);
+            Assert.Equal("banana", builder[2]);
+            Assert.Equal("candy", builder[3]);
+            Assert.Equal("drum", builder[4]);
+            Assert.Equal("elephant", builder[5]);
         }
 
         [Fact]

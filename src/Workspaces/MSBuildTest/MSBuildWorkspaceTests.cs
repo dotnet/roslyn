@@ -3072,7 +3072,7 @@ class C1
                 // The smart quote (“) in class1.cs shows up as "â€œ" in codepage 1254. Do a sanity
                 // check here to make sure this file hasn't been corrupted in a way that would
                 // impact subsequent asserts.
-                Assert.Equal("//\u00E2\u20AC\u0153".Length, 5);
+                Assert.Equal(5, "//\u00E2\u20AC\u0153".Length);
                 Assert.Equal("//\u00E2\u20AC\u0153".Length, text.Length);
             }
         }

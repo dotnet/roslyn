@@ -1268,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, ts.Catches[0].Declaration.OpenParenToken);
             Assert.NotNull(ts.Catches[0].Declaration.Type);
             Assert.Equal("T", ts.Catches[0].Declaration.Type.ToString());
-            Assert.Equal(ts.Catches[0].Declaration.Identifier.Kind(), SyntaxKind.None);
+            Assert.Equal(SyntaxKind.None, ts.Catches[0].Declaration.Identifier.Kind());
             Assert.NotEqual(default, ts.Catches[0].Declaration.CloseParenToken);
             Assert.NotNull(ts.Catches[0].Block);
 
@@ -1956,9 +1956,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, fs.ForEachKeyword);
             Assert.Equal(SyntaxKind.ForEachKeyword, fs.ForEachKeyword.Kind());
             Assert.True(fs.ForEachKeyword.IsMissing);
-            Assert.Equal(fs.ForEachKeyword.TrailingTrivia.Count, 1);
-            Assert.Equal(fs.ForEachKeyword.TrailingTrivia[0].Kind(), SyntaxKind.SkippedTokensTrivia);
-            Assert.Equal(fs.ForEachKeyword.TrailingTrivia[0].ToString(), "for");
+            Assert.Equal(1, fs.ForEachKeyword.TrailingTrivia.Count);
+            Assert.Equal(SyntaxKind.SkippedTokensTrivia, fs.ForEachKeyword.TrailingTrivia[0].Kind());
+            Assert.Equal("for", fs.ForEachKeyword.TrailingTrivia[0].ToString());
 
             Assert.NotEqual(default, fs.OpenParenToken);
             Assert.NotNull(fs.Type);

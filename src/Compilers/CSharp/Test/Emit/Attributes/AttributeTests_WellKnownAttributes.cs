@@ -3170,7 +3170,7 @@ abstract class C
                 foreach (var ca in peReader.CustomAttributes)
                 {
                     var ctor = peReader.GetCustomAttribute(ca).Constructor;
-                    Assert.NotEqual(ctor.Kind, HandleKind.MethodDefinition);
+                    Assert.NotEqual(HandleKind.MethodDefinition, ctor.Kind);
                 }
             });
         }

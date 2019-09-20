@@ -11,7 +11,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestDiffTester()
         {
             // Make sure the diff tester is working!
-            Assert.Equal(DiffUtil.DiffReport(
+            Assert.Equal(@"    A
+++> 1
+    B
+    C
+--> D
+    E
+++> 2
+--> F",
+DiffUtil.DiffReport(
 @"A
 B
 C
@@ -23,15 +31,7 @@ F",
 B
 C
 E
-2"),
-@"    A
-++> 1
-    B
-    C
---> D
-    E
-++> 2
---> F");
+2"));
         }
     }
 }

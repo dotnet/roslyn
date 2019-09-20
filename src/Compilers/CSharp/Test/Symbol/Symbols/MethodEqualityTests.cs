@@ -40,7 +40,7 @@ class Class2
 
             //null
             Assert.NotNull(class1Method1);
-            Assert.NotEqual(class1Method1, null);
+            Assert.NotNull(class1Method1);
 
             //different type
             Assert.NotEqual<Symbol>(class1, class1Method1);
