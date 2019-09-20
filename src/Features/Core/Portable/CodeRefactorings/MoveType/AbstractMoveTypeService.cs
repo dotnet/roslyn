@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         {
             var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
-            if (state == null || !state.IsSelectionOnTypeHeader)
+            if (state == null)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
@@ -73,24 +73,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
         private async Task<State> CreateStateAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            if (!textSpan.IsEmpty)
-            {
-                return null;
-            }
-
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var nodeToAnalyze = root.FindToken(textSpan.Start).GetAncestor<TTypeDeclarationSyntax>();
 
+            var nodeToAnalyze = await document.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
             if (nodeToAnalyze == null)
             {
                 return null;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var isOnTypeHeader = syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out _);
-
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            return State.Generate(semanticDocument, nodeToAnalyze, isOnTypeHeader, cancellationToken);
+            return State.Generate(semanticDocument, nodeToAnalyze, cancellationToken);
         }
 
         private ImmutableArray<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
