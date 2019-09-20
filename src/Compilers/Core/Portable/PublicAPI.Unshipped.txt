@@ -4,6 +4,7 @@ Microsoft.CodeAnalysis.ErrorLogOptions
 Microsoft.CodeAnalysis.ErrorLogOptions.ErrorLogOptions(string path, Microsoft.CodeAnalysis.SarifVersion sarifVersion) -> void
 Microsoft.CodeAnalysis.ErrorLogOptions.Path.get -> string
 Microsoft.CodeAnalysis.ErrorLogOptions.SarifVersion.get -> Microsoft.CodeAnalysis.SarifVersion
+Microsoft.CodeAnalysis.INamedTypeSymbol.IsNativeInt.get -> bool
 Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Default = 1 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.SarifVersion

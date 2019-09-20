@@ -31,6 +31,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return result
         End Function
 
+        Private Shared Function IsIntegral(type As PrimitiveTypeCode) As Boolean
+            Dim result = False
+
+            Select Case type
+                Case PrimitiveTypeCode.Int8,
+                     PrimitiveTypeCode.UInt8,
+                     PrimitiveTypeCode.Int16,
+                     PrimitiveTypeCode.UInt16,
+                     PrimitiveTypeCode.Int32,
+                     PrimitiveTypeCode.UInt32,
+                     PrimitiveTypeCode.Int64,
+                     PrimitiveTypeCode.UInt64
+
+                    result = True
+            End Select
+
+            Return result
+        End Function
+
         Private Sub EmitConvertIntrinsic(conversion As BoundConversion, underlyingFrom As PrimitiveTypeCode, underlyingTo As PrimitiveTypeCode)
 
             Debug.Assert(underlyingFrom = conversion.Operand.Type.GetEnumUnderlyingTypeOrSelf().PrimitiveTypeCode)
@@ -86,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ' Handle conversion between simple numeric types
 
-            If underlyingFrom = PrimitiveTypeCode.Float32 AndAlso underlyingTo.IsIntegral() Then
+            If underlyingFrom = PrimitiveTypeCode.Float32 AndAlso IsIntegral(underlyingTo) Then
                 ' If converting from an intermediate value, we need to guarantee that
                 ' the intermediate value keeps the precision of its type.  The JIT will try to
                 ' promote the precision of intermediate values if it can, and this can lead to
@@ -121,8 +140,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitConvertSimpleNumeric(conversion As BoundConversion, typeFrom As PrimitiveTypeCode, typeTo As PrimitiveTypeCode, checked As Boolean)
-            Debug.Assert(typeFrom.IsIntegral() OrElse typeFrom.IsFloatingPoint() OrElse typeFrom = PrimitiveTypeCode.Char)
-            Debug.Assert(typeTo.IsIntegral() OrElse typeTo.IsFloatingPoint())
+            Debug.Assert(IsIntegral(typeFrom) OrElse typeFrom.IsFloatingPoint() OrElse typeFrom = PrimitiveTypeCode.Char)
+            Debug.Assert(IsIntegral(typeTo) OrElse typeTo.IsFloatingPoint())
             _builder.EmitNumericConversion(typeFrom, typeTo, checked)
         End Sub
 

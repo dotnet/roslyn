@@ -285,6 +285,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.UInt:
                 case BinaryOperatorKind.Long:
                 case BinaryOperatorKind.ULong:
+                case BinaryOperatorKind.NInt:
+                case BinaryOperatorKind.NUInt:
                 case BinaryOperatorKind.Char:
                 case BinaryOperatorKind.Enum:
                 case BinaryOperatorKind.EnumAndUnderlying:

@@ -564,16 +564,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Addition:
                     return new BinaryOperatorSignature(kind, left, RightType(kind), ReturnType(kind));
                 case BinaryOperatorKind.LeftShift:
-
                 case BinaryOperatorKind.RightShift:
-                    TypeSymbol returnType = _compilation.GetSpecialType(SpecialType.System_Int32);
-
+                    TypeSymbol rightType = _compilation.GetSpecialType(SpecialType.System_Int32);
                     if (kind.IsLifted())
                     {
-                        returnType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(returnType);
+                        rightType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(rightType);
                     }
-
-                    return new BinaryOperatorSignature(kind, left, returnType, left);
+                    return new BinaryOperatorSignature(kind, left, rightType, left);
 
                 case BinaryOperatorKind.Equal:
                 case BinaryOperatorKind.NotEqual:
@@ -600,6 +597,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.UInt: return _compilation.GetSpecialType(SpecialType.System_UInt32);
                     case BinaryOperatorKind.Long: return _compilation.GetSpecialType(SpecialType.System_Int64);
                     case BinaryOperatorKind.ULong: return _compilation.GetSpecialType(SpecialType.System_UInt64);
+                    case BinaryOperatorKind.NInt: return _compilation.GetSpecialType(SpecialType.System_IntPtr).AsNativeInt();
+                    case BinaryOperatorKind.NUInt: return _compilation.GetSpecialType(SpecialType.System_UIntPtr).AsNativeInt();
                     case BinaryOperatorKind.Float: return _compilation.GetSpecialType(SpecialType.System_Single);
                     case BinaryOperatorKind.Double: return _compilation.GetSpecialType(SpecialType.System_Double);
                     case BinaryOperatorKind.Decimal: return _compilation.GetSpecialType(SpecialType.System_Decimal);
@@ -630,6 +629,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.UInt: return _compilation.GetSpecialType(SpecialType.System_UInt32);
                     case BinaryOperatorKind.Long: return _compilation.GetSpecialType(SpecialType.System_Int64);
                     case BinaryOperatorKind.ULong: return _compilation.GetSpecialType(SpecialType.System_UInt64);
+                    case BinaryOperatorKind.NInt: return _compilation.GetSpecialType(SpecialType.System_IntPtr).AsNativeInt();
+                    case BinaryOperatorKind.NUInt: return _compilation.GetSpecialType(SpecialType.System_UIntPtr).AsNativeInt();
                     case BinaryOperatorKind.Float: return _compilation.GetSpecialType(SpecialType.System_Single);
                     case BinaryOperatorKind.Double: return _compilation.GetSpecialType(SpecialType.System_Double);
                     case BinaryOperatorKind.Decimal: return _compilation.GetSpecialType(SpecialType.System_Decimal);
@@ -660,6 +661,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.UInt: return _compilation.GetSpecialType(SpecialType.System_UInt32);
                     case BinaryOperatorKind.Long: return _compilation.GetSpecialType(SpecialType.System_Int64);
                     case BinaryOperatorKind.ULong: return _compilation.GetSpecialType(SpecialType.System_UInt64);
+                    case BinaryOperatorKind.NInt: return _compilation.GetSpecialType(SpecialType.System_IntPtr).AsNativeInt();
+                    case BinaryOperatorKind.NUInt: return _compilation.GetSpecialType(SpecialType.System_UIntPtr).AsNativeInt();
                     case BinaryOperatorKind.Float: return _compilation.GetSpecialType(SpecialType.System_Single);
                     case BinaryOperatorKind.Double: return _compilation.GetSpecialType(SpecialType.System_Double);
                     case BinaryOperatorKind.Decimal: return _compilation.GetSpecialType(SpecialType.System_Decimal);
@@ -687,6 +690,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.UInt: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt32));
                 case BinaryOperatorKind.Long: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Int64));
                 case BinaryOperatorKind.ULong: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt64));
+                case BinaryOperatorKind.NInt: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_IntPtr).AsNativeInt());
+                case BinaryOperatorKind.NUInt: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UIntPtr).AsNativeInt());
                 case BinaryOperatorKind.Float: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Single));
                 case BinaryOperatorKind.Double: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Double));
                 case BinaryOperatorKind.Decimal: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Decimal));

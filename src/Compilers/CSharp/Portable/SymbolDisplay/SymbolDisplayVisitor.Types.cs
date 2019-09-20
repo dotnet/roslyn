@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool AddSpecialTypeKeyword(INamedTypeSymbol symbol)
         {
-            var specialTypeName = GetSpecialTypeName(symbol.SpecialType);
+            var specialTypeName = GetSpecialTypeName(symbol);
             if (specialTypeName == null)
             {
                 return false;
@@ -561,9 +561,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static string GetSpecialTypeName(SpecialType specialType)
+        private static string GetSpecialTypeName(INamedTypeSymbol symbol)
         {
-            switch (specialType)
+            switch (symbol.SpecialType)
             {
                 case SpecialType.System_Void:
                     return "void";
@@ -575,6 +575,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "int";
                 case SpecialType.System_Int64:
                     return "long";
+                case SpecialType.System_IntPtr when symbol.IsNativeInt:
+                    return "nint";
+                case SpecialType.System_UIntPtr when symbol.IsNativeInt:
+                    return "nuint";
                 case SpecialType.System_Byte:
                     return "byte";
                 case SpecialType.System_UInt16:
@@ -597,9 +601,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "string";
                 case SpecialType.System_Object:
                     return "object";
-                default:
-                    return null;
             }
+            return null;
         }
 
         private void AddTypeKind(INamedTypeSymbol symbol)

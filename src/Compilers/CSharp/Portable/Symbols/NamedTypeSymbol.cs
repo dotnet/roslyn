@@ -1524,6 +1524,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        // PROTOTYPE: Should be abstract.
+        internal virtual NamedTypeSymbol AsNativeInt() => throw ExceptionUtilities.Unreachable;
+
+        // PROTOTYPE: Should be abstract.
+        public virtual bool IsNativeInt => false;
+
         #region INamedTypeSymbol Members
 
         int INamedTypeSymbol.Arity

@@ -1140,6 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The int is converted to float and stored internally as the double 214783648, even though the
             // fully precise int would fit into a double.
 
+            // PROTOTYPE: Test all cases.
             unchecked
             {
                 switch (value.Discriminator)
@@ -1283,6 +1284,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)int32Value;
                             case SpecialType.System_Int32: return (int)int32Value;
                             case SpecialType.System_Int64: return (long)int32Value;
+                            case SpecialType.System_IntPtr: return (int)int32Value;
+                            case SpecialType.System_UIntPtr: return (uint)int32Value;
                             case SpecialType.System_Single: return (double)(float)int32Value;
                             case SpecialType.System_Double: return (double)int32Value;
                             case SpecialType.System_Decimal: return (decimal)int32Value;

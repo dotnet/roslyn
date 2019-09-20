@@ -322,6 +322,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        // PROTOTYPE: Temporary approach for AsNativeInt().
+        // Replace with an approach that handles source symbols as well.
+        protected PENamedTypeSymbol(PENamedTypeSymbol other)
+        {
+            _container = other._container;
+            _handle = other._handle;
+            _name = other._name;
+            _flags = other._flags;
+            _corTypeId = other._corTypeId;
+            _lazyMemberNames = other._lazyMemberNames;
+            _lazyMembersInDeclarationOrder = other._lazyMembersInDeclarationOrder;
+            _lazyMembersByName = other._lazyMembersByName;
+            _lazyNestedTypes = other._lazyNestedTypes;
+            _lazyKind = other._lazyKind;
+            _lazyNullableContextValue = other._lazyNullableContextValue;
+            _lazyBaseType = other._lazyBaseType;
+            _lazyInterfaces = other._lazyInterfaces;
+            _lazyDeclaredBaseType = other._lazyDeclaredBaseType;
+            _lazyDeclaredInterfaces = other._lazyDeclaredInterfaces;
+            _lazyDocComment = other._lazyDocComment;
+            _lazyUseSiteDiagnostic = other._lazyUseSiteDiagnostic;
+            _lazyUncommonProperties = other._lazyUncommonProperties;
+        }
+
         public override SpecialType SpecialType
         {
             get
@@ -2278,6 +2302,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
             }
 
+            private PENamedTypeSymbolNonGeneric(PENamedTypeSymbolNonGeneric other) :
+                base(other)
+            {
+                IsNativeInt = true;
+
+                Debug.Assert(this.Equals(other));
+                Debug.Assert(other.Equals(this));
+            }
+
             public override int Arity
             {
                 get
@@ -2301,6 +2334,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var containingType = _container as PENamedTypeSymbol;
                     return (object)containingType == null ? 0 : containingType.MetadataArity;
                 }
+            }
+
+            public override bool IsNativeInt { get; }
+
+            internal override NamedTypeSymbol AsNativeInt()
+            {
+                Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
+
+                return IsNativeInt ? this : new PENamedTypeSymbolNonGeneric(this);
+            }
+
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+            {
+                if ((object)t2 == null) return false;
+                if ((object)t2 == this) return true;
+
+                var other = t2 as PENamedTypeSymbolNonGeneric;
+                if ((object)other != null &&
+                    (this.IsNativeInt || other.IsNativeInt) &&
+                    this.SpecialType == other.SpecialType)
+                {
+                    return true;
+                }
+
+                return base.Equals(t2, comparison, isValueTypeOverrideOpt);
             }
         }
 

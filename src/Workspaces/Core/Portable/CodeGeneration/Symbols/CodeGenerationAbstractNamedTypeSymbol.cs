@@ -110,5 +110,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsRefLikeType => Modifiers.IsRef;
 
+        public bool IsNativeInt => false;
     }
 }

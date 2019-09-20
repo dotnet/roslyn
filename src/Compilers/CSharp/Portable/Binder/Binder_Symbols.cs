@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bound type if syntax binds to a type in the current context and
         /// null if syntax binds to "var" keyword in the current context.
         /// </returns>
-        internal TypeWithAnnotations BindTypeWithAnnotationsOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar, out AliasSymbol alias)
+        internal TypeWithAnnotations BindTypeOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar, out AliasSymbol alias)
         {
             var symbol = BindTypeOrAliasOrVarKeyword(syntax, diagnostics, out isVar);
             Debug.Assert(isVar == symbol.IsDefault);
@@ -811,21 +811,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            Symbol bindingResult;
-            // If we were looking up the identifier "dynamic" at the topmost level and didn't find anything good,
-            // we actually have the type dynamic (assuming /langversion is at least 4).
+            Symbol bindingResult = null;
+
+            // If we were looking up "dynamic" or "nint" at the topmost level and didn't find anything good,
+            // use that particular type (assuming the /langversion is supported).
             if ((object)qualifierOpt == null &&
                 (node.Parent == null ||
-                 node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as an attribute type
+                 node.Parent.Kind() != SyntaxKind.Attribute && // dynamic and nint not allowed as attribute type
                  SyntaxFacts.IsInTypeOnlyContext(node)) &&
-                node.Identifier.ValueText == "dynamic" &&
-                !IsViableType(result) &&
-                Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                !IsViableType(result))
             {
-                bindingResult = Compilation.DynamicType;
-                ReportUseSiteDiagnosticForDynamic(diagnostics, node);
+                switch (node.Identifier.ValueText)
+                {
+                    case "dynamic":
+                        if (Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                        {
+                            bindingResult = Compilation.DynamicType;
+                            ReportUseSiteDiagnosticForDynamic(diagnostics, node);
+                        }
+                        break;
+                    case "nint":
+                        bindingResult = getNativeIntType(node, unsigned: false, diagnostics);
+                        break;
+                    case "nuint":
+                        bindingResult = getNativeIntType(node, unsigned: true, diagnostics);
+                        break;
+                    default:
+                        break;
+                }
             }
-            else
+
+            if (bindingResult is null)
             {
                 bool wasError;
 
@@ -842,13 +858,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             result.Free();
             return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(AreNullableAnnotationsEnabled(node.Identifier), bindingResult);
+
+            NamedTypeSymbol getNativeIntType(SyntaxNode node, bool unsigned, DiagnosticBag diagnostics)
+            {
+                if (Compilation.LanguageVersion < MessageID.IDS_FeatureNativeInt.RequiredVersion())
+                {
+                    return null;
+                }
+                return this.GetSpecialType(unsigned ? SpecialType.System_UIntPtr : SpecialType.System_IntPtr, diagnostics, node).AsNativeInt();
+            }
         }
 
         private void ReportUseSiteDiagnosticForDynamic(DiagnosticBag diagnostics, IdentifierNameSyntax node)
         {
             // Dynamic type might be bound in a declaration context where we need to synthesize the DynamicAttribute.
             // Here we report the use site error (ERR_DynamicAttributeMissing) for missing DynamicAttribute type or it's constructors.
-            //                  
+            //
             // BREAKING CHANGE: Native compiler reports ERR_DynamicAttributeMissing at emit time when synthesizing DynamicAttribute.
             //                  Currently, in Roslyn we don't support reporting diagnostics while synthesizing attributes, these diagnostics are reported at bind time.
             //                  Hence, we report this diagnostic here. Note that DynamicAttribute has two constructors, and either of them may be used while

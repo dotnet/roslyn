@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis
             public bool IsScriptClass => WrappedSymbol.IsScriptClass;
             public bool IsImplicitClass => WrappedSymbol.IsImplicitClass;
             public bool IsComImport => WrappedSymbol.IsComImport;
+            public bool IsNativeInt => WrappedSymbol.IsNativeInt;
             public IEnumerable<string> MemberNames => WrappedSymbol.MemberNames;
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => WrappedSymbol.TypeParameters;
             public ImmutableArray<ITypeSymbol> TypeArguments => WrappedSymbol.TypeArguments;

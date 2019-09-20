@@ -182,5 +182,10 @@ namespace Microsoft.CodeAnalysis
         /// True if the type is serializable (has Serializable metadata flag).
         /// </summary>
         bool IsSerializable { get; }
+
+        /// <summary>
+        /// True if the type is a natively-sized integer.
+        /// </summary>
+        bool IsNativeInt { get; }
     }
 }

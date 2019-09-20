@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,42 +9,44 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // NOTE: these types should line up with the elements in BinaryOperatorKind
 
-        TypeMask = 0x000000FF,
+        TypeMask = 0x00000FF,
 
-        SByte = 0x00000011,
-        Byte = 0x00000012,
-        Short = 0x00000013,
-        UShort = 0x00000014,
-        Int = 0x00000015,
-        UInt = 0x00000016,
-        Long = 0x00000017,
-        ULong = 0x00000018,
-        Char = 0x00000019,
-        Float = 0x0000001A,
-        Double = 0x0000001B,
-        Decimal = 0x0000001C,
-        Bool = 0x0000001D,
-        _Object = 0x0000001E, // reserved for binary op
-        _String = 0x0000001F, // reserved for binary op
-        _StringAndObject = 0x00000021, // reserved for binary op
-        _ObjectAndString = 0x00000022, // reserved for binary op
+        SByte = 0x00000001,
+        Byte = 0x00000002,
+        Short = 0x00000003,
+        UShort = 0x00000004,
+        Int = 0x00000005,
+        UInt = 0x00000006,
+        Long = 0x00000007,
+        ULong = 0x00000008,
+        NInt = 0x00000009,
+        NUInt = 0x0000000A,
+        Char = 0x0000000B,
+        Float = 0x0000000C,
+        Double = 0x0000000D,
+        Decimal = 0x0000000E,
+        Bool = 0x0000000F,
+        _Object = 0x00000010, // reserved for binary op
+        _String = 0x00000011, // reserved for binary op
+        _StringAndObject = 0x00000012, // reserved for binary op
+        _ObjectAndString = 0x00000013, // reserved for binary op
 
-        Enum = 0x00000023,
-        _EnumAndUnderlying = 0x00000024, // reserved for binary op
-        _UnderlyingAndEnum = 0x00000025, // reserved for binary op
-        _Delegate = 0x00000026, // reserved for binary op
-        Pointer = 0x00000027,
-        _PointerAndInt = 0x00000028, // reserved for binary op
-        _PointerAndUInt = 0x00000029, // reserved for binary op
-        _PointerAndLong = 0x0000002A, // reserved for binary op
-        _PointerAndULong = 0x0000002B, // reserved for binary op
-        _IntAndPointer = 0x0000002C, // reserved for binary op
-        _UIntAndPointer = 0x0000002D, // reserved for binary op
-        _LongAndPointer = 0x0000002E, // reserved for binary op
-        _ULongAndPointer = 0x0000002F, // reserved for binary op
-        _NullableNull = 0x00000030, // reserved for binary op
-        UserDefined = 0x00000031,
-        Dynamic = 0x00000032,
+        Enum = 0x00000014,
+        _EnumAndUnderlying = 0x00000015, // reserved for binary op
+        _UnderlyingAndEnum = 0x00000016, // reserved for binary op
+        _Delegate = 0x00000017, // reserved for binary op
+        Pointer = 0x00000018,
+        _PointerAndInt = 0x00000019, // reserved for binary op
+        _PointerAndUInt = 0x00000020, // reserved for binary op
+        _PointerAndLong = 0x00000021, // reserved for binary op
+        _PointerAndULong = 0x00000022, // reserved for binary op
+        _IntAndPointer = 0x00000023, // reserved for binary op
+        _UIntAndPointer = 0x00000024, // reserved for binary op
+        _LongAndPointer = 0x00000025, // reserved for binary op
+        _ULongAndPointer = 0x00000026, // reserved for binary op
+        _NullableNull = 0x00000027, // reserved for binary op
+        UserDefined = 0x00000028,
+        Dynamic = 0x00000029,
 
         OpMask = 0x0000FF00,
         PostfixIncrement = 0x00001000,
@@ -269,6 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UInt = UnaryOperatorKind.UInt,
         Long = UnaryOperatorKind.Long,
         ULong = UnaryOperatorKind.ULong,
+        NInt = UnaryOperatorKind.NInt,
+        NUInt = UnaryOperatorKind.NUInt,
         Char = UnaryOperatorKind.Char, //not used
         Float = UnaryOperatorKind.Float,
         Double = UnaryOperatorKind.Double,
