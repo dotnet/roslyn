@@ -71,11 +71,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return modifiedSolution ?? document.Project.Solution;
         }
 
+        protected abstract Task<TTypeDeclarationSyntax> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+
         private async Task<State> CreateStateAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var nodeToAnalyze = await document.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
+            var nodeToAnalyze = await GetRelevantNodeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (nodeToAnalyze == null)
             {
                 return null;
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             TopLevelTypeDeclarations(root).Skip(1).Any();
 
         private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root) =>
-            root.DescendantNodes(n => (n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax))
+            root.DescendantNodes(n => n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax)
                 .OfType<TTypeDeclarationSyntax>();
 
         private bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)
