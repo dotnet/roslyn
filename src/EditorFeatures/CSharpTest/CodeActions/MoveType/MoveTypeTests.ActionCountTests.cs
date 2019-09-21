@@ -79,6 +79,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveType_AvailableIncludingDocumentationCommentAndHeader()
+        {
+            var code =
+@"namespace N1
+{
+    [|/// <summary>
+    /// Documentation comment.
+    /// </summary>
+    class Class1|]
+    {
+    }
+}";
+            await TestActionCountAsync(code, count: 2);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveType_AvailableIncludingDocumentationCommentAndAttributeAndHeader()
+        {
+            var code =
+@"using System;
+namespace N1
+{
+    [|/// <summary>
+    /// Documentation comment.
+    /// </summary>
+    [Obsolete]
+    class Class1|]
+    {
+    }
+}";
+            await TestActionCountAsync(code, count: 2);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveType_NotAvailableBeforeType()
         {
             var code =
@@ -121,6 +155,73 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
     }
 
     [|class test1|]
+    {
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveType_NotAvailableAroundDocumentationCommentAboveHeader()
+        {
+            var code =
+@"namespace N1
+{
+    [|/// <summary>
+    /// Documentation comment.
+    /// </summary>|]
+    class Class1
+    {
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveType_NotAvailableAroundAttributeAboveHeader()
+        {
+            var code =
+@"using System;
+namespace N1
+{
+    [|[Obsolete]|]
+    class Class1
+    {
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveType_NotAvailableAroundDocumentationCommentAndAttributeAboveHeader()
+        {
+            var code =
+@"using System;
+namespace N1
+{
+    [|/// <summary>
+    /// Documentation comment.
+    /// </summary>
+    [Obsolete]|]
+    class Class1
+    {
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveType_NotAvailableInsideDocumentationCommentAndAttributeAboveHeader()
+        {
+            var code =
+@"using System;
+namespace N1
+{
+    /// <summary>
+    /// [|Documentation comment.
+    /// </summary>
+    [Obso|]lete]
+    class Class1
     {
     }
 }";
