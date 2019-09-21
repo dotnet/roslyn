@@ -3,7 +3,9 @@
 using System;
 using System.Globalization;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
@@ -655,6 +657,41 @@ namespace System.Xml.Linq
 
             Assert.Equal("Test1", GetUnderlyingString(xnType.Instantiate()));
             Assert.Equal("Test2", GetUnderlyingString(xeType.Instantiate()));
+        }
+
+        [Fact]
+        public void HostValueIsNotFound_int()
+        {
+            var clrValue = new DkmClrValue(
+                value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(int)),
+                alias: null, evalFlags: DkmEvaluationResultFlags.None, valueFlags: DkmClrValueFlags.None);
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue));
+        }
+
+        [Fact]
+        public void HostValueIsNotFound_char()
+        {
+            var clrValue = new DkmClrValue(
+                value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(char)),
+                alias: null, evalFlags: DkmEvaluationResultFlags.None, valueFlags: DkmClrValueFlags.None);
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue));
+        }
+
+        [Fact]
+        public void HostValueIsNotFound_enum()
+        {
+            var clrValue = new DkmClrValue(
+                value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(TestEnum)),
+                alias: null, evalFlags: DkmEvaluationResultFlags.None, valueFlags: DkmClrValueFlags.None);
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue));
+        }
+
+        private enum TestEnum
+        {
+            One
         }
     }
 }

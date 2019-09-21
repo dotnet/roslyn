@@ -22,12 +22,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly string _defaultFormat;
         private readonly string _nullString;
         private readonly string _thisString;
+        private readonly string _hostValueNotFoundString;
 
-        internal Formatter(string defaultFormat, string nullString, string thisString)
+        internal Formatter(string defaultFormat, string nullString, string thisString, string hostValueNotFoundString)
         {
             _defaultFormat = defaultFormat;
             _nullString = nullString;
             _thisString = thisString;
+            _hostValueNotFoundString = hostValueNotFoundString;
         }
 
         string IDkmClrFormatter.GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers)

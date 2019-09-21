@@ -27,6 +27,11 @@
         <target state="translated">'„{0}”: zwrócono wyjątek typu „{1}”</target>
         <note>Threw an exception while evaluating a value.</note>
       </trans-unit>
+      <trans-unit id="HostValueNotFound">
+        <source>Cannot provide the value: Host Value Not Found</source>
+        <target state="new">Cannot provide the value: Host Value Not Found</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidPointerDereference">
         <source>Cannot dereference '{0}'. The pointer is not valid.</source>
         <target state="translated">Nie można usunąć odwołania do elementu „{0}”. Wskaźnik jest nieprawidłowy.</target>

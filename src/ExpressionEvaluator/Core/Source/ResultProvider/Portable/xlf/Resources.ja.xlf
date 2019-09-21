@@ -27,6 +27,11 @@
         <target state="translated">'{0}' は型 '{1}' の例外をスローしました</target>
         <note>Threw an exception while evaluating a value.</note>
       </trans-unit>
+      <trans-unit id="HostValueNotFound">
+        <source>Cannot provide the value: Host Value Not Found</source>
+        <target state="new">Cannot provide the value: Host Value Not Found</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidPointerDereference">
         <source>Cannot dereference '{0}'. The pointer is not valid.</source>
         <target state="translated">{0}' を逆参照できません。ポインターが無効です。</target>

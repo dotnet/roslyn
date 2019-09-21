@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
                     if (value.HostObjectValue == null)
                     {
-                        return null;
+                        return _hostValueNotFoundString;
                     }
 
                     return IncludeObjectId(
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
                 if (value.HostObjectValue == null)
                 {
-                    return null;
+                    return _hostValueNotFoundString;
                 }
 
                 if (IntPtr.Size == 8)
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
                 if (value.HostObjectValue == null)
                 {
-                    return null;
+                    return _hostValueNotFoundString;
                 }
 
                 if (UIntPtr.Size == 8)
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
             if (value.HostObjectValue == null)
             {
-                return null;
+                return _hostValueNotFoundString;
             }
 
             var charTemp = FormatLiteral((char)value.HostObjectValue, options);
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
             if (value.HostObjectValue == null)
             {
-                return null;
+                return _hostValueNotFoundString;
             }
 
             string displayString;
@@ -436,14 +436,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
             if (value.HostObjectValue == null)
             {
-                return null;
+                return _hostValueNotFoundString;
             }
 
+            // DateTime is primitive in VB but not in C#.
             object obj;
             if (value.Type.GetLmrType().IsDateTime())
             {
                 var dateDataValue = value.GetPropertyValue("Ticks", inspectionContext);
-
                 obj = new DateTime((long)dateDataValue.HostObjectValue);
             }
             else
