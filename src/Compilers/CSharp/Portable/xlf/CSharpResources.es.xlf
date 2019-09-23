@@ -37,6 +37,11 @@
         <target state="translated">No se puede usar el tipo "{0}?" que acepta valores NULL en una expresión as; use en su lugar el tipo "{0}" subyacente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">El atributo "{0}" no es válido en descriptores de acceso de eventos. Solo es válido en declaraciones "{1}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">La propiedad implementada automáticamente "{0}" no se puede marcar como "readonly" porque tiene un descriptor de acceso "set".</target>
@@ -45,11 +50,6 @@
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">El descriptor de acceso "set" implementado automáticamente "{0}" no puede marcarse como "readonly".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="translated">El atributo "{0}" no es válido en descriptores de acceso de eventos. Solo es válido en declaraciones "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
+        <target state="translated">Opción no válida "{0}" para /nullable; debe ser "deshabilitar", ·"habilitar"', "advertencias" o "anotaciones"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
-        <target state="new">Duplicate null suppression operator ('!')</target>
+        <target state="translated">Duplicar el operador de supresión de tipo null ("!")</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">Se esperaban "advertencias", "anotaciones" o el final de la directiva</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -374,7 +374,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
         <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
-        <target state="translated">"{0}": "readonly" solo se puede usar en los descriptores de acceso si la propiedad o el indizador tienen un descriptor de acceso get y set</target>
+        <target state="translated">"{0}": "readonly" solo se puede usar en los descriptores de acceso si la propiedad o el indexador tienen un descriptor de acceso get y set</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -638,7 +638,7 @@
                               Opciones del compilador de Visual C#
 
                         - ARCHIVOS DE SALIDA -
- -out:&lt;archivo&gt;                   Especifica el nombre del archivo de salida (el valor predeterminado: nombre base del archivo 
+ -out:&lt;file&gt;                   Especifica el nombre del archivo de salida (el valor predeterminado: nombre base del archivo 
                                con la clase principal o el primer archivo)
  -target:exe                   Compila un archivo ejecutable de consola (predeterminado) (forma 
                                corta: -t:exe)
@@ -651,40 +651,40 @@
                                -t:appcontainerexe)
  -target:winmdobj              Compila un archivo intermedio de Windows Runtime 
                                para que consuma WinMDExp (forma corta: -t:winmdobj)
- -doc:&lt;archivo&gt;                   Archivo de documentación XML que se va a generar
+ -doc:&lt;file&gt;                   Archivo de documentación XML que se va a generar
 -refout:&lt;file&gt;                Salida de ensamblado de referencia para generar
- -platform:&lt;cadena&gt;            Limita en qué plataformas se puede ejecutar este código: x86,
+ -platform:&lt;string&gt;            Limita en qué plataformas se puede ejecutar este código: x86,
                                Itanium, x64, arm, anycpu32bitpreferred o 
                                anycpu. La predeterminada es anycpu.
 
                         - ARCHIVOS DE ENTRADA -
- -recurse:&lt;comodín&gt;           Incluye todos los archivos del directorio actual y los 
+ -recurse:&lt;wildcard&gt;           Incluye todos los archivos del directorio actual y los 
                                subdirectorios de acuerdo con las especificaciones del 
                                comodín
- -reference:&lt;alias&gt;=&lt;archivo&gt;     Metadatos de referencia del archivo de 
+ -reference:&lt;alias&gt;=&lt;file&gt;     Metadatos de referencia del archivo de 
                                ensamblado especificado mediante el alias dado (forma corta: -r)
- -reference:&lt;lista de archivos&gt;        Metadatos de referencia de los archivos de 
+ -reference:&lt;file list&gt;        Metadatos de referencia de los archivos de 
                                ensamblado especificados (forma corta: -r)
- -addmodule:&lt;lista de archivos&gt;        Vincula los módulos especificados en este ensamblado
- -link:&lt;lista de archivos&gt;             Inserta metadatos de los archivos de ensamblado de 
+ -addmodule:&lt;file list&gt;        Vincula los módulos especificados en este ensamblado
+ -link:&lt;file list&gt;             Inserta metadatos de los archivos de ensamblado de 
                                interoperabilidad especificados (forma corta: -l)
- -analyzer:&lt;lista de archivos&gt;         Ejecuta los analizadores de este ensamblado
+ -analyzer:&lt;file list&gt;         Ejecuta los analizadores de este ensamblado
                                (forma corta: -a)
- -additionalfile:&lt;lista de archivos&gt;   Archivos adicionales que no afectan directamente a la generación de código
+ -additionalfile:&lt;file list&gt;   Archivos adicionales que no afectan directamente a la generación de código
                                pero que pueden usar los analizadores para producir
                                errores o advertencias.
  -embed                        Inserta todos los archivos de origen en el PDB.
- -embed:&lt;lista de archivos&gt;            Inserta los archivos especificados en el PDB
+ -embed:&lt;file list&gt;            Inserta los archivos especificados en el PDB
 
                         - RECURSOS -
- -win32res:&lt;archivo&gt;              Especifica un archivo de recursos Win32 (.res)
- -win32icon:&lt;archivo&gt;             Usa este icono para la salida
- -win32manifest:&lt;archivo&gt;         Especifica un archivo de manifiesto Win32 (.xml)
+ -win32res:&lt;file&gt;              Especifica un archivo de recursos Win32 (.res)
+ -win32icon:&lt;file&gt;             Usa este icono para la salida
+ -win32manifest:&lt;file&gt;         Especifica un archivo de manifiesto Win32 (.xml)
  -nowin32manifest              No incluye el manifiesto Win32 predeterminado
- -resource:&lt;info recurso&gt;           Insertar el recurso especificado (forma corta: -res)
- -linkresource:&lt;info recurso&gt;       Vincula el recurso especificado con este ensamblado 
+ -resource:&lt;resinfo&gt;           Insertar el recurso especificado (forma corta: -res)
+ -linkresource:&lt;resinfo&gt;       Vincula el recurso especificado con este ensamblado 
                                (forma corta: -linkres) Donde el formato de resinfo 
-                               es &lt;archivo&gt;[,&lt;nombre de cadena&gt;[,public|private]]
+                               es &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                         - GENERACIÓN DE CÓDIGO -
  -debug[+|-]                   Emite información de depuración
@@ -699,16 +699,16 @@
 -refonly                      Produce un ensamblado de referencia en lugar de la salida principal
  -instrument:TestCoverage      Produce un ensamblado instrumentado para volver a copiar
                                información de cobertura
- -sourcelink:&lt;archivo&gt;            Información del vínculo de origen para insertar en el PDB portátil.
+ -sourcelink:&lt;file&gt;            Información del vínculo de origen para insertar en el PDB portátil.
 
                         - ERRORES Y ADVERTENCIAS -
  -warnaserror[+|-]             Notifica todas las advertencias como errores
- -warnaserror[+|-]:&lt;lista de advertencias&gt; Notifica advertencias específicas como errores
+ -warnaserror[+|-]:&lt;warn list&gt; Notifica advertencias específicas como errores
  -warn:&lt;n&gt;                     Establece el nivel de advertencia (0-4) (forma corta: -w)
- -nowarn:&lt;lista de advertencias&gt;           Deshabilita mensajes de advertencia específicos
- -ruleset:&lt;archivo&gt;               Especifica un archivo de conjunto de reglas que deshabilite
+ -nowarn:&lt;warn list&gt;           Deshabilita mensajes de advertencia específicos
+ -ruleset:&lt;file&gt;               Especifica un archivo de conjunto de reglas que deshabilite
                                diagnósticos específicos.
- -errorlog:&lt;archivo&gt;              Especifica un archivo para registrar todos los diagnósticos del compilador y el
+ -errorlog:&lt;file&gt;              Especifica un archivo para registrar todos los diagnósticos del compilador y el
                                analizador.
  -reportanalyzer               Notifica información adicional del analizador, como el
                                tiempo de ejecución.
@@ -716,28 +716,31 @@
                         - LENGUAJE -
  -checked[+|-]                 Genera comprobaciones de desbordamiento
  -unsafe[+|-]                  Permite código "no seguro"
- -define:&lt;lista de símbolos&gt;         Define símbolo(s) de compilación condicional (forma 
+ -define:&lt;symbol list&gt;         Define símbolo(s) de compilación condicional (forma 
                                corta: -d)
 -langversion:?                Muestra los valores permitidos para la versión de lenguaje\ r
--langversion:&lt;cadena&gt;         Especifica la versión de lenguaje como
+-langversion:&lt;string&gt;         Especifica la versión de lenguaje como
                               `default` (versión importante más reciente), o
                               `latest` (versión más reciente, incluidas las menos importantes),
+                              `default` (igual que `latest`),
+                              `latestmajor` (versión más reciente, excluidas las versiones menos importantes),
+                              `preview` (versión más reciente, incluidas las características en la versión preliminar no compatible),
                               o versiones específicas como `6` o `7.1`
 -nullable[+|-]                Especifique la opción de contexto anulable en enable|disable.
--nullable:{enable|disable|warnings}
-                              Especifique la opción de contexto anulable enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Especifique la opción de contexto anulable enable|disable|warnings|annotations.
 
                        - SEGURIDAD -
  -delaysign[+|-]               Retrasa la firma del ensamblado usando solo la parte pública 
                                de la clave de nombre seguro
  -publicsign[+|-]              Publica la firma del ensamblado usando solo la parte pública
                                de la clave de nombre seguro
- -keyfile:&lt;archivo&gt;               Especifica un archivo de clave de nombre seguro
- -keycontainer:&lt;cadena&gt;        Especifica un contenedor de claves de nombres seguros
+ -keyfile:&lt;file&gt;               Especifica un archivo de clave de nombre seguro
+ -keycontainer:&lt;string&gt;        Especifica un contenedor de claves de nombres seguros
  -highentropyva[+|-]           Habilita ASLR de alta entropía
 
                         - VARIOS -
- @&lt;archivo&gt;                       Lee el archivo de respuesta para ver más opciones
+ @&lt;file&gt;                       Lee el archivo de respuesta para ver más opciones
  -help                         Muestra este mensaje de uso (forma corta: -?)
  -nologo                       Suprime el mensaje de copyright del compilador
  -noconfig                     No incluye automáticamente el archivo CSC.RSP
@@ -745,14 +748,14 @@
 -version                      Muestra el número de versión del compilador y cierra.
 
                        - AVANZADO -
- -baseaddress:&lt;dirección&gt;        Dirección base de la biblioteca que se compilará
+ -baseaddress:&lt;address&gt;        Dirección base de la biblioteca que se compilará
  -checksumalgorithm:&lt;alg&gt;      Especifica el algoritmo para calcular la suma de comprobación 
                                del archivo de origen almacenado en PDB. Los valores admitidos son:
                                SHA1 (predeterminado) o SHA256.
  -codepage:&lt;n&gt;                 Especifica la página de código que se usará al abrir los archivos de 
                                origen
  -utf8output                   Mensajes de compilador de salida en codificación UTF-8
- -main:&lt;tipo&gt;                  Especifica el tipo que contiene el punto de entrada 
+ -main:&lt;type&gt;                  Especifica el tipo que contiene el punto de entrada 
                                (ignora todos los demás puntos de entrada posibles) (Forma 
                                corta: -m)
  -fullpaths                    El compilador genera rutas de acceso completas
@@ -761,30 +764,30 @@
  -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                Especifica una asignación para los nombres de rutas de acceso de origen emitidos por
                                el compilador.
- -pdb:&lt;archivo&gt;                   Especifica el nombre de archivo de información de depuración (valor predeterminado: 
+ -pdb:&lt;file&gt;                   Especifica el nombre de archivo de información de depuración (valor predeterminado: 
                                nombre de archivo de salida con la extensión .pdb)
  -errorendlocation             Línea y columna de salida de la ubicación final de 
                                cada error
  -preferreduilang              Especifica el nombre del lenguaje de salida preferido.
 -nosdkpath                    Deshabilita la búsqueda de la ruta del SDK predeterminada para los ensamblados de biblioteca estándar.
  -nostdlib[+|-]                No hace referencia a la biblioteca estándar (mscorlib.dll)
- -subsystemversion:&lt;cadena&gt;    Especifica la versión del subsistema de este ensamblado
- -lib:&lt;lista de archivos&gt;              Especifica directorios adicionales en los que buscar 
+ -subsystemversion:&lt;string&gt;    Especifica la versión del subsistema de este ensamblado
+ -lib:&lt;file list&gt;              Especifica directorios adicionales en los que buscar 
                                referencias
- -errorreport:&lt;cadena&gt;         Especifica cómo tratar los errores internos del compilador: 
+ -errorreport:&lt;string&gt;         Especifica cómo tratar los errores internos del compilador: 
                                avisar, enviar, poner en cola o ninguno. El valor predeterminado es 
                                poner en cola.
- -appconfig:&lt;archivo&gt;             Especifica un archivo de configuración de aplicación 
+ -appconfig:&lt;file&gt;             Especifica un archivo de configuración de aplicación 
                                que contenga opciones de enlace de ensamblado
- -moduleassemblyname:&lt;cadena&gt;  Nombre del ensamblado del que esté módulo 
+ -moduleassemblyname:&lt;string&gt;  Nombre del ensamblado del que esté módulo 
                                formará parte
- -modulename:&lt;cadena&gt;          Especifica el nombre del módulo de origen
+ -modulename:&lt;string&gt;          Especifica el nombre del módulo de origen
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
+        <target state="translated">implementación de interfaz predeterminada</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
@@ -909,7 +912,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="new">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;expresión switch&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1444,7 +1447,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">La anotación para tipos de referencia que aceptan valores NULL solo debe usarse en el código dentro de un contexto de anotaciones "#nullable".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
@@ -1459,7 +1462,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">La anotación para tipos de referencia que aceptan valores NULL solo debe usarse en el código dentro de un contexto de anotaciones "#nullable".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1544,22 +1547,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
         <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="translated">El argumento de tipo "{0}" no se puede usar para el parámetro "{2}" de tipo "{1}" en "{3}" debido a las diferencias en la nulabilidad de tipos de referencia.</target>
+        <target state="translated">El argumento de tipo "{0}" no se puede usar para el parámetro "{2}" de tipo "{1}" en "{3}" debido a las diferencias en la nulabilidad de los tipos de referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
         <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="translated">El argumento de tipo "{0}" no se puede usar como salida de tipo "{1}" para el parámetro "{2}" en "{3}" debido a las diferencias en la nulabilidad de tipos de referencia.</target>
+        <target state="translated">El argumento de tipo "{0}" no se puede usar como salida de tipo "{1}" para el parámetro "{2}" en "{3}" debido a las diferencias en la nulabilidad de los tipos de referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
         <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
-        <target state="translated">El argumento no se puede usar como salida para el parámetro debido a las diferencias en la nulabilidad de tipos de referencia.</target>
+        <target state="translated">El argumento no se puede usar como salida para el parámetro debido a las diferencias en la nulabilidad de los tipos de referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
         <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
-        <target state="translated">El argumento no se puede usar para el parámetro debido a las diferencias en la nulabilidad de tipos de referencia.</target>
+        <target state="translated">El argumento no se puede usar para el parámetro debido a las diferencias en la nulabilidad de los tipos de referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -1634,7 +1637,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <target state="translated">La nulabilidad de los tipos de referencia del tipo de parámetro"{0}" de "{1}" no coincide con el miembro "{2}" implementado de forma implícita.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1684,7 +1687,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">La nulabilidad de los tipos de referencia del tipo de valor devuelto de "{0}" no coincide con el miembro "{1}" implementado de forma implícita.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1714,7 +1717,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">La nulabilidad de los tipos de referencia del tipo de "{0}" no coincide con el miembro "{1}" implementado de forma implícita.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
@@ -1724,12 +1727,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">La nulabilidad de los tipos de referencia del tipo no coincide con el miembro reemplazado.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">La nulabilidad de los tipos de referencia del tipo no coincide con el miembro reemplazado</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1854,12 +1857,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Se ha anulado la inicialización del {0} "{1}" que no acepta valores NULL.</target>
+        <target state="translated">{0} que acepta valores NULL "{1}" está sin inicializar. Considere la posibilidad de declarar {0} como que acepta valores NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="needs-review-translation">Se ha anulado la inicialización de un campo que no acepta valores NULL</target>
+        <target state="translated">El campo que acepta valores NULL está sin inicializar. Considere la posibilidad de declararlo como que acepta valores NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5882,12 +5885,12 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected 'disable' or 'restore'</source>
-        <target state="needs-review-translation">Se esperaba "disable", "restore", "enable" o "safeonly"</target>
+        <target state="translated">Se esperaba "disable" o "restore"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected 'disable' or 'restore' after #pragma warning</source>
-        <target state="needs-review-translation">Se esperaba "disable", "restore", "enable" o "safeonly" después de la advertencia de #pragma</target>
+        <target state="translated">Se esperaba "disable" o "restore" después de la advertencia de #pragma</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -8136,11 +8139,11 @@ Considere la posibilidad de suprimir la advertencia solo si tiene la seguridad d
 To embed interop type information for both assemblies, use /link for references to each assembly (set the Embed Interop Types property to True).
 
 To remove the warning, you can use /reference instead (set the Embed Interop Types property to False). In this case, a primary interop assembly (PIA) provides interop type information.</source>
-        <target state="translated">Ha añadido una referencia a un ensamblaje con /link (con la propiedad Embed Interop Types establecida como verdadera). Esto instruye al compilador para que inserte información del tipo de interoperabilidad desde ese ensamblaje. Sin embargo, el compilador no puede insertar información del tipo de interoperabilidad desde ese ensamblaje porque hay otro ensamblaje que ha referenciado que hace referencia a ese ensamblaje con /reference (con la propiedad Embed Interop Types establecida como falsa).
+        <target state="translated">Ha añadido una referencia a un ensamblado con /link (con la propiedad Embed Interop Types establecida como verdadera). Esto instruye al compilador para que inserte información del tipo de interoperabilidad desde ese ensamblado. Sin embargo, el compilador no puede insertar información del tipo de interoperabilidad desde ese ensamblado porque hay otro ensamblado que ha referenciado que hace referencia a ese ensamblado con /reference (con la propiedad Embed Interop Types establecida como falsa).
 
-Para insertar información del tipo de interoperabilidad en ambos ensamblajes, use /link para las referencias de ambos ensamblajes (establezca la propiedad Embed Interop Types como verdadera).
+Para insertar información del tipo de interoperabilidad en ambos ensamblados, use /link para las referencias de ambos ensamblados (establezca la propiedad Embed Interop Types como verdadera).
 
-Para eliminar la advertencia puede usar /reference (establezca la propiedad Embed Interop Types como falsa). En este caso, un ensamblaje de interoperabilidad primario (PIA) provee información del tipo de interoperabilidad.</target>
+Para eliminar la advertencia puede usar /reference (establezca la propiedad Embed Interop Types como falsa). En este caso, un ensamblado de interoperabilidad primario (PIA) provee información del tipo de interoperabilidad.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericsUsedAcrossAssemblies">
