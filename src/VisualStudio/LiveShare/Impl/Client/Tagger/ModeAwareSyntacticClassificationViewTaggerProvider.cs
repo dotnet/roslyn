@@ -3,7 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Client;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;

@@ -3,6 +3,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Client;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.LocalForwarders
 {

@@ -2,8 +2,9 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Client;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classification;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Tagger

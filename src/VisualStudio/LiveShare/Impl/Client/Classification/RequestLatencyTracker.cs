@@ -3,7 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classification
 {
     internal sealed class RequestLatencyTracker : IDisposable
     {
