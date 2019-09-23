@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
         End Sub
 
         Protected Overrides Async Function GetRelevantNodeAsync(document As Document, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of TypeBlockSyntax)
-            Dim someThing As TypeStatementSyntax = Await document.TryGetRelevantNodeAsync(Of TypeStatementSyntax)(textSpan, cancellationToken).ConfigureAwait(False)
-            Return TryCast(someThing?.Parent, TypeBlockSyntax)
+            Dim typeStatement As TypeStatementSyntax = Await document.TryGetRelevantNodeAsync(Of TypeStatementSyntax)(textSpan, cancellationToken).ConfigureAwait(False)
+            Return TryCast(typeStatement?.Parent, TypeBlockSyntax)
         End Function
     End Class
 End Namespace
