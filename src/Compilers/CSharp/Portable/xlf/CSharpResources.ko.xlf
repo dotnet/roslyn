@@ -1775,8 +1775,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">switch 식은 가능한 입력을 모두 처리하지는 않습니다(전체 아님).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">switch 식은 가능한 입력을 모두 처리하지는 않습니다(전체 아님).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1790,8 +1790,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">switch 식은 가능한 입력을 모두 처리하지는 않습니다(전체 아님).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">switch 식은 가능한 입력을 모두 처리하지는 않습니다(전체 아님).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
