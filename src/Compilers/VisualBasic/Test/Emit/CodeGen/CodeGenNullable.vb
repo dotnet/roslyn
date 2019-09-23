@@ -1,12 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
+Imports System.Collections.Immutable
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -3117,14 +3119,11 @@ End Module
             VerifyIL("M.Main",
             <![CDATA[
 {
-  // Code size      197 (0xc5)
+  // Code size       91 (0x5b)
   .maxstack  2
   .locals init (Boolean? V_0, //bF
-  Boolean? V_1, //bT
-  Boolean? V_2, //bN
-  Boolean? V_3,
-  Boolean? V_4,
-  Boolean? V_5)
+                Boolean? V_1, //bT
+                Boolean? V_2) //bN
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.0
   IL_0003:  call       "Sub Boolean?..ctor(Boolean)"
@@ -3133,69 +3132,27 @@ End Module
   IL_000b:  call       "Sub Boolean?..ctor(Boolean)"
   IL_0010:  ldloca.s   V_2
   IL_0012:  initobj    "Boolean?"
-  IL_0018:  ldloc.0
-  IL_0019:  dup
-  IL_001a:  stloc.3
-  IL_001b:  stloc.s    V_5
-  IL_001d:  ldloca.s   V_5
-  IL_001f:  call       "Function Boolean?.get_HasValue() As Boolean"
-  IL_0024:  brfalse.s  IL_002f
-  IL_0026:  ldloca.s   V_3
-  IL_0028:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
-  IL_002d:  brtrue.s   IL_009e
-  IL_002f:  ldloca.s   V_1
-  IL_0031:  call       "Function Boolean?.get_HasValue() As Boolean"
-  IL_0036:  brfalse.s  IL_0041
-  IL_0038:  ldloca.s   V_1
-  IL_003a:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
-  IL_003f:  brfalse.s  IL_006a
-  IL_0041:  ldloca.s   V_2
-  IL_0043:  call       "Function Boolean?.get_HasValue() As Boolean"
-  IL_0048:  brtrue.s   IL_0056
-  IL_004a:  ldloca.s   V_5
-  IL_004c:  initobj    "Boolean?"
-  IL_0052:  ldloc.s    V_5
-  IL_0054:  br.s       IL_0070
-  IL_0056:  ldloca.s   V_2
-  IL_0058:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
-  IL_005d:  brtrue.s   IL_0067
-  IL_005f:  ldc.i4.0
-  IL_0060:  newobj     "Sub Boolean?..ctor(Boolean)"
-  IL_0065:  br.s       IL_0070
-  IL_0067:  ldloc.1
-  IL_0068:  br.s       IL_0070
-  IL_006a:  ldc.i4.0
-  IL_006b:  newobj     "Sub Boolean?..ctor(Boolean)"
-  IL_0070:  dup
-  IL_0071:  stloc.s    V_4
-  IL_0073:  stloc.s    V_5
-  IL_0075:  ldloca.s   V_5
-  IL_0077:  call       "Function Boolean?.get_HasValue() As Boolean"
-  IL_007c:  brtrue.s   IL_008a
-  IL_007e:  ldloca.s   V_5
-  IL_0080:  initobj    "Boolean?"
-  IL_0086:  ldloc.s    V_5
-  IL_0088:  br.s       IL_00a4
-  IL_008a:  ldloca.s   V_4
-  IL_008c:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
-  IL_0091:  brtrue.s   IL_0096
-  IL_0093:  ldloc.3
-  IL_0094:  br.s       IL_00a4
-  IL_0096:  ldc.i4.1
-  IL_0097:  newobj     "Sub Boolean?..ctor(Boolean)"
-  IL_009c:  br.s       IL_00a4
-  IL_009e:  ldc.i4.1
-  IL_009f:  newobj     "Sub Boolean?..ctor(Boolean)"
-  IL_00a4:  stloc.s    V_4
-  IL_00a6:  ldloca.s   V_4
-  IL_00a8:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
-  IL_00ad:  brfalse.s  IL_00ba
-  IL_00af:  ldstr      "True"
-  IL_00b4:  call       "Sub System.Console.Write(String)"
-  IL_00b9:  ret
-  IL_00ba:  ldstr      "False"
-  IL_00bf:  call       "Sub System.Console.Write(String)"
-  IL_00c4:  ret
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_001f:  brtrue.s   IL_0045
+  IL_0021:  ldloca.s   V_1
+  IL_0023:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_0028:  brfalse.s  IL_0033
+  IL_002a:  ldloca.s   V_1
+  IL_002c:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0031:  brfalse.s  IL_0050
+  IL_0033:  ldloca.s   V_2
+  IL_0035:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_003a:  brfalse.s  IL_0050
+  IL_003c:  ldloca.s   V_1
+  IL_003e:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_0043:  brfalse.s  IL_0050
+  IL_0045:  ldstr      "True"
+  IL_004a:  call       "Sub System.Console.Write(String)"
+  IL_004f:  ret
+  IL_0050:  ldstr      "False"
+  IL_0055:  call       "Sub System.Console.Write(String)"
+  IL_005a:  ret
 }
                 ]]>)
         End Sub
@@ -4830,6 +4787,2022 @@ VerifyIL("Module1.Main",
                 ]]>)
 
         End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_01()
+            CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Strict On
+
+Class C
+
+    Public shared Sub Main()
+	    Test1(Nothing, new C())
+	    Test2(Nothing, new C())
+        Test3(Nothing, new C())
+	    Test4(Nothing, new C())
+	    Test5(Nothing, new C())
+    End Sub
+
+    Public Shared Sub Test1(x as C, y As C)
+        System.Console.WriteLine("->Test1")
+	    If GetBool3(x) = True AndAlso y.GetBool2()
+                System.Console.WriteLine("In If")
+	    End If
+        System.Console.WriteLine("<-Test1")
+    End Sub
+
+    Public Shared Sub Test2(x as C, y As C)
+        System.Console.WriteLine("->Test2")
+	    If x?.GetBool1() = True AndAlso y.GetBool2()
+                System.Console.WriteLine("In If")
+	    End If
+        System.Console.WriteLine("<-Test2")
+    End Sub
+
+    Public Shared Sub Test3(x as C, y As C)
+        System.Console.WriteLine("->Test3")
+	    Dim z = GetBool3(x) = True AndAlso y.GetBool2()
+	    If z
+                System.Console.WriteLine("In If")
+	    End If
+        System.Console.WriteLine("<-Test3")
+    End Sub
+
+    Public Shared Sub Test4(x as C, y As C)
+        System.Console.WriteLine("->Test4")
+	    Dim z = x?.GetBool1() = True AndAlso y.GetBool2()
+	    If z
+                System.Console.WriteLine("In If")
+	    End If
+        System.Console.WriteLine("<-Test4")
+    End Sub
+
+    Public Shared Sub Test5(x as C, y As C)
+        System.Console.WriteLine("->Test5")
+	    If GetBool3(x) AndAlso y.GetBool2()
+                System.Console.WriteLine("In If")
+	    End If
+        System.Console.WriteLine("<-Test5")
+    End Sub
+
+    Function GetBool1() As Boolean
+        Return True
+    End Function
+    Function GetBool2() As Boolean
+        System.Console.WriteLine("GetBool2")
+        Return True
+    End Function
+    Shared Function GetBool3(x as C) As Boolean?
+	if x Is Nothing
+             Return Nothing
+	End If
+
+        Return True
+    End Function
+End Class
+                    ]]></file>
+                </compilation>, expectedOutput:=
+            <![CDATA[
+->Test1
+GetBool2
+<-Test1
+->Test2
+GetBool2
+<-Test2
+->Test3
+GetBool2
+<-Test3
+->Test4
+GetBool2
+<-Test4
+->Test5
+GetBool2
+<-Test5
+]]>
+            )
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_02()
+            CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Strict On
+
+Module Module1
+
+    Sub Main()
+        Dim x = From y In New C()
+                Where y.GetBool3() = True AndAlso y.GetBool2()
+                Where y.GetBool3() = True OrElse y.GetBool2()
+
+    End Sub
+
+End Module
+
+Class C
+    Function [Select](selector As System.Func(Of C, C)) As C
+        Return Me
+    End Function
+
+    Function Where(filter As System.Linq.Expressions.Expression(Of System.Func(Of C, Boolean))) As C
+        System.Console.WriteLine(filter.ToString())
+        Return Me
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+End Class
+                    ]]></file>
+                </compilation>, expectedOutput:=
+            <![CDATA[
+y => (((y.GetBool3() == Convert(True)) AndAlso Convert(y.GetBool2())) ?? False)
+y => (((y.GetBool3() == Convert(True)) OrElse Convert(y.GetBool2())) ?? False)
+]]>
+            )
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_03()
+            CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+        Dim x As System.Linq.Expressions.Expression(Of System.Func(Of Boolean))
+        x = Function() If(GetBool3() = True AndAlso GetBool2(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(GetBool3() = True OrElse GetBool2(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(New Boolean?() AndAlso New Boolean?(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(New Boolean?() OrElse New Boolean?(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(New Boolean?() AndAlso GetBool2(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(New Boolean?() OrElse GetBool2(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(New Boolean?() AndAlso GetBool3(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(New Boolean?() OrElse GetBool3(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(GetBool2() AndAlso New Boolean?(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(GetBool2() OrElse New Boolean?(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(GetBool3() AndAlso New Boolean?(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(GetBool3() OrElse New Boolean?(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(GetBool3() AndAlso GetBool3(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(GetBool3() OrElse GetBool3(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(GetBool3() OrElse GetBool3() OrElse GetBool3(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If((GetBool3() OrElse GetBool3()) OrElse GetBool3(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(GetBool3() OrElse (GetBool3() OrElse GetBool3()), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If((GetBool3() OrElse GetBool3()) OrElse (GetBool3() OrElse GetBool3()), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If((GetBool3() OrElse GetBool3()) OrElse GetBool3() OrElse GetBool3(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If(GetBool3() AndAlso GetBool2() AndAlso GetBool2(), True, False)
+        System.Console.WriteLine(x.ToString())
+        x = Function() If((GetBool3() AndAlso GetBool2()) AndAlso GetBool2(), True, False)
+        System.Console.WriteLine(x.ToString())
+    End Sub
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>, expectedOutput:=
+            <![CDATA[
+() => IIF((((GetBool3() == Convert(True)) AndAlso Convert(GetBool2())) ?? False), True, False)
+() => IIF((((GetBool3() == Convert(True)) ?? False) OrElse GetBool2()), True, False)
+() => IIF(((new Nullable`1() AndAlso new Nullable`1()) ?? False), True, False)
+() => IIF(((new Nullable`1() ?? False) OrElse (new Nullable`1() ?? False)), True, False)
+() => IIF(((new Nullable`1() AndAlso Convert(GetBool2())) ?? False), True, False)
+() => IIF(((new Nullable`1() ?? False) OrElse GetBool2()), True, False)
+() => IIF(((new Nullable`1() AndAlso GetBool3()) ?? False), True, False)
+() => IIF(((new Nullable`1() ?? False) OrElse (GetBool3() ?? False)), True, False)
+() => IIF((GetBool2() AndAlso (new Nullable`1() ?? False)), True, False)
+() => IIF((GetBool2() OrElse (new Nullable`1() ?? False)), True, False)
+() => IIF(((GetBool3() AndAlso new Nullable`1()) ?? False), True, False)
+() => IIF(((GetBool3() ?? False) OrElse (new Nullable`1() ?? False)), True, False)
+() => IIF(((GetBool3() AndAlso GetBool3()) ?? False), True, False)
+() => IIF(((GetBool3() ?? False) OrElse (GetBool3() ?? False)), True, False)
+() => IIF((((GetBool3() ?? False) OrElse (GetBool3() ?? False)) OrElse (GetBool3() ?? False)), True, False)
+() => IIF((((GetBool3() ?? False) OrElse (GetBool3() ?? False)) OrElse (GetBool3() ?? False)), True, False)
+() => IIF(((GetBool3() ?? False) OrElse ((GetBool3() ?? False) OrElse (GetBool3() ?? False))), True, False)
+() => IIF((((GetBool3() ?? False) OrElse (GetBool3() ?? False)) OrElse ((GetBool3() ?? False) OrElse (GetBool3() ?? False))), True, False)
+() => IIF(((((GetBool3() ?? False) OrElse (GetBool3() ?? False)) OrElse (GetBool3() ?? False)) OrElse (GetBool3() ?? False)), True, False)
+() => IIF((((GetBool3() AndAlso Convert(GetBool2())) AndAlso Convert(GetBool2())) ?? False), True, False)
+() => IIF((((GetBool3() AndAlso Convert(GetBool2())) AndAlso Convert(GetBool2())) ?? False), True, False)
+]]>
+            )
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_04()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool3() AndAlso GetBool2() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_000d:  brfalse.s  IL_0018
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0016:  brfalse.s  IL_002c
+  IL_0018:  call       "Function Module1.GetBool2() As Boolean"
+  IL_001d:  brfalse.s  IL_002c
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_0026:  brfalse.s  IL_002c
+  IL_0028:  ldc.i4.2
+  IL_0029:  stloc.0
+  IL_002a:  br.s       IL_002e
+  IL_002c:  ldc.i4.3
+  IL_002d:  stloc.0
+  IL_002e:  ldloc.0
+  IL_002f:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_05()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool3() OrElse GetBool2() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       30 (0x1e)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_000d:  brtrue.s   IL_0016
+  IL_000f:  call       "Function Module1.GetBool2() As Boolean"
+  IL_0014:  brfalse.s  IL_001a
+  IL_0016:  ldc.i4.2
+  IL_0017:  stloc.0
+  IL_0018:  br.s       IL_001c
+  IL_001a:  ldc.i4.3
+  IL_001b:  stloc.0
+  IL_001c:  ldloc.0
+  IL_001d:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_06()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool2() AndAlso GetBool3() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+   // Code size       30 (0x1e)
+   .maxstack  1
+   .locals init (Integer V_0, //Test1
+                 Boolean? V_1)
+   IL_0000:  call       "Function Module1.GetBool2() As Boolean"
+   IL_0005:  brfalse.s  IL_001a
+   IL_0007:  call       "Function Module1.GetBool3() As Boolean?"
+   IL_000c:  stloc.1
+   IL_000d:  ldloca.s   V_1
+   IL_000f:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+   IL_0014:  brfalse.s  IL_001a
+   IL_0016:  ldc.i4.2
+   IL_0017:  stloc.0
+   IL_0018:  br.s       IL_001c
+   IL_001a:  ldc.i4.3
+   IL_001b:  stloc.0
+   IL_001c:  ldloc.0
+   IL_001d:  ret
+ }
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_07()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool2() OrElse GetBool3() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       30 (0x1e)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool2() As Boolean"
+  IL_0005:  brtrue.s   IL_0016
+  IL_0007:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0014:  brfalse.s  IL_001a
+  IL_0016:  ldc.i4.2
+  IL_0017:  stloc.0
+  IL_0018:  br.s       IL_001c
+  IL_001a:  ldc.i4.3
+  IL_001b:  stloc.0
+  IL_001c:  ldloc.0
+  IL_001d:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_08()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If New Boolean?() AndAlso GetBool2() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (Integer V_0) //Test1
+  IL_0000:  call       "Function Module1.GetBool2() As Boolean"
+  IL_0005:  pop
+  IL_0006:  ldc.i4.3
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_09()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If New Boolean?() OrElse GetBool2() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (Integer V_0) //Test1
+  IL_0000:  call       "Function Module1.GetBool2() As Boolean"
+  IL_0005:  brfalse.s  IL_000b
+  IL_0007:  ldc.i4.2
+  IL_0008:  stloc.0
+  IL_0009:  br.s       IL_000d
+  IL_000b:  ldc.i4.3
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_10()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If New Boolean?() AndAlso GetBool3() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (Integer V_0) //Test1
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  pop
+  IL_0006:  ldc.i4.3
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_11()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If New Boolean?() OrElse GetBool3() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_000d:  brfalse.s  IL_0013
+  IL_000f:  ldc.i4.2
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_0015
+  IL_0013:  ldc.i4.3
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_12()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool3() AndAlso New Boolean?() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (Integer V_0) //Test1
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  pop
+  IL_0006:  ldc.i4.3
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_13()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool3() OrElse New Boolean?() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_000d:  brfalse.s  IL_0013
+  IL_000f:  ldc.i4.2
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_0015
+  IL_0013:  ldc.i4.3
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_14()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool2() AndAlso New Boolean?() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (Integer V_0) //Test1
+  IL_0000:  call       "Function Module1.GetBool2() As Boolean"
+  IL_0005:  pop
+  IL_0006:  ldc.i4.3
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_15()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool2() OrElse New Boolean?() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (Integer V_0) //Test1
+  IL_0000:  call       "Function Module1.GetBool2() As Boolean"
+  IL_0005:  brfalse.s  IL_000b
+  IL_0007:  ldc.i4.2
+  IL_0008:  stloc.0
+  IL_0009:  br.s       IL_000d
+  IL_000b:  ldc.i4.3
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_16()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If New Boolean?() AndAlso New Boolean?() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  .locals init (Integer V_0) //Test1
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_17()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If New Boolean?() OrElse New Boolean?() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  .locals init (Integer V_0) //Test1
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_18()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool3() AndAlso GetBool3() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       56 (0x38)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1,
+                Boolean? V_2)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_000d:  brfalse.s  IL_0018
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0016:  brfalse.s  IL_0034
+  IL_0018:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_001d:  stloc.2
+  IL_001e:  ldloca.s   V_2
+  IL_0020:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0025:  brfalse.s  IL_0034
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_002e:  brfalse.s  IL_0034
+  IL_0030:  ldc.i4.2
+  IL_0031:  stloc.0
+  IL_0032:  br.s       IL_0036
+  IL_0034:  ldc.i4.3
+  IL_0035:  stloc.0
+  IL_0036:  ldloc.0
+  IL_0037:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_19()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool3() OrElse GetBool3() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       38 (0x26)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_000d:  brtrue.s   IL_001e
+  IL_000f:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_001c:  brfalse.s  IL_0022
+  IL_001e:  ldc.i4.2
+  IL_001f:  stloc.0
+  IL_0020:  br.s       IL_0024
+  IL_0022:  ldc.i4.3
+  IL_0023:  stloc.0
+  IL_0024:  ldloc.0
+  IL_0025:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_20()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool2() AndAlso (GetBool2() AndAlso GetBool3()) Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       37 (0x25)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool2() As Boolean"
+  IL_0005:  brfalse.s  IL_0021
+  IL_0007:  call       "Function Module1.GetBool2() As Boolean"
+  IL_000c:  brfalse.s  IL_0021
+  IL_000e:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_001b:  brfalse.s  IL_0021
+  IL_001d:  ldc.i4.2
+  IL_001e:  stloc.0
+  IL_001f:  br.s       IL_0023
+  IL_0021:  ldc.i4.3
+  IL_0022:  stloc.0
+  IL_0023:  ldloc.0
+  IL_0024:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_21()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool3() OrElse (GetBool3() OrElse GetBool3()) Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       53 (0x35)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_000d:  brtrue.s   IL_002d
+  IL_000f:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_001c:  brtrue.s   IL_002d
+  IL_001e:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0023:  stloc.1
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_002b:  brfalse.s  IL_0031
+  IL_002d:  ldc.i4.2
+  IL_002e:  stloc.0
+  IL_002f:  br.s       IL_0033
+  IL_0031:  ldc.i4.3
+  IL_0032:  stloc.0
+  IL_0033:  ldloc.0
+  IL_0034:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_22()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If (GetBool3() OrElse GetBool3()) AndAlso GetBool3() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size      134 (0x86)
+  .maxstack  2
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1,
+                Boolean? V_2,
+                Boolean? V_3,
+                Boolean? V_4)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  dup
+  IL_0006:  stloc.2
+  IL_0007:  stloc.s    V_4
+  IL_0009:  ldloca.s   V_4
+  IL_000b:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_0010:  brfalse.s  IL_001b
+  IL_0012:  ldloca.s   V_2
+  IL_0014:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0019:  brtrue.s   IL_004d
+  IL_001b:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0020:  dup
+  IL_0021:  stloc.3
+  IL_0022:  stloc.s    V_4
+  IL_0024:  ldloca.s   V_4
+  IL_0026:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_002b:  brtrue.s   IL_0039
+  IL_002d:  ldloca.s   V_4
+  IL_002f:  initobj    "Boolean?"
+  IL_0035:  ldloc.s    V_4
+  IL_0037:  br.s       IL_0053
+  IL_0039:  ldloca.s   V_3
+  IL_003b:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0040:  brtrue.s   IL_0045
+  IL_0042:  ldloc.2
+  IL_0043:  br.s       IL_0053
+  IL_0045:  ldc.i4.1
+  IL_0046:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_004b:  br.s       IL_0053
+  IL_004d:  ldc.i4.1
+  IL_004e:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0053:  stloc.1
+  IL_0054:  ldloca.s   V_1
+  IL_0056:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_005b:  brfalse.s  IL_0066
+  IL_005d:  ldloca.s   V_1
+  IL_005f:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0064:  brfalse.s  IL_0082
+  IL_0066:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_006b:  stloc.3
+  IL_006c:  ldloca.s   V_3
+  IL_006e:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0073:  brfalse.s  IL_0082
+  IL_0075:  ldloca.s   V_1
+  IL_0077:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_007c:  brfalse.s  IL_0082
+  IL_007e:  ldc.i4.2
+  IL_007f:  stloc.0
+  IL_0080:  br.s       IL_0084
+  IL_0082:  ldc.i4.3
+  IL_0083:  stloc.0
+  IL_0084:  ldloc.0
+  IL_0085:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_23()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If (GetBool3() OrElse GetBool3()) AndAlso GetBool3() OrElse GetBool3() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size      149 (0x95)
+  .maxstack  2
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1,
+                Boolean? V_2,
+                Boolean? V_3,
+                Boolean? V_4)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  dup
+  IL_0006:  stloc.2
+  IL_0007:  stloc.s    V_4
+  IL_0009:  ldloca.s   V_4
+  IL_000b:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_0010:  brfalse.s  IL_001b
+  IL_0012:  ldloca.s   V_2
+  IL_0014:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0019:  brtrue.s   IL_004d
+  IL_001b:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0020:  dup
+  IL_0021:  stloc.3
+  IL_0022:  stloc.s    V_4
+  IL_0024:  ldloca.s   V_4
+  IL_0026:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_002b:  brtrue.s   IL_0039
+  IL_002d:  ldloca.s   V_4
+  IL_002f:  initobj    "Boolean?"
+  IL_0035:  ldloc.s    V_4
+  IL_0037:  br.s       IL_0053
+  IL_0039:  ldloca.s   V_3
+  IL_003b:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0040:  brtrue.s   IL_0045
+  IL_0042:  ldloc.2
+  IL_0043:  br.s       IL_0053
+  IL_0045:  ldc.i4.1
+  IL_0046:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_004b:  br.s       IL_0053
+  IL_004d:  ldc.i4.1
+  IL_004e:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0053:  stloc.1
+  IL_0054:  ldloca.s   V_1
+  IL_0056:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_005b:  brfalse.s  IL_0066
+  IL_005d:  ldloca.s   V_1
+  IL_005f:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0064:  brfalse.s  IL_007e
+  IL_0066:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_006b:  stloc.3
+  IL_006c:  ldloca.s   V_3
+  IL_006e:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0073:  brfalse.s  IL_007e
+  IL_0075:  ldloca.s   V_1
+  IL_0077:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_007c:  brtrue.s   IL_008d
+  IL_007e:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0083:  stloc.1
+  IL_0084:  ldloca.s   V_1
+  IL_0086:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_008b:  brfalse.s  IL_0091
+  IL_008d:  ldc.i4.2
+  IL_008e:  stloc.0
+  IL_008f:  br.s       IL_0093
+  IL_0091:  ldc.i4.3
+  IL_0092:  stloc.0
+  IL_0093:  ldloc.0
+  IL_0094:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_24()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If (GetBool3() OrElse GetBool3()) OrElse GetBool3() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       53 (0x35)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_000d:  brtrue.s   IL_002d
+  IL_000f:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_001c:  brtrue.s   IL_002d
+  IL_001e:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0023:  stloc.1
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_002b:  brfalse.s  IL_0031
+  IL_002d:  ldc.i4.2
+  IL_002e:  stloc.0
+  IL_002f:  br.s       IL_0033
+  IL_0031:  ldc.i4.3
+  IL_0032:  stloc.0
+  IL_0033:  ldloc.0
+  IL_0034:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_25()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool3() OrElse GetBool3() OrElse GetBool3() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       53 (0x35)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_000d:  brtrue.s   IL_002d
+  IL_000f:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_001c:  brtrue.s   IL_002d
+  IL_001e:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0023:  stloc.1
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_002b:  brfalse.s  IL_0031
+  IL_002d:  ldc.i4.2
+  IL_002e:  stloc.0
+  IL_002f:  br.s       IL_0033
+  IL_0031:  ldc.i4.3
+  IL_0032:  stloc.0
+  IL_0033:  ldloc.0
+  IL_0034:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_26()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If (GetBool3() AndAlso GetBool2()) AndAlso GetBool2() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       93 (0x5d)
+  .maxstack  2
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1,
+                Boolean? V_2,
+                Boolean? V_3)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  dup
+  IL_0006:  stloc.2
+  IL_0007:  stloc.3
+  IL_0008:  ldloca.s   V_3
+  IL_000a:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_000f:  brfalse.s  IL_001a
+  IL_0011:  ldloca.s   V_2
+  IL_0013:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0018:  brfalse.s  IL_002c
+  IL_001a:  call       "Function Module1.GetBool2() As Boolean"
+  IL_001f:  brtrue.s   IL_0029
+  IL_0021:  ldc.i4.0
+  IL_0022:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0027:  br.s       IL_0032
+  IL_0029:  ldloc.2
+  IL_002a:  br.s       IL_0032
+  IL_002c:  ldc.i4.0
+  IL_002d:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0032:  stloc.1
+  IL_0033:  ldloca.s   V_1
+  IL_0035:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_003a:  brfalse.s  IL_0045
+  IL_003c:  ldloca.s   V_1
+  IL_003e:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0043:  brfalse.s  IL_0059
+  IL_0045:  call       "Function Module1.GetBool2() As Boolean"
+  IL_004a:  brfalse.s  IL_0059
+  IL_004c:  ldloca.s   V_1
+  IL_004e:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_0053:  brfalse.s  IL_0059
+  IL_0055:  ldc.i4.2
+  IL_0056:  stloc.0
+  IL_0057:  br.s       IL_005b
+  IL_0059:  ldc.i4.3
+  IL_005a:  stloc.0
+  IL_005b:  ldloc.0
+  IL_005c:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_27()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool3() AndAlso GetBool2() AndAlso GetBool2() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool2() As Boolean
+        Return True
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       93 (0x5d)
+  .maxstack  2
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1,
+                Boolean? V_2,
+                Boolean? V_3)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  dup
+  IL_0006:  stloc.2
+  IL_0007:  stloc.3
+  IL_0008:  ldloca.s   V_3
+  IL_000a:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_000f:  brfalse.s  IL_001a
+  IL_0011:  ldloca.s   V_2
+  IL_0013:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0018:  brfalse.s  IL_002c
+  IL_001a:  call       "Function Module1.GetBool2() As Boolean"
+  IL_001f:  brtrue.s   IL_0029
+  IL_0021:  ldc.i4.0
+  IL_0022:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0027:  br.s       IL_0032
+  IL_0029:  ldloc.2
+  IL_002a:  br.s       IL_0032
+  IL_002c:  ldc.i4.0
+  IL_002d:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0032:  stloc.1
+  IL_0033:  ldloca.s   V_1
+  IL_0035:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_003a:  brfalse.s  IL_0045
+  IL_003c:  ldloca.s   V_1
+  IL_003e:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0043:  brfalse.s  IL_0059
+  IL_0045:  call       "Function Module1.GetBool2() As Boolean"
+  IL_004a:  brfalse.s  IL_0059
+  IL_004c:  ldloca.s   V_1
+  IL_004e:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_0053:  brfalse.s  IL_0059
+  IL_0055:  ldc.i4.2
+  IL_0056:  stloc.0
+  IL_0057:  br.s       IL_005b
+  IL_0059:  ldc.i4.3
+  IL_005a:  stloc.0
+  IL_005b:  ldloc.0
+  IL_005c:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_28()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If (GetBool3() OrElse GetBool3()) OrElse (GetBool3() OrElse GetBool3()) Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       68 (0x44)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_000d:  brtrue.s   IL_003c
+  IL_000f:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_001c:  brtrue.s   IL_003c
+  IL_001e:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0023:  stloc.1
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_002b:  brtrue.s   IL_003c
+  IL_002d:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0032:  stloc.1
+  IL_0033:  ldloca.s   V_1
+  IL_0035:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_003a:  brfalse.s  IL_0040
+  IL_003c:  ldc.i4.2
+  IL_003d:  stloc.0
+  IL_003e:  br.s       IL_0042
+  IL_0040:  ldc.i4.3
+  IL_0041:  stloc.0
+  IL_0042:  ldloc.0
+  IL_0043:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_29()
+            Dim verifyer = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If (GetBool3() OrElse GetBool3()) OrElse GetBool3() OrElse GetBool3() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool3() As Boolean?
+        Return True
+    End Function
+
+End Module
+                    ]]></file>
+                </compilation>)
+
+            verifyer.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       68 (0x44)
+  .maxstack  1
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_000d:  brtrue.s   IL_003c
+  IL_000f:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_001c:  brtrue.s   IL_003c
+  IL_001e:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0023:  stloc.1
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_002b:  brtrue.s   IL_003c
+  IL_002d:  call       "Function Module1.GetBool3() As Boolean?"
+  IL_0032:  stloc.1
+  IL_0033:  ldloca.s   V_1
+  IL_0035:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_003a:  brfalse.s  IL_0040
+  IL_003c:  ldc.i4.2
+  IL_003d:  stloc.0
+  IL_003e:  br.s       IL_0042
+  IL_0040:  ldc.i4.3
+  IL_0041:  stloc.0
+  IL_0042:  ldloc.0
+  IL_0043:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact(Skip:="Only manual execution due to time.")>
+        <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
+        Public Sub BooleanExpression_30()
+            Dim source =
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Strict On
+
+Imports System.Text
+
+Module Test
+    Dim builder As New StringBuilder()
+
+    Sub Main()
+        Test()
+
+        System.Console.WriteLine("Done")
+    End Sub
+
+    Sub Test()
+        Dim condition = placeholder
+
+        Dim s1 As String = GetResultString(If(condition, " => True", " => False"))
+
+        Dim d As System.Linq.Expressions.Expression(Of System.Func(Of String)) = Function() If(placeholder, " => True", " => False")
+        Dim s2 = GetResultString(d.Compile()())
+
+        Dim s3 = GetResultString(If(placeholder, " => True", " => False"))
+
+        Verify(d, s1, s2, s3)
+    End Sub
+
+    Private Function GetResultString(result As String) As String
+        builder.Append(result)
+        Dim s1 = builder.ToString()
+        builder.Clear()
+        Return s1
+    End Function
+
+    Private Sub Verify(d As System.Linq.Expressions.Expression(Of System.Func(Of String)), s1 As String, s2 As String, s3 As String)
+        If s1 <> s3 Then
+            System.Console.WriteLine("1 => ")
+            System.Console.WriteLine(d.ToString())
+            System.Console.WriteLine(s1)
+            System.Console.WriteLine(s3)
+        End If
+
+        If s2 <> s3 Then
+            System.Console.WriteLine("2 => ")
+            System.Console.WriteLine(d.ToString())
+            System.Console.WriteLine(s2)
+            System.Console.WriteLine(s3)
+        End If
+    End Sub
+
+    Function BooleanTrue(i As Integer) As Boolean
+        builder.AppendFormat(" BooleanTrue({0})", i)
+        Return True
+    End Function
+    Function BooleanFalse(i As Integer) As Boolean
+        builder.AppendFormat(" BooleanFalse({0})", i)
+        Return False
+    End Function
+    Function NullableTrue(i As Integer) As Boolean?
+        builder.AppendFormat(" NullableTrue({0})", i)
+        Return True
+    End Function
+    Function NullableFalse(i As Integer) As Boolean?
+        builder.AppendFormat(" NullableFalse({0})", i)
+        Return False
+    End Function
+    Function NullableNull(i As Integer) As Boolean?
+        builder.AppendFormat(" NullableNull({0})", i)
+        Return Nothing
+    End Function
+End Module
+                    ]]></file>
+                </compilation>
+
+            Dim compilation1 = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            Dim tree1 = compilation1.SyntaxTrees.Single()
+            Dim placeholders = tree1.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "placeholder").ToArray()
+            Assert.Equal(3, placeholders.Length)
+
+            Dim nameInInvocation = tree1.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "Test").Single()
+            Dim invocation = nameInInvocation.Ancestors().OfType(Of ExpressionStatementSyntax)().Single()
+            Dim testMethod = tree1.GetRoot().DescendantNodes().OfType(Of MethodBlockSyntax)().Where(Function(block) block.SubOrFunctionStatement.Identifier.ValueText = "Test").Single()
+
+            Assert.Equal("Test()", invocation.ToString())
+
+            Dim enumerator = BooleanExpression_30_Helpers.BuildConditions(1, 4).GetEnumerator()
+
+            Const batchSize As Integer = 250
+            Dim newBlocks = ArrayBuilder(Of MethodBlockSyntax).GetInstance(batchSize)
+
+            While enumerator.MoveNext
+
+                newBlocks.Clear()
+                Do
+                    Dim replacement = enumerator.Current
+                    Dim newBlock = testMethod.ReplaceNodes(placeholders, Function(n1, n2) replacement)
+                    newBlock = newBlock.ReplaceToken(newBlock.SubOrFunctionStatement.Identifier, SyntaxFactory.Identifier("Test" + (newBlocks.Count + 1).ToString()))
+                    newBlocks.Add(newBlock)
+                Loop While newBlocks.Count < batchSize AndAlso enumerator.MoveNext()
+
+                Dim newRoot = tree1.GetRoot().ReplaceNode(invocation, Enumerable.Range(1, newBlocks.Count).
+                                                                          Select(Function(i) invocation.ReplaceToken(nameInInvocation.Identifier,
+                                                                                                                     SyntaxFactory.Identifier("Test" + i.ToString()))))
+
+                Dim oldBlock = newRoot.DescendantNodes().OfType(Of MethodBlockSyntax)().Where(Function(block) block.SubOrFunctionStatement.Identifier.ValueText = "Test").Single()
+                newRoot = newRoot.ReplaceNode(oldBlock, newBlocks)
+
+                Dim tree2 = newRoot.SyntaxTree
+
+                Dim compilation2 = compilation1.ReplaceSyntaxTree(tree1, tree2)
+
+                CompileAndVerify(compilation2, expectedOutput:="Done")
+            End While
+
+            newBlocks.Free()
+        End Sub
+
+        Private Class BooleanExpression_30_Helpers
+
+            Class TreeNode
+                Public Left As TreeNode
+                Public Right As TreeNode
+            End Class
+
+            Public Shared Iterator Function BuildConditions(fromOperators As Integer, toOperators As Integer) As IEnumerable(Of ExpressionSyntax)
+                For operatorCount = fromOperators To toOperators
+                    For Each shape In BooleanExpression_30_Helpers.Shapes(operatorCount)
+                        For Each operators In BooleanExpression_30_Helpers.OperatorSets(operatorCount)
+                            For Each operands In BooleanExpression_30_Helpers.OperandSets(operatorCount + 1)
+                                Yield BooleanExpression_30_Helpers.BuildCondition(shape, operators, operands)
+                            Next
+                        Next
+                    Next
+                Next
+            End Function
+
+            Public Shared Function BuildCondition(shape As TreeNode, operators As ImmutableList(Of SyntaxKind), operands As ImmutableList(Of ExpressionSyntax)) As ExpressionSyntax
+                Dim result = BuildConditionWorker(shape, operators, operands)
+
+                Assert.Empty(operators)
+                Assert.Empty(operands)
+                Return result
+            End Function
+
+            Private Shared Function BuildConditionWorker(shape As TreeNode, ByRef operators As ImmutableList(Of SyntaxKind), ByRef operands As ImmutableList(Of ExpressionSyntax)) As ExpressionSyntax
+
+                If shape Is Nothing Then
+                    Dim result = operands(0)
+                    operands = operands.RemoveAt(0)
+                    Return result
+                End If
+
+                Dim left = BuildConditionWorker(shape.Left, operators, operands)
+
+                Dim opKind = operators(0)
+                operators = operators.RemoveAt(0)
+
+                Dim right = BuildConditionWorker(shape.Right, operators, operands)
+
+                Return SyntaxFactory.BinaryExpression(
+                    If(opKind = SyntaxKind.OrElseKeyword, SyntaxKind.OrElseExpression, SyntaxKind.AndAlsoExpression),
+                    left, SyntaxFactory.Token(opKind), right)
+            End Function
+
+            ''' <summary>
+            ''' Enumerate all possible shapes of binary trees with given amount of nodes in it.
+            ''' </summary>
+            ''' <param name="count"></param>
+            ''' <returns></returns>
+            Public Shared Iterator Function Shapes(count As Integer) As IEnumerable(Of TreeNode)
+                Select Case (count)
+                    Case 0
+                        Yield Nothing
+                    Case 1
+                        Yield New TreeNode()
+                    Case Else
+                        For i = 0 To count - 1
+                            For Each leftTree In Shapes(count - 1 - i)
+                                For Each rightTree In Shapes(i)
+                                    Yield New TreeNode() With {.Left = leftTree, .Right = rightTree}
+                                Next
+                            Next
+                        Next
+                End Select
+            End Function
+
+            Shared Iterator Function OperatorSets(count As Integer) As IEnumerable(Of ImmutableList(Of SyntaxKind))
+                Select Case (count)
+                    Case 0
+                        Yield ImmutableList(Of SyntaxKind).Empty
+                    Case Else
+                        For Each s In OperatorSets(count - 1)
+                            Yield s.Add(SyntaxKind.AndAlsoKeyword)
+                            Yield s.Add(SyntaxKind.OrElseKeyword)
+                        Next
+                End Select
+            End Function
+
+            Shared Iterator Function OperandSets(count As Integer) As IEnumerable(Of ImmutableList(Of ExpressionSyntax))
+                Select Case (count)
+                    Case 0
+                        Yield ImmutableList(Of ExpressionSyntax).Empty
+                    Case Else
+                        For Each s In OperandSets(count - 1)
+                            ' New Boolean?()
+                            Yield s.Add(SyntaxFactory.ObjectCreationExpression(SyntaxFactory.NullableType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BooleanKeyword)))))
+
+                            For Each name In {"BooleanTrue", "BooleanFalse", "NullableTrue", "NullableFalse", "NullableNull"}
+                                Yield s.Add(SyntaxFactory.InvocationExpression(
+                                  SyntaxFactory.IdentifierName(name),
+                                  SyntaxFactory.ArgumentList(
+                                      SyntaxFactory.SeparatedList(Of ArgumentSyntax)(
+                                          New ArgumentSyntax() {SyntaxFactory.SimpleArgument(
+                                              SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                                                              SyntaxFactory.IntegerLiteralToken(count.ToString(),
+                                                                                                                LiteralBase.Decimal,
+                                                                                                                TypeCharacter.None,
+                                                                                                                CType(count, ULong))))}))))
+                            Next
+                        Next
+                End Select
+            End Function
+
+        End Class
 
     End Class
 End Namespace

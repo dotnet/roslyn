@@ -84,20 +84,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
             ' Do not blow the stack due to a deep recursion on the left. 
 
-            Dim child As BoundExpression = node.Left
+            Dim optimizeForConditionalBranch As Boolean = (node.OperatorKind And BinaryOperatorKind.OptimizableForConditionalBranch) <> 0
+            Dim optimizeChildForConditionalBranch As Boolean = optimizeForConditionalBranch
+
+            Dim child As BoundExpression = GetLeftOperand(node, optimizeChildForConditionalBranch)
 
             If child.Kind <> BoundKind.BinaryOperator Then
-                Return RewriteBinaryOperatorSimple(node)
+                Return RewriteBinaryOperatorSimple(node, optimizeForConditionalBranch)
             End If
 
-            Dim stack = ArrayBuilder(Of BoundBinaryOperator).GetInstance()
-            stack.Push(node)
+            Dim stack = ArrayBuilder(Of (Binary As BoundBinaryOperator, OptimizeForConditionalBranch As Boolean)).GetInstance()
+            stack.Push((node, optimizeForConditionalBranch))
 
             Dim binary As BoundBinaryOperator = DirectCast(child, BoundBinaryOperator)
 
             Do
-                stack.Push(binary)
-                child = binary.Left
+                If optimizeChildForConditionalBranch Then
+                    Select Case (binary.OperatorKind And BinaryOperatorKind.OpMask)
+                        Case BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse
+                            Exit Select
+                        Case Else
+                            optimizeChildForConditionalBranch = False
+                    End Select
+                End If
+
+                stack.Push((binary, optimizeChildForConditionalBranch))
+
+                child = GetLeftOperand(binary, optimizeChildForConditionalBranch)
 
                 If child.Kind <> BoundKind.BinaryOperator Then
                     Exit Do
@@ -109,12 +122,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim left = VisitExpressionNode(child)
 
             Do
-                binary = stack.Pop()
+                Dim tuple As (Binary As BoundBinaryOperator, OptimizeForConditionalBranch As Boolean) = stack.Pop()
+                binary = tuple.Binary
 
-                Dim right = VisitExpressionNode(binary.Right)
+                Dim right = VisitExpression(GetRightOperand(binary, tuple.OptimizeForConditionalBranch))
 
                 If (binary.OperatorKind And BinaryOperatorKind.Lifted) <> 0 Then
-                    left = FinishRewriteOfLiftedIntrinsicBinaryOperator(binary, left, right)
+                    left = FinishRewriteOfLiftedIntrinsicBinaryOperator(binary, left, right, tuple.OptimizeForConditionalBranch)
                 Else
                     left = TransformRewrittenBinaryOperator(binary.Update(binary.OperatorKind, left, right, binary.Checked, binary.ConstantValueOpt, Me.VisitType(binary.Type)))
                 End If
@@ -126,9 +140,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return left
         End Function
 
-        Private Function RewriteBinaryOperatorSimple(node As BoundBinaryOperator) As BoundNode
+        Private Shared Function GetLeftOperand(binary As BoundBinaryOperator, ByRef optimizeForConditionalBranch As Boolean) As BoundExpression
+            If optimizeForConditionalBranch AndAlso (binary.OperatorKind And BinaryOperatorKind.OpMask) <> BinaryOperatorKind.OrElse Then
+                Debug.Assert((binary.OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.AndAlso)
+                ' If left operand is evaluated to Null, three-valued Boolean logic dictates that the right operand of AndAlso
+                ' should still be evaluated. So, we cannot simply snap the left operand to Boolean.
+                optimizeForConditionalBranch = False
+            End If
+
+            Dim child As BoundExpression = binary.Left
+
+            While child.Kind = BoundKind.Parenthesized
+                child = DirectCast(child, BoundParenthesized).Expression
+            End While
+
+            Return child
+        End Function
+
+        Private Shared Function GetRightOperand(binary As BoundBinaryOperator, adjustIfOptimizableForConditionalBranch As Boolean) As BoundExpression
+            If adjustIfOptimizableForConditionalBranch Then
+                Return LocalRewriter.AdjustIfOptimizableForConditionalBranch(binary.Right, Nothing)
+            Else
+                Return binary.Right
+            End If
+        End Function
+
+        Private Function RewriteBinaryOperatorSimple(node As BoundBinaryOperator, optimizeForConditionalBranch As Boolean) As BoundNode
             If (node.OperatorKind And BinaryOperatorKind.Lifted) <> 0 Then
-                Return RewriteLiftedIntrinsicBinaryOperatorSimple(node)
+                Return RewriteLiftedIntrinsicBinaryOperatorSimple(node, optimizeForConditionalBranch)
             End If
 
             Return TransformRewrittenBinaryOperator(DirectCast(MyBase.VisitBinaryOperator(node), BoundBinaryOperator))
@@ -761,15 +800,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Function RewriteLiftedIntrinsicBinaryOperatorSimple(node As BoundBinaryOperator) As BoundNode
+        Private Function RewriteLiftedIntrinsicBinaryOperatorSimple(node As BoundBinaryOperator, optimizeForConditionalBranch As Boolean) As BoundNode
             Dim left As BoundExpression = VisitExpressionNode(node.Left)
-            Dim right As BoundExpression = VisitExpressionNode(node.Right)
+            Dim right As BoundExpression = VisitExpressionNode(GetRightOperand(node, optimizeForConditionalBranch))
 
-            Return FinishRewriteOfLiftedIntrinsicBinaryOperator(node, left, right)
+            Return FinishRewriteOfLiftedIntrinsicBinaryOperator(node, left, right, optimizeForConditionalBranch)
         End Function
 
-        Private Function FinishRewriteOfLiftedIntrinsicBinaryOperator(node As BoundBinaryOperator, left As BoundExpression, right As BoundExpression) As BoundExpression
+        Private Function FinishRewriteOfLiftedIntrinsicBinaryOperator(node As BoundBinaryOperator, left As BoundExpression, right As BoundExpression, optimizeForConditionalBranch As Boolean) As BoundExpression
             Debug.Assert((node.OperatorKind And BinaryOperatorKind.Lifted) <> 0)
+            Debug.Assert(Not optimizeForConditionalBranch OrElse
+                         (node.OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.OrElse OrElse
+                         (node.OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.AndAlso)
+
+            Dim leftHasValue = HasValue(left)
+            Dim rightHasValue = HasValue(right)
+
+            Dim leftHasNoValue = HasNoValue(left)
+            Dim rightHasNoValue = HasNoValue(right)
+
+            ' The goal of optimization is to eliminate the need to deal with instances of Nullable(Of Boolean) type as early as possible,
+            ' and, as a result, simplify evaluation of built-in OrElse/AndAlso operators by eliminating the need to use three-valued Boolean logic.
+            ' The optimization is possible because when an entire Boolean Expression is evaluated to Null, that has the same effect as if result
+            ' of evaluation was False. However, we do want to preserve the original order of evaluation, according to language rules. 
+            If optimizeForConditionalBranch AndAlso node.Type.IsNullableOfBoolean() AndAlso left.Type.IsNullableOfBoolean() AndAlso right.Type.IsNullableOfBoolean() AndAlso
+               (leftHasValue OrElse Not Me._inExpressionLambda OrElse (node.OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.OrElse) Then
+
+                Return RewriteAndOptimizeLiftedIntrinsicLogicalShortCircuitingOperator(node, left, right, leftHasNoValue, leftHasValue, rightHasNoValue, rightHasValue)
+            End If
 
             If Me._inExpressionLambda Then
                 Return node.Update(node.OperatorKind, left, right, node.Checked, node.ConstantValueOpt, node.Type)
@@ -777,17 +835,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Check for trivial (no nulls, two nulls) Cases
 
-            Dim leftHasNoValue = HasNoValue(left)
-            Dim rightHasNoValue = HasNoValue(right)
-
             '== TWO NULLS
             If leftHasNoValue And rightHasNoValue Then
                 ' return new R?()
                 Return NullableNull(left, node.Type)
             End If
-
-            Dim leftHasValue = HasValue(left)
-            Dim rightHasValue = HasValue(right)
 
             '== NO NULLS
             If leftHasValue And rightHasValue Then
@@ -855,7 +907,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        leftHasValueExpr,
                                                        temps,
                                                        inits,
-                                                       RightCanChangeLeftLocal(left, right),
+                                                       RightCantChangeLeftLocal(left, right),
                                                        leftHasValue)
 
             ' left is done when right is running, so right cannot change if it is a local
@@ -892,6 +944,121 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return value
+        End Function
+
+        ''' <summary>
+        ''' The goal of optimization is to eliminate the need to deal with instances of Nullable(Of Boolean) type as early as possible,
+        ''' and, as a result, simplify evaluation of built-in OrElse/AndAlso operators by eliminating the need to use three-valued Boolean logic.
+        ''' The optimization is possible because when an entire Boolean Expression is evaluated to Null, that has the same effect as if result
+        ''' of evaluation was False. However, we do want to preserve the original order of evaluation, according to language rules. 
+        ''' This method returns an expression that still has Nullable(Of Boolean) type, but that expression is much simpler and can be 
+        ''' further simplified by the consumer.
+        ''' </summary>
+        Private Function RewriteAndOptimizeLiftedIntrinsicLogicalShortCircuitingOperator(node As BoundBinaryOperator,
+                                                                                         left As BoundExpression, right As BoundExpression,
+                                                                                         leftHasNoValue As Boolean, leftHasValue As Boolean,
+                                                                                         rightHasNoValue As Boolean, rightHasValue As Boolean) As BoundExpression
+
+            Debug.Assert(leftHasValue OrElse Not Me._inExpressionLambda OrElse (node.OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.OrElse)
+            Dim booleanResult As BoundExpression = Nothing
+
+            If Not Me._inExpressionLambda Then
+                If leftHasNoValue And rightHasNoValue Then
+                    ' return new R?(), the consumer will take care of optimizing it out if possible. 
+                    Return NullableNull(left, node.Type)
+                End If
+
+                If (node.OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.OrElse Then
+                    If leftHasNoValue Then
+                        ' There is nothing to evaluate on the left, the result is True only if Right is True
+                        Return right
+                    ElseIf rightHasNoValue Then
+                        ' There is nothing to evaluate on the right, the result is True only if Left is True
+                        Return left
+                    End If
+                Else
+                    Debug.Assert((node.OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.AndAlso)
+
+                    If leftHasNoValue Then
+                        ' We can return False in this case. There is nothing to evaluate on the left, but we still need to evaluate the right
+                        booleanResult = EvaluateOperandAndReturnFalse(node, right, rightHasValue)
+                    ElseIf rightHasNoValue Then
+                        ' We can return False in this case. There is nothing to evaluate on the right, but we still need to evaluate the left
+                        booleanResult = EvaluateOperandAndReturnFalse(node, left, leftHasValue)
+                    ElseIf Not leftHasValue Then
+                        ' We cannot tell whether Left is Null or not.
+                        ' For [x AndAlso y] we can produce Boolean result as follows:
+                        '
+                        ' tempX = x
+                        ' (Not tempX.HasValue OrElse tempX.GetValueOrDefault()) AndAlso
+                        ' (y.GetValueOrDefault() AndAlso tempX.HasValue)
+                        '
+                        Dim leftTemp As SynthesizedLocal = Nothing
+                        Dim leftInit As BoundExpression = Nothing
+
+                        ' Right may be a method that takes Left byref - " local And TakesArgByref(local) "
+                        ' So in general we must capture Left even if it is a local.
+                        Dim capturedLeft = CaptureNullableIfNeeded(left, leftTemp, leftInit, RightCantChangeLeftLocal(left, right))
+
+                        booleanResult = MakeBooleanBinaryExpression(node.Syntax,
+                                            BinaryOperatorKind.AndAlso,
+                                            MakeBooleanBinaryExpression(node.Syntax,
+                                                BinaryOperatorKind.OrElse,
+                                                New BoundUnaryOperator(node.Syntax,
+                                                                       UnaryOperatorKind.Not,
+                                                                       NullableHasValue(capturedLeft),
+                                                                       False,
+                                                                       node.Type.GetNullableUnderlyingType()),
+                                                NullableValueOrDefault(capturedLeft)),
+                                            MakeBooleanBinaryExpression(node.Syntax,
+                                                BinaryOperatorKind.AndAlso,
+                                                NullableValueOrDefault(right),
+                                                NullableHasValue(capturedLeft)))
+
+                        ' if we used temp, put it in a sequence
+                        Debug.Assert((leftTemp Is Nothing) = (leftInit Is Nothing))
+                        If leftTemp IsNot Nothing Then
+                            booleanResult = New BoundSequence(node.Syntax,
+                                                              ImmutableArray.Create(Of LocalSymbol)(leftTemp),
+                                                              ImmutableArray.Create(Of BoundExpression)(leftInit),
+                                                              booleanResult,
+                                                              booleanResult.Type)
+                        End If
+                    End If
+                End If
+            End If
+
+            If booleanResult Is Nothing Then
+                ' UnliftedOp(left.GetValueOrDefault(), right.GetValueOrDefault()))
+                ' For AndAlso, this optimization is valid only when we know that left has value
+                Debug.Assert(leftHasValue OrElse (node.OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.OrElse)
+
+                booleanResult = ApplyUnliftedBinaryOp(node, NullableValueOrDefault(left, leftHasValue), NullableValueOrDefault(right, rightHasValue))
+            End If
+
+            ' return new R?(booleanResult), the consumer will take care of optimizing out the creation of this Nullable(Of Boolean) instance, if possible.
+            Return WrapInNullable(booleanResult, node.Type)
+        End Function
+
+        Private Function EvaluateOperandAndReturnFalse(node As BoundBinaryOperator, operand As BoundExpression, operandHasValue As Boolean) As BoundExpression
+            Debug.Assert(node.Type.IsNullableOfBoolean())
+            Debug.Assert(operand.Type.IsNullableOfBoolean())
+
+            Dim result = New BoundLiteral(node.Syntax, ConstantValue.False, node.Type.GetNullableUnderlyingType())
+            Return New BoundSequence(node.Syntax, ImmutableArray(Of LocalSymbol).Empty,
+                                     ImmutableArray.Create(If(operandHasValue, NullableValueOrDefault(operand), operand)),
+                                     result, result.Type)
+        End Function
+
+        Private Function NullableValueOrDefault(operand As BoundExpression, operandHasValue As Boolean) As BoundExpression
+            Debug.Assert(operand.Type.IsNullableOfBoolean())
+
+            If Not Me._inExpressionLambda OrElse operandHasValue Then
+                Return NullableValueOrDefault(operand)
+            Else
+                ' In expression tree this will be shown as Coalesce, which is preferred over a GetValueOrDefault call  
+                Return New BoundNullableIsTrueOperator(operand.Syntax, operand, operand.Type.GetNullableUnderlyingType())
+            End If
         End Function
 
         Private Function RewriteLiftedBooleanBinaryOperator(node As BoundBinaryOperator,
@@ -1017,7 +1184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not leftHasValue Then
                 ' Right may be a method that takes Left byref - " local And TakesArgByref(local) "
                 ' So in general we must capture Left even if it is a local.
-                capturedLeft = CaptureNullableIfNeeded(left, leftTemp, leftInit, RightCanChangeLeftLocal(left, right))
+                capturedLeft = CaptureNullableIfNeeded(left, leftTemp, leftInit, RightCantChangeLeftLocal(left, right))
             End If
 
             Dim rightTemp As SynthesizedLocal = Nothing
@@ -1160,7 +1327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return node
             End If
 
-            Return RewriteNullableIsOrIsNotOperator(node.OperatorKind = BinaryOperatorKind.Is, If(left.IsNothingLiteral, right, left), node.Type)
+            Return RewriteNullableIsOrIsNotOperator((node.OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.Is, If(left.IsNothingLiteral, right, left), node.Type)
         End Function
 
         Private Function RewriteNullableIsOrIsNotOperator(isIs As Boolean, operand As BoundExpression, resultType As TypeSymbol) As BoundExpression

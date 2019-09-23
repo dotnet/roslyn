@@ -27,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         [Error] = &H80
     End Enum
 
+    <Flags()>
     Friend Enum BinaryOperatorKind
 
         Add = 1
@@ -60,6 +61,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         CompareText = &H40
         UserDefined = &H80
         [Error] = &H100
+
+        ''' <summary>
+        ''' Built-in binary operators bound in "OperandOfConditionalBranch" mode are marked with
+        ''' this flag by the Binder, which makes them eligible for some optimizations in
+        ''' <see cref="LocalRewriter.VisitNullableIsTrueOperator(BoundNullableIsTrueOperator)"/> 
+        ''' </summary>
+        IsOperandOfConditionalBranch = &H200
+
+        ''' <summary>
+        ''' <see cref="LocalRewriter.AdjustIfOptimizableForConditionalBranch"/> marks built-in binary operators
+        ''' with this flag in order to inform <see cref="LocalRewriter.VisitBinaryOperator"/> that the operator
+        ''' should be a subject for optimization around use of three-valued Boolean logic.
+        ''' </summary>
+        OptimizableForConditionalBranch = &H400
     End Enum
 
 End Namespace
