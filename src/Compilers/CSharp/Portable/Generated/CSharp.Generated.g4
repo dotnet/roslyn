@@ -472,7 +472,7 @@ local_declaration_statement
   ;
 
 local_function_statement
-  : modifier* type identifier_token type_parameter_list? parameter_list type_parameter_constraint_clause* (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* type identifier_token type_parameter_list? parameter_list type_parameter_constraint_clause* (block | (arrow_expression_clause ';'))
   ;
 
 lock_statement
