@@ -44,12 +44,12 @@
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into an interface method will prevent the debug session from continuing.</target>
+        <target state="translated">將 '{0}' 新增至介面方法，會造成偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into an interface will prevent the debug session from continuing.</target>
+        <target state="translated">將 '{0}' 新增至介面，會造成偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
@@ -77,6 +77,11 @@
         <target state="translated">請避免在您的程式碼中使用參數。如果無法移除參數，請變更其名稱，使其以底線開頭，並可選擇在後面接著整數，例如 '_'、'_1'、'_2' 等。這些會視為特殊的捨棄符號名稱。</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotApplyChangesUnexpectedError">
+        <source>Cannot apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">無法套用變更 -- 未預期的錯誤: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
         <target state="translated">將命名空間變更為 ‘{0}'</target>
@@ -87,14 +92,24 @@
         <target state="translated">變更為全域命名空間</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesDisallowedWhileStoppedAtException">
+        <source>Changes are not allowed while stopped at exception</source>
+        <target state="translated">於例外狀況停止時不允許變更</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesNotAppliedWhileRunning">
+        <source>Changes made in project '{0}' will not be applied while the application is running</source>
+        <target state="translated">將不會在應用程式執行時套用在專案 '{0}' 中所做的變更</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
         <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
-        <target state="new">Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</target>
+        <target state="translated">將 '{0}' 從非同步變更為同步，會造成偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
-        <target state="new">Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</target>
+        <target state="translated">將 '{0}' 變更為 '{1}' 會變更狀態機器的圖形，進而使偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Quality">
@@ -104,12 +119,12 @@
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
-        <target state="new">Configure {0} code style</target>
+        <target state="translated">設定 {0} 程式碼樣式</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
-        <target state="new">Configure {0} severity</target>
+        <target state="translated">設定 {0} 嚴重性</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -165,6 +180,26 @@
       <trans-unit id="Dispose_objects_before_losing_scope">
         <source>Dispose objects before losing scope</source>
         <target state="translated">必須在超出範圍前處置物件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">編輯並繼續</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByModule">
+        <source>Edit and Continue disallowed by module</source>
+        <target state="translated">模組不允許編輯和繼續</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByProject">
+        <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
+        <target state="translated">在專案 '{0}' 中所做的變更將使偵錯工作階段無法繼續: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ErrorReadingFile">
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="translated">讀取檔案 '{0}' 時發生錯誤: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -294,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="new">Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</target>
+        <target state="translated">修改包含參數運算式的 '{0}' 會讓偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -412,6 +447,11 @@
         <target state="translated">將 ‘{0}’ 取代為 ‘{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="RudeEdit">
+        <source>Rude edit</source>
+        <target state="translated">粗略編輯</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
         <target state="translated">分割成連續的 '{0}' 陳述式</target>
@@ -429,7 +469,7 @@
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
-        <target state="new">Suppress {0}</target>
+        <target state="translated">隱藏 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -474,7 +514,7 @@
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
-        <target state="new">Unwrap call chain</target>
+        <target state="translated">將呼叫鏈結取消包裝</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -489,7 +529,7 @@
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="new">Updating a '{0}' around an active statement will prevent the debug session from continuing.</target>
+        <target state="translated">更新使用中陳述式前後的 '{0}'，會造成偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
@@ -567,14 +607,14 @@
         <target state="translated">警告: 變更命名空間可能會產生無效的程式碼及變更程式碼意義。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_and_align_call_chain">
-        <source>Wrap and align call chain</source>
-        <target state="new">Wrap and align call chain</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
         <source>Warning: Semantics may change when converting statement.</source>
-        <target state="new">Warning: Semantics may change when converting statement.</target>
+        <target state="translated">警告: 轉換陳述式時，語意可能會變更。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_call_chain">
+        <source>Wrap and align call chain</source>
+        <target state="translated">包裝並對齊呼叫鏈結</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
@@ -584,12 +624,12 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_long_call_chain">
         <source>Wrap and align long call chain</source>
-        <target state="new">Wrap and align long call chain</target>
+        <target state="translated">包裝並對齊長呼叫鏈結</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_call_chain">
         <source>Wrap call chain</source>
-        <target state="new">Wrap call chain</target>
+        <target state="translated">包裝呼叫鏈結</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -614,7 +654,7 @@
       </trans-unit>
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
-        <target state="new">Wrap long call chain</target>
+        <target state="translated">包裝長呼叫鏈結</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -1473,11 +1513,6 @@ Do you want to continue?</source>
         <target state="translated">移除限定性條件</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_and_Continue1">
-        <source>Edit and Continue</source>
-        <target state="translated">編輯並繼續</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
         <source>This signature does not contain parameters that can be changed.</source>
         <target state="translated">此簽章不包含可以變更的參數。</target>
@@ -1563,11 +1598,6 @@ Do you want to continue?</source>
         <target state="translated">編譯器</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_and_Continue2">
-        <source>Edit and Continue</source>
-        <target state="translated">編輯並繼續</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Style">
         <source>Style</source>
         <target state="translated">樣式</target>
@@ -1641,11 +1671,6 @@ Do you want to continue?</source>
       <trans-unit id="Compiler2">
         <source>Compiler</source>
         <target state="translated">編譯器</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_And_Continue">
-        <source>Edit And Continue</source>
-        <target state="translated">編輯後繼續</target>
         <note />
       </trans-unit>
       <trans-unit id="Live">

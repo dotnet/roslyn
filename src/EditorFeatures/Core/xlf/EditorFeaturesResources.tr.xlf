@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="new">An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</target>
+        <target state="translated">'{0}' tanımlayıcısı için bir satır içi yeniden adlandırma oturumu etkin. Ek seçeneklere erişmek için satır içi yeniden adlandırmayı tekrar çağırın. İstediğiniz zaman yeniden adlandırılan tanımlayıcıyı düzenlemeye devam edebilirsiniz.</target>
         <note>For screenreaders. {0} is the identifier being renamed.</note>
       </trans-unit>
       <trans-unit id="Applying_changes">
@@ -35,6 +35,16 @@
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
         <source>Do you still want to proceed? This may produce broken code.</source>
         <target state="translated">Yine de devam etmek istiyor musunuz? Bu işlem sonucunda bozuk kod oluşturulabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="translated">içeri aktarılmayan ad alanlarındaki öğeler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="translated">Genişletici</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method_encountered_the_following_issues">
@@ -89,17 +99,17 @@
       </trans-unit>
       <trans-unit id="Rename_file">
         <source>Rename _file</source>
-        <target state="new">Rename _file</target>
+        <target state="translated">Dosyayı _yeniden adlandır</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
-        <target state="new">Rename _file (type does not match file name)</target>
+        <target state="translated">_Dosyayı yeniden adlandır (tür, dosya adıyla eşleşmiyor)</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_partial_type">
         <source>Rename _file (not allowed on partial types)</source>
-        <target state="new">Rename _file (not allowed on partial types)</target>
+        <target state="translated">_Dosya adını değiştir (kısmi türlerde izin verilmez)</target>
         <note>Disabled text status for file rename</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -114,27 +124,27 @@
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="new">The symbol has no base.</target>
+        <target state="translated">Sembolde taban yok.</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggle_Block_Comment">
         <source>Toggle Block Comment</source>
-        <target state="new">Toggle Block Comment</target>
+        <target state="translated">Blok Açıklamasını Aç/Kapat</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggle_Line_Comment">
         <source>Toggle Line Comment</source>
-        <target state="new">Toggle Line Comment</target>
+        <target state="translated">Satır Açıklamasını Aç/Kapat</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggling_block_comment">
         <source>Toggling block comment...</source>
-        <target state="new">Toggling block comment...</target>
+        <target state="translated">Blok açıklaması değiştiriliyor...</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggling_line_comment">
         <source>Toggling line comment...</source>
-        <target state="new">Toggling line comment...</target>
+        <target state="translated">Satır açıklaması değiştiriliyor...</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -229,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Waiting_for_background_work_to_finish">
         <source>Waiting for background work to finish...</source>
-        <target state="new">Waiting for background work to finish...</target>
+        <target state="translated">Arka plan çalışmasının bitmesi bekleniyor...</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_image_element">
@@ -359,7 +369,7 @@
       </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="new">'{0}' bases</target>
+        <target state="translated">'{0}' tabanları</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">

@@ -271,10 +271,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     var isAttribute = symbol.Name.HasAttributeSuffix(isCaseSensitive: false) && symbol.IsAttribute();
 
                     var item = TypeImportCompletionItem.Create(symbol, containingNamespace, _genericTypeSuffix);
-                    item.IsCached = true;
-
                     _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute));
-                    return;
                 }
             }
 

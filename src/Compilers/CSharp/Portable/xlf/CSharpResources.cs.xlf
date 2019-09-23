@@ -37,6 +37,11 @@
         <target state="translated">Ve výrazu as se nepovoluje použití typu odkazu s možnou hodnotou null {0}?; místo toho použijte základní typ {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">Atribut {0} není platný pro přístupové objekty události. Je platný jenom pro deklarace {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Automaticky implementovanou vlastnost {0} nelze označit modifikátorem readonly, protože má přístupový objekt set.</target>
@@ -45,11 +50,6 @@
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">Automaticky implementovaný přístupový objekt set {0} nelze označit modifikátorem readonly.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="translated">Atribut {0} není platný pro přístupové objekty události. Je platný jenom pro deklarace {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="translated">Neplatná možnost {0} pro /nullable; musí mít hodnotu disable, enable, safeonly, warnings nebo safeonlywarnings.</target>
+        <target state="translated">Neplatná možnost {0} pro /nullable. Je třeba použít disable, enable, warnings nebo annotations.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
-        <target state="new">Duplicate null suppression operator ('!')</target>
+        <target state="translated">Duplicitní operátor potlačení hodnoty null (!)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
@@ -299,7 +299,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">Očekávala se možnost warnings nebo annotations nebo konec direktivy.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -640,7 +640,7 @@
                                zástupného znaku.
 -reference:&lt;alias&gt;=&lt;soubor&gt;     Odkazuje na metadata ze zadaného souboru sestavení
                               pomocí daného aliasu. (Krátký formát: -r)
--reference:&lt;seznam souborů&gt;        Odkazuje na metadata ze zadaných souborů 
+-reference:&lt;seznam souborů&gt;        Odkazuje na metadata ze zadaných souborů
                               sestavení (Krátký formát: -r)
 -addmodule:&lt;seznam souborů&gt;        Připojí zadané moduly k tomuto sestavení.
 -link:&lt;seznam souborů&gt;             Vloží metadata ze zadaných souborů
@@ -687,7 +687,7 @@
                               specifickou diagnostiku.
 -errorlog:&lt;soubor&gt;              Určuje soubor pro protokolování veškeré
                               diagnostiky kompilátoru a analyzátoru.
--reportanalyzer               Hlásí další informace analyzátoru, např.\r
+-reportanalyzer               Hlásí další informace analyzátoru, např.
                               dobu spuštění.
 
                        - JAZYK -
@@ -696,13 +696,15 @@
 -define:&lt;seznam symbolů&gt;         Definuje symboly podmíněné kompilace. (Krátký
                               formát: -d)
 -langversion:?                Zobrazuje povolené hodnoty pro verzi jazyka.
--langversion:&lt;řetězec&gt;         Určuje verzi jazyka:r
-                              default (poslední hlavní verze) nebo
+-langversion:&lt;řetězec&gt;         Určuje verzi jazyka, například:
                               latest (poslední verze včetně podverzí),
-                              nebo konkrétní verze jako 6 nebo 7.1.
+                              default (stejné jako latest),
+                              latestmajor (poslední verze bez podverzí),
+                              preview (poslední verze včetně funkcí v nepodporované verzi preview)
+                              nebo konkrétní verze, například 6 nebo 7.1.
 -nullable[+|-]                Určuje pro kontext s hodnotou null možnosti enable|disable.
--nullable:{enable|disable|warnings}
-                              Určuje pro kontext s hodnotou null možnosti enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Určuje pro kontext s hodnotou null možnosti enable|disable|warnings|annotations.
 
                        - ZABEZPEČENÍ -
 -delaysign[+|-]               Vytvoří zpožděný podpis sestavení s využitím
@@ -746,7 +748,7 @@
 -nosdkpath                    Zakazuje hledání cesty k výchozí sadě SDK pro sestavení standardních knihoven.
 -nostdlib[+|-]                Neodkazuje na standardní knihovnu (mscorlib.dll).
 -subsystemversion:&lt;string&gt;    Určuje verzi subsystému tohoto sestavení.
--lib:&lt;seznam souborů&gt;              Určuje další adresáře, ve kterých se mají 
+-lib:&lt;seznam souborů&gt;              Určuje další adresáře, ve kterých se mají
                               hledat reference.
 -errorreport:&lt;řetězec&gt;         Určuje způsob zpracování interních chyb kompilátoru:
                               prompt, send, queue nebo none. Výchozí možnost je
@@ -761,7 +763,7 @@
       </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
+        <target state="translated">implementace výchozího rozhraní</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
@@ -886,7 +888,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="new">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;výraz přepínače&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1411,12 +1413,12 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">Poznámka u typů odkazů s možnou hodnotou null by se měla v kódu používat jenom v kontextu poznámek #nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">Poznámka u typů odkazů s možnou hodnotou null by se měla v kódu používat jenom v kontextu poznámek #nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1581,7 +1583,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru {0} z {1} neodpovídá implicitně implementovanému členu {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1631,7 +1633,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v návratovém typu {0} neodpovídá implicitně implementovanému členu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1661,7 +1663,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu {0} neodpovídá implicitně implementovanému členu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
@@ -1671,12 +1673,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu neodpovídá přepsanému členu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu neodpovídá přepsanému členu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1801,12 +1803,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Pole {0} {1}, které neumožňuje hodnotu null, není inicializované.</target>
+        <target state="translated">Není inicializované pole {0} ({1}) bez možnosti zadání hodnoty null. Zvažte možnost deklarovat {0} jako pole typu s možnou hodnotou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="needs-review-translation">Pole, které neumožňuje hodnotu null, není inicializované.</target>
+        <target state="translated">Není inicializované pole bez možnosti zadání hodnoty null. Zvažte možnost deklarovat ho jako typ s možnou hodnotou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5829,12 +5831,12 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected 'disable' or 'restore'</source>
-        <target state="needs-review-translation">Byla očekávána hodnota disable, restore, enable nebo safeonly.</target>
+        <target state="translated">Očekávala se hodnota disable nebo restore.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected 'disable' or 'restore' after #pragma warning</source>
-        <target state="needs-review-translation">Po #pragma warning byla očekávána hodnota disable, restore, enable nebo safeonly.</target>
+        <target state="translated">Po varování #pragma se očekávala hodnota disable nebo restore.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
