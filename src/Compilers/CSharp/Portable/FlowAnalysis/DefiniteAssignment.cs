@@ -206,8 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isKnownToBeAnLvalue || node == null ||
                 !node.NeedsToBeConverted() ||
                 node.WasConverted ||
-                node.WasCompilerGenerated ||
-                methodMainNode.HasErrors, "expressions should have been converted");
+                node.WasCompilerGenerated /* ||
+                methodMainNode.HasErrors */, "expressions should have been converted");
             base.VisitRvalue(node, isKnownToBeAnLvalue);
         }
 #endif

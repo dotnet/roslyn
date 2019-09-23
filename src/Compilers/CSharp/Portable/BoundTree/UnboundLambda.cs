@@ -597,6 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundLambda ReallyInferReturnType(NamedTypeSymbol delegateType, ImmutableArray<TypeWithAnnotations> parameterTypes, ImmutableArray<RefKind> parameterRefKinds)
         {
             var diagnostics = DiagnosticBag.GetInstance();
+            // TypeWithAnnotations
             var lambdaSymbol = new LambdaSymbol(
                 Binder.Compilation,
                 Binder.ContainingMemberOrLambda,
@@ -604,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterTypes,
                 parameterRefKinds,
                 refKind: CodeAnalysis.RefKind.None,
-                returnType: default,
+                returnType: delegateType is null ? TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(this.Binder.Compilation, "", arity: 0, errorInfo: null, unreported: false)) : default,
                 diagnostics: diagnostics);
             Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
@@ -792,8 +793,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return
                 GuessBestBoundLambda(_bindingCache)
-                ?? GuessBestBoundLambda(_returnInferenceCache)
+                ?? rebind(GuessBestBoundLambda(_returnInferenceCache))
                 ?? ReallyInferReturnType(null, ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty);
+
+            // Rebind a lambda to push target conversions through the return/result expressions
+            BoundLambda rebind(BoundLambda lambda)
+            {
+                if (lambda is null)
+                    return null;
+                var targetType = lambda.Type;
+                return this.Bind((NamedTypeSymbol)targetType);
+            }
         }
 
         private static BoundLambda GuessBestBoundLambda<T>(ImmutableDictionary<T, BoundLambda> candidates)

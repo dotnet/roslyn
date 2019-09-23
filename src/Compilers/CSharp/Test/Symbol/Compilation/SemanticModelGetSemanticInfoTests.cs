@@ -5635,7 +5635,7 @@ public class TestClass
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
             Assert.Equal(TypeKind.Error, lambdaSym.Parameters[0].Type.TypeKind);
-            Assert.Equal("System.Int32", lambdaSym.ReturnType.ToTestDisplayString());
+            Assert.Equal("?", lambdaSym.ReturnType.ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 

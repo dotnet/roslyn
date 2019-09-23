@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(syntax,
                 resultKind,
                 symbols,
-                childNodes,
+                childNodes.SelectAsArray(e => BindToTypeForErrorRecovery(e)),
                 CreateErrorType());
         }
 
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expr.Syntax,
                     resultKind,
                     symbols.ToImmutableAndFree(),
-                    ImmutableArray.Create(expr),
+                    ImmutableArray.Create(BindToTypeForErrorRecovery(expr)),
                     resultType ?? CreateErrorType());
             }
         }
@@ -232,6 +232,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, DiagnosticBag diagnostics, bool reportDefaultMissingType = true)
         {
             return BindToNaturalType(BindValue(node, diagnostics, BindValueKind.RValue), diagnostics, reportDefaultMissingType);
+        }
+
+        internal BoundExpression BindToTypeForErrorRecovery(BoundExpression expression, TypeSymbol type = null)
+        {
+            if (expression is null)
+                return null;
+            var discardedDiagnostics = DiagnosticBag.GetInstance();
+            var result =
+                (!expression.NeedsToBeConverted() || expression.WasConverted) ? expression :
+                type is null ? BindToNaturalType(expression, discardedDiagnostics) :
+                GenerateConversionForAssignment(type, expression, discardedDiagnostics);
+            discardedDiagnostics.Free();
+            return result;
         }
 
         /// <summary>
@@ -761,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var single = (SingleVariableDesignationSyntax)node;
                         var result = BindDeconstructionVariable(declTypeWithAnnotations, single, syntax, diagnostics);
-                        return result;
+                        return BindToTypeForErrorRecovery(result);
                     }
                 case SyntaxKind.DiscardDesignation:
                     {
@@ -1364,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax: node,
                             resultKind: LookupResultKind.WrongArity,
                             symbols: ImmutableArray.Create(symbol),
-                            childBoundNodes: ImmutableArray.Create(expression),
+                            childBoundNodes: ImmutableArray.Create(BindToTypeForErrorRecovery(expression)),
                             type: expression.Type,
                             hasErrors: isError);
                     }
@@ -6150,7 +6163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 lookupKind,
                 (object)symbolOpt == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(symbolOpt),
-                boundLeft == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(boundLeft),
+                boundLeft == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(BindToTypeForErrorRecovery(boundLeft)),
                 GetNonMethodMemberType(symbolOpt));
         }
 
@@ -7031,7 +7044,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? arrayType
                 : arrayType.ElementType;
 
-            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType, hasErrors);
+            return hasErrors
+                ? new BoundArrayAccess(node, BindToTypeForErrorRecovery(expr), convertedArguments.Select(e => BindToTypeForErrorRecovery(e)).AsImmutableOrNull(), resultType, hasErrors: true)
+                : new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType, hasErrors: false);
         }
 
         private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, DiagnosticBag diagnostics, bool allowIndexAndRange)

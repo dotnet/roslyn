@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(arguments.IsDefaultOrEmpty || (object)receiverOpt != (object)arguments[0]);
 
-            return new BoundCall(node, receiverOpt, method, arguments, namedArguments,
+            return new BoundCall(node, binder.BindToTypeForErrorRecovery(receiverOpt), method, arguments.SelectAsArray(e => binder.BindToTypeForErrorRecovery(e)), namedArguments,
                 refKinds, isDelegateCall: isDelegateCall, expanded: false, invokedAsExtensionMethod: invokedAsExtensionMethod, argsToParamsOpt: default(ImmutableArray<int>),
                 resultKind: resultKind, originalMethods, binderOpt: binder, type: method.ReturnType, hasErrors: true);
         }

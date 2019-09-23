@@ -1121,7 +1121,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, dimensionsOpt: invalidDimensions.ToImmutableAndFree(), typeWithAnnotations: declTypeOpt);
             }
 
-            return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, inferredType: isVar, hasErrors: hasErrors);
+            return new BoundLocalDeclaration(
+                syntax: associatedSyntaxNode,
+                localSymbol: localSymbol,
+                declaredTypeOpt: boundDeclType,
+                initializerOpt: hasErrors ? BindToTypeForErrorRecovery(initializerOpt) : initializerOpt,
+                argumentsOpt: arguments,
+                inferredType: isVar,
+                hasErrors: hasErrors);
         }
 
         internal ImmutableArray<BoundExpression> BindDeclaratorArguments(VariableDeclaratorSyntax declarator, DiagnosticBag diagnostics)
@@ -1459,6 +1466,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var leftEscape = GetValEscape(op1, LocalScopeDepth);
                     op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
                 }
+            }
+            else
+            {
+                op2 = BindToTypeForErrorRecovery(op2);
             }
 
             TypeSymbol type;
@@ -2640,7 +2651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
-                return new BoundReturnStatement(syntax, refKind, arg, hasErrors: true);
+                return new BoundReturnStatement(syntax, refKind, BindToTypeForErrorRecovery(arg), hasErrors: true);
             }
 
             // The return type could be null; we might be attempting to infer the return type either 
@@ -2712,7 +2723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundReturnStatement(syntax, refKind, arg, hasErrors);
+            return new BoundReturnStatement(syntax, refKind, hasErrors ? BindToTypeForErrorRecovery(arg) : arg, hasErrors);
         }
 
         internal BoundExpression CreateReturnConversion(
@@ -2760,7 +2771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        return argument;
+                        return BindToNaturalType(argument, diagnostics);
                     }
                 }
                 else if (!conversion.IsImplicit || !conversion.IsValid)
@@ -2956,7 +2967,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Report an extra error on the return if we are in a lambda conversion.
         private void ReportCantConvertLambdaReturn(SyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            // UNDONE: Suppress this error if the lambda is a result of a query rewrite.
+            // Suppress this error if the lambda is a result of a query rewrite.
+            if (syntax.Parent is QueryClauseSyntax || syntax.Parent is SelectOrGroupClauseSyntax)
+                return;
 
             var lambda = this.ContainingMemberOrLambda as LambdaSymbol;
             if ((object)lambda != null)
@@ -3047,6 +3060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? ErrorCode.ERR_MustNotHaveRefReturn
                         : ErrorCode.ERR_MustHaveRefReturn;
                     Error(diagnostics, errorCode, syntax);
+                    expression = BindToTypeForErrorRecovery(expression);
                     statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 }
                 else if (returnType.IsVoidType() || IsTaskReturningAsyncMethod())
