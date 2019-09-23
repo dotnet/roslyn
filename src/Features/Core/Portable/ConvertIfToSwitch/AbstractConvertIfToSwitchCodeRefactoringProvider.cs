@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             public async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
-                var (document, textSpan, cancellationToken) = context;
+                var (document, _, cancellationToken) = context;
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
@@ -93,8 +93,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     return;
                 }
 
-                context.RegisterRefactoring(new MyCodeAction(Title, c =>
-                    UpdateDocumentAsync(root, document, ifStatement, switchSections)));
+                context.RegisterRefactoring(
+                    new MyCodeAction(Title,
+                        c => UpdateDocumentAsync(root, document, ifStatement, switchSections)),
+                    ifStatement.Span);
             }
 
             private IEnumerable<(IEnumerable<IPattern<TSwitchLabelSyntax>> patterns, TStatementSyntax statement)> GetSections(

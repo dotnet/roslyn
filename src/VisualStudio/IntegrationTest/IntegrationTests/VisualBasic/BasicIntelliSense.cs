@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38301"), Trait(Traits.Feature, Traits.Features.Completion)]
         public void IntelliSenseTriggersOnParenWithBraceCompletionAndCorrectUndoMerging()
         {
             SetUpEditor(@"
@@ -98,19 +98,16 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            if (LegacyCompletionCondition.Instance.ShouldSkip)
-            {
-                // Async completion has an extra undo step
-                VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
-                VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Sub Main()
         Dim q As List($$)
     End Sub
 End Module",
 assertCaretPosition: true);
-            }
+
 
             VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 

@@ -3124,7 +3124,7 @@ end class")
     end sub
 end class",
 "class C
-    Private Const {|Rename:V|} As Integer = 2
+    Private Const {|Rename:V|} As Integer = (2)
 
     sub Goo()
         Bar(1, V)

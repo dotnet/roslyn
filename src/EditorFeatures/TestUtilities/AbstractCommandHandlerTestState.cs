@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -61,14 +62,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public AbstractCommandHandlerTestState(
             XElement workspaceElement,
             ExportProvider exportProvider,
-            string workspaceKind)
+            string workspaceKind,
+            XElement cursorDocumentElement = null,
+            ImmutableArray<string> roles = default)
         {
             this.Workspace = TestWorkspace.CreateWorkspace(
                 workspaceElement,
                 exportProvider: exportProvider,
                 workspaceKind: workspaceKind);
 
-            var cursorDocument = this.Workspace.Documents.First(d => d.CursorPosition.HasValue);
+            TestHostDocument cursorDocument;
+            if (cursorDocumentElement == null)
+            {
+                cursorDocument = this.Workspace.Documents.First(d => d.CursorPosition.HasValue);
+            }
+            else
+            {
+                var languageName = Workspace.Projects.First().Language;
+                cursorDocument = TestWorkspace.CreateDocument(cursorDocumentElement, exportProvider, Workspace.Services.GetLanguageServices(languageName), roles);
+            }
+
             _textView = cursorDocument.GetTextView();
             _subjectBuffer = cursorDocument.GetTextBuffer();
 
@@ -310,6 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             Assert.False(provider.HasPendingWaiter(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
         }
 
+        // This one is not used by the completion but used by SignatureHelp.
         public async Task WaitForAsynchronousOperationsAsync()
         {
             var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
@@ -451,11 +465,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public void SendTypeChar(char typeChar, Action<TypeCharCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
         {
             commandHandler(new TypeCharCommandArgs(TextView, SubjectBuffer, typeChar), nextHandler, TestCommandExecutionContext.Create());
-        }
-
-        public void ToggleSuggestionMode(Action<ToggleCompletionModeCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
-        {
-            commandHandler(new ToggleCompletionModeCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
         }
 
         public void SendTypeChars(string typeChars, Action<TypeCharCommandArgs, Action, CommandExecutionContext> commandHandler)

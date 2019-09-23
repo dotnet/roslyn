@@ -30,6 +30,16 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         FindUsagesContext StartSearch(string title, bool supportsReferences);
 
         /// <summary>
+        /// Call this method to display the Containing Type, Containing Member, or Kind columns
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="supportsReferences"></param>
+        /// <param name="includeContainingTypeAndMemberColumns"></param>
+        /// <param name="includeKindColumn"></param>
+        /// /// <returns></returns>
+        FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn);
+
+        /// <summary>
         /// Clears all the items from the presenter.
         /// </summary>
         void ClearAll();

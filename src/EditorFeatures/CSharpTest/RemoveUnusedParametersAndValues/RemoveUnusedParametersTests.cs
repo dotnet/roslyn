@@ -1333,6 +1333,46 @@ public sealed class C : IDisposable
 }", options);
         }
 
+        [WorkItem(37483, "https://github.com/dotnet/roslyn/issues/37483")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task MethodUsedAsDelegateInGeneratedCode_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+public partial class C
+{
+    private void M(int [|x|])
+    {
+    }
+}
+
+public partial class C
+{
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("""", """")]
+    public void M2(out Action<int> a)
+    {
+        a = M;
+    }
+}  
+");
+        }
+
+        [WorkItem(37483, "https://github.com/dotnet/roslyn/issues/37483")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedParameterInGeneratedCode_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"public partial class C
+{
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("""", """")]
+    private void M(int [|x|])
+    {
+    }
+}
+");
+        }
+
         [WorkItem(36817, "https://github.com/dotnet/roslyn/issues/36817")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task ParameterWithoutName_NoDiagnostic()

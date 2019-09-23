@@ -165,6 +165,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return GetBinderForNodeAndUsage(inheritsSyntax, NodeUsage.InheritsStatement, inheritsSyntax.Parent, _position)
             End Function
 
+            Public Overrides Function VisitImplementsStatement(implementsSyntax As ImplementsStatementSyntax) As Binder
+                Return GetBinderForNodeAndUsage(implementsSyntax, NodeUsage.ImplementsStatement, implementsSyntax.Parent, _position)
+            End Function
+
             ' All of these kinds of syntax nodes declare method symbols.
 
             Public Overrides Function VisitMethodStatement(node As MethodStatementSyntax) As Binder

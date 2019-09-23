@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="translated">欠落しているインポートの追加</target>
+        <target state="translated">欠落している Import の追加</target>
         <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
@@ -95,11 +95,6 @@
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">不要なインポートの削除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_Imports">
-        <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -342,11 +337,6 @@
         <target state="translated">&lt;新しい変数&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">インポートの削除と並べ替え(&amp;E)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
         <source>Creates a delegate procedure instance that references the specified procedure.
 AddressOf &lt;procedureName&gt;</source>
@@ -504,7 +494,7 @@ Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</targ
       </trans-unit>
       <trans-unit id="Used_to_release_array_variables_and_deallocate_the_memory_used_for_their_elements">
         <source>Used to release array variables and deallocate the memory used for their elements.</source>
-        <target state="translated">アレイ変数を解放し、それらの要素に使用されるメモリの割り当てを解除します。</target>
+        <target state="translated">配列変数を解放し、それらの要素に使用されるメモリの割り当てを解除します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Declares_a_user_defined_event">
@@ -805,7 +795,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Specifies_that_a_procedure_parameter_takes_an_optional_array_of_elements_of_the_specified_type">
         <source>Specifies that a procedure parameter takes an optional array of elements of the specified type.</source>
-        <target state="translated">プロシージャのパラメーターが、指定された型の、省略可能な要素のアレイを受け取ることを示します。</target>
+        <target state="translated">プロシージャのパラメーターが、指定された型の、省略可能な要素の配列を受け取ることを示します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Indicates_that_a_method_class_or_structure_declaration_is_a_partial_definition_of_the_method_class_or_structure">
@@ -820,7 +810,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Prevents_the_contents_of_an_array_from_being_cleared_when_the_dimensions_of_the_array_are_changed">
         <source>Prevents the contents of an array from being cleared when the dimensions of the array are changed.</source>
-        <target state="translated">アレイの次元が変更されるときにアレイの内容が消去されないようにします。</target>
+        <target state="translated">配列の次元が変更されるときに配列の内容が消去されないようにします。</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_their_module_class_or_structure">
@@ -855,7 +845,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Reallocates_storage_space_for_an_array_variable">
         <source>Reallocates storage space for an array variable.</source>
-        <target state="translated">アレイ変数の記憶域を再割り当てします。</target>
+        <target state="translated">配列変数の記憶域を再割り当てします。</target>
         <note />
       </trans-unit>
       <trans-unit id="Performs_an_arithmetic_right_shift_on_a_bit_pattern">
@@ -895,7 +885,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range">
         <source>Separates the beginning and ending values of a loop counter or array bounds or that of a value match range.</source>
-        <target state="translated">ループ カウンター、アレイの範囲、または値が一致する範囲の開始値と終了値を分割します。</target>
+        <target state="translated">ループ カウンター、配列の範囲、または値が一致する範囲の開始値と終了値を分割します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Determines_the_run_time_type_of_an_object_reference_variable_and_compares_it_to_a_data_type_Returns_True_or_False_depending_on_whether_the_two_types_are_compatible_result_TypeOf_objectExpression_Is_typeName">
@@ -928,7 +918,8 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       <trans-unit id="Performs_a_logical_exclusion_on_two_Boolean_expressions_or_a_bitwise_exclusion_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_exactly_one_of_the_expressions_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Xor_expression2">
         <source>Performs a logical exclusion on two Boolean expressions, or a bitwise exclusion on two numeric expressions. For Boolean expressions, returns True if exactly one of the expressions evaluates to True. Both expressions are always evaluated.
 &lt;result&gt; = &lt;expression1&gt; Xor &lt;expression2&gt;</source>
-        <target state="translated">2 つのブール式の場合は排他的論理演算、2 つの数値式の場合はビットごとの排他を求めます。ブール式の場合、2 つの式のうち 1 つのみが True と評価されたときは True を返します。常に両方の式が評価されます。r\n&lt;result&gt; = &lt;expression1&gt; Xor &lt;expression2&gt;</target>
+        <target state="translated">2 つのブール式の場合は排他的論理演算、2 つの数値式の場合はビットごとの排他を求めます。ブール式の場合、2 つの式のうち 1 つのみが True と評価されたときは True を返します。常に両方の式が評価されます。
+&lt;result&gt; = &lt;expression1&gt; Xor &lt;expression2&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Applies_an_aggregation_function_such_as_Sum_Average_or_Count_to_a_sequence">
@@ -1693,7 +1684,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">結行条件</target>
+        <target state="translated">Join 条件</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">

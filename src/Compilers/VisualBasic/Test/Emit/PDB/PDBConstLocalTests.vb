@@ -142,8 +142,7 @@ class C
         End Sub
 #End If
 
-        ' https://github.com/dotnet/roslyn/issues/33564: Was <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(529101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529101")>
         Public Sub TestLocalConstantsTypes()
@@ -182,8 +181,8 @@ End Class
                 <currentnamespace name=""/>
                 <constant name="o" value="null" type="Object"/>
                 <constant name="s" value="hello" type="String"/>
-                <constant name="f" value="-3.402823E+38" type="Single"/>
-                <constant name="d" value="1.79769313486232E+308" type="Double"/>
+                <constant name="f" value="0xFF7FFFFF" type="Single"/>
+                <constant name="d" value="0x7FEFFFFFFFFFFFFF" type="Double"/>
                 <constant name="dec" value="1.5" type="Decimal"/>
                 <constant name="dt" value="02/29/2012 00:00:00" type="DateTime"/>
             </scope>

@@ -189,11 +189,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Dim id = ERRID.ERR_None
 
             Select Case type.TypeKind
-                Case TypeKind.Interface,
-                    TypeKind.Structure,
+                Case TypeKind.Interface
+                    For Each member As Symbol In type.GetMembersUnordered()
+                        If member.Kind <> SymbolKind.NamedType Then
+                            If Not member.IsMustOverride Then
+                                id = ERRID.ERR_DefaultInterfaceImplementationInNoPIAType
+                            ElseIf member.IsNotOverridable Then
+                                id = ERRID.ERR_ReAbstractionInNoPIAType
+                            End If
+                        End If
+                    Next
+
+                    If id = ERRID.ERR_None Then
+                        GoTo checksForAllEmbedabbleTypes
+                    End If
+
+                Case TypeKind.Structure,
                     TypeKind.Enum,
                     TypeKind.Delegate
-
+checksForAllEmbedabbleTypes:
                     If type.IsTupleType Then
                         type = type.TupleUnderlyingType
                     End If

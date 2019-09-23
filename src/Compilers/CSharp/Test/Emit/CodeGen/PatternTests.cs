@@ -3026,7 +3026,7 @@ static class C {
 ";
             var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics().Verify(
-                // (9,38): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 38)
                 );
@@ -3036,7 +3036,7 @@ static class C {
                 // (9,36): error CS0656: Missing compiler required member 'System.InvalidOperationException..ctor'
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i switch { 1 => true }").WithArguments("System.InvalidOperationException", ".ctor").WithLocation(9, 36),
-                // (9,38): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 38)
                 );
@@ -3165,48 +3165,45 @@ public class Program
 }
 ";
             var v = CompileAndVerify(source, options: TestOptions.DebugExe);
-            v.VerifyIL(qualifiedMethodName: "Program.Main",
-@"{
-  // Code size       55 (0x37)
-  .maxstack  2
-  .locals init (int V_0, //i
-                Program V_1, //y
-                Program V_2,
-                Program V_3)
-  // sequence point: {
-  IL_0000:  nop
-  // sequence point: int i = 0;
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
-  // sequence point: var y = (i s ...   }).Chain()
-  IL_0003:  ldloc.0
-  IL_0004:  brfalse.s  IL_000e
-  IL_0006:  br.s       IL_0008
-  IL_0008:  ldloc.0
-  IL_0009:  ldc.i4.1
-  IL_000a:  beq.s      IL_0016
-  IL_000c:  br.s       IL_001e
-  IL_000e:  newobj     ""Program..ctor()""
-  IL_0013:  stloc.2
-  IL_0014:  br.s       IL_0026
-  IL_0016:  newobj     ""Program..ctor()""
-  IL_001b:  stloc.2
-  IL_001c:  br.s       IL_0026
-  IL_001e:  newobj     ""Program..ctor()""
-  IL_0023:  stloc.2
-  IL_0024:  br.s       IL_0026
-  IL_0026:  ldloc.2
-  IL_0027:  stloc.3
-  IL_0028:  ldloc.3
-  IL_0029:  callvirt   ""Program Program.Chain()""
-  IL_002e:  stloc.1
-  // sequence point: y.Chain2();
-  IL_002f:  ldloc.1
-  IL_0030:  callvirt   ""Program Program.Chain2()""
-  IL_0035:  pop
-  // sequence point: }
-  IL_0036:  ret
-}
+            v.VerifyIL(qualifiedMethodName: "Program.Main", @"
+    {
+      // Code size       53 (0x35)
+      .maxstack  2
+      .locals init (int V_0, //i
+                    Program V_1, //y
+                    Program V_2)
+      // sequence point: {
+      IL_0000:  nop
+      // sequence point: int i = 0;
+      IL_0001:  ldc.i4.0
+      IL_0002:  stloc.0
+      // sequence point: var y = (i s ...   }).Chain()
+      IL_0003:  ldloc.0
+      IL_0004:  brfalse.s  IL_000e
+      IL_0006:  br.s       IL_0008
+      IL_0008:  ldloc.0
+      IL_0009:  ldc.i4.1
+      IL_000a:  beq.s      IL_0016
+      IL_000c:  br.s       IL_001e
+      IL_000e:  newobj     ""Program..ctor()""
+      IL_0013:  stloc.2
+      IL_0014:  br.s       IL_0026
+      IL_0016:  newobj     ""Program..ctor()""
+      IL_001b:  stloc.2
+      IL_001c:  br.s       IL_0026
+      IL_001e:  newobj     ""Program..ctor()""
+      IL_0023:  stloc.2
+      IL_0024:  br.s       IL_0026
+      IL_0026:  ldloc.2
+      IL_0027:  callvirt   ""Program Program.Chain()""
+      IL_002c:  stloc.1
+      // sequence point: y.Chain2();
+      IL_002d:  ldloc.1
+      IL_002e:  callvirt   ""Program Program.Chain2()""
+      IL_0033:  pop
+      // sequence point: }
+      IL_0034:  ret
+    }
 ", sequencePoints: "Program.Main", source: source);
         }
 
@@ -3236,39 +3233,37 @@ public class Class1
                 var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
                 if (options.OptimizationLevel == OptimizationLevel.Debug)
                 {
-                    compVerifier.VerifyIL("Class1.M",
-@"{
-  // Code size       39 (0x27)
-  .maxstack  2
-  .locals init (bool V_0,
-                int V_1,
-                bool V_2,
-                bool V_3)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int""
-  IL_0007:  brfalse.s  IL_001b
-  IL_0009:  ldarg.0
-  IL_000a:  unbox.any  ""int""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
-  IL_0011:  ldc.i4.s   42
-  IL_0013:  beq.s      IL_0017
-  IL_0015:  br.s       IL_001b
-  IL_0017:  ldc.i4.1
-  IL_0018:  stloc.0
-  IL_0019:  br.s       IL_001f
-  IL_001b:  ldc.i4.0
-  IL_001c:  stloc.0
-  IL_001d:  br.s       IL_001f
-  IL_001f:  ldloc.0
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.2
-  IL_0022:  stloc.3
-  IL_0023:  br.s       IL_0025
-  IL_0025:  ldloc.3
-  IL_0026:  ret
-}");
+                    compVerifier.VerifyIL("Class1.M", @"
+{
+      // Code size       37 (0x25)
+      .maxstack  2
+      .locals init (bool V_0,
+                    int V_1,
+                    bool V_2)
+      IL_0000:  nop
+      IL_0001:  ldarg.0
+      IL_0002:  isinst     ""int""
+      IL_0007:  brfalse.s  IL_001b
+      IL_0009:  ldarg.0
+      IL_000a:  unbox.any  ""int""
+      IL_000f:  stloc.1
+      IL_0010:  ldloc.1
+      IL_0011:  ldc.i4.s   42
+      IL_0013:  beq.s      IL_0017
+      IL_0015:  br.s       IL_001b
+      IL_0017:  ldc.i4.1
+      IL_0018:  stloc.0
+      IL_0019:  br.s       IL_001f
+      IL_001b:  ldc.i4.0
+      IL_001c:  stloc.0
+      IL_001d:  br.s       IL_001f
+      IL_001f:  ldloc.0
+      IL_0020:  stloc.2
+      IL_0021:  br.s       IL_0023
+      IL_0023:  ldloc.2
+      IL_0024:  ret
+    }
+");
                 }
                 else
                 {
@@ -4123,6 +4118,31 @@ class C
 @"new A; A->new B; B->new C; .
 new B; B->new C; .";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_StringInsert()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write($""{false switch { false => new A(), true => new B() }}"");
+        Console.Write($""{true switch { false => new A(), true => new B() }}"");
+    }
+}
+class A
+{
+}
+class B
+{
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "AB");
         }
 
         #endregion Target Typed Switch

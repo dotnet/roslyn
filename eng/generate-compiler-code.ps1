@@ -26,6 +26,7 @@ function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProje
   Create-Directory $generatedDir
   Create-Directory $generatedTestDir
   Run-Tool $syntaxProject "`"$syntaxFilePath`" `"$generatedDir`""
+  Run-Tool $syntaxProject "`"$syntaxFilePath`" `"$generatedDir`" /grammar"
   Run-Tool $syntaxProject "`"$syntaxFilePath`" `"$syntaxTestFilePath`" /test"
   Run-Tool $boundTreeGenProject "$language `"$boundFilePath`" `"$boundGeneratedFilePath`""
   Run-Tool $errorFactsProject "`"$errorFilePath`" `"$errorGeneratedFilePath`""

@@ -187,7 +187,9 @@ namespace Microsoft.CodeAnalysis
 
             public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
             {
-                return WrappedSymbol.ToMinimalDisplayParts(semanticModel, position, format);
+                // Call the right API once https://github.com/dotnet/roslyn/pull/35698 is merged
+                var convertedFlowState = Nullability == NullableAnnotation.Annotated ? NullableFlowState.MaybeNull : NullableFlowState.None;
+                return WrappedSymbol.ToMinimalDisplayParts(semanticModel, convertedFlowState, position, format);
             }
 
             public string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString), Shared]
     internal partial class CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider :
-        AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, LiteralExpressionSyntax>
+        AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, LiteralExpressionSyntax, ArgumentListSyntax>
     {
         [ImportingConstructor]
         public CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider()

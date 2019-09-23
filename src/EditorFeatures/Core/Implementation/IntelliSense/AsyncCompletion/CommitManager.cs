@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -205,6 +203,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CommitBehavior.None;
             }
 
+            if (GetCompletionProvider(completionService, roslynItem) is ICustomCommitCompletionProvider provider)
+            {
+                provider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
+                return AsyncCompletionData.CommitBehavior.None;
+            }
+
             var change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             var textChange = change.TextChange;
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
@@ -351,6 +355,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     return item.GetEntireDisplayText() == textTypedSoFar;
             }
+        }
+
+        private CompletionProvider GetCompletionProvider(CompletionService completionService, CompletionItem item)
+        {
+            if (completionService is CompletionServiceWithProviders completionServiceWithProviders)
+            {
+                return completionServiceWithProviders.GetProvider(item);
+            }
+
+            return null;
         }
     }
 }

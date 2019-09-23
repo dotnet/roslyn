@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Roslyn.Utilities;
 
@@ -27,9 +29,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return this.Start == other.Start && this.End == other.End;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return this.Equals((LineSpan)obj);
+            return obj is LineSpan other
+                && this.Equals(other);
         }
 
         public override int GetHashCode()

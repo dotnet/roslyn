@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         {
         }
 
-        protected abstract SyntaxNode GetAlias(TUsingOrAliasSyntax usingOrAlias);
+        protected abstract SyntaxNode? GetAlias(TUsingOrAliasSyntax usingOrAlias);
         protected abstract ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation);
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
@@ -35,14 +37,14 @@ namespace Microsoft.CodeAnalysis.AddImports
 
         public bool HasExistingImport(
             Compilation compilation, SyntaxNode root,
-            SyntaxNode contextLocation, SyntaxNode import)
+            SyntaxNode? contextLocation, SyntaxNode import)
         {
             var globalImports = GetGlobalImports(compilation);
             var containers = GetAllContainers(root, contextLocation);
             return HasExistingImport(import, containers, globalImports);
         }
 
-        private static ImmutableArray<SyntaxNode> GetAllContainers(SyntaxNode root, SyntaxNode contextLocation)
+        private static ImmutableArray<SyntaxNode> GetAllContainers(SyntaxNode root, SyntaxNode? contextLocation)
         {
             contextLocation ??= root;
 
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             return false;
         }
 
-        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import)
+        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import)
         {
             contextLocation ??= root;
             GetContainers(root, contextLocation,
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         public SyntaxNode AddImports(
             Compilation compilation,
             SyntaxNode root,
-            SyntaxNode contextLocation,
+            SyntaxNode? contextLocation,
             IEnumerable<SyntaxNode> newImports,
             bool placeSystemNamespaceFirst)
         {

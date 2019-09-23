@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return annotations;
         }
 
-        internal override ImmutableHashSet<string> NotNullIfParameterNotNull 
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
             => GetDecodedWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
 
         internal bool HasEnumeratorCancellationAttribute
@@ -263,9 +263,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If we have something like M(double? x = 1) then the expression we'll get is (double?)1, which
             // does not have a constant value. The constant value we want is (double)1.
             // The default literal conversion is an exception: (double)default would give the wrong value for M(double? x = default).
-
             if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion &&
-                !(valueBeforeConversion.Kind == BoundKind.DefaultExpression && (object)valueBeforeConversion.Type == null))
+                ((BoundConversion)convertedExpression).ConversionKind != ConversionKind.DefaultLiteral)
             {
                 if (parameterType.Type.IsNullableType())
                 {

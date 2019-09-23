@@ -45,12 +45,12 @@ class C
 
             var lockStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
             var lockExprInfo = model.GetSymbolInfo(lockStatement.Expression);
-            Assert.NotNull(lockExprInfo);
+            Assert.NotEqual(default, lockExprInfo);
             Assert.Equal(localSymbol, lockExprInfo.Symbol);
 
             var memberAccessExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
             var memberAccessInfo = model.GetSymbolInfo(memberAccessExpression.Expression);
-            Assert.NotNull(memberAccessInfo);
+            Assert.NotEqual(default, memberAccessInfo);
             Assert.Equal(localSymbol, memberAccessInfo.Symbol);
         }
 

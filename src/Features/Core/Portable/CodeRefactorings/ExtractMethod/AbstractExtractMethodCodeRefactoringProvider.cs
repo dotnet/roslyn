@@ -47,15 +47,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             }
 
             var action = await GetCodeActionAsync(document, textSpan, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (action == null)
+            if (action == default)
             {
                 return;
             }
 
-            context.RegisterRefactoring(action.Item1);
+            context.RegisterRefactoring(action.action, textSpan);
         }
 
-        private async Task<Tuple<CodeAction, string>> GetCodeActionAsync(
+        private async Task<(CodeAction action, string methodBlock)> GetCodeActionAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 var codeAction = new MyCodeAction(description, c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
                 var methodBlock = result.MethodDeclarationNode;
 
-                return Tuple.Create<CodeAction, string>(codeAction, methodBlock.ToString());
+                return (codeAction, methodBlock.ToString());
             }
 
-            return null;
+            return default;
         }
 
         private async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken invocationNameToken, CancellationToken cancellationToken)

@@ -239,6 +239,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Peek = nameof(Peek);
             public const string Progression = nameof(Progression);
             public const string ProjectSystemShims = nameof(ProjectSystemShims);
+            public const string SarifErrorLogging = nameof(SarifErrorLogging);
             public const string QuickInfo = nameof(QuickInfo);
             public const string RQName = nameof(RQName);
             public const string ReduceTokens = nameof(ReduceTokens);
@@ -257,6 +258,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
             public const string TodoComments = nameof(TodoComments);
+            public const string ToggleBlockComment = nameof(ToggleBlockComment);
+            public const string ToggleLineComment = nameof(ToggleLineComment);
             public const string TypeInferenceService = nameof(TypeInferenceService);
             public const string ValidateFormatString = nameof(ValidateFormatString);
             public const string ValidateRegexString = nameof(ValidateRegexString);

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        internal static Task<TSyntaxNode> TryGetRelevantNodeAsync<TSyntaxNode>(this CodeRefactoringContext context)
+        internal static Task<TSyntaxNode?> TryGetRelevantNodeAsync<TSyntaxNode>(this CodeRefactoringContext context)
             where TSyntaxNode : SyntaxNode
             => TryGetRelevantNodeAsync<TSyntaxNode>(context.Document, context.Span, context.CancellationToken);
 
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             where TSyntaxNode : SyntaxNode
             => GetRelevantNodesAsync<TSyntaxNode>(context.Document, context.Span, context.CancellationToken);
 
-        internal static async Task<TSyntaxNode> TryGetRelevantNodeAsync<TSyntaxNode>(
+        internal static async Task<TSyntaxNode?> TryGetRelevantNodeAsync<TSyntaxNode>(
             this Document document,
             TextSpan span,
             CancellationToken cancellationToken)

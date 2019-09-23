@@ -323,6 +323,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var validatedReferences = ValidateReferences<CSharpCompilationReference>(references);
 
+            // We can't reuse the whole Reference Manager entirely (reuseReferenceManager = false)
+            // because the set of references of this submission differs from the previous one.
+            // The submission inherits references of the previous submission, adds the previous submission reference
+            // and may add more references passed explicitly or via #r.
+            //
+            // TODO: Consider reusing some results of the assembly binding to improve perf
+            // since most of the binding work is similar.
+
             var compilation = new CSharpCompilation(
                 assemblyName,
                 options,
@@ -1865,7 +1873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (source.ConstantValue.HasValue && source.ConstantValue.Value is null && destination.IsReferenceType)
                 {
                     constantValue = source.ConstantValue;
-                    return Conversion.DefaultOrNullLiteral;
+                    return Conversion.NullLiteral;
                 }
 
                 return Conversion.NoConversion;

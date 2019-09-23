@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,9 +15,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TArgumentSyntax> : IRefactoringHelpersService
+    internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TArgumentSyntax, TExpressionStatementSyntax> : IRefactoringHelpersService
         where TExpressionSyntax : SyntaxNode
         where TArgumentSyntax : SyntaxNode
+        where TExpressionStatementSyntax : SyntaxNode
     {
         public async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             Document document, TextSpan selectionRaw,
@@ -28,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root == null)
+            {
+                return ImmutableArray<TSyntaxNode>.Empty;
+            }
+
             var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpan(document, selectionRaw, cancellationToken).ConfigureAwait(false);
 
             // If user selected only whitespace we don't want to return anything. We could do following:
@@ -118,10 +126,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private static bool IsWantedTypeExpressionLike<TSyntaxNode>() where TSyntaxNode : SyntaxNode
         {
             var wantedType = typeof(TSyntaxNode);
+
             var expressionType = typeof(TExpressionSyntax);
             var argumentType = typeof(TArgumentSyntax);
+            var expressionStatementType = typeof(TExpressionStatementSyntax);
 
-            return IsAEqualOrSubclassOfB(wantedType, expressionType) || IsAEqualOrSubclassOfB(wantedType, argumentType);
+            return IsAEqualOrSubclassOfB(wantedType, expressionType) ||
+                IsAEqualOrSubclassOfB(wantedType, argumentType) ||
+                IsAEqualOrSubclassOfB(wantedType, expressionStatementType);
 
             static bool IsAEqualOrSubclassOfB(Type a, Type b)
             {
@@ -163,7 +175,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // closest token/Node. Thus, we move the location to the token in whose `.FullSpan` the original location was.
             if (tokenToLeft == default && tokenToRightOrIn == default)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // assume non-trivia token can't span multiple lines
@@ -266,20 +277,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             do
             {
                 var nonHiddenExtractedSelectedNodes = ExtractNodesSimple(selectionNode, syntaxFacts).OfType<TSyntaxNode>().Where(n => !n.OverlapsHiddenPosition(cancellationToken));
-                foreach (var selectedNode in nonHiddenExtractedSelectedNodes)
+                foreach (var nonHiddenExtractedNode in nonHiddenExtractedSelectedNodes)
                 {
                     // For selections we need to handle an edge case where only AttributeLists are within selection (e.g. `Func([|[in][out]|] arg1);`).
                     // In that case the smallest encompassing node is still the whole argument node but it's hard to justify showing refactorings for it
                     // if user selected only its attributes.
 
                     // Selection contains only AttributeLists -> don't consider current Node
-                    var spanWithoutAttributes = GetSpanWithoutAttributes(selectedNode, root, syntaxFacts);
+                    var spanWithoutAttributes = GetSpanWithoutAttributes(nonHiddenExtractedNode, root, syntaxFacts);
                     if (!selectionTrimmed.IntersectsWith(spanWithoutAttributes))
                     {
                         break;
                     }
 
-                    relevantNodesBuilder.Add(selectedNode);
+                    relevantNodesBuilder.Add(nonHiddenExtractedNode);
                 }
 
                 prevNode = selectionNode;
@@ -298,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <remark>
         /// Should also return given node. 
         /// </remark>
-        protected virtual IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected virtual IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode? node, ISyntaxFactsService syntaxFacts)
         {
             if (node == null)
             {
@@ -313,15 +324,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // that were found to be relevant for refactorings that were moved to `TryGetSelectedNodeAsync`.
             // Feel free to extend it / refine current heuristics. 
 
-            // `var a = b;`
-            if (syntaxFacts.IsLocalDeclarationStatement(node))
+            // `var a = b;` | `var a = b`;
+            if (syntaxFacts.IsLocalDeclarationStatement(node) || syntaxFacts.IsLocalDeclarationStatement(node.Parent))
             {
+                var localDeclarationStatement = syntaxFacts.IsLocalDeclarationStatement(node) ? node : node.Parent;
+
                 // Check if there's only one variable being declared, otherwise following transformation
                 // would go through which isn't reasonable since we can't say the first one specifically
                 // is wanted.
                 // `var a = 1, `c = 2, d = 3`;
                 // -> `var a = 1`, c = 2, d = 3;
-                var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(node);
+                var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
                 if (variables.Count == 1)
                 {
                     var declaredVariable = variables.First();
@@ -331,10 +344,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                     // -> `b`
                     var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(declaredVariable);
-                    if (initializer != default)
+                    if (initializer != null)
                     {
                         var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
-                        if (value != default)
+                        if (value != null)
                         {
                             yield return value;
                         }
@@ -343,17 +356,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             // var `a = b`;
-            // -> `var a = b`;
-            if (syntaxFacts.IsLocalDeclarationStatement(node?.Parent))
+            if (syntaxFacts.IsVariableDeclarator(node))
             {
-                // Check if there's only one variable being declared, otherwise following transformation
-                // would go through which isn't reasonable. If there's specifically selected just one, 
-                // we don't want to return LocalDeclarationStatement that contains multiple.
-                // var a = 1, `c = 2`, d = 3;
-                // -> `var a = 1, c = 2, d = 3`;
-                if (syntaxFacts.GetVariablesOfLocalDeclarationStatement(node.Parent).Count == 1)
+                // -> `b`
+                var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(node);
+                if (initializer != null)
                 {
-                    yield return node.Parent;
+                    var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
+                    if (value != null)
+                    {
+                        yield return value;
+                    }
                 }
             }
 
@@ -363,6 +376,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(node, out _, out _, out var rightSide);
                 yield return rightSide;
+            }
+
+            // `a();`
+            // -> a()
+            if (syntaxFacts.IsExpressionStatement(node))
+            {
+                yield return syntaxFacts.GetExpressionOfExpressionStatement(node);
+            }
+
+            // `a()`;
+            // -> `a();`
+            if (syntaxFacts.IsExpressionStatement(node.Parent))
+            {
+                yield return node.Parent;
             }
         }
 
@@ -411,6 +438,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             if (syntaxFacts.IsOnForeachHeader(root, location, out var foreachStatement))
             {
                 yield return foreachStatement;
+            }
+
+            if (syntaxFacts.IsOnTypeHeader(root, location, out var typeDeclaration))
+            {
+                yield return typeDeclaration;
             }
         }
 
