@@ -2674,7 +2674,7 @@ class C
         System.Func<string, int, int> f = ($$_, _) => 1;
     }
 }",
-                MainDescription($"({FeaturesResources.parameter}) string "));
+                MainDescription($"({FeaturesResources.parameter}) string _"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2688,7 +2688,7 @@ class C
         System.Func<string, int, int> f = (_, $$_) => 1;
     }
 }",
-                MainDescription($"({FeaturesResources.parameter}) int "));
+                MainDescription($"({FeaturesResources.parameter}) int _"));
         }
 
         [WorkItem(540871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540871")]

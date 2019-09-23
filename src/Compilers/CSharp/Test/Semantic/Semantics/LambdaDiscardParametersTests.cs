@@ -83,7 +83,7 @@ public class C
             Assert.Null(model.GetSymbolInfo(underscore).Symbol);
             var symbol1 = model.GetDeclaredSymbol(underscore);
             Assert.Equal(expectedType, symbol1.Type.ToTestDisplayString());
-            Assert.Equal("", symbol1.Name);
+            Assert.Equal("_", symbol1.Name);
 
             var discard1 = (IDiscardSymbol)symbol1;
             Assert.Equal(expectedType, discard1.Type.ToTestDisplayString());

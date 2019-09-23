@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int ordinal,
                 RefKind refKind,
                 ImmutableArray<Location> locations)
-                : base(owner, parameterType, ordinal, refKind, name: "", locations)
+                : base(owner, parameterType, ordinal, refKind, name: "_", locations)
         {
         }
 
