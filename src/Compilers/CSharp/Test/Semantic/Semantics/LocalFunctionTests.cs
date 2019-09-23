@@ -407,6 +407,92 @@ class C
         }
 
         [Fact]
+        public void LocalFunctionAttribute_OnFunction()
+        {
+            const string text = @"
+using System;
+class A : Attribute { }
+
+class C
+{
+    void M()
+    {
+        [A]
+        void local() { }
+    }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (10,14): warning CS8321: The local function 'local' is declared but never used
+                //         void local() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(10, 14));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var localFunction = tree.GetRoot().DescendantNodes()
+                .OfType<LocalFunctionStatementSyntax>()
+                .Single();
+
+            var attributeList = localFunction.AttributeLists.Single();
+            Assert.Null(attributeList.Target);
+
+            var attribute = attributeList.Attributes.Single();
+            Assert.Equal("A", ((SimpleNameSyntax)attribute.Name).Identifier.ValueText);
+
+            var symbol = (IMethodSymbol)model.GetDeclaredSymbol(localFunction);
+            Assert.NotNull(symbol);
+
+            var attributes = symbol.GetAttributes();
+            // PROTOTYPE: method symbol should have the attribute
+            //Assert.Single(attributes);
+        }
+
+        [Fact]
+        public void LocalFunctionAttribute_OnReturn()
+        {
+            const string text = @"
+using System;
+class A : Attribute { }
+
+class C
+{
+    void M()
+    {
+        [return: A]
+        int local() => 42;
+    }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8321: The local function 'local' is declared but never used
+                //         int local() => 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(10, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var localFunction = tree.GetRoot().DescendantNodes()
+                .OfType<LocalFunctionStatementSyntax>()
+                .Single();
+
+            var attributeList = localFunction.AttributeLists.Single();
+            Assert.Equal(SyntaxKind.ReturnKeyword, attributeList.Target.Kind());
+
+            var attribute = attributeList.Attributes.Single();
+            Assert.Equal("A", ((SimpleNameSyntax)attribute.Name).Identifier.ValueText);
+
+            var symbol = (IMethodSymbol)model.GetDeclaredSymbol(localFunction);
+            Assert.NotNull(symbol);
+
+            var attributes = symbol.GetAttributes();
+            // PROTOTYPE: method symbol should have the attribute
+            //Assert.Single(attributes);
+        }
+
+        [Fact]
         public void UnsafeLocal()
         {
             var source = @"
