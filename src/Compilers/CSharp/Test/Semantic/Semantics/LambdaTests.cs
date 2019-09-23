@@ -16,58 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LambdaTests : CompilingTestBase
     {
-        [Fact]
-        public void DiscardParameters()
-        {
-            var comp = CreateCompilation(@"
-public class C
-{
-    public static void Main()
-    {
-        System.Func<short, int, long> f = (_, _) => 3;
-        System.Console.WriteLine(f(1, 2));
-    }
-}");
-
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3");
-        }
-
-        [Fact]
-        public void DiscardParameters_NotInScope()
-        {
-            var comp = CreateCompilation(@"
-public class C
-{
-    public static void Main()
-    {
-        System.Func<int, int, int> f = (_, _) => _;
-    }
-}");
-
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void DiscardParameters_NotADiscardWhenSingle()
-        {
-            var comp = CreateCompilation(@"
-public class C
-{
-    public static void Main()
-    {
-        System.Func<int, int, int> f = (a, _) => _;
-        System.Console.WriteLine(f(1, 2));
-
-        System.Func<int, int, int> g = (_, a) => _;
-        System.Console.WriteLine(f(1, 2));
-    }
-}");
-
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "21");
-        }
-
         [Fact, WorkItem(37456, "https://github.com/dotnet/roslyn/issues/37456")]
         public void Verify37456()
         {
@@ -3391,9 +3339,9 @@ class Program
             void verifyDiagnostics()
             {
                 comp.VerifyDiagnostics(
-                    // (8,37): error CS0100: The parameter name '_' is a duplicate
+                    // (8,37): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         Func<int, int, int> f = (_, _) => 0;
-                    Diagnostic(ErrorCode.ERR_DuplicateParamName, "_").WithArguments("_").WithLocation(8, 37));
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(8, 37));
             }
         }
 
