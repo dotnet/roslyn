@@ -1422,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static bool FallBackOnDiscard(IdentifierNameSyntax node, DiagnosticBag diagnostics)
         {
-            if (node.Identifier.ContextualKind() != SyntaxKind.UnderscoreToken)
+            if (!node.Identifier.IsUnderscoreToken())
             {
                 return false;
             }
@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsOutVarDiscardIdentifier(SimpleNameSyntax node)
         {
-            Debug.Assert(node.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
+            Debug.Assert(node.Identifier.IsUnderscoreToken());
 
             CSharpSyntaxNode parent = node.Parent;
             return (parent?.Kind() == SyntaxKind.Argument &&

@@ -114,6 +114,28 @@ public class C
         }
 
         [Fact]
+        public void DiscardParameters_UnicodeUnderscore()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public static void Main()
+    {
+        System.Func<short, short, long> f1 = (\u005f, \u005f) => 3L;
+        \u005f = 1;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,55): error CS0100: The parameter name '_' is a duplicate
+                //         System.Func<short, short, long> f1 = (\u005f, \u005f) => 3L;
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, @"\u005f").WithArguments("_").WithLocation(6, 55),
+                // (7,9): error CS0103: The name '_' does not exist in the current context
+                //         \u005f = 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, @"\u005f").WithArguments("_").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
         public void DiscardParameters_WithTypes()
         {
             var comp = CreateCompilation(@"

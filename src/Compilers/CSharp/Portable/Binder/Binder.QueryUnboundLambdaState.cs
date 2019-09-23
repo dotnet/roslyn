@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _bodyFactory = bodyFactory;
             }
 
-            public override bool UnderscoreMeansDiscard { get { return false; } }
             public override string ParameterName(int index) { return _parameters[index].Name; }
+            public override bool ParameterIsDiscard(int index) { return false; }
             public override bool HasSignature { get { return true; } }
             public override bool HasExplicitlyTypedParameterList { get { return false; } }
             public override int ParameterCount { get { return _parameters.Length; } }
