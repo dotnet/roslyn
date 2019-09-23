@@ -56,7 +56,6 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             _favoritesByTypeName = favoritesByTypeName;
         }
 
-
         internal DkmClrModuleInstance DefaultModule
         {
             get { return _defaultModule; }

@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
 
                 // Get the favorites information if it is supported.
+                // NOTE: Using a Dictionary since Hashset is not available in .net 2.0
                 Dictionary<string, object> favoritesMemberNames = null;
                 if (supportsFavorites && favoritesInfo?.Favorites != null)
                 {

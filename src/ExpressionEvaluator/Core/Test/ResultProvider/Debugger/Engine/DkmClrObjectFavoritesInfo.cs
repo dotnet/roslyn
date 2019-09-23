@@ -22,5 +22,5 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         public string DisplayString { get; }
         public string SimpleDisplayString { get; }
         public ReadOnlyCollection<string> Favorites { get; }
-}
+    }
 }
