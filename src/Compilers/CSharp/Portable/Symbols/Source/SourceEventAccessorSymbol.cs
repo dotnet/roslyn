@@ -75,6 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _explicitInterfaceImplementations; }
         }
 
+        public sealed override bool AreLocalsZeroed
+            => !_event.HasSkipLocalsInitAttribute && base.AreLocalsZeroed;
+
         public SourceEventSymbol AssociatedEvent
         {
             get { return _event; }

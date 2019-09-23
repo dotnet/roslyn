@@ -10088,6 +10088,20 @@ class C_skip
             x = x + x + x;
         }
     }
+
+    event System.EventHandler E
+    {
+        add
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+        remove
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
 }
 
 class C_init
@@ -10121,6 +10135,20 @@ class C_init
             x = x + x + x;
         }
     }
+
+    event System.EventHandler E
+    {
+        add
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+        remove
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
 }
 ";
 
@@ -10134,6 +10162,10 @@ class C_init
             Assert.False(comp.HasLocalsInit("C_skip.M"));
             Assert.True(comp.HasLocalsInit("C_init.C2.M2"));
             Assert.False(comp.HasLocalsInit("C_skip.C2.M2"));
+            Assert.True(comp.HasLocalsInit("C_init.E.add"));
+            Assert.True(comp.HasLocalsInit("C_init.E.remove"));
+            Assert.False(comp.HasLocalsInit("C_skip.E.add"));
+            Assert.False(comp.HasLocalsInit("C_skip.E.remove"));
         }
 
         [Fact]
@@ -10449,6 +10481,72 @@ class C
             var comp = CompileAndVerify(source, references: new[] { metadata_comp.EmitToImageReference() });
 
             Assert.True(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitOnEventAccessors()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInit]
+    event System.EventHandler E
+    {
+        add
+        {
+            int x = 1;
+            x += x + 1;
+        }
+        remove
+        {
+            int x = 1;
+            x += x + 1;
+        }
+    }
+
+    event System.EventHandler E2
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInit]
+        add
+        {
+            int x = 1;
+            x += x + 1;
+        }
+        remove
+        {
+            int x = 1;
+            x += x + 1;
+        }
+    }
+
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            const string il = @"
+{
+  // Code size       10 (0xa)
+  .maxstack  3
+  .locals (int V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.1
+  IL_0006:  add
+  IL_0007:  add
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}";
+            verifier.VerifyIL("C.E.add", il);
+            verifier.VerifyIL("C.E.remove", il);
         }
 
         #endregion
