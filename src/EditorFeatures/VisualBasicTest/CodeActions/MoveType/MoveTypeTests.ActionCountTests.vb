@@ -17,6 +17,109 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function MoveType_WithDefinitionSelected() As Task
+            Dim code =
+<File>
+[|Class Class1|]
+End Class
+</File>.ConvertTestSourceTag()
+
+            'Fixes offered will be rename type to match file, rename file to match type.
+            Await TestActionCountAsync(code, count:=2)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function MoveType_WithDefinitionAndAttributeSelected() As Task
+            Dim code =
+"[|<Obsolete>
+Class Class1
+|]
+End Class"
+
+            'Fixes offered will be rename type to match file, rename file to match type.
+            Await TestActionCountAsync(code, count:=2)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function MoveType_WithDefinitionAndCommentSelected() As Task
+            Dim code =
+"[|''' <summary>
+''' 
+''' </summary>
+Class Class1
+|]
+End Class"
+
+            'Fixes offered will be rename type to match file, rename file to match type.
+            Await TestActionCountAsync(code, count:=2)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function MoveType_WithDefinitionAndAttributeAndCommentSelected() As Task
+            Dim code =
+"[|''' <summary>
+''' 
+''' </summary>
+<Obsolete>
+Class Class1
+|]
+End Class"
+
+            'Fixes offered will be rename type to match file, rename file to match type.
+            Await TestActionCountAsync(code, count:=2)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function MoveType_InsideClassSelected() As Task
+            Dim code =
+<File>
+Class Class1
+[|
+    Sub Something()
+    End Sub|]
+End Class
+</File>.ConvertTestSourceTag()
+
+            Await TestActionCountAsync(code, count:=0)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function MoveType_WithAttributeSelected() As Task
+            Dim code =
+"[|<Obsolete>|]
+Class Class1
+End Class"
+
+            Await TestActionCountAsync(code, count:=0)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function MoveType_WithCommentSelected() As Task
+            Dim code =
+"[|''' <summary>
+''' 
+''' </summary>|]
+Class Class1
+End Class"
+
+            Await TestActionCountAsync(code, count:=0)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function MoveType_WithAttributeAndCommentSelected() As Task
+            Dim code =
+"[|''' <summary>
+''' 
+''' </summary>
+<Obsolete>|]
+Class Class1
+End Class"
+
+            Await TestActionCountAsync(code, count:=0)
+        End Function
+
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
         Public Async Function MoveType_ActionCounts_MoveOnly() As Task
             Dim code =
 <File>
