@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         // For comparison, `x as T???y` is treated as `x as T ?? ? y`
         // rather than `x as T? ?? y`.
         [Fact]
-        public void Equals()
+        public void TestEquals()
         {
             UsingNode(
                 "o = o!==null",

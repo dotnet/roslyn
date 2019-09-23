@@ -296,22 +296,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     case CompletionReason.ClientDisconnect:
                         // Have to assume the worst here which is user pressing Ctrl+C at the command line and
                         // hence wanting all compilation to end.
-                        _diagnosticListener.ConnectionRudelyEnded();
                         shutdown = true;
                         break;
                     case CompletionReason.ClientException:
                     case CompletionReason.ClientShutdownRequest:
-                        _diagnosticListener.ConnectionRudelyEnded();
                         shutdown = true;
                         break;
                     default:
                         throw new InvalidOperationException($"Unexpected enum value {connectionData.CompletionReason}");
                 }
-            }
 
-            if (processedCount > 0)
-            {
-                _diagnosticListener.ConnectionCompleted(processedCount);
+                _diagnosticListener.ConnectionCompleted(connectionData.CompletionReason);
             }
 
             if (shutdown)

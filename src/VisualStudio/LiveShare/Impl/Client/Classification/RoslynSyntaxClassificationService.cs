@@ -62,9 +62,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
                 {
                     _threadingContext.JoinableTaskFactory.Run(async () =>
                     {
-                        await AddRemoteClassificationsAsync(LexicalClassificationsHandler.LexicalClassificationsMethodName, document.FilePath, text, textSpan, result, cancellationToken).ConfigureAwait(false);
+                        await AddRemoteClassificationsAsync(LexicalClassificationsHandler.LexicalClassificationsMethodName, document.FilePath, text, textSpan, result.Add, cancellationToken).ConfigureAwait(false);
                     });
                 }
+            }
+            else if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote) ||
+                     ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
+            {
+                // do nothing here so that existing RoslynSyntacticTagger return nothing in this mode
+                return;
             }
             else
             {
@@ -78,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
             _threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 var sourceText = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                await AddRemoteClassificationsAsync(RoslynMethods.ClassificationsName, semanticModel.SyntaxTree.FilePath, sourceText, textSpan, result, cancellationToken).ConfigureAwait(false);
+                await AddRemoteClassificationsAsync(RoslynMethods.ClassificationsName, semanticModel.SyntaxTree.FilePath, sourceText, textSpan, result.Add, cancellationToken).ConfigureAwait(false);
             });
         }
 
@@ -92,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
             }
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            await AddRemoteClassificationsAsync(RoslynMethods.ClassificationsName, document.FilePath, sourceText, textSpan, result, cancellationToken).ConfigureAwait(false);
+            await AddRemoteClassificationsAsync(RoslynMethods.ClassificationsName, document.FilePath, sourceText, textSpan, result.Add, cancellationToken).ConfigureAwait(false);
         }
 
         public void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
@@ -111,9 +117,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
                     _threadingContext.JoinableTaskFactory.Run(async () =>
                     {
                         var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        await AddRemoteClassificationsAsync(SyntaxClassificationsHandler.SyntaxClassificationsMethodName, syntaxTree.FilePath, sourceText, textSpan, result, cancellationToken).ConfigureAwait(false);
+                        await AddRemoteClassificationsAsync(SyntaxClassificationsHandler.SyntaxClassificationsMethodName, syntaxTree.FilePath, sourceText, textSpan, result.Add, cancellationToken).ConfigureAwait(false);
                     });
                 }
+            }
+            else if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote) ||
+                     ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
+            {
+                // do nothing here so that existing RoslynSyntacticTagger return nothing in this mode
+                return;
             }
             else
             {
@@ -137,17 +149,25 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
         /// Only runs the experiment if the server provides the capability
         /// and the experiment flight is enabled.
         /// </summary>
-        private bool ShouldRunExperiment(string experimentName)
+        public bool ShouldRunExperiment(string experimentName)
         {
-            if (_roslynLspClientServiceFactory.ServerCapabilities?.Experimental is RoslynExperimentalCapabilities experimentalCapabilities)
+            return ShouldRunExperiment(_roslynLspClientServiceFactory, _experimentationService, experimentName);
+        }
+
+        public static bool ShouldRunExperiment(
+            AbstractLspClientServiceFactory lspClientServiceFactory,
+            IExperimentationService experimentationService,
+            string experimentName)
+        {
+            if (lspClientServiceFactory.ServerCapabilities?.Experimental is RoslynExperimentalCapabilities experimentalCapabilities)
             {
-                return experimentalCapabilities.SyntacticLspProvider && _experimentationService.IsExperimentEnabled(experimentName);
+                return experimentalCapabilities.SyntacticLspProvider && experimentationService.IsExperimentEnabled(experimentName);
             }
 
             return false;
         }
 
-        private async Task AddRemoteClassificationsAsync(string classificationsType, string filePath, SourceText sourceText, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public async Task AddRemoteClassificationsAsync(string classificationsServiceName, string filePath, SourceText sourceText, TextSpan textSpan, Action<ClassifiedSpan> tagAdder, CancellationToken cancellationToken)
         {
             var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
@@ -155,9 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
                 return;
             }
 
-            // TODO - Move to roslyn client initialization once liveshare initialization is fixed.
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/964288
-            await _roslynLspClientServiceFactory.EnsureInitialized(cancellationToken).ConfigureAwait(false);
+            await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
 
             var classificationParams = new ClassificationParams
             {
@@ -165,7 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
                 Range = ProtocolConversions.TextSpanToRange(textSpan, sourceText)
             };
 
-            var request = new LS.LspRequest<ClassificationParams, ClassificationSpan[]>(classificationsType);
+            var request = new LS.LspRequest<ClassificationParams, ClassificationSpan[]>(classificationsServiceName);
             var classificationSpans = await lspClient.RequestAsync(request, classificationParams, cancellationToken).ConfigureAwait(false);
             if (classificationSpans == null)
             {
@@ -185,27 +203,21 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
                 var span = ProtocolConversions.RangeToTextSpan(classificationSpan.Range, sourceText);
                 if (span.End <= sourceText.Length)
                 {
-                    result.Add(new ClassifiedSpan(classification, span));
+                    tagAdder(new ClassifiedSpan(classification, span));
                 }
             }
         }
 
-        private class RequestLatencyTracker : IDisposable
+        public Task EnsureInitializationAsync(CancellationToken cancellationToken)
         {
-            private readonly int _tick;
-            private readonly SyntacticLspLogger.RequestType _requestType;
+            return EnsureInitializationAsync(_roslynLspClientServiceFactory, cancellationToken);
+        }
 
-            public RequestLatencyTracker(SyntacticLspLogger.RequestType requestType)
-            {
-                _tick = Environment.TickCount;
-                _requestType = requestType;
-            }
-
-            public void Dispose()
-            {
-                var delta = Environment.TickCount - _tick;
-                SyntacticLspLogger.LogRequestLatency(_requestType, delta);
-            }
+        public static async Task EnsureInitializationAsync(AbstractLspClientServiceFactory lspClientServiceFactory, CancellationToken cancellationToken)
+        {
+            // TODO - Move to roslyn client initialization once liveshare initialization is fixed.
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/964288
+            await lspClientServiceFactory.EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

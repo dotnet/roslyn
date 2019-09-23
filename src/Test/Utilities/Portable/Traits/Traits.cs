@@ -239,6 +239,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Peek = nameof(Peek);
             public const string Progression = nameof(Progression);
             public const string ProjectSystemShims = nameof(ProjectSystemShims);
+            public const string SarifErrorLogging = nameof(SarifErrorLogging);
             public const string QuickInfo = nameof(QuickInfo);
             public const string RQName = nameof(RQName);
             public const string ReduceTokens = nameof(ReduceTokens);

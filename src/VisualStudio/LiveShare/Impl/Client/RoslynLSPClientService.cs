@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// and made private once LiveShare fixes the race in client creation.
         /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/964288
         /// </summary>
-        public async Task EnsureInitialized(CancellationToken cancellationToken)
+        public async Task EnsureInitializedAsync(CancellationToken cancellationToken)
         {
             if (ActiveLanguageServerClient == null)
             {

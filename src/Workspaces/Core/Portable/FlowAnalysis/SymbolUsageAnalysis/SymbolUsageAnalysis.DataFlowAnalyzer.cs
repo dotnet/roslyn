@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -118,18 +120,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 BasicBlock basicBlock,
                 BasicBlockAnalysisData currentBlockAnalysisData,
                 CancellationToken cancellationToken)
-                => AnalyzeBranch(basicBlock, currentBlockAnalysisData, cancellationToken);
+                => AnalyzeBranch(basicBlock.FallThroughSuccessor, basicBlock, currentBlockAnalysisData, cancellationToken);
 
             public override (BasicBlockAnalysisData fallThroughSuccessorData, BasicBlockAnalysisData conditionalSuccessorData) AnalyzeConditionalBranch(
                 BasicBlock basicBlock,
                 BasicBlockAnalysisData currentAnalysisData,
                 CancellationToken cancellationToken)
             {
-                var resultAnalysisData = AnalyzeBranch(basicBlock, currentAnalysisData, cancellationToken);
-                return (resultAnalysisData, resultAnalysisData);
+                var newCurrentAnalysisData = AnalyzeBranch(basicBlock.FallThroughSuccessor, basicBlock, currentAnalysisData, cancellationToken);
+
+                // Ensure that we use different instances of block analysis data for fall through successor and conditional successor.
+                _analysisData.AdditionalConditionalBranchAnalysisData.SetAnalysisDataFrom(newCurrentAnalysisData);
+                var fallThroughSuccessorData = _analysisData.AdditionalConditionalBranchAnalysisData;
+
+                var conditionalSuccessorData = AnalyzeBranch(basicBlock.ConditionalSuccessor, basicBlock, currentAnalysisData, cancellationToken);
+
+                return (fallThroughSuccessorData, conditionalSuccessorData);
             }
 
             private BasicBlockAnalysisData AnalyzeBranch(
+                ControlFlowBranch branch,
                 BasicBlock basicBlock,
                 BasicBlockAnalysisData currentBlockAnalysisData,
                 CancellationToken cancellationToken)
@@ -140,7 +150,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 // Analyze the branch value
                 var operations = SpecializedCollections.SingletonEnumerable(basicBlock.BranchValue);
                 Walker.AnalyzeOperationsAndUpdateData(operations, _analysisData, cancellationToken);
+                ProcessOutOfScopeLocals();
                 return _analysisData.CurrentBlockAnalysisData;
+
+                // Local functions
+                void ProcessOutOfScopeLocals()
+                {
+                    if (branch == null)
+                    {
+                        return;
+                    }
+
+                    if (basicBlock.EnclosingRegion.Kind == ControlFlowRegionKind.Catch &&
+                        !branch.FinallyRegions.IsEmpty)
+                    {
+                        // Bail out for branches from the catch block
+                        // as the locals are still accessible in the finally region.
+                        return;
+                    }
+
+                    foreach (var region in branch.LeavingRegions)
+                    {
+                        foreach (var local in region.Locals)
+                        {
+                            _analysisData.CurrentBlockAnalysisData.Clear(local);
+                        }
+                    }
+                }
             }
 
             public override BasicBlockAnalysisData GetCurrentAnalysisData(BasicBlock basicBlock)
@@ -159,7 +195,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 BasicBlockAnalysisData analysisData1,
                 BasicBlockAnalysisData analysisData2,
                 CancellationToken cancellationToken)
-                => BasicBlockAnalysisData.Merge(analysisData1, analysisData2, GetEmptyAnalysisData);
+                => BasicBlockAnalysisData.Merge(analysisData1, analysisData2, _analysisData.TrackAllocatedBlockAnalysisData);
         }
     }
 }

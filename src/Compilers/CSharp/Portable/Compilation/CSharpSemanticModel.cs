@@ -3206,6 +3206,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    {
+                        var indexerAccess = (BoundIndexOrRangePatternIndexerAccess)boundNode;
+
+                        resultKind = indexerAccess.ResultKind;
+
+                        // The only time a BoundIndexOrRangePatternIndexerAccess is created, overload resolution succeeded
+                        // and returned only 1 result
+                        Debug.Assert(indexerAccess.PatternSymbol is object);
+                        symbols = ImmutableArray.Create<Symbol>(indexerAccess.PatternSymbol);
+                    }
+                    break;
+
                 case BoundKind.EventAssignmentOperator:
                     var eventAssignment = (BoundEventAssignmentOperator)boundNode;
                     isDynamic = eventAssignment.IsDynamic;
@@ -3221,6 +3234,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols = ImmutableArray.Create<Symbol>(methodSymbol);
                         resultKind = eventAssignment.ResultKind;
                     }
+                    break;
+
+                case BoundKind.EventAccess when boundNodeForSyntacticParent is BoundEventAssignmentOperator { ResultKind: LookupResultKind.Viable } parentOperator &&
+                                                boundNode.ExpressionSymbol is Symbol accessSymbol &&
+                                                boundNode != parentOperator.Argument &&
+                                                parentOperator.Event.Equals(accessSymbol, TypeCompareKind.AllNullableIgnoreOptions):
+                    // When we're looking at the left-hand side of an event assignment, we synthesize a BoundEventAccess node. This node does not have
+                    // nullability information, however, so if we're in that case then we need to grab the event symbol from the parent event assignment
+                    // which does have the nullability-reinfered symbol
+                    symbols = ImmutableArray.Create<Symbol>(parentOperator.Event);
+                    resultKind = parentOperator.ResultKind;
                     break;
 
                 case BoundKind.Conversion:

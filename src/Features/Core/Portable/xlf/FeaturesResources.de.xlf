@@ -77,9 +77,9 @@
         <target state="translated">Vermeiden Sie unnötige Wertzuweisungen in Ihrem Code, weil diese wahrscheinlich auf redundante Wertberechnungen hinweisen. Wenn die Wertberechnung nicht redundant ist und die Zuweisung beibehalten werden soll, ändern Sie das Zuweisungsziel in eine lokale Variable, deren Name mit einem Unterstrich beginnt, dem optional eine Zahl angefügt wird. Beispiel: "_", "_1", "_2" usw. Diese werden als spezielle Symbolnamen für Ausschussvariablen behandelt.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
-        <source>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">Vermeiden Sie nicht verwendete Parameter in Ihrem Code. Wenn der Parameter nicht entfernt werden kann, ändern Sie dessen Namen so, dass er mit einem Unterstrich beginnt, dem optional eine Zahl angefügt wird. Beispiel: "_", "_1", "_2" usw. Diese werden als spezielle Symbolnamen für Ausschussparameter behandelt.</target>
+      <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
+        <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">

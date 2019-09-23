@@ -112,6 +112,11 @@
         <target state="translated">'ref struct' を作成します</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Pass_in_captured_variables_as_arguments">
+        <source>Pass in captured variables as arguments</source>
+        <target state="new">Pass in captured variables as arguments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">不要なキャストを削除する</target>
@@ -137,11 +142,6 @@
         <target state="translated">不要な using の削除</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_Usings">
-        <source>&amp;Sort Usings</source>
-        <target state="translated">using の並べ替え(&amp;S)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">アクセシビリティ修飾子を並べ替える</target>
@@ -155,6 +155,16 @@
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
         <target state="translated">'switch' 式を使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
+        <source>Warning: Inlining temporary into conditional method call.</source>
+        <target state="new">Warning: Inlining temporary into conditional method call.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
+        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
+        <target state="new">Warning: Adding parameters to local function declaration may produce invalid code.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -350,11 +360,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">using の整理</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_and_Sort_Usings">
-        <source>R&amp;emove and Sort Usings</source>
-        <target state="translated">Using の削除と並び替え(&amp;E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_await">
