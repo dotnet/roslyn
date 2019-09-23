@@ -111,6 +111,10 @@
   <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
+  <!-- The implicit collection in an object or collection initializer expression. -->
+  <Node Name="BoundObjectOrCollectionValuePlaceholder" Base="BoundValuePlaceholderBase">
+  </Node>
+
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
@@ -1604,7 +1608,8 @@
   <AbstractNode Name="BoundObjectInitializerExpressionBase" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
+    <!-- An expression placeholder value representing the initialized object or collection. -->
+    <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder" Null="disallow" />
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </AbstractNode>
 
