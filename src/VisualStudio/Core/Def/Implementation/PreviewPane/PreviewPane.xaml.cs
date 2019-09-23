@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private readonly IVsUIShell _uiShell;
 
         private bool _isExpanded;
-        private double _heightForThreeLineTitle;
+        private readonly double _heightForThreeLineTitle;
         private DifferenceViewerPreview _differenceViewerPreview;
 
         public PreviewPane(
@@ -329,8 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             BrowserHelper.StartBrowser(e.Uri);
             e.Handled = true;
 
-            var hyperlink = sender as Hyperlink;
-            if (hyperlink == null)
+            if (!(sender is Hyperlink hyperlink))
             {
                 return;
             }

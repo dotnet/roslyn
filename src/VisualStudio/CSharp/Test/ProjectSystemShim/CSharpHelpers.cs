@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
@@ -133,7 +134,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         private class MockCSharpProjectRoot : ICSharpProjectRoot
         {
-            private IVsHierarchy _hierarchy;
+            private readonly IVsHierarchy _hierarchy;
 
             public MockCSharpProjectRoot(IVsHierarchy hierarchy)
             {

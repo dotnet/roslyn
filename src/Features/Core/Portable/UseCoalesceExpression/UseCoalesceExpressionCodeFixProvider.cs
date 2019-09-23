@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
                     var coalesceExpression = GetCoalesceExpression(
                         syntaxFacts, g, whenPart, whenTrue, conditionalPartLow,
-                        currentWhenTrue, currentWhenFalse);
+                        currentWhenTrue, currentWhenFalse)
+                        .WithTrailingTrivia(conditionalExpression.GetTrailingTrivia());
 
                     if (semanticFacts.IsInExpressionTree(
                             semanticModel, conditionalExpression, expressionTypeOpt, cancellationToken))

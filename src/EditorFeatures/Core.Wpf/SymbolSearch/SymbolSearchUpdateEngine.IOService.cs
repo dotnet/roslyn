@@ -25,11 +25,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             public void WriteAndFlushAllBytes(string path, byte[] bytes)
             {
-                using (var fileStream = new FileStream(path, FileMode.Create))
-                {
-                    fileStream.Write(bytes, 0, bytes.Length);
-                    fileStream.Flush(flushToDisk: true);
-                }
+                using var fileStream = new FileStream(path, FileMode.Create);
+                fileStream.Write(bytes, 0, bytes.Length);
+                fileStream.Flush(flushToDisk: true);
             }
         }
     }

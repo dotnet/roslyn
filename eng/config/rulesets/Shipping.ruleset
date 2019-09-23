@@ -146,9 +146,7 @@
   </Rules>
   <Rules AnalyzerId="xunit.analyzers" RuleNamespace="Xunit.Analyzers">
     <Rule Id="xUnit1004" Action="None" /> <!-- allow skipped tests -->
-    <Rule Id="xUnit1024" Action="None" /> <!-- seems broken: https://github.com/xunit/xunit/issues/1361 -->
     <Rule Id="xUnit2000" Action="None" /> <!-- "literal or constant value should be first in Assert.Equal" is a valid assert, but very noisy. Will do the refactoring later -->
-    <Rule Id="xUnit2002" Action="None" /> <!-- "do not use Assert.NonNull on struct" is a valid assert, but will require a codebase audit to turn on -->
     <Rule Id="xUnit2003" Action="None" /> <!-- "do not use Assert.Equal for null value" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2004" Action="None" /> <!-- "do not use Assert.Equal for boolean conditions" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2006" Action="None" /> <!-- "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now -->
@@ -158,7 +156,6 @@
     <Rule Id="xUnit2013" Action="None" /> <!-- "do not use Assert.Equal() to check for collection size" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2015" Action="None" /> <!-- "do not use typeof() expression to check the exception type. " is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2017" Action="None" /> <!-- "do not use Contains() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
-    <Rule Id="xUnit2018" Action="None" /> <!-- "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now -->
   </Rules>
   <Rules AnalyzerId="Microsoft.VisualStudio.SDK.Analyzers" RuleNamespace="Microsoft.VisualStudio.SDK.Analyzers">
     <!-- https://github.com/Microsoft/VSSDK-Analyzers/blob/master/doc/index.md -->

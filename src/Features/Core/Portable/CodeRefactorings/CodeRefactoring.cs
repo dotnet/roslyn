@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -14,16 +15,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public CodeRefactoringProvider Provider { get; }
 
         /// <summary>
-        /// List of possible actions that can be used to transform the code.
+        /// List of tuples of possible actions that can be used to transform the code the TextSpan within the original document they're applicable to.
         /// </summary>
-        public ImmutableArray<CodeAction> Actions { get; }
+        /// <remarks>
+        /// applicableToSpan should represent a logical section within the original document that the action is 
+        /// applicable to. It doesn't have to precisely represent the exact <see cref="TextSpan"/> that will get changed.
+        /// </remarks>
+        public ImmutableArray<(CodeAction action, TextSpan? applicableToSpan)> CodeActions { get; }
 
-        public CodeRefactoring(CodeRefactoringProvider provider, ImmutableArray<CodeAction> actions)
+        public CodeRefactoring(CodeRefactoringProvider provider, ImmutableArray<(CodeAction, TextSpan?)> actions)
         {
             Provider = provider;
-            Actions = actions.NullToEmpty();
+            CodeActions = actions.NullToEmpty();
 
-            if (Actions.Length == 0)
+            if (CodeActions.Length == 0)
             {
                 throw new ArgumentException(FeaturesResources.Actions_can_not_be_empty, nameof(actions));
             }

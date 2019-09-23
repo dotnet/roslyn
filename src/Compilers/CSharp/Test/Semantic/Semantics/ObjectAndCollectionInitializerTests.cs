@@ -1194,8 +1194,10 @@ class MemberInitializerTest
 }
 ";
             string expectedOperationTree = @"
-IInvalidOperation (OperationKind.Invalid, Type: I, IsInvalid) (Syntax: 'new I() { }')
-  Children(0)
+    IInvalidOperation (OperationKind.Invalid, Type: I, IsInvalid) (Syntax: 'new I() { }')
+      Children(1):
+          IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: I, IsInvalid) (Syntax: '{ }')
+            Initializers(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0144: Cannot create an instance of the abstract class or interface 'I'
@@ -3933,6 +3935,153 @@ class X
                 Assert.Equal("System.Collections.Generic.List<System.String>", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString());
                 Assert.Null(semanticModel.GetTypeInfo(name).Type);
             }
+        }
+
+        [WorkItem(27060, "https://github.com/dotnet/roslyn/issues/27060")]
+        [Fact]
+        public void GetTypeInfoForBadExpression_01()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        I i = new I() { 1, 2 }
+    }
+}
+
+interface I : IEnumerable<int>
+{
+    void Add(int i);
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,15): error CS0144: Cannot create an instance of the abstract class or interface 'I'
+                //         I i = new I() { 1, 2 }
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { 1, 2 }").WithArguments("I").WithLocation(8, 15),
+                // (8,31): error CS1002: ; expected
+                //         I i = new I() { 1, 2 }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 31)
+                );
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
+@"
+    IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'void M() ... }')
+      BlockBody: 
+        IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+          Locals: Local_1: I i
+          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'I i = new I() { 1, 2 }')
+            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'I i = new I() { 1, 2 }')
+              Declarators:
+                  IVariableDeclaratorOperation (Symbol: I i) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i = new I() { 1, 2 }')
+                    Initializer: 
+                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new I() { 1, 2 }')
+                        IInvalidOperation (OperationKind.Invalid, Type: I, IsInvalid) (Syntax: 'new I() { 1, 2 }')
+                          Children(1):
+                              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: I, IsInvalid) (Syntax: '{ 1, 2 }')
+                                Initializers(2):
+                                    IInvocationOperation (virtual void I.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+                                      Instance Receiver: 
+                                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: I, IsInvalid, IsImplicit) (Syntax: 'I')
+                                      Arguments(1):
+                                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    IInvocationOperation (virtual void I.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '2')
+                                      Instance Receiver: 
+                                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: I, IsInvalid, IsImplicit) (Syntax: 'I')
+                                      Arguments(1):
+                                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '2')
+                                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+                                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Initializer: 
+                null
+      ExpressionBody: 
+        null
+");
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(n => n.ToString() == "2");
+            var node = nodes.First();
+            var typeInfo = semanticModel.GetTypeInfo(node);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.ConvertedType.SpecialType);
+        }
+
+        [WorkItem(27060, "https://github.com/dotnet/roslyn/issues/27060")]
+        [Fact]
+        public void GetTypeInfoForBadExpression_02()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var x = new I[] { 1, 2 }
+    }
+}
+
+interface I : IEnumerable<int>
+{
+    void Add(int i);
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,27): error CS0029: Cannot implicitly convert type 'int' to 'I'
+                //         var x = new I[] { 1, 2 }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "I").WithLocation(8, 27),
+                // (8,30): error CS0029: Cannot implicitly convert type 'int' to 'I'
+                //         var x = new I[] { 1, 2 }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "I").WithLocation(8, 30),
+                // (8,33): error CS1002: ; expected
+                //         var x = new I[] { 1, 2 }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 33)
+                );
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
+@"
+    IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'void M() ... }')
+      BlockBody: 
+        IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+          Locals: Local_1: I[] x
+          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var x = new I[] { 1, 2 }')
+            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var x = new I[] { 1, 2 }')
+              Declarators:
+                  IVariableDeclaratorOperation (Symbol: I[] x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = new I[] { 1, 2 }')
+                    Initializer: 
+                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new I[] { 1, 2 }')
+                        IArrayCreationOperation (OperationKind.ArrayCreation, Type: I[], IsInvalid) (Syntax: 'new I[] { 1, 2 }')
+                          Dimension Sizes(1):
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid, IsImplicit) (Syntax: 'new I[] { 1, 2 }')
+                          Initializer: 
+                            IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ 1, 2 }')
+                              Element Values(2):
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: I, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand: 
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: I, IsInvalid, IsImplicit) (Syntax: '2')
+                                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand: 
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+              Initializer: 
+                null
+      ExpressionBody: 
+        null
+");
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(n => n.ToString() == "2");
+            var node = nodes.First();
+            var typeInfo = semanticModel.GetTypeInfo(node);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            Assert.Equal("I", typeInfo.ConvertedType.ToDisplayString());
         }
     }
 }

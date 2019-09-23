@@ -1328,7 +1328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Function IsDerivedInterface(
                         base As NamedTypeSymbol,
                         derived As NamedTypeSymbol,
-                        basesBeingResolved As ConsList(Of Symbol),
+                        basesBeingResolved As BasesBeingResolved,
                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             ) As Boolean
 
@@ -1340,7 +1340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' if we are not resolving bases we can just go through AllInterfaces list
-                If basesBeingResolved Is Nothing Then
+                If basesBeingResolved.InheritsBeingResolvedOpt Is Nothing Then
                     For Each i In derived.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
                         If TypeSymbol.Equals(i, base, TypeCompareKind.ConsiderEverything) Then
                             Return True
@@ -1357,7 +1357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Function IsDerivedInterface(
                         base As NamedTypeSymbol,
                         derived As NamedTypeSymbol,
-                        basesBeingResolved As ConsList(Of Symbol),
+                        basesBeingResolved As BasesBeingResolved,
                         verified As HashSet(Of Symbol),
                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             ) As Boolean
@@ -1481,7 +1481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             )
                 Debug.Assert(lookupResult.IsClear)
 
-                Dim basesBeingResolved As ConsList(Of Symbol) = binder.BasesBeingResolved()
+                Dim basesBeingResolved As BasesBeingResolved = binder.BasesBeingResolved()
 
                 Dim isEventsOnlySpecified As Boolean = (options And LookupOptions.EventsOnly) <> 0
 
@@ -1705,7 +1705,7 @@ ExitForFor:
             Private Shared Sub MergeInterfaceLookupResults(
                                         knownResult As LookupResult,
                                         newResult As LookupResult,
-                                        BasesBeingResolved As ConsList(Of Symbol),
+                                        BasesBeingResolved As BasesBeingResolved,
                                         leaveEventsOnly As Boolean?,
                                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
@@ -1859,7 +1859,7 @@ ExitForFor:
 
                     Dim descendants As ImmutableHashSet(Of NamedTypeSymbol)
 
-                    If binder.BasesBeingResolved Is Nothing Then
+                    If binder.BasesBeingResolved.InheritsBeingResolvedOpt Is Nothing Then
                         descendants = Nothing
                     Else
                         ' We need to watch out for cycles in inheritance chain since they are not broken while bases are being resolved.

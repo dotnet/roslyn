@@ -471,11 +471,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // error CS1978: Cannot use an expression of type '__arglist' as an argument to a dynamically dispatched operation
                         Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArg, arg.Syntax, "__arglist");
                     }
-                    else if (arg.IsLiteralDefault())
-                    {
-                        Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArgDefaultLiteral, arg.Syntax);
-                        hasErrors = true;
-                    }
                     else
                     {
                         // Lambdas,anonymous methods and method groups are the typeless expressions that
@@ -966,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 _ = BindToNaturalType(argument, diagnostics);
                                 break;
                             case BoundUnconvertedSwitchExpression { Type: { } naturalType } switchExpr:
-                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), diagnostics);
+                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), targetTyped: false, diagnostics);
                                 break;
                         }
                     }

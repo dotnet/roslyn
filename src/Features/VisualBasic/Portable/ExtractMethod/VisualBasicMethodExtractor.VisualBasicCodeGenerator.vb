@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     refKind:=RefKind.None,
                     explicitInterfaceImplementations:=Nothing,
                     name:=_methodName.ToString(),
-                    typeParameters:=CreateMethodTypeParameters(cancellationToken),
+                    typeParameters:=CreateMethodTypeParameters(),
                     parameters:=CreateMethodParameters(),
                     statements:=statements.Cast(Of SyntaxNode).ToImmutableArray())
 
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 statements = postProcessor.MergeDeclarationStatements(statements)
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken)
                 statements = Await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(False)
-                statements = AddReturnIfUnreachable(statements, cancellationToken)
+                statements = AddReturnIfUnreachable(statements)
 
                 Return statements
             End Function

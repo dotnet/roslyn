@@ -1,1 +1,2 @@
-
+*REMOVED*Microsoft.CodeAnalysis.TextDocument.Project.set -> void
+*REMOVED*Microsoft.CodeAnalysis.TextDocument.TextDocument() -> void

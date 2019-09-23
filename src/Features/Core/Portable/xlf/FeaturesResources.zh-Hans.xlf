@@ -7,6 +7,11 @@
         <target state="translated">添加成员名称</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_null_checks_for_all_parameters">
+        <source>Add null checks for all parameters</source>
+        <target state="new">Add null checks for all parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
         <target state="translated">将可选参数添加到构造函数</target>
@@ -72,9 +77,9 @@
         <target state="translated">请避免在代码中使用不必要的值赋值，因为这些值极有可能指示冗余的值计算。如果值计算不是冗余的，并且打算保留该赋值，请将分配目标更改为名称以下划线开头或在下划线后面跟一个整数的局部变量(如 "_"、"_1"、"_2" 等)。这些被视为特殊丢弃符号名。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
-        <source>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">请避免在代码中使用未使用的参数。如果无法删除该参数，请更改其名称，使其以下划线开头，也可在下划线后面跟一个整数(如 "_"、"_1"、"_2" 等)。这些被视为特殊丢弃符号名。</target>
+      <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
+        <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">

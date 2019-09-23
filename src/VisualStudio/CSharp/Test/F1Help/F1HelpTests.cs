@@ -17,14 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
     {
         private async Task TestAsync(string markup, string expectedText)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
-            {
-                var caret = workspace.Documents.First().CursorPosition;
+            using var workspace = TestWorkspace.CreateCSharp(markup);
+            var caret = workspace.Documents.First().CursorPosition;
 
-                var service = new CSharpHelpContextService();
-                var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
-                Assert.Equal(expectedText, actualText);
-            }
+            var service = new CSharpHelpContextService();
+            var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
+            Assert.Equal(expectedText, actualText);
         }
 
         private async Task Test_KeywordAsync(string markup, string expectedText)

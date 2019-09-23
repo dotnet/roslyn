@@ -36,14 +36,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             BrowserHelper.StartBrowser(e.Uri);
             e.Handled = true;
 
-            var hyperlink = sender as Hyperlink;
-            if (hyperlink == null)
+            if (!(sender is Hyperlink hyperlink))
             {
                 return;
             }
 
-            var item = hyperlink.Tag as DiagnosticData;
-            if (item == null)
+            if (!(hyperlink.Tag is DiagnosticData item))
             {
                 return;
             }

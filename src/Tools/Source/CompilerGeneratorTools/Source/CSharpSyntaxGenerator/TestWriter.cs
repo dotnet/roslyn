@@ -263,7 +263,21 @@ namespace CSharpSyntaxGenerator
                     }
                     else
                     {
-                        WriteLine("Assert.NotNull(node.{0});", field.Name);
+                        if (field.Type == "SyntaxToken")
+                        {
+                            WriteLine("Assert.NotEqual(default, node.{0});", field.Name);
+                        }
+                        else if (
+                            field.Type == "SyntaxTokenList" ||
+                            field.Type.StartsWith("SyntaxList<") ||
+                            field.Type.StartsWith("SeparatedSyntaxList<"))
+                        {
+                            WriteLine("Assert.Equal(default, node.{0});", field.Name);
+                        }
+                        else
+                        {
+                            WriteLine("Assert.NotNull(node.{0});", field.Name);
+                        }
                     }
 
                     if (!isGreen)

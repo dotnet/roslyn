@@ -139,24 +139,22 @@ text;
 
         protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, EnterKeyRule sendThroughEnterOption, bool expected)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(initialMarkup))
-            {
-                var hostDocument = workspace.DocumentWithCursor;
-                var documentId = workspace.GetDocumentId(hostDocument);
-                var document = workspace.CurrentSolution.GetDocument(documentId);
-                var position = hostDocument.CursorPosition.Value;
+            using var workspace = TestWorkspace.CreateCSharp(initialMarkup);
+            var hostDocument = workspace.DocumentWithCursor;
+            var documentId = workspace.GetDocumentId(hostDocument);
+            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var position = hostDocument.CursorPosition.Value;
 
-                workspace.Options = workspace.Options.WithChangedOption(
-                    CompletionOptions.EnterKeyBehavior,
-                    LanguageNames.CSharp,
-                    sendThroughEnterOption);
+            workspace.Options = workspace.Options.WithChangedOption(
+                CompletionOptions.EnterKeyBehavior,
+                LanguageNames.CSharp,
+                sendThroughEnterOption);
 
-                var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
-                var item = completionList.Items.First(i => (i.DisplayText + i.DisplayTextSuffix).StartsWith(textTypedSoFar));
+            var service = GetCompletionService(workspace);
+            var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
+            var item = completionList.Items.First(i => (i.DisplayText + i.DisplayTextSuffix).StartsWith(textTypedSoFar));
 
-                Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar));
-            }
+            Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar));
         }
 
         protected void TestCommonIsTextualTriggerCharacter()
