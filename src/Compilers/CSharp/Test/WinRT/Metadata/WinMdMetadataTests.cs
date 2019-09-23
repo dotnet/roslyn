@@ -131,9 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var blk = clas.GetMembers("Black").Single();
             //The windows.winmd module points to a Windows.UI.Color which should be modified to belong
             //to System.Runtime.WindowsRuntime
-            Assert.Equal(                   "System.Runtime.WindowsRuntime.dll",
-((Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PENamedTypeSymbol)
-                ((((Microsoft.CodeAnalysis.CSharp.Symbols.PropertySymbol)(blk)).GetMethod).ReturnType)).ContainingModule.ToString());
+            Assert.Equal("System.Runtime.WindowsRuntime.dll", ((PENamedTypeSymbol)((((PropertySymbol)(blk)).GetMethod).ReturnType)).ContainingModule.ToString());
         }
 
         /// <summary>

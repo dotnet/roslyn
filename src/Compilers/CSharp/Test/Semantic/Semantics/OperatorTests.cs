@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotEqual(insideEnumDefinition, insideMethodBody);
 
-            Assert.Equal(                "System.Int32 System.Int32.op_BitwiseOr(System.Int32 left, System.Int32 right)",
+            Assert.Equal("System.Int32 System.Int32.op_BitwiseOr(System.Int32 left, System.Int32 right)",
 insideEnumDefinition.Symbol.ToTestDisplayString());
-            Assert.Equal(                "TestEnum TestEnum.op_BitwiseOr(TestEnum left, TestEnum right)",
+            Assert.Equal("TestEnum TestEnum.op_BitwiseOr(TestEnum left, TestEnum right)",
 insideMethodBody.Symbol.ToTestDisplayString());
         }
 
