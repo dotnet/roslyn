@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Tagger
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
 {
     // We implement both ITaggerProvider and IViewTaggerProvider.  The former is so that
     // we can classify buffers not associated with views (VS actually uses these in cases like the

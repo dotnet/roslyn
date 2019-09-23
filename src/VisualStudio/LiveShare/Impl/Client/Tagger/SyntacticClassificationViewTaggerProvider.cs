@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using TPL = System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Tagger
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
 {
     /// <summary>
     /// this is almost straight copy from typescript for syntatic LSP experiement.

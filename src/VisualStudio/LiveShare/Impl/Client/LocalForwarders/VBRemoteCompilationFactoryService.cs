@@ -3,9 +3,8 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServices.LiveShare.Client;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.LocalForwarders
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarders
 {
     [ExportLanguageServiceFactory(typeof(ICompilationFactoryService), StringConstants.VBLspLanguageName), Shared]
     internal class VBRemoteCompilationFactoryService : ILanguageServiceFactory

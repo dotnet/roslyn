@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Tagger
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
 {
     /// <remarks>
     /// Adapted from Microsoft.CodeAnalysis.Editor.Implementation.Classification.SyntacticClassificationTaggerProvider.

@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Tagger
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
 {
     /// <summary>
     /// this is almost straight copy from typescript for syntatic LSP experiement.

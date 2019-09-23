@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.LiveShare.Client;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classification;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Tagger
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
 {
     /// <summary>
     /// this is almost straight copy from typescript for syntatic LSP experiement.
