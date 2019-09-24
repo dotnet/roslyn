@@ -1444,15 +1444,8 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
 
             Assert.Equal("cs000", options[0].TreeOptions.Keys.Single());
 
-            Assert.True(
-                object.ReferenceEquals(
-                    options[0].TreeOptions.Keys.First(),
-                    options[1].TreeOptions.Keys.First()));
-
-            Assert.True(
-                object.ReferenceEquals(
-                    options[1].TreeOptions.Keys.First(),
-                    options[2].TreeOptions.Keys.First()));
+            Assert.Same(options[0].TreeOptions.Keys.First(), options[1].TreeOptions.Keys.First());
+            Assert.Same(options[1].TreeOptions.Keys.First(), options[2].TreeOptions.Keys.First());
         }
 
         [Fact]
@@ -1468,25 +1461,10 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
                 configs);
             configs.Free();
 
-            Assert.True(
-                object.ReferenceEquals(
-                    options[0].TreeOptions,
-                    options[1].TreeOptions));
-
-            Assert.True(
-                object.ReferenceEquals(
-                    options[0].AnalyzerOptions,
-                    options[1].AnalyzerOptions));
-
-            Assert.True(
-                object.ReferenceEquals(
-                    options[1].TreeOptions,
-                    options[2].TreeOptions));
-
-            Assert.True(
-                object.ReferenceEquals(
-                    options[1].AnalyzerOptions,
-                    options[2].AnalyzerOptions));
+            Assert.Same(options[0].TreeOptions, options[1].TreeOptions);
+            Assert.Same(options[0].AnalyzerOptions, options[1].AnalyzerOptions);
+            Assert.Same(options[1].TreeOptions, options[2].TreeOptions);
+            Assert.Same(options[1].AnalyzerOptions, options[2].AnalyzerOptions);
         }
 
         #endregion
