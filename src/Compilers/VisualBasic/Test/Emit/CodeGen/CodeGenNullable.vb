@@ -4885,7 +4885,7 @@ GetBool2
             )
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopClrOnly))>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_02()
             CompileAndVerify(
@@ -4931,7 +4931,7 @@ y => (((y.GetBool3() == Convert(True)) OrElse Convert(y.GetBool2())) ?? False)
             )
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopClrOnly))>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_03()
             CompileAndVerify(
